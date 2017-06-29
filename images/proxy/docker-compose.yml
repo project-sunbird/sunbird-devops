@@ -1,0 +1,21 @@
+version: '3.1'
+
+services:
+  proxy:
+    image: "${AUTHOR}/${NAME}:${TAG}"
+    environment:
+    ports:
+      - "443:443"
+      - "80:80"
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.env==${ENV}"
+    secrets:
+      - source: site.key
+        target: site.key
+      - source: site.crt
+        target: site.crt
+      - source: default.conf
+        target: /etc/nginx/conf.d/default.conf
