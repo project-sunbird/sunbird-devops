@@ -4,7 +4,7 @@
 e () {
     echo $( echo ${1} | jq ".${2}" | sed 's/\"//g')
 }
-m=$(./src/metadata.sh)
+m=$(./metadata.sh)
 
 author=$(e "${m}" "author")
 name=$(e "${m}" "name")
