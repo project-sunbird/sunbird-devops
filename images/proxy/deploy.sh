@@ -21,4 +21,4 @@ echo "version:        ${version}"
 
 ENV=${env} AUTHOR=${author} NAME=${name} \
 TAG=${version}-${artifactLabel} \
-docker -H tcp://${MANAGER_IP} stack deploy -c docker-compose.yml ${name}-${env}
+docker stack deploy -c docker-compose.yml ${name}-${env}
