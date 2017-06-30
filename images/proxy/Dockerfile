@@ -1,4 +1,4 @@
-FROM nginx
+FROM nginx:alpine
 
 RUN rm -rf /etc/nginx/conf.d
 COPY conf.d /etc/nginx/conf.d
