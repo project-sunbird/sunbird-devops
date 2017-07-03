@@ -1,6 +1,35 @@
 version: '3.1'
 
 services:
+  mongo:
+    image : "mongo:latest"
+    deploy:
+      replicas: 1
+    ports:
+     - "27017:27017"
+    networks:
+      - default
+
+  player:
+    image : "manojrpms/sunbird_actor_service_image:latest"
+    deploy:
+      replicas: 1
+    ports:
+     - "80:80"
+    networks:
+      - default
+
+  content:
+    image : "manojrpms/sunbird_content_service_image:latest"
+    environment:
+      sunbird_mongo_ip: application_mongo
+    deploy:
+      replicas: 1
+    ports:
+     - "5000:5000"
+    networks:
+      - default
+
   cassandra:
     image : "cassandra:latest"
     deploy:
@@ -20,16 +49,12 @@ services:
       - default
 
   actor:
-    image: "manojrpms/sunbird_actor_service_image"
+    image: "manojrpms/sunbird_actor_service_image:latest"
     environment:
       sunbird_cassandra_host: application_cassandra
       sunbird_cassandra_port: 9042
       sunbird_es_host: application_elasticsearch
       sunbird_es_port: 9200
-    links:
-      - cassandra
-      - elasticsearch
-
     ports:
      - "8088:8088"
     deploy:
@@ -38,7 +63,7 @@ services:
       - default
 
   learner:
-    image : "manojrpms/sunbird_learner_service_image"
+    image : "manojrpms/sunbird_learner_service_image:latest"
     environment:
       sunbird_learnerstate_actor_host: "application_actor"
       sunbird_learnerstate_actor_port: "8088"
