@@ -1,0 +1,55 @@
+version: '3.1'
+
+services:
+  cassandra:
+    image : "cassandra:latest"
+    deploy:
+      replicas: 1
+    ports:
+     - "9042:9042"
+    networks:
+      - default
+
+  elasticsearch:
+    image : "elasticsearch:latest"
+    deploy:
+      replicas: 1
+    ports:
+     - "9200:9200"
+    networks:
+      - default
+
+  actor:
+    image: "manojrpms/sunbird_actor_service_image"
+    environment:
+      sunbird_cassandra_host: application_cassandra
+      sunbird_cassandra_port: 9042
+      sunbird_es_host: application_elasticsearch
+      sunbird_es_port: 9200
+    links:
+      - cassandra
+      - elasticsearch
+
+    ports:
+     - "8088:8088"
+    deploy:
+      replicas: 1
+    networks:
+      - default
+
+  learner:
+    image : "manojrpms/sunbird_learner_service_image"
+    environment:
+      sunbird_learnerstate_actor_host: "application_actor"
+      sunbird_learnerstate_actor_port: "8088"
+
+    deploy:
+      replicas: 1
+    ports:
+     - "9000:9000"
+    networks:
+      - default
+
+networks:
+  default:
+    driver: overlay
