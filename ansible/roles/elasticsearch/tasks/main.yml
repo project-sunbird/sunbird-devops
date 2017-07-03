@@ -1,29 +1,79 @@
 ---
-- name: Add Elasticsearch apt key.
-  apt_key:
-    url: https://packages.elastic.co/GPG-KEY-elasticsearch
-    state: present
+- include: debian.yml
+  when: ansible_os_family == "Debian"
 
-- name: Add Elasticsearch repository.
-  apt_repository:
-    repo: 'deb http://packages.elastic.co/elasticsearch/2.x/debian stable main'
-    state: present
-    update_cache: yes
+- include: redhat.yml
+  when: ansible_os_family == "RedHat"
 
-- name: Install Elasticsearch.
-  apt: pkg=elasticsearch state=present
+- name: Copy /etc/elasticsearch/elasticsearch.yml
+  template: src=elasticsearch.yml dest=/etc/elasticsearch/elasticsearch.yml
+  tags: update_es_config
+  notify: Restart elasticsearch
 
-- name: Configure Elasticsearch.
-  template:
-    src: elasticsearch.yml.j2
-    dest: /etc/elasticsearch/elasticsearch.yml
-    owner: root
-    group: elasticsearch
-    mode: 0750
-  notify: restart elasticsearch
+- name: Creates data directory
+  file:
+    path={{ es_etc_path_data }}
+    state=directory
+    mode=755
+    owner={{ es_user }}
+    group={{ es_user }}
 
-- name: Start Elasticsearch.
+- name: Creates scripts directory
+  file:
+    path={{ elasticsearch_config }}/scripts
+    state=directory
+    mode=755
+    owner={{ es_user }}
+    group={{ es_user }}
+
+- name: Copy logger file
+  template: src=logging.yml dest={{ elasticsearch_config }}/logging.yml
+  sudo: yes
+  tags: update_es_config
+  notify: Restart elasticsearch
+
+- name: Add convert script
+  copy: src=convert_to_hours.groovy dest={{ elasticsearch_config }}/scripts/convert_to_hours.groovy mode=0666
+  notify: Restart elasticsearch
+
+- name: Add convert script
+  copy: src=completed_years.groovy dest={{ elasticsearch_config }}/scripts/completed_years.groovy mode=0666
+  notify: Restart elasticsearch
+
+- name: Set elasticsearch service to start on boot
+  service: name=elasticsearch enabled=yes
+
+- name: Remove plugins
+  command: bin/plugin remove {{item.name}}
+  args:
+    chdir: "{{ es_home }}"
+  with_items: es_plugins
+  ignore_errors: yes
+  notify: Restart elasticsearch
+
+- name: Install plugins
+  command: bin/plugin install {{item.name}} {%if item.url is defined %} url {{item.url}}{% endif %}
+  args:
+    chdir: "{{ es_home }}"
+    creates: "{{ es_home }}/plugins/{{ item.plugin_file | default(item.name) }}"
+  with_items: es_plugins
+  ignore_errors: yes
+  notify: Restart elasticsearch
+
+- name: Configure /etc/security/limits.conf
+  lineinfile: >
+    dest=/etc/security/limits.conf
+    line="{{ item.line }}"
+    state=present
+  with_items:
+    - { line: 'elasticsearch - nofile {{ es_default_max_open_files }}' }
+    - { line: 'elasticsearch - memlock unlimited' }
+    - { line: 'root - memlock unlimited' }
+  sudo: yes
+  notify: Restart elasticsearch
+
+- name: Start Elasticsearch
   service: name=elasticsearch state=started enabled=yes
+  become: yes
 
-- name: Make sure Elasticsearch is running before proceeding.
-  wait_for: host={{ elasticsearch_network_host }} port={{ elasticsearch_http_port }} delay=3 timeout=300
+  

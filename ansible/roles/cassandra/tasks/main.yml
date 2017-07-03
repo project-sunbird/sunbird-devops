@@ -1,53 +1,55 @@
-## Cassandra Provisioning ##
-- name: Cassandra | Install required python packages for cassandra snapshotter via apt-get
-  become: yes
-  action: apt pkg={{ item }} state=present update_cache=yes
-  with_items:
-    - libffi-dev
-    - libssl-dev
-    - build-essential
-    - python-dev
-    - lzop
-    - curl
-    
-- name: Cassandra | Add the datastax repository apt-key
-  become: yes
+# ---
+# - name: debian | update package list
+#   apt:
+#     update_cache: yes
+#     cache_valid_time: 3600
+
+# - name: debian | Installing Pre-Reqs
+#   apt:
+#     name: "{{ item }}"
+#     force: yes
+#     state: "present"
+#   with_items:
+#     - 'apt-transport-https'
+#     - 'ca-certificates'
+#     - 'python-pip'
+#     - 'libssl-dev'
+
+# - name: debian |  Upgrade pip
+#   pip:
+#     name: pip
+#     extra_args: --upgrade
+
+# - name: debian | Installing Python Modules
+#   pip:
+#     name: "{{ item }}"
+#     state: "present"
+#   with_items:
+#     - 'urllib3'
+#     - 'pyopenssl'
+#     - 'ndg-httpsclient'
+#     - 'pyasn1'
+
+- name: debian | Adding Cassandra Debian Repo Key
   apt_key:
-    url: "http://debian.datastax.com/debian/repo_key"
-    state: present
-  tags:
-    - provision
+    url: "{{ cassandra_debian_repo_info.repo_key }}"
+    state: "present"
 
-- name: Cassandra | Add the cassandra 3.7 repository
-  become: yes
+- name: debian | Adding Cassandra Debian Repo
   apt_repository:
-    repo: "deb http://debian.datastax.com/datastax-ddc 3.7 main"
-    state: present
-  tags:
-    - provision
+    repo: "{{ cassandra_debian_repo_info.repo }}"
+    state: "present"
 
-- name: Cassandra | Install the cassandra package
-  become: yes
+- name: debian | Installing Cassandra
   apt:
-    name: cassandra
-    state: present
-    update_cache: yes
-  tags:
-    - provision
+    name: "cassandra"
+    state: "present"
 
-- name: Cassandra | Update the cassandra configuration
-  become: yes
+- name: config | Configuring Cassandra
   template:
-    src: "cassandra.j2"
-    dest: "/etc/cassandra/cassandra.yaml"
+    src: "cassandra.yaml.j2"
+    dest: "{{ cassandra_root_dir }}/cassandra.yaml"
+    owner: "root"
+    group: "root"
     mode: 0644
-  tags:
-    - provision
-
-- name: Cassandra | Restart cassandra
-  become: yes
-  service:
-    name: cassandra
-    state: restarted
-  tags:
-    - provision
+  notify: "restart cassandra"
