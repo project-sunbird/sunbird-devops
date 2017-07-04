@@ -19,6 +19,11 @@ echo "org:            ${org}"
 echo "name:           ${name}"
 echo "version:        ${version}"
 
-ENV=${env} ORG=${org} NAME=${name} \
-TAG=${version}-${artifactLabel} \
-docker -H tcp://${MANAGER_IP} stack deploy -c ./images/proxy/docker-compose.yml ${name}-${env}
+
+ansible-playbook --version
+
+ansible-playbook -i inventory/dev deploy.yml --tags "stack-proxy" --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel}"
+
+# ENV=${env} ORG=${org} NAME=${name} \
+# TAG=${version}-${artifactLabel} \
+# docker -H tcp://${MANAGER_IP} stack deploy -c ./images/proxy/docker-compose.yml ${name}-${env}

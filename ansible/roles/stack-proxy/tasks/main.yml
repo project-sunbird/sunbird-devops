@@ -1,0 +1,24 @@
+---
+- name: Ensure env directory exists
+  file:
+    path: /home/deployer/env
+    state: directory
+    owner: root
+    group: root
+
+- name: Ensure stack directory exists
+  file:
+    path: /home/deployer/stack
+    state: directory
+    owner: root
+    group: root
+
+- name: Save configurations into an env file
+  template: src=proxy.env dest=/home/deployer/env/proxy.env mode=0644
+
+- name: Save stack file
+  template: src=stack-proxy.yml dest=/home/deployer/stack/proxy.yml mode=0644
+
+- name: Deploy stack
+  shell: docker stack deploy -c proxy.yml proxy
+  chdir: /home/deployer/stack

@@ -1,0 +1,37 @@
+version: '3.1'
+
+services:
+  proxy:
+    image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
+    ports:
+      - "443:443"
+      - "80:80"
+    deploy:
+      replicas: 1
+    secrets:
+      - site.key
+      - site.crt
+    networks:
+      - default
+      - api-manager_default
+      - jenkins_default
+      - monitor
+      - application_default
+
+secrets:
+  site.key:
+    external: true
+  site.crt:
+    external: true
+
+networks:
+  api-manager_default:
+    external: true
+  jenkins_default:
+    external: true
+  monitor:
+    external: true
+  application_default:
+    external: true
+  default:
+    driver: overlay
