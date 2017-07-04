@@ -1,4 +1,4 @@
-version: '3.1'
+version: '3'
 
 services:
 
@@ -20,37 +20,11 @@ services:
       placement:
         constraints:
           - "node.labels.jenkins==1"
-    networks:
-      - jenkins
 
-  jenkins-slave:
-    image: vfarcic/jenkins-swarm-agent
-    environment:
-      - USER_NAME_SECRET=/run/secrets/${JENKINS_USER_SECRET:-jenkins-user}
-      - PASSWORD_SECRET=/run/secrets/${JENKINS_PASS_SECRET:-jenkins-pass}
-      - COMMAND_OPTIONS=-master http://jenkins:50000/jenkins -labels 'docker' -executors 5 -disableSslVerification
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /workspace:/workspace
-    secrets:
-      - jenkins-user
-      - jenkins-pass
-    networks:
-      - jenkins
-
-secrets:
-  jenkins-user:
-    external: true
-  jenkins-pass:
-    external: true
 
 volumes:
   jenkins:
     driver: local
-
-networks:
-  jenkins:
-    driver: overlay
 
 # docker service create --name jenkins \
 #     -p 8082:8080 \
