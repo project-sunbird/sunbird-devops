@@ -13,6 +13,8 @@ services:
       placement:
         constraints:
           - node.role==manager
+    networks:
+      - viz
 
   influx:
     image: influxdb
@@ -23,6 +25,8 @@ services:
       placement:
         constraints:
           - node.labels.influx==1
+    networks:
+      - monitor
 
   grafana:
     image: grafana/grafana
@@ -37,6 +41,8 @@ services:
       placement:
         constraints:
           - node.labels.grafana==1
+    networks:
+      - monitor
 
   cadvisor:
     image: google/cadvisor
@@ -51,9 +57,17 @@ services:
       - influx
     deploy:
       mode: global
+    networks:
+      - monitor
 
 volumes:
   influx:
     driver: local
   grafana:
     driver: local
+
+networks:
+  monitor:
+    external: true
+  viz:
+    external: true
