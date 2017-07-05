@@ -77,7 +77,7 @@ if  __name__ == "__main__":
         input_apis = json.load(apis_file)
         try:
             save_apis(args.kong_admin_api_url, input_apis)
-        except HTTPError as e:
+        except urllib2.HTTPError as e:
             error_message = e.read()
             print(error_message)
             raise
