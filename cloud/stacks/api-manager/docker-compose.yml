@@ -1,24 +1,27 @@
 version: '3'
 
 services:
-  cassandra:
-    image: cassandra:3.11.0
+  postgres:
+    image: postgres:9.6.3
+    environment:
+      POSTGRES_USER=kong
+      POSTGRES_DB=kong
     volumes:
-      - cassandra:/var/lib/cassandra
+      - pgdata:/var/lib/postgresql/data
     networks:
       - default
     deploy:
       replicas: 1
       placement:
         constraints:
-          - node.labels.cassandra==1
+          - node.labels.kong_postgres==1
 
   kong:
-    image: kong:0.10.3
+    image: kong:0.9.9
     environment:
-      KONG_CASSANDRA_CONTACT_POINTS: api-manager_cassandra
+      KONG_CASSANDRA_CONTACT_POINTS: api-manager_postgres
       KONG_LOG_LEVEL: info
-      KONG_DATABASE: cassandra
+      KONG_DATABASE: postgres
     ports:
       - 8000:8000
       - 8001:8001
@@ -29,7 +32,7 @@ services:
       replicas: 1
 
 volumes:
-  cassandra:
+  pgdata:
     driver: local
 
 networks:
