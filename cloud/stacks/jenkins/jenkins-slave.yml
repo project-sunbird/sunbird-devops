@@ -19,6 +19,24 @@ services:
     networks:
       - jenkins_default
 
+  api-manager-jenkins-slave:
+    image: sunbird/api-manager-jenkins-swarm-agent
+    environment:
+      - USER_NAME_SECRET=/run/secrets/${JENKINS_USER_SECRET:-jenkins-user}
+      - PASSWORD_SECRET=/run/secrets/${JENKINS_PASS_SECRET:-jenkins-pass}
+      - COMMAND_OPTIONS=-master http://jenkins:8080/jenkins -labels 'kong-api' -executors 1 -name api-manager-jenkins-slave
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /workspace:/workspace
+    secrets:
+      - jenkins-user
+      - jenkins-pass
+    deploy:
+      replicas: 1
+    networks:
+      - jenkins_default
+      - api-manager_default
+
 secrets:
   jenkins-user:
     external: true
@@ -27,4 +45,6 @@ secrets:
 
 networks:
   jenkins_default:
+    external: true
+  api-manager_default:
     external: true
