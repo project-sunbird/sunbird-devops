@@ -75,4 +75,9 @@ if  __name__ == "__main__":
     args = parser.parse_args()
     with open(args.apis_file_path) as apis_file:
         input_apis = json.load(apis_file)
-        save_apis(args.kong_admin_api_url, input_apis)
+        try:
+            save_apis(args.kong_admin_api_url, input_apis)
+        except HTTPError as e:
+            error_message = e.read()
+            print(error_message)
+            raise
