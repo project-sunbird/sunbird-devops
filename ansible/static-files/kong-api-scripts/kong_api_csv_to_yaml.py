@@ -14,7 +14,7 @@ def convert_csv_to_yaml(apis_csv_file):
     for row in reader:
         apis.append(OrderedDict([
             ('name', row['NAME']),
-            ('uris', row['REQUEST PATH']),
+            ('uris', [row['REQUEST PATH']]),
             ('upstream_url', row['UPSTREAM PATH']),
             ('strip_uri', True),
             ('plugins', [
