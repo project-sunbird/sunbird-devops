@@ -50,13 +50,23 @@ services:
 
   elasticsearch:
     image : "elasticsearch:latest"
-    volumes:
-      - elasticsearch:/var/lib/elasticsearch
     deploy:
       replicas: 1
       placement:
         constraints:
-          - node.labels.application_elasticsearch==1
+          - node.labels.label_elasticsearch==1
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 1g
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
     ports:
      - "9200:9200"
     networks:
