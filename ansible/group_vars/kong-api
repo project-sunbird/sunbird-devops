@@ -1,0 +1,650 @@
+kong_admin_api_url: "http://api-manager_kong:8001"
+
+# Default statsd_metrics
+statsd_metrics: ["request_count", "status_count", "latency", "upstream_latency", "request_size", "response_size"]
+
+# Default Rate limits
+small_rate_limit_per_hour: 100
+medium_rate_limit_per_hour: 1000
+
+# Default max request size in MB
+small_request_size_limit: 1
+medium_request_size_limit: 10
+
+# Default service prefixes
+content_service_prefix: /content
+course_service_prefix: /course
+user_service_prefix: /user
+data_service_prefix: /data
+notes_service_prefix: /notes
+org_service_prefix: /org
+
+# Service URLs
+content_service_url: "http://application_content"
+learning_service_url: "http://application_learner"
+
+# Consumers to be on-boarded
+kong_consumers:
+  - username: api-management-test-user
+    groups: "{{ kong_all_consumer_groups }}"
+    state: present
+  - username: add-any-consumer-to-be-deleted
+    state: absent
+
+# APIs to be on-boarded
+kong_apis:
+  - name: createContent
+    request_path: '{{ content_service_prefix }}/v1/create'
+    upstream_url: '{{ content_service_url }}/v1/content/create'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: searchContent
+    request_path: '{{ content_service_prefix }}/v1/search'
+    upstream_url: '{{ content_service_url }}/v1/content/search'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: contentUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: updateContent
+    request_path: '{{ content_service_prefix }}/v1/update'
+    upstream_url: '{{ content_service_url }}/v1/content/update'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: readContent
+    request_path: '{{ content_service_prefix }}/v1/read'
+    upstream_url: '{{ content_service_url }}/v1/content/read'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: contentUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: submitContentForReview
+    request_path: '{{ content_service_prefix }}/v1/review'
+    upstream_url: '{{ content_service_url }}/v1/content/review'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: publishContent
+    request_path: '{{ content_service_prefix }}/v1/publish'
+    upstream_url: '{{ content_service_url }}/v1/content/publish'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: uploadContent
+    request_path: '{{ content_service_prefix }}/v1/upload'
+    upstream_url: '{{ content_service_url }}/v1/content/upload'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: retireContent
+    request_path: '{{ content_service_prefix }}/v1/retire'
+    upstream_url: '{{ content_service_url }}/v1/content/retire'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: createCourse
+    request_path: '{{ course_service_prefix }}/v1/create'
+    upstream_url: '{{ learning_service_url }}/v1/course/create'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: searchCourse
+    request_path: '{{ course_service_prefix }}/v1/search'
+    upstream_url: '{{ learning_service_url }}/v1/course/search'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: updateCourse
+    request_path: '{{ course_service_prefix }}/v1/update'
+    upstream_url: '{{ learning_service_url }}/v1/course/update'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: readCourse
+    request_path: '{{ course_service_prefix }}/v1/read'
+    upstream_url: '{{ learning_service_url }}/v1/course/read'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: submitCourseForReview
+    request_path: '{{ course_service_prefix }}/v1/review'
+    upstream_url: '{{ learning_service_url }}/v1/course/review'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: publishCourse
+    request_path: '{{ course_service_prefix }}/v1/publish'
+    upstream_url: '{{ learning_service_url }}/v1/course/publish'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: retireCourse
+    request_path: '{{ course_service_prefix }}/v1/retire'
+    upstream_url: '{{ learning_service_url }}/v1/course/retire'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: getCourseHierarchy
+    request_path: '{{ course_service_prefix }}/v1/hierarchy'
+    upstream_url: '{{ learning_service_url }}/v1/course/hierarchy'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: courseEnrolment
+    request_path: '{{ course_service_prefix }}/v1/enrol'
+    upstream_url: '{{ learning_service_url }}/v1/course/enrol'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: listCourseEnrollments
+    request_path: '{{ course_service_prefix }}/v1/user/enrollment/list'
+    upstream_url: '{{ learning_service_url }}/v1/user/courses/list'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: readContentState
+    request_path: '{{ course_service_prefix }}/v1/content/state/read'
+    upstream_url: '{{ learning_service_url }}/v1/content/state/read'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: updateContentState
+    request_path: '{{ course_service_prefix }}/v1/content/state/update'
+    upstream_url: '{{ learning_service_url }}/v1/content/state/update'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: createUser
+    request_path: '{{ user_service_prefix }}/v1/create'
+    upstream_url: '{{ learning_service_url }}/v1/user/create'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: userAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: updateUser
+    request_path: '{{ user_service_prefix }}/v1/update'
+    upstream_url: '{{ learning_service_url }}/v1/user/update'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: userAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: getUserProfile
+    request_path: '{{ user_service_prefix }}/v1/read'
+    upstream_url: '{{ learning_service_url }}/v1/user/read'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: publicUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: searchUser
+    request_path: '{{ user_service_prefix }}/v1/search'
+    upstream_url: '{{ learning_service_url }}/v1/user/search'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: publicUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: retireUser
+    request_path: '{{ user_service_prefix }}/v1/retire'
+    upstream_url: '{{ learning_service_url }}/v1/user/read'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: userAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: createPage
+    request_path: '{{ data_service_prefix }}/v1/page/create'
+    upstream_url: '{{ learning_service_url }}/v1/page/create'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: appAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: updatePage
+    request_path: '{{ data_service_prefix }}/v1/page/update'
+    upstream_url: '{{ learning_service_url }}/v1/page/update'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: appAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: getPageSettings
+    request_path: '{{ data_service_prefix }}/v1/page/read'
+    upstream_url: '{{ learning_service_url }}/v1/page/read'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: appAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: assemblePage
+    request_path: '{{ data_service_prefix }}/v1/page/assemble'
+    upstream_url: '{{ learning_service_url }}/v1/page/assemble'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: publicUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: createNote
+    request_path: '{{ notes_service_prefix }}/v1/create'
+    upstream_url: '{{ content_service_url }}/v1/note/create'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: noteAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: updateNote
+    request_path: '{{ notes_service_prefix }}/v1/update'
+    upstream_url: '{{ content_service_url }}/v1/note/update'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: noteAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: readNote
+    request_path: '{{ notes_service_prefix }}/v1/read'
+    upstream_url: '{{ content_service_url }}/v1/note/read'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: noteUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: searchNotes
+    request_path: '{{ notes_service_prefix }}/v1/search'
+    upstream_url: '{{ content_service_url }}/v1/note/search'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: noteUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: createOrg
+    request_path: '{{ org_service_prefix }}/v1/create'
+    upstream_url: '{{ learning_service_url }}/v1/org/create'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: updateOrg
+    request_path: '{{ org_service_prefix }}/v1/update'
+    upstream_url: '{{ learning_service_url }}/v1/org/update'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: readOrg
+    request_path: '{{ org_service_prefix }}/v1/read'
+    upstream_url: '{{ learning_service_url }}/v1/org/read'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: searchOrg
+    request_path: '{{ org_service_prefix }}/v1/search'
+    upstream_url: '{{ learning_service_url }}/v1/org/search'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: addMember
+    request_path: '{{ org_service_prefix }}/v1/member/add'
+    upstream_url: '{{ learning_service_url }}/v1/org/member/add'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: removeMember
+    request_path: '{{ org_service_prefix }}/v1/member/remove'
+    upstream_url: '{{ learning_service_url }}/v1/org/member/remove'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: suspendMember
+    request_path: '{{ org_service_prefix }}/v1/member/suspend'
+    upstream_url: '{{ learning_service_url }}/v1/org/member/suspend'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: updateMembership
+    request_path: '{{ org_service_prefix }}/v1/member/update'
+    upstream_url: '{{ learning_service_url }}/v1/org/member/update'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
