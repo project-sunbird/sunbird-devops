@@ -21,4 +21,4 @@ echo "version:        ${version}"
 
 ENV=${env} ORG=${org} NAME=${name} \
 TAG=${version}-${artifactLabel} \
-docker stack deploy -c ./images/proxy/docker-compose.yml ${name}-${env}
+docker -H tcp://${MANAGER_IP} stack deploy -c ./images/proxy/docker-compose.yml ${name}-${env}
