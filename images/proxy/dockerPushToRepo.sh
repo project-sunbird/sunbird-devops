@@ -4,14 +4,15 @@
 e () {
     echo $( echo ${1} | jq ".${2}" | sed 's/\"//g')
 }
-m=$(./metadata.sh)
+m=$(./images/proxy/metadata.sh)
 
-author=$(e "${m}" "author")
+org=$(e "${m}" "org")
+hubuser=$(e "${m}" "hubuser")
 name=$(e "${m}" "name")
 version=$(e "${m}" "version")
 
 artifactLabel=${ARTIFACT_LABEL:-bronze}
 
-docker login -u "${author}" -p`cat /run/secrets/hub-pass`
-docker push ${author}/${name}:${version}-${artifactLabel}
+docker login -u "${hubuser}" -p`cat /run/secrets/hub-pass`
+docker push ${org}/${name}:${version}-${artifactLabel}
 docker logout

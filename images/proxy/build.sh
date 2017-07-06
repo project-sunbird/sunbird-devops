@@ -6,8 +6,8 @@ e () {
 }
 m=$(./images/proxy/metadata.sh)
 
-author=$(e "${m}" "author")
+org=$(e "${m}" "org")
 name=$(e "${m}" "name")
 version=$(e "${m}" "version")
 
-docker build -f ./images/proxy/Dockerfile -t ${author}/${name}:${version}-bronze .
+docker build -f ./images/proxy/Dockerfile -t ${org}/${name}:${version}-bronze .
