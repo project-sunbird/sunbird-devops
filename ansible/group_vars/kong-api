@@ -18,10 +18,26 @@ user_service_prefix: /user
 data_service_prefix: /data
 notes_service_prefix: /notes
 org_service_prefix: /org
+echo_service_prefix: /echo
 
 # Service URLs
 content_service_url: "http://application_content:5000"
 learning_service_url: "http://application_learner:9000"
+echo_service_url: "http://api-manager_echo:9090"
+
+kong_all_consumer_groups:
+  - appAdmin
+  - contentAdmin
+  - contentUser
+  - courseAdmin
+  - courseUser
+  - echoUser
+  - noteAdmin
+  - noteUser
+  - orgAdmin
+  - orgUser
+  - publicUser
+  - userAdmin
 
 # Consumers to be on-boarded
 kong_consumers:
@@ -644,6 +660,21 @@ kong_apis:
       config.metrics: '{{ statsd_metrics }}'
     - name: acl
       config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: echo
+    request_path: '{{ echo_service_prefix }}'
+    upstream_url: '{{ echo_service_url }}'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: echoUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
     - name: request-size-limiting
