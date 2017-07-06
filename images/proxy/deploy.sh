@@ -22,7 +22,7 @@ echo "version:        ${version}"
 
 ansible-playbook --version
 
-ansible-playbook -i inventory/dev deploy.yml --tags "stack-proxy" --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel}"
+ansible-playbook -i ansible/inventory/dev ansible/deploy.yml --tags "stack-proxy" --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel}"
 
 # ENV=${env} ORG=${org} NAME=${name} \
 # TAG=${version}-${artifactLabel} \
