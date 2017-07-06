@@ -10,4 +10,4 @@ author=$(e "${m}" "author")
 name=$(e "${m}" "name")
 version=$(e "${m}" "version")
 
-docker build -f ./Dockerfile -t ${author}/${name}:${version}-bronze .
+docker build -f ./images/proxy/Dockerfile -t ${author}/${name}:${version}-bronze .
