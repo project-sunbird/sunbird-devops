@@ -32,11 +32,12 @@ def save_consumers(kong_admin_api_url, consumers, kong_credentials_file_path):
         _ensure_consumer_exists(kong_admin_api_url, consumer)
         _save_groups_for_consumer(kong_admin_api_url, consumer)
         jwt_credential = _get_first_or_create_jwt_credential(kong_admin_api_url, consumer)
-        jwt_token = jwt.encode({'iss': jwt_credential['key']}, jwt_credential['secret'], algorithm='HS256')
-        print("JWT token for {} is : {}".format(username, jwt_token))
+        credential_algorithm = jwt_credential['algorithm']
+        if credential_algorithm == 'HS256':
+            jwt_token = jwt.encode({'iss': jwt_credential['key']}, jwt_credential['secret'], algorithm=credential_algorithm)
+            print("JWT token for {} is : {}".format(username, jwt_token))
         if 'save_credentials' in consumer:
-            _save_credentials_to_a_file(jwt_credential,kong_credentials_file_path)
-
+            _save_credentials_to_a_file(jwt_credential, kong_credentials_file_path)
 
     for consumer in consumers_to_be_absent:
         username = consumer['username']
@@ -47,14 +48,30 @@ def save_consumers(kong_admin_api_url, consumers, kong_credentials_file_path):
 
 def _get_first_or_create_jwt_credential(kong_admin_api_url, consumer):
     username = consumer["username"]
+    credential_algorithm = consumer.get('credential_algorithm', 'HS256')
     consumer_jwt_credentials_url = kong_admin_api_url + "/consumers/" + username + "/jwt"
     saved_credentials_details = json.loads(urllib2.urlopen(consumer_jwt_credentials_url).read())
     saved_credentials = saved_credentials_details["data"]
-    if(len(saved_credentials) > 0):
-        return saved_credentials[0]
+    saved_credentials_for_algorithm = [saved_credential for saved_credential in saved_credentials if saved_credential['algorithm'] == credential_algorithm]
+    if(len(saved_credentials_for_algorithm) > 0):
+        print("Updating credentials for consumer {} for algorithm {}".format(username, credential_algorithm));
+        this_credential = saved_credentials_for_algorithm[0]
+        credential_data = {
+            "rsa_public_key": consumer.get('credential_rsa_public_key', this_credential.get("rsa_public_key", '')),
+            "key": consumer.get('credential_iss', this_credential['key'])
+        }
+        this_credential_url = "{}/{}".format(consumer_jwt_credentials_url, this_credential["id"])
+        response = json_request("PATCH", this_credential_url, credential_data)
+        jwt_credential = json.loads(response.read())
+        return jwt_credential
     else:
         print("Creating jwt credentials for consumer {}".format(username));
-        response = json_request("POST", consumer_jwt_credentials_url, {"algorithm": "HS256"})
+        credential_data = {
+            "algorithm": credential_algorithm,
+            "rsa_public_key": consumer.get('credential_rsa_public_key', None),
+            "key": consumer.get('credential_iss', None)
+        }
+        response = json_request("POST", consumer_jwt_credentials_url, credential_data)
         jwt_credential = json.loads(response.read())
         return jwt_credential
 
