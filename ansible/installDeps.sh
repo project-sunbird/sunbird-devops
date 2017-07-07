@@ -1,1 +1,1 @@
-apk -v add ansible=2.3.0.0-r1
+sudo apk -v add ansible=2.3.0.0-r1
