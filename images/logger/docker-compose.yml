@@ -50,6 +50,24 @@ services:
       - jenkins_default
       - monitor
       - application_default
+  oauth:
+    image: mryu/oauth2-proxy
+    command: |
+      -cookie-secure=false
+      -upstream=http://kibana:5601
+      -redirect-url=https://sunbird-1b.centralindia.cloudapp.azure.com/oauth2/callback
+      -http-address=oauth:4111
+      -email-domain=sahajsoft.com
+    environment:
+      - OAUTH2_PROXY_CLIENT_ID=`cat /run/secrets/google_client_id`
+      - OAUTH2_PROXY_CLIENT_SECRET=`cat /run/secrets/google_client_secret`
+      - OAUTH2_PROXY_COOKIE_SECRET=`cat /run/secrets/cookie_secret`
+    ports:
+      - "4111"
+    secrets:
+      - google_client_id
+      - google_client_secret
+      - cookie_secret
 
 networks:
   api-manager_default:
@@ -62,4 +80,12 @@ networks:
     external: true
   logger:
     driver: overlay
+
+secrets:
+  google_client_id:
+    external: true
+  google_client_secret:
+    external: true
+  cookie_secret:
+    external: true
 
