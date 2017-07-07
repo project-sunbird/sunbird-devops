@@ -7,3 +7,5 @@ RUN apk --update add sudo && \
     pip install --upgrade pip cffi && \
     pip install "ansible==2.1.3"
 RUN pip install PyJWT
+RUN apk add --virtual build-deps gcc python-dev musl-dev && \
+    apk add py2-psycopg2
