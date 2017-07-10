@@ -1,0 +1,28 @@
+---
+- name: Ensure env directory exists
+  file:
+    path: /home/deployer/env
+    state: directory
+    owner: root
+    group: root
+
+- name: Ensure stack directory exists
+  file:
+    path: /home/deployer/stack
+    state: directory
+    owner: root
+    group: root
+
+- name: Save api-manager-postgres configurations into an env file
+  template: src=api-manager-postgres.env dest=/home/deployer/env/api-manager-postgres.env mode=0644
+
+- name: Save configurations into an env file
+  template: src=api-manager.env dest=/home/deployer/env/api-manager.env mode=0644
+
+- name: Save stack file
+  template: src=stack-api-manager.yml dest=/home/deployer/stack/api-manager.yml mode=0644
+
+- name: Deploy stack
+  shell: "docker stack deploy -c api-manager.yml api-manager"
+  args:
+    chdir: /home/deployer/stack
