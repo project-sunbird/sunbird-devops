@@ -8,9 +8,14 @@ pipeline {
                 sh '''
                 export ANSIBLE_HOST_KEY_CHECKING=False
                 cd ansible
-                ansible-playbook -i inventory/dev api-manager.yml --tags kong-consumer --vault-password-file /run/secrets/vault-pass
+                ansible-playbook -i inventory/dev api-manager.yml --tags kong-consumer --vault-password-file /run/secrets/vault-pass -v
                 '''
             }
+        }
+    }
+    post {
+        success {
+            archiveArtifacts allowEmptyArchive: true, artifacts:'/tmp/kong_credentials.txt'
         }
     }
 }
