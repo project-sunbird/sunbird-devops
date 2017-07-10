@@ -108,4 +108,9 @@ if  __name__ == "__main__":
     args = parser.parse_args()
     with open(args.consumers_file_path) as consumers_file:
         input_consumers = json.load(consumers_file)
-        save_consumers(args.kong_admin_api_url, input_consumers, args.kong_credentials_file_path)
+        try:
+            save_consumers(args.kong_admin_api_url, input_consumers, args.kong_credentials_file_path)
+        except urllib2.HTTPError as e:
+            error_message = e.read()
+            print(error_message)
+            raise
