@@ -68,9 +68,11 @@ def _get_first_or_create_jwt_credential(kong_admin_api_url, consumer):
         print("Creating jwt credentials for consumer {}".format(username));
         credential_data = {
             "algorithm": credential_algorithm,
-            "rsa_public_key": consumer.get('credential_rsa_public_key', None),
-            "key": consumer.get('credential_iss', None)
         }
+        if 'credential_rsa_public_key' in consumer:
+            credential_data["rsa_public_key"] = consumer['credential_rsa_public_key']
+        if 'credential_iss' in consumer:
+            credential_data["key"] = consumer['credential_iss']
         response = json_request("POST", consumer_jwt_credentials_url, credential_data)
         jwt_credential = json.loads(response.read())
         return jwt_credential
