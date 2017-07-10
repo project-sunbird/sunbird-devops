@@ -1,0 +1,102 @@
+version: '3.1'
+
+services:
+  mongo:
+    image : "mongo:latest"
+    deploy:
+      replicas: 1
+    ports:
+     - "27017:27017"
+    networks:
+      - default
+
+  player:
+    image : "manojrpms/sunbird_player_image:latest"
+    deploy:
+      replicas: 1
+    env_file:
+      /home/deployer/env/sunbird_player.env
+    ports:
+     - "3000:3000"
+    networks:
+      - default
+
+  content:
+    image : "manojrpms/sunbird_content_service_image:latest"
+    env_file:
+      /home/deployer/env/sunbird_content.env
+    deploy:
+      replicas: 1
+    ports:
+     - "5000:5000"
+    networks:
+      - default
+
+  cassandra:
+    image : "cassandra:latest"
+    volumes:
+      - application_cassandra:/var/lib/cassandra
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.application_cassandra==1
+    ports:
+     - "9042:9042"
+    networks:
+      - default
+
+  elasticsearch:
+    image : "elasticsearch:latest"
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.app_elasticsearch==1
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    ports:
+     - "9200:9200"
+    networks:
+      - default
+
+  actor:
+    image: "manojrpms/sunbird_actor_service_image:latest"
+    env_file:
+      /home/deployer/env/sunbird_actor.env
+    ports:
+     - "8088:8088"
+    deploy:
+      replicas: 1
+    networks:
+      - default
+
+  learner:
+    image : "manojrpms/sunbird_learner_service_image:latest"
+    env_file:
+      /home/deployer/env/sunbird_learner.env
+    deploy:
+      replicas: 1
+    ports:
+     - "9000:9000"
+    networks:
+      - default
+volumes:
+  application_cassandra:
+    driver: local
+  elasticsearch:
+    driver: local
+
+networks:
+  default:
+    driver: overlay
+
