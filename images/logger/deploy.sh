@@ -4,4 +4,4 @@
 
 ansible-playbook --version
 
-ansible-playbook -i ansible/inventory/dev ansible/deploy.yml --tags "stack-logger" 
+ansible-playbook -i ansible/inventory/dev ansible/deploy.yml --tags "stack-logger" --vault-password-file  /run/secrets/vault-pass
