@@ -13,7 +13,7 @@ node('docker') {
 
        stage('Pre-Build'){
 
-         sh('./images/proxy/installDeps.sh')
+         sh('./images/logger/installDeps.sh')
 
        }
 
@@ -22,7 +22,8 @@ node('docker') {
          env.NODE_ENV = "build"
 
          print "Environment will be : ${env.NODE_ENV}"
-         sh('./images/proxy/build.sh')
+         sh('./images/kibana/build.sh')
+         sh('./images/logstash/build.sh')
 
        }
 
@@ -30,13 +31,14 @@ node('docker') {
 
          echo 'Push to Repo'
          sh 'ls -al ~/'
-         sh 'ARTIFACT_LABEL=bronze ./images/proxy/dockerPushToRepo.sh'
+         sh 'ARTIFACT_LABEL=bronze ./images/kibana/dockerPushToRepo.sh'
+         sh 'ARTIFACT_LABEL=bronze ./images/logstash/dockerPushToRepo.sh'
 
        }
 
        stage('Deploy to Dev'){
 
-         sh 'ARTIFACT_LABEL=bronze ENV=dev ./images/proxy/deploy.sh'
+         sh 'ARTIFACT_LABEL=bronze ENV=dev ./images/logger/deploy.sh'
 
        }
     }
