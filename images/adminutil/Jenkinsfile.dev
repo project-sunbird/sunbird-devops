@@ -1,0 +1,23 @@
+#!groovy
+
+node('docker') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {  
+        stage('Checkout'){
+          checkout scm
+       }     
+       stage('Deploy'){
+        step ([$class: 'CopyArtifact',
+          projectName: 'AM_AdminUtils_Build',
+          filter: 'metadata.json']);
+        sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=dev ./images/adminutil/deploy.sh'
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}       
