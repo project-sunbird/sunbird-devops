@@ -22,8 +22,8 @@ def convert_csv_to_yaml(apis_csv_file):
                 OrderedDict([('name', 'cors')]),
                 OrderedDict([('name', 'statsd'), ('config.metrics', "{{ statsd_metrics }}")]),
                 OrderedDict([('name', 'acl'), ('config.whitelist', row["WHITELIST GROUP"])]),
-                OrderedDict([('name', 'rate-limiting'), ('config.hour', "{{ medium_rate_limit_per_hour }}")]),
-                OrderedDict([('name', 'request-size-limiting'), ('config.allowed_payload_size', "{{ medium_request_size_limit }}")]),
+                OrderedDict([('name', 'rate-limiting'), ('config.hour', row["RATE LIMIT"])]),
+                OrderedDict([('name', 'request-size-limiting'), ('config.allowed_payload_size', row["REQUEST SIZE LIMIT"])]),
             ])
         ]))
     yaml.dump(apis, sys.stdout, default_flow_style=False)
