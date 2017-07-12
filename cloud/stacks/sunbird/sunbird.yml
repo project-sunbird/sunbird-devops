@@ -1,5 +1,4 @@
 version: '3.1'
-
 services:
   player:
     image : "manojrpms/sunbird_player_image:latest"
@@ -14,6 +13,28 @@ services:
     networks:
       - default
 
+  elasticsearch:
+    image : "elasticsearch:latest"
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.app_elasticsearch==1
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - default
+
   content:
     image : "manojrpms/sunbird_content_service_image:latest"
     environment:
@@ -25,18 +46,10 @@ services:
     networks:
       - default
 
-  learner:
-    image : "manojrpms/sunbird_learner_service_image:latest"
-    environment:
-      sunbird_learnerstate_actor_host: application-actor
-      sunbird_learnerstate_actor_port: 8088
-    deploy:
-      replicas: 1
-    ports:
-     - "9000:9000"
-     - "8099:8099"
-    networks:
-      - default
+volumes:
+  elasticsearch:
+    driver: local
+
 networks:
   default:
     driver: overlay
