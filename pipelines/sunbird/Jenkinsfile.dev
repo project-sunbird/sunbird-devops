@@ -17,11 +17,13 @@ node('docker') {
 
        }
 
-       stage('Deploy to Dev'){
-
-         sh './pipelines/sunbird/deploy.sh'
-
+       stage('Deploy'){
+        step ([$class: 'CopyArtifact',
+          projectName: 'Sunbird_Player_Build',
+          filter: 'metadata.json']);
+          sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=dev ./pipelines/sunbird/deploy.sh'
        }
+
     }
     catch (err) {
         currentBuild.result = "FAILURE"
