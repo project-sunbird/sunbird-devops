@@ -1,5 +1,4 @@
 ---
-- include_vars: secrets/{{env}}.yml
 
 - name: Ensure stack directory exists
   file:
@@ -11,65 +10,7 @@
 - name: Save stack file
   template: src=stack-monitor.yml dest=/home/deployer/stack/monitor.yml mode=0644
 
-- name: Ensure dockerdata directory exists
-  file:
-    path: /var/dockerdata
-    state: directory
-    owner: root
-    group: root
-
-- name: Ensure alertmanager directory exists
-  file:
-    path: /var/dockerdata/alertmanager
-    state: directory
-    owner: root
-    group: root
-
-- name: Ensure alertmanager data directory exists
-  file:
-    path: /var/dockerdata/alertmanager/data
-    state: directory
-    owner: root
-    group: root
-
-- name: Save alertmanager config file
-  template: src=alertmanagerconfig.yml dest=/var/dockerdata/alertmanager/alertmanagerconfig.yml mode=0644
-
-- name: Ensure grafana directory exists
-  file:
-    path: /var/dockerdata/grafana
-    state: directory
-    owner: root
-    group: root
-
-- name: Ensure prometheus directory exists
-  file:
-    path: /var/dockerdata/prometheus
-    state: directory
-    owner: root
-    group: root
-
-- name: Ensure prometheus rules directory exists
-  file:
-    path: /var/dockerdata/prometheus/rules
-    state: directory
-    owner: root
-    group: root
-
-- name: Save node config file
-  copy: src=alertrules.nodes dest=/var/dockerdata/prometheus/rules/alertrules.nodes mode=0644
-
-- name: Save container config file
-  copy: src=alertrules.task dest=/var/dockerdata/prometheus/rules/alertrules.task mode=0644
-
-- name: Ensure prometheus data directory exists
-  file:
-    path: /var/dockerdata/prometheus/data
-    state: directory
-    owner: root
-    group: root
-
 - name: Deploy stack
-  shell: "docker stack deploy -c proxy.yml monitor-{{env}}"
+  shell: "docker stack deploy -c monitor.yml monitor-{{env}}"
   args:
     chdir: /home/deployer/stack
