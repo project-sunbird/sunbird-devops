@@ -1,0 +1,33 @@
+#!groovy
+
+node('docker') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/sunbird/installDeps.sh')
+
+       }
+
+       stage('Deploy'){
+        step ([$class: 'CopyArtifact',
+          projectName: 'Sunbird_Content_Service_Build',
+          filter: 'metadata.json']);
+          sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=dev ./pipelines/sunbird-content-service/deploy.sh'
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
