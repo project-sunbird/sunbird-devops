@@ -21,12 +21,14 @@ data_service_prefix: /data
 notes_service_prefix: /notes
 org_service_prefix: /org
 echo_service_prefix: /echo
+api_manager_perfix: /api-manager
 
 # Service URLs
 content_service_url: "http://application_content:5000"
 learning_service_url: "http://application_learner:9000"
 echo_service_url: "http://api-manager_echo:9090"
 player_service_url: "http://application_player:3000"
+am_util_url: http://adminutil_adminutil:3002
 
 kong_all_consumer_groups:
   - appAdmin
@@ -853,3 +855,25 @@ kong_apis:
       config.hour: '{{ medium_rate_limit_per_hour }}'
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: "registerMobileApp"
+    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_app/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/mobile_app/credential/register"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'mobileAdmin'}
+     - {name: 'rate-limiting', config.hour: "{{ medium_rate_limit_per_hour }}",   config.limit_by: "credential"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{   medium_request_size_limit }}" }
+  - name: "registerMobileDevice"
+    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_device/credential/  register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/mobile_device/credential/register"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'mobileApp'}
+     - {name: 'rate-limiting', config.hour: "{{ medium_rate_limit_per_hour }}",   config.limit_by: "credential"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{   medium_request_size_limit }}" }
