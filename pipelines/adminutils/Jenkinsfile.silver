@@ -4,24 +4,30 @@ node('docker') {
 
     currentBuild.result = "SUCCESS"
 
-    try {  
-        stage('Checkout'){
+    try {
+
+       stage('Checkout'){
+
           checkout scm
-       }   
-       stage('Pre-Build'){
-        sh('./images/adminutil/installDeps.sh')
        }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/adminutils/installDeps.sh')
+
+       }
+
        stage('Deploy'){
         step ([$class: 'CopyArtifact',
-          projectName: 'AM_AdminUtils_Build',
+          projectName: 'AM_AdminUtils_Deploy_Dev',
           filter: 'metadata.json']);
-        sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=dev ./images/adminutil/deploy.sh'
-        archive includes: "metadata.json"
+          sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=silver ./pipelines/dockerTagSilver.sh'
        }
+
     }
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
     }
 
-}       
+}
