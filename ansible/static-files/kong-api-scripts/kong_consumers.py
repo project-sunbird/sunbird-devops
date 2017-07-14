@@ -37,7 +37,8 @@ def save_consumers(kong_admin_api_url, consumers, kong_credentials_file_path):
             jwt_token = jwt.encode({'iss': jwt_credential['key']}, jwt_credential['secret'], algorithm=credential_algorithm)
             print("JWT token for {} is : {}".format(username, jwt_token))
         if 'save_credentials' in consumer:
-            _save_credentials_to_a_file(jwt_credential, kong_credentials_file_path)
+            print("Saving credentials to a file {} for consumer {}".format(kong_credentials_file_path, username))
+            _save_credentials_to_a_file(username, jwt_credential, kong_credentials_file_path)
 
     for consumer in consumers_to_be_absent:
         username = consumer['username']
@@ -95,9 +96,10 @@ def _save_groups_for_consumer(kong_admin_api_url, consumer):
         print("Deleting group {} for consumer {}".format(saved_group, username));
         json_request("DELETE", consumer_acls_url + "/" + saved_group, "")
 
-def _save_credentials_to_a_file(credential, file):
+def _save_credentials_to_a_file(username, credential, file):
     with open(file, 'rb+') as f:
         f.truncate()
+        f.write("username: {} \n".format(username))
         f.write("key: {} \n".format(credential['key']))
         f.write("secret: {} \n".format(credential['secret']))
 
