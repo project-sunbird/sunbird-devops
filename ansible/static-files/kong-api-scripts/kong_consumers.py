@@ -37,7 +37,7 @@ def save_consumers(kong_admin_api_url, consumers):
             jwt_token = jwt.encode({'iss': jwt_credential['key']}, jwt_credential['secret'], algorithm=credential_algorithm)
             print("JWT token for {} is : {}".format(username, jwt_token))
         if 'print_credentials' in consumer:
-            print("Credentials for consumer {}, key: {}, secret: {}".format(username, credential['key'], credential['secret']))
+            print("Credentials for consumer {}, key: {}, secret: {}".format(username, jwt_credential['key'], jwt_credential['secret']))
 
     for consumer in consumers_to_be_absent:
         username = consumer['username']
