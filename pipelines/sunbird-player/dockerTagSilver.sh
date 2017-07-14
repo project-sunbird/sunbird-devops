@@ -13,6 +13,9 @@ version=$(e "${m}" "version")
 
 artifactLabel=${ARTIFACT_LABEL:-silver}
 
+docker pull ${org}/${name}:${version}-bronze
+docker image tag ${org}/${name}:${version}-bronze ${org}/${name}:${version}-${artifactLabel}
+
 docker login -u "${hubuser}" -p`cat /run/secrets/hub-pass`
 docker push ${org}/${name}:${version}-${artifactLabel}
 docker logout
