@@ -4,7 +4,7 @@
 e () {
     echo $( echo ${1} | jq ".${2}" | sed 's/\"//g')
 }
-m=$(./images/proxy/metadata.sh)
+m=$(cat $METADATA_FILE)
 
 org=$(e "${m}" "org")
 name=$(e "${m}" "name")
