@@ -1,0 +1,33 @@
+#!groovy
+
+node('docker') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+       stage('Pre-Build'){
+
+         sh('./images/proxy/installDeps.sh')
+
+       }
+
+       stage('Deploy'){
+        step ([$class: 'CopyArtifact',
+          projectName: 'Proxy_Deploy_Dev',
+          filter: 'metadata.json']);
+          sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=silver ./pipelines/dockerTagSilver.sh'
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
