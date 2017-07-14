@@ -3,4 +3,4 @@
 # set -o errexit
 
 ansible-playbook --version
-ansible-playbook -i ansible/inventory/dev ansible/deploy.yml --tags "stack-api-manager" --vault-password-file /run/secrets/vault-pass
+ansible-playbook -i ansible/inventory/$ENV ansible/deploy.yml --tags "stack-api-manager" --vault-password-file /run/secrets/vault-pass
