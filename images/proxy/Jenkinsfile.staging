@@ -18,11 +18,11 @@ node('docker-staging') {
        }
 
        stage('Deploy to Staging'){
-
-         sh 'ARTIFACT_LABEL=silver ENV=staging ./images/proxy/deploy.sh'
-         sh './images/proxy/metadata.sh > metadata.json'
-         sh 'cat metadata.json'
-         archive includes: "metadata.json"
+          step ([$class: 'CopyArtifact',
+            projectName: 'Proxy_Tag_Silver',
+            filter: 'metadata.json']);
+          sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=silver ENV=staging ./images/proxy/deploy.sh'
+          archive includes: "metadata.json"
 
        }
     }
