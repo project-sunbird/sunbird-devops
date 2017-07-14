@@ -1,0 +1,34 @@
+#!groovy
+
+node('docker-staging') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+       stage('Pre-Build'){
+
+         sh('./images/proxy/installDeps.sh')
+
+       }
+
+       stage('Deploy to Staging'){
+
+         sh 'ARTIFACT_LABEL=silver ENV=staging ./images/proxy/deploy.sh'
+         sh './images/proxy/metadata.sh > metadata.json'
+         sh 'cat metadata.json'
+         archive includes: "metadata.json"
+
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
