@@ -18,17 +18,20 @@ content_service_prefix: /content
 course_service_prefix: /course
 user_service_prefix: /user
 data_service_prefix: /data
+auth_service_prefix: /auth
 notes_service_prefix: /notes
 org_service_prefix: /org
 echo_service_prefix: /echo
+composite_service_prefix: /composite
 api_manager_perfix: /api-manager
 
 # Service URLs
 content_service_url: "http://content_service_content_service:5000"
 learning_service_url: "http://content_service_content_service:9000"
-echo_service_url: "http://api-manager_echo:9090"
 player_service_url: "http://player_player:3000"
+echo_service_url: "http://api-manager_echo:9090"
 am_util_url: http://adminutil_adminutil:3002
+auth_service_url: http://keycloak-lb-dns.southindia.cloudapp.azure.com
 
 kong_all_consumer_groups:
   - appAdmin
@@ -37,12 +40,23 @@ kong_all_consumer_groups:
   - courseAdmin
   - courseUser
   - echoUser
+  - mobileAdmin
+  - mobileApp
   - noteAdmin
   - noteUser
   - orgAdmin
   - orgUser
   - publicUser
   - userAdmin
+
+mobile_admin_groups:
+  - mobileAdmin
+
+mobile_app_groups:
+  - mobileApp
+
+mobile_device_groups:
+  - contentUser
 
 # APIs to be on-boarded
 kong_apis:
@@ -59,6 +73,7 @@ kong_apis:
       config.whitelist: contentAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: searchContent
@@ -74,6 +89,7 @@ kong_apis:
       config.whitelist: contentUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: updateContent
@@ -89,6 +105,7 @@ kong_apis:
       config.whitelist: contentAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: readContent
@@ -104,6 +121,7 @@ kong_apis:
       config.whitelist: contentUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: submitContentForReview
@@ -119,6 +137,7 @@ kong_apis:
       config.whitelist: contentAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: publishContent
@@ -134,6 +153,7 @@ kong_apis:
       config.whitelist: contentAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: uploadContent
@@ -149,6 +169,7 @@ kong_apis:
       config.whitelist: contentAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: retireContent
@@ -164,6 +185,7 @@ kong_apis:
       config.whitelist: contentAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: createCourse
@@ -179,6 +201,7 @@ kong_apis:
       config.whitelist: courseAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: searchCourse
@@ -194,6 +217,7 @@ kong_apis:
       config.whitelist: courseUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: updateCourse
@@ -209,6 +233,7 @@ kong_apis:
       config.whitelist: courseAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: readCourse
@@ -224,6 +249,7 @@ kong_apis:
       config.whitelist: courseUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: submitCourseForReview
@@ -239,6 +265,7 @@ kong_apis:
       config.whitelist: courseAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: publishCourse
@@ -254,6 +281,7 @@ kong_apis:
       config.whitelist: courseAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: retireCourse
@@ -269,6 +297,7 @@ kong_apis:
       config.whitelist: courseAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: getCourseHierarchy
@@ -284,6 +313,7 @@ kong_apis:
       config.whitelist: courseUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: courseEnrolment
@@ -299,6 +329,7 @@ kong_apis:
       config.whitelist: courseUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: listCourseEnrollments
@@ -314,6 +345,7 @@ kong_apis:
       config.whitelist: courseUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: readContentState
@@ -329,6 +361,7 @@ kong_apis:
       config.whitelist: courseUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: updateContentState
@@ -344,6 +377,7 @@ kong_apis:
       config.whitelist: courseUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: createUser
@@ -359,6 +393,7 @@ kong_apis:
       config.whitelist: userAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: updateUser
@@ -374,6 +409,7 @@ kong_apis:
       config.whitelist: userAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: getUserProfile
@@ -389,6 +425,7 @@ kong_apis:
       config.whitelist: publicUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: searchUser
@@ -404,6 +441,7 @@ kong_apis:
       config.whitelist: publicUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: retireUser
@@ -419,6 +457,7 @@ kong_apis:
       config.whitelist: userAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: createPage
@@ -434,6 +473,7 @@ kong_apis:
       config.whitelist: appAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: updatePage
@@ -449,6 +489,7 @@ kong_apis:
       config.whitelist: appAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: getPageSettings
@@ -464,6 +505,7 @@ kong_apis:
       config.whitelist: appAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: assemblePage
@@ -479,6 +521,7 @@ kong_apis:
       config.whitelist: publicUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: createNote
@@ -494,6 +537,7 @@ kong_apis:
       config.whitelist: noteAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: updateNote
@@ -509,6 +553,7 @@ kong_apis:
       config.whitelist: noteAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: readNote
@@ -524,6 +569,7 @@ kong_apis:
       config.whitelist: noteUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: searchNotes
@@ -539,6 +585,7 @@ kong_apis:
       config.whitelist: noteUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: createOrg
@@ -554,6 +601,7 @@ kong_apis:
       config.whitelist: orgAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: updateOrg
@@ -569,6 +617,7 @@ kong_apis:
       config.whitelist: orgAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: readOrg
@@ -584,6 +633,7 @@ kong_apis:
       config.whitelist: orgUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: searchOrg
@@ -599,6 +649,7 @@ kong_apis:
       config.whitelist: orgUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: addMember
@@ -614,6 +665,7 @@ kong_apis:
       config.whitelist: orgAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: removeMember
@@ -629,6 +681,7 @@ kong_apis:
       config.whitelist: orgAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: suspendMember
@@ -644,6 +697,7 @@ kong_apis:
       config.whitelist: orgAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: updateMembership
@@ -659,6 +713,7 @@ kong_apis:
       config.whitelist: orgAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: echo
@@ -674,21 +729,7 @@ kong_apis:
       config.whitelist: echoUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
-    - name: request-size-limiting
-      config.allowed_payload_size: '{{ small_request_size_limit }}'
-  - name: createUserSession
-    request_path: '{{ user_service_prefix }}/v1/session/create'
-    upstream_url: '{{ player_service_url }}/v1/user/session/create'
-    strip_request_path: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - name: statsd
-      config.metrics: '{{ statsd_metrics }}'
-    - name: acl
-      config.whitelist: sessionAdmin
-    - name: rate-limiting
-      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: createPageSection
@@ -704,6 +745,7 @@ kong_apis:
       config.whitelist: appAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: updatePageSection
@@ -719,6 +761,7 @@ kong_apis:
       config.whitelist: appAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: listPageSections
@@ -734,6 +777,7 @@ kong_apis:
       config.whitelist: appAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: readPageSection
@@ -749,6 +793,7 @@ kong_apis:
       config.whitelist: appAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: readRoleMapping
@@ -764,6 +809,7 @@ kong_apis:
       config.whitelist: appAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: updateAssessment
@@ -779,6 +825,7 @@ kong_apis:
       config.whitelist: courseUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: readAssessmentResult
@@ -794,6 +841,7 @@ kong_apis:
       config.whitelist: courseUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: approveOrg
@@ -809,6 +857,7 @@ kong_apis:
       config.whitelist: orgAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: updateOrgStatus
@@ -824,6 +873,7 @@ kong_apis:
       config.whitelist: orgAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: readUserProfile
@@ -839,27 +889,102 @@ kong_apis:
       config.whitelist: publicUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
-  - name: "registerMobileApp"
-    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_app/credential/register"
-    upstream_url: "{{ am_util_url }}/v1/consumer/mobile_app/credential/register"
+  - name: registerMobileApp
+    request_path: '{{ api_manager_perfix }}/v1/consumer/mobile_app/credential/register'
+    upstream_url: '{{ am_util_url }}/v1/consumer/mobile_app/credential/register'
     strip_request_path: true
     plugins:
-     - {name: 'jwt'}
-     - {name: 'cors'}
-     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
-     - {name: 'acl', config.whitelist: 'mobileAdmin'}
-     - {name: 'rate-limiting', config.hour: "{{ medium_rate_limit_per_hour }}",   config.limit_by: "credential"}
-     - {name: 'request-size-limiting', config.allowed_payload_size: "{{   medium_request_size_limit }}" }
-  - name: "registerMobileDevice"
-    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_device/credential/  register"
-    upstream_url: "{{ am_util_url }}/v1/consumer/mobile_device/credential/register"
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: mobileAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: registerMobileDevice
+    request_path: '{{ api_manager_perfix }}/v1/consumer/mobile_device/credential/register'
+    upstream_url: '{{ am_util_url }}/v1/consumer/mobile_device/credential/register'
     strip_request_path: true
     plugins:
-     - {name: 'jwt'}
-     - {name: 'cors'}
-     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
-     - {name: 'acl', config.whitelist: 'mobileApp'}
-     - {name: 'rate-limiting', config.hour: "{{ medium_rate_limit_per_hour }}",   config.limit_by: "credential"}
-     - {name: 'request-size-limiting', config.allowed_payload_size: "{{   medium_request_size_limit }}" }
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: mobileApp
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: joinOrg
+    request_path: '{{ org_service_prefix }}/v1/member/join'
+    upstream_url: '{{ learning_service_url }}/v1/org/member/join'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: publicUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: approveOrgRequest
+    request_path: '{{ org_service_prefix }}/v1/member/approve'
+    upstream_url: '{{ learning_service_url }}/v1/org/member/approve'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: rejectOrgRequest
+    request_path: '{{ org_service_prefix }}/v1/member/reject'
+    upstream_url: '{{ learning_service_url }}/v1/org/member/reject'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: compositeSearch
+    request_path: '{{ composite_service_prefix }}/v1/search'
+    upstream_url: '{{ content_service_url }}/v1/search'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: appAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
