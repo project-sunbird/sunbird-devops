@@ -22,7 +22,7 @@ def _ensure_consumer_exists(kong_admin_api_url, consumer):
         json_request("POST", consumers_url, {'username': username})
 
 
-def save_consumers(kong_admin_api_url, consumers, kong_credentials_file_path):
+def save_consumers(kong_admin_api_url, consumers):
     consumers_url = "{}/consumers".format(kong_admin_api_url)
     consumers_to_be_present = [consumer for consumer in consumers if consumer['state'] == 'present']
     consumers_to_be_absent = [consumer for consumer in consumers if consumer['state'] == 'absent']
@@ -36,9 +36,8 @@ def save_consumers(kong_admin_api_url, consumers, kong_credentials_file_path):
         if credential_algorithm == 'HS256':
             jwt_token = jwt.encode({'iss': jwt_credential['key']}, jwt_credential['secret'], algorithm=credential_algorithm)
             print("JWT token for {} is : {}".format(username, jwt_token))
-        if 'save_credentials' in consumer:
-            print("Saving credentials to a file {} for consumer {}".format(kong_credentials_file_path, username))
-            _save_credentials_to_a_file(username, jwt_credential, kong_credentials_file_path)
+        if 'print_credentials' in consumer:
+            print("Credentials for consumer {}, key: {}, secret: {}".format(username, credential['key'], credential['secret']))
 
     for consumer in consumers_to_be_absent:
         username = consumer['username']
@@ -96,24 +95,15 @@ def _save_groups_for_consumer(kong_admin_api_url, consumer):
         print("Deleting group {} for consumer {}".format(saved_group, username));
         json_request("DELETE", consumer_acls_url + "/" + saved_group, "")
 
-def _save_credentials_to_a_file(username, credential, file):
-    with open(file, 'rb+') as f:
-        f.truncate()
-        f.write("username: {} \n".format(username))
-        f.write("key: {} \n".format(credential['key']))
-        f.write("secret: {} \n".format(credential['secret']))
-
-
 if  __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Configure kong consumers')
     parser.add_argument('consumers_file_path', help='Path of the json file containing consumer data')
     parser.add_argument('--kong-admin-api-url', help='Admin url for kong', default='http://localhost:8001')
-    parser.add_argument('--kong-credentials-file-path', help='Filename to save kong credentials', default='/tmp/kong_credentials.txt')
     args = parser.parse_args()
     with open(args.consumers_file_path) as consumers_file:
         input_consumers = json.load(consumers_file)
         try:
-            save_consumers(args.kong_admin_api_url, input_consumers, args.kong_credentials_file_path)
+            save_consumers(args.kong_admin_api_url, input_consumers)
         except urllib2.HTTPError as e:
             error_message = e.read()
             print(error_message)
