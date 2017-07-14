@@ -1,0 +1,31 @@
+#!groovy
+
+node('docker-staging') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/api-manager/installDeps.sh')
+
+       }
+
+       stage('Deploy to Dev'){
+
+         sh './pipelines/api-manager/deploy.sh'
+
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
