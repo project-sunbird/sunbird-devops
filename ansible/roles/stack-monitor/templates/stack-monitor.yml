@@ -57,9 +57,6 @@ services:
             labels:
                 com.docker.stack.namespace: "monitoring"
                 com.docker.service.name: "cadvisor"
-            placement:
-                constraints:
-                    - "node.labels.monitor==1"
 
     node-exporter:
         image: basi/node-exporter:v0.1.1
@@ -89,9 +86,6 @@ services:
             labels:
                 com.docker.stack.namespace: "monitoring"
                 com.docker.service.name: "node-exporter"  
-            placement:
-                constraints:
-                    - "node.labels.monitor==1"            
 
     alertmanager:
         image: prom/alertmanager
@@ -126,12 +120,14 @@ services:
     grafana:
         image: grafana/grafana
         ports:
-            - "3000:3000"
+            - "3001:3000"
         networks:
             - monitoring
         volumes:
             - /var/dockerdata/grafana:/var/lib/grafana
-        command: -e "GF_SERVER_ROOT_URL=http://grafana.local.com GF_SECURITY_ADMIN_PASSWORD=admin PROMETHEUS_ENDPOINT=http://prometheus:9090"
+        command: -e "GF_SECURITY_ADMIN_PASSWORD={{grafana_admin_password}} PROMETHEUS_ENDPOINT=http://prometheus:9090"
+        environment:
+            - GF_SERVER_ROOT_URL=http://grafana.local.com/grafana
         labels:
             com.docker.stack.namespace: "monitoring"
             com.docker.service.name: "grafana"
@@ -149,8 +145,8 @@ services:
                 com.docker.service.name: "grafana"
             placement:
                 constraints:
-                    - "node.labels.monitor==1"
+                    - "node.labels.grafana==1"
 
 networks:
     monitoring:
-        driver: overlay
+        external: true
