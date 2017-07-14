@@ -1,46 +1,8 @@
 ---
-- name: Ensure env directory exists
-  file:
-    path: /home/deployer/env
-    state: directory
-    owner: root
-    group: root
+  - include: common.yml
 
-- name: Ensure stack directory exists
-  file:
-    path: /home/deployer/stack
-    state: directory
-    owner: root
-    group: root
+  - include: service_stack.yml
+    when: {{ stack | default(false) }}
 
-
-# - name: Save actor configurations into an env file
-#   template: src=sunbird_actor.env dest=/home/deployer/env/sunbird_actor.env mode=0644
-
-# - name: Save content configurations into an env file
-#   template: src=sunbird_content.env dest=/home/deployer/env/sunbird_content.env mode=0644
-
-# - name: Save learner configurations into an env file
-#   template: src=sunbird_learner.env dest=/home/deployer/env/sunbird_learner.env mode=0644
-
-# - name: Save player configurations into an env file
-#   template: src=sunbird_player.env dest=/home/deployer/env/sunbird_player.env mode=0644
-
-- name: Save service configurations into an env file
-  template: src="sunbird_{{service_name}}.env" dest="/home/deployer/env/sunbird_{{service_name}}.env" mode=0644
-
-- name: Save stack file
-  template: src="stack_{{service_name}}.yml" dest="/home/deployer/stack/stack_{{service_name}}.yml" mode=0644
-
-- name: Deploy stack
-  shell: "docker stack deploy -c stack_{{service_name}}.yml {{service_name}}"
-  args:
-    chdir: /home/deployer/stack
-
-# - name: Remove actor service
-#   shell: "docker service rm application-actor"
-
-# - name: Deploy actor service
-#   shell: "docker service create --replicas 1 -p 8088:8088 --name application-actor --hostname application-actor --network {{ sunbird_network }} --env-file /home/deployer/env/sunbird_actor.env sunbird/actor_service_image"
-#   args:
-#     chdir: /home/deployer/stack
+  - include: actor_service.yml
+    when: actor
