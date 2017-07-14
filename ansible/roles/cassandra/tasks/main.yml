@@ -1,34 +1,3 @@
-# ---
-# - name: debian | update package list
-#   apt:
-#     update_cache: yes
-#     cache_valid_time: 3600
-
-# - name: debian | Installing Pre-Reqs
-#   apt:
-#     name: "{{ item }}"
-#     force: yes
-#     state: "present"
-#   with_items:
-#     - 'apt-transport-https'
-#     - 'ca-certificates'
-#     - 'python-pip'
-#     - 'libssl-dev'
-
-# - name: debian |  Upgrade pip
-#   pip:
-#     name: pip
-#     extra_args: --upgrade
-
-# - name: debian | Installing Python Modules
-#   pip:
-#     name: "{{ item }}"
-#     state: "present"
-#   with_items:
-#     - 'urllib3'
-#     - 'pyopenssl'
-#     - 'ndg-httpsclient'
-#     - 'pyasn1'
 - name: Cassandra | Update the cassandra host configuration
   become: yes
   template: src=hosts.j2 dest=/etc/hosts
@@ -57,3 +26,23 @@
     group: "root"
     mode: 0644
   notify: "restart cassandra"
+
+- name: Copy the templates
+  become: yes
+  template: src={{item}} dest=/tmp/{{item}}
+  with_items:
+             - cassandra.cql
+             - pageMgmt.csv
+             - pageSection.csv
+
+- name: Run the cassandra.cql command
+  become: yes
+  command: "cqlsh -f /tmp/cassandra.cql"
+
+- name: Run the pageMgmt.csv command
+  become: yes
+  command: cqlsh -e "COPY sunbird.page_management(id, appmap,createdby ,createddate ,name ,organisationid ,portalmap ,updatedby ,updateddate ) FROM '/tmp/pageMgmt.csv'" 
+
+- name: Run the pageSection.csv file
+  become: yes
+  command: cqlsh -e "COPY sunbird.page_section(id, alt,createdby ,createdby ,createddate ,description ,display ,imgurl ,name,searchquery , sectiondatatype ,status , updatedby ,updateddate) FROM '/tmp/pageSection.csv'"
