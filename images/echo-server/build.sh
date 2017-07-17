@@ -10,4 +10,5 @@ org=$(e "${m}" "org")
 name=$(e "${m}" "name")
 version=$(e "${m}" "version")
 
+cd images/echo-server
 docker build -f ./images/echo-server/Dockerfile -t ${org}/${name}:${version}-bronze .
