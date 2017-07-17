@@ -1,0 +1,46 @@
+#!groovy
+
+node('docker') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+       stage('Pre-Build'){
+
+         sh('./images/echo-server/installDeps.sh')
+
+       }
+
+       stage('Build'){
+
+         env.NODE_ENV = "build"
+
+         print "Environment will be : ${env.NODE_ENV}"
+         sh('./images/echo-server/build.sh')
+
+       }
+
+       stage('Publish'){
+
+         echo 'Push to Repo'
+         sh 'ls -al ~/'
+         sh 'ARTIFACT_LABEL=bronze ./images/echo-server/dockerPushToRepo.sh'
+         sh './images/echo-server/metadata.sh > metadata.json'
+         sh 'cat metadata.json'
+         archive includes: "metadata.json"
+
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}

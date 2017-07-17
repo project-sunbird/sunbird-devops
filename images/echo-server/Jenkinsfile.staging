@@ -13,16 +13,16 @@ node('docker-staging') {
 
        stage('Pre-Build'){
 
-         sh('./pipelines/api-manager/installDeps.sh')
+         sh('./images/echo-server/installDeps.sh')
 
        }
 
-       stage('Deploy to Dev'){
-
-        step ([$class: 'CopyArtifact',
+       stage('Deploy to Staging'){
+          step ([$class: 'CopyArtifact',
             projectName: 'Tag_As_Silver/Echo_Server_Tag_Silver',
             filter: 'metadata.json']);
-        sh 'METADATA_FILE=metadata.json ENV=staging ./pipelines/api-manager/deploy.sh'
+          sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=silver ENV=staging ./images/echo-server/deploy.sh'
+          archive includes: "metadata.json"
 
        }
     }
