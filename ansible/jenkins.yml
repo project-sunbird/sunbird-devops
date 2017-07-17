@@ -10,3 +10,17 @@
     - jenkins
   tags:
     - jenkins-master
+
+- name: Setup CI proxy
+  hosts: ci-proxy
+  vars_files:
+    - 'secrets/{{env}}.yml'
+  become: yes
+  roles:
+    - role: nginx
+      nginx_sites:
+        jenkin:
+            - listen 80
+            - location /jenkins/ { proxy_pass http://{{ groups['jenkins-master'][0] }}:{{ jenkins_http_port}}{{ jenkins_url_prefix }}/; }
+  tags:
+    - ci-proxy
