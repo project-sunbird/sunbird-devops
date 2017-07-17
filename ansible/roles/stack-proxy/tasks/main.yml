@@ -13,18 +13,28 @@
     owner: root
     group: root
 
+- name: Ensure config directory exists
+  file:
+    path: /home/deployer/config
+    state: directory
+    owner: root
+    group: root
+
 - name: Save configurations into an env file
   template: src=proxy.env dest=/home/deployer/env/proxy.env mode=0644
 
 - name: Save stack file
   template: src=stack-proxy.yml dest=/home/deployer/stack/proxy.yml mode=0644
 
+- name: Save proxy-default.conf
+  template: src=proxy-default.conf dest=/home/deployer/config/proxy-default.conf mode=0644
+
 # - name: Remove old proxy-default.conf docker config
 #   shell: "docker config rm proxy-default.conf"
   # ignore_errors: yes
 
 - name: Save proxy-default.conf as docker config
-  shell: "docker config create proxy-default.conf proxy-default.conf"
+  shell: "docker config create proxy-default.conf /home/deployer/config/proxy-default.conf"
 
 - debug: msg="Image details= {{hub_org}}:{{image_name}}:{{image_tag}}"
 
