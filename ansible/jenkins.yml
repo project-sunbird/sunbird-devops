@@ -18,9 +18,14 @@
   become: yes
   roles:
     - role: nginx
+      nginx_configs:
+        ssl:
+          - ssl_certificate_key {{ ci_proxy_nginx_ssl_key_file }}
+          - ssl_certificate     {{ ci_proxy_nginx_ssl_cert_file }}
       nginx_sites:
-        jenkin:
-            - listen 80
+        jenkins:
+            - listen {{ ci_proxy_ssl_port }} ssl
             - location /jenkins/ { proxy_pass http://{{ groups['jenkins-master'][0] }}:{{ jenkins_http_port}}{{ jenkins_url_prefix }}/; }
+    - role: ci-proxy
   tags:
     - ci-proxy
