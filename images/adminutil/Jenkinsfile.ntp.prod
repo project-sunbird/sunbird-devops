@@ -12,11 +12,12 @@ node('general-production') {
         sh('./images/adminutil/installDeps.sh')
        }
        stage('Deploy'){
+        sh 'rm ./images/adminutil/metadata.json'
         step ([$class: 'CopyArtifact',
           projectName: 'Staging/AM_AdminUtils_Deploy_Staging',
-          filter: 'metadata.json']);
-        sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=gold ENV=ntp-staging ./images/adminutil/deploy.sh'
-        archive includes: "metadata.json"
+          filter: 'images/adminutil/metadata.json']);
+        sh 'METADATA_FILE=images/adminutil/metadata.json ARTIFACT_LABEL=gold ENV=ntp-staging ./images/adminutil/deploy.sh'
+        archive includes: "images/adminutil/metadata.json"
        }
     }
     catch (err) {
