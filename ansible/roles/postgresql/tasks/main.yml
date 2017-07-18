@@ -1,26 +1,38 @@
----
-# Variable configuration.
-- include: variables.yml
-  static: no
+# file: postgresql/tasks/main.yml
 
-# Setup/install tasks.
-- include: setup-RedHat.yml
-  when: ansible_os_family == 'RedHat'
-  static: no
+- include_vars: secrets/{{env}}.yml
+  tags: [always]
 
-- include: setup-Debian.yml
-  when: ansible_os_family == 'Debian'
-  static: no
+- include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/{{ ansible_os_family }}.yml"
+    - "../vars/empty.yml"
+  tags: [always]
 
-- include: initialize.yml
+
+- include: install.yml
+  when: ansible_pkg_mgr == "apt"
+  tags: [postgresql, postgresql-install]
+
+- include: install_yum.yml
+  when: ansible_pkg_mgr == "yum"
+  tags: [postgresql, postgresql-install]
+
+- include: extensions.yml
+  tags: [postgresql, postgresql-extensions]
+
 - include: configure.yml
+  tags: [postgresql, postgresql-configure]
 
-- name: Ensure PostgreSQL is started and enabled on boot.
-  service:
-    name: "{{ postgresql_daemon }}"
-    state: started
-    enabled: yes
-
-# Configure PostgreSQL.
-- include: databases.yml
 - include: users.yml
+  tags: [postgresql, postgresql-users]
+
+- include: databases.yml
+  tags: [postgresql, postgresql-databases]
+
+- include: users_privileges.yml
+  tags: [postgresql, postgresql-users]
+
+- include: monit.yml
+  when: monit_protection is defined and monit_protection == true
+  tags: [postgresql, postgresql-monit]
