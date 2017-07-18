@@ -1,0 +1,27 @@
+#!groovy
+
+node('docker-staging') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+        stage('Checkout'){
+          checkout scm
+       }
+       stage('Pre-Build'){
+        sh('./images/adminutil/installDeps.sh')
+       }
+       stage('Deploy'){
+        step ([$class: 'CopyArtifact',
+          projectName: 'Staging/AM_AdminUtils_Deploy_Staging',
+          filter: 'metadata.json']);
+        sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=gold ENV=ntp-production ./images/adminutil/deploy.sh'
+        archive includes: "metadata.json"
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
