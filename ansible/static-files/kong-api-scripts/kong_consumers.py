@@ -84,6 +84,8 @@ def _save_groups_for_consumer(kong_admin_api_url, consumer):
     saved_acls_details = json.loads(urllib2.urlopen(consumer_acls_url).read())
     saved_acls = saved_acls_details["data"]
     saved_groups = [acl["group"] for acl in saved_acls]
+    print("Existing groups for consumer {} : {}".format(username, saved_groups))
+    print("Required groups for consumer {} : {}".format(username, input_groups))
     input_groups_to_be_created = [input_group for input_group in input_groups if input_group not in saved_groups]
     saved_groups_to_be_deleted = [saved_group for saved_group in saved_groups if saved_group not in input_groups]
 
