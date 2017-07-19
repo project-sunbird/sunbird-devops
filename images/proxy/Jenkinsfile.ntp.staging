@@ -1,0 +1,19 @@
+#!groovy
+
+pipeline {
+  agent {
+      label 'general-staging'
+  }
+  stages {
+    stage('Checkout'){
+        checkout scm
+    }
+    stage('Pre-Build'){
+      sh('./images/proxy/installDeps.sh')
+    }
+    stage('Deploy') {
+      sh 'METADATA_FILE=./images/proxy/metadata.json ARTIFACT_LABEL=gold ENV=ntp-staging ./images/proxy/deploy.sh'
+      archive includes: "images/proxy/metadata.json"
+    }
+  }
+}
