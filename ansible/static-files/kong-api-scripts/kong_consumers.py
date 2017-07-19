@@ -27,6 +27,12 @@ def save_consumers(kong_admin_api_url, consumers):
     consumers_to_be_present = [consumer for consumer in consumers if consumer['state'] == 'present']
     consumers_to_be_absent = [consumer for consumer in consumers if consumer['state'] == 'absent']
 
+    for consumer in consumers_to_be_absent:
+        username = consumer['username']
+        if(_consumer_exists(kong_admin_api_url, username)):
+            print("Deleting consumer {}".format(username));
+            json_request("DELETE", consumers_url + "/" + username, "")
+
     for consumer in consumers_to_be_present:
         username = consumer['username']
         _ensure_consumer_exists(kong_admin_api_url, consumer)
@@ -38,12 +44,6 @@ def save_consumers(kong_admin_api_url, consumers):
             print("JWT token for {} is : {}".format(username, jwt_token))
         if 'print_credentials' in consumer:
             print("Credentials for consumer {}, key: {}, secret: {}".format(username, jwt_credential['key'], jwt_credential['secret']))
-
-    for consumer in consumers_to_be_absent:
-        username = consumer['username']
-        if(_consumer_exists(kong_admin_api_url, username)):
-            print("Deleting consumer {}".format(username));
-            json_request("DELETE", consumers_url + "/" + username, "")
 
 
 def _get_first_or_create_jwt_credential(kong_admin_api_url, consumer):
