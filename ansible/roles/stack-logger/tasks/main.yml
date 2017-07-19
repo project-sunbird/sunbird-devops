@@ -7,8 +7,29 @@
     owner: root
     group: root
 
+- name: Ensure config directory exists
+  file:
+    path: /home/deployer/config
+    state: directory
+    owner: root
+    group: root
+
 - name: Save stack file
   template: src=stack-logger.yml dest=/home/deployer/stack/logger.yml mode=0644
+
+- name: Save authenticated email file
+  template: src=authenticated_email.txt dest=/home/deployer/config/authenticated_email.txt mode=0644
+
+# - name: Remove proxy stack
+#   shell: "docker stack rm logger"
+#   ignore_errors: yes
+
+# - name: Remove old proxy-default.conf docker config
+#   shell: "docker config rm authenticated_email_kibana_oauth"
+#   ignore_errors: yes
+
+- name: Save proxy-default.conf as docker config
+  shell: "docker config create authenticated_email_kibana_oauth /home/deployer/config/authenticated_email.txt"
 
 - name: Deploy stack
   shell: "docker stack deploy -c logger.yml logger"
