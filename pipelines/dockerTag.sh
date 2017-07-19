@@ -12,6 +12,7 @@ name=$(e "${m}" "name")
 version=$(e "${m}" "version")
 
 artifactLabel=${ARTIFACT_LABEL:-gold}
+PREVIOUS_LABEL=silver
 
 docker pull ${org}/${name}:${version}-${PREVIOUS_LABEL}
 docker image tag ${org}/${name}:${version}-${PREVIOUS_LABEL} ${org}/${name}:${version}-${artifactLabel}
