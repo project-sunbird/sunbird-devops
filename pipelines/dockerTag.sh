@@ -11,7 +11,7 @@ hubuser=$(e "${m}" "hubuser")
 name=$(e "${m}" "name")
 version=$(e "${m}" "version")
 
-artifactLabel=${ARTIFACT_LABEL:-silver}
+artifactLabel=${ARTIFACT_LABEL:-gold}
 
 docker pull ${org}/${name}:${version}-${PREVIOUS_LABEL}
 docker image tag ${org}/${name}:${version}-${PREVIOUS_LABEL} ${org}/${name}:${version}-${artifactLabel}
