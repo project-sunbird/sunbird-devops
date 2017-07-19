@@ -16,6 +16,18 @@
   vars_files:
     - 'secrets/{{env}}.yml'
   become: yes
+  pre_tasks:
+    - name: Ensure {{ ci_proxy_nginx_ssl_dir }} exists
+      file: path={{ ci_proxy_nginx_ssl_dir }} state=directory
+      notify: restart nginx
+
+    - name: Ensure {{ ci_proxy_nginx_ssl_cert_file }} exists
+      copy: dest={{ ci_proxy_nginx_ssl_cert_file }} content={{ vault_ci_proxy_nginx_ssl_cert }}  mode=0600
+      notify: restart nginx
+
+    - name: Ensure {{ ci_proxy_nginx_ssl_key_file }} exists
+      copy: dest={{ ci_proxy_nginx_ssl_key_file }} content={{ vault_ci_proxy_nginx_ssl_key }} mode=0600
+      notify: restart nginx
   roles:
     - role: nginx
       nginx_configs:
@@ -26,9 +38,9 @@
         jenkins:
             - listen {{ ci_proxy_ssl_port }} ssl
             - location /jenkins/ { proxy_pass http://{{ groups['jenkins-master'][0] }}:{{ jenkins_http_port}}{{ jenkins_url_prefix }}/; }
+            - location / { return 301 https://$host/jenkins; }
         jenkins_http_redirect:
             - listen 80
             - return 301 https://$host$request_uri
-    - role: ci-proxy
   tags:
     - ci-proxy
