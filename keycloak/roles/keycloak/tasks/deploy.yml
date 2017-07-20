@@ -1,13 +1,45 @@
+
+- name: status service 
+  become: yes
+  command: /etc/init.d/keycloak status
+  register: keycloak
+  
+- name: stop service 
+  become: yes
+  command: /etc/init.d/keycloak stop
+  when: "keycloak.stdout.find('running') != -1"
+  
+
 - name: copy the artifacts 
   copy: src=keycloak.tar.gz dest=/opt/  
 
 - name: extarct the folder 
   unarchive: src=/opt/keycloak.tar.gz dest=/opt/ copy=no owner=keycloak group=keycloak
 
+- name: remove files inside 
+  file: path=/opt/keycloak/themes/sunrise/login/resources/{{item}} state=absent
+  with_items:
+             - css
+             - img
 
 - name: copy the artifacts 
   copy: src=artifacts/sunbird/{{item}} dest=/opt/keycloak/themes/sunrise/login/resources/ owner=keycloak group=keycloak
   with_items: 
              - css
              - img
+  when: sunbird
+
+# - name: copy the artifacts 
+#   copy: src=artifacts/ntp/{{item}} dest=/opt/keycloak/themes/sunrise/login/resources/ owner=keycloak group=keycloak
+#   with_items: 
+#              - css
+#              - img
+#   when: ntp
+  
+- name: start service 
+  become: yes
+  command: /etc/init.d/keycloak start
+  
+
+  
 
