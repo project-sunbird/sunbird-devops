@@ -29,7 +29,21 @@ scrape_configs:
       - 'tasks.alertmanager'
       type: 'A'
       port: 9093
-  
+
+  - job_name: 'root'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]  # Look for a HTTP 200 response.
+    static_configs:
+    - targets:
+      - https://{{api__host}}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: localhost:9115  # Blackbox exporter.
 
   - job_name: 'composite_search'
     metrics_path: /probe
