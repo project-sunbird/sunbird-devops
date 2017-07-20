@@ -1,21 +1,27 @@
 # ---
 # # tasks file for keycloak
 
-- name: Check keycloak installation
-  stat: path={{ wildfly_dir }}/bin/keycloak-install.cli
-  register: keycloak_installation
-  changed_when: not keycloak_installation.stat.exists
+# - name: Check keycloak installation
+#   stat: path={{ wildfly_dir }}/bin/keycloak-install.cli
+#   register: keycloak_installation
+#   changed_when: not keycloak_installation.stat.exists
 
-- name: Download keycloak tar file
-  get_url: dest={{ keycloak_download_dir }} url={{ keycloak_download_url }}
-  when: not keycloak_installation.stat.exists
+# - name: Download keycloak tar file
+#   get_url: dest={{ keycloak_download_dir }} url={{ keycloak_download_url }}
+#   when: not keycloak_installation.stat.exists
+
+# - name: Unarchive downloaded file
+#   unarchive: src={{ keycloak_download_dir }}/{{ keycloak_download_file }}
+#              dest={{ keycloak_download_dir }} copy=no mode=0750
+#              owner={{ wildfly_user }} group={{ wildfly_group }}
+#   when: not keycloak_installation.stat.exists
+ 
+- name: copy the artifact of keycloak 
+  copy: src=keycloak.tar.gz dest={{ keycloak_download_dir }} copy=no
 
 - name: Unarchive downloaded file
-  unarchive: src={{ keycloak_download_dir }}/{{ keycloak_download_file }}
-             dest={{ keycloak_download_dir }} copy=no mode=0750
-             owner={{ wildfly_user }} group={{ wildfly_group }}
-  when: not keycloak_installation.stat.exists
- 
+  unarchive: src={{ keycloak_download_dir }}/keycloak.tar.gz dest={{ keycloak_download_dir }} copy=no mode=0750 owner={{ wildfly_user }} group={{ wildfly_group }}
+  
 - name: remove keycloak
   command: rm -rf /opt/keycloak
 

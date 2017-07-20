@@ -1,30 +1,12 @@
 #!/bin/bash
  
-# Start the carte server as a daemon, and helps managing it in a normal
-# (service carte start/stop/status) way.
  
-# Licence: FreeBSD, do what you want with it but do not hold me responsible.
- 
-### BEGIN INIT INFO
-# Provides: pdi
-# Required-Start: $network $syslog $remote_fs
-# Required-Stop: $network $syslog
-# Default-Start: 3 5
-# Default-Stop: 0 1 2 4 6
-# Short-Description: Pentaho Carte Server
-# Description: Pentaho Carte Server
-#
-### END INIT INFO
- 
-## configuration directives
-# Which user does carte run under?
-#PDIUSER=pentaho
+
 keycloakuser=keycloak
-# On which port should it listen?
-#CARTEPORT=80
-# Where is pdi installed?
-#PDIROOT=/opt/pentaho_pdi
 keycloakpath=/opt/keycloak/bin
+
+
+
 # Normal output log
 LOGOUT=/var/log/keycloak.out.log
 # Error output log
@@ -32,24 +14,12 @@ LOGERR=/var/log/keycloak.err.log
  
 ## script start here
  
-# Note: The functions script is RH only. It is only used here for sexy (colored)
-# output of [OK] or [FAILED] via echo_failure and echo_success.
-#
-# To make this script work under other flavors of linux, the 2 echo_ functions
-# are first defined in a portable (but unsexy) way. If the RH functions script
-# exists, its definition will override the portable way.
+
 function echo_failure() { echo -en "\n[FAILED]"; }
 function echo_success() { echo -en "\n[OK]"; }
 [ -f /etc/rc.d/init.d/functions ] && source /etc/rc.d/init.d/functions
  
-# Very useful for debugging
-#set -x
- 
-# Find PID of the newest (-n) process owned by $PDIUSER (-u) with carte.sh on
-# the full (-f) command, arguments included.
-# => this should yield the pid of 'sh ./carte.sh' on STDOUT, with a status of 0
-# if there is such a process, 1 otherwise
-FINDPID="pgrep -u $keycloak -n -f standalone.sh";
+FINDPID="pgrep -u $keycloakuser -n -f standalone.sh";
 function _is_running() {
     $FINDPID 1>/dev/null
     return $?
@@ -127,17 +97,17 @@ function start_keycloak() {
  
 case "$1" in
     start)
-        start_carte
+        start_keycloak
         exit $?
         ;;
     stop)
-        stop_carte
+        stop_keycloak
         exit $?
         ;;
     reload|force-reload|restart|force-restart)
-        stop_carte
+        stop_keycloak
         if [ $? -eq 0 ]; then
-            start_carte
+            start_keycloak
             exit $?
         else
             exit 1
