@@ -1,0 +1,26 @@
+---
+# tasks file for keycloak
+
+- name: Remove default datasource
+  lineinfile:
+    dest: "{{ wildfly_standalone_config_path }}"
+    line: "{{ keycloak_default_ds }}"
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_group }}"
+    mode: 0750
+    state: absent
+  notify:
+    - restart wildfly
+    - change standalone data mode
+
+- name: Add custom datasource
+  lineinfile:
+    dest: "{{ wildfly_standalone_config_path }}"
+    insertbefore: </datasources>
+    line: "{{ keycloak_custom_ds }}"
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_group }}"
+    mode: 0750
+  notify:
+    - restart wildfly
+    - change standalone data mode

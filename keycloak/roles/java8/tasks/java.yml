@@ -1,0 +1,23 @@
+- name: Add Java repository to sources
+  action: apt_repository repo='ppa:webupd8team/java'
+  become: yes
+
+- name: Autoaccept license for Java
+  action: shell echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
+  become: yes
+
+- name: Update APT package cache
+  action: apt update_cache=yes cache_valid_time=3600
+  become: yes
+
+- name: Install Java 8
+  action: apt pkg=oracle-java8-installer state=latest
+  become: yes
+
+- name: Set Java 8 Env
+  action: apt pkg=oracle-java8-set-default state=latest install_recommends=yes
+  become: yes
+
+- name: setup envkeep
+  become: yes
+  lineinfile: dest=/etc/sudoers line='Defaults  env_keep += "JAVA_HOME"'  state=present insertafter=EOF create=yes
