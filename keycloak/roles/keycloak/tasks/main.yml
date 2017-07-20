@@ -1,3 +1,18 @@
+
+- name: status service 
+  become: yes
+  command: /etc/init.d/keycloak status
+  register: keycloak
+  tags:
+    - deploy       
+  
+- name: stop service 
+  become: yes
+  command: /etc/init.d/keycloak stop
+  when: "keycloak.stdout.find('running') != -1"
+  tags:
+    - deploy      
+
 - include: deploy.yml
   tags:
     - deploy  
@@ -21,3 +36,10 @@
 - include: service.yml
   tags:
     - provision
+
+- name: start service 
+  become: yes
+  command: /etc/init.d/keycloak start
+  tags:
+    - deploy      
+  
