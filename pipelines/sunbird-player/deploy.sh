@@ -23,6 +23,6 @@ echo "org:            ${org}"
 echo "name:           ${name}"
 echo "version:        ${version}"
 echo "ANSIBLE_PATH:   $ANSIBLE_PATH"
-
+ 
 ansible-playbook --version
-ansible-playbook -i ansible/inventory/$ENV ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel} service_name=player stack=True" --vault-password-file /run/secrets/vault-pass
+ansible-playbook -i ansible/inventory/$ENV ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel} service_name=player deploy_stack=True" --vault-password-file /run/secrets/vault-pass
