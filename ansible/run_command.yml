@@ -1,0 +1,15 @@
+# This playbook uses all as host. Run this playbook with --limit pattern
+- hosts: all
+  tasks:
+    - name: Create file with run command command
+      copy: content="{{ command }}" dest="/tmp/ansible-run-command.sh" mode="755"
+    - name: Run command
+      command: bash -lc "/tmp/ansible-run-command.sh"
+      async: 1800
+      poll: 10
+      register: log
+      ignore_errors: true
+    - debug:
+        var: log
+        verbosity: 4
+  become: yes
