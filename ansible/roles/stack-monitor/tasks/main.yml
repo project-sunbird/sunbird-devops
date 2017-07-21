@@ -2,35 +2,38 @@
 
 - name: Ensure stack directory exists
   file:
-    path: /home/deployer/stack
+    path: /opt/docker/stacks/monitor/stack
     state: directory
-    owner: root
-    group: root
+    owner: '{{ root_owner }}'
+    group: '{{ root_group }}'
   
 - name: Ensure config directory exists
   file:
-    path: /home/deployer/config
+    path: /opt/docker/stacks/monitor/config
     state: directory
-    owner: root
-    group: root
+    owner: '{{ root_owner }}'
+    group: '{{ root_group }}'
 
 - name: Save stack file
-  template: src=stack-monitor.yml dest=/home/deployer/stack/monitor.yml mode=0644
+  template: src=stack-monitor.yml dest=/opt/docker/stacks/monitor/stack/monitor.yml mode=0644
+
+- name: Save stack file
+  shell: "cat /opt/docker/stacks/monitor/stack/monitor.yml"
 
 - name: Save prometheus config file
-  template: src=prometheus.yml dest=/home/deployer/config/prometheus.yml mode=0644
+  template: src=prometheus.yml dest=/opt/docker/stacks/monitor/config/prometheus.yml mode=0644
 
 - name: Save alertmanager config file
-  template: src=alertmanagerconfig.yml dest=/home/deployer/config/alertmanagerconfig.yml mode=0644
+  template: src=alertmanagerconfig.yml dest=/opt/docker/stacks/monitor/config/alertmanagerconfig.yml mode=0644
 
 - name: Save blackboxconfig config file
-  template: src=blackboxconfig.yml dest=/home/deployer/config/blackboxconfig.yml mode=0644
+  template: src=blackboxconfig.yml dest=/opt/docker/stacks/monitor/config/blackboxconfig.yml mode=0644
 
 - name: Save prometheus node rule file
-  copy: src=alertrules.nodes dest=/home/deployer/config/alertrules.nodes mode=0644
+  copy: src=alertrules.nodes dest=/opt/docker/stacks/monitor/config/alertrules.nodes mode=0644
 
 - name: Save prometheus container rule file
-  copy: src=alertrules.task dest=/home/deployer/config/alertrules.task mode=0644
+  copy: src=alertrules.task dest=/opt/docker/stacks/monitor/config/alertrules.task mode=0644
 
 - name: Remove monitor stack
   shell: "docker stack rm monitor"
@@ -57,26 +60,26 @@
   ignore_errors: yes
 
 - name: Save prometheus.yml docker config
-  shell: "docker config create prometheus.yml /home/deployer/config/prometheus.yml"
+  shell: "docker config create prometheus.yml /opt/docker/stacks/monitor/config/prometheus.yml"
   ignore_errors: yes
 
 - name: Save prom_node_rules docker config
-  shell: "docker config create prom_node_rules /home/deployer/config/alertrules.nodes"
+  shell: "docker config create prom_node_rules /opt/docker/stacks/monitor/config/alertrules.nodes"
   ignore_errors: yes
 
 - name: Save prom_container_rules docker config
-  shell: "docker config create prom_container_rules /home/deployer/config/alertrules.task"
+  shell: "docker config create prom_container_rules /opt/docker/stacks/monitor/config/alertrules.task"
   ignore_errors: yes
 
 - name: Save alermanager docker config
-  shell: "docker config create alertmanagerconfig.yml /home/deployer/config/alertmanagerconfig.yml"
+  shell: "docker config create alertmanagerconfig.yml /opt/docker/stacks/monitor/config/alertmanagerconfig.yml"
   ignore_errors: yes
 
 - name: Save blackboxconfig docker config
-  shell: "docker config create blackboxconfig.yml /home/deployer/config/blackboxconfig.yml"
+  shell: "docker config create blackboxconfig.yml /opt/docker/stacks/monitor/config/blackboxconfig.yml"
   ignore_errors: yes
 
 - name: Deploy stack
   shell: "docker stack deploy -c monitor.yml monitor"
   args:
-    chdir: /home/deployer/stack
+    chdir: /opt/docker/stacks/monitor/stack
