@@ -7,12 +7,9 @@ services:
         ports:
             - "9090:9090"
         networks:
-            - monitoring
-            
-        {% if monitor__prometheus_volumes|length > 0 %}
-        volumes: {{ monitor__prometheus_volumes }}
-        {% endif %}
-        
+            - monitoring     
+        volumes: 
+            - /var/dockerdata/prometheus/data:/prometheus 
         command: "-config.file=/etc/prometheus/prometheus.yml -alertmanager.url http://alertmanager:9093 -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -storage.local.target-heap-size=157286400 -storage.local.retention=168h0m0s -web.console.templates=/etc/prometheus/consoles"
         labels:
             com.docker.stack.namespace: "monitoring"
@@ -112,11 +109,8 @@ services:
             - "9093:9093"
         networks:
             - monitoring
-
-        {% if monitor__alertmanager_volumes|length > 0 %}
-        volumes: {{ monitor__alertmanager_volumes }}
-        {% endif %}
-
+        volumes: 
+            - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
         command: [-config.file=/etc/alertmanager/alertmanagerconfig.yml,-storage.path=/alertmanager/data]
         labels:
             com.docker.stack.namespace: "monitoring"
@@ -147,11 +141,8 @@ services:
             - "3001:3000"
         networks:
             - monitoring
-
-        {% if monitor__grafana_volumes|length > 0 %}
-        volumes: {{ monitor__grafana_volumes }}
-        {% endif %}
-
+        volumes: 
+            - /var/dockerdata/grafana:/var/lib/grafana
         command: -e "GF_SECURITY_ADMIN_PASSWORD={{grafana_admin_password}} PROMETHEUS_ENDPOINT=http://prometheus:9090"
         environment:
             - GF_SERVER_ROOT_URL=http://grafana.local.com/grafana
