@@ -1,22 +1,31 @@
 - name: Cassandra | Update the cassandra host configuration
   become: yes
   template: src=hosts.j2 dest=/etc/hosts
+  tags: 
+       - provision
 
 
 - name: debian | Adding Cassandra Debian Repo Key
   apt_key:
     url: "{{ cassandra_repo_key }}"
     state: "present"
+  tags: 
+       - provision
 
 - name: debian | Adding Cassandra Debian Repo
   apt_repository:
     repo: "{{ cassandra_repo }}"
     state: "present"
+  tags: 
+       - provision
 
 - name: debian | Installing Cassandra
   apt:
     name: "cassandra"
     state: "present"
+  tags: 
+       - provision
+
 
 - name: config | Configuring Cassandra
   template:
@@ -26,6 +35,9 @@
     group: "root"
     mode: 0644
   notify: "restart cassandra"
+  tags: 
+       - provision
+
 
 - name: Copy the templates
   become: yes
@@ -34,18 +46,53 @@
              - cassandra.cql
              - pageMgmt.csv
              - pageSection.csv
+  tags: 
+       - provision
+
 
 - name: Run the cassandra.cql command
   become: yes
   command: "cqlsh -f /tmp/cassandra.cql"
   ignore_errors: yes
+  tags: 
+       - load_cql
 
 - name: Run the pageMgmt.csv command
   become: yes
   command: cqlsh -e "COPY sunbird.page_management(id, appmap,createdby ,createddate ,name ,organisationid ,portalmap ,updatedby ,updateddate ) FROM '/tmp/pageMgmt.csv'" 
   ignore_errors: yes
+  tags: 
+       - load_management
 
 - name: Run the pageSection.csv file
   become: yes
   command: cqlsh -e "COPY sunbird.page_section(id, alt,createdby ,createddate ,description ,display ,imgurl ,name,searchquery , sectiondatatype ,status , updatedby ,updateddate) FROM '/tmp/cql/pageSection.csv'"
   ignore_errors: yes
+  tags: 
+       - load_section
+
+- name: Create the directory
+  become: yes
+  file: path=/data/cassandra/ state=directory recurse=yes
+  tags: 
+       - backup
+
+
+- name: Create Symlink
+  become: yes
+  command: sudo ln -s /var/lib/cassandra/data /data/cassandra/data 
+  tags: 
+       - backup
+
+- name: copy the backup script 
+  become: yes
+  template: src=cassandra_backup.j2  dest=/home/deployer/cassandra_backup.sh mode=0755 
+  tags: 
+       - backup
+
+- name: run the backup script
+  become: yes
+  shell: sh /home/deployer/cassandra_backup.sh
+  tags: 
+       - backup
+ 
