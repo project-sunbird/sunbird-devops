@@ -1,5 +1,5 @@
 - name: ensure backup dir exists
-  file: path="{{ postgresql_backup_dir }}" state=directory
+  file: path="{{ postgresql_backup_dir }}" state=directory owner={{ postgres_user }} group={{ postgres_user }}
 
 - set_fact:
     postgresql_backup_gzip_file_name: "postgresql_backup_{{ lookup('pipe', 'date +%Y-%m-%d-%H-%M-%S') }}.sql.gz"
@@ -9,6 +9,6 @@
 
 - name: Save backup
   command: bash -lc "pg_dumpall | gzip > {{ postgresql_backup_gzip_file_path }}"
-  become_user: postgres
+  become_user: "{{ postgres_user }}"
   async: 3600
   poll: 30
