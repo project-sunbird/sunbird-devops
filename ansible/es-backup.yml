@@ -2,7 +2,49 @@
   become: yes
   vars_files:
     - 'secrets/{{env}}.yml'
-  roles:
-    - es-azure-snapshot
+  # roles:
+  #   - es-azure-snapshot
+  tasks:
+    - name: Create azure snapshot
+      uri:
+        url: "http://{{ groups['es'][0]}}:9200/_snapshot/azurebackup"
+        method: PUT
+        body: >
+          {"type":"azure"}
+        headers:
+          Content-Type: "application/json"
+
+    - set_fact: snapshot_number="snapshot_{{ansible_date_time.epoch}}"
+
+    - name: Take new snapshot
+      uri:
+        url: "http://{{ groups['es'][0]}}:9200/_snapshot/azurebackup/{{snapshot_number}}"
+        method: PUT
+        body:  >
+          {"indices":"*","include_global_state":false}
+        headers:
+          Content-Type: "application/json"
+
+    - name: Print all snapshots
+      uri:
+        url: "http://{{ groups['es'][0]}}:9200/_snapshot/azurebackup/_all"
+        method: GET
+
+    - name: Print status of current snapshot
+      uri:
+        url: "http://{{ groups['es'][0]}}:9200/_snapshot/azurebackup/{{snapshot_number}}"
+        method: GET
+
+    - name: "Wait for backup to be completed"
+      uri:
+        url: "http://{{ groups['es'][0]}}:9200/_snapshot/azurebackup/{{snapshot_number}}"
+        method: GET
+        return_content: yes
+        status_code: 200
+        body_format: json
+      register: result
+      until: result.json.snapshots[0].success == 'SUCCESS'
+      retries: 180
+      delay: 10
   tags:
     - es_backup
