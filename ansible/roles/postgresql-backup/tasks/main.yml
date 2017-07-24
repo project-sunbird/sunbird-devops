@@ -1,0 +1,13 @@
+- name: ensure backup dir exists
+  file: path="{{ postgresql_backup_dir }}" state=directory
+
+- set_fact:
+    postgresql_backup_gzip_file_name: "postgresql_backup_{{ lookup('pipe', 'date +%Y-%m-%d-%H-%M-%S') }}.sql.gz"
+
+- set_fact:
+    postgresql_backup_gzip_file_path: "{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}"
+
+- name: Save backup
+  command: "su - postgres -c pg_dumpall | gzip > {{ postgresql_backup_gzip_file_path }}"
+  async: 3600
+  poll: 30
