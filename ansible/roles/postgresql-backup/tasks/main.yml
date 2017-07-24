@@ -11,4 +11,23 @@
   command: bash -lc "pg_dumpall | gzip > {{ postgresql_backup_gzip_file_path }}"
   become_user: "{{ postgres_user }}"
   async: 3600
-  poll: 30
+  poll: 10
+
+- name: ensure python pip is installed
+  apt: name=python-pip
+
+- name: ensure azure sdk is installed
+  pip: name=azure
+
+- name: Upload to azure blob storage
+  azure_rm_storageblob:
+    resource_group: "{{ postgresql_backup_azure_resource_group }}"
+    storage_account_name: "{{ postgresql_backup_azure_storage_account_name }}"
+    container: "{{ postgresql_backup_azure_container_name }}"
+    blob: "{{ postgresql_backup_gzip_file_name }}"
+    src: "{{ postgresql_backup_gzip_file_path }}"
+  environment:
+    AZURE_SECRET: "{{ postgresql_backup_azure_secret }}"
+    # AZURE_SUBSCRIPTION_ID:
+    # AZURE_CLIENT_ID:
+    # AZURE_TENANT:
