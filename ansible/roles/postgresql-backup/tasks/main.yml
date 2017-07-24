@@ -13,29 +13,20 @@
   async: 3600
   poll: 10
 
-- name: ensure python pip is installed
-  apt: name=python-pip update_cache=yes cache_valid_time={{ apt_cache_valid_time }}
+- name: Add Azure apt repository
+  apt_repository: repo='deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main' state=present
 
-- name: Upgrade pip
-  pip:
-    name: pip
-    extra_args: --upgrade
+- name: Import Azure signing key
+  apt_key: keyserver=packages.microsoft.com id=417A0893
 
-- name: ensure pip packaging is installed
-  pip: name=packaging
+- name: ensure apt-transport-https is installed
+  apt: name=apt-transport-https
 
-- name: ensure azure sdk is installed
-  pip: name="azure==2.0.0rc5"
+- name: ensure azure-cli is installed
+  apt: name=azure-cli update_cache=yes cache_valid_time={{ apt_cache_valid_time }}
 
 - name: Upload to azure blob storage
-  azure_rm_storageblob:
-    resource_group: "{{ postgresql_backup_azure_resource_group }}"
-    storage_account_name: "{{ postgresql_backup_azure_storage_account_name }}"
-    container: "{{ postgresql_backup_azure_container_name }}"
-    blob: "{{ postgresql_backup_gzip_file_name }}"
-    src: "{{ postgresql_backup_gzip_file_path }}"
+  command: azure storage blob upload {{ postgresql_backup_gzip_file_path }} {{ postgresql_backup_azure_container_name }}
   environment:
-    AZURE_SECRET: "{{ postgresql_backup_azure_secret }}"
-    # AZURE_SUBSCRIPTION_ID:
-    # AZURE_CLIENT_ID:
-    # AZURE_TENANT:
+    AZURE_STORAGE_ACCOUNT: "{{ postgresql_backup_azure_storage_account_name }}"
+    AZURE_STORAGE_ACCESS_KEY: "{{ postgresql_backup_azure_storage_access_key }}"
