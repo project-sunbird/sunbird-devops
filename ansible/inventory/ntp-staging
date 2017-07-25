@@ -1,11 +1,20 @@
 [ntp-staging-postgresql-1]
 10.10.0.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
-[ntp-staging-postgresql:children]
+[ntp-staging-postgresql-2]
+10.10.0.6 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[ntp-staging-postgresql-master:children]
 ntp-staging-postgresql-1
 
-[postgresql:children]
-ntp-staging-postgresql
+[postgresql-master:children]
+ntp-staging-postgresql-master
+
+[ntp-staging-postgresql-slave:children]
+ntp-staging-postgresql-2
+
+[postgresql-slave:children]
+ntp-staging-postgresql-slave
 
 [postgresql-backup:children]
 ntp-staging-postgresql-1
@@ -84,7 +93,8 @@ ntp-staging-cassandra
 [ntp-staging:children]
 ntp-staging-mongodb
 es
-postgresql
+postgresql-master
+postgresql-slave
 postgresql-backup
 cassandra
 ntp-staging-cassandra

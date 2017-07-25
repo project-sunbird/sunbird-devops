@@ -28,7 +28,7 @@
   tags:
     - log-es
 
-- hosts: postgresql
+- hosts: postgresql-master
   become: yes
   vars_files:
     - 'secrets/{{env}}.yml'
@@ -39,4 +39,18 @@
   roles:
     - postgresql
   tags:
+    - postgresql-master
+
+- hosts: postgresql-slave
+  become: yes
+  vars_files:
+    - 'secrets/{{env}}.yml'
+  pre_tasks:
+    - name: install setfacl support
+      become: yes
+      apt: pkg=acl
+  roles:
     - postgresql
+    - postgresql-slave
+  tags:
+    - postgresql-slave
