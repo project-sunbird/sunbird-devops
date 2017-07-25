@@ -10,6 +10,9 @@
 [staging-mongodb-4]
 10.11.2.7 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
+[staging-log-es-1]
+10.11.3.7 ansible_ssh_user=deployer node_name=staging-log-es-1 es_etc_node_master=true es_etc_node_data=true ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
 [staging-es-1]
 10.11.3.4 ansible_ssh_user=deployer es_instance_name=staging-es-1 es_etc_node_master=true es_etc_node_data=true ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
@@ -51,8 +54,14 @@ staging-es-1
 staging-es-2
 staging-es-3
 
+[staging-log-es:children]
+staging-log-es-1
+
 [es:children]
 staging-es
+
+[log-es:children]
+staging-log-es
 
 [es-backup:children]
 staging-es-1
@@ -71,5 +80,6 @@ staging-cassandra
 kong-api
 kong-remote-postgres-db
 staging-swarm-manager
+log-es
 
 
