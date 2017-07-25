@@ -3,7 +3,10 @@
 node('general-dev') {
 
     currentBuild.result = "SUCCESS"
-
+    parameters {
+        string(name: 'cassandrarestore', defaultValue: 'cassandra_backup_20170725.zip', description: 'pass the variable')
+      }
+ 
     try {
 
        stage('Checkout'){
@@ -11,11 +14,6 @@ node('general-dev') {
           checkout scm
        }
       
-      parameters {
-        string(name: 'cassandra_restore_gzip_file_name', defaultValue: 'cassandra_backup_20170725.zip', description: 'pass the variable')
-      }
-
-       
        stage('Pre-Build'){
          sh('chmod a+x ansible/installDeps.sh')
          sh('./ansible/installDeps.sh')
@@ -23,7 +21,7 @@ node('general-dev') {
       
        stage('Build'){
 
-        sh('ansible-playbook -i ansible/inventory/dev ansible/cassandra-backup.yml --tags restore --vault-password-file  /run/secrets/vault-pass --extra-vars "cassandra_restore_gzip_file_name=${params.cassandra_restore_gzip_file_name}"')
+        sh('ansible-playbook -i ansible/inventory/dev ansible/cassandra-backup.yml --tags restore --vault-password-file  /run/secrets/vault-pass --extra-vars "cassandra_restore_gzip_file_name=${params.cassandrarestore}"')
        }
 
     }
