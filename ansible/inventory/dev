@@ -1,3 +1,15 @@
+[dev-postgresql-1]
+10.10.0.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[dev-postgresql-master:children]
+dev-postgresql-1
+
+[postgresql-master:children]
+dev-postgresql-master
+
+[postgresql-backup:children]
+dev-postgresql-1
+
 [dev-mongodb-1]
 10.10.2.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
@@ -73,6 +85,8 @@ dev-log-es
 dev-cassandra-1
 
 [dev:children]
+postgresql-master
+postgresql-backup
 dev-mongodb
 es
 dev-cassandra
