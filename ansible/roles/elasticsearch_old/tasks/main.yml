@@ -35,6 +35,23 @@
 - name: Set elasticsearch service to start on boot
   service: name=elasticsearch enabled=yes
 
+- name: Remove plugins
+  command: bin/plugin remove {{item.name}}
+  args:
+    chdir: "{{ es_home }}"
+  with_items: es_plugins
+  ignore_errors: yes
+  notify: Restart elasticsearch
+
+- name: Install plugins
+  command: bin/plugin install {{item.name}} {%if item.url is defined %} url {{item.url}}{% endif %}
+  args:
+    chdir: "{{ es_home }}"
+    creates: "{{ es_home }}/plugins/{{ item.plugin_file | default(item.name) }}"
+  with_items: es_plugins
+  ignore_errors: yes
+  notify: Restart elasticsearch
+
 - name: Configure /etc/security/limits.conf
   lineinfile: >
     dest=/etc/security/limits.conf
