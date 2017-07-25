@@ -9,28 +9,34 @@ services:
     ports:
       - '9201:9200'
     networks:
-      - logger_logger
+      - logger
 
   kibana:
-    image: sunbird/kibana:0.0.1-bronze
+    image: kibana:4.6
     environment:
       - LOGSPOUT=ignore
     depends_on:
       - logger_elasticsearch
     ports:
       - '5601:5601'
+    configs:
+      - source: kibana.yml
+        target: /opt/kibana/config/kibana.yml
     networks:
-      - logger_logger
+      - logger
 
   logstash:
-    image: sunbird/logstash:0.0.1-bronze
+    image: logstash:2.4.1
     command: logstash -f /conf/logstash.conf
     environment:
       - LOGSPOUT=ignore
+    configs:
+      - source: logstash.conf
+        target: /conf/logstash.conf
     depends_on:
       - logger_elasticsearch
     networks:
-      - logger_logger
+      - logger
 
   logspout:
     image: gliderlabs/logspout
@@ -44,11 +50,12 @@ services:
     volumes:
       - '/var/run/docker.sock:/tmp/docker.sock'
     networks:
-      - logger_logger
+      - logger
       - api-manager_default
       - jenkins_default
       - monitor
       - "{{ sunbird_network }}"
+  
   oauth:
     image: mryu/oauth2-proxy
     command: |
@@ -70,7 +77,7 @@ services:
       - source: authenticated_email_kibana_oauth
         target: /authenticated_email.txt
     networks:
-      - logger_logger
+      - logger
 
 configs:
   authenticated_email_kibana_oauth:
@@ -85,5 +92,5 @@ networks:
     external: true
   {{ sunbird_network }}:
     external: true
-  logger_logger:
+  logger:
     external: true
