@@ -1,11 +1,20 @@
 [ntp-production-postgresql-1]
 10.11.0.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
+[ntp-production-postgresql-2]
+10.11.0.5 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
 [ntp-production-postgresql-master:children]
 ntp-production-postgresql-1
 
 [postgresql-master:children]
 ntp-production-postgresql-master
+
+[ntp-production-postgresql-slave:children]
+ntp-production-postgresql-2
+
+[postgresql-slave:children]
+ntp-production-postgresql-slave
 
 [postgresql-backup:children]
 ntp-production-postgresql-1
@@ -78,6 +87,7 @@ ntp-production-cassandra
 ntp-production-mongodb
 es
 postgresql-master
+postgresql-slave
 postgresql-backup
 cassandra
 ntp-production-cassandra
