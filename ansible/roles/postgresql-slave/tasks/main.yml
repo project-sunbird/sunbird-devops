@@ -8,7 +8,9 @@
   command: mv {{ postgresql_data_dir }} {{ postgresql_data_dir_backup_path }}
 
 - name: Backup data from master
-  command: pg_basebackup -h {{ postgresql_master_host }} -D {{ postgresql_data_dir }} -U {{ postgres_replication_user_name }} -P {{ postgres_replication_user_password }} --xlog-method=stream
+  command: pg_basebackup -h {{ postgresql_master_host }} -D {{ postgresql_data_dir }} -U {{ postgres_replication_user_name }} -P --password {{ postgres_replication_user_password }} --xlog-method=stream
+  async: 3600
+  poll: 10
 
 - name: Add recovery.conf
   template: src=recovery.conf dest={{ postgresql_data_dir }}/recovery.conf owner={{ postgresql_user }} mode=0644
