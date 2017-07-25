@@ -35,13 +35,11 @@
 - name: Set elasticsearch service to start on boot
   service: name=elasticsearch enabled=yes
 
-- debug: msg="ES plugins- {{ es_plugins }}"
-
 - name: Remove plugins
   command: bin/plugin remove {{item.name}}
   args:
     chdir: "{{ es_home }}"
-  with_items: es_plugins
+  with_items: "{{ es_plugins }}"
   ignore_errors: yes
   notify: Restart elasticsearch
 
@@ -50,7 +48,7 @@
   args:
     chdir: "{{ es_home }}"
     creates: "{{ es_home }}/plugins/{{ item.plugin_file | default(item.name) }}"
-  with_items: es_plugins
+  with_items: "{{ es_plugins }}"
   ignore_errors: yes
   notify: Restart elasticsearch
 
