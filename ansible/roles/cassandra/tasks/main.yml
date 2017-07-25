@@ -140,11 +140,11 @@
   tags: 
        - backup
 
-# - name: Stop the cassandra 
-#   become: yes
-#   service: name=cassandra state=stopped
-#   tags: 
-#        - restore
+- name: Stop the cassandra 
+  become: yes
+  service: name=cassandra state=stopped
+  tags: 
+       - restore
 
 - set_fact:
     cassandra_restore_gzip_file_path: "{{ cassandra.restore_dir }}/{{ cassandra_restore_gzip_file_name }}"
@@ -169,43 +169,37 @@
 
 - name: Remove the restroe artefact
   become: yes
-  file: path={{user_home}}/{{ cassandra_restore_gzip_file_name }} state=absent
+  file: path={{user_home}}/cassandra* state=absent
   tags: 
        - restore
 
-# - name: Remove the old data
-#   become: yes
-#   file: path=/var/lib/cassandra/data state=absent
-#   tags: 
-#        - restore
+- name: Remove the old data
+  become: yes
+  file: path=/var/lib/cassandra/data/* state=absent
+  tags: 
+       - restore
 
-# - name: Create data folder
-#   become: yes
-#   file: path=/var/lib/cassandra/data state=directory
-#   tags: 
-#        - restore
-  
-# - name: Replace the new data
-#   become: yes
-#   copy: src={{user_home}}/snapshot-*/* dest=/var/lib/cassandra/data/ 
-#   tags: 
-#        - restore
+- name: Replace the new data
+  become: yes
+  copy: src={{user_home}}/snapshot-{{snapshot}}/* dest=/var/lib/cassandra/data/ 
+  tags: 
+       - restore
 
-# - name: copy the backup script 
-#   become: yes
-#   template: src=nodetool.j2  dest=/home/deployer/nodetool.sh mode=0755 
-#   tags: 
-#        - restore
+- name: copy the backup script 
+  become: yes
+  template: src=nodetool.j2  dest=/home/deployer/nodetool.sh mode=0755 
+  tags: 
+       - restore
 
 
-# - name: Start the cassandra 
-#   become: yes
-#   service: name=cassandra state=started
-#   tags: 
-#        - restore
+- name: Start the cassandra 
+  become: yes
+  service: name=cassandra state=started
+  tags: 
+       - restore
 
-# - name: run the backup script
-#   become: yes
-#   shell: sh /home/deployer/nodetool.sh
-#   tags: 
-#        - restore
+- name: run the backup script
+  become: yes
+  shell: sh /home/deployer/nodetool.sh
+  tags: 
+       - restore
