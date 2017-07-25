@@ -12,15 +12,19 @@ node('general-dev') {
        }
 
 
-
+       
        stage('Pre-Build'){
          sh('chmod a+x ansible/installDeps.sh')
          sh('./ansible/installDeps.sh')
        }
-
+      
+       parameters {
+        string(name: 'cassandra_restore_gzip_file_name', description: 'pass the variable cassandra_restore_gzip_file_name')
+      }
+       
        stage('Build'){
 
-        sh('ansible-playbook -i ansible/inventory/dev ansible/cassandra-backup.yml --tags restore --vault-password-file  /run/secrets/vault-pass ')
+        sh('ansible-playbook -i ansible/inventory/dev ansible/cassandra-backup.yml --tags restore --vault-password-file  /run/secrets/vault-pass --extra-vars cassandra_restore_gzip_file_name=${params.cassandra_restore_gzip_file_name} ')
        }
 
     }
