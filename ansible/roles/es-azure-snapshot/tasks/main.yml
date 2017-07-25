@@ -1,8 +1,5 @@
 ---
 
-- debug: msg="body- {{ snapshot_create_request_body | to_json }}"
-- debug: msg="es_snapshot_host- {{ es_snapshot_host }}"
-
 - name: Create azure snapshot
   uri:
     url: "http://{{ es_snapshot_host }}:9200/_snapshot/azurebackup"
@@ -15,7 +12,7 @@
 
 - name: Take new snapshot
   uri:
-    url: "http://{{ groups['es'][0]}}:9200/_snapshot/azurebackup/{{snapshot_number}}"
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/azurebackup/{{snapshot_number}}"
     method: PUT
     body:  >
       {"indices":"*","include_global_state":false}
@@ -24,17 +21,17 @@
 
 - name: Print all snapshots
   uri:
-    url: "http://{{ groups['es'][0]}}:9200/_snapshot/azurebackup/_all"
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/azurebackup/_all"
     method: GET
 
 - name: Print status of current snapshot
   uri:
-    url: "http://{{ groups['es'][0]}}:9200/_snapshot/azurebackup/{{snapshot_number}}"
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/azurebackup/{{snapshot_number}}"
     method: GET
 
 - name: "Wait for backup to be completed"
   uri:
-    url: "http://{{ groups['es'][0]}}:9200/_snapshot/azurebackup/{{snapshot_number}}"
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/azurebackup/{{snapshot_number}}"
     method: GET
     return_content: yes
     status_code: 200
