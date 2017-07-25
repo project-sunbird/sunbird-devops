@@ -8,7 +8,8 @@
   command: mv {{ postgresql_data_dir }} {{ postgresql_data_dir_backup_path }}
 
 - name: Backup data from master
-  command: pg_basebackup -h {{ postgresql_master_host }} -D {{ postgresql_data_dir }} -U {{ postgres_replication_user_name }} -P --password {{ postgres_replication_user_password }} --xlog-method=stream
+  command: PGPASSWORD={{ postgres_replication_user_password }} pg_basebackup -h {{ postgresql_master_host }} -D {{ postgresql_data_dir }} -U {{ postgres_replication_user_name }} -P --xlog-method=stream
+  become_user: "{{ postgresql_user }}"
   async: 3600
   poll: 10
 
