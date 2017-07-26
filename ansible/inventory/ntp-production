@@ -40,6 +40,9 @@ ntp-production-postgresql-1
 [ntp-production-es-3]
 10.11.1.6 ansible_ssh_user=deployer es_instance_name=production-es-3 es_etc_node_master=true es_etc_node_data=true ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
+[ntp-production-log-es-1]
+10.11.0.6 ansible_ssh_user=deployer node_name=ntp-production-log-es-1 es_etc_node_master=true es_etc_node_data=true ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
 [ntp-production-cassandra-1]
 10.11.4.4  ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
@@ -74,8 +77,17 @@ ntp-production-es-3
 [es:children]
 ntp-production-es
 
+[ntp-production-log-es:children]
+ntp-production-log-es-1
+
+[log-es:children]
+ntp-production-log-es
+
 [es-backup:children]
 ntp-production-es-1
+
+[log-es-backup:children]
+ntp-production-log-es-1
 
 [ntp-production-cassandra:children]
 ntp-production-cassandra-1
@@ -94,3 +106,4 @@ ntp-production-cassandra
 kong-api
 kong-remote-postgres-db
 ntp-production-swarm-manager
+log-es
