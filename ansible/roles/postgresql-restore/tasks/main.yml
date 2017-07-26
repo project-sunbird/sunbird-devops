@@ -15,8 +15,11 @@
 - name: ensure postgresql service is stopped
   service: name=postgresql state=stopped
 
+- name: wait for postgresql to be stopped
+  wait_for: port={{ postgresql_port }} state=stopped
+
 - name: drop cluster
-  command: pg_dropcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }} --stop
+  command: pg_dropcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }}
   become_user: "{{ postgresql_user }}"
   ignore_errors: true
 
@@ -24,15 +27,11 @@
   command: pg_createcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }}
   become_user: "{{ postgresql_user }}"
 
-- name: start cluster
-  command: pg_ctlcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }} start
-  become_user: "{{ postgresql_user }}"
-
-- name: ensure postgresql daemon state is up to date
-  command: systemctl daemon-reload
-
 - name: ensure postgresql service is started
   service: name=postgresql state=started
+
+- name: wait for postgresql to be started
+  wait_for: port={{ postgresql_port }} state=started
 
 - name: restore backup file
   command: bash -lc "gunzip < {{ postgresql_restore_gzip_file_path }} | psql"
