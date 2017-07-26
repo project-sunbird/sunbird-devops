@@ -1,0 +1,19 @@
+- name: ensure restore dir exists
+  file: path="{{ postgresql_restore_dir }}" state=directory owner={{ postgresql_user }} group={{ postgresql_user }}
+
+- set_fact:
+  postgresql_restore_gzip_file_path: {{ postgresql_restore_dir }}/{{ postgresql_restore_gzip_file_name }}
+
+- name: Download restore from azure
+  command: az storage blob download --container-name {{ postgresql_restore_azure_container_name }} --name {{ postgresql_restore_gzip_file_name }} --file {{ postgresql_restore_gzip_file_path }}
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{ postgresql_restore_azure_storage_account_name }}"
+    AZURE_STORAGE_KEY: "{{ postgresql_restore_azure_storage_access_key }}"
+  async: 3600
+  poll: 10
+
+- name: restore backup file
+  command: bash -lc "gunzip < {{ postgresql_restore_gzip_file_path }} | psql"
+  async: 3600
+  poll: 10
+  become_user: "{{ postgresql_user }}"
