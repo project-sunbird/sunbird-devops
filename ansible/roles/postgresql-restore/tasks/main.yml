@@ -20,12 +20,16 @@
   become_user: "{{ postgresql_user }}"
   ignore_errors: true
 
-- name: ensure postgresql daemon state is up to date
-  command: systemctl daemon-reload
-
 - name: create cluster
   command: pg_createcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }}
   become_user: "{{ postgresql_user }}"
+
+- name: start cluster
+  command: pg_ctlcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }} start
+  become_user: "{{ postgresql_user }}"
+
+- name: ensure postgresql daemon state is up to date
+  command: systemctl daemon-reload
 
 - name: ensure postgresql service is started
   service: name=postgresql state=started
