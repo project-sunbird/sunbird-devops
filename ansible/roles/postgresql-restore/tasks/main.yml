@@ -16,7 +16,11 @@
   service: name=postgresql state=stopped
 
 - name: drop cluster
-  command: pg_dropcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }}
+  command: pg_dropcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }} --stop
+  become_user: "{{ postgresql_user }}"
+
+- name: ensure postgresql daemon state is up to date
+  command: systemctl daemon-reload
   become_user: "{{ postgresql_user }}"
 
 - name: create cluster
