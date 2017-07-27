@@ -4,6 +4,11 @@
   vars_files:
     - 'secrets/{{env}}.yml'
   become: yes
+  pre_tasks:
+    - name: Ensure secrets directory exists
+      file: dest=/run/secrets state=directory owner=jenkins group=jenkins
+    - name: Install vault password
+      copy: dest=/run/secrets/vault-pass content={{ vault_pass }} owner=jenkins group=jenkins
   roles:
     - openjdk
     - git
