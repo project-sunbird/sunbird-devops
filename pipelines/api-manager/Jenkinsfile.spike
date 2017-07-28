@@ -1,6 +1,7 @@
 #!groovy
 
-node('general-production') {
+node('general-spike') {
+
     currentBuild.result = "SUCCESS"
 
     try {
@@ -14,11 +15,16 @@ node('general-production') {
        }
 
        stage('Deploy'){
-        sh 'METADATA_FILE=./pipelines/api-manager/metadata.json ARTIFACT_LABEL=gold  ENV=ntp-production ./pipelines/api-manager/deploy.sh'
+        step ([$class: 'CopyArtifact',
+          projectName: 'Build/Echo_Server_Build',
+          filter: 'metadata.json']);
+        sh 'METADATA_FILE=metadata.json ENV=spike ./pipelines/api-manager/deploy.sh'
+        archive includes: "metadata.json"
        }
     }
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
     }
+
 }
