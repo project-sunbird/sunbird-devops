@@ -15,7 +15,8 @@ cat <> /tmp/logpipe 1>&2 &
 # Disabling nginx daemon mode
 export KONG_NGINX_DAEMON="off"
 # Ensure kong listens on correct ip address https://github.com/Mashape/docker-kong/issues/93
-export KONG_CLUSTER_LISTEN="$(hostname -i):7946"
+IP_ADDR=`ifconfig eth0 | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}'`
+export KONG_CLUSTER_LISTEN="$IP_ADDR:7946"
 
 echo "KONG_CLUSTER_LISTEN: $KONG_CLUSTER_LISTEN"
 
