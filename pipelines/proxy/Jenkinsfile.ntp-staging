@@ -1,0 +1,18 @@
+pipeline {
+  agent {
+      label 'general-staging'
+  }
+  stages {
+    stage('Pre-Build'){
+      steps {
+        sh('./images/proxy/installDeps.sh')
+      }
+    }
+    stage('Deploy') {
+      steps {
+        sh './pipelines/proxy/metadata.json ARTIFACT_LABEL=gold  ENV=ntp-staging ./images/proxy/deploy.sh'
+        archive includes: "./pipelines/proxy/metadata.json"
+      }
+    }
+  }
+}

@@ -1,34 +1,20 @@
-#!groovy
-
-node('general-dev') {
-
-    currentBuild.result = "SUCCESS"
-
-    try {
-
-       stage('Checkout'){
-
-          checkout scm
-       }
-
-       stage('Pre-Build'){
-
-         sh('./images/proxy/installDeps.sh')
-
-       }
-
-       stage('Deploy'){
-        step ([$class: 'CopyArtifact',
-          projectName: 'Staging/Proxy_Deploy_Staging',
-          filter: 'metadata.json']);
-          sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=gold PREVIOUS_LABEL=silver ./pipelines/dockerTag.sh'
-          archive includes: "metadata.json"
-       }
-
+pipeline {
+    agent {
+        label 'general-dev'
     }
-    catch (err) {
-        currentBuild.result = "FAILURE"
-        throw err
+    stages {
+        stage('Deploy') {
+            steps {
+                step ([$class: 'CopyArtifact',
+                    projectName: 'Staging/Proxy',
+                    filter: 'metadata.json']);
+                sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=gold PREVIOUS_LABEL=silver ./pipelines/dockerTag.sh'
+            }
+        }
     }
-
+    post {
+        success {
+            archive includes: "metadata.json"
+        }
+    }
 }

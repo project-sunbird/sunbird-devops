@@ -1,0 +1,25 @@
+pipeline {
+    agent {
+        label 'general-dev'
+    }
+    stages {
+        stage('Pre-Build'){
+            steps {
+                sh('chmod a+x ansible/installDeps.sh')
+                sh('./ansible/installDeps.sh')
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+              step ([$class: 'CopyArtifact',
+                projectName: 'Build/Proxy',
+                filter: 'metadata.json']);
+
+               sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=dev ./images/proxy/deploy.sh'
+
+               archive includes: "metadata.json"
+            }
+        }
+    }
+}
