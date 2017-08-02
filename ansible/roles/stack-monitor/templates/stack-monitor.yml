@@ -1,15 +1,15 @@
 version: "3.3"
 
 services:
-    
+
     prometheus:
         image: quay.io/prometheus/prometheus
         ports:
             - "9090:9090"
         networks:
-            - monitoring     
-        volumes: 
-            - /var/dockerdata/prometheus/data:/prometheus 
+            - monitoring
+        volumes:
+            - /var/dockerdata/prometheus/data:/prometheus
         command: "-config.file=/etc/prometheus/prometheus.yml -alertmanager.url http://alertmanager:9093 -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -storage.local.target-heap-size=157286400 -storage.local.retention=168h0m0s -web.console.templates=/etc/prometheus/consoles"
         labels:
             com.docker.stack.namespace: "monitoring"
@@ -36,7 +36,7 @@ services:
             placement:
                 constraints:
                     - "node.labels.prometheus==1"
-    
+
     blackbox-exporter:
         image: quay.io/prometheus/blackbox-exporter
         ports:
@@ -101,7 +101,7 @@ services:
                 max_attempts: 5
             labels:
                 com.docker.stack.namespace: "monitoring"
-                com.docker.service.name: "node-exporter"  
+                com.docker.service.name: "node-exporter"
 
     alertmanager:
         image: prom/alertmanager
@@ -109,7 +109,7 @@ services:
             - "9093:9093"
         networks:
             - monitoring
-        volumes: 
+        volumes:
             - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
         command: [-config.file=/etc/alertmanager/alertmanagerconfig.yml,-storage.path=/alertmanager/data]
         labels:
@@ -133,7 +133,31 @@ services:
             placement:
                 constraints:
                     - "node.labels.monitor==1"
-    
+
+    elasticsearch_exporter:
+        image: justwatch/elasticsearch_exporter:1.0.1
+        ports:
+            - "9108:9108"
+        networks:
+            - monitoring
+        command:
+            - '-es.uri=http://{{ sunbird.es_host }}:9200 -es.all=true'
+        labels:
+            com.docker.stack.namespace: "monitoring"
+            com.docker.service.name: "elasticsearch_exporter"
+        deploy:
+            mode: replicated
+            replicas: 1
+            update_config:
+                parallelism: 1
+                delay: 60s
+            restart_policy:
+                condition: on-failure
+                max_attempts: 5
+            labels:
+                com.docker.stack.namespace: "monitoring"
+                com.docker.service.name: "elasticsearch_exporter"
+
 
     grafana:
         image: grafana/grafana
@@ -141,7 +165,7 @@ services:
             - "3001:3000"
         networks:
             - monitoring
-        volumes: 
+        volumes:
             - /var/dockerdata/grafana:/var/lib/grafana
         command: -e "GF_SECURITY_ADMIN_PASSWORD={{grafana_admin_password}} PROMETHEUS_ENDPOINT=http://prometheus:9090"
         environment:
