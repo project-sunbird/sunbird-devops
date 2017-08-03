@@ -1,22 +1,33 @@
 - name: Clean artifact path
   file:
     state: absent
-    path: "/tmp/cql"
+    path: "{{ cql_output_root_dir }}"
+
+- name: Clean artifact path
+  file:
+    state: absent
+    path: "{{ csv_output_root_dir }}"
 
 - name: Ensure CQL directory exists
   file:
-    path: /tmp/cql/csv
+    path: "{{ cql_output_root_dir }}"
+    state: directory
+
+- name: Ensure CSV directory exists
+  file:
+    path: "{{ csv_output_root_dir }}"
     state: directory
 
 - name: Save CQL
-  copy: src=sunbird_orgs.cql dest=/tmp/cql/sunbird_orgs.cql
+  copy: src="{{ item }}.cql" dest="/tmp/cql/{{ item }}.cql"
+  with_items: "{{ cqls }}"
 
-- shell: 'cqlsh --debug -f /tmp/cql/sunbird_orgs.cql'
-
-- shell: 'cat /tmp/cql/csv/sunbird_orgs.csv'
+- shell: 'cqlsh --debug -f /tmp/cql/{{ item }}.cql'
+  with_items: "{{ cqls }}"
 
 - fetch:
-    src: /tmp/cql/csv/sunbird_orgs.csv
+    src: "{{ csv_output_root_dir }}/{{ item }}.csv"
     dest: ./
     fail_on_missing: yes
     flat: yes
+  with_items: "{{ cqls }}"

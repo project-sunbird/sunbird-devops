@@ -1,1 +1,0 @@
-copy sunbird.organisation(id,orgname,source,createddate) to '/tmp/cql/csv/sunbird_orgs.csv' with HEADER=true;
