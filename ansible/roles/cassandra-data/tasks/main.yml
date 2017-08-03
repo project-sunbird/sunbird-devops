@@ -1,0 +1,20 @@
+- name: Copy the templates
+  become: yes
+  template: src={{item}} dest=/tmp/{{item}}
+  with_items:
+             - cassandra.cql
+             - pageMgmt.csv
+             - pageSection.csv
+  
+- name: Run the cassandra.cql command
+  become: yes
+  command: "cqlsh -f /tmp/cassandra.cql"
+  ignore_errors: yes
+
+- name: Run the pageMgmt.csv command
+  become: yes
+  command: cqlsh -e "COPY sunbird.page_management(id, appmap,createdby ,createddate ,name ,organisationid ,portalmap ,updatedby ,updateddate ) FROM '/tmp/pageMgmt.csv'" 
+
+- name: Run the pageSection.csv file
+  become: yes
+  command: cqlsh -e "COPY sunbird.page_section(id, alt,createdby ,createddate ,description ,display ,imgurl ,name,searchquery , sectiondatatype ,status , updatedby ,updateddate) FROM '/tmp/cql/pageSection.csv'"
