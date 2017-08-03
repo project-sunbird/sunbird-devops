@@ -1,0 +1,26 @@
+---
+#This Playbook configures the mongos service of mongodb
+
+- name: Create the mongos startup file
+  template: src=mongos.service.j2 dest=/etc/systemd/system/mongos.service mode=0655 seuser=system_u
+
+- name: Create the mongos configuration file
+  template: src=mongos.conf.j2 dest=/etc/mongos.conf
+
+- name: Copy the keyfile for authentication
+  copy: src=roles/mongod/files/secret dest={{ mongodb_datadir_prefix }}/secret owner=mongod group=mongod mode=0400
+
+- name: Start the mongodb service
+  systemd: name=mongos state=started daemon_reload=yes enabled=yes
+
+- wait_for:
+    port: "{{ mongos_port }}"
+    delay: 3
+
+- name: Copy the file enable  sharding
+  template: src=mongos_init.js.j2 dest=/tmp/mongos_init.js
+  when: "{{inventory_hostname == groups['mongos_servers'][0]}}"
+
+- name: Create sharding
+  shell: /usr/bin/mongo "localhost:{{ mongos_port }}/admin" /tmp/mongos_init.js
+  when: "{{inventory_hostname == groups['mongos_servers'][0]}}"

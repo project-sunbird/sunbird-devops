@@ -1,0 +1,27 @@
+db.createUser({
+  user: 'admin',
+  pwd: '{{mongo_admin_pass}}',
+  roles : [
+    'userAdminAnyDatabase',
+    'clusterAdmin'
+  ]
+});
+
+db.auth('admin', '{{mongo_admin_pass}}');
+
+{% for host in groups.mongo_servers %}
+  sh.addShard("{{host}}/{{host}}:{{hostvars[host].mongod_port}}");
+{% endfor %}
+
+printjson(sh.status());
+
+sh.enableSharding("test");
+sh.shardCollection("test.user", {_id : "hashed"} );
+sh.shardCollection("test.messages", { createTime : 1} );
+
+testdb = db.getSiblingDB('test');
+testdb.createUser({
+  user: 'admin',
+  pwd: '{{mongo_admin_pass}}',
+  roles: ['readWrite']
+});

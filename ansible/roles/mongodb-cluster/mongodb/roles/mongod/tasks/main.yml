@@ -1,0 +1,43 @@
+---
+# This role deploys the mongod processes and sets up the replication set.
+
+- name: create data directory for mongodb
+  file: path={{ mongodb_datadir_prefix }}/mongo-{{ inventory_hostname }} state=directory owner=mongod group=mongod
+  delegate_to: '{{ item }}'
+  with_items: "{{groups.replication_servers}}"
+
+- name: Create the mongodb startup file
+  template: src=mongod.service.j2 dest=/etc/systemd/system/mongod-{{ inventory_hostname }}.service mode=0644 seuser=system_u
+  delegate_to: '{{ item }}'
+  with_items: "{{groups.replication_servers}}"
+
+- name: Create the mongodb configuration file
+  template: src=mongod.conf.j2 dest=/etc/mongod-{{ inventory_hostname }}.conf
+  delegate_to: '{{ item }}'
+  with_items: "{{groups.replication_servers}}"
+
+- name: Copy the keyfile for authentication
+  copy:
+    src: secret
+    dest: "{{ mongodb_datadir_prefix }}/secret"
+    owner: mongod
+    group: mongod
+    mode: 0400
+    setype: mongod_var_lib_t
+
+- name: Start the mongodb service
+  systemd: name=mongod-{{ inventory_hostname }} state=started daemon_reload=yes enabled=yes
+  delegate_to: '{{ item }}'
+  with_items: "{{groups.replication_servers}}"
+
+- wait_for:
+    port: "{{ mongod_port }}"
+    delay: 5
+
+- name: Create the file to initialize the mongod replica set
+  template: src=mongod_init.js.j2 dest=/tmp/mongod_init.js
+
+- name: Initialize the replication set
+  shell: /usr/bin/mongo "localhost:{{ mongod_port }}/admin" /tmp/mongod_init.js
+  ignore_errors: yes
+
