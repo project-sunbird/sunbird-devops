@@ -1,0 +1,1 @@
+copy sunbird.organisation(id,orgname,source,createddate) to '/tmp/sunbird_orgs.csv' with HEADER=true;
