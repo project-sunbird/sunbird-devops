@@ -1,4 +1,26 @@
-- name: Save prometheus node rule file
-  copy: src=sunbird_orgs.cql dest=/tmp/sunbird_orgs.cql mode=0644
+# - name: Clean artifact path
+#   file:
+#     state: absent
+#     path: "/tmp/cql/sunbird_orgs.csv"
 
-- shell: 'cqlsh -f /tmp/sunbird_orgs.cql'
+- name: Ensure CQL directory exists
+  file:
+    path: /tmp/cql/csv
+    state: directory
+
+- name: Save CQL
+  copy: src=sunbird_orgs.cql dest=/tmp/cql/sunbird_orgs.cql
+
+- shell: 'cqlsh --debug -f /tmp/cql/sunbird_orgs.cql'
+
+- shell: 'cat /tmp/cql/csv/sunbird_orgs.csv'
+
+- fetch:
+    src: /tmp/cql/csv/sunbird_orgs.csv
+    dest: /tmp/fetched
+    fail_on_missing: yes
+
+# - name: Clean CQL
+#   file:
+#     path: "/tmp/cql"
+#     state: absent
