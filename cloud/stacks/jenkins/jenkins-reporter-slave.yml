@@ -1,0 +1,29 @@
+version: '3.1'
+
+services:
+
+  reporter-jenkins-slave:
+    image: sunbird/reporter-jenkins-swarm-agent
+    environment:
+      - USER_NAME_SECRET=/run/secrets/${JENKINS_USER_SECRET:-jenkins-user}
+      - PASSWORD_SECRET=/run/secrets/${JENKINS_PASS_SECRET:-jenkins-pass}
+      - COMMAND_OPTIONS=-master ${JENKINS_URL} -labels reporter -executors 1 -name reporter-jenkins-slave
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    secrets:
+      - jenkins-user
+      - jenkins-pass
+    deploy:
+      replicas: 1
+    networks:
+      - jenkins_default
+
+secrets:
+  jenkins-user:
+    external: true
+  jenkins-pass:
+    external: true
+
+networks:
+  jenkins_default:
+    external: true
