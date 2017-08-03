@@ -1,1 +1,1 @@
-copy sunbird.organisation(id,orgname,source,createddate) to '/tmp/sunbird_orgs.csv' with HEADER=true;
+copy sunbird.organisation(id,orgname,source,createddate) to '/tmp/cql/csv/sunbird_orgs.csv' with HEADER=true;
