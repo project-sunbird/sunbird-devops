@@ -19,6 +19,7 @@ adminutil__is_metrics_sensitive: false
 sunbird_network: application_default
 mongo:
   bind_ip: 0.0.0.0
+logger_port: 51415
 logger_es_host: elasticsearch
 logger_es_port: 9200
 user_home: /home/deployer
@@ -29,3 +30,22 @@ postgres_exporter_user: postgres_exporter
 postgres_exporter_password: "{{ vault_postgres_exporter_password }}"
 
 kong_replicas: 3
+filebeat: 
+  base_path: /etc/filebeat
+  config:
+    filebeat:
+      prospectors:
+        - paths:
+            - /var/log/syslog
+          input_type: log
+          document_type: syslog
+    output:
+      file:
+        filename: beat.log
+      #logstash:
+      #  hosts: 
+      #    - "{{ swarm_load_balancer }}:{{ logger_port }}"
+      #  timeout: 15
+    logging:
+      to_syslog: true
+      level: error
