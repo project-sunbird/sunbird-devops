@@ -45,161 +45,162 @@
              - pageSection.csv
   tags: 
        - provision
-
-
-- name: Run the cassandra.cql command
-  become: yes
-  command: "cqlsh -f /tmp/cassandra.cql"
-  ignore_errors: yes
-  tags: 
-       - load_cql
-
-- name: Run the pageMgmt.csv command
-  become: yes
-  command: cqlsh -e "COPY sunbird.page_management(id, appmap,createdby ,createddate ,name ,organisationid ,portalmap ,updatedby ,updateddate ) FROM '/tmp/pageMgmt.csv'" 
-  ignore_errors: yes
-  tags: 
-       - load_management
-
-- name: Run the pageSection.csv file
-  become: yes
-  command: cqlsh -e "COPY sunbird.page_section(id, alt,createdby ,createddate ,description ,display ,imgurl ,name,searchquery , sectiondatatype ,status , updatedby ,updateddate) FROM '/tmp/cql/pageSection.csv'"
-  ignore_errors: yes
-  tags: 
-       - load_section
-
-- name: Create the directory
-  become: yes
-  file: path=/data/cassandra/ state=directory recurse=yes
-  tags: 
-       - backup
-
-- name: copy the backup script 
-  become: yes
-  template: src=cassandra_backup.j2  dest=/home/deployer/cassandra_backup.sh mode=0755 
-  tags: 
-       - backup
-
-- name: run the backup script
-  become: yes
-  shell: sh /home/deployer/cassandra_backup.sh
-  tags: 
-       - backup
- 
-- name: Add Azure apt repository
-  apt_repository: repo='deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main' state=present
-  tags: 
-       - backup
-
-- name: Import Azure signing key
-  apt_key: keyserver=packages.microsoft.com id=417A0893
-  tags: 
-       - backup
-
-- name: ensure apt-transport-https is installed
-  apt: name=apt-transport-https
-  tags: 
-       - backup
-
-- name: ensure azure-cli is installed
-  apt: name=azure-cli 
-  tags: 
-       - backup
-
-- set_fact:
-    cassandra_backup_gzip_file_name: "cassandra_backup_{{ lookup('pipe', 'date +%Y%m%d') }}.zip"
-  tags: 
-       - backup
-
-- set_fact:
-    cassandra_backup_gzip_file_path: "{{ cassandra.backup_dir }}/{{ cassandra_backup_gzip_file_name }}"
-  tags: 
-       - backup
-
-- name: Ensure azure blob storage container exists
-  command: az storage container create  --name {{ cassandra.backup_azure_container_name }}
-  ignore_errors: true
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ cassandra.backup_azure_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ cassandra.backup_azure_storage_access_key }}"
-  tags: 
-       - backup
-
-- name: Upload to azure blob storage
-  command: az storage blob upload --name {{ cassandra_backup_gzip_file_name }} --file {{ cassandra_backup_gzip_file_path }} --container-name {{ cassandra.backup_azure_container_name }}
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ cassandra.backup_azure_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ cassandra.backup_azure_storage_access_key }}"
-  async: 3600
-  poll: 10
-  tags: 
-       - backup
-       
-- name: clean up backup dir after upload
-  file: path="{{ cassandra.backup_dir }}" state=absent
-  tags: 
-       - backup
-
-- name: Stop the cassandra 
-  become: yes
-  service: name=cassandra state=stopped
-  tags: 
-       - restore
-
-- set_fact:
-    cassandra_restore_gzip_file_path: "{{ cassandra.restore_dir }}/{{ cassandra_restore_gzip_file_name }}"
-  tags: 
-       - restore
     
-- name: Download to azure blob storage
-  command: az storage blob download --name {{ cassandra_restore_gzip_file_name }} --file {{ cassandra_restore_gzip_file_path }} --container-name {{ cassandra.backup_azure_container_name }}
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ cassandra.backup_azure_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ cassandra.backup_azure_storage_access_key }}"
-  async: 3600
-  poll: 10
-  tags: 
-       - restore
-
-- name: unarchieve restore artifact
-  become: yes
-  unarchive: src={{user_home}}/{{ cassandra_restore_gzip_file_name }} dest={{user_home}}/ copy=no
-  tags: 
-       - restore
-
-- name: Remove the restroe artefact
-  become: yes
-  file: path={{user_home}}/cassandra* state=absent
-  tags: 
-       - restore
-
-- name: Remove the old data
-  become: yes
-  file: path=/var/lib/cassandra/data/* state=absent
-  tags: 
-       - restore
-
-- name: Replace the new data
-  become: yes
-  copy: src={{user_home}}/snapshot-{{snapshot}}/* dest=/var/lib/cassandra/data/ 
-  tags: 
-       - restore
-
-- name: copy the backup script 
-  become: yes
-  template: src=nodetool.j2  dest={{user_home}}/nodetool.sh mode=0755 
-  tags: 
-       - restore
 
 
-- name: Start the cassandra 
-  become: yes
-  service: name=cassandra state=started
-  tags: 
-       - restore
+# - name: Run the cassandra.cql command
+#   become: yes
+#   command: "cqlsh -f /tmp/cassandra.cql"
+#   ignore_errors: yes
+#   tags: 
+#        - load_cql
 
-- name: run the backup script
-  become: yes
-  shell: sh {{user_home}}/nodetool.sh
-  tags: 
-       - restore
+# - name: Run the pageMgmt.csv command
+#   become: yes
+#   command: cqlsh -e "COPY sunbird.page_management(id, appmap,createdby ,createddate ,name ,organisationid ,portalmap ,updatedby ,updateddate ) FROM '/tmp/pageMgmt.csv'" 
+#   ignore_errors: yes
+#   tags: 
+#        - load_management
+
+# - name: Run the pageSection.csv file
+#   become: yes
+#   command: cqlsh -e "COPY sunbird.page_section(id, alt,createdby ,createddate ,description ,display ,imgurl ,name,searchquery , sectiondatatype ,status , updatedby ,updateddate) FROM '/tmp/cql/pageSection.csv'"
+#   ignore_errors: yes
+#   tags: 
+#        - load_section
+
+# - name: Create the directory
+#   become: yes
+#   file: path=/data/cassandra/ state=directory recurse=yes
+#   tags: 
+#        - backup
+
+# - name: copy the backup script 
+#   become: yes
+#   template: src=cassandra_backup.j2  dest=/home/deployer/cassandra_backup.sh mode=0755 
+#   tags: 
+#        - backup
+
+# - name: run the backup script
+#   become: yes
+#   shell: sh /home/deployer/cassandra_backup.sh
+#   tags: 
+#        - backup
+ 
+# - name: Add Azure apt repository
+#   apt_repository: repo='deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main' state=present
+#   tags: 
+#        - backup
+
+# - name: Import Azure signing key
+#   apt_key: keyserver=packages.microsoft.com id=417A0893
+#   tags: 
+#        - backup
+
+# - name: ensure apt-transport-https is installed
+#   apt: name=apt-transport-https
+#   tags: 
+#        - backup
+
+# - name: ensure azure-cli is installed
+#   apt: name=azure-cli 
+#   tags: 
+#        - backup
+
+# - set_fact:
+#     cassandra_backup_gzip_file_name: "cassandra_backup_{{ lookup('pipe', 'date +%Y%m%d') }}.zip"
+#   tags: 
+#        - backup
+
+# - set_fact:
+#     cassandra_backup_gzip_file_path: "{{ cassandra.backup_dir }}/{{ cassandra_backup_gzip_file_name }}"
+#   tags: 
+#        - backup
+
+# - name: Ensure azure blob storage container exists
+#   command: az storage container create  --name {{ cassandra.backup_azure_container_name }}
+#   ignore_errors: true
+#   environment:
+#     AZURE_STORAGE_ACCOUNT: "{{ cassandra.backup_azure_storage_account_name }}"
+#     AZURE_STORAGE_KEY: "{{ cassandra.backup_azure_storage_access_key }}"
+#   tags: 
+#        - backup
+
+# - name: Upload to azure blob storage
+#   command: az storage blob upload --name {{ cassandra_backup_gzip_file_name }} --file {{ cassandra_backup_gzip_file_path }} --container-name {{ cassandra.backup_azure_container_name }}
+#   environment:
+#     AZURE_STORAGE_ACCOUNT: "{{ cassandra.backup_azure_storage_account_name }}"
+#     AZURE_STORAGE_KEY: "{{ cassandra.backup_azure_storage_access_key }}"
+#   async: 3600
+#   poll: 10
+#   tags: 
+#        - backup
+       
+# - name: clean up backup dir after upload
+#   file: path="{{ cassandra.backup_dir }}" state=absent
+#   tags: 
+#        - backup
+
+# - name: Stop the cassandra 
+#   become: yes
+#   service: name=cassandra state=stopped
+#   tags: 
+#        - restore
+
+# - set_fact:
+#     cassandra_restore_gzip_file_path: "{{ cassandra.restore_dir }}/{{ cassandra_restore_gzip_file_name }}"
+#   tags: 
+#        - restore
+    
+# - name: Download to azure blob storage
+#   command: az storage blob download --name {{ cassandra_restore_gzip_file_name }} --file {{ cassandra_restore_gzip_file_path }} --container-name {{ cassandra.backup_azure_container_name }}
+#   environment:
+#     AZURE_STORAGE_ACCOUNT: "{{ cassandra.backup_azure_storage_account_name }}"
+#     AZURE_STORAGE_KEY: "{{ cassandra.backup_azure_storage_access_key }}"
+#   async: 3600
+#   poll: 10
+#   tags: 
+#        - restore
+
+# - name: unarchieve restore artifact
+#   become: yes
+#   unarchive: src={{user_home}}/{{ cassandra_restore_gzip_file_name }} dest={{user_home}}/ copy=no
+#   tags: 
+#        - restore
+
+# - name: Remove the restroe artefact
+#   become: yes
+#   file: path={{user_home}}/cassandra* state=absent
+#   tags: 
+#        - restore
+
+# - name: Remove the old data
+#   become: yes
+#   file: path=/var/lib/cassandra/data/* state=absent
+#   tags: 
+#        - restore
+
+# - name: Replace the new data
+#   become: yes
+#   copy: src={{user_home}}/snapshot-{{snapshot}}/* dest=/var/lib/cassandra/data/ 
+#   tags: 
+#        - restore
+
+# - name: copy the backup script 
+#   become: yes
+#   template: src=nodetool.j2  dest={{user_home}}/nodetool.sh mode=0755 
+#   tags: 
+#        - restore
+
+
+# - name: Start the cassandra 
+#   become: yes
+#   service: name=cassandra state=started
+#   tags: 
+#        - restore
+
+# - name: run the backup script
+#   become: yes
+#   shell: sh {{user_home}}/nodetool.sh
+#   tags: 
+#        - restore
