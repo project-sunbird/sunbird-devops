@@ -6,7 +6,7 @@
     state: directory
     owner: '{{ root_owner }}'
     group: '{{ root_group }}'
-  
+
 - name: Ensure config directory exists
   file:
     path: /opt/docker/stacks/monitor/config
@@ -28,6 +28,9 @@
 
 - name: Save blackboxconfig config file
   template: src=blackboxconfig.yml dest=/opt/docker/stacks/monitor/config/blackboxconfig.yml mode=0644
+
+- name: Save postgresmasterqueries config file
+  template: src=postgresmasterqueries.yml dest=/opt/docker/stacks/monitor/config/postgresmasterqueries.yml mode=0644
 
 - name: Save prometheus node rule file
   copy: src=alertrules.nodes dest=/opt/docker/stacks/monitor/config/alertrules.nodes mode=0644
@@ -55,8 +58,12 @@
   shell: "docker config rm alertmanagerconfig.yml"
   ignore_errors: yes
 
-- name: Remove old alermanager docker config
+- name: Remove old blackboxconfig docker config
   shell: "docker config rm blackboxconfig.yml"
+  ignore_errors: yes
+
+- name: Remove old postgresmasterqueries docker config
+  shell: "docker config rm postgresmasterqueries.yml"
   ignore_errors: yes
 
 - name: Save prometheus.yml docker config
@@ -77,6 +84,10 @@
 
 - name: Save blackboxconfig docker config
   shell: "docker config create blackboxconfig.yml /opt/docker/stacks/monitor/config/blackboxconfig.yml"
+  ignore_errors: yes
+
+- name: Save postgresmasterqueries docker config
+  shell: "docker config create postgresmasterqueries.yml /opt/docker/stacks/monitor/config/postgresmasterqueries.yml"
   ignore_errors: yes
 
 - name: Deploy stack

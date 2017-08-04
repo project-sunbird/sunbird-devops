@@ -165,8 +165,13 @@ services:
             - 9187:9187
         networks:
             - monitoring
+        command:
+            - '-extend.query-path=/etc/postgres_exporter/postgresmasterqueries.yml'
         environment:
             - DATA_SOURCE_NAME=postgresql://{{ postgres_exporter_user }}:{{ postgres_exporter_password }}@{{ postgres_exporter_postgres_host }}:{{ postgres_exporter_postgres_port }}/postgres?sslmode=disable
+        configs:
+            - source: blackboxconfig.yml
+              target: /etc/postgres_exporter/postgresmasterqueries.yml
 
     grafana:
         image: grafana/grafana
@@ -208,6 +213,8 @@ configs:
   alertmanagerconfig.yml:
     external: true
   blackboxconfig.yml:
+    external: true
+  postgresmasterqueries.yml:
     external: true
 
 networks:
