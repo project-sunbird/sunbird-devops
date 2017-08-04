@@ -1,6 +1,6 @@
 FROM alpine:3.6
 
-ARG POSTGRES_EXPORTER_VERSION=v0.2.1
+ARG POSTGRES_EXPORTER_VERSION=v0.2.2
 
 RUN apk --no-cache add openssl
 
