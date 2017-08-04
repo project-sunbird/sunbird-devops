@@ -92,6 +92,17 @@
                 <suffix value=".yyyy-MM-dd"/>
                 <append value="true"/>
             </periodic-rotating-file-handler>
+            <syslog-handler name="SYSLOG" enabled="true">
+                <app-name value="keycloak"/>
+                <level name="INFO"/>
+                <facility value="local-use-7"/>
+                <server-address value="{{ syslog.host }}"/>
+                <port value="{{ syslog.port }}"/>
+                <hostname value="localhost"/>
+                <formatter>
+                    <syslog-format syslog-type="RFC5424"/>
+                </formatter>
+            </syslog-handler>
             <logger category="com.arjuna">
                 <level name="WARN"/>
             </logger>
@@ -134,39 +145,41 @@
                         <password>sa</password>
                     </security>
                 </datasource>
-                <datasource jndi-name="java:jboss/datasources/KeycloakDS" pool-name="KeycloakDS" enabled="true" use-java-context="true"> 
-		    <!-- Require both connection-url and connection-property[name="url"] 
-			 This is because of a Wildfly issue. Since the postgres driver is using a datasource-class
-			 the connection parameters have to be set via <connection-property>. However, deleting 
-			 <connection-url> causes a Wildfly configuration parsing error 
-			
-			 See this issue for detail: https://issues.jboss.org/browse/WFLY-6157
-			 It is fixed for Wildfly 11.0.0.Alpha1
-		    -->
+                <datasource jndi-name="java:jboss/datasources/KeycloakDS" pool-name="KeycloakDS" enabled="true" use-java-context="true">
+                    <!-- Require both connection-url and connection-property[name="url"]
+                         This is because of a Wildfly issue. Since the postgres driver is using a
+                         datasource-class the connection parameters have to be set via
+                         <connection-property>. However, deleting <connection-url> causes a Wildfly
+                         configuration parsing error
+
+                         See this issue for detail: https://issues.jboss.org/browse/WFLY-6157
+                         It is fixed for Wildfly 11.0.0.Alpha1
+                    -->
                     <connection-url>jdbc:postgresql://thisnotwork:5432/keycloak</connection-url>
-		    <connection-property name="url">jdbc:postgresql://{{keycloak_postgres_host}}:5432/{{ keycloak_postgres_database }}?sslmode=require</connection-property>
-                    <driver>postgresql</driver> 
-		    <pool>
-			<max-pool-size>20</max-pool-size>
-		    </pool>
-                    <security> 
-                        <user-name>{{ keycloak_postgres_user }}</user-name> 
+                    <connection-property name="url">jdbc:postgresql://{{keycloak_postgres_host}}:5432/{{ keycloak_postgres_database }}?sslmode=require</connection-property>
+                    <driver>postgresql</driver>
+                    <pool>
+                        <max-pool-size>20</max-pool-size>
+                    </pool>
+                    <security>
+                        <user-name>{{ keycloak_postgres_user }}</user-name>
                         <password>{{ keycloak_postgres_password }}</password>
                     </security>
-                    <validation> 
-                        <valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLValidConnectionChecker"/> 
-                        <background-validation>true</background-validation> 
-                        <exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLExceptionSorter"/> 
+                    <validation>
+                        <background-validation>true</background-validation>
+                        <background-validation-millis>10000</background-validation-millis>
+                        <valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLValidConnectionChecker"/>
+                        <exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLExceptionSorter"/>
                     </validation>
                 </datasource>
                 <drivers>
                     <driver name="h2" module="com.h2database.h2">
                         <xa-datasource-class>org.h2.jdbcx.JdbcDataSource</xa-datasource-class>
                     </driver>
-		    <driver name="postgresql" module="org.postgresql">
-			<xa-datasource-class>org.postgresql.xa.PGXADataSource</xa-datasource-class>
-			<datasource-class>org.postgresql.ds.PGPoolingDataSource</datasource-class>
-		    </driver>
+                    <driver name="postgresql" module="org.postgresql">
+                        <xa-datasource-class>org.postgresql.xa.PGXADataSource</xa-datasource-class>
+                        <datasource-class>org.postgresql.ds.PGPoolingDataSource</datasource-class>
+                    </driver>
                 </drivers>
             </datasources>
         </subsystem>
