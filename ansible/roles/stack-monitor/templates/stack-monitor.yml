@@ -159,7 +159,7 @@ services:
                 com.docker.stack.namespace: "monitoring"
                 com.docker.service.name: "elasticsearch_exporter"
 
-    postgres_exporter:
+    master_postgres_exporter:
         image: wrouesnel/postgres_exporter:v0.2.2
         ports:
             - 9187:9187
@@ -168,10 +168,26 @@ services:
         command:
             - '-extend.query-path=/etc/postgres_exporter/postgresmasterqueries.yml'
         environment:
-            - DATA_SOURCE_NAME=postgresql://{{ postgres_exporter_user }}:{{ postgres_exporter_password }}@{{ postgres_exporter_postgres_host }}:{{ postgres_exporter_postgres_port }}/postgres?sslmode=disable
+            - DATA_SOURCE_NAME=postgresql://{{ postgres_exporter_user }}:{{ postgres_exporter_password }}@{{ groups['postgresql-master'][0]}}:{{ postgres_exporter_postgres_port }}/postgres?sslmode=disable
         configs:
             - source: postgresmasterqueries.yml
               target: /etc/postgres_exporter/postgresmasterqueries.yml
+
+    {% if 'postgresql-slave' in group_names %}
+    slave_postgres_exporter:
+        image: wrouesnel/postgres_exporter:v0.2.2
+        ports:
+            - 9187:9187
+        networks:
+            - monitoring
+        command:
+            - '-extend.query-path=/etc/postgres_exporter/postgresslavequeries.yml'
+        environment:
+            - DATA_SOURCE_NAME=postgresql://{{ postgres_exporter_user }}:{{ postgres_exporter_password }}@{{ groups['postgresql-slave'][0]}}:{{ postgres_exporter_postgres_port }}/postgres?sslmode=disable
+        configs:
+            - source: postgresslavequeries.yml
+              target: /etc/postgres_exporter/postgresslavequeries.yml
+    {% endif %}
 
     grafana:
         image: grafana/grafana
@@ -215,6 +231,8 @@ configs:
   blackboxconfig.yml:
     external: true
   postgresmasterqueries.yml:
+    external: true
+  postgresslavequeries.yml:
     external: true
 
 networks:
