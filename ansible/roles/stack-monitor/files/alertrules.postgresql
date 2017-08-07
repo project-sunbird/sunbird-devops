@@ -9,6 +9,28 @@ ANNOTATIONS {
   description = "Number of connections is above the high water mark: {{$value}}",
 }
 
+ALERT PostgresMasterInRecovery
+IF pg_server_standby_status_in_recovery{job="master-postgres-exporter"} == 1
+FOR 5m
+LABELS {
+  severity = "critical",
+}
+ANNOTATIONS {
+  summary = "PostgreSQL master is in recovery",
+  description = "PostgreSQL master is in recovery. pg_server_standby_status_in_recovery: {{$value}}",
+}
+
+ALERT PostgresSlaveNotInRecovery
+IF pg_server_standby_status_in_recovery{job="slave-postgres-exporter"} == 0
+FOR 5m
+LABELS {
+  severity = "critical",
+}
+ANNOTATIONS {
+  summary = "PostgreSQL slave is not in recovery",
+  description = "PostgreSQL slave is not in recovery. pg_server_standby_status_in_recovery: {{$value}}",
+}
+
 ALERT PostgresHighReplicationByteLag
 IF pg_stat_replication_byte_lag > 1000000
 FOR 5m
