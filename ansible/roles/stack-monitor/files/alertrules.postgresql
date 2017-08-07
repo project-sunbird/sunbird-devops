@@ -1,0 +1,32 @@
+ALERT PostgresHighNumberOfConnections
+IF sum(pg_stat_database_numbackends) > 90
+FOR 5m
+LABELS {
+  severity = "critical",
+}
+ANNOTATIONS {
+  summary = "PostgreSQL high number of connections",
+  description = "Number of connections is above the high water mark: {{$value}}",
+}
+
+ALERT PostgresHighReplicationByteLag
+IF pg_stat_replication_byte_lag > 1000000
+FOR 5m
+LABELS {
+  severity = "critical",
+}
+ANNOTATIONS {
+  summary = "PostgreSQL replication byte lag is high",
+  description = "The replication byte lag for salve: {{$labels.slave_addr}} is above the high water mark: {{$value}}",
+}
+
+ALERT PostgresHighReplicationLagSeconds
+IF pg_replication_lag > 60
+FOR 5m
+LABELS {
+  severity = "critical",
+}
+ANNOTATIONS {
+  summary = "PostgreSQL replication lag time is high",
+  description = "The replication lag between the master and slave is above the high water mark: {{$value}}",
+}

@@ -41,6 +41,9 @@
 - name: Save prometheus container rule file
   copy: src=alertrules.task dest=/opt/docker/stacks/monitor/config/alertrules.task mode=0644
 
+- name: Save prometheus postgresql rule file
+  copy: src=alertrules.task dest=/opt/docker/stacks/monitor/config/alertrules.postgresql mode=0644
+
 - name: Remove monitor stack
   shell: "docker stack rm monitor"
   ignore_errors: yes
@@ -55,6 +58,10 @@
 
 - name: Remove old prom_container_rules docker config
   shell: "docker config rm prom_container_rules"
+  ignore_errors: yes
+
+- name: Remove old prom_postgresql_rules docker config
+  shell: "docker config rm prom_postgresql_rules"
   ignore_errors: yes
 
 - name: Remove old alermanager docker config
@@ -83,6 +90,10 @@
 
 - name: Save prom_container_rules docker config
   shell: "docker config create prom_container_rules /opt/docker/stacks/monitor/config/alertrules.task"
+  ignore_errors: yes
+
+- name: Save prom_postgresql_rules docker config
+  shell: "docker config create prom_postgresql_rules /opt/docker/stacks/monitor/config/alertrules.postgresql"
   ignore_errors: yes
 
 - name: Save alermanager docker config
