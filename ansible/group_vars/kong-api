@@ -25,6 +25,7 @@ echo_service_prefix: /echo
 composite_service_prefix: /composite
 api_manager_perfix: /api-manager
 meta_service_prefix: /meta
+dashboard_service_prefix: /dashboard
 
 # Service URLs
 content_service_url: "http://content_service_content_service:5000"
@@ -1141,6 +1142,70 @@ kong_apis:
       config.metrics: '{{ statsd_metrics }}'
     - name: acl
       config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: getOrgCreationDashboard
+    request_path: '{{ dashboard_service_prefix }}/v1/creation/org'
+    upstream_url: '{{ learning_service_url }}/v1/dashboard/creation/org'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: getOrgConsumptionDashboard
+    request_path: '{{ dashboard_service_prefix }}/v1/consumption/org'
+    upstream_url: '{{ learning_service_url }}/v1/dashboard/consumption/org'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: getCourseProgressDashboard
+    request_path: '{{ dashboard_service_prefix }}/v1/progress/course'
+    upstream_url: '{{ learning_service_url }}/v1/dashboard/progress/course'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: getCourseConsumptionDashboard
+    request_path: '{{ dashboard_service_prefix }}/v1/consumption/course'
+    upstream_url: '{{ learning_service_url }}/v1/dashboard/consumption/course'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseUser
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
       config.limit_by: consumer
