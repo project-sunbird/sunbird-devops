@@ -1,66 +1,46 @@
 - name: Cassandra | Copy JMX agent jar file to lib directory
   become: yes
   copy: src=jmx_prometheus_javaagent-0.10.jar dest=/usr/share/cassandra/lib
-  tags:
-       - provision
-
+ 
 - name: Cassandra | Copy JMX agent config to /etc/cassandra directory
   become: yes
   template: src=cassandra_jmx.yaml dest=/etc/cassandra
-  tags:
-       - provision
-
+ 
 - name: Cassandra | Update the cassandra env configuration
   become: yes
   template: src=cassandra-env.sh dest=/etc/cassandra
-  tags:
-       - provision
-
+ 
 - name: Cassandra | Copy jmx_httpserver.yml
   become: yes
   template: src=jmx_httpserver.yml dest=/etc/cassandra
-  tags:
-       - provision
-
+ 
 - name: Cassandra | Copy run_jmx_httpserver.sh
   become: yes
   template: src=run_jmx_httpserver.sh dest=/etc/cassandra
-  tags:
-       - provision
-
+ 
 - name: Cassandra | Copy jmx_prometheus_httpserver-0.11.jar
   become: yes
   copy: src=jmx_prometheus_httpserver-0.11.jar dest=/usr/share/cassandra/lib
-  tags:
-       - provision
-
+ 
 - name: Cassandra | Update the cassandra host configuration
   become: yes
   template: src=hosts.j2 dest=/etc/hosts
-  tags:
-       - provision
-
+ 
 - name: debian | Adding Cassandra Debian Repo Key
   apt_key:
     url: "{{ cassandra_repo_key }}"
     state: "present"
-  tags:
-       - provision
-
+ 
 - name: debian | Adding Cassandra Debian Repo
   apt_repository:
     repo: "{{ cassandra_repo }}"
     state: "present"
-  tags:
-       - provision
-
+ 
 - name: debian | Installing Cassandra
   apt:
     name: "cassandra"
     state: "present"
-  tags:
-       - provision
-
+ 
 - name: config | Configuring Cassandra
   template:
     src: "cassandra.yaml.j2"
@@ -69,9 +49,7 @@
     group: "root"
     mode: 0644
   notify: "restart cassandra"
-  tags:
-       - provision
-
+ 
 # - name: Create the directory
 #   become: yes
 #   file: path=/data/cassandra/ state=directory recurse=yes
