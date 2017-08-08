@@ -1,21 +1,20 @@
 pipeline {
-    agent {
-        label 'general-dev'
+  agent {
+      label 'general-dev'
+  }
+  triggers {
+        cron('H 0 * * *')
+  }
+  stages {
+    stage('Pre-Build'){
+      steps {
+        sh('./pipelines/log-forwarder/installDeps.sh')
+      }
     }
-    stages {
-        stage('Pre-Build'){
-            steps {
-                sh('chmod a+x ansible/installDeps.sh')
-                sh('./ansible/installDeps.sh')
-            }
-        }
-        stage('Deploy') {
-            steps {
-                sh '''
-                cd ansible
-                ansible-playbook -i inventory/dev provision.yml --tags log-forwarder --vault-password-file /run/secrets/vault-pass
-                '''
-            }
-        }
+    stage('Deploy') {
+      steps {
+        sh 'ENV=dev ./pipelines/log-forwarder/deploy.sh'
+      }
     }
+  }
 }
