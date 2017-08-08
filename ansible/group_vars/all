@@ -29,7 +29,7 @@ postgres_exporter_user: postgres_exporter
 postgres_exporter_password: "{{ vault_postgres_exporter_password }}"
 
 kong_replicas: 3
-
+swarm_load_balancer: 172.16.0.5
 filebeat: 
   base_path: /etc/filebeat
   config:
@@ -39,13 +39,10 @@ filebeat:
             - /var/log/syslog
           input_type: log
     output:
-      file:
-        path: /tmp/filebeat
-        filename: beat.log
-      #logstash:
-      #  hosts: 
-      #    - "{{ swarm_load_balancer }}:{{ logger_port }}"
-      #  timeout: 15
+      logstash:
+        hosts: 
+          - "{{ swarm_load_balancer }}:{{ logger_port }}"
+        timeout: 15
     logging:
         level: debug
         to_files: true
