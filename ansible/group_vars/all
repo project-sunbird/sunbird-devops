@@ -29,25 +29,31 @@ postgres_exporter_user: postgres_exporter
 postgres_exporter_password: "{{ vault_postgres_exporter_password }}"
 
 kong_replicas: 3
-filebeat:
-  base_path: /etc/filebeat
+
+filebeat: 
+  base_path: /tmp/filebeat
   config:
     filebeat:
       prospectors:
         - paths:
             - /var/log/syslog
           input_type: log
-          document_type: syslog
     output:
       file:
+        path: /tmp/filebeat
         filename: beat.log
       #logstash:
-      #  hosts:
+      #  hosts: 
       #    - "{{ swarm_load_balancer }}:{{ logger_port }}"
       #  timeout: 15
     logging:
-      to_syslog: true
-      level: error
+        level: debug
+        to_files: true
+        to_syslog: false
+        files:
+            path: /tmp/filebeat
+            name: filebeat.log
+            keepfiles: 7
 
 
 # The global variable file mongodb installation
