@@ -38,3 +38,17 @@
 
 - name: create run directory for mongodb
   file: path=/var/run/mongo state=directory owner=mongod group=mongod setype=mongod_var_run_t seuser=system_u recurse=true
+
+- name: Install the mongodb package
+  apt: name={{ item }} 
+  with_items:
+   - libselinux-python
+   - bc
+   - python-pip
+
+- name: Install the latest pymongo package
+  pip: name=pymongo state=latest use_mirrors=no
+
+- name: Create the iptables file
+  template: src=iptables.j2 dest=/etc/sysconfig/iptables
+  notify: restart iptables
