@@ -5,16 +5,20 @@
   become: yes
   file: path=/home/deployer/mongo-backups state=directory
 
+- name: create backup directory
+  become: yes
+  file: path=/home/deployer/mongo-backups/dump state=directory
+
 - name: backup backup_replica
   become: yes
-  shell: mongodump --oplog -o /home/deployer/mongo-backups
+  shell: mongodump --oplog -o /home/deployer/mongo-backups/dump
   ignore_errors: yes
 
 - name: zip the dump
   become: yes
-  command: zip -r mongo_backup_`date +%Y%m%d`.zip  mongo-backups/
+  command: zip -r mongo_backup_`date +%Y%m%d`.zip  dump/
   args:
-    chdir: /home/deployer
+    chdir: /home/deployer/mongo-backups
 
 - set_fact:
     mongo_backup_gzip_file_name: "mongo_backup_{{ lookup('pipe', 'date +%Y%m%d') }}.zip"
