@@ -1,0 +1,21 @@
+pipeline {
+    agent {
+        label 'general-dev'
+    }
+    stages {
+        stage('Pre-Build'){
+            steps {
+                sh('chmod a+x ansible/installDeps.sh')
+                sh('./ansible/installDeps.sh')
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd ansible
+                ansible-playbook -i inventory/dev provision.yml --tags agents-logger --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
