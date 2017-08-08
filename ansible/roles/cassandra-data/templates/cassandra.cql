@@ -435,3 +435,37 @@ CREATE INDEX inx_org_status ON sunbird.organisation (status);
 
 // add isdeleted field to user table -- July 31,2017
 ALTER TABLE sunbird.user ADD isDeleted boolean;
+
+//added for course batch
+CREATE TABLE IF NOT EXISTS sunbird.course_batch(id text, courseId text,courseCreator text,createdBy text,createdOn text,enrollmentType text,startDate text,endDate text,name text,description text,status int,lastUpdatedOn text,mentors List<text>,participants List<text>,createdFor List<text>,PRIMARY KEY (id));
+CREATE INDEX inx_cou_bat_status ON sunbird.course_batch (status); 
+CREATE INDEX inx_cou_bat_courseId ON sunbird.course_batch (courseId);     
+CREATE INDEX inx_cou_bat_courseCreator ON sunbird.course_batch (courseCreator); 
+CREATE INDEX inx_cou_bat_createdBy ON sunbird.course_batch (createdBy); 
+CREATE INDEX inx_cou_bat_enrolmentType ON sunbird.course_batch (enrolmentType); 
+ALTER TABLE sunbird.course_batch DROP createdon;
+ALTER TABLE sunbird.course_batch ADD createdDate text;
+ALTER TABLE sunbird.course_batch DROP lastupdatedon;
+ALTER TABLE sunbird.course_batch ADD updatedDate text;
+
+ALTER TABLE sunbird.organisation add provider text;
+COPY  sunbird.organisation (id,source) TO '/tmp/cql/source.csv';
+COPY  sunbird.organisation (id,provider) FROM '/tmp/cql/source.csv';
+ALTER TABLE sunbird.organisation DROP source;
+CREATE TABLE IF NOT EXISTS sunbird.course_publish_status(id text,submitDate text,status int,PRIMARY KEY (id));
+
+// convert data type of participants from List to map -- Aug 7,2017
+ALTER TABLE sunbird.course_batch DROP participants;
+ALTER TABLE sunbird.course_batch ADD participant map<text,boolean>;
+
+ALTER TABLE sunbird.course_batch ADD courseAdditionalInfo map<text,text>;
+DROP INDEX inx_cou_bat_enrolmentType;
+ALTER TABLE sunbird.course_batch DROP enrolmentType;
+ALTER TABLE sunbird.course_batch ADD enrollmentType text;
+DROP INDEX inx_cou_bat_enrolmentType ON sunbird.course_batch (enrollmentType);
+
+// adding the batchId column to content consumption table -- Aug 8,2017
+ALTER TABLE sunbird.content_consumption ADD batchId text;
+
+CREATE TABLE IF NOT EXISTS sunbird.bulk_upload_process(id text, status int,data text,successResult text,failureResult text,uploadedBy text,uploadedDate text,processStartTime text,processEndTime text,ObjectType text,organisationId text, PRIMARY KEY (id));
+CREATE INDEX inx_status ON sunbird.bulk_upload_process(status);
