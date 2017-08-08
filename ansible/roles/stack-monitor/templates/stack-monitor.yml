@@ -222,6 +222,18 @@ services:
                 constraints:
                     - "node.labels.grafana==1"
 
+    cassandra_jmx_exporter:
+        image: sunbird/cassandra_jmx_exporter
+        ports:
+            - "5556:5556"
+        environment:
+            - JAVA_OPTS=-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=5555
+        configs:
+            - source: jmx_httpserver.yml
+              target: /opt/app/jmx_httpserver.yml
+        networks:
+            - monitoring
+
 configs:
   prometheus.yml:
     external: true
@@ -238,6 +250,8 @@ configs:
   postgresmasterqueries.yml:
     external: true
   postgresslavequeries.yml:
+    external: true
+  jmx_httpserver.yml:
     external: true
 
 networks:
