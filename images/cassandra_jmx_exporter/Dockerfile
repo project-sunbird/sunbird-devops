@@ -1,4 +1,4 @@
-FROM nginx:alpine
+FROM openjdk:8-jre-alpine
 
 ENV APP_HOME=/opt/app
 RUN mkdir -p $APP_HOME
