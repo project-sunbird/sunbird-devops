@@ -469,3 +469,5 @@ ALTER TABLE sunbird.content_consumption ADD batchId text;
 
 CREATE TABLE IF NOT EXISTS sunbird.bulk_upload_process(id text, status int,data text,successResult text,failureResult text,uploadedBy text,uploadedDate text,processStartTime text,processEndTime text,ObjectType text,organisationId text, PRIMARY KEY (id));
 CREATE INDEX inx_status ON sunbird.bulk_upload_process(status);
+insert into sunbird.role_group (id,name) values ('COURSE_MENTOR','COURSE_MENTOR');
+update sunbird.role_group set url_action_ids=['courseMentor'] where id='COURSE_MENTOR';
