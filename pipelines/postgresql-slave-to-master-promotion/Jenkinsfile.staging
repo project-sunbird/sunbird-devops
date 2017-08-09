@@ -1,0 +1,16 @@
+pipeline {
+    agent {
+        label 'general-staging'
+    }
+    stages {
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd ansible
+                ansible-playbook -i inventory/staging postgresql-slave-to-master-promotion.yml --tags ensure-postgresql-master-stopped --vault-password-file /run/secrets/vault-pass || echo "Ignoring error while stopping master"
+                ansible-playbook -i inventory/staging postgresql-slave-to-master-promotion.yml --tags postgresql-slave-to-master-promotion --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
