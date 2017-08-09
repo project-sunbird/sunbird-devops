@@ -7,7 +7,8 @@ pipeline {
             steps {
                 sh '''
                 cd ansible
-                ansible-playbook -i inventory/spike postgresql-slave-to-master-promotion.yml --vault-password-file /run/secrets/vault-pass
+                ansible-playbook -i inventory/spike postgresql-slave-to-master-promotion.yml --tags ensure-postgresql-master-stopped --vault-password-file /run/secrets/vault-pass || echo "Ignoring error while stopping master"
+                ansible-playbook -i inventory/spike postgresql-slave-to-master-promotion.yml --tags postgresql-slave-to-master-promotion --vault-password-file /run/secrets/vault-pass
                 '''
             }
         }
