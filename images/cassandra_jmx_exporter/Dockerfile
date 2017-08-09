@@ -5,6 +5,7 @@ RUN mkdir -p $APP_HOME
 WORKDIR $APP_HOME
 
 COPY /images/cassandra_jmx_exporter/jmx_prometheus_httpserver-0.11.jar jmx_prometheus_httpserver-0.11.jar
+COPY /images/cassandra_jmx_exporter/logging.properties logging.properties
 
 EXPOSE 5556
 

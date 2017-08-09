@@ -1387,3 +1387,51 @@ kong_apis:
       config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: blockUser
+    request_path: '{{ user_service_prefix }}/v1/block'
+    upstream_url: '{{ learning_service_url }}/v1/user/block'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: userAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: unblockUser
+    request_path: '{{ user_service_prefix }}/v1/unblock'
+    upstream_url: '{{ learning_service_url }}/v1/user/unblock'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: userAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: uploadMedia
+    request_path: '{{ content_service_prefix }}/v1/media/upload'
+    upstream_url: '{{ content_service_url }}/v1/upload/media'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
