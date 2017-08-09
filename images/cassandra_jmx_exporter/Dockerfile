@@ -8,7 +8,7 @@ COPY /images/cassandra_jmx_exporter/jmx_prometheus_httpserver-0.11.jar jmx_prome
 
 EXPOSE 5556
 
-ENTRYPOINT /usr/bin/java ${JAVA_OPTS} -jar jmx_prometheus_httpserver-0.11.jar $APP_HOME/jmx_httpserver.yml
+ENTRYPOINT /usr/bin/java ${JAVA_OPTS} -jar jmx_prometheus_httpserver-0.11.jar ${CASSANDRA_JMX_HOST_PORT} $APP_HOME/jmx_httpserver.yml
 
 #!/usr/bin/env bash
 # Script to run a java application for testing jmx4prometheus.
