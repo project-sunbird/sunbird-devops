@@ -12,7 +12,11 @@ services:
       - api-manager_default
       - "{{ sunbird_network }}"
     deploy:
-      replicas: {{ kong_replicas }}
+      replicas: {{ kong.replicas | default(1) }}
+      reservations:
+        memory: "{{ kong.reservation_memory | default('64M') }}"
+      limits:
+        memory: "{{ kong.limit_memory | default('256M') }}"
       update_config:
         parallelism: 1
         delay: 30s
@@ -29,11 +33,19 @@ services:
     ports:
       - 9595:9595
     deploy:
-      replicas: 1
-
-volumes:
-  pgdata:
-    driver: local
+      replicas: {{ echo_service.replicas | default(1) }}
+      reservations:
+        memory: "{{ echo_service.reservation_memory | default('8M') }}"
+      limits:
+        memory: "{{ echo_service.limit_memory | default('16M') }}"
+      update_config:
+        parallelism: 1
+        delay: 5s
+    healthcheck:
+      test: curl -f http://localhost:9595/hello || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 networks:
   api-manager_default:
