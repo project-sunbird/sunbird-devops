@@ -1435,3 +1435,19 @@ kong_apis:
       config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: listCourseBatches
+    request_path: '{{ course_service_prefix }}/v1/batch/list'
+    upstream_url: '{{ learning_service_url }}/v1/course/batch/search'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
