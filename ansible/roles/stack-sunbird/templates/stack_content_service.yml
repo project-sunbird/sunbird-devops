@@ -4,18 +4,14 @@ services:
   content_service:
     image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
     deploy:
+      replicas: {{ content.replicas | default(1) }}
       resources:
+        reservations: 
+          memory: "{{ content.reservation_memory  | default(64M) }}"
         limits:
-          cpus: ‘0.001’
-          memory: 50M
-        reservations:
-          cpus: ‘0.001’
-          memory: 20M
-      replicas: 1   
+          memory: "{{ content.limit_memory | default(256M) }}"
     env_file:
       /home/deployer/env/sunbird_content_service.env
-    deploy:
-      replicas: {{ content.replicas | default(1) }}
     ports:
      - "5000:5000"
     networks:
