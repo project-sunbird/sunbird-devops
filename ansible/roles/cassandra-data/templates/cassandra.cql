@@ -21,7 +21,7 @@ CREATE INDEX inx_ce_course_name ON sunbird.course_enrollment (courseName);
 CREATE INDEX inx_ce_status ON sunbird.course_enrollment (status);
 
 /*
-creation of id = one way hash of (userId##contentId##courseId) 
+creation of id = one way hash of (userId##contentId##courseId##batchId)
 status is (default(0),inProgress(1),completed(2))
 */
 CREATE TABLE IF NOT EXISTS sunbird.content_consumption(id text, contentId text, courseId text, userId text,viewPosition text,viewCount int,lastAccessTime text,
@@ -82,7 +82,7 @@ CREATE INDEX inx_org_orgName ON sunbird.organisation (orgName);
 CREATE INDEX inx_org_status ON sunbird.organisation (status);
 //page_management
 //id=  using timestamp and env 
-CREATE TABLE sunbird.page_management(id text, name text, appMap text,portalMap text,createdDate text,createdBy text,
+CREATE TABLE IF NOT EXISTS sunbird.page_management(id text, name text, appMap text,portalMap text,createdDate text,createdBy text,
 updatedDate text,updatedBy text,organisationId text,PRIMARY KEY (id));
 
 CREATE INDEX inx_pm_pageName ON sunbird.page_management (name);
@@ -126,10 +126,6 @@ ALTER TABLE sunbird.assessment_item ADD processingStatus boolean;
 ALTER TABLE sunbird.assessment_eval DROP assessmentItemId;
 ALTER TABLE sunbird.assessment_eval DROP maxScore;
 ALTER TABLE sunbird.page_management ADD organisationId text;
-ALTER TABLE sunbird.page_management DROP appMap;
-ALTER TABLE sunbird.page_management DROP portalMap;
-ALTER TABLE sunbird.page_management ADD appMap text;
-ALTER TABLE sunbird.page_management ADD portalMap text;
 ALTER TABLE sunbird.organisation ADD orgCode text;
 
 //2017-06-30 changes for user and organisation
@@ -360,7 +356,7 @@ CREATE INDEX inx_uorg_orgid ON sunbird.user_org (organisationid);
 
 
 /*
-creation of id= one way hash of (userId##courseId) here courseId is identifier of EkStep course
+creation of id= one way hash of (userId##courseId##batchId) here courseId is identifier of EkStep course
 toc url is generated from ekStep
 here status is (default(0),inProgress(1),completed(2))
 progress is no of content completed
@@ -462,7 +458,7 @@ ALTER TABLE sunbird.course_batch ADD courseAdditionalInfo map<text,text>;
 DROP INDEX inx_cou_bat_enrolmentType;
 ALTER TABLE sunbird.course_batch DROP enrolmentType;
 ALTER TABLE sunbird.course_batch ADD enrollmentType text;
-DROP INDEX inx_cou_bat_enrolmentType ON sunbird.course_batch (enrollmentType);
+CREATE INDEX inx_cou_bat_enrollmentType ON sunbird.course_batch (enrollmentType);
 
 // adding the batchId column to content consumption table -- Aug 8,2017
 ALTER TABLE sunbird.content_consumption ADD batchId text;
@@ -471,3 +467,8 @@ CREATE TABLE IF NOT EXISTS sunbird.bulk_upload_process(id text, status int,data 
 CREATE INDEX inx_status ON sunbird.bulk_upload_process(status);
 insert into sunbird.role_group (id,name) values ('COURSE_MENTOR','COURSE_MENTOR');
 update sunbird.role_group set url_action_ids=['courseMentor'] where id='COURSE_MENTOR';
+
+ALTER TABLE sunbird.course_batch ADD countIncrementStatus boolean;
+ALTER TABLE sunbird.course_batch ADD countIncrementDate text;
+ALTER TABLE sunbird.course_batch ADD countDecrementStatus boolean;
+ALTER TABLE sunbird.course_batch ADD countDecrementDate text;
