@@ -472,3 +472,6 @@ ALTER TABLE sunbird.course_batch ADD countIncrementStatus boolean;
 ALTER TABLE sunbird.course_batch ADD countIncrementDate text;
 ALTER TABLE sunbird.course_batch ADD countDecrementStatus boolean;
 ALTER TABLE sunbird.course_batch ADD countDecrementDate text;
+
+CREATE INDEX inx_org_provider ON sunbird.organisation (provider);
+CREATE INDEX inx_org_externalId ON sunbird.organisation (externalId);
