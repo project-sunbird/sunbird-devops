@@ -1,0 +1,28 @@
+#!groovy
+
+node('general-performance') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+        stage('Checkout'){
+          checkout scm
+       }
+       stage('Pre-Build'){
+        sh('./images/adminutil/installDeps.sh')
+       }
+       stage('Deploy'){
+        sh 'rm ./images/adminutil/metadata.json'
+        step ([$class: 'CopyArtifact',
+          projectName: 'Staging/AM_AdminUtils_Deploy_Staging',
+          filter: 'images/adminutil/metadata.json']);
+        sh 'METADATA_FILE=images/adminutil/metadata.json ARTIFACT_LABEL=gold ENV=ntp-performance ./images/adminutil/deploy.sh'
+        archive includes: "images/adminutil/metadata.json"
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
