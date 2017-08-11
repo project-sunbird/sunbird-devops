@@ -24,4 +24,4 @@ ansible-playbook --version
 ansible-playbook -i ansible/inventory/${env} ansible/deploy.yml --tags "stack-adminutil" --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel}" --vault-password-file /run/secrets/vault-pass
 # ENV=${env} ORG=${org} NAME=${name} \
 # TAG=${version}-${artifactLabel} \
-# docker stack deploy -c ./images/proxy/docker-compose.yml ${name}-${env}
+# docker stack deploy -c ./pipelines/proxy/docker-compose.yml ${name}-${env}

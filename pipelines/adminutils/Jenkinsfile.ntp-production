@@ -4,20 +4,20 @@ node('general-production') {
 
     currentBuild.result = "SUCCESS"
 
-    try {  
+    try {
         stage('Checkout'){
           checkout scm
-       }   
+       }
        stage('Pre-Build'){
-        sh('./images/adminutil/installDeps.sh')
+        sh('./pipelines/adminutil/installDeps.sh')
        }
        stage('Deploy'){
-        sh 'rm ./images/adminutil/metadata.json'
+        sh 'rm ./pipelines/adminutil/metadata.json'
         step ([$class: 'CopyArtifact',
           projectName: 'Staging/AM_AdminUtils_Deploy_Staging',
-          filter: 'images/adminutil/metadata.json']);
-        sh 'METADATA_FILE=images/adminutil/metadata.json ARTIFACT_LABEL=gold ENV=ntp-production ./images/adminutil/deploy.sh'
-        archive includes: "images/adminutil/metadata.json"
+          filter: 'pipelines/adminutil/metadata.json']);
+        sh 'METADATA_FILE=pipelines/adminutil/metadata.json ARTIFACT_LABEL=gold ENV=ntp-production ./pipelines/adminutil/deploy.sh'
+        archive includes: "pipelines/adminutil/metadata.json"
        }
     }
     catch (err) {
@@ -25,4 +25,4 @@ node('general-production') {
         throw err
     }
 
-}       
+}
