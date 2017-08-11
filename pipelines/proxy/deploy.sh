@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -e
 e () {
     echo $( echo ${1} | jq ".${2}" | sed 's/\"//g')
 }

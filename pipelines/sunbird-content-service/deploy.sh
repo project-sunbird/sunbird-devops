@@ -5,6 +5,7 @@
 #!/bin/sh
 # Build script
 # set -o errexit
+set -e
 e () {
     echo $( echo ${1} | jq ".${2}" | sed 's/\"//g')
 }
