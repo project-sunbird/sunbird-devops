@@ -12,6 +12,6 @@ hubuser=$(e "${m}" "hubuser")
 name=$(e "${m}" "name")
 version=$(e "${m}" "version")
 
-docker login -u "${hubuser}" -p`cat /run/secrets/hub-pass`
+docker login -u "${hubuser}" -p`cat /run/secrets/hub-pas`
 docker push ${org}/${name}:${version}
 docker logout
