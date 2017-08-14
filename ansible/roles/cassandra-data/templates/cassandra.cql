@@ -444,10 +444,10 @@ ALTER TABLE sunbird.course_batch ADD createdDate text;
 ALTER TABLE sunbird.course_batch DROP lastupdatedon;
 ALTER TABLE sunbird.course_batch ADD updatedDate text;
 
-ALTER TABLE sunbird.organisation add provider text;
-COPY  sunbird.organisation (id,source) TO '/tmp/cql/source.csv';
-COPY  sunbird.organisation (id,provider) FROM '/tmp/cql/source.csv';
-ALTER TABLE sunbird.organisation DROP source;
+//ALTER TABLE sunbird.organisation add provider text;
+//COPY  sunbird.organisation (id,source) TO '/tmp/cql/source.csv';
+//COPY  sunbird.organisation (id,provider) FROM '/tmp/cql/source.csv';
+//ALTER TABLE sunbird.organisation DROP source;
 CREATE TABLE IF NOT EXISTS sunbird.course_publish_status(id text,submitDate text,status int,PRIMARY KEY (id));
 
 // convert data type of participants from List to map -- Aug 7,2017
@@ -475,3 +475,9 @@ ALTER TABLE sunbird.course_batch ADD countDecrementDate text;
 
 CREATE INDEX inx_org_provider ON sunbird.organisation (provider);
 CREATE INDEX inx_org_externalId ON sunbird.organisation (externalId);
+
+insert into sunbird.url_action (id,name) values ('orgupload','orgupload');
+update sunbird.role_group set url_action_ids=['suspendOrg','suspendUser','orgupload'] where id='SYSTEM_ADMINISTRATION';
+update sunbird.url_action set url=['/v1/org/suspend'] where id='suspendOrg';
+update sunbird.url_action set url=['/v1/user/block'] where id='suspendUser';
+update sunbird.url_action set url=['/v1/org/upload'] where id='orgupload';
