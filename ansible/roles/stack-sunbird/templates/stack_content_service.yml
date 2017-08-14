@@ -6,10 +6,15 @@ services:
     deploy:
       replicas: {{ content.replicas | default(1) }}
       resources:
-        reservations: 
+        reservations:
           memory: "{{ content.reservation_memory  | default('64M') }}"
         limits:
           memory: "{{ content.limit_memory | default('256M') }}"
+    healthcheck:
+      test: curl -f http://localhost:5000/health || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
     env_file:
       /home/deployer/env/sunbird_content_service.env
     ports:
