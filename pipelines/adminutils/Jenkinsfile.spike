@@ -1,0 +1,27 @@
+#!groovy
+
+node('general-spike') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+        stage('Checkout'){
+          checkout scm
+       }
+       stage('Pre-Build'){
+        sh('./pipelines/adminutils/installDeps.sh')
+       }
+       stage('Deploy'){
+        step ([$class: 'CopyArtifact',
+          projectName: 'Build/AM_AdminUtils_Build',
+          filter: 'metadata.json']);
+        sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=spike ./pipelines/adminutils/deploy.sh'
+        archive includes: "metadata.json"
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
