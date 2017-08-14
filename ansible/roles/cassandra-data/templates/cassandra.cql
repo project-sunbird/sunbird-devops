@@ -482,5 +482,4 @@ update sunbird.url_action set url=['/v1/org/suspend'] where id='suspendOrg';
 update sunbird.url_action set url=['/v1/user/block'] where id='suspendUser';
 update sunbird.url_action set url=['/v1/org/upload'] where id='orgupload';
 insert into sunbird.url_action (id,name) values ('SYSTEM_ADMINISTRATION','SYSTEM_ADMINISTRATION');
-insert into sunbird.url_action (id,name) values ('COURSE_MENTOR','COURSE_MENTOR');
-
+insert into sunbird.role (id,name,rolegroupid,status) values ('COURSE_MENTOR','COURSE_MENTOR',['COURSE_MENTOR'],1);
