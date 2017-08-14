@@ -18,7 +18,20 @@ services:
     networks:
       - api-manager_default
     deploy:
-      replicas: 1
+      replicas: {{ adminutil.replicas | default(1) }}
+      resources:
+        reservations:
+          memory: "{{ adminutil.reservation_memory | default('512M') }}"
+        limits:
+          memory: "{{ adminutil.limit_memory | default('512M') }}"
+      update_config:
+        parallelism: 1
+        delay: 5s
+    healthcheck:
+      test: wget -q --spider http://localhost:4001/health || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   api-manager_default:
