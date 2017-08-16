@@ -1,21 +1,9 @@
 ---
+- name: Remove actor service
+  shell: "docker service rm actor-service"
+  ignore_errors: yes
 
-- name: Check if actor service is running
-  shell: docker service ls | grep actor-service | grep -v grep | wc -l
-  register: actor_process
-  
-- name: Print the actor status to console
-  debug:
-    var: actor_process
-
-- name: create actor service
+- name: Deploy actor service
   shell: "docker service create --replicas {{ actor.replicas | default(1) }} -p 8088:8088 --name actor-service --hostname actor-service --reserve-memory {{ actor.reservation_memory |  default('768M') }} --limit-memory {{ actor.limit_memory |  default('1024M') }}  --network {{ sunbird_network }} --env-file /home/deployer/env/sunbird_actor-service.env {{hub_org}}/{{image_name}}:{{image_tag}}"
-  when: "actor_process.stdout == '0'"
-  args:
-    chdir: /home/deployer/stack
-
-- name: update actor service
-  shell: "docker service update --replicas {{ actor.replicas | default(1) }}  --hostname actor-service --reserve-memory {{ actor.reservation_memory |  default('768M') }} --limit-memory {{ actor.limit_memory |  default('1024M') }}  actor-service"
-  when: "actor_process.stdout != '0'"
   args:
     chdir: /home/deployer/stack
