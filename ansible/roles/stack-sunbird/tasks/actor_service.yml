@@ -1,7 +1,14 @@
 ---
-- name: Remove actor service
-  shell: "docker service rm actor-service"
-  ignore_errors: yes
+
+- name: Check if actor service is running
+  become: yes
+  become_user: "{{ user }}"
+  shell: docker service ls | grep actor-service
+  register: actor_process
+  
+- name: Print the actor status to console
+  debug:
+    var: actor_process
 
 - name: Deploy actor service
   shell: "docker service create --replicas {{ actor.replicas | default(1) }} -p 8088:8088 --name actor-service --hostname actor-service --reserve-memory {{ actor.reservation_memory |  default('768M') }} --limit-memory {{ actor.limit_memory |  default('1024M') }}  --network {{ sunbird_network }} --env-file /home/deployer/env/sunbird_actor-service.env {{hub_org}}/{{image_name}}:{{image_tag}}"
