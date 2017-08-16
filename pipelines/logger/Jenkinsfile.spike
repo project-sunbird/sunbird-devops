@@ -1,0 +1,31 @@
+#!groovy
+
+node('general-spike') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/logger/installDeps.sh')
+
+       }
+
+       stage('Deploy'){
+
+         sh 'ENV=spike ./pipelines/logger/deploy.sh'
+
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
