@@ -421,6 +421,11 @@
     "agentpublicLbIPConfigID": "[concat(variables('agentpublicLbID'),'/frontendIPConfigurations/', variables('agentpublicLbIPConfigName'))]",
     "agentpublicLbIPConfigName": "[concat(variables('orchestratorName'), '-agentpublic-', variables('nameSuffix'))]",
     "agentpublicLbName": "[concat(variables('orchestratorName'), '-agentpublic-', variables('nameSuffix'))]",
+    "agentprivateLbBackendPoolName": "[concat(variables('orchestratorName'), '-agentprivate-', variables('nameSuffix'))]",
+    "agentprivateLbID": "[resourceId('Microsoft.Network/loadBalancers',variables('agentprivateLbName'))]",
+    "agentprivateLbIPConfigID": "[concat(variables('agentprivateLbID'),'/frontendIPConfigurations/', variables('agentprivateLbIPConfigName'))]",
+    "agentprivateLbIPConfigName": "[concat(variables('orchestratorName'), '-agentprivate-', variables('nameSuffix'))]",
+    "agentprivateLbName": "[concat(variables('orchestratorName'), '-agentprivate-', variables('nameSuffix'))]",
     "agentpublicSubnet": "[parameters('agentpublicSubnet')]",
     "agentpublicSubnetName": "[concat(variables('orchestratorName'), '-agentpublicsubnet')]",
     "agentpublicVMNamePrefix": "[concat(variables('orchestratorName'), '-agentpublic-', variables('nameSuffix'))]",
@@ -511,7 +516,7 @@
         "dnsSettings": {
           "domainNameLabel": "[variables('agentpublicEndpointDNSNamePrefix')]"
         },
-        "publicIPAllocationMethod": "Dynamic"
+        "publicIPAllocationMethod": "Static"
       },
       "type": "Microsoft.Network/publicIPAddresses"
     },
@@ -579,26 +584,6 @@
               },
               "protocol": "tcp"
             }
-          },
-          {
-            "name": "LBRule50000",
-            "properties": {
-              "backendAddressPool": {
-                "id": "[concat(variables('agentpublicLbID'), '/backendAddressPools/', variables('agentpublicLbBackendPoolName'))]"
-              },
-              "backendPort": 50000,
-              "enableFloatingIP": false,
-              "frontendIPConfiguration": {
-                "id": "[variables('agentpublicLbIPConfigID')]"
-              },
-              "frontendPort": 50000,
-              "idleTimeoutInMinutes": 5,
-              "loadDistribution": "Default",
-              "probe": {
-                "id": "[concat(variables('agentpublicLbID'),'/probes/tcp50000Probe')]"
-              },
-              "protocol": "tcp"
-            }
           }
         ],
         "probes": [
@@ -619,15 +604,6 @@
               "port": 443,
               "protocol": "tcp"
             }
-          },
-          {
-            "name": "tcp50000Probe",
-            "properties": {
-              "intervalInSeconds": "5",
-              "numberOfProbes": "2",
-              "port": 50000,
-              "protocol": "tcp"
-            }
           }
         ]
       },
@@ -638,7 +614,8 @@
       "dependsOn": [
         "[concat('Microsoft.Network/publicIPAddresses/', variables('masterPublicIPAddressName'))]",
         "[variables('vnetID')]",
-        "[variables('agentpublicLbID')]"
+        "[variables('agentpublicLbID')]",
+        "[variables('agentprivateLbID')]"
       ],
       "location": "[variables('location')]",
       "name": "[concat(variables('agentpublicVMNamePrefix'), '-vmss')]",
@@ -659,6 +636,9 @@
                         "loadBalancerBackendAddressPools": [
                           {
                             "id": "[concat(variables('agentpublicLbID'), '/backendAddressPools/', variables('agentpublicLbBackendPoolName'))]"
+                          },
+                          {
+                            "id": "[concat(variables('agentprivateLbID'), '/backendAddressPools/', variables('agentprivateLbBackendPoolName'))]"
                           }
                         ],
                         "subnet": {
@@ -741,6 +721,66 @@
       "type": "Microsoft.Network/virtualNetworks"
     },
     {
+      "type": "Microsoft.Network/loadBalancers",
+      "name": "[variables('agentprivateLbName')]",
+      "location": "[variables('location')]",
+      "apiVersion": "[variables('apiVersionDefault')]",
+      "dependsOn": [
+        "[variables('vnetID')]"
+      ],
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "[variables('agentprivateLbIPConfigName')]",
+            "properties": {
+              "subnet": {
+                "id": "[variables('agentpublicVnetSubnetID')]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "[variables('agentprivateLbBackendPoolName')]"
+          }
+        ],
+        "inboundNatPools": [],
+        "loadBalancingRules": [
+          {
+            "name": "LogRule",
+            "properties": {
+              "loadDistribution": "Default",
+              "frontendIPConfiguration": {
+                "id": "[variables('agentprivateLbIPConfigID')]"
+              },
+              "backendAddressPool": {
+                "id": "[concat(variables('agentprivateLbID'), '/backendAddressPools/', variables('agentprivateLbBackendPoolName'))]"
+              },
+              "protocol": "Tcp",
+              "frontendPort": 51415,
+              "backendPort": 51415,
+              "enableFloatingIP": false,
+              "idleTimeoutInMinutes": 5,
+              "probe": {
+                "id": "[concat(variables('agentprivateLbID'),'/probes/tcp51415Probe')]"
+              }
+            }
+          }
+        ],
+        "probes": [
+          {
+            "name": "tcp51415Probe",
+            "properties": {
+              "intervalInSeconds": "5",
+              "numberOfProbes": "2",
+              "port": 51415,
+              "protocol": "tcp"
+            }
+          }
+        ]
+      }
+    },
+    {
       "apiVersion": "[variables('apiVersionStorageManagedDisks')]",
       "location": "[variables('location')]",
       "name": "[variables('masterAvailabilitySet')]",
@@ -759,7 +799,7 @@
         "dnsSettings": {
           "domainNameLabel": "[variables('masterEndpointDNSNamePrefix')]"
         },
-        "publicIPAllocationMethod": "Dynamic"
+        "publicIPAllocationMethod": "Static"
       },
       "type": "Microsoft.Network/publicIPAddresses"
     },
