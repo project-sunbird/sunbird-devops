@@ -1,0 +1,18 @@
+pipeline {
+    agent {
+        label 'general-spike'
+    }
+    triggers {
+        cron('@midnight')
+    }
+    stages {
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd ansible
+                ansible-playbook -i inventory/spike swarm-agent-docker-prune.yml --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
