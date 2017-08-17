@@ -1,0 +1,18 @@
+pipeline {
+    agent {
+        label 'general-staging'
+    }
+    triggers {
+        cron('@midnight')
+    }
+    stages {
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd ansible
+                ansible-playbook -v -i inventory/ntp-staging swarm-agent-docker-prune.yml --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
