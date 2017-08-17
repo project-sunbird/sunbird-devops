@@ -1,20 +1,16 @@
-#!groovy
-
-node('general-dev') {
-
-    currentBuild.result = "SUCCESS"
-    try {
-        stage('Checkout'){
-
-          checkout scm
-       }
-             
-       stage('Pre-Build'){
+pipeline {
+    agent {
+        label 'general-dev'
+    }
+    stages {
+        stage('Pre-Build'){
+            steps {
                 sh('chmod a+x ansible/installDeps.sh')
                 sh('./ansible/installDeps.sh')
-       }        
+            }
+        }
         stage('Deploy') {
-            step {
+            steps {
                 sh '''
                 cd ansible
                 ansible-playbook -i inventory/dev postgresql-data-update.yml --vault-password-file /run/secrets/vault-pass
@@ -22,9 +18,4 @@ node('general-dev') {
             }
         }
     }
-    catch (err) {
-        currentBuild.result = "FAILURE"
-        throw err
-    }
 }
-
