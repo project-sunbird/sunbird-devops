@@ -1,0 +1,18 @@
+pipeline {
+    agent {
+        label 'general-spike'
+    }
+    triggers {
+        cron('@midnight')
+    }
+    stages {
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd ansible
+                ansible-playbook -i inventory/spike postgresql-data-update.yml --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
