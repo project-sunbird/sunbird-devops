@@ -4,5 +4,5 @@ agent_nodes=$(ssh -i /run/secrets/ops-private-key ops@$master_node_ip "docker no
 for agent_node in $agent_nodes; do
     echo ""
     echo  "Cleaning node: $agent_node"
-    eval `ssh-agent -s` && ssh-add /run/secrets/ops-private-key && ssh -A  ops@$master_node_ip "ssh $agent_node docker system prune -f"
+    eval `ssh-agent -s` && ssh-add /run/secrets/ops-private-key && ssh -A  ops@$master_node_ip "ssh $agent_node 'docker container prune -f && docker image prune -f'"
 done;
