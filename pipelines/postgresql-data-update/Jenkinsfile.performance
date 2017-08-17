@@ -1,25 +1,21 @@
-#!groovy
-
-node('general-performance') {
-
-    currentBuild.result = "SUCCESS"
-    try {
-       stage('Pre-Build'){
-
-         sh('./pipelines/sunbird-player/installDeps.sh')
-
-       }        
+pipeline {
+    agent {
+        label 'general-performance'
+    }
+    stages {
+        stage('Pre-Build'){
+            steps {
+                sh('chmod a+x ansible/installDeps.sh')
+                sh('./ansible/installDeps.sh')
+            }
+        }
         stage('Deploy') {
             steps {
                 sh '''
                 cd ansible
-                ansible-playbook -i inventory/ntp-performance postgresql-data-update.yml --vault-password-file /run/secrets/vault-pass
+                ansible-playbook -i inventory/performance postgresql-data-update.yml --vault-password-file /run/secrets/vault-pass
                 '''
             }
         }
-    }
-    catch (err) {
-        currentBuild.result = "FAILURE"
-        throw err
     }
 }

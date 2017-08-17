@@ -1,14 +1,14 @@
-#!groovy
-
-node('general-spike') {
-
-    currentBuild.result = "SUCCESS"
-    try {
-       stage('Pre-Build'){
-
-         sh('./pipelines/sunbird-player/installDeps.sh')
-
-       }        
+pipeline {
+    agent {
+        label 'general-spike'
+    }
+    stages {
+        stage('Pre-Build'){
+            steps {
+                sh('chmod a+x ansible/installDeps.sh')
+                sh('./ansible/installDeps.sh')
+            }
+        }
         stage('Deploy') {
             steps {
                 sh '''
@@ -17,9 +17,5 @@ node('general-spike') {
                 '''
             }
         }
-    }
-    catch (err) {
-        currentBuild.result = "FAILURE"
-        throw err
     }
 }
