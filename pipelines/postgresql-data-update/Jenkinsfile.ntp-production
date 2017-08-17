@@ -1,13 +1,14 @@
-pipeline {
-    agent {
-        label 'general-production'
-    }
-    stages {
+#!groovy
+
+node('general-production') {
+
+    currentBuild.result = "SUCCESS"
+    try {
        stage('Pre-Build'){
 
          sh('./pipelines/sunbird-player/installDeps.sh')
 
-       }
+       }        
         stage('Deploy') {
             steps {
                 sh '''
@@ -16,5 +17,9 @@ pipeline {
                 '''
             }
         }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
     }
 }
