@@ -1,0 +1,20 @@
+pipeline {
+  agent {
+      label 'general-staging'
+  }
+  triggers {
+        cron('H 0 * * *')
+  }
+  stages {
+    stage('Pre-Build'){
+      steps {
+        sh('./pipelines/log-forwarder/installDeps.sh')
+      }
+    }
+    stage('Deploy') {
+      steps {
+        sh 'ENV=ntp-staging ./pipelines/log-forwarder/deploy.sh'
+      }
+    }
+  }
+}
