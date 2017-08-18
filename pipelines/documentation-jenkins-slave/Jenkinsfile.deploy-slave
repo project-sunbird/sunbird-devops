@@ -1,0 +1,23 @@
+pipeline {
+    agent {
+        label 'general-dev'
+    }
+    stages {
+        stage('Pre-Build'){
+            steps {
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+              step ([$class: 'CopyArtifact',
+                projectName: 'Build/Documentation_Jenkins_Slave',
+                filter: 'metadata.json']);
+
+               sh 'METADATA_FILE=metadata.json ENV=dev ./pipelines/proxy/deploy.sh'
+
+               archive includes: "metadata.json"
+            }
+        }
+    }
+}
