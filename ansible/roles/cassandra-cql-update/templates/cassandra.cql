@@ -496,3 +496,5 @@ insert into sunbird.role_group (id,name) values ('FLAG_REVIEWER ','FLAG_REVIEWER
 insert into sunbird.url_action (id,name) values ('flagReview','flagReview');
 insert into sunbird.role (id,name,rolegroupid,status) values ('FLAG_REVIEWER','FLAG_REVIEWER',['FLAG_REVIEWER'],1);
 update sunbird.role_group set url_action_ids=['flagReview'] where id='FLAG_REVIEWER';
+ALTER TABLE sunbird.organisation DROP contactdetails;
+ALTER TABLE sunbird.organisation ADD contactdetail text;
