@@ -8,4 +8,4 @@ env=${ENV:-null}
 
 echo "env:            ${env}"
 
-ansible-playbook -i ansible/inventory/$ENV ansible/deploy.yml --tags "documentation-jenkins-slave" --vault-password-file /run/secrets/vault-pass
+ansible-playbook -i ansible/inventory/$ENV ansible/jenkins-slave.yml --tags "documentation-jenkins-slave" --vault-password-file /run/secrets/vault-pass
