@@ -1452,3 +1452,51 @@ kong_apis:
       config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: batchBulkEnrolment
+    request_path: '{{ course_service_prefix }}/v1/batch/bulk/enrollment'
+    upstream_url: '{{ learning_service_url }}/v1/batch/bulk/enrollment'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: getTenantInfo
+    request_path: '{{ org_service_prefix }}/v1/tenant/info'
+    upstream_url: '{{ player_service_url }}/v1/tenant/info'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: publicUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: getContentUploadUrl
+    request_path: '{{ content_service_prefix }}/v1/upload/url/read'
+    upstream_url: '{{ content_service_url }}/v1/content/upload/url'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: statsd
+      config.metrics: '{{ statsd_metrics }}'
+    - name: acl
+      config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'
