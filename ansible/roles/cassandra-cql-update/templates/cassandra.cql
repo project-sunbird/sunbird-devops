@@ -301,11 +301,11 @@ ALTER TABLE sunbird.user ADD roles List<text>;
  drop table sunbird.role;
 CREATE TABLE IF NOT EXISTS sunbird.role(id text, name text,roleGroupId List<text>,status int, PRIMARY KEY (id));
 CREATE INDEX inx_ro_master_name ON sunbird.role(name);
- insert into sunbird.role (id,name,rolegroupid,status) values ('ADMIN','ADMIN',['SYSTEM_ADMINISTRATION','ORG_MANAGEMENT'],1);
- insert into sunbird.role (id,name,rolegroupid,status) values ('ORG_ADMIN','ORG_ADMIN',['ORG_MANAGEMENT','MEMBERSHIP_MANAGEMENT'],1);
- insert into sunbird.role (id,name,rolegroupid,status) values ('ORG_MODERATOR','ORG_MODERATOR',['MEMBERSHIP_MANAGEMENT'],1);
- insert into sunbird.role (id,name,rolegroupid,status) values ('CONTENT_CREATOR','CONTENT_CREATOR',['CONTENT_CREATION'],1);
- insert into sunbird.role (id,name,rolegroupid,status) values ('CONTENT_REVIEWER','CONTENT_REVIEWER',['CONTENT_CREATION','CONTENT_CURATION','CONTENT_REVIEW'],1);
+ insert into sunbird.role (id,name,rolegroupid,status) values ('ADMIN','Admin',['SYSTEM_ADMINISTRATION','ORG_MANAGEMENT'],1);
+ insert into sunbird.role (id,name,rolegroupid,status) values ('ORG_ADMIN','Org Admin',['ORG_MANAGEMENT','MEMBERSHIP_MANAGEMENT'],1);
+ insert into sunbird.role (id,name,rolegroupid,status) values ('ORG_MODERATOR','Org Moderator',['MEMBERSHIP_MANAGEMENT'],1);
+ insert into sunbird.role (id,name,rolegroupid,status) values ('CONTENT_CREATOR','Content Creator',['CONTENT_CREATION'],1);
+ insert into sunbird.role (id,name,rolegroupid,status) values ('CONTENT_REVIEWER','Content Reviewer',['CONTENT_CREATION','CONTENT_CURATION','CONTENT_REVIEW'],1);
  drop table sunbird.url_action;
  CREATE TABLE IF NOT EXISTS sunbird.url_action(id text, url list<text>,name text, PRIMARY KEY (id));
  CREATE INDEX inx_ua_name ON sunbird.url_action(name);
@@ -318,7 +318,7 @@ insert into sunbird.url_action (id,name) values ('suspendOrg','suspendOrg');
  insert into sunbird.url_action (id,name) values ('removeOrg','removeOrg');
  insert into sunbird.url_action (id,name) values ('createUser','createUser');
  insert into sunbird.url_action (id,name) values ('updateUser','updateUser');
- insert into sunbird.url_action (id,name) values ('ORG_MANAGEMENT','ORG_MANAGEMENT');
+ insert into sunbird.url_action (id,name) values ('ORG_MANAGEMENT','Org Management');
  insert into sunbird.url_action (id,name) values ('createOrg','createOrg');
  insert into sunbird.url_action (id,name) values ('addMember','addMember');
  insert into sunbird.url_action (id,name) values ('removeMember','removeMember');
@@ -444,10 +444,11 @@ ALTER TABLE sunbird.course_batch ADD createdDate text;
 ALTER TABLE sunbird.course_batch DROP lastupdatedon;
 ALTER TABLE sunbird.course_batch ADD updatedDate text;
 
-//ALTER TABLE sunbird.organisation add provider text;
-//COPY  sunbird.organisation (id,source) TO '/tmp/cql/source.csv';
-//COPY  sunbird.organisation (id,provider) FROM '/tmp/cql/source.csv';
-//ALTER TABLE sunbird.organisation DROP source;
+ALTER TABLE sunbird.organisation add provider text;
+COPY  sunbird.organisation (id,source) TO '/tmp/cql/source.csv';
+COPY  sunbird.organisation (id,provider) FROM '/tmp/cql/source.csv';
+ALTER TABLE sunbird.organisation DROP source;
+//Id is courseId
 CREATE TABLE IF NOT EXISTS sunbird.course_publish_status(id text,submitDate text,status int,PRIMARY KEY (id));
 
 // convert data type of participants from List to map -- Aug 7,2017
@@ -465,7 +466,7 @@ ALTER TABLE sunbird.content_consumption ADD batchId text;
 
 CREATE TABLE IF NOT EXISTS sunbird.bulk_upload_process(id text, status int,data text,successResult text,failureResult text,uploadedBy text,uploadedDate text,processStartTime text,processEndTime text,ObjectType text,organisationId text, PRIMARY KEY (id));
 CREATE INDEX inx_status ON sunbird.bulk_upload_process(status);
-insert into sunbird.role_group (id,name) values ('COURSE_MENTOR','COURSE_MENTOR');
+insert into sunbird.role_group (id,name) values ('COURSE_MENTOR','Course Mentor');
 update sunbird.role_group set url_action_ids=['courseMentor'] where id='COURSE_MENTOR';
 
 ALTER TABLE sunbird.course_batch ADD countIncrementStatus boolean;
@@ -481,9 +482,9 @@ update sunbird.role_group set url_action_ids=['suspendOrg','suspendUser','orgupl
 update sunbird.url_action set url=['/v1/org/suspend'] where id='suspendOrg';
 update sunbird.url_action set url=['/v1/user/block'] where id='suspendUser';
 update sunbird.url_action set url=['/v1/org/upload'] where id='orgupload';
-insert into sunbird.url_action (id,name) values ('SYSTEM_ADMINISTRATION','SYSTEM_ADMINISTRATION');
-insert into sunbird.role (id,name,rolegroupid,status) values ('COURSE_MENTOR','COURSE_MENTOR',['COURSE_MENTOR'],1);
-//changes on Aug 16,2017
+insert into sunbird.role (id,name,rolegroupid,status) values ('COURSE_MENTOR','Course Mentor',['COURSE_MENTOR'],1);
+
+// changes on Aug 16,2017
 ALTER TABLE sunbird.organisation ADD slug text;
 ALTER TABLE sunbird.organisation ADD hashTagId text;
 ALTER TABLE sunbird.organisation ADD theme text;
@@ -492,9 +493,9 @@ ALTER TABLE sunbird.course_batch ADD hashTagId text;
 CREATE INDEX inx_cps_status ON sunbird.course_publish_status (status);
 ALTER TABLE sunbird.user ADD location text;
 ALTER TABLE sunbird.organisation ADD contactDetails map<text,text>;
-insert into sunbird.role_group (id,name) values ('FLAG_REVIEWER ','FLAG_REVIEWER');
+insert into sunbird.role_group (id,name) values ('FLAG_REVIEWER ','Flag Reviewer');
 insert into sunbird.url_action (id,name) values ('flagReview','flagReview');
-insert into sunbird.role (id,name,rolegroupid,status) values ('FLAG_REVIEWER','FLAG_REVIEWER',['FLAG_REVIEWER'],1);
+insert into sunbird.role (id,name,rolegroupid,status) values ('FLAG_REVIEWER','Flag Reviewer',['FLAG_REVIEWER'],1);
 update sunbird.role_group set url_action_ids=['flagReview'] where id='FLAG_REVIEWER';
 ALTER TABLE sunbird.organisation DROP contactdetails;
 ALTER TABLE sunbird.organisation ADD contactdetail text;
