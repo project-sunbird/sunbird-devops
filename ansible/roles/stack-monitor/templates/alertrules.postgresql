@@ -1,3 +1,4 @@
+{% if enable_postgres_availability_check %}
 ALERT PostgresUnavailable
 IF pg_exporter_last_scrape_error == 1
 FOR 5m
@@ -6,8 +7,9 @@ LABELS {
 }
 ANNOTATIONS {
   summary = "PostgreSQL unavailable",
-  description = "PostgreSQL unavailable as per job: {{$labels.job}}",
+  description = "PostgreSQL unavailable as per job: {% raw %}{{$labels.job}}{% endraw %}",
 }
+{% endif %}
 
 ALERT PostgresHighNumberOfConnections
 IF sum(pg_stat_database_numbackends) > 90
@@ -17,7 +19,7 @@ LABELS {
 }
 ANNOTATIONS {
   summary = "PostgreSQL high number of connections",
-  description = "Number of connections is above the high water mark: {{$value}}",
+  description = "Number of connections is above the high water mark: {% raw %}{{$value}}{% endraw %}",
 }
 
 ALERT PostgresMasterInRecovery
@@ -28,7 +30,7 @@ LABELS {
 }
 ANNOTATIONS {
   summary = "PostgreSQL master is in recovery",
-  description = "PostgreSQL master is in recovery. pg_server_standby_status_in_recovery: {{$value}}",
+  description = "PostgreSQL master is in recovery. pg_server_standby_status_in_recovery: {% raw %}{{$value}}{% endraw %}",
 }
 
 ALERT PostgresSlaveNotInRecovery
@@ -39,7 +41,7 @@ LABELS {
 }
 ANNOTATIONS {
   summary = "PostgreSQL slave is not in recovery",
-  description = "PostgreSQL slave is not in recovery. pg_server_standby_status_in_recovery: {{$value}}",
+  description = "PostgreSQL slave is not in recovery. pg_server_standby_status_in_recovery: {% raw %}{{$value}}{% endraw %}",
 }
 
 ALERT PostgresHighReplicationByteLag
@@ -50,7 +52,7 @@ LABELS {
 }
 ANNOTATIONS {
   summary = "PostgreSQL replication byte lag is high",
-  description = "The replication byte lag for salve: {{$labels.slave_addr}} is above the high water mark: {{$value}}",
+  description = "The replication byte lag for salve: {% raw %}{{$labels.slave_addr}}{% endraw %} is above the high water mark: {% raw %}{{$value}}{% endraw %}",
 }
 
 ALERT PostgresHighReplicationLagSeconds
@@ -61,5 +63,5 @@ LABELS {
 }
 ANNOTATIONS {
   summary = "PostgreSQL replication lag time is high",
-  description = "The replication lag between the master and slave is above the high water mark: {{$value}}",
+  description = "The replication lag between the master and slave is above the high water mark: {% raw %}{{$value}}{% endraw %}",
 }

@@ -1,0 +1,39 @@
+ALERT high_cpu_usage_on_node
+  IF sum(rate(process_cpu_seconds_total[5m])) by (instance) * 100 > 70
+  FOR 5m
+  ANNOTATIONS {
+      summary = "HIGH CPU USAGE WARNING ON '{% raw %}{{ $labels.instance }}{% endraw %}'",
+      description = "{% raw %}{{ $labels.instance }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of CPU. CPU usage is {% raw %}{{ humanize $value}}{% endraw %}%.",
+  }
+
+ALERT high_memory_usage_on_node
+  IF ((node_memory_MemTotal-node_memory_MemAvailable)/node_memory_MemTotal)*100 > 80
+  FOR 5m
+  ANNOTATIONS {
+      summary = "HIGH MEMORY USAGE WARNING TASK ON '{% raw %}{{ $labels.instance }}{% endraw %}'",
+      description = "{% raw %}{{ $labels.instance }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}%.",
+  }
+
+ALERT high_la_usage_on_node
+  IF node_load5 > 5
+  FOR 5m
+  ANNOTATIONS {
+      summary = "HIGH LOAD AVERAGE WARNING ON '{% raw %}{{ $labels.instance }}{% endraw %}'",
+      description = "{% raw %}{{ $labels.instance }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) has a high load average. CPU usage is {% raw %}{{ humanize $value}}{% endraw %}%.",
+  }
+
+ALERT monitoring_service_down
+  IF up == 0
+  FOR 5m
+  ANNOTATIONS {
+      summary = "MONITORING SERVICE DOWN WARNING: NODE '{% raw %}{{ $labels.host }}{% endraw %}'",
+      description = "The monitoring service '{% raw %}{{ $labels.job }}{% endraw %}' is down.",
+  }
+
+ALERT node_running_out_of_disk_space
+  IF (node_filesystem_size{fstype="aufs", mountpoint="/"} - node_filesystem_free{fstype="aufs", mountpoint="/"}) * 100/ node_filesystem_size{fstype="aufs", mountpoint="/"} > 80
+  FOR 5m
+  ANNOTATIONS {
+      summary = "LOW DISK SPACE WARING: NODE '{% raw %}{{ $labels.instance }}{% endraw %}' ",
+      description = "More than 80% of disk used. Disk usage {% raw %}{{ humanize $value }}{% endraw %} GB.",
+  }
