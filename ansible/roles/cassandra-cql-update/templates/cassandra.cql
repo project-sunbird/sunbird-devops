@@ -292,12 +292,12 @@ ALTER TABLE sunbird.user ADD roles List<text>;
  
  
  CREATE TABLE IF NOT EXISTS sunbird.role_group(id text, name text, PRIMARY KEY (id));
- insert into sunbird.role_group (id,name) values ('SYSTEM_ADMINISTRATION','SYSTEM_ADMINISTRATION');
- insert into sunbird.role_group (id,name) values ('ORG_MANAGEMENT','ORG_MANAGEMENT');
- insert into sunbird.role_group (id,name) values ('MEMBERSHIP_MANAGEMENT','MEMBERSHIP_MANAGEMENT');
- insert into sunbird.role_group (id,name) values ('CONTENT_CREATION','CONTENT_CREATION');
- insert into sunbird.role_group (id,name) values ('CONTENT_CURATION','CONTENT_CURATION');
- insert into sunbird.role_group (id,name) values ('CONTENT_REVIEW','CONTENT_REVIEW');
+ insert into sunbird.role_group (id,name) values ('SYSTEM_ADMINISTRATION','System Administration');
+ insert into sunbird.role_group (id,name) values ('ORG_MANAGEMENT','Org Management');
+ insert into sunbird.role_group (id,name) values ('MEMBERSHIP_MANAGEMENT','Membership Management');
+ insert into sunbird.role_group (id,name) values ('CONTENT_CREATION','Content Creation');
+ insert into sunbird.role_group (id,name) values ('CONTENT_CURATION','Content Curation');
+ insert into sunbird.role_group (id,name) values ('CONTENT_REVIEW','Content Review');
  drop table sunbird.role;
 CREATE TABLE IF NOT EXISTS sunbird.role(id text, name text,roleGroupId List<text>,status int, PRIMARY KEY (id));
 CREATE INDEX inx_ro_master_name ON sunbird.role(name);
