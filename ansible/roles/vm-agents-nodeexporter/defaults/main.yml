@@ -1,0 +1,38 @@
+---
+prometheus_node_exporter: True
+prometheus_node_exporter_collectors_enable:
+  - conntrack
+  - diskstats
+  - entropy
+  - filefd
+  - filesystem
+  - loadavg
+  - mdadm
+  - meminfo
+  - netdev
+  - netstat
+  - sockstat
+  - stat
+  - textfile
+  - time
+  - uname
+  - vmstat
+prometheus_node_exporter_web_listen_port: "9100"
+prometheus_node_exporter_web_listen_address: ":{{ prometheus_node_exporter_web_listen_port }}"
+prometheus_node_exporter_collector_netdev_ignored_devices: "^$"
+
+prometheus_node_exporter_parameters:
+  - "-collectors.enabled={{ prometheus_node_exporter_collectors_enable | join(',') }}"
+  - "-web.listen-address={{ prometheus_node_exporter_web_listen_address }}"
+  - '-log.level=info'
+  - '-collector.diskstats.ignored-devices=^(ram|loop|fd)\d+$'
+  - '-collector.filesystem.ignored-mount-points=^/(sys|proc|dev|run)($|/)'
+  - '-collector.netdev.ignored-devices="{{ prometheus_node_exporter_collector_netdev_ignored_devices }}"'
+  - '-collector.textfile.directory=/var/lib/prometheus/node-exporter'
+
+prometheus_node_exporter_file_sd: False
+# prometheus_node_exporter_file_sd_locations:
+#  - { host: prometheus01.in.example.com, path: "/etc/prometheus/endpoints/node-{{ inventory_hostname }}.yml" }
+prometheus_node_exporter_file_sd_locations: []
+prometheus_node_exporter_file_sd_labels:
+  "job": "node"
