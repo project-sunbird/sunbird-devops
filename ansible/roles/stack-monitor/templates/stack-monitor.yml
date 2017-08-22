@@ -176,6 +176,27 @@ services:
                     memory: "{{ postgres_exporter.limit_memory }}"
     {% endif %}
 
+    statsd_exporter:
+        image: prom/statsd-exporter:master
+        ports:
+            - 9102:9102
+            - 9125:9125
+            - 9125:9125/udp
+        networks:
+            - monitoring
+            - api-manager_default
+        command:
+            - '-statsd.mapping-config=/etc/statsd_exporter/statsd_mapping.yml'
+        configs:
+            - source: statsd_mapping.yml
+              target: /etc/statsd_exporter/statsd_mapping.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ statsd_exporter.reservation_memory }}"
+                limits:
+                    memory: "{{ statsd_exporter.limit_memory }}"
+
     grafana:
         image: grafana/grafana:4.4.3
         ports:
@@ -229,9 +250,13 @@ configs:
     external: true
   postgresslavequeries.yml:
     external: true
+  statsd_mapping.yml:
+    external: true
   jmx_httpserver.yml:
     external: true
 
 networks:
     monitoring:
+        external: true
+    api-manager_default:
         external: true
