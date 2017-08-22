@@ -20,7 +20,7 @@ def convert_csv_to_yaml(apis_csv_file):
             ('plugins', [
                 OrderedDict([('name', 'jwt')]),
                 OrderedDict([('name', 'cors')]),
-                OrderedDict([('name', 'statsd'), ('config.metrics', "{{ statsd_metrics }}")]),
+                "{{ statsd_pulgin }}",
                 OrderedDict([('name', 'acl'), ('config.whitelist', row["WHITELIST GROUP"])]),
                 OrderedDict([('name', 'rate-limiting'), ('config.hour', row["RATE LIMIT"]), ('config.limit_by', row["LIMIT BY"])]),
                 OrderedDict([('name', 'request-size-limiting'), ('config.allowed_payload_size', row["REQUEST SIZE LIMIT"])]),

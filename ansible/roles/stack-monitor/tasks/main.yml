@@ -1,5 +1,4 @@
 ---
-
 - name: Ensure stack directory exists
   file:
     path: /opt/docker/stacks/monitor/stack
@@ -9,7 +8,7 @@
 
 - name: Ensure config directory exists
   file:
-    path: /opt/docker/stacks/monitor/config
+    path: "{{ monitor_config_files_dest_dir }}"
     state: directory
     owner: '{{ root_owner }}'
     group: '{{ root_group }}'
@@ -20,118 +19,22 @@
 - name: Save stack file
   shell: "cat /opt/docker/stacks/monitor/stack/monitor.yml"
 
-- name: Save prometheus config file
-  template: src=prometheus.yml dest=/opt/docker/stacks/monitor/config/prometheus.yml mode=0644
-
-- name: Save alertmanager config file
-  template: src=alertmanagerconfig.yml dest=/opt/docker/stacks/monitor/config/alertmanagerconfig.yml mode=0644
-
-- name: Save blackboxconfig config file
-  template: src=blackboxconfig.yml dest=/opt/docker/stacks/monitor/config/blackboxconfig.yml mode=0644
-
-- name: Save postgresmasterqueries config file
-  template: src=postgresmasterqueries.yml dest=/opt/docker/stacks/monitor/config/postgresmasterqueries.yml mode=0644
-
-- name: Save postgresslavequeries config file
-  template: src=postgresslavequeries.yml dest=/opt/docker/stacks/monitor/config/postgresslavequeries.yml mode=0644
-
-- name: Save prometheus node rule file
-  template: src=alertrules.nodes dest=/opt/docker/stacks/monitor/config/alertrules.nodes mode=0644
-
-- name: Save prometheus container rule file
-  template: src=alertrules.task dest=/opt/docker/stacks/monitor/config/alertrules.task mode=0644
-
-- name: Save prometheus es rule file
-  template: src=alertrules.es dest=/opt/docker/stacks/monitor/config/alertrules.es mode=0644
-
-- name: Save prometheus postgresql rule file
-  template: src=alertrules.postgresql dest=/opt/docker/stacks/monitor/config/alertrules.postgresql mode=0644
-
-- name: Save jmx_httpserver config file
-  template: src=jmx_httpserver.yml dest=/opt/docker/stacks/monitor/config/jmx_httpserver.yml mode=0644
+- name: Save prometheus config {{ item.file_name }}
+  template: src={{ item.file_name }} dest="{{ monitor_config_files_dest_dir }}/{{ item.file_name }}" mode=0644
+  with_items: "{{ monitor_config_templates }}"
 
 - name: Remove monitor stack
   shell: "docker stack rm monitor"
   ignore_errors: yes
 
-- name: Remove old prometheus.yml docker config
-  shell: "docker config rm prometheus.yml"
+- name: Remove old docker config {{ item.config_name }}
+  shell: "docker config rm {{ item.config_name }}"
+  with_items: "{{ monitor_config_templates }}"
   ignore_errors: yes
 
-- name: Remove old prom_node_rules docker config
-  shell: "docker config rm prom_node_rules"
-  ignore_errors: yes
-
-- name: Remove old prom_container_rules docker config
-  shell: "docker config rm prom_container_rules"
-  ignore_errors: yes
-
-- name: Remove old prom_es_rules docker config
-  shell: "docker config rm prom_es_rules"
-  ignore_errors: yes
-
-- name: Remove old prom_postgresql_rules docker config
-  shell: "docker config rm prom_postgresql_rules"
-  ignore_errors: yes
-
-- name: Remove old alermanager docker config
-  shell: "docker config rm alertmanagerconfig.yml"
-  ignore_errors: yes
-
-- name: Remove old blackboxconfig docker config
-  shell: "docker config rm blackboxconfig.yml"
-  ignore_errors: yes
-
-- name: Remove old postgresmasterqueries docker config
-  shell: "docker config rm postgresmasterqueries.yml"
-  ignore_errors: yes
-
-- name: Remove old postgresslavequeries docker config
-  shell: "docker config rm postgresslavequeries.yml"
-  ignore_errors: yes
-
-- name: Remove old jmx_httpserver.yml docker config
-  shell: "docker config rm jmx_httpserver.yml"
-  ignore_errors: yes
-
-- name: Save prometheus.yml docker config
-  shell: "docker config create prometheus.yml /opt/docker/stacks/monitor/config/prometheus.yml"
-  ignore_errors: yes
-
-- name: Save prom_node_rules docker config
-  shell: "docker config create prom_node_rules /opt/docker/stacks/monitor/config/alertrules.nodes"
-  ignore_errors: yes
-
-- name: Save prom_container_rules docker config
-  shell: "docker config create prom_container_rules /opt/docker/stacks/monitor/config/alertrules.task"
-  ignore_errors: yes
-
-- name: Save prom_es_rules docker config
-  shell: "docker config create prom_es_rules /opt/docker/stacks/monitor/config/alertrules.es"
-  ignore_errors: yes
-
-- name: Save prom_postgresql_rules docker config
-  shell: "docker config create prom_postgresql_rules /opt/docker/stacks/monitor/config/alertrules.postgresql"
-  ignore_errors: yes
-
-- name: Save alermanager docker config
-  shell: "docker config create alertmanagerconfig.yml /opt/docker/stacks/monitor/config/alertmanagerconfig.yml"
-  ignore_errors: yes
-
-- name: Save blackboxconfig docker config
-  shell: "docker config create blackboxconfig.yml /opt/docker/stacks/monitor/config/blackboxconfig.yml"
-  ignore_errors: yes
-
-- name: Save postgresmasterqueries docker config
-  shell: "docker config create postgresmasterqueries.yml /opt/docker/stacks/monitor/config/postgresmasterqueries.yml"
-  ignore_errors: yes
-
-- name: Save postgresslavequeries docker config
-  shell: "docker config create postgresslavequeries.yml /opt/docker/stacks/monitor/config/postgresslavequeries.yml"
-  ignore_errors: yes
-
-- name: Save jmx_httpserver.yml docker config
-  shell: "docker config create jmx_httpserver.yml /opt/docker/stacks/monitor/config/jmx_httpserver.yml"
+- name: Save docker config {{ item.config_name }}
+  shell: "docker config create {{ item.config_name }} {{ monitor_config_files_dest_dir }}/{{ item.file_name }}"
+  with_items: "{{ monitor_config_templates }}"
   ignore_errors: yes
 
 - name: Deploy stack
