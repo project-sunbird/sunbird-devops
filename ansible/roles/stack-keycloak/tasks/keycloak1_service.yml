@@ -1,0 +1,9 @@
+---
+- name: Remove keycloak1 service
+  shell: "docker service rm keycloak1"
+  ignore_errors: yes
+
+- name: Deploy keycloak1 service
+  shell: "docker service create --replicas {{ keycloak1.replicas | default(1) }} -p 8080:8080 --name keycloak1 --hostname keycloak1 --reserve-memory {{ keycloak1.reservation_memory |  default('768M') }} --limit-memory {{ keycloak1.limit_memory |  default('1024M') }}  --network {{ sunbird_network }} --env-file /home/deployer/env/sunbird_keycloak1-service.env {{hub_org}}/{{image_name}}:{{image_tag}}"
+  args:
+    chdir: /home/deployer/stack
