@@ -5,7 +5,7 @@ set -e
 e () {
     echo $( echo ${1} | jq ".${2}" | sed 's/\"//g')
 }
-m=$(./images/kong/metadata.sh)
+m=$(./images/keycloak/metadata.sh)
 
 org=$(e "${m}" "org")
 name=$(e "${m}" "name")
