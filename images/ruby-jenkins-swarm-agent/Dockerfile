@@ -3,7 +3,7 @@ MAINTAINER Shashank Teotia <shashankteotia@gmail.com>
 
 ENV LANGUAGE=en_US
 ENV LANG=en_US.UTF-8
-ENV JEKYLL_VERSION=3.5
+ENV JEKYLL_VERSION=2.5.3
 ENV JEKYLL_ENV=development
 ENV TZ=America/Chicago
 ENV LC_ALL=en_US
@@ -16,9 +16,11 @@ RUN apk add zlib-dev build-base libxml2-dev \
 RUN apk add zlib libxml2 ruby-io-console \
   readline libxslt ruby yaml libffi ruby-irb \
   ruby-json ruby-rake ruby-rdoc git openssl \
-  nodejs tzdata
+  nodejs tzdata python nodejs-npm
+  
+RUN npm install npm@latest -g
 
-RUN yes | gem install --force --no-ri --no-rdoc jekyll -v 3.5
+RUN yes | gem install --force --no-ri --no-rdoc jekyll -v 2.5.3
 
 RUN mkdir -p /usr/share/ruby
 RUN gem install bundler --no-ri --no-rdoc
