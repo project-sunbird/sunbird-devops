@@ -7,6 +7,7 @@ ENV JEKYLL_VERSION=2.5.3
 ENV JEKYLL_ENV=production
 ENV TZ=Asia/Calcutta
 ENV LC_ALL=en_US
+COPY copy /
 
 RUN apk update
 RUN apk add zlib-dev build-base libxml2-dev \
@@ -25,7 +26,7 @@ RUN yes | gem install --force --no-ri --no-rdoc jekyll -v ${JEKYLL_VERSION}
 RUN mkdir -p /usr/share/ruby
 RUN gem install bundler --no-ri --no-rdoc
 RUN gem clean
-RUN cleanup
+# RUN cleanup
 
 # WORKDIR /srv/jekyll
 # CMD ["jekyll", "--help"]
