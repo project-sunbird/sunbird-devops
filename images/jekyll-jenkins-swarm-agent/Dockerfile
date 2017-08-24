@@ -4,8 +4,8 @@ MAINTAINER Shashank Teotia <shashankteotia@gmail.com>
 ENV LANGUAGE=en_US
 ENV LANG=en_US.UTF-8
 ENV JEKYLL_VERSION=2.5.3
-ENV JEKYLL_ENV=development
-ENV TZ=America/Chicago
+ENV JEKYLL_ENV=production
+ENV TZ=Asia/Calcutta
 ENV LC_ALL=en_US
 
 RUN apk update
@@ -20,16 +20,12 @@ RUN apk add zlib libxml2 ruby-io-console \
   
 RUN npm install npm@latest -g
 
-RUN yes | gem install --force --no-ri --no-rdoc jekyll -v 2.5.3
+RUN yes | gem install --force --no-ri --no-rdoc jekyll -v ${JEKYLL_VERSION}
 
 RUN mkdir -p /usr/share/ruby
 RUN gem install bundler --no-ri --no-rdoc
 RUN gem clean
-
-RUN mkdir -p /srv/jekyll 
-# && chown -R jekyll:jekyll /srv/jekyll
-# RUN echo 'jekyll ALL=NOPASSWD:ALL' >> /etc/sudoers
-# RUN cleanup
+RUN cleanup
 
 # WORKDIR /srv/jekyll
 # CMD ["jekyll", "--help"]
