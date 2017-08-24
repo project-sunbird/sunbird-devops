@@ -18,8 +18,6 @@ RUN apk add zlib libxml2 ruby-io-console \
   readline libxslt ruby yaml libffi ruby-irb \
   ruby-json ruby-rake ruby-rdoc git openssl \
   nodejs tzdata python nodejs-npm
-  
-RUN npm install npm@latest -g
 
 RUN yes | gem install --force --no-ri --no-rdoc jekyll -v ${JEKYLL_VERSION}
 
