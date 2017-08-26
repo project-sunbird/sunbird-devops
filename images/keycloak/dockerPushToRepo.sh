@@ -11,7 +11,10 @@ org=$(e "${m}" "org")
 hubuser=$(e "${m}" "hubuser")
 name=$(e "${m}" "name")
 version=$(e "${m}" "version")
+artifactLabel=${ARTIFACT_LABEL:-bronze}
+
 
 docker login -u "${hubuser}" -p`cat /run/secrets/hub-pass`
-docker push ${org}/${name}:${version}
+docker push ${org}/${name}:${version}-${artifactLabel}
 docker logout
+
