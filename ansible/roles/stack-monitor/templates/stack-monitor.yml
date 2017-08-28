@@ -197,6 +197,24 @@ services:
                 limits:
                     memory: "{{ statsd_exporter.limit_memory }}"
 
+    kong_cluster_exporter:
+        image: endeepak/prometheus-jsonpath-exporter:v0.0.1
+        ports:
+            - 9158:9158
+        networks:
+            - monitoring
+            - api-manager_default
+        command: /etc/kong_cluster_exporter/config.yml
+        configs:
+            - source: kong_cluster_exporter_config.yml
+              target: /etc/kong_cluster_exporter/config.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ jsonpath_exporter.reservation_memory }}"
+                limits:
+                    memory: "{{ jsonpath_exporter.limit_memory }}"
+
     grafana:
         image: grafana/grafana:4.4.3
         ports:
@@ -253,6 +271,8 @@ configs:
   statsd_mapping.yml:
     external: true
   jmx_httpserver.yml:
+    external: true
+  kong_cluster_exporter_config.yml:
     external: true
 
 networks:
