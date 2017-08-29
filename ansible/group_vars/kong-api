@@ -1464,3 +1464,33 @@ kong_apis:
       config.limit_by: consumer
     - name: request-size-limiting
       config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: listAllBadges
+    request_path: '{{ org_service_prefix }}/v1/badges/list'
+    upstream_url: '{{ learning_service_url }}/v1/badges/list'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - '{{ statsd_pulgin }}'
+    - name: acl
+      config.whitelist: orgUser
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
+  - name: addBadgeToUser
+    request_path: '{{ user_service_prefix }}/v1/badges/add'
+    upstream_url: '{{ learning_service_url }}/v1/user/badges/add'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - '{{ statsd_pulgin }}'
+    - name: acl
+      config.whitelist: userAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: consumer
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ medium_request_size_limit }}'
