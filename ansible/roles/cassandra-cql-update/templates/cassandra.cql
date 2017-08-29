@@ -508,3 +508,10 @@ insert into sunbird.role_group (id,name) values ('COURSE_CREATOR','Course Creato
 update sunbird.role_group set url_action_ids=['courseCreator'] where id='COURSE_CREATOR';
 insert into sunbird.role (id,name,rolegroupid,status) values ('COURSE_CREATOR','Course Creator',['COURSE_CREATOR'],1);
 update sunbird.role_group set name='Flag Reviewer' where id='FLAG_REVIEWER';
+//changes on Aug 29,2017
+CREATE TABLE IF NOT EXISTS sunbird.badge(id text, name text, description text, isActive boolean, PRIMARY KEY (id));
+CREATE TABLE IF NOT EXISTS sunbird.user_badge(id text, createdDate text, createdBy text, updatedDate text,updatedBy text,badgeTypeId text,receivedDate text,receiverId text,providerId text,providerName text,providerEmail text,providerPhone text,description text,validityDate int,expiryDate text,image text,isVerified boolean,isExpired boolean,isRevoked boolean,revocationReason text,revocationDate text,revokedBy text,verifiedBy text,verifiedDate text ,PRIMARY KEY (id));
+ CREATE INDEX inx_usr_badg ON sunbird.user_badge (badgeTypeId);
+ insert into sunbird.badge (id,name,description,isactive) values ('0123206539020943360','President''s Gold Medal','Gold medal provided by President',true);
+ CREATE INDEX inx_usr_badg_receiverid ON sunbird.user_badge (receiverid);
+CREATE INDEX inx_uei_externalIdValue ON sunbird.user_external_identity (externalIdValue);
