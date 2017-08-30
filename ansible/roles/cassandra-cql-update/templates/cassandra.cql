@@ -515,3 +515,19 @@ CREATE TABLE IF NOT EXISTS sunbird.user_badge(id text, createdDate text, created
  insert into sunbird.badge (id,name,description,isactive) values ('0123206539020943360','President''s Gold Medal','Gold medal provided by President',true);
  CREATE INDEX inx_usr_badg_receiverid ON sunbird.user_badge (receiverid);
 CREATE INDEX inx_uei_externalIdValue ON sunbird.user_external_identity (externalIdValue);
+
+CREATE TABLE IF NOT EXISTS sunbird.report_tracking(id text, status int,type text,createdDate text,userId text,uploadedDate text,email text,fileUrl text,emailTryCount int, PRIMARY KEY (id));
+CREATE INDEX inx_report_tracking_status ON sunbird.report_tracking(status);
+CREATE INDEX inx_report_tracking_userId ON sunbird.report_tracking(userId);
+ALTER TABLE sunbird.report_tracking ADD firstName text;
+ALTER TABLE sunbird.report_tracking ADD batchId text;
+ALTER TABLE sunbird.report_tracking ADD period text;
+ALTER TABLE sunbird.report_tracking ADD data text;
+//adding for report tracking
+CREATE TABLE IF NOT EXISTS sunbird.report_tracking(id text, status int,type text,createdDate text,userId text,uploadedDate text,email text,fileUrl text,emailTryCount int, PRIMARY KEY (id));
+CREATE INDEX inx_report_tracking_status ON sunbird.report_tracking(status);
+CREATE INDEX inx_report_tracking_userId ON sunbird.report_tracking(userId);
+ALTER TABLE sunbird.report_tracking ADD firstName text;
+ALTER TABLE sunbird.report_tracking ADD batchId text;
+ALTER TABLE sunbird.report_tracking ADD period text;
+ALTER TABLE sunbird.report_tracking ADD data text;
