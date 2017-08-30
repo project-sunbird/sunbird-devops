@@ -1,0 +1,31 @@
+#!groovy
+
+node('general-staging') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/keycloak1/installDeps.sh')
+
+       }
+
+       stage('Deploy'){
+          sh 'METADATA_FILE=./pipelines/keycloak1/metadata.json ARTIFACT_LABEL=gold ENV=ntp-production ./pipelines/keycloak1/deploy.sh'
+          archive includes: "metadata.json"
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
