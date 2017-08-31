@@ -9,7 +9,7 @@ ENV ANDROID_HOME /opt/android-sdk-linux
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/tools/bin
 
 RUN apk update && \
-  apk add bash unzip # openjdk7
+  apk add bash unzip openjdk7
 
 RUN mkdir -p /opt/android-sdk-linux && cd /opt/android-sdk-linux && \
   wget -q ${ANDROID_SDK_URL} && \
