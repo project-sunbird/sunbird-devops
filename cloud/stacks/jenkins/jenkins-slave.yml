@@ -1,0 +1,78 @@
+version: '3.1'
+
+services:
+
+  jenkins-slave:
+    image: vfarcic/jenkins-swarm-agent
+    environment:
+      - USER_NAME_SECRET=/run/secrets/${JENKINS_USER_SECRET:-jenkins-user}
+      - PASSWORD_SECRET=/run/secrets/${JENKINS_PASS_SECRET:-jenkins-pass}
+      - COMMAND_OPTIONS=-master ${JENKINS_URL} -labels ${GENERAL_SLAVE_LABEL} -executors 1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    secrets:
+      - jenkins-user
+      - jenkins-pass
+      - hub-pass
+      - source: deployer-ssh-key
+        target: deployer-ssh-key
+        mode: 0600
+      - source: ops-private-key
+        target: ops-private-key
+        mode: 0600
+      - source: vault-pass
+        target: vault-pass
+        mode: 0600
+    deploy:
+      replicas: 3
+      resources:
+        reservations:
+          memory: 256M
+        limits:
+          memory: 512M
+
+    networks:
+      - jenkins_default
+
+  api-manager-jenkins-slave:
+    image: sunbird/api-manager-jenkins-swarm-agent
+    environment:
+      - USER_NAME_SECRET=/run/secrets/${JENKINS_USER_SECRET:-jenkins-user}
+      - PASSWORD_SECRET=/run/secrets/${JENKINS_PASS_SECRET:-jenkins-pass}
+      - COMMAND_OPTIONS=-master ${JENKINS_URL} -labels ${API_SLAVE_LABEL} -executors 1 -name api-manager-jenkins-slave
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    secrets:
+      - jenkins-user
+      - jenkins-pass
+      - vault-pass
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          memory: 256M
+        limits:
+          memory: 512M
+    networks:
+      - jenkins_default
+      - api-manager_default
+
+secrets:
+  jenkins-user:
+    external: true
+  jenkins-pass:
+    external: true
+  hub-pass:
+    external: true
+  deployer-ssh-key:
+    external: true
+  ops-private-key:
+    external: true
+  vault-pass:
+    external: true
+
+networks:
+  jenkins_default:
+    external: true
+  api-manager_default:
+    external: true

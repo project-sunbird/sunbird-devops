@@ -1,0 +1,96 @@
+version: '3.3'
+
+services:
+  kibana:
+    image: kibana:4.6
+    environment:
+      - LOGSPOUT=ignore
+    depends_on:
+      - logger_elasticsearch
+    ports:
+      - '5601:5601'
+    configs:
+      - source: kibana.yml
+        target: /opt/kibana/config/kibana.yml
+    networks:
+      - logger
+
+  logstash:
+    image: logstash:2.4.1
+    command: logstash -f /conf/logstash.conf
+    deploy:
+      replicas: 2
+    environment:
+      - LOGSPOUT=ignore
+    configs:
+      - source: logstash.conf
+        target: /conf/logstash.conf
+    depends_on:
+      - logger_elasticsearch
+    ports:
+      - '51415:51415'
+      - '5044:5044'
+    networks:
+      - logger
+
+  logspout:
+    image: gliderlabs/logspout
+    command: syslog+tcp://logger_logstash:51415
+    deploy:
+      mode: global
+    environment:
+      - SYSLOG_FORMAT=rfc3164
+    depends_on:
+      - logger_logstash
+    volumes:
+      - '/var/run/docker.sock:/tmp/docker.sock'
+    networks:
+      - logger
+      - api-manager_default
+      - jenkins_default
+      - monitor
+      - "{{ sunbird_network }}"
+
+  oauth:
+    image: mryu/oauth2-proxy
+    command: |
+      -cookie-secure=false
+      -upstream=http://kibana:5601/
+      -redirect-url={{kibana_oauth_redirect_url}}
+      -http-address=0.0.0.0:4111
+      -email-domain=sahajsoft.com
+      -email-domain=ilimi.in
+      -email-domain=ekstep.org
+      -email-domain=tarento.com
+      -authenticated-emails-file=/authenticated_email.txt
+    environment:
+      - OAUTH2_PROXY_CLIENT_ID={{google_client_id}}
+      - OAUTH2_PROXY_CLIENT_SECRET={{google_client_secret}}
+      - OAUTH2_PROXY_COOKIE_SECRET={{cookie_secret}}
+    ports:
+      - "4111:4111"
+    configs:
+      - source: authenticated_email_kibana_oauth
+        target: /authenticated_email.txt
+    networks:
+      - logger
+
+configs:
+  authenticated_email_kibana_oauth:
+    external: true
+  kibana.yml:
+    external: true
+  logstash.conf:
+    external: true
+
+networks:
+  api-manager_default:
+    external: true
+  jenkins_default:
+    external: true
+  monitor:
+    external: true
+  {{ sunbird_network }}:
+    external: true
+  logger:
+    external: true

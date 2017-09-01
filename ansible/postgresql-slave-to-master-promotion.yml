@@ -1,0 +1,19 @@
+- hosts: postgresql-master
+  become: yes
+  gather_facts: false
+  vars_files:
+    - 'secrets/{{env}}.yml'
+  tasks:
+    - name: Ensure postgresql service is stopped on master
+      service: name=postgresql state=stopped
+  tags:
+    - ensure-postgresql-master-stopped
+
+- hosts: postgresql-slave
+  become: yes
+  vars_files:
+    - 'secrets/{{env}}.yml'
+  roles:
+    - postgresql-slave-to-master-promotion
+  tags:
+    - postgresql-slave-to-master-promotion

@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+
+  jenkins:
+    image: jenkinsci/jenkins:2.69-alpine
+    ports:
+      - "50000:50000"
+      - "8080:8080"
+    environment:
+      - JENKINS_OPTS="--prefix=/jenkins"
+    volumes:
+      - jenkins:/var/jenkins_home
+    deploy:
+      labels:
+        - com.df.notify=true
+        - com.df.distribute=true
+        - com.df.servicePath=/jenkins
+        - com.df.port=8080
+      placement:
+        constraints:
+          - "node.labels.jenkins==1"
+
+
+volumes:
+  jenkins:
+    driver: local
+
+# docker service create --name jenkins \
+#     -p 8082:8080 \
+#     -p 50000:51000 \
+#     -e JENKINS_OPTS="--prefix=/jenkins" \
+#     --reserve-memory 300m \
+#     --constraint "node.labels.build.role==master" \
+#     --mount type=volume,volume-driver=local,source={{.Service.Name}}-{{.Task.Slot}}-vol,destination=/var/jenkins_home \
+#     jenkinsci/jenkins:lts-alpine

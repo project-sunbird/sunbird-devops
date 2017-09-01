@@ -1,0 +1,11 @@
+- name: Copy the templates
+  become: yes
+  template: src={{item}} dest=/tmp/{{item}}
+  with_items:
+             - tables_postgres.sql
+             
+- name: Run the postgresql command
+  become: yes
+  environment:
+    PGPASSWORD: "{{ application_postgres_password }}"
+  command: "psql -h 127.0.0.1 -U {{application_postgres_user}} -d {{application_postgres_database}} -a -f /tmp/tables_postgres.sql"

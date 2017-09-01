@@ -1,0 +1,117 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'Prometheus-Monitor'
+
+rule_files:
+  - '/etc/prometheus-rules/alertrules.nodes'
+  - '/etc/prometheus-rules/alertrules.task'
+  - '/etc/prometheus-rules/alertrules.es'
+  - '/etc/prometheus-rules/alertrules.postgresql'
+  - '/etc/prometheus-rules/alertrules.kong'
+
+scrape_configs:
+  - job_name: 'cadvisor'
+    dns_sd_configs:
+    - names:
+      - 'tasks.cadvisor'
+      type: 'A'
+      port: 8080
+
+  - job_name: 'node-exporter'
+    dns_sd_configs:
+    - names:
+      - 'tasks.node-exporter'
+      type: 'A'
+      port: 9100
+
+  - job_name: 'alertmanager'
+    dns_sd_configs:
+    - names:
+      - 'tasks.alertmanager'
+      type: 'A'
+      port: 9093
+
+  - job_name: 'elasticsearch-exporter'
+    static_configs:
+      - targets: ['monitor_elasticsearch_exporter:9108']
+
+  - job_name: 'master-postgres-exporter'
+    static_configs:
+      - targets: ['monitor_master_postgres_exporter:9187']
+
+  {% if groups['postgresql-slave'][0] is defined %}
+  # This empty line ensures indentation is correct after ansible jinja2 template is materialized
+  - job_name: 'slave-postgres-exporter'
+    static_configs:
+      - targets: ['monitor_slave_postgres_exporter:9187']
+  {% endif %}
+
+  - job_name: 'statsd-exporter'
+    static_configs:
+      - targets: ['monitor_statsd_exporter:9102']
+
+  - job_name: 'kong-cluster-exporter'
+    static_configs:
+      - targets: ['monitor_kong_cluster_exporter:9158']
+
+  - job_name: 'availability_composite_search'
+    metrics_path: /probe
+    params:
+      module: [composite_search]  # Look for a HTTP 200 response.
+    static_configs:
+    - targets:
+      - https://{{api__host}}/api/composite/v1/search
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
+
+  - job_name: 'availability_page_assemble'
+    metrics_path: /probe
+    params:
+      module: [page_assemble]  # Look for a HTTP 200 response.
+    static_configs:
+    - targets:
+      - https://{{api__host}}/api/data/v1/page/assemble
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
+
+  - job_name: 'availability_general'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]  # Look for a HTTP 200 response.
+    static_configs:
+    - targets:
+      - https://{{api__host}}
+      - https://{{api__host}}/grafana
+      - https://{{api__host}}/dashboard
+      - https://{{api__host}}/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=foo&redirect_uri=https%3A%2F%2F{{api__host}}%2Fprivate%2Findex%3Fauth_callback%3D1&scope=openid&response_type=code
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'cassandra-exporter'
+    static_configs:
+      - targets: ['cassandra_jmx_exporter:5556']
+
+  - job_name: 'vm-node-exporter'
+    static_configs:
+      - targets: {{ groups[env] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9101' ) | list | to_yaml }}

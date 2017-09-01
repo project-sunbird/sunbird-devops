@@ -1,0 +1,42 @@
+---
+
+- name: Create azure snapshot
+  uri:
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/azurebackup"
+    method: PUT
+    body: "{{ snapshot_create_request_body | to_json }}"
+    headers:
+      Content-Type: "application/json"
+
+- set_fact: snapshot_number="snapshot_{{ansible_date_time.epoch}}"
+
+- name: Take new snapshot
+  uri:
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/azurebackup/{{snapshot_number}}"
+    method: PUT
+    body:  >
+      {"indices":"*","include_global_state":false}
+    headers:
+      Content-Type: "application/json"
+
+- name: Print all snapshots
+  uri:
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/azurebackup/_all"
+    method: GET
+
+- name: Print status of current snapshot
+  uri:
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/azurebackup/{{snapshot_number}}"
+    method: GET
+
+- name: "Wait for backup to be completed"
+  uri:
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/azurebackup/{{snapshot_number}}"
+    method: GET
+    return_content: yes
+    status_code: 200
+    body_format: json
+  register: result
+  until: result.json.snapshots[0].state == 'SUCCESS'
+  retries: 120
+  delay: 10

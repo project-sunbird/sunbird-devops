@@ -1,0 +1,16 @@
+ALERT high_cpu_usage_on_container
+  IF sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_task_name=~".+"}[1m])) by (container_label_com_docker_swarm_task_name,instance) * 100 > 70
+  FOR 5m
+  ANNOTATIONS {
+      summary = "HIGH CPU USAGE WARNING: TASK '{% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %}' on '{% raw %}{{ $labels.instance }}{% endraw %}'",
+      description = "{% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %} is using a LOT of CPU. CPU usage is {% raw %}{{ humanize $value}}{% endraw %}%.",
+  }
+
+## Disabled memory alerts till prometheus is moved out into a VM
+# ALERT container_eating_memory
+#   IF sum(# container_memory_usage_bytes{container_label_com_docker_swarm_task_name=~".+"}) by (# container_label_com_docker_swarm_task_name,instance,container_label_com_docker_swarm# _service_name) > 2800000000
+#   FOR 5m
+#   ANNOTATIONS {
+#       summary = "HIGH MEMORY USAGE WARNING: TASK '{% raw %}{{ # $labels.container_label_com_docker_swarm_task_name }}{% endraw %}' on '{% raw %}{{ $labels.instance # }}{% endraw %}'",
+#       description = "{% raw %}{{ $labels.container_label_com_docker_swarm_service_name }}{% endraw %} is # eating up a LOT of memory. Memory consumption of {% raw %}{{ # $labels.container_label_com_docker_swarm_service_name }}{% endraw %} is at {% raw %}{{ humanize # $value}}{% endraw %}.",
+#   }

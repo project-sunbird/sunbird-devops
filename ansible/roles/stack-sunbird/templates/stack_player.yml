@@ -1,0 +1,27 @@
+version: '3.1'
+
+services:
+  player:
+    image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
+    deploy:
+      replicas: {{ player.replicas | default(1) }}
+      resources:
+        reservations:
+          memory: "{{ player.reservation_memory  | default('64M') }}"
+        limits:
+          memory: "{{ player.limit_memory  | default('256M') }}"
+    healthcheck:
+      test: wget -q -s http://localhost:3000 || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    env_file:
+      /home/deployer/env/sunbird_player.env
+    ports:
+     - "3000:3000"
+    networks:
+      - "{{ sunbird_network }}"
+
+networks:
+  {{ sunbird_network }}:
+    external: true

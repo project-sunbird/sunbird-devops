@@ -1,0 +1,56 @@
+- hosts: "cassandra"
+  become: yes
+  vars_files:
+    - 'secrets/{{env}}.yml'
+  roles:
+   - java
+   - cassandra
+  tags:
+   - cassandra
+
+- hosts: es
+  become: yes
+  vars_files:
+    - 'secrets/{{env}}.yml'
+  roles:
+    - openjdk
+    - elasticsearch
+  tags:
+    - es
+
+- hosts: log-es
+  become: yes
+  vars_files:
+    - 'secrets/{{env}}.yml'
+  roles:
+    - openjdk
+    - elasticsearch_old
+  tags:
+    - log-es
+
+- hosts: postgresql-master
+  become: yes
+  vars_files:
+    - 'secrets/{{env}}.yml'
+  pre_tasks:
+    - name: install setfacl support
+      become: yes
+      apt: pkg=acl
+  roles:
+    - postgresql-master
+  tags:
+    - postgresql-master
+
+- hosts: postgresql-slave
+  become: yes
+  vars_files:
+    - 'secrets/{{env}}.yml'
+  pre_tasks:
+    - name: install setfacl support
+      become: yes
+      apt: pkg=acl
+  roles:
+    - postgresql-slave
+  tags:
+    - postgresql-slave
+
