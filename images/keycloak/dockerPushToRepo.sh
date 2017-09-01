@@ -14,7 +14,7 @@ version=$(e "${m}" "version")
 artifactLabel=${ARTIFACT_LABEL:-bronze}
 
 
-docker login -u "${hubuser}" -p`cat /run/secrets/hub-pass`
+docker login -u "purplesunbird" -p`cat /home/ops/vault_pass`
 docker push ${org}/${name}:${version}-${artifactLabel}
 docker logout
 
