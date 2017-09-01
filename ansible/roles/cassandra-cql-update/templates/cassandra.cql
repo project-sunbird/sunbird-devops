@@ -544,3 +544,5 @@ ALTER TABLE sunbird.report_tracking ADD resourceId text;
 
 // adding fileFormat for dashboard metrics report tracking -- Sep 1,2017
 ALTER TABLE sunbird.report_tracking ADD format text;
+
+ALTER TABLE sunbird.user DROP aadhaarno;
