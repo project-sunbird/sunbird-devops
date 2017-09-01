@@ -26,7 +26,6 @@ content_service_prefix: /content
 course_service_prefix: /course
 user_service_prefix: /user
 data_service_prefix: /data
-auth_service_prefix: /auth
 notes_service_prefix: /notes
 org_service_prefix: /org
 echo_service_prefix: /echo
@@ -41,7 +40,6 @@ learning_service_url: "http://learner-service:9000"
 player_service_url: "http://player_player:3000"
 echo_service_url: "http://api-manager_echo:9595"
 am_util_url: http://adminutil_adminutil:4000
-auth_service_url: "{{ keycloak_url }}"
 
 kong_all_consumer_groups:
   - appAdmin
@@ -1017,36 +1015,6 @@ kong_apis:
     - '{{ statsd_pulgin }}'
     - name: acl
       config.whitelist: publicUser
-    - name: rate-limiting
-      config.hour: '{{ medium_rate_limit_per_hour }}'
-      config.limit_by: consumer
-    - name: request-size-limiting
-      config.allowed_payload_size: '{{ small_request_size_limit }}'
-  - name: createUserSession
-    request_path: '{{ auth_service_prefix }}/v1/realms/sunbird/protocol/jwt-session'
-    upstream_url: '{{ player_service_url }}/v1/user/session'
-    strip_request_path: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - '{{ statsd_pulgin }}'
-    - name: acl
-      config.whitelist: authAdmin
-    - name: rate-limiting
-      config.hour: '{{ medium_rate_limit_per_hour }}'
-      config.limit_by: consumer
-    - name: request-size-limiting
-      config.allowed_payload_size: '{{ small_request_size_limit }}'
-  - name: authenticateUser
-    request_path: '{{ auth_service_prefix }}/v1/realms/sunbird/protocol/openid-connect'
-    upstream_url: '{{ auth_service_url }}/auth/realms/sunbird/protocol/openid-connect'
-    strip_request_path: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - '{{ statsd_pulgin }}'
-    - name: acl
-      config.whitelist: authAdmin
     - name: rate-limiting
       config.hour: '{{ medium_rate_limit_per_hour }}'
       config.limit_by: consumer
