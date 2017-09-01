@@ -531,3 +531,16 @@ ALTER TABLE sunbird.report_tracking ADD firstName text;
 ALTER TABLE sunbird.report_tracking ADD batchId text;
 ALTER TABLE sunbird.report_tracking ADD period text;
 ALTER TABLE sunbird.report_tracking ADD data text;
+insert into sunbird.role_group (id,name) values ('PUBLIC','Public');
+update sunbird.role_group set url_action_ids=['public'] where id='PUBLIC';
+insert into sunbird.role (id,name,rolegroupid,status) values ('PUBLIC','Public',['PUBLIC'],1);
+ALTER TABLE sunbird.report_tracking ADD tryCount int;
+ALTER TABLE sunbird.report_tracking DROP emailTryCount;
+ALTER TABLE sunbird.report_tracking ADD updatedDate text;
+
+//Changes on Aug 31st 2017
+ALTER TABLE sunbird.report_tracking DROP batchId;
+ALTER TABLE sunbird.report_tracking ADD resourceId text;
+
+// adding fileFormat for dashboard metrics report tracking -- Sep 1,2017
+ALTER TABLE sunbird.report_tracking ADD format text;
