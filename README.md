@@ -42,10 +42,12 @@ You have a choice to use bare metal machines or go with a Cloud provider of your
 ## Installation Details
 Following are some sample commands to automate various acts. Replace ? as appropriate. Understanding of Ansible is expected.
 ### Machine bootstrap
+This bootstraps the VMs with initial configuration needed for automated script access.
 ```
 ansible-playbook -i inventory/? --tags "bootstrap_any" -e "hosts=?" -e "bootstrap_secret_file=production" bootstrap.yml --ask-vault-pass
 ```
 ### Configuration bootstrap
+Typically, this step configures the production environment with the basic configuration required to boot up services, e.x. DB connection strings, secrets, etc
 ```
 ansible-playbook -i ansible/inventory/? ansible/bootstrap.yml --extra-vars hosts=production-swarm-manager swarm_master=true --tags bootstrap_swarm --vault-password-file /run/secrets/vault-pass
 ```
@@ -58,7 +60,7 @@ This repo contains provisioning scripts for DBs at [ansible/provision.yml](https
 All DBs have Backup and Restore [scripts](https://github.com/project-sunbird/sunbird-devops/tree/master/ansible).
 
 ### Service deploy
-```METADATA_FILE``` describes the version needed for deployment.
+Sunbird has a set of services, serving separate functional needs. Refer to [sunbird-commons](https://github.com/project-sunbird/sunbird-commons) for a better understanding of the service oriented design.
 #### API Manager
 ```
 METADATA_FILE=? ARTIFACT_LABEL=gold ENV=production ./pipelines/api-manager/deploy.sh
@@ -85,6 +87,7 @@ METADATA_FILE=? ENV=production ARTIFACT_LABEL=gold ./pipelines/sunbird-content-s
 ```
 METADATA_FILE=? ENV=ntp-production ARTIFACT_LABEL=gold ./pipelines/sunbird-learner-service/deploy.sh
 ```
+```METADATA_FILE``` describes the version needed for deployment.
 ## Deployment Architecture
 ### Infrastructure
 Sunbird can be run on VMs on various Cloud providers or bare metal. Cloud Infrastructure automation is work in progress.
