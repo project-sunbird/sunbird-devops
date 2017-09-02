@@ -6,10 +6,10 @@ This repository contains the information and references needed to run [Sunbird](
 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-    - [Developer](#casual)
-    - [Production](#composer)
-- [Installation Details](#appendix)
-- [Deployment architecture](#overview)
+    - [Developer](#developer)
+    - [Production](#production)
+- [Installation Details](#installation-details)
+- [Deployment architecture](#deployment-architecture)
 - [License](#license)
 
 ## Prerequisites
