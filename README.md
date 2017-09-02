@@ -58,6 +58,7 @@ This repo contains provisioning scripts for DBs at [ansible/provision.yml](https
 All DBs have Backup and Restore [scripts](https://github.com/project-sunbird/sunbird-devops/tree/master/ansible).
 
 ### Service deploy
+```METADATA_FILE``` describes the version needed for deployment.
 #### API Manager
 ```
 METADATA_FILE=? ARTIFACT_LABEL=gold ENV=production ./pipelines/api-manager/deploy.sh
