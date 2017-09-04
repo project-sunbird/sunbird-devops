@@ -25,3 +25,5 @@ RUN yes | sdkmanager --licenses
 RUN sdkmanager "tools" "platform-tools"
 RUN sdkmanager "build-tools;${ANDROID_BUILD_TOOLS_VERSION}"
 RUN sdkmanager "platforms;${ANDROID_API_LEVELS}"
+
+ENTRYPOINT /opt/jenkins-slave.sh -master http://$JENKINS_MASTER_HOST:$JENKINS_MASTER_PORT/jenkins
