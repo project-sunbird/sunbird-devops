@@ -36,7 +36,7 @@
                                     </div>
                                 </div>
                                 <div class="six wide column">
-                                    <button class="ui primary right floated button buttonResizeClass" name="login" id="kc-login" type="submit" value="${msg("doLogIn")}"/>
+                                    <button class="ui primary right floated button buttonResizeClass" name="login" id="kc-login" type="submit">${msg("doLogIn")}</button>
                                 </div>                
                             </div>
                         </form>
