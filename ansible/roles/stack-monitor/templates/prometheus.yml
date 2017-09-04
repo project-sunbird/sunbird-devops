@@ -169,3 +169,18 @@ scrape_configs:
         target_label: instance
       - target_label: __address__
         replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
+
+  - job_name: 'availability_cassandra'
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+    - targets:
+      - {{ sunbird.cassandra_host }}:{{ cassandra.port }}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
