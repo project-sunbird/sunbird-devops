@@ -8,7 +8,7 @@
         <#if realm.password>
             <div class="page-login">
               <div class="ui centered grid container">
-                <div class="nine wide column">
+                <div class="ten wide column signInGridAlign">
                   <div class="ui fluid card">
                     <div class="ui centered medium image signInLogo margin-top3em">
                         <img src="../../../../resources/3.2.0.final/login/sunrise/img/logo.png">
