@@ -6,58 +6,47 @@
         ${msg("loginTitleHtml",(realm.displayNameHtml!''))}
     <#elseif section = "form">
         <#if realm.password>
-            <form id="kc-form-login" class="${properties.kcFormClass!}" action="${url.loginAction}" method="post">
-                <div class="${properties.kcFormGroupClass!}">
-                    <div class="${properties.kcLabelWrapperClass!}">
-                        <label for="username" class="${properties.kcLabelClass!}"><#if !realm.loginWithEmailAllowed>${msg("username")}<#elseif !realm.registrationEmailAsUsername>${msg("usernameOrEmail")}<#else>${msg("email")}</#if></label>
+            <div class="page-login">
+              <div class="ui centered grid container">
+                <div class="nine wide column">
+                  <div class="ui fluid card">
+                    <div class="ui centered medium image signInLogo margin-top3em">
+                        <img src="resources/img/logo.png">
                     </div>
-
-                    <div class="${properties.kcInputWrapperClass!}">
-                        <#if usernameEditDisabled??>
-                            <input id="username" class="${properties.kcInputClass!}" name="username" value="${(login.username!'')?html}" type="text" disabled />
-                        <#else>
-                            <input id="username" class="${properties.kcInputClass!}" name="username" value="${(login.username!'')?html}" type="text" autofocus autocomplete="off" />
-                        </#if>
-                    </div>
-                </div>
-
-                <div class="${properties.kcFormGroupClass!}">
-                    <div class="${properties.kcLabelWrapperClass!}">
-                        <label for="password" class="${properties.kcLabelClass!}">${msg("password")}</label>
-                    </div>
-
-                    <div class="${properties.kcInputWrapperClass!}">
-                        <input id="password" class="${properties.kcInputClass!}" name="password" type="password" autocomplete="off" />
-                    </div>
-                </div>
-
-                <div class="${properties.kcFormGroupClass!}">
-                    <div id="kc-form-options" class="${properties.kcFormOptionsClass!}">
-                        <#if realm.rememberMe && !usernameEditDisabled??>
-                            <div class="checkbox">
-                                <label>
-                                    <#if login.rememberMe??>
-                                        <input id="rememberMe" name="rememberMe" type="checkbox" tabindex="3" checked> ${msg("rememberMe")}
-                                    <#else>
-                                        <input id="rememberMe" name="rememberMe" type="checkbox" tabindex="3"> ${msg("rememberMe")}
-                                    </#if>
-                                </label>
+                    <div class="content signin-contentPadding">
+                        <form id="kc-form-login" class="ui form pre-signin" method="POST" action="${url.loginAction}">
+                            <div class="field">
+                                <label for="username"><#if !realm.loginWithEmailAllowed>${msg("username")}<#elseif !realm.registrationEmailAsUsername>${msg("usernameOrEmail")}<#else>${msg("email")}</#if></label>
+                                <#if usernameEditDisabled??>
+                                    <input id="username" name="username" value="${(login.username!'')?html}" type="text" disabled />
+                                <#else>
+                                    <input id="username" name="username" value="${(login.username!'')?html}" type="text" autofocus autocomplete="off" />
+                                </#if>
                             </div>
-                        </#if>
-                        <div class="${properties.kcFormOptionsWrapperClass!}">
-                            <#if realm.resetPasswordAllowed>
-                                <span><a href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a></span>
-                            </#if>
-                        </div>
+                            <div class="field">
+                                <label for="password">${msg("password")}</label>
+                                <input id="password" name="password" type="password" autocomplete="off" />
+                            </div>
+                            <div class="ui grid margin-top2em">
+                                <div class="six wide column">
+                                    <div class="forgot-passwordText">
+                                        <#if realm.resetPasswordAllowed>
+                                        <span><a href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a></span>
+                                        </#if>
+                                    </div>
+                                </div>
+                                <div class="six wide column">
+                                    <input class="ui primary right floated button buttonResizeClass" name="login" id="kc-login" type="submit" value="${msg("doLogIn")}"/>
+                                </div>                
+                            </div>
+                        </form>
+                    </div>                 
+                    <div>            
                     </div>
-
-                    <div id="kc-form-buttons" class="${properties.kcFormButtonsClass!}">
-                        <div class="${properties.kcFormButtonsWrapperClass!}">
-                            <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonLargeClass!}" name="login" id="kc-login" type="submit" value="${msg("doLogIn")}"/>
-                        </div>
-                     </div>
+                  </div>
                 </div>
-            </form>
+              </div>
+            </div>
         </#if>
     <#elseif section = "info" >
         <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??>
