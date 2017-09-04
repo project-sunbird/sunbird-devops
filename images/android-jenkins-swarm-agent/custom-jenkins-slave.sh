@@ -14,7 +14,7 @@ if [[ $# -lt 1 ]] || [[ "$1" == "-"* ]]; then
   fi
   USERNAME=sudo cat $JENKINS_SLAVE_USERNAME
   PASSWORD=sudo cat $JENKINS_SLAVE_PASSWORD
-  CMD="java $JAVA_OPTS -jar $JAR -fsroot $HOME -username $USERNAME -password $PASSWORD -mode $JENKINS_SLAVE_MODE -name $JENKINS_SLAVE_NAME -executors $JENKINS_SLAVE_EXECUTORS $PARAMS $@"
+  CMD="java $JAVA_OPTS -jar $JAR -fsroot $HOME -username `cat $JENKINS_SLAVE_USERNAME` -password `cat $JENKINS_SLAVE_PASSWORD` -mode $JENKINS_SLAVE_MODE -name $JENKINS_SLAVE_NAME -executors $JENKINS_SLAVE_EXECUTORS $PARAMS $@"
   echo Running $CMD
   exec $CMD
 fi
