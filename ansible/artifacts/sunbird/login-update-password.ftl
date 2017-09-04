@@ -10,8 +10,8 @@
             <div class="ui centered grid container">
                 <div class="ten wide column signInGridAlign">
                     <div class="ui fluid card">
-                        <div class="ui centered medium image signInLogo margin-top3em">
-                            <img src="/auth/resources/3.2.0.final/login/sunrise/img/logo.png">
+                        <div class="ui">
+                            <h2 class="ui header">${msg("updatePasswordTitle")}</h2>
                         </div>
                         <div class="content signin-contentPadding">
                             <form id="kc-passwd-update-form" class="ui form pre-signin" action="${url.loginAction}" method="post">

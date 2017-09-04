@@ -14,6 +14,9 @@
                     <div class="ui centered medium image signInLogo margin-top3em">
                         <img src="/auth/resources/3.2.0.final/login/sunrise/img/logo.png">
                     </div>
+                    <div class="ui">
+                        <h2 class="ui header">${msg("loginTitle",(realm.displayName!''))}</h2>
+                    </div>
                     <div class="content signin-contentPadding">
                         <form id="kc-form-login" class="ui form pre-signin" method="POST" action="${url.loginAction}">
                             <div class="field">
