@@ -7,6 +7,7 @@
     <#elseif section = "form">
         <#if realm.password>
             <div class="page-login">
+            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
               <div class="ui centered grid container">
                 <div class="ten wide column signInGridAlign">
                   <div class="ui fluid card">
