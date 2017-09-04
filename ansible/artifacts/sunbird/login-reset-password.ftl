@@ -6,28 +6,36 @@
         ${msg("emailForgotTitle")}
     <#elseif section = "form">
         <div class="page-login">
-        <div class="ui centered grid container">
-        <div class="ten wide column signInGridAlign">
-        <form id="kc-reset-password-form" class="ui form pre-signin" action="${url.loginAction}" method="post">
-            <div class="field">
-                <label for="username"><#if !realm.loginWithEmailAllowed>${msg("username")}<#elseif !realm.registrationEmailAsUsername>${msg("usernameOrEmail")}<#else>${msg("email")}</#if></label>
-                <input type="text" id="username" name="username" autofocus/>
-            </div>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+            <div class="ui centered grid container">
+                <div class="ten wide column signInGridAlign">
+                    <div class="ui fluid card">
+                        <div class="ui centered medium image signInLogo margin-top3em">
+                            <img src="/auth/resources/3.2.0.final/login/sunrise/img/logo.png">
+                        </div>
+                        <div class="content signin-contentPadding">
+                            <form id="kc-reset-password-form" class="ui form pre-signin" action="${url.loginAction}" method="post">
+                            <div class="field">
+                                <label for="username"><#if !realm.loginWithEmailAllowed>${msg("username")}<#elseif !realm.registrationEmailAsUsername>${msg("usernameOrEmail")}<#else>${msg("email")}</#if></label>
+                                <input type="text" id="username" name="username" autofocus/>
+                            </div>
 
-            <div class="${properties.kcFormGroupClass!}">
-                <div id="kc-form-options">
-                    <div class="${properties.kcFormOptionsWrapperClass!}">
-                        <span><a href="${url.loginUrl}">${msg("backToLogin")}</a></span>
+                            <div class="ui grid margin-top2em">
+                                <div id="kc-form-options">
+                                    <div class="${properties.kcFormOptionsWrapperClass!}">
+                                        <span><a href="${url.loginUrl}">${msg("backToLogin")}</a></span>
+                                    </div>
+                                </div>
+
+                                <div id="kc-form-buttons">
+                                    <button class="ui primary right floated button buttonResizeClass" type="submit">${msg("doSubmit")}</button>
+                                </div>
+                            </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-
-                <div id="kc-form-buttons">
-                    <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonLargeClass!}" type="submit" value="${msg("doSubmit")}"/>
-                </div>
             </div>
-        </form>
-        </div>
-        </div>
         </div>
     <#elseif section = "info" >
         ${msg("emailInstruction")}

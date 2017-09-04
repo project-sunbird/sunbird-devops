@@ -6,35 +6,43 @@
         ${msg("updatePasswordTitle")}
     <#elseif section = "form">
         <div class="page-login">
-        <div class="ui centered grid container">
-        <div class="ten wide column signInGridAlign">
-        <form id="kc-passwd-update-form" class="ui form pre-signin" action="${url.loginAction}" method="post">
-            <input type="text" readonly value="this is not a login form" style="display: none;">
-            <input type="password" readonly value="this is not a login form" style="display: none;">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+            <div class="ui centered grid container">
+                <div class="ten wide column signInGridAlign">
+                    <div class="ui fluid card">
+                        <div class="ui centered medium image signInLogo margin-top3em">
+                            <img src="/auth/resources/3.2.0.final/login/sunrise/img/logo.png">
+                        </div>
+                        <div class="content signin-contentPadding">
+                            <form id="kc-passwd-update-form" class="ui form pre-signin" action="${url.loginAction}" method="post">
+                            <input type="text" readonly value="this is not a login form" style="display: none;">
+                            <input type="password" readonly value="this is not a login form" style="display: none;">
 
-            <div class="field">
-                <label for="password-new">${msg("passwordNew")}</label>
-                <input type="password" id="password-new" name="password-new" autofocus autocomplete="off" />
-            </div>
+                            <div class="field">
+                                <label for="password-new">${msg("passwordNew")}</label>
+                                <input type="password" id="password-new" name="password-new" autofocus autocomplete="off" />
+                            </div>
 
-            <div class="field">
-                <label for="password-confirm" >${msg("passwordConfirm")}</label>
-                <input type="password" id="password-confirm" name="password-confirm" autocomplete="off" />
-            </div>
+                            <div class="field">
+                                <label for="password-confirm" >${msg("passwordConfirm")}</label>
+                                <input type="password" id="password-confirm" name="password-confirm" autocomplete="off" />
+                            </div>
 
-            <div class="${properties.kcFormGroupClass!}">
-                <div id="kc-form-options" class="${properties.kcFormOptionsClass!}">
-                    <div class="${properties.kcFormOptionsWrapperClass!}">
+                            <div class="ui grid margin-top2em">
+                                <div id="kc-form-options" class="${properties.kcFormOptionsClass!}">
+                                    <div class="${properties.kcFormOptionsWrapperClass!}">
+                                    </div>
+                                </div>
+
+                                <div id="kc-form-buttons" class="${properties.kcFormButtonsClass!}">
+                                    <button class="ui primary right floated button buttonResizeClass" type="submit">${msg("doSubmit")}</button>
+                                </div>
+                            </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-
-                <div id="kc-form-buttons" class="${properties.kcFormButtonsClass!}">
-                    <input class="${properties.kcButtonClass!} ${properties.kcButtonPrimaryClass!} ${properties.kcButtonLargeClass!}" type="submit" value="${msg("doSubmit")}"/>
-                </div>
             </div>
-        </form>
-        </div>
-        </div>
         </div>
     </#if>
 </@layout.registrationLayout>
