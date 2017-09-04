@@ -11,7 +11,7 @@
                 <div class="ten wide column signInGridAlign">
                   <div class="ui fluid card">
                     <div class="ui centered medium image signInLogo margin-top3em">
-                        <img src="../../../../resources/3.2.0.final/login/sunrise/img/logo.png">
+                        <img src="/auth/resources/3.2.0.final/login/sunrise/img/logo.png">
                     </div>
                     <div class="content signin-contentPadding">
                         <form id="kc-form-login" class="ui form pre-signin" method="POST" action="${url.loginAction}">
