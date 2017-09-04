@@ -11,7 +11,7 @@
                 <div class="nine wide column">
                   <div class="ui fluid card">
                     <div class="ui centered medium image signInLogo margin-top3em">
-                        <img src="resources/img/logo.png">
+                        <img src="img/logo.png">
                     </div>
                     <div class="content signin-contentPadding">
                         <form id="kc-form-login" class="ui form pre-signin" method="POST" action="${url.loginAction}">
