@@ -1,0 +1,9 @@
+- name: Save docker_service_replicas_exporter_config.yml
+  template: src=docker_service_replicas_exporter_config.yml dest="{{ monitor_config_files_dest_dir }}/docker_service_replicas_exporter_config.yml" mode=0644
+
+- name: Stop previous container
+  shell: "docker ps --filter name={{docker_service_replicas_exporter_name}} --format {% raw %}'{{.ID}}'{% endraw %} | xargs docker stop"
+  ignore_errors: yes
+
+- name: Run container
+  shell: "docker run --name={{docker_service_replicas_exporter_name}} -p 9258:9258 -v /var/run/docker.sock:/var/run/docker.sock -v {{ monitor_config_files_dest_dir }}/docker_service_replicas_exporter_config.yml:/etc/docker-service-replicas-exporter/config.yml sunbird/docker-service-replicas-exporter:v0.0.1 /etc/docker-service-replicas-exporter/config.yml"
