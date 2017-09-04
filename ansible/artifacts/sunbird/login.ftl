@@ -11,7 +11,7 @@
                 <div class="nine wide column">
                   <div class="ui fluid card">
                     <div class="ui centered medium image signInLogo margin-top3em">
-                        <img src="img/logo.png">
+                        <img src="../../../../resources/3.2.0.final/login/sunrise/img/logo.png">
                     </div>
                     <div class="content signin-contentPadding">
                         <form id="kc-form-login" class="ui form pre-signin" method="POST" action="${url.loginAction}">
@@ -36,7 +36,7 @@
                                     </div>
                                 </div>
                                 <div class="six wide column">
-                                    <input class="ui primary right floated button buttonResizeClass" name="login" id="kc-login" type="submit" value="${msg("doLogIn")}"/>
+                                    <button class="ui primary right floated button buttonResizeClass" name="login" id="kc-login" type="submit" value="${msg("doLogIn")}"/>
                                 </div>                
                             </div>
                         </form>
