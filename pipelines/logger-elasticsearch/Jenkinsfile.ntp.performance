@@ -1,0 +1,22 @@
+pipeline {
+    agent {
+        label 'general-performance'
+    }
+    stages {
+        stage('Pre-Build'){
+            steps {
+                sh('chmod a+x ansible/installDeps.sh')
+                sh('./ansible/installDeps.sh')
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd ansible
+                ansible-playbook -i inventory/ntp-performance provision.yml --tags log-es --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
