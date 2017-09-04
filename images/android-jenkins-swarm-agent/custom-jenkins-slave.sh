@@ -12,8 +12,8 @@ if [[ $# -lt 1 ]] || [[ "$1" == "-"* ]]; then
   if [[ "$@" != *"-master "* ]] && [ ! -z "$JENKINS_MASTER_PORT" ]; then
     PARAMS="$PARAMS -master http://$JENKINS_MASTER_HOST:$JENKINS_MASTER_PORT/jenkins"
   fi
-  USERNAME=cat $JENKINS_SLAVE_USERNAME
-  PASSWORD=cat $JENKINS_SLAVE_PASSWORD
+  USERNAME=sudo cat $JENKINS_SLAVE_USERNAME
+  PASSWORD=sudo cat $JENKINS_SLAVE_PASSWORD
   CMD="java $JAVA_OPTS -jar $JAR -fsroot $HOME -username $USERNAME -password $PASSWORD -mode $JENKINS_SLAVE_MODE -name $JENKINS_SLAVE_NAME -executors $JENKINS_SLAVE_EXECUTORS $PARAMS $@"
   echo Running $CMD
   exec $CMD
