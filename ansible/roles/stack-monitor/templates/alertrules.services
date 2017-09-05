@@ -7,9 +7,9 @@ ALERT service_down
   }
 
 ALERT service_replication_failure
-  IF docker_service_replicas_success == 0
+  IF ((docker_service_replicas_running / docker_service_replicas_expected) * 100) < 100
   FOR 5m
   ANNOTATIONS {
-      summary = "Service down",
-      description = "{% raw %}{{ $labels.job }}{% endraw %}: {% raw %}{{ $labels.service_name }}{% endraw %}: The service replication has failed",
+      summary = "Service replication failed",
+      description = "Service replication is {% raw %}{{$value}}{% endraw %}% for {% raw %}{{ $labels.service_name }}{% endraw %}",
   }
