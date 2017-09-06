@@ -546,3 +546,4 @@ ALTER TABLE sunbird.report_tracking ADD resourceId text;
 ALTER TABLE sunbird.report_tracking ADD format text;
 
 ALTER TABLE sunbird.user DROP aadhaarno;
+update organisation set channel='ROOT_ORG' where id='ORG_001';
