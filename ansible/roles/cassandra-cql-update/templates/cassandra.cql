@@ -445,8 +445,8 @@ ALTER TABLE sunbird.course_batch DROP lastupdatedon;
 ALTER TABLE sunbird.course_batch ADD updatedDate text;
 
 ALTER TABLE sunbird.organisation add provider text;
-COPY  sunbird.organisation (id,source) TO '/tmp/cql/source.csv';
-COPY  sunbird.organisation (id,provider) FROM '/tmp/cql/source.csv';
+//COPY  sunbird.organisation (id,source) TO '/tmp/cql/source.csv';
+//COPY  sunbird.organisation (id,provider) FROM '/tmp/cql/source.csv';
 ALTER TABLE sunbird.organisation DROP source;
 //Id is courseId
 CREATE TABLE IF NOT EXISTS sunbird.course_publish_status(id text,submitDate text,status int,PRIMARY KEY (id));
