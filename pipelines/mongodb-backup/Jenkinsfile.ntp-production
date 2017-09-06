@@ -1,0 +1,32 @@
+#!groovy
+
+node('general-production') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+
+
+       stage('Pre-Build'){
+         sh('chmod a+x ansible/installDeps.sh')
+         sh('./ansible/installDeps.sh')
+       }
+
+       stage('Build'){
+
+        sh('ansible-playbook -i ansible/inventory/ntp-production ansible/mongobackup.yml --vault-password-file  /run/secrets/vault-pass ')
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}

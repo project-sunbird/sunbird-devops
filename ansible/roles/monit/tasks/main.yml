@@ -1,0 +1,49 @@
+---
+- name: Install Monit
+  apt: name=monit state=present
+  notify: restart monit
+  tags:
+    - deploy
+#apt: name=monit={{monit_version}} state=present
+
+- name: Create monit folder
+  file: path={{ item }} state=directory
+  with_items:
+    - /etc/monit.d/
+    - /etc/monit
+    - /var/lib/monit
+  notify: restart monit
+  tags:
+    - deploy
+
+- name: Copy monitrc file
+  template: src=monitrc dest=/etc/monit/monitrc
+  notify: restart monit
+  tags:
+    - deploy
+
+- name: Copy monit init.d file
+  template: src=monit dest=/etc/init.d/monit mode=0754
+  notify: restart monit
+  tags:
+    - deploy
+
+- name: Copy slack.sh
+  template: src=slack.sh dest=/etc/monit/slack.sh mode=755
+  tags:
+    - deploy
+
+- name: Copy all monit config files
+  template: src="check_keycloak" dest=/etc/monit/conf.d/
+  notify: restart monit
+  tags:
+    - deploy
+
+- meta: flush_handlers
+  tags:
+    - deploy
+
+- name: ensure service monit is running and enabled
+  service: name=monit state=started enabled=true
+  tags:
+    - deploy

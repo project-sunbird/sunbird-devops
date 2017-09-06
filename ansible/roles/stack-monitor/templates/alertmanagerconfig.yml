@@ -1,16 +1,19 @@
 global:
   resolve_timeout: 5m
+  smtp_from: "{{ monitor_alerts_mail_from_email }}"
+  smtp_smarthost: "{{ monitor_alerts_mail_server_host }}:{{ monitor_alerts_mail_server_port}}"
+  smtp_auth_username: "{{ monitor_alerts_mail_server_username }}"
+  smtp_auth_password: "{{ monitor_alerts_mail_server_password }}"
+  smtp_require_tls: true
 
 route:
-  receiver: 'slack'
+  receiver: 'all'
   repeat_interval: 15m
   group_interval: 5m
   group_wait: 1m
-  routes:
-  - receiver: 'slack'
 
 receivers:
-  - name: 'slack'
+  - name: 'all'
     slack_configs:
       - send_resolved: true
         api_url: "{{slack_url}}"
@@ -18,3 +21,9 @@ receivers:
         channel: "{{slack_channel}}"
         text: "Instances: {% raw %}{{range .Alerts}}\n{{.Labels.instance}} : {{.Annotations.description}}{{end}}{% endraw %}"
         icon_emoji: ':dart:'
+    email_configs:
+      - send_resolved: true
+        to: '{{ monitor_alerts_mail_to_email }}'
+        html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}<br/>Instances: {% raw %}{{range .Alerts}}<br/>{{.Labels.instance}} : {{.Annotations.description}}{{end}}{% endraw %}'
+        headers:
+          subject: '[{{ env }}] {% raw %}{{ template "email.default.subject" . }}{% endraw %}'

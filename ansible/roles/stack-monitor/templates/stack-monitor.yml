@@ -10,7 +10,7 @@ services:
             - monitoring
         volumes:
             - /var/dockerdata/prometheus/data:/prometheus
-        command: "-config.file=/etc/prometheus/prometheus.yml -alertmanager.url http://alertmanager:9093 -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -storage.local.target-heap-size=157286400 -storage.local.retention=168h0m0s -web.console.templates=/etc/prometheus/consoles"
+        command: "-config.file=/etc/prometheus/prometheus.yml -alertmanager.url http://alertmanager:9093 -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -storage.local.target-heap-size=157286400 -storage.local.retention={{prometheus_storage_retention_time}} -web.console.templates=/etc/prometheus/consoles"
         labels:
             com.docker.stack.namespace: "monitoring"
             com.docker.service.name: "prometheus"
@@ -25,6 +25,8 @@ services:
               target: /etc/prometheus-rules/alertrules.es
             - source: prom_postgresql_rules
               target: /etc/prometheus-rules/alertrules.postgresql
+            - source: prom_services_rules
+              target: /etc/prometheus-rules/alertrules.services
             - source: prom_kong_rules
               target: /etc/prometheus-rules/alertrules.kong
         deploy:
@@ -47,6 +49,7 @@ services:
             - monitoring
             - api-manager_default
             - "{{ sunbird_network }}"
+            - logger
         configs:
             - source: blackboxconfig.yml
               target: /etc/blackbox-exporter/blackboxconfig.yml
@@ -266,6 +269,8 @@ configs:
     external: true
   prom_kong_rules:
     external: true
+  prom_services_rules:
+    external: true
   alertmanagerconfig.yml:
     external: true
   blackboxconfig.yml:
@@ -287,4 +292,6 @@ networks:
     api-manager_default:
         external: true
     {{ sunbird_network }}:
+        external: true
+    logger:
         external: true
