@@ -6,6 +6,14 @@ ALERT service_down
       description = "{% raw %}{{ $labels.job }}{% endraw %}: The service is down.",
   }
 
+ALERT service_flapping
+  IF changes(probe_success[5m]) > 3
+  FOR 5m
+  ANNOTATIONS {
+      summary = "Service flapping",
+      description = "The service status has changed {% raw %}{{$value}}{% endraw %} times in last 5 minutes. Threshold is : 3",
+  }
+
 ALERT service_replication_failure
   IF ((docker_service_replicas_running / docker_service_replicas_expected) * 100) < 100
   FOR 5m
