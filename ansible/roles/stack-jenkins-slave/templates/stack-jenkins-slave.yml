@@ -1,13 +1,12 @@
 version: '3.1'
 
 services:
-
   jenkins-slave:
     image: vfarcic/jenkins-swarm-agent
     environment:
-      - USER_NAME_SECRET=/run/secrets/${JENKINS_USER_SECRET:-jenkins-user}
-      - PASSWORD_SECRET=/run/secrets/${JENKINS_PASS_SECRET:-jenkins-pass}
-      - COMMAND_OPTIONS=-master ${JENKINS_URL} -labels ${GENERAL_SLAVE_LABEL} -executors 1
+      USER_NAME_SECRET: "/run/secrets/${JENKINS_USER_SECRET:-jenkins-user}"
+      PASSWORD_SECRET: "/run/secrets/${JENKINS_PASS_SECRET:-jenkins-pass}"
+      COMMAND_OPTIONS: "-master ${JENKINS_URL} -labels general-{{env_short_name}} -executors 1 -name general-{{env_short_name}}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     secrets:
@@ -37,9 +36,9 @@ services:
   api-manager-jenkins-slave:
     image: sunbird/api-manager-jenkins-swarm-agent
     environment:
-      - USER_NAME_SECRET=/run/secrets/${JENKINS_USER_SECRET:-jenkins-user}
-      - PASSWORD_SECRET=/run/secrets/${JENKINS_PASS_SECRET:-jenkins-pass}
-      - COMMAND_OPTIONS=-master ${JENKINS_URL} -labels ${API_SLAVE_LABEL} -executors 1 -name api-manager-jenkins-slave
+      USER_NAME_SECRET: "/run/secrets/${JENKINS_USER_SECRET:-jenkins-user}"
+      PASSWORD_SECRET: "/run/secrets/${JENKINS_PASS_SECRET:-jenkins-pass}"
+      COMMAND_OPTIONS: "-master ${JENKINS_URL} -labels kong-{{env_short_name}} -executors 1 -name kong-{{env_short_name}}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     secrets:
