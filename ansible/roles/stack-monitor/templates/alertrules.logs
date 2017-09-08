@@ -1,0 +1,7 @@
+ALERT logs_ingestion_slow
+  IF increase(elasticsearch_indices_docs{job="log-elasticsearch-exporter"}[1m]) < {{ expected_minimum_logs_per_minute }}
+  FOR 5m
+  ANNOTATIONS {
+      summary = "Logs are not flowing as expected",
+      description = "{% raw %}{{ $labels.job }}{% endraw %}: Logs per minute is {% raw %}{{ $value }}{% endraw %}. It is below the threshold: {{ expected_minimum_logs_per_minute }}",
+  }
