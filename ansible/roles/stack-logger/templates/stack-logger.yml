@@ -19,9 +19,15 @@ services:
     image: sunbird/logstash:2.4.1
     command: logstash -f /conf/logstash.conf
     deploy:
-      replicas: 2
+      replicas: {{ logstash.replicas }}
+      resources:
+        reservations:
+          memory: "{{ logstash.reservation_memory }}"
+        limits:
+          memory: "{{ logstash.limit_memory }}"
     environment:
       - LOGSPOUT=ignore
+      - LS_HEAP_SIZE={{ logstash.heap_size }}
     configs:
       - source: logstash.conf
         target: /conf/logstash.conf
