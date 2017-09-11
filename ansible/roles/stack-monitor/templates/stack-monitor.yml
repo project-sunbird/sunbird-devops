@@ -138,6 +138,7 @@ services:
                 limits:
                     memory: "{{ elasticsearch_exporter.limit_memory }}"
 
+{% if groups['log-es'] %}
     log_elasticsearch_exporter:
         image: justwatch/elasticsearch_exporter:1.0.1
         ports:
@@ -145,7 +146,7 @@ services:
         networks:
             - monitoring
         command:
-            - '-es.uri=http://{{ groups['log-es'][0] | 0.0.0.0 }}:9200'
+            - '-es.uri=http://{{ groups['log-es'][0] }}:9200'
             - '-es.all=true'
         deploy:
             replicas: 1
@@ -154,6 +155,7 @@ services:
                     memory: "{{ elasticsearch_exporter.reservation_memory }}"
                 limits:
                     memory: "{{ elasticsearch_exporter.limit_memory }}"
+{% endif %}
 
     master_postgres_exporter:
         image: wrouesnel/postgres_exporter:v0.2.2
