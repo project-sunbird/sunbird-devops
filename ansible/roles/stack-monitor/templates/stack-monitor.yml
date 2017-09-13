@@ -274,6 +274,30 @@ services:
         networks:
             - monitoring
 
+    logstash:
+        image: sunbird/logstash:2.4.1
+        command: logstash -f /conf/logstash.conf
+        environment:
+            - LOGSPOUT=ignore
+            - LS_HEAP_SIZE={{ monitor_logstash.heap_size }}
+        configs:
+            - source: monitor_logstash.conf
+              target: /conf/logstash.conf
+            - source: monitor_logstash_grok_patterns
+              target: /conf/grok_patterns
+        ports:
+            - '51416:51415'
+            - '5045:5044'
+        networks:
+            - monitoring
+        deploy:
+            replicas: "{{ monitor_logstash.replicas }}"
+            resources:
+                reservations:
+                    memory: "{{ monitor_logstash.reservation_memory }}"
+                limits:
+                    memory: "{{ monitor_logstash.limit_memory }}"
+
 configs:
   prometheus.yml:
     external: true
@@ -304,6 +328,10 @@ configs:
   jmx_httpserver.yml:
     external: true
   kong_cluster_exporter_config.yml:
+    external: true
+  monitor_logstash.conf:
+    external: true
+  monitor_logstash_grok_patterns:
     external: true
 
 networks:

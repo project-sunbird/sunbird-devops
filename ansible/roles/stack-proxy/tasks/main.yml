@@ -26,6 +26,9 @@
 - name: Save stack file
   template: src=stack-proxy.yml dest=/home/deployer/stack/proxy.yml mode=0644
 
+- name: Save nginx.conf
+  template: src=nginx.conf dest=/home/deployer/config/nginx.conf mode=0644
+
 - name: Save proxy-default.conf
   template: src=proxy-default.conf dest=/home/deployer/config/proxy-default.conf mode=0644
 
@@ -33,9 +36,16 @@
   shell: "docker stack rm {{image_name}}-{{env}}"
   ignore_errors: yes
 
+- name: Remove old nginx.conf docker config
+  shell: "docker config rm nginx.conf"
+  ignore_errors: yes
+
 - name: Remove old proxy-default.conf docker config
   shell: "docker config rm proxy-default.conf"
   ignore_errors: yes
+
+- name: Save nginx.conf as docker config
+  shell: "docker config create nginx.conf /home/deployer/config/nginx.conf"
 
 - name: Save proxy-default.conf as docker config
   shell: "docker config create proxy-default.conf /home/deployer/config/proxy-default.conf"
