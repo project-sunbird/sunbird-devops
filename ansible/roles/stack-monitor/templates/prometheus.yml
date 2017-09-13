@@ -39,33 +39,46 @@ scrape_configs:
   - job_name: 'elasticsearch-exporter'
     static_configs:
       - targets: ['monitor_elasticsearch_exporter:9108']
+        labels:
+          "owner": "devops_team"
 
   - job_name: 'log-elasticsearch-exporter'
     static_configs:
       - targets: ['monitor_log_elasticsearch_exporter:9108']
-
+        labels:
+          "owner": "devops_team"
   - job_name: 'master-postgres-exporter'
     static_configs:
       - targets: ['monitor_master_postgres_exporter:9187']
+        labels:
+          "owner": "devops_team"
 
   {% if groups['postgresql-slave'][0] is defined %}
   # This empty line ensures indentation is correct after ansible jinja2 template is materialized
   - job_name: 'slave-postgres-exporter'
     static_configs:
       - targets: ['monitor_slave_postgres_exporter:9187']
+        labels:
+          "owner": "devops_team"
   {% endif %}
 
   - job_name: 'statsd-exporter'
     static_configs:
       - targets: ['monitor_statsd_exporter:9102']
+        labels:
+          "owner": "devops_team"
 
   - job_name: 'kong-cluster-exporter'
     static_configs:
       - targets: ['monitor_kong_cluster_exporter:9158']
+        labels:
+          "owner": "devops_team"
 
   - job_name: 'docker-service-replicas-exporter'
     static_configs:
       - targets: ['{{ groups['swarm-bootstrap-manager'][0] }}:9258']
+        labels:
+          "owner": "devops_team"
 
   - job_name: 'availability_composite_search'
     metrics_path: /probe
@@ -74,6 +87,8 @@ scrape_configs:
     static_configs:
     - targets:
       - https://{{api__host}}/api/composite/v1/search
+      labels:
+          "owner": "app_team"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -89,6 +104,8 @@ scrape_configs:
     static_configs:
     - targets:
       - https://{{api__host}}/api/data/v1/page/assemble
+      labels:
+          "owner": "app_team"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -113,7 +130,7 @@ scrape_configs:
       - https://{{api__host}}/grafana
       - https://{{api__host}}/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=foo&redirect_uri=https%3A%2F%2F{{api__host}}%2Fprivate%2Findex%3Fauth_callback%3D1&scope=openid&response_type=code
       labels:
-        "owner": "devops_team"
+        "owner": "app_team"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -143,14 +160,20 @@ scrape_configs:
     metrics_path: /prometheus/metrics
     static_configs:
       - targets: ['localhost:9090']
+        labels:
+        "owner": "devops_team"
 
   - job_name: 'cassandra-exporter'
     static_configs:
       - targets: ['cassandra_jmx_exporter:5556']
+        labels:
+        "owner": "devops_team"
 
   - job_name: 'vm-node-exporter'
     static_configs:
       - targets: {{ groups[env] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9101' ) | list | to_yaml }}
+        labels:
+        "owner": "devops_team"
 
   {% if static_site_url is defined %}
   # This empty line ensures indentation is correct after ansible jinja2 template is materialized
@@ -161,6 +184,8 @@ scrape_configs:
     static_configs:
     - targets:
       - {{static_site_url}}
+      labels:
+        "owner": "site_team"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -177,6 +202,8 @@ scrape_configs:
     static_configs:
     - targets:
       - {{ sunbird.mongo_ip }}:{{ sunbird.mongo_port }}
+      labels:
+        "owner": "app_team"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -192,6 +219,8 @@ scrape_configs:
     static_configs:
     - targets:
       - {{ sunbird.cassandra_host }}:{{ cassandra.port }}
+      labels:
+        "owner": "site_team"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
