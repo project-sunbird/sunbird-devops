@@ -12,8 +12,8 @@ route:
   group_interval: 5m
   group_wait: 1m
   routes:
-  - receiver: all
-    continue: true
+#  - receiver: all
+#    continue: true
   - match:
       owner: devops_team
     receiver: devops_team
@@ -36,29 +36,29 @@ receivers:
     email_configs:
       - send_resolved: true
         to: '{{ monitor_alerts_mail_to_email }}'
-        html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}<br/>Instances: {% raw %}{{range .Alerts}}<br/>{{.Labels.instance}} : {{.Annotations.description}}{{end}}{% endraw %}'
+        html: '{{ prometheus.alert_email_html }}'
         headers:
-          subject: '[{{ env }}] {% raw %}{{ template "email.default.subject" . }}{% endraw %}'
+          subject: '{{prometheus.alert_email_subject}}'
   - name: 'devops_team'
     email_configs:
       - send_resolved: true
         to: '{{ devops_alerts_mailing_list }}'
-        html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}<br/>Instances: {% raw %}{{range .Alerts}}<br/>{{.Labels.instance}} : {{.Annotations.description}}{{end}}{% endraw %}'
+        html: '{{ prometheus.alert_email_html }}'
         headers:
-          subject: '[{{ env }}-devops] {% raw %}{{ template "email.default.subject" . }}{% endraw %}'
+          subject: '{{prometheus.alert_email_subject}}'
 
   - name: 'app_team'
     email_configs:
       - send_resolved: true
         to: '{{ app_alerts_mailing_list }}'
-        html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}<br/>Instances: {% raw %}{{range .Alerts}}<br/>{{.Labels.instance}} : {{.Annotations.description}}{{end}}{% endraw %}'
+        html: '{{ prometheus.alert_email_html }}'
         headers:
-          subject: '[{{ env }}-app] {% raw %}{{ template "email.default.subject" . }}{% endraw %}'
+          subject: '{{prometheus.alert_email_subject}}'
 
   - name: 'site_team'
     email_configs:
       - send_resolved: true
         to: '{{ site_alerts_mailing_list }}'
-        html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}<br/>Instances: {% raw %}{{range .Alerts}}<br/>{{.Labels.instance}} : {{.Annotations.description}}{{end}}{% endraw %}'
+        html: '{{ prometheus.alert_email_html }}'
         headers:
-          subject: '[{{ env }}-site] {% raw %}{{ template "email.default.subject" . }}{% endraw %}'
+          subject: '{{prometheus.alert_email_subject}}'
