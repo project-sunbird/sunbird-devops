@@ -1,6 +1,6 @@
 import urllib2, argparse, json
 
-from common import get_apis, json_request
+from common import get_apis, json_request, get_api_plugins
 
 def save_apis(kong_admin_api_url, input_apis):
     apis_url = "{}/apis".format(kong_admin_api_url)
@@ -40,9 +40,8 @@ def _save_plugins_for_api(kong_admin_api_url, input_api_details):
     get_plugins_max_page_size = 2000
     api_name = input_api_details["name"]
     input_plugins = input_api_details["plugins"]
-    api_pugins_url = "{}/apis/{}/plugins?size={}".format(kong_admin_api_url, api_name, get_plugins_max_page_size)
-    saved_api_details = json.loads(urllib2.urlopen(api_pugins_url).read())
-    saved_plugins_including_consumer_overrides = saved_api_details["data"]
+    api_pugins_url = "{}/apis/{}/plugins".format(kong_admin_api_url, api_name)
+    saved_plugins_including_consumer_overrides = get_api_plugins(kong_admin_api_url, api_name)
     saved_plugins_without_consumer_overrides = [plugin for plugin in saved_plugins_including_consumer_overrides if not plugin.get('consumer_id')]
 
     saved_plugins = saved_plugins_without_consumer_overrides

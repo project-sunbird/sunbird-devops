@@ -16,6 +16,14 @@ def get_apis(kong_admin_api_url):
     else:
        return apis_response["data"]
 
+def get_api_plugins(kong_admin_api_url, api_name):
+    get_plugins_max_page_size = 2000
+    api_pugins_url = "{}/apis/{}/plugins".format(kong_admin_api_url, api_name)
+    get_api_plugins_url = "{}?size={}".format(api_pugins_url, get_plugins_max_page_size)
+    saved_api_details = json.loads(urllib2.urlopen(get_api_plugins_url).read())
+    return saved_api_details["data"]
+
+
 def json_request(method, url, data=None):
     request_body = json.dumps(data) if data is not None else None
     request = urllib2.Request(url, request_body)

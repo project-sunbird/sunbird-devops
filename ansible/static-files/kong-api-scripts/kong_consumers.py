@@ -1,7 +1,7 @@
 import urllib2, argparse, json
 import jwt
 
-from common import json_request
+from common import json_request, get_api_plugins
 
 def _consumer_exists(kong_admin_api_url, username):
     consumers_url = "{}/consumers".format(kong_admin_api_url)
@@ -71,14 +71,13 @@ def _save_rate_limits(kong_admin_api_url, saved_consumer, rate_limits):
     consumer_username = saved_consumer['username']
     for rate_limit in rate_limits:
         api_name = rate_limit["api"]
-        api_pugins_url = kong_admin_api_url + "/apis/" + api_name + "/plugins"
-        api_plugins_response = json.loads(urllib2.urlopen(api_pugins_url).read())
-        saved_plugins = api_plugins_response["data"]
+        saved_plugins = get_api_plugins(kong_admin_api_url, api_name)
         rate_limit_plugins = [saved_plugin for saved_plugin in saved_plugins if saved_plugin['name'] == plugin_name]
         rate_limit_plugins_for_this_consumer = [rate_limit_plugin for rate_limit_plugin in rate_limit_plugins if rate_limit_plugin.get('consumer_id') == consumer_id]
         rate_limit_plugin_for_this_consumer = rate_limit_plugins_for_this_consumer[0] if rate_limit_plugins_for_this_consumer else None
 
         rate_limit_state = rate_limit.get('state', 'present')
+        api_pugins_url = kong_admin_api_url + "/apis/" + api_name + "/plugins"
         if rate_limit_state == 'present':
             rate_limit_plugin_data = _dict_without_keys(rate_limit, ['api', 'state'])
             rate_limit_plugin_data['name'] = plugin_name
