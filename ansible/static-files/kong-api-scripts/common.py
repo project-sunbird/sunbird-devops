@@ -7,7 +7,7 @@ import urllib2, json
 # If we reach a state we have more apis than max_page_size,
 # Increase value of max_page_size judiciously
 def get_apis(kong_admin_api_url):
-    max_page_size = 1000
+    max_page_size = 2000
     apis_url_with_size_limit = "{}/apis?size={}".format(kong_admin_api_url, max_page_size)
     apis_response = json.loads(urllib2.urlopen(apis_url_with_size_limit).read())
     total_apis = apis_response["total"]

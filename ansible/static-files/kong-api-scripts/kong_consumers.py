@@ -14,6 +14,21 @@ def _consumer_exists(kong_admin_api_url, username):
         else:
             raise
 
+def _get_consumer(kong_admin_api_url, username):
+    consumers_url = "{}/consumers".format(kong_admin_api_url)
+    try:
+        response = urllib2.urlopen(consumers_url + "/" + username)
+        consumer = json.loads(response.read())
+        return consumer
+    except urllib2.HTTPError as e:
+        if(e.code == 404):
+            return None
+        else:
+            raise
+
+def _dict_without_keys(a_dict, keys):
+    return dict((key, a_dict[key]) for key in a_dict if key not in keys)
+
 def _ensure_consumer_exists(kong_admin_api_url, consumer):
     username = consumer['username']
     consumers_url = "{}/consumers".format(kong_admin_api_url)
@@ -44,6 +59,43 @@ def save_consumers(kong_admin_api_url, consumers):
             print("JWT token for {} is : {}".format(username, jwt_token))
         if 'print_credentials' in consumer:
             print("Credentials for consumer {}, key: {}, secret: {}".format(username, jwt_credential['key'], jwt_credential['secret']))
+
+        saved_consumer = _get_consumer(kong_admin_api_url, username)
+        rate_limits = consumer.get('rate_limits')
+        if(rate_limits is not None):
+            _save_rate_limits(kong_admin_api_url, saved_consumer, rate_limits)
+
+def _save_rate_limits(kong_admin_api_url, saved_consumer, rate_limits):
+    plugin_name = 'rate-limiting'
+    consumer_id = saved_consumer['id']
+    consumer_username = saved_consumer['username']
+    for rate_limit in rate_limits:
+        api_name = rate_limit["api"]
+        api_pugins_url = kong_admin_api_url + "/apis/" + api_name + "/plugins"
+        api_plugins_response = json.loads(urllib2.urlopen(api_pugins_url).read())
+        saved_plugins = api_plugins_response["data"]
+        rate_limit_plugins = [saved_plugin for saved_plugin in saved_plugins if saved_plugin['name'] == plugin_name]
+        rate_limit_plugins_for_this_consumer = [rate_limit_plugin for rate_limit_plugin in rate_limit_plugins if rate_limit_plugin.get('consumer_id') == consumer_id]
+        rate_limit_plugin_for_this_consumer = rate_limit_plugins_for_this_consumer[0] if rate_limit_plugins_for_this_consumer else None
+
+        rate_limit_state = rate_limit.get('state', 'present')
+        if rate_limit_state == 'present':
+            rate_limit_plugin_data = _dict_without_keys(rate_limit, ['api', 'state'])
+            rate_limit_plugin_data['name'] = plugin_name
+            rate_limit_plugin_data['consumer_id'] = consumer_id
+            if not rate_limit_plugin_for_this_consumer:
+                print("Adding rate_limit for consumer {} for API {}".format(consumer_username, api_name));
+                print("rate_limit_plugin_data: {}".format(rate_limit_plugin_data))
+                json_request("POST", api_pugins_url, rate_limit_plugin_data)
+
+            if rate_limit_plugin_for_this_consumer:
+                print("Updating rate_limit for consumer {} for API {}".format(consumer_username, api_name));
+                json_request("PATCH", api_pugins_url + "/" + rate_limit_plugin_for_this_consumer["id"], rate_limit_plugin_data)
+
+        elif rate_limit_state == 'absent':
+            if rate_limit_plugin_for_this_consumer:
+                print("Deleting rate_limit for consumer {} for API {}".format(consumer_username, api_name));
+                json_request("DELETE", api_pugins_url + "/" + saved_plugin["id"], "")
 
 
 def _get_first_or_create_jwt_credential(kong_admin_api_url, consumer):
