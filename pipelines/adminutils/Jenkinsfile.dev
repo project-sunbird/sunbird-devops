@@ -1,27 +1,29 @@
 #!groovy
 
 node('general-dev') {
-
     currentBuild.result = "SUCCESS"
 
     try {
-        stage('Checkout'){
-          checkout scm
-       }
-       stage('Pre-Build'){
-        sh('./pipelines/adminutils/installDeps.sh')
-       }
-       stage('Deploy'){
-        step ([$class: 'CopyArtifact',
-          projectName: 'Build/AM_AdminUtils_Build',
-          filter: 'metadata.json']);
-        sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=dev ./pipelines/adminutils/deploy.sh'
-        archive includes: "metadata.json"
-       }
+        stage('Checkout') {
+            checkout scm
+            git 'https://github.com/project-sunbird/sunbird-devops.git'
+        }
+
+        stage('Pre-Build'){
+            sh('./pipelines/adminutils/setupDevopsCode.sh')
+            sh('./pipelines/adminutils/installDeps.sh')
+        }
+
+        stage('Deploy'){
+            step ([$class: 'CopyArtifact',
+              projectName: 'Build/AM_AdminUtils_Build',
+              filter: 'metadata.json']);
+            sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=dev ./pipelines/adminutils/deploy.sh'
+            archive includes: "metadata.json"
+        }
     }
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
     }
-
 }
