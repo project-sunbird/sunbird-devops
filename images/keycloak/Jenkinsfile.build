@@ -1,0 +1,49 @@
+#!groovy
+
+node('build-slave') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+       stage('Pre-Build'){
+
+         sh('chmod a+x ./images/keycloak/installDeps.sh')
+         sh('./images/keycloak/installDeps.sh')
+
+       }
+
+       stage('Build'){
+
+         env.NODE_ENV = "build"
+
+         print "Environment will be : ${env.NODE_ENV}"
+         sh('chmod a+x ./images/keycloak/metadata.sh')
+         sh('chmod a+x ./images/keycloak/build.sh')
+         sh('./images/keycloak/build.sh')
+
+       }
+
+       stage('Publish'){
+
+         echo 'Push to Repo'
+         sh 'ls -al ~/'
+         sh 'chmod a+x ./images/keycloak/dockerPushToRepo.sh'
+         sh 'chmod a+x ./images/keycloak/metadata.sh'
+         sh 'ARTIFACT_LABEL=bronze ./images/keycloak/dockerPushToRepo.sh'
+         sh './images/keycloak/metadata.sh > metadata.json'
+         archive includes: "metadata.json"
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}

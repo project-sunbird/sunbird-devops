@@ -7,7 +7,7 @@ import urllib2, json
 # If we reach a state we have more apis than max_page_size,
 # Increase value of max_page_size judiciously
 def get_apis(kong_admin_api_url):
-    max_page_size = 1000
+    max_page_size = 2000
     apis_url_with_size_limit = "{}/apis?size={}".format(kong_admin_api_url, max_page_size)
     apis_response = json.loads(urllib2.urlopen(apis_url_with_size_limit).read())
     total_apis = apis_response["total"]
@@ -15,6 +15,14 @@ def get_apis(kong_admin_api_url):
         raise Exception("There are {} apis existing in system which is more than max_page_size={}. Please increase max_page_size in ansible/kong_apis.py if this is expected".format(total_apis, max_page_size))
     else:
        return apis_response["data"]
+
+def get_api_plugins(kong_admin_api_url, api_name):
+    get_plugins_max_page_size = 2000
+    api_pugins_url = "{}/apis/{}/plugins".format(kong_admin_api_url, api_name)
+    get_api_plugins_url = "{}?size={}".format(api_pugins_url, get_plugins_max_page_size)
+    saved_api_details = json.loads(urllib2.urlopen(get_api_plugins_url).read())
+    return saved_api_details["data"]
+
 
 def json_request(method, url, data=None):
     request_body = json.dumps(data) if data is not None else None

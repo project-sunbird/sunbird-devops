@@ -17,13 +17,25 @@ blackbox_exporter:
   reservation_memory: 16M
   limit_memory: 32M
 jsonpath_exporter:
-  reservation_memory: 8M
-  limit_memory: 16M
+  reservation_memory: 16M
+  limit_memory: 32M
+monitor_logstash:
+  replicas: 1
+  heap_size: 512m
+  reservation_memory: 1G
+  limit_memory: 1G
+
+# Override this at environment level
+expected_minimum_logs_per_minute: 0
 
 enable_postgres_availability_check: true
 kong_cluster_expected_number_of_nodes: "{{ kong.replicas | default(1) }}"
 
 monitor_config_files_dest_dir: /opt/docker/stacks/monitor/config
+prometheus_storage_retention_time: 168h0m0s
+
+docker_service_replicas_exporter_version: v0.0.3
+docker_service_replicas_exporter_name: docker-service-replicas-exporter
 
 monitor_config_templates:
 - file_name: prometheus.yml
@@ -46,9 +58,15 @@ monitor_config_templates:
   config_name: prom_container_rules
 - file_name: alertrules.es
   config_name: prom_es_rules
+- file_name: alertrules.logs
+  config_name: prom_logs_rules
 - file_name: alertrules.kong
   config_name: prom_kong_rules
+- file_name: alertrules.services
+  config_name: prom_services_rules
 - file_name: alertrules.postgresql
   config_name: prom_postgresql_rules
-- file_name: jmx_httpserver.yml
-  config_name: jmx_httpserver.yml
+- file_name: monitor_logstash.conf
+  config_name: monitor_logstash.conf
+- file_name: monitor_logstash_grok_patterns
+  config_name: monitor_logstash_grok_patterns

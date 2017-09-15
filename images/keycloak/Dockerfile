@@ -8,4 +8,4 @@ COPY ./images/keycloak/docker-entrypoint.sh /opt/jboss/
 
 ENTRYPOINT ["/opt/jboss/docker-entrypoint.sh"]
 
-CMD ["-b", "0.0.0.0", "--server-config", "standalone-ha.xml"]
+CMD ["--server-config", "standalone-ha.xml"]
