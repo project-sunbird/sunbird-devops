@@ -9,9 +9,6 @@ ALERT high_cpu_usage_on_node
 ALERT high_memory_usage_on_node
   IF ((node_memory_MemTotal-node_memory_MemAvailable)/node_memory_MemTotal)*100 > 90
   FOR 5m
-  LABELS {
-    owner = "devops_team"
-  }
   ANNOTATIONS {
       summary = "HIGH MEMORY USAGE WARNING TASK ON '{% raw %}{{ $labels.instance }}{% endraw %}'",
       description = "{% raw %}{{ $labels.instance }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}%.",
@@ -21,9 +18,6 @@ ALERT high_memory_usage_on_node
 ALERT high_load_on_node
   IF (node_load1 / count without (cpu, mode) (node_cpu{mode="system"})) * 100 > 100
   FOR 5m
-  LABELS {
-    owner = "devops_team"
-  }
   ANNOTATIONS {
       summary = "HIGH LOAD AVERAGE WARNING ON '{% raw %}{{ $labels.instance }}{% endraw %}'",
       description = "{% raw %}{{ $labels.instance }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.",
@@ -43,9 +37,6 @@ ALERT monitoring_service_down
 ALERT node_running_out_of_disk_space
   IF (node_filesystem_size{fstype="aufs", mountpoint="/"} - node_filesystem_free{fstype="aufs", mountpoint="/"}) * 100/ node_filesystem_size{fstype="aufs", mountpoint="/"} > 80
   FOR 5m
-  LABELS {
-    owner = "devops_team"
-  }
   ANNOTATIONS {
       summary = "LOW DISK SPACE WARING: NODE '{% raw %}{{ $labels.instance }}{% endraw %}' ",
       description = "More than 80% of disk used. Disk usage is {% raw %}{{ humanize $value }}{% endraw %}%",
