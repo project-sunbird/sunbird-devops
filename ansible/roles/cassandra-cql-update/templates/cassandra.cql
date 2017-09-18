@@ -547,3 +547,16 @@ ALTER TABLE sunbird.report_tracking ADD format text;
 
 ALTER TABLE sunbird.user DROP aadhaarno;
 update organisation set channel='ROOT_ORG' where id='ORG_001';
+
+// Sept 18th 2017
+ALTER TABLE sunbird.org_type ADD createdDate text;
+ALTER TABLE sunbird.org_type ADD createdBy text;
+ALTER TABLE sunbird.org_type ADD updatedDate text;
+ALTER TABLE sunbird.org_type ADD updatedBy text;
+//Adding table user_notes --Sep 13th 2017
+CREATE TABLE IF NOT EXISTS sunbird.user_notes(id text, userId text, courseId text, 
+contentId text, title text, note text, tags list<text>, createdDate text, createdBy text, 
+updatedDate text, updatedBy text, isDeleted boolean, PRIMARY KEY (id));
+CREATE INDEX inx_un_userId ON sunbird.user_notes(userId);
+CREATE INDEX inx_un_courseId ON sunbird.user_notes(courseId);
+CREATE INDEX inx_un_contentId ON sunbird.user_notes(contentId);
