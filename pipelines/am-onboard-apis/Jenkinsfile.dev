@@ -3,6 +3,19 @@ pipeline {
         label 'kong-dev'
     }
     stages {
+        stage('Checkout') {
+            steps {
+                sh('git -C sunbird-devops pull || git clone https://github.com/project-sunbird/sunbird-devops.git sunbird-devops')
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+
+        stage('Pre-Build'){
+            steps {
+                sh('./ansible/installDeps.sh')
+            }
+        }
+
         stage('Deploy') {
             steps {
                 sh '''
