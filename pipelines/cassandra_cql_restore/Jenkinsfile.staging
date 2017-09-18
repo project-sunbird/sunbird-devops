@@ -1,0 +1,32 @@
+#!groovy
+
+node('general-staging') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+
+
+
+       stage('Pre-Build'){
+         sh('./ansible/installDeps.sh')
+       }
+
+       stage('Build'){
+
+        sh('ansible-playbook -i ansible/inventory/staging ansible/cassandra-data.yml --vault-password-file  /run/secrets/vault-pass ')
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
