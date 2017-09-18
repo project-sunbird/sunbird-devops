@@ -3,15 +3,27 @@ pipeline {
         label 'general-dev'
     }
     stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+
+        stage('Pre-Build'){
+            steps {
+                sh('./ansible/installDeps.sh')
+            }
+        }
+
         stage('Deploy') {
             steps {
-              step ([$class: 'CopyArtifact',
+                step ([$class: 'CopyArtifact',
                 projectName: 'Build/Documentation_Jenkins_Slave',
                 filter: 'metadata.json']);
 
-               sh 'METADATA_FILE=metadata.json ENV=dev ./pipelines/documentation-jenkins-slave/deploy.sh'
+                sh 'METADATA_FILE=metadata.json ENV=dev ./pipelines/documentation-jenkins-slave/deploy.sh'
 
-               archive includes: "metadata.json"
+                archive includes: "metadata.json"
             }
         }
     }

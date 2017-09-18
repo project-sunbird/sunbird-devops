@@ -5,13 +5,10 @@ node('general-staging') {
     currentBuild.result = "SUCCESS"
 
     try {
-
        stage('Checkout'){
-
           checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
        }
-
-
 
        stage('Pre-Build'){
          sh('./ansible/installDeps.sh')
@@ -21,11 +18,9 @@ node('general-staging') {
 
         sh('ansible-playbook -i ansible/inventory/ntp-staging ansible/provision.yml --tags cassandra --vault-password-file  /run/secrets/vault-pass ')
        }
-
     }
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
     }
-
 }
