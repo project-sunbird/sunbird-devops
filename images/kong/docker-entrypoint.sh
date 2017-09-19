@@ -8,7 +8,7 @@ set -e
 rm -f /tmp/logpipe
 mkfifo -m 666 /tmp/logpipe
 # This child process will still receive signals as per https://github.com/Yelp/dumb-init#session-behavior
-cat <> /tmp/logpipe 1>&2 &
+cat <> /tmp/logpipe 1>&1 &
 
 # NOTE, to configure the `File Log` plugin to route logs to Docker logging, direct `config.path` at `/tmp/logpipe`
 
