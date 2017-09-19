@@ -15,13 +15,11 @@ node('general-staging') {
        stage('Pre-Build'){
 
          sh('./pipelines/sunbird-player/installDeps.sh')
+         sh ('ansible-playbook --limit $HOST_PATTERN -i ansible/inventory/staging ansible/run_command.yml --vault-password-file /run/secrets/vault-pass  -vvv  --extra-vars command=\"$COMMAND\"')
 
        }
 
-       stage('Deploy'){
-           sh 'ENV=staging ansible-playbook --limit $HOST_PATTERN -i inventory/$ENV run_command.yml --vault-password-file /run/secrets/vault-pass  --extra-vars command=\"$COMMAND\"'
-       }
-
+      
     }
     catch (err) {
         currentBuild.result = "FAILURE"
