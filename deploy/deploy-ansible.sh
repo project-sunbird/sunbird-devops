@@ -2,18 +2,22 @@
 # Build script
 # set -o errexit
 
+ENV=staging
+ORG=sunbird
+ACTOR_SERVICE_VERSION=0.0.1-gold
+
 mkdir -p ../ansible/secrets
-touch ../ansible/secrets/staging.yml
+touch "../ansible/secrets/$ENV.yml"
 
 # Create application network
 echo "Bootstrap swarm"
-ansible-playbook -i ../ansible/inventory/staging ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm
+ansible-playbook -i ../ansible/inventory/$ENV ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm
 
 # Re-deploy Actor service
-#echo "Redeploy actor service"
-#ensure_service_is_killed actor-service
-#docker service create -p 8088:8088 --name actor-service --hostname actor-service --reserve-memory $ACTOR_SERVICE_RESERVED_MEMORY --limit-memory $ACTOR_SERVICE_MEMORY_LIMIT --network $APPLICATION_NETWORK --env-file ./configs/sunbird_actor-service.env sunbird/actor-service:$ACTOR_SERVICE_VERSION
-#
+echo "Redeploy actor service"
+ansible-playbook -i ../ansible/inventory/$ENV ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=actor-service image_tag=$ACTOR_SERVICE_VERSION service_name=actor-service deploy_actor=True"
+
+
 ## Re-deploy Player service
 #echo "Redeploy player service"
 #ensure_service_is_killed player
