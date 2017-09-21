@@ -4,7 +4,7 @@
 
 # Create application network
 echo "Bootstrap swarm"
-ansible-playbook -i inventory/staging bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm
+ansible-playbook -i ../ansible/inventory/staging ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm
 
 # Re-deploy Actor service
 #echo "Redeploy actor service"
