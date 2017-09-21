@@ -2,6 +2,9 @@
 # Build script
 # set -o errexit
 
+mkdir -p ../ansible/secrets
+touch ../ansible/secrets/staging.yml
+
 # Create application network
 echo "Bootstrap swarm"
 ansible-playbook -i ../ansible/inventory/staging ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm
