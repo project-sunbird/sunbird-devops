@@ -10,11 +10,11 @@ mkdir -p ../ansible/secrets
 touch "../ansible/secrets/$ENV.yml"
 
 # Create application network
-echo "Bootstrap swarm"
+echo "@@@@@@@@@ Bootstrap swarm"
 ansible-playbook -i ../ansible/inventory/$ENV ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm
 
 # Re-deploy Actor service
-echo "Redeploy actor service"
+echo "@@@@@@@@@ Redeploy actor service"
 ansible-playbook -i ../ansible/inventory/$ENV ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=actor-service image_tag=$ACTOR_SERVICE_VERSION service_name=actor-service deploy_actor=True"
 
 
