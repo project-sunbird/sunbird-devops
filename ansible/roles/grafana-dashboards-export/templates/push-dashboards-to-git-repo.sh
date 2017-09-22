@@ -12,5 +12,5 @@ cd grafana-dashboards
 git config user.email "grafana-dashboards-exporter@open-sunbird.org"
 git config user.name "grafana-dashboards-exporter"
 git add -A
-git commit -am "Issue #1 chore: Automated dashboards update"
+git diff-index --quiet HEAD || git commit -m "Issue #1 chore: Automated dashboards update"
 git push $GIT_REPO_URL --all
