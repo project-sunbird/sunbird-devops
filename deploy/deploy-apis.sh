@@ -17,3 +17,9 @@ ansible-playbook -i ../ansible/inventory/$ENV ../ansible/deploy.yml --tags "stac
 # Deploy Admin Utils API
 echo "@@@@@@@@@ Deploy Admin Utils API"
 ansible-playbook -i ../ansible/inventory/$ENV ../ansible/deploy.yml --tags "stack-adminutil" --extra-vars "hub_org=${ORG} image_name=adminutil image_tag=${ADMIN_UTILS_VERSION}"
+
+# Onboard APIs
+ansible-playbook -i ../ansible/inventory/$ENV ../ansible/api-manager.yml --tags kong-api
+
+# Onboard Consumers
+ansible-playbook -i ../ansible/inventory/$ENV ../ansible/api-manager.yml --tags kong-consumer
