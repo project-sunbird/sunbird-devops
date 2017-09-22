@@ -17,4 +17,4 @@ ansible-playbook -i ../ansible/inventory/$ENV ../ansible/deploy.yml --tags cassa
 
 # Postgresql-master installation
 echo "@@@@@@@@@ Postgresql-master installation"
-ansible-playbook -i ../ansible/inventory/$ENV ../ansible/deploy.yml --tags  postgresql-master
+ansible-playbook -i ../ansible/inventory/$ENV ../ansible/deploy.yml --tags  provision_postgres
