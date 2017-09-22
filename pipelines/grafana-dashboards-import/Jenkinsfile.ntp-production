@@ -1,0 +1,25 @@
+pipeline {
+    agent {
+        label 'general-production'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+        stage('Pre-Build'){
+            steps {
+                sh('./ansible/installDeps.sh')
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd ansible
+                ansible-playbook -i inventory/ntp-production grafana-dashboards-import.yml --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
