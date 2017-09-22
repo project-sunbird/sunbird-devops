@@ -1,0 +1,28 @@
+pipeline {
+    agent {
+        label 'general-dev'
+    }
+    triggers {
+        cron('@midnight')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+        stage('Pre-Build'){
+            steps {
+                sh('./ansible/installDeps.sh')
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd ansible
+                ansible-playbook -i inventory/dev grafana-dashboards-export.yml --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
