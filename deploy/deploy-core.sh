@@ -8,6 +8,7 @@ ACTOR_SERVICE_VERSION=0.0.1-gold
 PLAYER_VERSION=0.0.7-gold
 CONTENT_SERVICE_VERSION=0.0.1-gold
 LEARNER_SERVICE_VERSION=0.0.1-gold
+PROXY_VERSION=0.0.1-gold
 
 mkdir -p ../ansible/secrets
 touch "../ansible/secrets/$ENV.yml"
@@ -31,3 +32,7 @@ ansible-playbook -i ../ansible/inventory/$ENV ../ansible/deploy.yml --tags "stac
 # Re-deploy Learner service
 echo "Redeploy learner service"
 ansible-playbook -i ../ansible/inventory/$ENV ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=learner_service image_tag=${LEARNER_SERVICE_VERSION} service_name=learner-service deploy_learner=True"
+
+# Re-deploy Proxy
+echo "Redeploy Proxy"
+ansible-playbook -i ../ansible/inventory/$ENV ../ansible/deploy.yml --tags "stack-proxy" --extra-vars "hub_org=${ORG} image_name=proxy image_tag=${PROXY_VERSION}"
