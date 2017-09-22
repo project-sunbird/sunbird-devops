@@ -3,11 +3,13 @@
 set -e
 
 GIT_REPO_URL={{ grafana_dashboards_git_repo_url_with_credentails }}
-
 rm -rf grafana-dashboards
 git clone $GIT_REPO_URL grafana-dashboards
 rm -rf grafana-dashboards/dashboards/*
+
+wizzy import dashboards
 cp dashboards/* grafana-dashboards/dashboards/
+
 cd grafana-dashboards
 git config user.email "grafana-dashboards-exporter@open-sunbird.org"
 git config user.name "grafana-dashboards-exporter"
