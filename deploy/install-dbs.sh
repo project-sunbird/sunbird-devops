@@ -13,7 +13,7 @@ ansible-playbook -i ../ansible/inventory/$ENV ../ansible/provision.yml --tags es
 
 # Cassandra installation
 echo "@@@@@@@@@ Cassandra installation"
-ansible-playbook -i ../ansible/inventory/$ENV ../ansible/deploy.yml --tags cassandra
+ansible-playbook -i ../ansible/inventory/$ENV ../ansible/provision.yml --tags cassandra
 
 # Postgresql-master installation
 echo "@@@@@@@@@ Postgresql-master installation"
