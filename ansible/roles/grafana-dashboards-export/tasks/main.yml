@@ -1,0 +1,18 @@
+- name: Create wizyy working dir
+  file: dest={{ wizzy_working_dir }} state=directory
+
+- name: Create wizyy config dir
+  file: dest={{ wizzy_conf_dir }} state=directory
+
+- name: Create wizzy config dir
+  template: src=wizzy.json dest="{{ wizzy_conf_dir }}/wizzy.json"
+
+- name: Import dashboards from grafana to local
+  command: wizzy import dashboards
+  args:
+    chdir: "{{ wizzy_working_dir }}"
+
+- name: Push dashboards to git repo
+  command: "{{ wizzy_working_dir }}/push-dashboards-to-git-repo.sh"
+  args:
+    chdir: "{{ wizzy_working_dir }}"
