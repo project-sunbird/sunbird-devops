@@ -9,6 +9,8 @@ git clone $GIT_REPO_URL grafana-dashboards
 rm -rf grafana-dashboards/dashboards/*
 cp dashboards/* grafana-dashboards/dashboards/
 cd grafana-dashboards
+git config user.email "grafana-dashboards-exporter@open-sunbird.org"
+git config user.name "grafana-dashboards-exporter"
 git add -A
 git commit -am "Issue #1 chore: Automated dashboards update"
 git push $GIT_REPO_URL --all
