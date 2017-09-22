@@ -7,7 +7,7 @@ touch "../ansible/secrets/$ENV.yml"
 
 ENV=staging
 ORG=sunbird
-ECHO_SERVER_VERSION=0.0.2
+ECHO_SERVER_VERSION=0.0.2-silver
 
 # Deploy API Manager
 echo "@@@@@@@@@ Deploy API Manager"
