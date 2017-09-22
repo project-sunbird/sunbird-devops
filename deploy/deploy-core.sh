@@ -12,7 +12,7 @@ LEARNER_SERVICE_VERSION=0.0.1-gold
 mkdir -p ../ansible/secrets
 touch "../ansible/secrets/$ENV.yml"
 
-# Create application network
+# Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
 ansible-playbook -i ../ansible/inventory/$ENV ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm
 
