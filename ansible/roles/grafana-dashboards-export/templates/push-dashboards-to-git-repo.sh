@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 GIT_REPO_URL={{ grafana_dashboards_git_repo_url_with_credentails }}
 
 rm -rf grafana-dashboards
