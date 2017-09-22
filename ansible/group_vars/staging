@@ -51,3 +51,63 @@ kong_postgres_port: 5432
 kong_postgres_user:
 kong_postgres_database:
 kong_postgres_password:
+
+es_etc_cluster_name: sunbird-staging
+es_etc_discovery_zen_minimum_master_nodes: 1
+
+es_version: 5.4.3
+es_java_install: false
+es_api_host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+es_config: {
+    node.name: "{{ es_instance_name }}",
+    cluster.name: "{{ es_etc_cluster_name }}",
+    network.host: "{{ es_api_host }}",
+    discovery.zen.ping.unicast.hosts: "{{ groups['es'] }}",
+    node.data: "{{ es_etc_node_data }}",
+    node.master: "{{ es_etc_node_master }}",
+    discovery.zen.minimum_master_nodes: "{{ es_etc_discovery_zen_minimum_master_nodes }}",
+    bootstrap.memory_lock: true
+}
+es_plugins_reinstall: true
+es_snapshot_host: "{{ groups['es-backup'][0] }}"
+es_restore_host: "{{ groups['es-backup'][0] }}"
+snapshot_base_path: application
+
+cassandra:
+  listen_address: 10.11.4.4
+  listen_interface: ''
+  log_dir: '/var/log/cassandra'
+  root_dir: '/etc/cassandra'
+  seeds: 10.11.4.4
+  version: '3.9'
+  port: 9042
+  rpc_address: 0.0.0.0
+  broadcast_rpc_address: 10.11.4.4
+  broadcast_address: 10.11.4.4
+  backup_azure_container_name: cassandra-backup
+  backup_azure_storage_account_name: "{{ backup_storage_name }}"
+  backup_azure_storage_access_key: "{{backup_storage_key}}"
+  backup_dir: /data/cassandra/backup
+  restore_dir: /home/deployer/
+
+
+cassandra_repo: 'deb http://www.apache.org/dist/cassandra/debian 39x main'
+cassandra_repo_key: 'https://www.apache.org/dist/cassandra/KEYS'
+
+kong_postgres_host: "{{ groups['postgresql-master'][0]}}"
+kong_postgres_port: 5432
+kong_postgres_user: api_manager_staging
+kong_postgres_database: api_manager_staging
+kong_postgres_password: "{{ vault_kong_postgres_password }}"
+
+keycloak_postgres_host: "{{ groups['postgresql-master'][0]}}"
+keycloak_postgres_database: keycloak
+keycloak_postgres_user: keycloak
+keycloak_postgres_password: "{{vault_keycloak_postgres_password}}"
+
+application_postgres_host: "{{ groups['postgresql-master'][0]}}"
+application_postgres_database: quartz
+application_postgres_user: quartz
+application_postgres_password: "{{vault_application_postgres_password}}"
+
+
