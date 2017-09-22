@@ -3,7 +3,6 @@
 # set -o errexit
 
 ENV=staging
-ORG=sunbird
 
 mkdir -p ../ansible/secrets
 touch "../ansible/secrets/$ENV.yml"
