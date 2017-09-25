@@ -15,6 +15,10 @@ apt-get update
 apt-get -y install ansible=$ANSIBLE_VERSION
 
 INVENTORY_PATH=$1
+ENV=$(basename "$INVENTORY_PATH")
+
+mkdir -p ../ansible/secrets
+touch "../ansible/secrets/$ENV.yml"
 
 #Elasticsearch installation
 echo "@@@@@@@@@ Elasticsearch installation"
@@ -33,4 +37,4 @@ apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A145185
 echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" |  tee /etc/apt/sources.list.d/mongodb-org-3.4.list
 apt-get update
 apt-get install -y mongodb-org*
-service mongod start 
+service mongod start
