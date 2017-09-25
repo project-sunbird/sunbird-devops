@@ -9,7 +9,7 @@ apt-add-repository -y ppa:ansible/ansible
 apt-get update
 apt-get -y install ansible=$ANSIBLE_VERSION
 
-ENV=staging
+ENV=sample
 
 mkdir -p ../ansible/secrets
 touch "../ansible/secrets/$ENV.yml"
