@@ -2,7 +2,7 @@
 # Build script
 # set -o errexit
 
-ENV=staging
+ENV=sample
 ORG=sunbird
 ACTOR_SERVICE_VERSION=0.0.1-gold
 PLAYER_VERSION=0.0.6-gold
