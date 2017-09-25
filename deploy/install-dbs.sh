@@ -1,6 +1,11 @@
 #!/bin/sh
-# Build script
-# set -o errexit
+set -e
+
+if [ "$#" -ne 1 ]; then
+    echo "ERROR: Illegal number of parameters"
+    echo "Usage: $0 <inventory-path>"
+    exit 1
+fi
 
 ANSIBLE_VERSION=2.4.0.0-1ppa~xenial
 # Install Ansible
@@ -9,22 +14,19 @@ apt-add-repository -y ppa:ansible/ansible
 apt-get update
 apt-get -y install ansible=$ANSIBLE_VERSION
 
-ENV=sample
-
-mkdir -p ../ansible/secrets
-touch "../ansible/secrets/$ENV.yml"
+INVENTORY_PATH=$1
 
 #Elasticsearch installation
 echo "@@@@@@@@@ Elasticsearch installation"
-ansible-playbook -i ../ansible/inventory/$ENV ../ansible/provision.yml --tags es
+ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags es
 
 # Cassandra installation
 echo "@@@@@@@@@ Cassandra installation"
-ansible-playbook -i ../ansible/inventory/$ENV ../ansible/provision.yml --tags cassandra
+ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags cassandra
 
 # Postgresql-master installation
 echo "@@@@@@@@@ Postgresql-master installation"
-ansible-playbook -i ../ansible/inventory/$ENV ../ansible/provision.yml --tags  provision_postgres
+ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags  postgresql-master
 
 #mongo
 apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6

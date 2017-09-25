@@ -2,10 +2,10 @@
 
 if [ "$#" -ne 2 ]; then
     echo "ERROR: Illegal number of parameters"
-    echo "Usage: $0 <implentation-name> <environment-name>"
+    echo "Usage: $0 <implementation-name> <environment-name>"
     echo "\nOPTIONS\n"
-    echo "implentation-name Name of the implmentation organisation or project name used in the organisation eg: ntp, nile etc"
-    echo "environment-name  Name of the environment for which config should be generated. eg: dev, staging, production etc"
+    echo "implementation-name Name of the implementation organization or the project using sunbird eg: ntp, nile"
+    echo "environment-name  Name of the environment for which config should be generated. eg: dev, staging, production"
     exit 1
 fi
 
