@@ -1,0 +1,54 @@
+[swarm-manager]
+localhost ansible_connection=local swarm_master=true
+
+[swarm-bootstrap-manager:children]
+swarm-manager
+
+[sample-postgresql-1]
+localhost ansible_connection=local swarm_master=true
+
+[sample-es-1]
+localhost ansible_connection=local swarm_master=true  es_instance_name=sample-es-1 es_etc_node_master=true es_etc_node_data=true
+
+[sample-cassandra-1]
+localhost ansible_connection=local swarm_master=true
+
+[sample-postgresql-master:children]
+sample-postgresql-1
+
+[sample-keycloak-1]
+localhost ansible_connection=local
+
+[keycloak:children]
+sample-keycloak-1
+
+[sample-postgresql-slave:children]
+
+
+[postgresql-master:children]
+sample-postgresql-master
+
+[postgresql-slave:children]
+sample-postgresql-slave
+
+[es:children]
+sample-es-1
+
+[cassandra:children]
+sample-cassandra-1
+
+[sample-kong-api]
+localhost ansible_connection=local
+
+[kong-api:children]
+sample-kong-api
+
+[sample:children]
+swarm-manager
+swarm-bootstrap-manager
+postgresql-master
+postgresql-slave
+es
+cassandra
+kong-api
+keycloak
