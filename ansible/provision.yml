@@ -1,7 +1,8 @@
 - hosts: "cassandra"
   become: yes
-  vars_files:
-    - 'secrets/{{env}}.yml'
+  pre_tasks:
+    - include_vars: 'secrets/{{env}}.yml'
+      ignore_errors: true
   roles:
    - cassandra
   tags:
@@ -9,8 +10,9 @@
 
 - hosts: es
   become: yes
-  vars_files:
-    - 'secrets/{{env}}.yml'
+  pre_tasks:
+    - include_vars: 'secrets/{{env}}.yml'
+      ignore_errors: true
   roles:
     - openjdk
     - elasticsearch
@@ -19,8 +21,9 @@
 
 - hosts: log-es
   become: yes
-  vars_files:
-    - 'secrets/{{env}}.yml'
+  pre_tasks:
+    - include_vars: 'secrets/{{env}}.yml'
+      ignore_errors: true
   roles:
     - openjdk
     - elasticsearch_old
@@ -29,9 +32,9 @@
 
 - hosts: postgresql-master
   become: yes
-  vars_files:
-    - 'secrets/{{env}}.yml'
   pre_tasks:
+    - include_vars: 'secrets/{{env}}.yml'
+      ignore_errors: true
     - name: install setfacl support
       become: yes
       apt: pkg=acl
@@ -42,9 +45,9 @@
 
 - hosts: postgresql-slave
   become: yes
-  vars_files:
-    - 'secrets/{{env}}.yml'
   pre_tasks:
+    - include_vars: 'secrets/{{env}}.yml'
+      ignore_errors: true
     - name: install setfacl support
       become: yes
       apt: pkg=acl
@@ -52,17 +55,3 @@
     - postgresql-slave
   tags:
     - postgresql-slave
-
-- hosts: postgresql-master
-  become: yes
-  vars_files:
-    - 'secrets/{{env}}.yml'
-  pre_tasks:
-    - name: install setfacl support
-      become: yes
-      apt: pkg=acl
-  roles:
-    - postgresql
-    - postgresql-master
-  tags:
-    - provision_postgres
