@@ -1,17 +1,18 @@
 #!/bin/sh
-# Build script
-# set -o errexit
+set -e
 
-ENV=staging
+if [ "$#" -ne 1 ]; then
+    echo "ERROR: Illegal number of parameters"
+    echo "Usage: $0 <inventory-path>"
+    exit 1
+fi
 
-mkdir -p ../ansible/secrets
-touch "../ansible/secrets/$ENV.yml"
-
+INVENTORY_PATH=$1
 
 # Cassandra installation
 echo "@@@@@@@@@ Cassandra installation"
-ansible-playbook -i ../ansible/inventory/$ENV ../ansible/cassandra-data.yml
+ansible-playbook -i $INVENTORY_PATH ../ansible/cassandra-data.yml
 
 # Postgresql installation
 echo "@@@@@@@@@ Cassandra installation"
-ansible-playbook -i ../ansible/inventory/$ENV ../ansible/postgresql-data-update.yml
+ansible-playbook -i $INVENTORY_PATH ../ansible/postgresql-data-update.yml
