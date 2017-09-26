@@ -23,23 +23,23 @@
  
 
 - set_fact:
-    cassandra_backup_gzip_file_path: "{{ cassandra.backup_dir }}/{{ cassandra_backup_gzip_file_name }}"
+    cassandra_backup_gzip_file_path: "{{ cassandra_backup_dir }}/{{ cassandra_backup_gzip_file_name }}"
  
 - name: Ensure azure blob storage container exists
-  command: az storage container create  --name {{ cassandra.backup_azure_container_name }}
+  command: az storage container create  --name {{ cassandra_backup_azure_container_name }}
   ignore_errors: true
   environment:
-    AZURE_STORAGE_ACCOUNT: "{{ cassandra.backup_azure_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ cassandra.backup_azure_storage_access_key }}"
+    AZURE_STORAGE_ACCOUNT: "{{ cassandra_backup_azure_storage_account_name }}"
+    AZURE_STORAGE_KEY: "{{ cassandra_backup_azure_storage_access_key }}"
  
 - name: Upload to azure blob storage
-  command: az storage blob upload --name {{ cassandra_backup_gzip_file_name }} --file {{ cassandra_backup_gzip_file_path }} --container-name {{ cassandra.backup_azure_container_name }}
+  command: az storage blob upload --name {{ cassandra_backup_gzip_file_name }} --file {{ cassandra_backup_gzip_file_path }} --container-name {{ cassandra_backup_azure_container_name }}
   environment:
-    AZURE_STORAGE_ACCOUNT: "{{ cassandra.backup_azure_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ cassandra.backup_azure_storage_access_key }}"
+    AZURE_STORAGE_ACCOUNT: "{{ cassandra_backup_azure_storage_account_name }}"
+    AZURE_STORAGE_KEY: "{{ cassandra_backup_azure_storage_access_key }}"
   async: 3600
   poll: 10
        
 - name: clean up backup dir after upload
-  file: path="{{ cassandra.backup_dir }}" state=absent
+  file: path="{{ cassandra_backup_dir }}" state=absent
  
