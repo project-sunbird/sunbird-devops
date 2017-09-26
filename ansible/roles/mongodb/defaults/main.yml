@@ -1,0 +1,92 @@
+---
+
+mongodb_enabled: yes
+mongodb_install: yes
+
+# Install with docker
+mongodb_docker: no                              # Run mongo db as docker container
+mongodb_docker_net: bridge
+mongodb_docker_hostname: "mongodb.{{inventory_hostname}}"
+mongodb_docker_image: "mongo:{{mongodb_version}}"
+mongodb_docker_instances:
+- name: mongodb
+  volumes: ["{{mongodb_conf_dbpath}}:/data/db"]
+mongodb_docker_ports: ["{{mongodb_conf_bind_ip}}:{{mongodb_conf_port}}:27017"] # Set empty to disable ports forwarding
+mongodb_docker_command: " --smallfiles --storageEngine=wiredTiger"
+mongodb_docker_volumes:
+- "{{mongodb_conf_dbpath}}:/data/db"
+
+mongodb_packages:
+  - mongodb-org
+
+mongodb_additional_packages:
+  - python-pymongo
+
+mongodb_logdir: /var/log/mongodb
+
+# mongodb_version: "3.2.4"                         # Fully specified target installation version
+mongodb_transparent_hugepage_disable: false
+
+# Service setup options
+mongodb_config:                          # Custom configuration for major/minor version variants
+  daemon: mongod
+  config_file: mongod.conf
+
+# Config options
+mongodb_conf_auth: no                             # Run with security
+mongodb_conf_bind_ip: 0.0.0.0                   # Comma separated list of ip addresses to listen on
+mongodb_conf_cpu: yes                             # Periodically show cpu and iowait utilization
+mongodb_conf_dbpath: /data/db                     # Directory for datafiles
+
+# Fork server process
+# Enabled by default for RedHat as the init scripts assume forking is enabled
+mongodb_processmanagement_fork: '{{ "RedHat" == ansible_os_family }}'
+mongodb_conf_httpinterface: no                    # Enable http interface
+mongodb_conf_ipv6: no                             # Enable IPv6 support (disabled by default)
+mongodb_conf_journal: no                          # Enable journaling
+mongodb_conf_logappend: yes                       # Append to logpath instead of over-writing
+mongodb_conf_logpath: "{{mongodb_logdir}}/mongo.log"  # Log file to send write to instead of stdout
+mongodb_conf_maxConns: 20000                      # Max number of simultaneous connections
+mongodb_conf_noprealloc: no                       # Disable data file preallocation
+mongodb_conf_noscripting: no                      # Disable scripting engine
+mongodb_conf_notablescan: no                      # Do not allow table scans
+mongodb_conf_port: 27017                          # Specify port number
+mongodb_conf_quota: no                            # Limits each database to a certain number of files
+mongodb_conf_quotaFiles: 8                        # Number of quota files
+mongodb_conf_syslog: no                           # Log to system's syslog facility instead of file (ignored if logpath set)
+mongodb_conf_smallfiles: no                       # Sets MongoDB to use a smaller default file size
+
+mongodb_shell: {}                                 # Define mongo shell commands to run
+                                                  # Syntax: mongodb_shell:
+                                                  #          dbname:
+                                                  #           - db.setProfilingLevel(1, 50)
+
+# Replica set options:
+mongodb_conf_replSet:                             # Enable replication <setname>[/<optionalseedhostlist>]
+mongodb_conf_replIndexPrefetch: all               # specify index prefetching behavior (if secondary) [none|_id_only|all]
+
+# MMS Agent
+mongodb_mms_agent_pkg: https://mms.mongodb.com/download/agent/automation/mongodb-mms-automation-agent-manager_latest_amd64.deb
+mongodb_mms_group_id: ""
+mongodb_mms_api_key: ""
+mongodb_mms_base_url: https://mms.mongodb.com
+
+# Log rotation
+mongodb_logrotate: yes                             # Rotate mongodb logs.
+mongodb_logrotate_options:
+  - compress
+  - copytruncate
+  - daily
+  - dateext
+  - rotate 7
+  - size 10M
+
+mongodb_users:
+- name: mongo_user
+  password: password
+  role: readWrite
+  login_host: "{{ mongodb_conf_bind_ip }}"
+  login_port: "{{ mongodb_conf_port }}"
+  databases:
+  - sample_database
+  
