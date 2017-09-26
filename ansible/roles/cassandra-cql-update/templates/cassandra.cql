@@ -558,3 +558,5 @@ updatedDate text, updatedBy text, isDeleted boolean, PRIMARY KEY (id));
 CREATE INDEX inx_un_userId ON sunbird.user_notes(userId);
 CREATE INDEX inx_un_courseId ON sunbird.user_notes(courseId);
 CREATE INDEX inx_un_contentId ON sunbird.user_notes(contentId);
+//Sept 25th 2017
+ALTER TABLE sunbird.user ADD createdBy text;
