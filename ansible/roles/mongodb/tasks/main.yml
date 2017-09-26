@@ -12,12 +12,14 @@
 
 - name: install monngod
   become: yes
-  apt: name=mongodb-org* state=present
+  apt: name=mongodb-org state=present
 
 - name: update template
   become: yes
   template: src=mongod.conf.j2 dest=/etc/mongod.conf mode=0755
 
-- name: service start 
+- name: service start
   become: yes
-  service: name=mongod state=started
+  shell: mongod --config /etc/mongod.conf &
+  async: 10
+  poll: 5
