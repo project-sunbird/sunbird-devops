@@ -122,7 +122,7 @@ A more complex example:
     es_api_port:9201
     es_plugins:
         - plugin: ingest-geoip
-          proxy_host: proxy.example.com
+          proxy_host: proxy_example.com
           proxy_port: 8080
 ```
 
