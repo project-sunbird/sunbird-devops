@@ -8,10 +8,6 @@ if [ "$#" -ne 1 ]; then
 fi
 
 INVENTORY_PATH=$1
-ENV=$(basename "$INVENTORY_PATH")
-
-mkdir -p ../ansible/secrets
-touch "../ansible/secrets/$ENV.yml"
 
 ORG=sunbird
 ECHO_SERVER_VERSION=0.0.2-silver
@@ -19,7 +15,7 @@ ADMIN_UTILS_VERSION=0.0.1-SNAPSHOT-gold
 
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
-ansible-playbook -i ../ansible/inventory/$ENV ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm
+ansible-playbook -i $INVENTORY_PATH ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm
 
 # Deploy API Manager
 echo "@@@@@@@@@ Deploy API Manager"

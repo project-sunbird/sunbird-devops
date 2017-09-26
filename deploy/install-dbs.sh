@@ -15,10 +15,6 @@ apt-get update
 apt-get -y install ansible=$ANSIBLE_VERSION
 
 INVENTORY_PATH=$1
-ENV=$(basename "$INVENTORY_PATH")
-
-mkdir -p ../ansible/secrets
-touch "../ansible/secrets/$ENV.yml"
 
 #Elasticsearch installation
 echo "@@@@@@@@@ Elasticsearch installation"
