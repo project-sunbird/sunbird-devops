@@ -10,7 +10,7 @@ You will need servers with the following minimum system requirements:
 - **implementation-name** - Name of the sunbird deployment. This could be anything. Let's say for the sake of this document, it is `flamingo`
 - **environment-name** - Name of the environment you are deploying. Typically, it is one of development, test, staging, production, etc. For this document, lets say we are setting up a `test` environment.
 
-### Step 1: Provisioning your servers
+### Step 1: Provisioning your application servers
 #### Automated
 ##### Azure
 The following set of scripts create the network and servers needed to run Sunbird on Azure. On any machine, e.g. your laptop run:
@@ -21,6 +21,10 @@ The following set of scripts create the network and servers needed to run Sunbir
 - Run `cd sunbird-devops/deploy`
 - [10 mins] Run `./provision-servers.sh`
 - Login to Azure when CLI instructs
+- Wait for deployment to complete
+- Check on Azure portal: Resource Group -> Deployments -> Click on deployment to see deployment details. 
+- Try to SSH. If your `masterFQDN` from deployment details was `test-1a.centralindia.cloudapp.azure.com` you can ssh using `ssh -A ops@test-1a.centralindia.cloudapp.azure.com`
+- If you could SSH, you have successfully created the server platform.
 
 ##### Others
 Not automated as of now but you are free to contribute back!
