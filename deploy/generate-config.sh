@@ -70,6 +70,8 @@ else
     cp $SAMPLE_DEPLOY_PARAMS_COMMON_FILE $DEPLOY_PARAMS_DIR/azuredeploy.json
     cp $SAMPLE_DEPLOY_PARAMS_JSON_FILE $DEPLOY_PARAMS_DIR/azuredeploy.parameters.json
     cp $SAMPLE_DEPLOY_ENV_FILE $DEPLOY_PARAMS_DIR/env.sh
+    sed -i -e s/"$SAMPLE_ENVIRONMENT_NAME"/"$ENVIRONMENT_NAME"/g $DEPLOY_PARAMS_DIR/azuredeploy.parameters.json
+    sed -i -e s/"$SAMPLE_ENVIRONMENT_NAME"/"$ENVIRONMENT_NAME"/g $DEPLOY_PARAMS_DIR/env.sh
     echo "Copied Azure ARM template and params"
     echo "Please update azuredeploy.parameters.json and env.sh"
 

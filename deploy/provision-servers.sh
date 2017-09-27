@@ -5,6 +5,7 @@ set -x
 
 echo "${DEPLOYMENT_JSON_PATH:?You must set DEPLOYMENT_JSON_PATH}"
 AZURE_DEPLOY_SCRIPT=`pwd`/deploy-azure.sh
+repourl=git@github.com:Azure/acs-engine.git
 
 if [ -d acs-engine ]; then 
     (cd acs-engine && git pull); 
@@ -14,6 +15,7 @@ else
 fi
 cd acs-engine
 rm -rf ./scripts/deploy-azure.sh
+rm -rf ./deployments
 
 docker build --pull -t acs-engine .
 

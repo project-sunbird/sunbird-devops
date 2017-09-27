@@ -13,7 +13,7 @@ az group deployment create \
     --name $AZURE_DEPLOYMENT_NAME \
     --mode "Incremental" \
     --resource-group $AZURE_RG_NAME \
-    --template-file "./deployments/common/azuredeploy.json" \
+    --template-file "./deployments/deployment/azuredeploy.json" \
     --parameters "@./deployments/deployment/azuredeploy.parameters.json" \
     --verbose 
 az logout

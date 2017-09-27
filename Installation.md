@@ -15,11 +15,12 @@ You will need servers with the following minimum system requirements:
 ##### Azure
 The following set of scripts create the network and servers needed to run Sunbird on Azure. On any machine, e.g. your laptop run:
 - Clone the sunbird-devops repo using `git clone https://github.com/project-sunbird/sunbird-devops.git`
-- Run `./sunbird-devops/deploy/generate-config.sh flamingo test cloud`. This will create config files for you in `./flamingo-devops/test/azure`
-- Edit 2 files `azuredeploy.parameters.json` and `env.sh`. Put `masterCount` as 1 and `agentpublicCount` as 1  for non-critical environments.
-- Run `export DEPLOYMENT_JSON_PATH=<absolute path of azuredeploy.parameters.json>`
+- Run `./sunbird-devops/deploy/generate-config.sh flamingo test cloud` This will create config files for you in `./flamingo-devops/test/azure`
+- Edit BOTH files `azuredeploy.parameters.json` and `env.sh`. 
+- Run `export DEPLOYMENT_JSON_PATH=<absolute path of azuredeploy.parameters.json>`. For instance, on my laptop it is `export DEPLOYMENT_JSON_PATH=/Users/shashankt/code2/sunbird/flamingo-devops/test/azure/`
 - Run `cd sunbird-devops/deploy`
-- Run `./provision-servers.sh`
+- [10 mins] Run `./provision-servers.sh`
+- Login to Azure when CLI instructs
 
 ##### Others
 Not automated as of now but you are free to contribute back!
