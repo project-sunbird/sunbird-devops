@@ -3,9 +3,8 @@
 set -eu -o pipefail
 set -x
 
-echo "${COMMON_JSON_PATH:?You must set COMMON_JSON_PATH}"
 echo "${DEPLOYMENT_JSON_PATH:?You must set DEPLOYMENT_JSON_PATH}"
-echo "${AZURE_DEPLOY_SCRIPT:?You must set AZURE_DEPLOY_SCRIPT}"
+AZURE_DEPLOY_SCRIPT=`pwd`/deploy-azure.sh
 
 if [ -d acs-engine ]; then 
     (cd acs-engine && git pull); 
@@ -14,6 +13,7 @@ else
     git clone $repourl;
 fi
 cd acs-engine
+rm -rf ./scripts/deploy-azure.sh
 
 docker build --pull -t acs-engine .
 
@@ -22,7 +22,6 @@ docker run -it --rm \
 	--security-opt seccomp:unconfined \
 	-v /var/run/docker.sock:/var/run/docker.sock \
 	-v `pwd`:/gopath/src/github.com/Azure/acs-engine \
-    -v ${COMMON_JSON_PATH}:/gopath/src/github.com/Azure/acs-engine/deployments/common \
     -v ${DEPLOYMENT_JSON_PATH}:/gopath/src/github.com/Azure/acs-engine/deployments/deployment \
     -v ${AZURE_DEPLOY_SCRIPT}:/gopath/src/github.com/Azure/acs-engine/scripts/deploy-azure.sh \
 	-v ~/.azure:/root/.azure \
@@ -30,4 +29,3 @@ docker run -it --rm \
 		acs-engine /bin/bash ./scripts/deploy-azure.sh
 
 chown -R "$(logname):$(id -gn $(logname))" . ~/.azure
-
