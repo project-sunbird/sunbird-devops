@@ -24,7 +24,7 @@ SAMPLE_ENVIRONMENT_NAME=sample
 
 BACKUP_SUFFIX=-`date +"%Y-%m-%d-%H-%M-%S"`.bak
 
-if [ $3 == "deploy" ]; then
+if [ $3 == "provision" ]; then
     echo "Creating deployment configuration files...\n"
 
     SAMPLE_INVENTORY_FILE=$SUNBIRD_DEVOPS_FOLDER/ansible/inventory/sample

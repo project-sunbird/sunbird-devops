@@ -15,7 +15,7 @@ You will need servers with the following minimum system requirements:
 ##### Azure
 The following set of scripts create the network and servers needed to run Sunbird on Azure. On any machine, e.g. your laptop run:
 - Clone the sunbird-devops repo using `git clone https://github.com/project-sunbird/sunbird-devops.git`
-- Run `./sunbird-devops/deploy/generate-config.sh flamingo test cloud` This will create config files for you in `./flamingo-devops/test/azure`
+- Run `./sunbird-devops/deploy/generate-config.sh flamingo test provision` This will create config files for you in `./flamingo-devops/test/azure`. Here, `flamingo` is the **implementation-name** and `test` is the **environment-name**.
 - Edit BOTH files `azuredeploy.parameters.json` and `env.sh`. 
 - Run `export DEPLOYMENT_JSON_PATH=<absolute path of azuredeploy.parameters.json>`. For instance, on my laptop it is `export DEPLOYMENT_JSON_PATH=/Users/shashankt/code2/sunbird/flamingo-devops/test/azure/`
 - Run `cd sunbird-devops/deploy`
@@ -29,7 +29,7 @@ The following set of scripts create the network and servers needed to run Sunbir
 ##### Others
 Not automated as of now but you are free to contribute back!
 #### Manual
-Get 2 servers and prepare to get your hands dirty when needed.
+Get 2 servers and prepare to get your hands dirty when needed. The automated setup goes all the way.
 
 ### Step 2: Setup
 We will be setting up the `db-server` first and then configure and setup the `application-server`.
@@ -38,7 +38,7 @@ We will be setting up the `db-server` first and then configure and setup the `ap
 - SSH into the `db-server`.
 - Clone the sunbird-devops repo using `git clone https://github.com/project-sunbird/sunbird-devops.git`
 - We need to generate configuration(from sample config) for the environment before starting deployment
-- Run `./sunbird-devops/deploy/generate-config.sh <implementation-name> <environment-name>`. Example `./sunbird-devops/deploy/generate-config.sh ntp staging`. This creates `<implementation-name>-devops` directory with sample configurations using [ansible directory structure](http://docs.ansible.com/ansible/latest/playbooks_best_practices.html#alternative-directory-layout)
+- Run `./sunbird-devops/deploy/generate-config.sh <implementation-name> <environment-name>`. Example `./sunbird-devops/deploy/generate-config.sh flamingo test db`. This creates `<implementation-name>-devops` directory with sample configurations using [ansible directory structure](http://docs.ansible.com/ansible/latest/playbooks_best_practices.html#alternative-directory-layout)
 - [5 mins] Modify all the configurations under `# DB CONFIGURATION` block in `<implementation-name>-devops/ansible/inventories/<environment-name>/group_vars/<environment-name>`
 - Run `cd sunbird-devops/deploy`
 - [15 mins] Run `sudo ./install-dbs.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This script takes roughly 10-15 mins (in an environment with fast internet) and will install the databases.
