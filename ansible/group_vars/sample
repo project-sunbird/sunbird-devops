@@ -1,5 +1,5 @@
+# ENVIRONMENT CONFIGURATION
 env:  #Name of the environment, e.g. dev, staging or production.
-
 proxy_server_name:  #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
 
 # DB CONFIGURATION
@@ -9,12 +9,47 @@ application_postgres_password:    #Password for Application database.
 keycloak_postgres_password:       #Password for Keycloak (Authentication service) database.
 kong_postgres_password:           #Password for Kong (API Manager) database.
 
-## Application server address space (e.g. 10.3.0.0/24)
-## also the agentpublicSubnet if using Azure scripts provided
-swarm_address_space:
+## Postgres configuration
+swarm_address_space:  #Application server address space (e.g. 10.3.0.0/24), also the agentpublicSubnet if using Azure scripts provided
 
-## Configure cassandra  
+## Cassandra configuration
 cassandra_server_private_ip:  #Private IP of cassandra server
+keystore_password:   #Password to use for encrypting cassandra keystore. Use a strong password.
+truststore_password:   #Password to use for encrypting cassandra truststore. Use a strong password.
+
+# APPLICATION CONFIGURATION
+
+## DB address
+application_postgres_host:   #Private IP of Postgres server
+keycloak_postgres_host:   #Private IP of Postgres server
+kong_postgres_host:   #Private IP of Postgres server
+sunbird_mongo_ip:  #Private IP of Mongo DB server
+sunbird_cassandra_host:   #Private IP of Cassandra server
+sunbird_es_host:    #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
+
+## Application server configurations
+sunbird_ekstep_api_base_url:    #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
+sunbird_ekstep_proxy_base_url:    #Base URL of the Ekstep environment. Use `https://qa.ekstep.in/` for non-prod deployments, and `https://community.ekstep.in/` for prod deployment.
+sunbird_env: #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
+sunbird_mail_server_host:   #SMTP server IP. Could be ignored if not mails are to be sent.
+sunbird_mail_server_port:   #SMTP port. Could be ignored if not mails are to be sent.
+sunbird_mail_server_username:   #SMTP username. Could be ignored if not mails are to be sent.
+sunbird_mail_server_password:   #SMTP server pasword. Could be ignored if not mails are to be sent.
+sunbird_mail_server_from_email:   #Email ID that should be as from address in mails
+sunbird_account_key:   
+
+## Keycloak (auth server) login details
+sunbird_sso_username: 
+sunbird_sso_password: 
+
+## Content Repo configuration
+sunbird_api_auth_token:  #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
+sunbird_ekstep_api_key:  #Authorization key (JWT) to access Ekstep APIs. Steps to generate this are documented on https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs
+sunbird_trampoline_secret:  
+
+
+# ADVANCED CONFIGURATIONS
+
 cassandra_listen_address: {{ cassandra_server_private_ip }}
 cassandra_seeds: {{ cassandra_server_private_ip }}
 cassandra_broadcast_rpc_address: {{ cassandra_server_private_ip }}
@@ -27,37 +62,20 @@ cassandra_port: 9042
 cassandra_rpc_address: 0.0.0.0
 cassandra_restore_dir: /home/deployer/
 
-# APPLICATION CONFIGURATION
-
-## DB address
-application_postgres_host:   #Private IP of Postgres server
-keycloak_postgres_host:   #Private IP of Postgres server
-kong_postgres_host:   #Private IP of Postgres server
-
-keystore_password:   #Password to use for encrypting cassandra keystore. Use a strong password.
-truststore_password:   #Password to use for encrypting cassandra truststore. Use a strong password.
 keycloak_url: http://keycloak1
 
-## application server configurations
-sunbird_mongo_ip:  #Private IP of Mongo DB server
-sunbird_cassandra_host:   #Private IP of Cassandra server
-sunbird_es_host:    #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
 sunbird_content_player_url: https://{{ proxy_server_name }}/api/
 sunbird_learner_player_url: https://{{ proxy_server_name }}/api/
 sunbird_sso_url: https://{{ proxy_server_name }}/auth/
 sunbird_sso_realm: sunbird
 sunbird_sso_client_id: admin-cli
-sunbird_ekstep_content_search_base_url:   #API base URL of the Ekstep environment. Use Ekstep QA (https://qa.ekstep.in/api) for non-prod deployments, and use Ekstep Prod (https://api.ekstep.in/) for prod deployment.
 sunbird_mongo_port: 27017
-sunbird_ekstep_api_base_url:    #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
-sunbird_ekstep_proxy_base_url:    #Base URL of the Ekstep environment. Use `https://qa.ekstep.in/` for non-prod deployments, and `https://community.ekstep.in/` for prod deployment.
 sunbird_mongodb_port: 27017
 sunbird_portal_realm: sunbird
 sunbird_portal_auth_server_url: https://{{ proxy_server_name }}/auth
 sunbird_portal_auth_server_client: portal
 sunbird_trampoline_client_id: trampoline
 sunbird_appid: sunbird_portal
-sunbird_env: #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
 sunbird_default_tenant: sunbird
 sunbird_echo_api_url: https://{{ proxy_server_name }}/api/echo/
 sunbird_pg_host: {{ application_postgres_host }}
@@ -66,27 +84,10 @@ sunbird_pg_db: quartz
 sunbird_pg_user: quartz
 sunbird_pg_password: {{ application_postgres_password }}
 sunbird_installation: sunbird
-sunbird_mail_server_host:   #SMTP server IP. Could be ignored if not mails are to be sent.
-sunbird_mail_server_port:   #SMTP port. Could be ignored if not mails are to be sent.
-sunbird_mail_server_username:   #SMTP username. Could be ignored if not mails are to be sent.
-sunbird_mail_server_password:   #SMTP server pasword. Could be ignored if not mails are to be sent.
-sunbird_mail_server_from_email:   #Email ID that should be as from address in mails
 sunbird_account_name: sunbirddev
-sunbird_account_key:   
 sunbird_sunbird_quartz_mode: cluster  #Use `embedded` to run Quartz without any database, use any other value to use Postgres as database
 sunbird_cassandra_urls: {{ cassandra_server_private_ip }}:{{ cassandra_port }}
 sunbird_session_store_type: cassandra
-
-## Keycloak (auth server) login details
-sunbird_sso_username: 
-sunbird_sso_password: 
-
-## Content Repo configuration
-sunbird_api_auth_token:  #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
-sunbird_ekstep_api_key:  #Authorization key (JWT) to access Ekstep APIs. Steps to generate this are documented on https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs
-sunbird_trampoline_secret:  
-
-# ADVANCED CONFIGURATIONS
 
 project: sunbird
 application_postgres_database: quartz
