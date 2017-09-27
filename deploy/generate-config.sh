@@ -24,8 +24,8 @@ SAMPLE_ENVIRONMENT_NAME=sample
 
 BACKUP_SUFFIX=-`date +"%Y-%m-%d-%H-%M-%S"`.bak
 
-if [ $3 == "server" ]; then
-    echo "Creating server configuration files...\n"
+if [ $3 == "deploy" ]; then
+    echo "Creating deployment configuration files...\n"
 
     SAMPLE_INVENTORY_FILE=$SUNBIRD_DEVOPS_FOLDER/ansible/inventory/sample
     SAMPLE_GROUP_VARS_FILE=$SUNBIRD_DEVOPS_FOLDER/ansible/group_vars/sample
@@ -56,23 +56,39 @@ if [ $3 == "server" ]; then
     echo "Successfully generated $IMPLEMENTATION_DEVOPS_DIR directory with environment $ENVIRONMENT_NAME"
     echo "Please review & edit files $ENVIRONMENT_INVENTORY_HOSTS_FILE and $ENVIRONMENT_GROUP_VARS_FILE"
     echo "You can remove backup files by running find $IMPLEMENTATION_DEVOPS_DIR -name *.bak -type f -delete"
-else
+elif [ $3 == "app" ]; then
     echo "Creating cloud configuration files..."
     
-    DEPLOY_PARAMS_DIR=$IMPLEMENTATION_DEVOPS_DIR/$ENVIRONMENT_NAME/azure
-    SAMPLE_DEPLOY_PARAMS_DIR=$SUNBIRD_DEVOPS_FOLDER/cloud/azure/arm/swarm/acs-engine
-    SAMPLE_DEPLOY_PARAMS_COMMON_FILE=$SAMPLE_DEPLOY_PARAMS_DIR/common/azuredeploy.json
-    SAMPLE_DEPLOY_PARAMS_JSON_FILE=$SAMPLE_DEPLOY_PARAMS_DIR/production.sample/azuredeploy.parameters.json.sample
-    SAMPLE_DEPLOY_ENV_FILE=$SAMPLE_DEPLOY_PARAMS_DIR/production.sample/env.sh
+    APP_DEPLOY_PARAMS_DIR=$IMPLEMENTATION_DEVOPS_DIR/$ENVIRONMENT_NAME/azure/app
+    SAMPLE_APP_DEPLOY_PARAMS_DIR=$SUNBIRD_DEVOPS_FOLDER/cloud/azure/arm/swarm/acs-engine
+    SAMPLE_DEPLOY_PARAMS_COMMON_FILE=$SAMPLE_APP_DEPLOY_PARAMS_DIR/common/azuredeploy.json
+    SAMPLE_DEPLOY_PARAMS_JSON_FILE=$SAMPLE_APP_DEPLOY_PARAMS_DIR/production.sample/azuredeploy.parameters.json.sample
+    SAMPLE_DEPLOY_ENV_FILE=$SAMPLE_APP_DEPLOY_PARAMS_DIR/production.sample/env.sh
 
-    mkdir -p $DEPLOY_PARAMS_DIR
-    echo "Created $DEPLOY_PARAMS_DIR"
-    cp $SAMPLE_DEPLOY_PARAMS_COMMON_FILE $DEPLOY_PARAMS_DIR/azuredeploy.json
-    cp $SAMPLE_DEPLOY_PARAMS_JSON_FILE $DEPLOY_PARAMS_DIR/azuredeploy.parameters.json
-    cp $SAMPLE_DEPLOY_ENV_FILE $DEPLOY_PARAMS_DIR/env.sh
-    sed -i -e s/"$SAMPLE_ENVIRONMENT_NAME"/"$ENVIRONMENT_NAME"/g $DEPLOY_PARAMS_DIR/azuredeploy.parameters.json
-    sed -i -e s/"$SAMPLE_ENVIRONMENT_NAME"/"$ENVIRONMENT_NAME"/g $DEPLOY_PARAMS_DIR/env.sh
-    echo "Copied Azure ARM template and params"
+    mkdir -p $APP_DEPLOY_PARAMS_DIR
+    echo "Created $APP_DEPLOY_PARAMS_DIR"
+    cp $SAMPLE_DEPLOY_PARAMS_COMMON_FILE $APP_DEPLOY_PARAMS_DIR/azuredeploy.json
+    cp $SAMPLE_DEPLOY_PARAMS_JSON_FILE $APP_DEPLOY_PARAMS_DIR/azuredeploy.parameters.json
+    cp $SAMPLE_DEPLOY_ENV_FILE $APP_DEPLOY_PARAMS_DIR/env.sh
+    sed -i -e s/"$SAMPLE_ENVIRONMENT_NAME"/"$ENVIRONMENT_NAME"/g $APP_DEPLOY_PARAMS_DIR/azuredeploy.parameters.json
+    sed -i -e s/"$SAMPLE_ENVIRONMENT_NAME"/"$ENVIRONMENT_NAME"/g $APP_DEPLOY_PARAMS_DIR/env.sh
+    echo "Copied Azure ARM template and params for Application"
     echo "Please update azuredeploy.parameters.json and env.sh"
+elif [ $3 == "db" ]; then
+    echo "Creating DB configuration files..."
+    
+    DB_DEPLOY_PARAMS_DIR=$IMPLEMENTATION_DEVOPS_DIR/$ENVIRONMENT_NAME/azure/db
+    SAMPLE_DB_DEPLOY_PARAMS_DIR=$SUNBIRD_DEVOPS_FOLDER/cloud/azure/arm/vm
+    SAMPLE_DEPLOY_PARAMS_COMMON_FILE=$SAMPLE_DB_DEPLOY_PARAMS_DIR/azuredeploy.json
+    SAMPLE_DEPLOY_PARAMS_JSON_FILE=$SAMPLE_DB_DEPLOY_PARAMS_DIR/azuredeploy.parameters.json.sample
 
+    mkdir -p $DB_DEPLOY_PARAMS_DIR
+    echo "Created $DB_DEPLOY_PARAMS_DIR"
+    cp $SAMPLE_DEPLOY_PARAMS_COMMON_FILE $DB_DEPLOY_PARAMS_DIR/azuredeploy.json
+    cp $SAMPLE_DEPLOY_PARAMS_JSON_FILE $DB_DEPLOY_PARAMS_DIR/azuredeploy.parameters.json
+    sed -i -e s/"$SAMPLE_ENVIRONMENT_NAME"/"$ENVIRONMENT_NAME"/g $DB_DEPLOY_PARAMS_DIR/azuredeploy.parameters.json
+    echo "Copied Azure ARM template and params for DB"
+    echo "Please update azuredeploy.parameters.json"
+else
+    echo "invalid option"
 fi

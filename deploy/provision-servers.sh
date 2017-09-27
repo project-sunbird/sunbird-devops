@@ -3,7 +3,9 @@
 set -eu -o pipefail
 set -x
 
-echo "${DEPLOYMENT_JSON_PATH:?You must set DEPLOYMENT_JSON_PATH}"
+echo "${APP_DEPLOYMENT_JSON_PATH:?You must set APP_DEPLOYMENT_JSON_PATH}"
+echo "${DB_DEPLOYMENT_JSON_PATH:?You must set DB_DEPLOYMENT_JSON_PATH}"
+
 AZURE_DEPLOY_SCRIPT=`pwd`/deploy-azure.sh
 repourl=git@github.com:Azure/acs-engine.git
 
@@ -24,7 +26,8 @@ docker run -it --rm \
 	--security-opt seccomp:unconfined \
 	-v /var/run/docker.sock:/var/run/docker.sock \
 	-v `pwd`:/gopath/src/github.com/Azure/acs-engine \
-    -v ${DEPLOYMENT_JSON_PATH}:/gopath/src/github.com/Azure/acs-engine/deployments/deployment \
+    -v ${APP_DEPLOYMENT_JSON_PATH}:/gopath/src/github.com/Azure/acs-engine/deployments/deployment/app \
+    -v ${DB_DEPLOYMENT_JSON_PATH}:/gopath/src/github.com/Azure/acs-engine/deployments/deployment/db \
     -v ${AZURE_DEPLOY_SCRIPT}:/gopath/src/github.com/Azure/acs-engine/scripts/deploy-azure.sh \
 	-v ~/.azure:/root/.azure \
 	-w /gopath/src/github.com/Azure/acs-engine \
