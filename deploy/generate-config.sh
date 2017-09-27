@@ -72,7 +72,5 @@ else
     cp $SAMPLE_DEPLOY_ENV_FILE $DEPLOY_PARAMS_DIR/env.sh
     echo "Copied Azure ARM template and params"
     echo "Please update azuredeploy.parameters.json and env.sh"
-    export COMMON_JSON_PATH=$DEPLOY_PARAMS_DIR
-    export DEPLOYMENT_JSON_PATH=$DEPLOY_PARAMS_DIR
 
 fi
