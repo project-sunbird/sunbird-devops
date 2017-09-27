@@ -32,8 +32,12 @@
 - name: Save proxy-default.conf
   template: src=proxy-default.conf dest=/home/deployer/config/proxy-default.conf mode=0644
 
-- name: Remove proxy stack
+- name: Remove old style proxy stack
   shell: "docker stack rm {{image_name}}-{{env}}"
+  ignore_errors: yes
+
+- name: Remove proxy stack
+  shell: "docker stack rm proxy"
   ignore_errors: yes
 
 - name: Remove old nginx.conf docker config
@@ -55,6 +59,6 @@
 - debug: msg="server name= {{proxy_server_name}}"
 
 - name: Deploy stack
-  shell: "docker stack deploy -c proxy.yml {{image_name}}-{{env}}"
+  shell: "docker stack deploy -c proxy.yml proxy"
   args:
     chdir: /home/deployer/stack
