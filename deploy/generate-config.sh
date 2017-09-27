@@ -1,10 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ "$#" -ne 3 ]; then
     echo "ERROR: Illegal number of parameters"
     echo "Usage: $0 <implementation-name> <environment-name> <type>"
     echo "\nOPTIONS\n"
-    echo "type: cloud or server"
+    echo "type: deploy, app or db"
     echo "implementation-name: Name of the implementation organization or the project using sunbird eg: ntp, nile"
     echo "environment-name: Name of the environment for which config should be generated. eg: dev, staging, production"
     exit 1
