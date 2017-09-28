@@ -1,6 +1,8 @@
 # ENVIRONMENT CONFIGURATION
 env:  #Name of the environment, e.g. dev, staging or production.
 proxy_server_name:  #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
+proxy_site_key:   #SSL certificate's site.key file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
+proxy_site_crt:   #SSL certificate's site.crt file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 
 # DB CONFIGURATION
 
@@ -36,7 +38,6 @@ sunbird_mail_server_port:   #SMTP port. Could be ignored if not mails are to be 
 sunbird_mail_server_username:   #SMTP username. Could be ignored if not mails are to be sent.
 sunbird_mail_server_password:   #SMTP server pasword. Could be ignored if not mails are to be sent.
 sunbird_mail_server_from_email:   #Email ID that should be as from address in mails
-sunbird_account_key:   
 
 ## Keycloak (auth server) login details
 sunbird_sso_username: 
@@ -46,7 +47,6 @@ sunbird_sso_password:
 sunbird_api_auth_token:  #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
 sunbird_ekstep_api_key:  #Authorization key (JWT) to access Ekstep APIs. Steps to generate this are documented on https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs
 sunbird_trampoline_secret:  
-
 
 # ADVANCED CONFIGURATIONS
 
@@ -85,6 +85,7 @@ sunbird_pg_user: quartz
 sunbird_pg_password: "{{ application_postgres_password }}"
 sunbird_installation: sunbird
 sunbird_account_name: sunbirddev
+sunbird_account_key: 
 sunbird_sunbird_quartz_mode: cluster  #Use `embedded` to run Quartz without any database, use any other value to use Postgres as database
 sunbird_cassandra_urls: "{{ cassandra_server_private_ip }}:{{ cassandra_port }}"
 sunbird_session_store_type: cassandra
@@ -150,10 +151,10 @@ postgresql_users:
 
 swarm_secrets:
   - name: postgresql_keycloak_pass
-    value:
+    value: {{ keycloak_postgres_password }}
   - name: prom_admin_creds
     value:
   - name: site.key
-    value:
+    value: {{ proxy_site_key }}
   - name: site.crt
-    value:
+    value: {{ proxy_site_crt }}
