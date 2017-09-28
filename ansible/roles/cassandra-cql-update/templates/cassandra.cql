@@ -563,3 +563,7 @@ ALTER TABLE sunbird.user ADD createdBy text;
 //Adding changes related to social media in user table
 ALTER TABLE sunbird.user ADD webpages list<frozen <map<text,text>>>;
 CREATE TABLE IF NOT EXISTS sunbird.media_type(id text, name text, PRIMARY KEY (id));
+
+insert into media_type(id,name) values('fb', 'facebook');
+insert into media_type(id,name) values('twitter','twitter');
+insert into media_type(id,name) values('in','linkedin'); 
