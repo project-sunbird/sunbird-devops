@@ -8,10 +8,6 @@ if [ "$#" -ne 1 ]; then
 fi
 
 INVENTORY_PATH=$1
-ENV=$(basename "$INVENTORY_PATH")
-
-mkdir -p ../ansible/secrets
-touch "../ansible/secrets/$ENV.yml"
 
 ORG=sunbird
 PROXY_VERSION=0.0.1-gold

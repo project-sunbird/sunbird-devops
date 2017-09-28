@@ -8,10 +8,6 @@ if [ "$#" -ne 1 ]; then
 fi
 
 INVENTORY_PATH=$1
-ENV=$(basename "$INVENTORY_PATH")
-
-mkdir -p ../ansible/secrets
-touch "../ansible/secrets/$ENV.yml"
 
 ENV=sample
 ORG=sunbird
@@ -40,7 +36,3 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird"
 # Re-deploy Learner service
 echo "Redeploy learner service"
 ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=learner_service image_tag=${LEARNER_SERVICE_VERSION} service_name=learner-service deploy_learner=True"
-
-# Re-deploy Proxy
-echo "Redeploy Proxy"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-proxy" --extra-vars "hub_org=${ORG} image_name=proxy image_tag=${PROXY_VERSION}"
