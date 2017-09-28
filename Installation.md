@@ -19,7 +19,7 @@ The following set of scripts create the network and servers needed to run Sunbir
 
 Run the following steps from a machine which is connected to the internet:
 - Clone the sunbird-devops repo using `git clone https://github.com/project-sunbird/sunbird-devops.git`
-- Run `./sunbird-devops/deploy/generate-config.sh ntp production provision` This will create config files for you in `./ntp-devops/test/azure`. Here, `ntp` is the **implementation-name** and `production` is the **environment-name**.
+- Run `./sunbird-devops/deploy/generate-config.sh ntp production cloud` This will create config files for you in `./ntp-devops/test/azure`. Here, `ntp` is the **implementation-name** and `production` is the **environment-name**.
 - Edit BOTH the new config files `azuredeploy.parameters.json` and `env.sh` as per your requirements. 
 - Run `export DEPLOYMENT_JSON_PATH=<absolute path of azuredeploy.parameters.json>`. For instance, on my laptop it is `export DEPLOYMENT_JSON_PATH=/Users/shashankt/code2/sunbird/flamingo-devops/test/azure/`
 - Run `cd sunbird-devops/deploy`
@@ -46,7 +46,7 @@ You are free to either use existing DBs, create DBs manually or run the followin
 Run the following steps starting from your local machine:
 - SSH into the `db-server`. If you have not edited the default configuration, then the name of the DB VM would be `db-1`. Automated setup does not expose the DB to the Internet, so to SSH into the DB, you will need to SSH to `vm-1` (check out `masterFQDN` above) with `ssh -A` (key forwarding) and then SSH to `db-1`.
 - Clone the sunbird-devops repo using `git clone https://github.com/project-sunbird/sunbird-devops.git`
-- Run `./sunbird-devops/deploy/generate-config.sh <implementation-name> <environment-name>`. Example `./sunbird-devops/deploy/generate-config.sh ntp production db`. This creates `ntp-devops` directory with *incomplete* configurations. You **WILL** need to supply missing configuration.
+- Run `./sunbird-devops/deploy/generate-config.sh <implementation-name> <environment-name>`. Example `./sunbird-devops/deploy/generate-config.sh ntp production deploy`. This creates `ntp-devops` directory with *incomplete* configurations. You **WILL** need to supply missing configuration.
 - Modify all the configurations under `# DB CONFIGURATION` block in `<implementation-name>-devops/ansible/inventories/<environment-name>/group_vars/<environment-name>`
 
 ## DB creation

@@ -24,7 +24,7 @@ SAMPLE_ENVIRONMENT_NAME=sample
 
 BACKUP_SUFFIX=-`date +"%Y-%m-%d-%H-%M-%S"`.bak
 
-if [ $3 == "provision" ]; then
+if [ $3 == "deploy" ]; then
     echo "Creating deployment configuration files...\n"
 
     SAMPLE_INVENTORY_FILE=$SUNBIRD_DEVOPS_FOLDER/ansible/inventory/sample
@@ -56,7 +56,7 @@ if [ $3 == "provision" ]; then
     echo "Successfully generated $IMPLEMENTATION_DEVOPS_DIR directory with environment $ENVIRONMENT_NAME"
     echo "Please review & edit files $ENVIRONMENT_INVENTORY_HOSTS_FILE and $ENVIRONMENT_GROUP_VARS_FILE"
     echo "You can remove backup files by running find $IMPLEMENTATION_DEVOPS_DIR -name *.bak -type f -delete"
-elif [ $3 == "app" ]; then
+elif [ $3 == "cloud" ]; then
     echo "Creating cloud configuration files..."
     
     APP_DEPLOY_PARAMS_DIR=$IMPLEMENTATION_DEVOPS_DIR/$ENVIRONMENT_NAME/azure/app
@@ -74,8 +74,8 @@ elif [ $3 == "app" ]; then
     sed -i -e s/"$SAMPLE_ENVIRONMENT_NAME"/"$ENVIRONMENT_NAME"/g $APP_DEPLOY_PARAMS_DIR/env.sh
     echo "Copied Azure ARM template and params for Application"
     echo "Please update azuredeploy.parameters.json and env.sh"
-elif [ $3 == "db" ]; then
-    echo "Creating DB configuration files..."
+    
+    echo "Creating DB VM configuration files..."
     
     DB_DEPLOY_PARAMS_DIR=$IMPLEMENTATION_DEVOPS_DIR/$ENVIRONMENT_NAME/azure/db
     SAMPLE_DB_DEPLOY_PARAMS_DIR=$SUNBIRD_DEVOPS_FOLDER/cloud/azure/arm/vm
