@@ -32,6 +32,14 @@ Run the following steps from a machine which is connected to the internet:
 - Try to SSH. If your `masterFQDN` from deployment details was `production-1a.centralindia.cloudapp.azure.com` you can ssh using `ssh -A ops@production-1a.centralindia.cloudapp.azure.com`
 - If you could SSH, you have successfully created the server platform.
 
+#### Demo
+1st Part
+
+![Demo1](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-1.gif)
+
+2nd Part
+
+![Demo 2](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-2.gif)
 ### Others
 Not automated as of now but you are free to contribute back! Send in a PR.
 ## Manual
