@@ -74,7 +74,7 @@ elif [ $3 == "cloud" ]; then
     sed -i -e s/"$SAMPLE_ENVIRONMENT_NAME"/"$ENVIRONMENT_NAME"/g $APP_DEPLOY_PARAMS_DIR/env.sh
     echo "Copied Azure ARM template and params for Application"
     echo "Please update azuredeploy.parameters.json and env.sh"
-    
+
     echo "Creating DB VM configuration files..."
     
     DB_DEPLOY_PARAMS_DIR=$IMPLEMENTATION_DEVOPS_DIR/$ENVIRONMENT_NAME/azure/db
@@ -92,3 +92,5 @@ elif [ $3 == "cloud" ]; then
 else
     echo "invalid option"
 fi
+unset APP_DEPLOYMENT_JSON_PATH
+unset DB_DEPLOYMENT_JSON_PATH

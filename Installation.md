@@ -20,8 +20,10 @@ The following set of scripts create the network and servers needed to run Sunbir
 Run the following steps from a machine which is connected to the internet:
 - Clone the sunbird-devops repo using `git clone https://github.com/project-sunbird/sunbird-devops.git`
 - Run `./sunbird-devops/deploy/generate-config.sh ntp production cloud` This will create config files for you in `./ntp-devops/test/azure`. Here, `ntp` is the **implementation-name** and `production` is the **environment-name**.
-- Edit BOTH the new config files `azuredeploy.parameters.json` and `env.sh` as per your requirements. 
-- Run `export DEPLOYMENT_JSON_PATH=<absolute path of azuredeploy.parameters.json>`. For instance, on my laptop it is `export DEPLOYMENT_JSON_PATH=/Users/shashankt/code2/sunbird/flamingo-devops/test/azure/`
+- Edit BOTH the new config files `azuredeploy.parameters.json` and `env.sh` as per your requirements for the app.
+-  Edit the new config files `azuredeploy.parameters.json` and `env.sh` as per your requirements for the db.
+- Run `export APP_DEPLOYMENT_JSON_PATH=<absolute path of azuredeploy.parameters.json>`. For instance, on my laptop it is `export DEPLOYMENT_JSON_PATH=/Users/shashankt/code2/sunbird/ntp-devops/production/azure/app`
+- Run `export DB_DEPLOYMENT_JSON_PATH=<absolute path of azuredeploy.parameters.json>`. For instance, on my laptop it is `export DEPLOYMENT_JSON_PATH=/Users/shashankt/code2/sunbird/ntp-devops/production/azure/db`
 - Run `cd sunbird-devops/deploy`
 - Run `./provision-servers.sh`
 - Login to Azure when CLI instructs
