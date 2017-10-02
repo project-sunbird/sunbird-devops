@@ -32,11 +32,12 @@ Run the following steps from a machine which is connected to the internet:
 - Try to SSH. If your `masterFQDN` from deployment details was `production-1a.centralindia.cloudapp.azure.com` you can ssh using `ssh -A ops@production-1a.centralindia.cloudapp.azure.com`
 - If you could SSH, you have successfully created the server platform.
 
-#### Demo
+#### Automation walkthrough
 
-[Demo 1](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-1.gif)
+[Part 1](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-1.gif)
 
-[Demo 2](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-2.gif)
+[Part 2](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-2.gif)
+
 ### Others
 Not automated as of now but you are free to contribute back! Send in a PR.
 ## Manual
@@ -65,8 +66,14 @@ Following is a set of scripts which install the DBs into the `db-server` and cop
 ### Manual
 Refer to DB user guides.
 
+#### Automation Walkthrough
+Included in the next demo
+
 # Step 3: Initialize DBs 
 - Run `sudo ./init-dbs.sh <implementation-name>-devops/ansible/inventories/<environment-name>` to initialize the DB.
+
+#### Automation Walkthrough
+[Part 4](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-4.gif)
 
 # Step 4: Setup Application and Core services
 - SSH into `admin-server`. If you have used automated scripts used here, then this server would be `vm-1`.
@@ -76,6 +83,7 @@ Refer to DB user guides.
 - The automated setup also creates a proxy server and like all proxy servers, it will require a SSL certificate. Details of the certificates have to added in the configuration, please see [this wiki](https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service) for details on how to do this. Note: If you don't have SSL certificates and want to get started you could generate and use [self-signed certificates](https://en.wikipedia.org/wiki/Self-signed_certificate), steps for this are detailed in [this wiki](https://github.com/project-sunbird/sunbird-commons/wiki/Generating-a-self-signed-certificate)
 - Run `cd sunbird-devops/deploy`
 - Run `sudo ./install-deps.sh`. This will install dependencies.
+- Edit the inventory file to put in the IP of the 
 - Run `sudo ./deploy-apis.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will onboard various APIs and consumer groups.
 
 **Note:** Next 2 steps are necessary only when the application is being deployed for the first time and could be skipped for subsequent deploys.
@@ -90,6 +98,11 @@ Refer to DB user guides.
 - Run `sudo ./deploy-core.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup all the sunbird core services. 
 - Run `sudo ./deploy-proxy.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup sunbird proxy services. 
 
+#### Automation Walkthrough
+[Part 5](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-5.gif)
+[Part 6](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-6.gif)
+[Part 7](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-8.gif)
+
 # Step 4: Check Installation
 **TODO** Need link to functional documentation to perform just enough user flows to ensure Sunbird implementation is functional
 
@@ -101,3 +114,9 @@ Refer to DB user guides.
 
 # Step 7: Customize sunbird
 **TODO** You can also build software extensions to Sunbird custom built to your requirements. Look forward to more detail here.
+
+# FAQ
+
+Q: I have run the DB scripts on the App server but I really want them on different machines. What do I do now?
+
+A: You could delete the app server and re-create. If you have any data you have copied, you should backup. Applications themselves are stateless and don't need a backup. If your DB was in use, then use the backup and restore mechanism to move the DB. To be on the safer side, take a backup of the disk and delete if the backup is not needed later. Otherwise, if it is a fresh installation, just delete the resource group (Azure) and re-run the Steps.
