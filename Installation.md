@@ -103,6 +103,9 @@ Included in the next demo
 [Part 6](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-6.gif)
 [Part 7](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-8.gif)
 
+#### Ekstep Integration
+WIP
+
 # Step 4: Check Installation
 **TODO** Need link to functional documentation to perform just enough user flows to ensure Sunbird implementation is functional
 
