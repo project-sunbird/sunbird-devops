@@ -1,3 +1,4 @@
+
 CREATE KEYSPACE IF NOT EXISTS sunbird WITH replication = {'class':'SimpleStrategy','replication_factor':1};
 
 //to change cluster name
@@ -120,13 +121,12 @@ CREATE INDEX inx_ai_processingStatus ON sunbird.assessment_item (processingStatu
 ALTER TABLE sunbird.course_management DROP noOfLectures;
 ALTER TABLE sunbird.course_management ADD noOfLectures int;
 ALTER TABLE sunbird.assessment_item DROP evaluationStatus;
+DROP INDEX IF EXISTS sunbird.inx_ai_processingStatus; 
 ALTER TABLE sunbird.assessment_item DROP processingStatus;
 ALTER TABLE sunbird.assessment_item ADD evaluationStatus boolean;
 ALTER TABLE sunbird.assessment_item ADD processingStatus boolean;
+DROP INDEX IF EXISTS sunbird.inx_ae_assessmentitemid;
 ALTER TABLE sunbird.assessment_eval DROP assessmentItemId;
-ALTER TABLE sunbird.assessment_eval DROP maxScore;
-ALTER TABLE sunbird.page_management ADD organisationId text;
-ALTER TABLE sunbird.organisation ADD orgCode text;
 
 //2017-06-30 changes for user and organisation
 ALTER TABLE sunbird.user DROP zipcode;
@@ -165,9 +165,6 @@ CREATE INDEX inx_uorg_orgId ON sunbird.user_org(orgId);
 CREATE TABLE IF NOT EXISTS sunbird.subject(id text, name text, PRIMARY KEY (id));
 CREATE INDEX inx_sb_name ON sunbird.subject(name); 
 
-CREATE TABLE IF NOT EXISTS sunbird.role(id text, name text, PRIMARY KEY (id));
-CREATE INDEX inx_role_name ON sunbird.role(name);
-
 ALTER TABLE sunbird.organisation DROP city;
 ALTER TABLE sunbird.organisation DROP state;
 ALTER TABLE sunbird.organisation DROP zipcode;
@@ -182,7 +179,6 @@ ALTER TABLE sunbird.organisation ADD homeUrl text;
 ALTER TABLE sunbird.organisation ADD isRootOrg boolean;
 ALTER TABLE sunbird.organisation ADD addId text;
 ALTER TABLE sunbird.organisation ADD noOfmembers int;
-ALTER TABLE sunbird.organisation ADD orgCode text;
 ALTER TABLE sunbird.organisation ADD isApproved boolean;
 ALTER TABLE sunbird.organisation ADD approvedBy text;
 ALTER TABLE sunbird.organisation ADD approvedDate text;
@@ -200,7 +196,7 @@ CREATE INDEX inx_om_orgIdOne ON sunbird.org_mapping(orgIdOne);
 CREATE INDEX inx_om_orgIdTwo ON sunbird.org_mapping(orgIdTwo);    
 
 CREATE TABLE IF NOT EXISTS sunbird.role(id text, name text,status int, PRIMARY KEY (id));
-CREATE INDEX inx_ro_master_name ON sunbird.role(name);  
+CREATE INDEX inx_role_name ON sunbird.role(name);
 
 insert into role (id,name,status) values ('r_101','ADMIN',1);
 insert into role (id,name,status) values ('r_102','ORG_ADMIN',1);
@@ -371,10 +367,10 @@ CREATE INDEX inx_ucs_batchId ON sunbird.user_courses (batchId);
 CREATE INDEX inx_ucs_course_name ON sunbird.user_courses (courseName);
 CREATE INDEX inx_ucs_status ON sunbird.user_courses (status);
 
+DROP INDEX IF EXISTS inx_uei_source;
 ALTER TABLE sunbird.user_external_identity DROP source;
 ALTER TABLE sunbird.user_external_identity ADD provider text;
 ALTER TABLE sunbird.user_external_identity ADD externalIdValue text;
-DROP INDEX inx_uei_source;
 CREATE INDEX inx_uei_provider ON sunbird.user_external_identity (provider);
 
 //changes 7 July 2017 updated organization table
@@ -412,15 +408,8 @@ ALTER TABLE sunbird.user_org ADD roles list<text>;
 
 //COPY sunbird.page_section(id, alt,createdby ,createddate ,description ,display ,imgurl ,name,searchquery , sectiondatatype ,status , updatedby ,updateddate) FROM '/tmp/cql/pageSection.csv';
 
-//changes on 14th july 2017
-
-ALTER TABLE sunbird.user_org DROP role;
-ALTER TABLE sunbird.user_org ADD roles List<text>;
-
 // insert default root organisation -- July 15,2017
 ALTER TABLE sunbird.organisation ADD isDefault boolean;
-
-INSERT INTO sunbird.organisation(id , isRootOrg , isDefault, status) values('ORG_001' , true , true, 1);
 
 ALTER TABLE sunbird.user_courses ADD leafNodesCount int;
 // change organisation status field from text to int -- July 19,2017
@@ -428,6 +417,7 @@ drop index inx_org_status;
 ALTER TABLE sunbird.organisation DROP status ;
 ALTER TABLE sunbird.organisation ADD status int;
 CREATE INDEX inx_org_status ON sunbird.organisation (status);
+INSERT INTO sunbird.organisation(id , isRootOrg , isDefault, status) values('ORG_001' , true , true, 1);
 
 // add isdeleted field to user table -- July 31,2017
 ALTER TABLE sunbird.user ADD isDeleted boolean;
@@ -438,7 +428,7 @@ CREATE INDEX inx_cou_bat_status ON sunbird.course_batch (status);
 CREATE INDEX inx_cou_bat_courseId ON sunbird.course_batch (courseId);     
 CREATE INDEX inx_cou_bat_courseCreator ON sunbird.course_batch (courseCreator); 
 CREATE INDEX inx_cou_bat_createdBy ON sunbird.course_batch (createdBy); 
-CREATE INDEX inx_cou_bat_enrolmentType ON sunbird.course_batch (enrolmentType); 
+CREATE INDEX inx_cou_bat_enrolmentType ON sunbird.course_batch (enrollmentType); 
 ALTER TABLE sunbird.course_batch DROP createdon;
 ALTER TABLE sunbird.course_batch ADD createdDate text;
 ALTER TABLE sunbird.course_batch DROP lastupdatedon;
@@ -454,10 +444,6 @@ ALTER TABLE sunbird.course_batch DROP participants;
 ALTER TABLE sunbird.course_batch ADD participant map<text,boolean>;
 
 ALTER TABLE sunbird.course_batch ADD courseAdditionalInfo map<text,text>;
-DROP INDEX inx_cou_bat_enrolmentType;
-ALTER TABLE sunbird.course_batch DROP enrolmentType;
-ALTER TABLE sunbird.course_batch ADD enrollmentType text;
-CREATE INDEX inx_cou_bat_enrollmentType ON sunbird.course_batch (enrollmentType);
 
 // adding the batchId column to content consumption table -- Aug 8,2017
 ALTER TABLE sunbird.content_consumption ADD batchId text;
@@ -514,13 +500,6 @@ CREATE TABLE IF NOT EXISTS sunbird.user_badge(id text, createdDate text, created
  CREATE INDEX inx_usr_badg_receiverid ON sunbird.user_badge (receiverid);
 CREATE INDEX inx_uei_externalIdValue ON sunbird.user_external_identity (externalIdValue);
 
-CREATE TABLE IF NOT EXISTS sunbird.report_tracking(id text, status int,type text,createdDate text,userId text,uploadedDate text,email text,fileUrl text,emailTryCount int, PRIMARY KEY (id));
-CREATE INDEX inx_report_tracking_status ON sunbird.report_tracking(status);
-CREATE INDEX inx_report_tracking_userId ON sunbird.report_tracking(userId);
-ALTER TABLE sunbird.report_tracking ADD firstName text;
-ALTER TABLE sunbird.report_tracking ADD batchId text;
-ALTER TABLE sunbird.report_tracking ADD period text;
-ALTER TABLE sunbird.report_tracking ADD data text;
 //adding for report tracking
 CREATE TABLE IF NOT EXISTS sunbird.report_tracking(id text, status int,type text,createdDate text,userId text,uploadedDate text,email text,fileUrl text,emailTryCount int, PRIMARY KEY (id));
 CREATE INDEX inx_report_tracking_status ON sunbird.report_tracking(status);
