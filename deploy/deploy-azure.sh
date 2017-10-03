@@ -28,7 +28,7 @@ if [ -e ./deployments/deployment/db/azuredeploy.parameters.json ]; then
         --verbose 
 else
     echo -e "DB Setup skipped"
-end
+fi
 # az vm create \
 #     --resource-group $AZURE_RG_NAME \
 #     --name DB-1 \
