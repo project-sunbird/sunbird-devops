@@ -1,0 +1,261 @@
+# ENVIRONMENT CONFIGURATION
+env: dev #Name of the environment, e.g. dev, staging or production.
+proxy_server_name: dev.open-sunbird.org #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
+proxy_site_key: {{ vault_proxy_site_key }}  #SSL certificate's site.key file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
+proxy_site_crt: {{ vault_proxy_site_crt }}  #SSL certificate's site.crt file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
+
+# DB CONFIGURATION
+
+## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
+application_postgres_password: "{{vault_application_postgres_password}}"   #Password for Application database.
+keycloak_postgres_password: "{{vault_keycloak_postgres_password}}"  #Password for Keycloak (Authentication service) database.
+kong_postgres_password:  "{{ vault_kong_postgres_password }}"         #Password for Kong (API Manager) database.
+
+## Postgres configuration
+swarm_address_space: 10.0.0.0/16  #Application server address space (e.g. 10.3.0.0/24), also the agentpublicSubnet if using Azure scripts provided
+keycloak_address_space: 10.113.0.0/24
+postgres_address_space: 10.10.0.0/24
+
+## Cassandra configuration
+cassandra_server_private_ip: 10.10.4.4 #Private IP of cassandra server
+keystore_password: {{vault_keystore_password}}  #Password to use for encrypting cassandra keystore. Use a strong password.
+truststore_password: {{vault_truststore_password}}  #Password to use for encrypting cassandra truststore. Use a strong password.
+
+# APPLICATION CONFIGURATION
+
+kong_host: api-manager_kong
+
+## DB address
+application_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
+keycloak_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
+kong_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
+sunbird_mongo_ip: 10.10.2.5 #Private IP of Mongo DB server
+sunbird_cassandra_host: 10.10.4.4  #Private IP of Cassandra server
+sunbird_es_host: 10.10.3.7,10.10.3.8,10.10.3.6   #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
+
+## Application server configurations
+sunbird_ekstep_api_base_url: https://qa.ekstep.in/api  #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
+sunbird_ekstep_proxy_base_url: https://qa.ekstep.in  #Base URL of the Ekstep environment. Use `https://qa.ekstep.in/` for non-prod deployments, and `https://community.ekstep.in/` for prod deployment.
+sunbird_env: qa #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
+sunbird_mail_server_host: "{{ mail_server_host }}"  #SMTP server IP. Could be ignored if not mails are to be sent.
+sunbird_mail_server_port: "{{ mail_server_port }}" #SMTP port. Could be ignored if not mails are to be sent.
+sunbird_mail_server_username: "{{ mail_server_username }}"  #SMTP username. Could be ignored if not mails are to be sent.
+sunbird_mail_server_password: "{{ mail_server_password }}"  #SMTP server pasword. Could be ignored if not mails are to be sent.
+sunbird_mail_server_from_email: support-dev@open-sunbird.org #Email ID that should be as from address in mails
+
+## Keycloak (auth server) login details
+sunbird_sso_username: "{{ vault_sunbird_sso_username }}"
+sunbird_sso_password: "{{ vault_sunbird_sso_password }}"
+
+## Content Repo configuration
+sunbird_api_auth_token: "{{ vault_sunbird_api_auth_token }}" #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
+sunbird_ekstep_api_key: "{{ sunbird_ekstep_api_key }}" #Authorization key (JWT) to access Ekstep APIs. Steps to generate this are documented on https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs
+sunbird_trampoline_secret: "{{ vault_sunbird_trampoline_secret }}"
+
+# ADVANCED CONFIGURATIONS
+
+cassandra_listen_address: "{{ cassandra_server_private_ip }}"
+cassandra_seeds: "{{ cassandra_server_private_ip }}"
+cassandra_broadcast_rpc_address: "{{ cassandra_server_private_ip }}"
+cassandra_broadcast_address: "{{ cassandra_server_private_ip }}"
+cassandra_listen_interface: ''
+cassandra_log_dir: '/var/log/cassandra'
+cassandra_root_dir: '/etc/cassandra'
+cassandra_version: '3.9'
+cassandra_port: 9042
+cassandra_rpc_address: 0.0.0.0
+cassandra_restore_dir: /home/deployer/
+cassandra_backup_azure_container_name: cassandra-backup
+cassandra_backup_azure_storage_account_name: "{{ backup_storage_name }}"
+cassandra_backup_azure_storage_access_key: "{{backup_storage_key}}"
+cassandra_backup_dir: /data/cassandra/backup
+
+keycloak_url: http://10.113.0.7
+
+sunbird_content_player_url: https://{{ proxy_server_name }}/api/
+sunbird_learner_player_url: https://{{ proxy_server_name }}/api/
+sunbird_sso_url: https://{{ proxy_server_name }}/auth/
+sunbird_sso_realm: sunbird
+sunbird_sso_client_id: admin-cli
+sunbird_mongo_port: 27017
+sunbird_mongodb_port: 27017
+sunbird_portal_realm: sunbird
+sunbird_portal_auth_server_url: https://{{ proxy_server_name }}/auth
+sunbird_portal_auth_server_client: portal
+sunbird_trampoline_client_id: trampoline
+sunbird_appid: sunbird_portal
+sunbird_default_tenant: sunbird
+sunbird_echo_api_url: https://{{ proxy_server_name }}/api/echo/
+sunbird_pg_host: "{{ application_postgres_host }}"
+sunbird_pg_port: 5432
+sunbird_pg_db: quartz
+sunbird_pg_user: quartz
+sunbird_pg_password: "{{ application_postgres_password }}"
+sunbird_installation: sunbird
+sunbird_account_name: sunbirddev
+sunbird_account_key: "{{ vault_sunbird_account_key }} "
+sunbird_sunbird_quartz_mode: cluster
+sunbird_encryption_mode: local
+sunbird_cassandra_urls: "{{ cassandra_server_private_ip }}:{{ cassandra_port }}"
+sunbird_session_store_type: cassandra
+
+project: sunbird
+application_postgres_database: quartz
+application_postgres_user: quartz
+keycloak_postgres_database: keycloak
+keycloak_postgres_user: keycloak
+
+## elasticsearch configurations
+
+es_heap_size: 1500m
+es_etc_cluster_name: sunbird-dev
+es_etc_discovery_zen_minimum_master_nodes: 1
+
+es_version: 5.4.3
+es_java_install: false
+es_api_host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+es_config: {
+    node.name: "{{ es_instance_name }}",
+    cluster.name: "{{ es_etc_cluster_name }}",
+    network.host: "{{ es_api_host }}",
+    discovery.zen.ping.unicast.hosts: "{{ groups['es'] }}",
+    node.data: "{{ es_etc_node_data }}",
+    node.master: "{{ es_etc_node_master }}",
+    discovery.zen.minimum_master_nodes: "{{ es_etc_discovery_zen_minimum_master_nodes }}",
+    bootstrap.memory_lock: true,
+    cloud.azure.storage.my_account: {
+      account: "{{ backup_storage_name }}",
+      key: "{{ backup_storage_key }}"
+    }
+}
+es_plugins:
+  - plugin: repository-azure
+es_plugins_reinstall: true
+es_snapshot_host: "{{ groups['es-backup'][0] }}"
+es_restore_host: "{{ groups['es-backup'][0] }}"
+snapshot_base_path: application
+
+## Cassandra download URI
+cassandra_repo: 'deb http://www.apache.org/dist/cassandra/debian 39x main'
+cassandra_repo_key: 'https://www.apache.org/dist/cassandra/KEYS'
+
+#API Manager
+kong_postgres_port: 5432
+kong_postgres_user: api_manager_dev
+kong_postgres_database: api_manager_dev
+
+es_curl_host: 10.10.3.7
+
+## Logging details
+syslog:
+    host: 172.16.0.5
+    port: 51415
+
+## PostgreSQL config
+postgresql_users:
+  - name: "{{ postgres_replication_user_name }}"
+    password: "{{ postgres_replication_user_password }}"
+    role_attr_flags: REPLICATION
+  - name: "{{ postgres_exporter_user }}"
+    password: "{{ postgres_exporter_password }}"
+    role_attr_flags: SUPERUSER
+  - name: "{{kong_postgres_user}}"
+    password: "{{kong_postgres_password}}"
+    db: "{{kong_postgres_database}}"
+    priv: "ALL"
+  - name: "{{keycloak_postgres_user}}"
+    password: "{{keycloak_postgres_password}}"
+    db: "{{keycloak_postgres_database}}"
+    priv: "ALL"
+  - name: "{{application_postgres_user}}"
+    password: "{{application_postgres_password}}"
+    db: "{{application_postgres_database}}"
+    priv: "ALL"  
+
+swarm_secrets:
+  - name: vault-pass
+    value: "{{ vault_pass }}"
+  - name: jenkins-user
+    value: " {{ vault_jenkins_user }}"
+  - name: jenkins-pass
+    value: "{{ vault_jenkins_pass }}"
+  - name: postgresql_keycloak_pass
+    value: "{{ keycloak_postgres_password }}"
+  - name: prom_admin_creds
+    value: "{{ vault_prom_admin_creds }}"
+  - name: site.key
+    value: "{{ proxy_site_key }}"
+  - name: site.crt
+    value: "{{ proxy_site_crt }}"
+
+# ADDITIONAL CONFIGURATION
+backup_storage_name: "sunbirdbackupsdev"
+prometheus_storage_retention_time: 72h0m0s
+curl_host: dev.open-sunbird.org
+
+mail_server_host: smtp.sendgrid.net
+mail_server_port: 587
+mail_server_username: azure_886153b1defb14e38ecc9c7301625aba@azure.com
+mail_server_password: "{{ vault_mail_server_password }}"
+
+logger_es_host: "{{ groups['dev-log-es'][0] }}"
+logger_es_port: 9200
+
+kibana_oauth_redirect_url: https://dev.open-sunbird.org/oauth2/callback
+slack_channel: sunbird-dev-alert
+keycloak: True
+
+api__host: dev.open-sunbird.org
+
+proxy_replicas: 2
+proxy_reservation_memory: 32M
+proxy_limit_memory: 128M
+kong_replicas: 3
+kong_reservation_memory: 64M
+kong_limit_memory: 256M
+echo_service_replicas: 2
+echo_service_reservation_memory: 8M
+echo_service_limit_memory: 16M
+adminutil_replicas: 2
+adminutil_reservation_memory: 512M
+adminutil_limit_memory: 1024M
+
+actor_replicas: 2
+actor_reservation_memory: 768M
+actor_limit_memory: 1024M
+
+learner_replicas: 2
+learner_reservation_memory: 256M
+learner_limit_memory: 512M
+
+player_replicas: 2
+player_reservation_memory: 64M
+player_limit_memory: 256M
+
+content_replicas: 2
+content_reservation_memory: 64M
+content_limit_memory: 256M
+
+keycloak1_replicas: 1
+keycloak1_reservation_memory: 768M
+keycloak1_limit_memory: 1024M
+
+keycloak2_replicas: 1
+keycloak2_reservation_memory: 768M
+keycloak2_limit_memory: 1024M
+
+monitor_es_host: "{{ groups['es'][0] }}"
+
+swarm_load_balancer: 10.0.0.100
+
+expected_minimum_logs_per_minute: 30
+
+sunbird_network: application_default
+proxy_prometheus: true
+
+enable_scraping_docker_metrics: true
+enable_mongodb_availability_check: false
+
+postgres_exporter_postgres_port: 5432
+postgres_exporter_user: postgres_exporter
+postgres_exporter_password: "{{ vault_postgres_exporter_password }}"
