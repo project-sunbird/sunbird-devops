@@ -18,13 +18,17 @@ az group deployment create \
     --template-file "./deployments/deployment/app/azuredeploy.json" \
     --parameters "@./deployments/deployment/app/azuredeploy.parameters.json" \
     --verbose 
-az group deployment create \
-    --name $AZURE_DB_DEPLOYMENT_NAME \
-    --mode "Incremental" \
-    --resource-group $AZURE_RG_NAME \
-    --template-file "./deployments/deployment/db/azuredeploy.json" \
-    --parameters "@./deployments/deployment/db/azuredeploy.parameters.json" \
-    --verbose 
+if [ -e ./deployments/deployment/db/azuredeploy.parameters.json ]; then
+    az group deployment create \
+        --name $AZURE_DB_DEPLOYMENT_NAME \
+        --mode "Incremental" \
+        --resource-group $AZURE_RG_NAME \
+        --template-file "./deployments/deployment/db/azuredeploy.json" \
+        --parameters "@./deployments/deployment/db/azuredeploy.parameters.json" \
+        --verbose 
+else
+    echo -e "DB Setup skipped"
+end
 # az vm create \
 #     --resource-group $AZURE_RG_NAME \
 #     --name DB-1 \

@@ -4,7 +4,11 @@ set -eu -o pipefail
 set -x
 
 echo "${APP_DEPLOYMENT_JSON_PATH:?You must set APP_DEPLOYMENT_JSON_PATH}"
-echo "${DB_DEPLOYMENT_JSON_PATH:?You must set DB_DEPLOYMENT_JSON_PATH}"
+if [ "${DB_DEPLOYMENT:-true}" == "true" ]; then
+	echo "${DB_DEPLOYMENT_JSON_PATH:?You must set DB_DEPLOYMENT_JSON_PATH}"
+else
+	DB_DEPLOYMENT_JSON_PATH=/dev/null
+fi
 
 AZURE_DEPLOY_SCRIPT=`pwd`/deploy-azure.sh
 repourl=git@github.com:Azure/acs-engine.git
