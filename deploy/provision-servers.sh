@@ -25,7 +25,7 @@ rm -rf ./deployments
 
 docker build --pull -t acs-engine .
 
-docker run -it --rm \
+docker run --rm \
 	--privileged \
 	--security-opt seccomp:unconfined \
 	-v /var/run/docker.sock:/var/run/docker.sock \
