@@ -25,8 +25,12 @@ rm -rf ./deployments
 
 docker build --pull -t acs-engine .
 docker version
+
+ls -al $APP_DEPLOYMENT_JSON_PATH
+ls -al $DB_DEPLOYMENT_JSON_PATH
+ls -al $AZURE_DEPLOY_SCRIPT
+
 docker run \
-	--rm \
 	--privileged \
 	--security-opt seccomp:unconfined \
 	-v /var/run/docker.sock:/var/run/docker.sock \
@@ -36,6 +40,7 @@ docker run \
 	-v ${AZURE_DEPLOY_SCRIPT}:/gopath/src/github.com/Azure/acs-engine/scripts/deploy-azure.sh \
 	-v ~/.azure:/root/.azure \
 	-w /gopath/src/github.com/Azure/acs-engine \
+	--rm \
 	acs-engine /bin/bash ./scripts/deploy-azure.sh
 
 chown -R "$(logname):$(id -gn $(logname))" . ~/.azure
