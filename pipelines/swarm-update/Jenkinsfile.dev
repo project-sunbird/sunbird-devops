@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'general-dev'
+        label 'build-slave'
     }
     stages {
         stage('Checkout') {
@@ -18,7 +18,11 @@ pipeline {
         stage('Update') {
             steps {
                 sh '''
-                ls sunbird-devops/deploy
+                cp cloud/azure/scripts/acs-engine-swarm/common/azuredeploy.json cloud/azure/scripts/acs-engine-swarm/sunbird-dev/azuredeploy.json
+                export APP_DEPLOYMENT_JSON_PATH=`pwd`/cloud/azure/scripts/acs-engine-swarm/sunbird-dev
+                ls -al $APP_DEPLOYMENT_JSON_PATH
+                cd sunbird-devops/deploy
+                DB_DEPLOYMENT=false ./provision-servers.sh
                 '''
             }
         }
