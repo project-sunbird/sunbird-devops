@@ -9,3 +9,4 @@ RUN apk --update add sudo && \
 RUN pip install PyJWT
 RUN apk add --virtual build-deps gcc python-dev musl-dev && \
     apk add py2-psycopg2
+RUN pip install retry
