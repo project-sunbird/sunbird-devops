@@ -12,5 +12,14 @@
 - name: Copy kong api scripts
   copy: src=static-files/kong-api-scripts dest=/tmp mode=0755
 
+- name: "Ensure kong_admin_api_url is available before running the scripts"
+  uri:
+	url: "{{ kong_admin_api_url }}/status"
+	status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 5
+
 - name: Run script to save apis
   shell: "python /tmp/kong-api-scripts/kong_apis.py /tmp/kong_apis.json --kong-admin-api-url={{ kong_admin_api_url }}"
