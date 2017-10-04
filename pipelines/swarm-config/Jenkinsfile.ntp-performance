@@ -1,0 +1,27 @@
+pipeline {
+    agent {
+        label 'general-performance'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+
+        stage('Pre-Build'){
+            steps {
+                sh('./ansible/installDeps.sh')
+            }
+        }
+
+        stage('Configure') {
+            steps {
+                sh '''
+                cd ansible
+                ansible-playbook -i inventory/ntp-performance docker-swarm.yml --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
