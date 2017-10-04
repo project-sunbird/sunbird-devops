@@ -19,7 +19,11 @@
       no_log: true
     - name: Install environments vault passwords
       copy: dest=/run/secrets/vault-pass-{{ item.name }} content={{ item.value }} owner=jenkins group=jenkins
-      with_items: "{{ environments_vault_passwords }}"
+      with_items: "{{ environments_vault_passwords | default([]) }}"
+      no_log: true
+    - name: Install environments ops keys
+      copy: dest=/run/secrets/ops-key-{{ item.name }} content={{ item.value }} owner=jenkins group=jenkins
+      with_items: "{{ environments_ops_keys | default([]) }}"
       no_log: true
   roles:
     - openjdk
