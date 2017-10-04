@@ -8,3 +8,4 @@ git -C sunbird-devops pull || git clone https://github.com/project-sunbird/sunbi
 ls -al
 rm -rf ansible/roles ansible/*.yml ansible/static-files ansible/group_vars ansible/inventory ansible/secrets
 ls -al
+ls -al ansible
