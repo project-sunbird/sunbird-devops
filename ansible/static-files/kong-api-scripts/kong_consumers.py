@@ -1,12 +1,12 @@
 import urllib2, argparse, json
 import jwt
 
-from common import json_request, get_api_plugins
+from common import json_request, get_api_plugins, retrying_urlopen
 
 def _consumer_exists(kong_admin_api_url, username):
     consumers_url = "{}/consumers".format(kong_admin_api_url)
     try:
-        urllib2.urlopen(consumers_url + "/" + username)
+        retrying_urlopen(consumers_url + "/" + username)
         return True
     except urllib2.HTTPError as e:
         if(e.code == 404):
@@ -17,7 +17,7 @@ def _consumer_exists(kong_admin_api_url, username):
 def _get_consumer(kong_admin_api_url, username):
     consumers_url = "{}/consumers".format(kong_admin_api_url)
     try:
-        response = urllib2.urlopen(consumers_url + "/" + username)
+        response = retrying_urlopen(consumers_url + "/" + username)
         consumer = json.loads(response.read())
         return consumer
     except urllib2.HTTPError as e:
@@ -101,7 +101,7 @@ def _get_first_or_create_jwt_credential(kong_admin_api_url, consumer):
     username = consumer["username"]
     credential_algorithm = consumer.get('credential_algorithm', 'HS256')
     consumer_jwt_credentials_url = kong_admin_api_url + "/consumers/" + username + "/jwt"
-    saved_credentials_details = json.loads(urllib2.urlopen(consumer_jwt_credentials_url).read())
+    saved_credentials_details = json.loads(retrying_urlopen(consumer_jwt_credentials_url).read())
     saved_credentials = saved_credentials_details["data"]
     saved_credentials_for_algorithm = [saved_credential for saved_credential in saved_credentials if saved_credential['algorithm'] == credential_algorithm]
     if(len(saved_credentials_for_algorithm) > 0):
@@ -132,7 +132,7 @@ def _save_groups_for_consumer(kong_admin_api_url, consumer):
     username = consumer["username"]
     input_groups = consumer["groups"]
     consumer_acls_url = kong_admin_api_url + "/consumers/" + username + "/acls"
-    saved_acls_details = json.loads(urllib2.urlopen(consumer_acls_url).read())
+    saved_acls_details = json.loads(retrying_urlopen(consumer_acls_url).read())
     saved_acls = saved_acls_details["data"]
     saved_groups = [acl["group"] for acl in saved_acls]
     print("Existing groups for consumer {} : {}".format(username, saved_groups))
