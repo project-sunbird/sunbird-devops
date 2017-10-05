@@ -20,4 +20,5 @@ echo "org:            ${org}"
 echo "name:           ${name}"
 echo "version:        ${version}"
 ansible-playbook --version
-ansible-playbook -i ansible/inventories/$ENV sunbird-devops/ansible/deploy.yml --tags "stack-api-manager" --extra-vars "hub_org=${org} echo_server_image_name=${name} echo_server_image_tag=${version}-${artifactLabel}" --vault-password-file /run/secrets/vault-pass
+ansible-playbook -i ansible/inventory/$ENV ansible/deploy.yml --tags "stack-api-manager" --extra-vars "hub_org=${org} echo_server_image_name=${name} echo_server_image_tag=${version}-${artifactLabel}" --vault-password-file /run/secrets/vault-pass
+
