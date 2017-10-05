@@ -1,0 +1,52 @@
+- hosts: swarm-agent-for-prometheus
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Create prometheus data dir
+      file: path=/var/dockerdata/prometheus/data state=directory mode=755
+  tags:
+    - prometheus
+
+- hosts: swarm-agent-for-grafana
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Create grafana data dir
+      file: path=/var/dockerdata/grafana state=directory mode=755
+  tags:
+    - grafana
+
+- hosts: swarm-agent-for-alertmanager
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Create alertmanager data dir
+      file: path=/var/dockerdata/alertmanager/data state=directory mode=755
+  tags:
+    - alertmanager
+
+- hosts: swarm-bootstrap-manager
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Add label for prometheus node
+      command: "docker node update --label-add prometheus=1 {{ hostvars[groups['swarm-agent-for-prometheus'][0]]['ansible_hostname'] }}"
+    - name: Add label for grafana node
+      command: "docker node update --label-add grafana=1 {{ hostvars[groups['swarm-agent-for-grafana'][0]]['ansible_hostname'] }}"
+    - name: Add label for alertmanager node
+      command: "docker node update --label-add monitor=1 {{ hostvars[groups['swarm-agent-for-alertmanager'][0]]['ansible_hostname'] }}"
+  tags:
+    - monitor-labels
+
+- hosts: swarm-bootstrap-manager
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - stack-monitor
+  tags:
+    - stack-monitor
