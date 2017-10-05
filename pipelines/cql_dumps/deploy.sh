@@ -9,4 +9,4 @@ set -e
 env=${ENV:-null}
 
 ansible-playbook --version
-ansible-playbook -i ansible/inventory/$ENV ansible/reporting.yml --vault-password-file /run/secrets/vault-pass
+ansible-playbook -i ansible/inventories/$ENV ansible/reporting.yml --vault-password-file /run/secrets/vault-pass

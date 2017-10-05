@@ -20,4 +20,4 @@ echo "version:        ${version}"
 
 
 ansible-playbook --version
-ansible-playbook -i ansible/inventory/$ENV ansible/deploy.yml --tags "stack-proxy" --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel}" --vault-password-file /run/secrets/vault-pass
+ansible-playbook -i ansible/inventories/$ENV sunbird-devops/ansible/deploy.yml --tags "stack-proxy" --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel}" --vault-password-file /run/secrets/vault-pass
