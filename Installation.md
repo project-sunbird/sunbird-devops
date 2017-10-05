@@ -105,6 +105,7 @@ Included in the next demo
 - Update `sunbird_api_auth_token` in your configuration with the above copied token.
 - Obtain API token from Ekstep platform by following steps listed [here](https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs)
 - Update `sunbird_ekstep_api_key` in your configuration with the API token obtained from ekstep portal.
+- Run `sudo ./deploy-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will deploy keycloak service.
 - Run `sudo ./deploy-core.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup all the sunbird core services.
 - Run `sudo ./deploy-proxy.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup sunbird proxy services.
 
