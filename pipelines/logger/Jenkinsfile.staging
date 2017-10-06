@@ -1,0 +1,32 @@
+#!groovy
+
+node('general-staging') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+          sh('./pipelines/setupDevopsCodeOldStructure.sh')
+       }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/logger/installDeps.sh')
+
+       }
+
+       stage('Deploy'){
+
+         sh 'ENV=staging ./pipelines/logger/deployOldStructure.sh'
+
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
