@@ -51,9 +51,7 @@ localhost ansible_connection=local
 [swarm-agent-for-alertmanager]
 localhost ansible_connection=local
 
-[sample:children]
-swarm-manager
-swarm-bootstrap-manager
+[non-swarm-nodes:children]
 postgresql-master
 postgresql-slave
 es
@@ -61,6 +59,22 @@ cassandra
 kong-api
 keycloak
 mongodb
+
+[swarm-nodes:children]
+swarm-manager
+swarm-bootstrap-manager
 swarm-agent-for-prometheus
 swarm-agent-for-grafana
 swarm-agent-for-alertmanager
+
+[node-exporter:children]
+non-swarm-nodes
+swarm-manager
+
+[log-forwarder:children]
+non-swarm-nodes
+swarm-manager
+
+[sample:children]
+non-swarm-nodes
+swarm-nodes
