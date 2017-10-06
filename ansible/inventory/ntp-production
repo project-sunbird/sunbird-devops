@@ -136,7 +136,19 @@ ntp-production-cassandra
 ntp-production-keycloak-1
 ntp-production-keycloak-2
 
-[ntp-production:children]
+[keycloak:children]
+ntp-production-keycloak
+
+[swarm-agent-for-prometheus]
+# 10.0.0.9 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[swarm-agent-for-grafana]
+# 10.0.0.12 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[swarm-agent-for-alertmanager]
+# 10.0.0.9 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[non-swarm-nodes:children]
 mongodb
 es
 postgresql-master
@@ -145,9 +157,25 @@ postgresql-backup
 postgresql-restore
 cassandra
 kong-api
-swarm-bootstrap-manager
-swarm-manager
 log-es
-ntp-production-keycloak
 keycloak
 grafana-dashboards-import
+
+[swarm-nodes:children]
+swarm-manager
+swarm-bootstrap-manager
+swarm-agent-for-prometheus
+swarm-agent-for-grafana
+swarm-agent-for-alertmanager
+
+[node-exporter:children]
+non-swarm-nodes
+swarm-manager
+
+[log-forwarder:children]
+non-swarm-nodes
+swarm-manager
+
+[ntp-production:children]
+non-swarm-nodes
+swarm-nodes
