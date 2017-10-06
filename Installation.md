@@ -108,25 +108,24 @@ Included in the next demo
 - Run `sudo ./deploy-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will deploy keycloak service.
 - Follow the instructions [here](https://github.com/project-sunbird/sunbird-commons/wiki/Keycloak-realm-configuration) to setup auth realm in keycloak
 
+- Update following configs
 
-
-## Update sunbird config which uses keycloak.    
-                              
-**sunbird_sso_client_id**: keycloak client id           (used by actor service)                    
-**sunbird_sso_url**: url for keycloak server            (used by actor service)                     
-**sunbird_sso_realm**: keycloak realm name              (used by actor service)               
-**sunbird_sso_username**: keycloak user name            (used by actor service)                 
-**sunbird_sso_password**: keycloak password             (used by actor service)                
-**sunbird_sso_client_secret** : client secret (not mandatory)                               
-**sunbird_portal_auth_server_url**: authserver url      (used by player service)              
-**sunbird_portal_auth_server_client**:(string Eg)       (used by player service)                 
-**sunbird_trampoline_client_id**:                       (used by player service)                 
-**sunbird_trampoline_secret**:                          (used by player service)                      
-**sunbird_keycloak_authServerUrl**: auth server url     (used by content service)              
-**sunbird_keycloak_realm**:   keycloak realm            (used by content service)                
-**sunbird_keycloak_clientId**:  keycloak client id      (used by content service)                 
-**sunbird_keycloak_public**: sunbird keycloak public    (used by content service)                     
-
+```
+sunbird_sso_client_id**: keycloak client id           (used by actor service)
+sunbird_sso_url**: url for keycloak server            (used by actor service)
+sunbird_sso_realm**: keycloak realm name              (used by actor service)
+sunbird_sso_username**: keycloak user name            (used by actor service)
+sunbird_sso_password**: keycloak password             (used by actor service)
+sunbird_sso_client_secret** : client secret (not mandatory)
+sunbird_portal_auth_server_url**: authserver url      (used by player service)
+sunbird_portal_auth_server_client**:(string Eg)       (used by player service)
+sunbird_trampoline_client_id**:                       (used by player service)
+sunbird_trampoline_secret**:                          (used by player service)
+sunbird_keycloak_authServerUrl**: auth server url     (used by content service)
+sunbird_keycloak_realm**:   keycloak realm            (used by content service)
+sunbird_keycloak_clientId**:  keycloak client id      (used by content service)
+sunbird_keycloak_public**: sunbird keycloak public    (used by content service)
+```
 
 - Run `sudo ./deploy-core.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup all the sunbird core services.
 - Run `sudo ./deploy-proxy.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup sunbird proxy services.
