@@ -47,3 +47,27 @@ filebeat_apt_repo: "{{ filebeat_version|version_compare('5', '<')|ternary(filebe
 filebeat_repo_url_v1: https://packages.elastic.co/beats/yum/el/$basearch
 filebeat_repo_url_v5: https://artifacts.elastic.co/packages/5.x/yum
 filebeat_repo_url: "{{ filebeat_version|version_compare('5', '<')|ternary(filebeat_repo_url_v1, filebeat_repo_url_v5) }}"
+
+filebeat_logtsash_port: 5044
+filebeat_logtsash_host: localhost
+filebeat:
+  base_path: /etc/filebeat
+  config:
+    filebeat:
+      prospectors:
+        - paths:
+            - /var/log/syslog
+          input_type: log
+    output:
+      logstash:
+        hosts:
+          - "{{ filebeat_logtsash_host }}:{{ filebeat_logtsash_port }}"
+        timeout: 15
+    logging:
+        level: debug
+        to_files: true
+        to_syslog: false
+        files:
+            path: /tmp/filebeat
+            name: filebeat.log
+            keepfiles: 7
