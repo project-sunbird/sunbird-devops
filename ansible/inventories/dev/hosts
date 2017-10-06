@@ -68,7 +68,6 @@ postgresql-master
 dev-keycloak1
 dev-keycloak2
 
-
 [swarm-agent-docker-prune]
 localhost ansible_connection=local
 
@@ -129,7 +128,16 @@ dev-cassandra-1
 dev-keycloak-1
 dev-keycloak-2
 
-[dev:children]
+[swarm-agent-for-prometheus]
+10.0.0.9 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[swarm-agent-for-grafana]
+10.0.0.12 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[swarm-agent-for-alertmanager]
+10.0.0.9 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[non-swarm-nodes:children]
 postgresql-master
 postgresql-slave
 postgresql-backup
@@ -137,9 +145,30 @@ postgresql-restore
 mongodb
 es
 cassandra
-kong-api
-swarm-bootstrap-manager
 log-es
 keycloak
+
+[local-task-runners:children]
+kong-api
 grafana-dashboards-export
 grafana-dashboards-import
+
+[swarm-nodes:children]
+swarm-manager
+swarm-bootstrap-manager
+swarm-agent-for-prometheus
+swarm-agent-for-grafana
+swarm-agent-for-alertmanager
+
+[node-exporter:children]
+non-swarm-nodes
+swarm-manager
+
+[log-forwarder:children]
+non-swarm-nodes
+swarm-manager
+
+[dev:children]
+non-swarm-nodes
+swarm-nodes
+local-task-runners
