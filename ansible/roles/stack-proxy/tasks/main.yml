@@ -36,13 +36,22 @@
   shell: "docker stack rm {{image_name}}-{{env}}"
   ignore_errors: yes
 
-- name: Remove proxy stack
+- name: Remove stack
   shell: "docker stack rm proxy"
   ignore_errors: yes
 
 - name: Ensure network exists
   shell: "docker network create --driver overlay proxy_default"
   ignore_errors: true
+
+- name: Remove docker secrets {{ item.name }}
+  shell: "docker secret inspect {{ item.name }} || docker secret rm {{ item.name }}"
+  with_items: "{{ proxy_secrets }}"
+
+- name: Create docker secrets {{ item.name }}
+  shell: "echo '{{item.value}}' | docker secret create {{item.name}} -"
+  with_items: "{{ proxy_secrets }}"
+  no_log: true
 
 - name: Remove old nginx.conf docker config
   shell: "docker config rm nginx.conf"
