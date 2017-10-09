@@ -5,7 +5,8 @@ COPY ./images/keycloak/standalone-ha.xml  /opt/jboss/keycloak/standalone/configu
 COPY ./images/keycloak/postgresql-9.4.1212.jar /opt/jboss/keycloak/modules/system/layers/keycloak/org/postgresql/main/
 COPY ./images/keycloak/module.xml /opt/jboss/keycloak/modules/system/layers/keycloak/org/postgresql/main/
 COPY ./images/keycloak/docker-entrypoint.sh /opt/jboss/
-
-ENTRYPOINT ["/opt/jboss/docker-entrypoint.sh"]
+ARG username
+ARG password
+ENTRYPOINT ["/opt/jboss/docker-entrypoint.sh", "$username", "$password"]
 
 CMD ["--server-config", "standalone-ha.xml"]
