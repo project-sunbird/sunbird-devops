@@ -8,19 +8,19 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                sh('./pipelines/setupDevopsCodeOldStructure.sh')
+                sh('./pipelines/setupDevopsCode.sh')
             }
         }
         stage('Pre-Build'){
             steps {
-                sh('./ansible/installDeps.sh')
+                sh('./sunbird-devops/ansible/installDeps.sh')
             }
         }
         stage('Deploy') {
             steps {
                 sh '''
-                cd ansible
-                ansible-playbook -i inventory/staging postgresql-restore.yml --extra-vars "postgresql_restore_gzip_file_name=${postgresql_restore_gzip_file_name}" --vault-password-file /run/secrets/vault-pass
+                cd sunbird-devops/ansible
+                ansible-playbook -i ../../ansible/inventories/staging postgresql-restore.yml --extra-vars "postgresql_restore_gzip_file_name=${postgresql_restore_gzip_file_name}" --vault-password-file /run/secrets/vault-pass
                 '''
             }
         }

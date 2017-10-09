@@ -7,18 +7,18 @@ node('general-staging') {
     try {
        stage('Checkout'){
           checkout scm
-          sh('./pipelines/setupDevopsCodeOldStructure.sh')
+          sh('./pipelines/setupDevopsCode.sh')
        }
 
        stage('Pre-Build'){
-         sh('./ansible/installDeps.sh')
+         sh('./sunbird-devops/ansible/installDeps.sh')
        }
 
        stage('Deploy'){
         step ([$class: 'CopyArtifact',
             projectName: 'Tag_As_Silver/Echo_Server_Tag_Silver',
             filter: 'metadata.json']);
-        sh 'METADATA_FILE=metadata.json ENV=staging ./pipelines/api-manager/deployOldStructure.sh'
+        sh 'METADATA_FILE=metadata.json ENV=staging ./pipelines/api-manager/deploy.sh'
         archive includes: "metadata.json"
        }
     }
