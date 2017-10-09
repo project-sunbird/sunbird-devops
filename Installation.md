@@ -110,19 +110,19 @@ Included in the next demo
 
 - Update following configs
 
-```
-Login to the keycloak admin console, goto the clients->admin-cli->Installation->Select json format 
-sunbird_sso_client_id**: Eg:admin-cli keycloak client id         
-sunbird_sso_username**: EG:keycloak user name            
-sunbird_sso_password**: EG:password keycloak password    
+```yml
+# Login to the keycloak admin console, goto the clients->admin-cli->Installation->Select json format
+sunbird_sso_client_id: # Eg: admin-cli
+sunbird_sso_username: # keycloak user name
+sunbird_sso_password: # keycloak user password
 
-Login to the keycloak admin console, goto the clients->portal->Installation->Select json format 
-keycloak_realm: Eg:sunbird    
-sunbird_keycloak_client_id**: Eg:portal keycloak client id 
+# Login to the keycloak admin console, goto the clients->portal->Installation->Select json format
+keycloak_realm:  # Eg: sunbird
+sunbird_keycloak_client_id: # Eg: portal
 
-Login to the keycloak admin console, goto the clients->trampoline->Installation->Select json format 
-sunbird_trampoline_client_id**:  Eg:trampoline
-sunbird_trampoline_secret**:     Eg:HJKDHJEHbdggh23737  
+# Login to the keycloak admin console, goto the clients->trampoline->Installation->Select json format
+sunbird_trampoline_client_id:  # Eg: trampoline
+sunbird_trampoline_secret:     # Eg: HJKDHJEHbdggh23737
 ```
 
 - Run `sudo ./deploy-core.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup all the sunbird core services.
