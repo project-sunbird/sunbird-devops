@@ -5,22 +5,22 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                sh('./pipelines/setupDevopsCodeOldStructure.sh')
+                sh('./pipelines/setupDevopsCode.sh')
             }
         }
 
         stage('Pre-Build'){
             steps {
-                sh('./ansible/installDeps.sh')
+                sh('./sunbird-devops/ansible/installDeps.sh')
             }
         }
 
         stage('Deploy') {
             steps {
                 sh '''
-                cd ansible
+                cd sunbird-devops/ansible
                 cat provision.yml
-                ansible-playbook -i inventory/ntp-staging provision.yml --tags es --vault-password-file /run/secrets/vault-pass
+                ansible-playbook -i ../../ansible/inventories/ntp-staging provision.yml --tags es --vault-password-file /run/secrets/vault-pass
                 '''
             }
         }
