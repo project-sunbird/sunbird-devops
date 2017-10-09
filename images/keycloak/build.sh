@@ -11,4 +11,4 @@ org=$(e "${m}" "org")
 name=$(e "${m}" "name")
 version=$(e "${m}" "version")
 
-docker build -f ./images/keycloak/Dockerfile -t ${org}/${name}:${version}-bronze  --build-arg username=$1 --build-arg password=$2 .
+docker build -f ./images/keycloak/Dockerfile -t ${org}/${name}:${version}-bronze
