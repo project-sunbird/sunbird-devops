@@ -118,7 +118,7 @@ sunbird_sso_password**: EG:password keycloak password
 
 Login to the keycloak admin console, goto the clients->portal->Installation->Select json format 
 keycloak_realm: Eg:sunbird    
-sunbird_keycloak_clientId**: Eg:portal keycloak client id 
+sunbird_keycloak_client_d**: Eg:portal keycloak client id 
 
 Login to the keycloak admin console, goto the clients->trampoline->Installation->Select json format 
 sunbird_trampoline_client_id**:  Eg:trampoline
