@@ -152,6 +152,21 @@ scrape_configs:
       - target_label: __address__
         replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
 
+  - job_name: 'availability_monit'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]  # Look for a HTTP 200 response.
+    static_configs:
+    - targets:
+      - http://{{ groups['swarm-bootstrap-manager'][0] }}:2812
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
+
   - job_name: 'availability_dashboard_oauth'
     metrics_path: /probe
     params:
