@@ -1,6 +1,5 @@
 #!/bin/sh
 
-MONIT_GROUP="{{ group_names }}"
 MONIT_IP="{{ inventory_hostname }}"
 
 /usr/bin/curl \
