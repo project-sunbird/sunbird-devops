@@ -1,0 +1,282 @@
+# ENVIRONMENT CONFIGURATION
+env: ntp-production #Name of the environment, e.g. staging, staging or production.
+proxy_server_name: diksha.gov.in #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
+proxy_site_key: "{{ vault_proxy_site_key }}"  #SSL certificate's site.key file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
+proxy_site_crt: "{{ vault_proxy_site_crt }}"  #SSL certificate's site.crt file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
+
+
+# DB CONFIGURATION
+
+## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
+application_postgres_password: "{{vault_application_postgres_password}}"   #Password for Application database.
+keycloak_postgres_password: "{{vault_keycloak_postgres_password}}"  #Password for Keycloak (Authentication service) database.
+kong_postgres_password:  "{{ vault_kong_postgres_password }}"         #Password for Kong (API Manager) database.
+
+## Postgres configuration
+swarm_address_space: 10.1.0.0/16  #Application server address space (e.g. 10.3.0.0/24), also the agentpublicSubnet if using Azure scripts provided
+keycloak_address_space: 10.113.1.0/24
+postgres_address_space: 10.11.0.0/24
+
+## Cassandra configuration
+cassandra_server_private_ip: 10.11.4.4 #Private IP of cassandra server
+keystore_password: "{{vault_keystore_password}}"  #Password to use for encrypting cassandra keystore. Use a strong password.
+truststore_password: "{{vault_truststore_password}}"  #Password to use for encrypting cassandra truststore. Use a strong password.
+
+# APPLICATION CONFIGURATION
+
+kong_host: api-manager_kong
+
+## DB address
+application_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
+keycloak_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
+kong_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
+sunbird_mongo_ip: 10.11.2.6 #Private IP of Mongo DB server
+sunbird_cassandra_host: "{{ cassandra_server_private_ip }}"  #Private IP of Cassandra server
+sunbird_es_host: 10.11.1.5,10.11.1.7,10.11.1.6   #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
+
+## Application server configurations
+sunbird_ekstep_api_base_url: https://api.ekstep.in  #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
+sunbird_ekstep_proxy_base_url: https://community.ekstep.in  #Base URL of the Ekstep environment. Use `https://qa.ekstep.in/` for non-prod deployments, and `https://community.ekstep.in/` for prod deployment.
+sunbird_env: prod #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
+sunbird_mail_server_host: "{{ mail_server_host }}"  #SMTP server IP. Could be ignored if not mails are to be sent.
+sunbird_mail_server_port: "{{ mail_server_port }}" #SMTP port. Could be ignored if not mails are to be sent.
+sunbird_mail_server_username: "{{ mail_server_username }}"  #SMTP username. Could be ignored if not mails are to be sent.
+sunbird_mail_server_password: "{{ mail_server_password }}"  #SMTP server pasword. Could be ignored if not mails are to be sent.
+sunbird_mail_server_from_email: support@diksha.gov.in #Email ID that should be as from address in mails
+
+## Keycloak (auth server) login details
+sunbird_sso_username: "{{ vault_sunbird_sso_username }}"
+sunbird_sso_password: "{{ vault_sunbird_sso_password }}"
+
+## Content Repo configuration
+sunbird_api_auth_token: "{{ vault_sunbird_api_auth_token }}" #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
+sunbird_ekstep_api_key: "{{ vault_sunbird_ekstep_api_key }}" #Authorization key (JWT) to access Ekstep APIs. Steps to generate this are documented on https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs
+sunbird_trampoline_secret: "{{ vault_sunbird_trampoline_secret }}"
+
+# ADVANCED CONFIGURATIONS
+
+cassandra_listen_address: "{{ cassandra_server_private_ip }}"
+cassandra_seeds: "{{ cassandra_server_private_ip }}"
+cassandra_broadcast_rpc_address: "{{ cassandra_server_private_ip }}"
+cassandra_broadcast_address: "{{ cassandra_server_private_ip }}"
+cassandra_listen_interface: ''
+cassandra_log_dir: '/var/log/cassandra'
+cassandra_root_dir: '/etc/cassandra'
+cassandra_version: '3.9'
+cassandra_port: 9042
+cassandra_rpc_address: 0.0.0.0
+cassandra_restore_dir: /home/deployer/
+cassandra_backup_azure_container_name: cassandra-backup
+cassandra_backup_azure_storage_account_name: "{{ backup_storage_name }}"
+cassandra_backup_azure_storage_access_key: "{{backup_storage_key}}"
+cassandra_backup_dir: /data/cassandra/backup
+
+keycloak_admin_username: admin
+keycloak_admin_password: "{{ vault_keycloak_admin_password }}"
+keycloak_url: http://52.172.204.23
+
+keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth/"
+keycloak_realm: sunbird
+sunbird_content_player_url: "https://{{ proxy_server_name }}/api/"
+sunbird_learner_player_url: "https://{{ proxy_server_name }}/api/"
+sunbird_sso_client_id: admin-cli
+sunbird_mongo_port: 27017
+sunbird_mongodb_port: 27017
+sunbird_portal_realm: sunbird
+sunbird_portal_auth_server_client: portal
+sunbird_trampoline_client_id: trampoline
+sunbird_appid: sunbird_portal
+sunbird_default_tenant: sunbird
+sunbird_echo_api_url: "https://{{ proxy_server_name }}/api/echo/"
+sunbird_pg_host: "{{ application_postgres_host }}"
+sunbird_pg_port: 5432
+sunbird_pg_db: quartz
+sunbird_pg_user: quartz
+sunbird_pg_password: "{{ application_postgres_password }}"
+sunbird_installation: ntp
+sunbird_account_name:
+sunbird_account_key: "{{ vault_sunbird_account_key }}"
+sunbird_encryption_mode: local
+sunbird_cassandra_urls: "{{ cassandra_server_private_ip }}:{{ cassandra_port }}"
+sunbird_session_store_type: cassandra
+sunird_web_url: "https://{{ proxy_server_name }}"
+sunbird_portal_title_name:
+sunbird_keycloak_client_id:
+sunbird_keycloak_public:
+sunbird_cache_store:
+sunbird_cache_ttl:
+sunbird_env_logo_url: http://www.paramountias.com/media/images/current-affairs/diksha-portal.jpg
+
+project: ntp
+application_postgres_database: quartz
+application_postgres_user: quartz
+keycloak_postgres_database: keycloak
+keycloak_postgres_user: keycloak
+
+## elasticsearch configurations
+
+es_version: 5.4.3
+es_java_install: false
+es_api_host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+es_config: {
+    node.name: "{{ es_instance_name }}",
+    cluster.name: "{{ es_etc_cluster_name }}",
+    network.host: "{{ es_api_host }}",
+    discovery.zen.ping.unicast.hosts: "{{ groups['es'] }}",
+    node.data: "{{ es_etc_node_data }}",
+    node.master: "{{ es_etc_node_master }}",
+    discovery.zen.minimum_master_nodes: "{{ es_etc_discovery_zen_minimum_master_nodes }}",
+    bootstrap.memory_lock: true,
+    cloud.azure.storage.my_account: {
+      account: "{{ backup_storage_name }}",
+      key: "{{ backup_storage_key }}"
+    }
+}
+es_plugins:
+  - plugin: repository-azure
+es_plugins_reinstall: true
+es_snapshot_host: "{{ groups['es-backup'][0] }}"
+es_restore_host: "{{ groups['es-backup'][0] }}"
+snapshot_base_path: application
+
+## Cassandra download URI
+cassandra_repo: 'deb http://www.apache.org/dist/cassandra/debian 39x main'
+cassandra_repo_key: 'https://www.apache.org/dist/cassandra/KEYS'
+
+#API Manager
+kong_postgres_port: 5432
+kong_postgres_user: api_manager_production
+kong_postgres_database: api_manager_production
+
+es_curl_host: 10.11.1.5
+
+## Logging details
+syslog:
+    host: 172.16.1.5
+    port: 51415
+
+## PostgreSQL config
+postgresql_users:
+  - name: "{{ postgres_replication_user_name }}"
+    password: "{{ postgres_replication_user_password }}"
+    role_attr_flags: REPLICATION
+  - name: "{{ postgres_exporter_user }}"
+    password: "{{ postgres_exporter_password }}"
+    role_attr_flags: SUPERUSER
+  - name: "{{kong_postgres_user}}"
+    password: "{{kong_postgres_password}}"
+    db: "{{kong_postgres_database}}"
+    priv: "ALL"
+  - name: "{{keycloak_postgres_user}}"
+    password: "{{keycloak_postgres_password}}"
+    db: "{{keycloak_postgres_database}}"
+    priv: "ALL"
+  - name: "{{application_postgres_user}}"
+    password: "{{application_postgres_password}}"
+    db: "{{application_postgres_database}}"
+    priv: "ALL"
+
+ansible_vault_password: "{{ vault_ansible_vault_password }}"
+docker_hub_password: "{{ vault_docker_hub_password }}"
+jenkins_slave_jenkins_username: "{{ vault_jenkins_slave_jenkins_username }}"
+jenkins_slave_jenkins_password: "{{ vault_jenkins_slave_jenkins_password }}"
+ops_private_key: "{{ vault_ops_private_key }}"
+deployer_ssh_key: "{{ vault_deployer_ssh_key }}"
+proxy_prometheus_admin_creds: "{{ vault_proxy_prometheus_admin_creds }}"
+
+# ADDITIONAL CONFIGURATION
+backup_storage_name: "ntpbackupsproduction"
+prometheus_storage_retention_time: 72h0m0s
+curl_host: "{{ proxy_server_name }}"
+
+mail_server_host: smtp.sendgrid.net
+mail_server_port: 587
+mail_server_username: azure_ed5bc89bbca87e5b61581f8013451090@azure.com
+mail_server_password: "{{ vault_mail_server_password }}"
+
+logger_es_host: "{{ groups['ntp-production-log-es'][0] }}"
+logger_es_port: 9200
+
+kibana_oauth_redirect_url: "https://{{ proxy_server_name }}/oauth2/callback"
+slack_channel: ntp-production-alert
+keycloak: True
+
+api__host: "{{ proxy_server_name }}"
+
+proxy_replicas: 2
+proxy_reservation_memory: 32M
+proxy_limit_memory: 128M
+kong_replicas: 3
+kong_reservation_memory: 64M
+kong_limit_memory: 256M
+echo_service_replicas: 2
+echo_service_reservation_memory: 8M
+echo_service_limit_memory: 16M
+adminutil_replicas: 2
+adminutil_reservation_memory: 512M
+adminutil_limit_memory: 1024M
+
+actor_replicas: 1
+actor_reservation_memory: 768M
+actor_limit_memory: 2048M
+learner_replicas: 1
+learner_reservation_memory: 256M
+learner_limit_memory: 1024M
+player_replicas: 2
+player_reservation_memory: 64M
+player_limit_memory: 512M
+content_replicas: 2
+content_reservation_memory: 64M
+content_limit_memory: 512M
+
+monitor_es_host: "{{ groups['es'][0] }}"
+
+swarm_load_balancer: 10.1.0.100
+filebeat_logtsash_host: "{{ swarm_load_balancer }}"
+
+expected_minimum_logs_per_minute: 50
+
+enable_scraping_docker_metrics: true
+
+postgres_exporter_postgres_port: 5432
+postgres_exporter_user: postgres_exporter
+postgres_exporter_password: "{{ vault_postgres_exporter_password }}"
+sunbird_learner_service_base_url: "https://{{ proxy_server_name }}/api"
+kong_admin_api_url: http://api-manager_kong:8001
+
+postgresql_backup_azure_storage_account_name: "{{ backup_storage_name }}"
+postgresql_backup_azure_storage_access_key: "{{ backup_storage_key }}"
+postgresql_restore_azure_storage_account_name: "{{ backup_storage_name }}"
+postgresql_restore_azure_storage_access_key: "{{ backup_storage_key }}"
+
+grafana_url: "https://{{ proxy_server_name }}/grafana"
+grafana_editor_username: editor
+
+mongo_backup_azure_container_name: mongo-backup
+mongo_backup_azure_storage_account_name: "{{ backup_storage_name }}"
+mongo_backup_azure_storage_access_key: "{{backup_storage_key}}"
+mongo_backup_dir: /home/deployer/mongo-backups
+
+app_alerts_mailing_list: "rayulu@ilimi.in, harishg@ilimi.in, manzarul.haque@tarento.com,{{devops_alerts_mailing_list}}"
+devops_alerts_mailing_list: "deepakn@sahajsoft.com, kirang@sahajsoft.com, manojv@ilimi.in, shashankt@sahajsoft.com, mathew.pallan@tarento.com"
+monitor_alerts_mail_to_email: "deepakn@sahajsoft.com, kirang@sahajsoft.com, manojv@ilimi.in, shashankt@sahajsoft.com, rayulu@ilimi.in, harishg@ilimi.in, manzarul.haque@tarento.com"
+site_alerts_mailing_list: "shailesh@ekstepplus.org, ashwin@tekditechnologies.com, lakhan_m@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
+
+jenkins_url: http://10.20.0.4:8080/jenkins
+
+kibana_oauth_authenticated_email_domains:
+  - ekstep.org
+  - sahajsoft.com
+  - ilimi.in
+  - tarento.com
+
+kibana_oauth_authenticated_email_ids:
+  - shailesh.kochhar@gmail.com
+  - vijetha.nayak@riflexions.com
+
+monitor_alerts_mail_from_email: alerts@ntp.net.in
+monitor_alerts_mail_server_host: "{{ mail_server_host }}"
+monitor_alerts_mail_server_port: "{{ mail_server_port }}"
+monitor_alerts_mail_server_username: "{{ mail_server_username }}"
+monitor_alerts_mail_server_password: "{{ mail_server_password }}"
+env_short_name: production
