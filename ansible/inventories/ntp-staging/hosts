@@ -1,0 +1,182 @@
+[ntp-staging-postgresql-1]
+10.10.0.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[ntp-staging-postgresql-2]
+10.10.0.6 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[ntp-staging-postgresql-master:children]
+ntp-staging-postgresql-1
+
+[postgresql-master:children]
+ntp-staging-postgresql-master
+
+[ntp-staging-postgresql-slave:children]
+ntp-staging-postgresql-2
+
+[postgresql-slave:children]
+ntp-staging-postgresql-slave
+
+[postgresql-backup:children]
+postgresql-master
+
+[postgresql-restore:children]
+postgresql-master
+
+[ntp-staging-mongodb-1]
+10.10.2.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}" config=yes type=config
+
+[ntp-staging-mongodb-2]
+10.10.2.7 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}" query=yes type=query
+
+[ntp-staging-mongodb-3]
+10.10.2.6 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}" shard=yes type=shard1
+
+[ntp-staging-mongodb-4]
+10.10.2.8 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}" shard=yes type=shard2
+
+[ntp-staging-cassandra-1]
+10.10.4.4  swarm_master=false ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[ntp-staging-es-1]
+10.10.1.4 ansible_ssh_user=deployer es_instance_name=staging-es-1 es_etc_node_master=true es_etc_node_data=true ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[ntp-staging-es-2]
+10.10.1.5 ansible_ssh_user=deployer es_instance_name=staging-es-2 es_etc_node_master=true es_etc_node_data=true ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[ntp-staging-es-3]
+10.10.1.6 ansible_ssh_user=deployer es_instance_name=staging-es-3 es_etc_node_master=true es_etc_node_data=true ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[ntp-staging-log-es-1]
+10.10.0.5 ansible_ssh_user=deployer node_name=ntp-staging-log-es-1 es_etc_node_master=true es_etc_node_data=true ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[ntp-staging-cassandra-1]
+10.10.4.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[ntp-staging-swarm-bootstrap-manager]
+172.16.0.5 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[ntp-staging-swarm-manager]
+172.16.0.5 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[ntp-staging-keycloak-1]
+10.113.0.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[ntp-staging-keycloak-2]
+10.113.0.7 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[staging-keycloak1]
+10.113.0.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[staging-keycloak2]
+10.113.0.7 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[staging-keycloak1:vars]
+ip = 10.113.0.4
+
+[staging-keycloak2:vars]
+ip = 10.113.0.7
+
+[keycloak:children]
+staging-keycloak1
+staging-keycloak2
+
+[swarm-agent-docker-prune]
+localhost ansible_connection=local
+
+[ntp-staging-kong-api]
+localhost ansible_connection=local
+
+[staging-grafana-dashboards-import]
+localhost ansible_connection=local
+
+[grafana-dashboards-import:children]
+staging-grafana-dashboards-import
+
+[kong-api:children]
+ntp-staging-kong-api
+
+[swarm-bootstrap-manager:children]
+ntp-staging-swarm-bootstrap-manager
+
+[swarm-manager:children]
+ntp-staging-swarm-manager
+
+[mongodb:children]
+ntp-staging-mongodb-1
+ntp-staging-mongodb-2
+ntp-staging-mongodb-3
+ntp-staging-mongodb-4
+
+[ntp-staging-es:children]
+ntp-staging-es-1
+ntp-staging-es-2
+ntp-staging-es-3
+
+[ntp-staging-keycloak:children]
+ntp-staging-keycloak-1
+ntp-staging-keycloak-2
+
+[es:children]
+ntp-staging-es
+
+[ntp-staging-log-es:children]
+ntp-staging-log-es-1
+
+[log-es:children]
+ntp-staging-log-es
+
+[log-es-backup:children]
+ntp-staging-log-es-1
+
+[es-backup:children]
+ntp-staging-es-1
+
+[ntp-staging-cassandra:children]
+ntp-staging-cassandra-1
+
+[cassandra:children]
+ntp-staging-cassandra
+
+[swarm-agent-for-prometheus]
+10.0.0.5 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[swarm-agent-for-grafana]
+10.0.0.5 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[swarm-agent-for-alertmanager]
+10.0.0.7 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[non-swarm-nodes:children]
+mongodb
+es
+postgresql-master
+postgresql-slave
+postgresql-backup
+postgresql-restore
+cassandra
+log-es
+keycloak
+
+[local-task-runners:children]
+kong-api
+grafana-dashboards-import
+
+[swarm-nodes:children]
+swarm-manager
+swarm-bootstrap-manager
+swarm-agent-for-prometheus
+swarm-agent-for-grafana
+swarm-agent-for-alertmanager
+
+[node-exporter:children]
+non-swarm-nodes
+swarm-manager
+
+[log-forwarder:children]
+non-swarm-nodes
+swarm-manager
+
+[ntp-staging:children]
+non-swarm-nodes
+swarm-nodes
+local-task-runners

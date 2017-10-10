@@ -1,6 +1,6 @@
 # ENVIRONMENT CONFIGURATION
-env: staging #Name of the environment, e.g. staging, staging or production.
-proxy_server_name: staging.open-sunbird.org #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
+env: ntp-staging #Name of the environment, e.g. staging, staging or production.
+proxy_server_name: staging.ntp.net.in #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
 proxy_site_key: "{{ vault_proxy_site_key }}"  #SSL certificate's site.key file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 proxy_site_crt: "{{ vault_proxy_site_crt }}"  #SSL certificate's site.crt file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 
@@ -13,12 +13,12 @@ keycloak_postgres_password: "{{vault_keycloak_postgres_password}}"  #Password fo
 kong_postgres_password:  "{{ vault_kong_postgres_password }}"         #Password for Kong (API Manager) database.
 
 ## Postgres configuration
-swarm_address_space: 10.1.0.0/16  #Application server address space (e.g. 10.3.0.0/24), also the agentpublicSubnet if using Azure scripts provided
-keycloak_address_space: 10.113.1.0/24
-postgres_address_space: 10.11.0.0/24
+swarm_address_space: 10.0.0.0/16  #Application server address space (e.g. 10.3.0.0/24), also the agentpublicSubnet if using Azure scripts provided
+keycloak_address_space: 10.113.0.0/24
+postgres_address_space: 10.10.0.0/24
 
 ## Cassandra configuration
-cassandra_server_private_ip: 10.11.4.4 #Private IP of cassandra server
+cassandra_server_private_ip: 10.10.4.4 #Private IP of cassandra server
 keystore_password: "{{vault_keystore_password}}"  #Password to use for encrypting cassandra keystore. Use a strong password.
 truststore_password: "{{vault_truststore_password}}"  #Password to use for encrypting cassandra truststore. Use a strong password.
 
@@ -32,7 +32,7 @@ keycloak_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Po
 kong_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
 sunbird_mongo_ip: 10.11.2.5 #Private IP of Mongo DB server
 sunbird_cassandra_host: "{{ cassandra_server_private_ip }}"  #Private IP of Cassandra server
-sunbird_es_host: 10.11.3.4,10.11.3.5,10.11.3.6   #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
+sunbird_es_host: 10.10.1.4,10.10.1.5,10.10.1.6   #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
 
 ## Application server configurations
 sunbird_ekstep_api_base_url: https://qa.ekstep.in/api  #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
@@ -42,13 +42,11 @@ sunbird_mail_server_host: "{{ mail_server_host }}"  #SMTP server IP. Could be ig
 sunbird_mail_server_port: "{{ mail_server_port }}" #SMTP port. Could be ignored if not mails are to be sent.
 sunbird_mail_server_username: "{{ mail_server_username }}"  #SMTP username. Could be ignored if not mails are to be sent.
 sunbird_mail_server_password: "{{ mail_server_password }}"  #SMTP server pasword. Could be ignored if not mails are to be sent.
-sunbird_mail_server_from_email: support-staging@open-sunbird.org #Email ID that should be as from address in mails
+sunbird_mail_server_from_email: support-staging@ntp.net.in #Email ID that should be as from address in mails
 
 ## Keycloak (auth server) login details
 sunbird_sso_username: "{{ vault_sunbird_sso_username }}"
 sunbird_sso_password: "{{ vault_sunbird_sso_password }}"
-keycloak_admin_username: admin
-keycloak_admin_password: "{{ vault_keycloak_admin_password }}"
 
 ## Content Repo configuration
 sunbird_api_auth_token: "{{ vault_sunbird_api_auth_token }}" #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
@@ -73,7 +71,9 @@ cassandra_backup_azure_storage_account_name: "{{ backup_storage_name }}"
 cassandra_backup_azure_storage_access_key: "{{backup_storage_key}}"
 cassandra_backup_dir: /data/cassandra/backup
 
-keycloak_url: http://10.113.1.7
+keycloak_admin_username: admin
+keycloak_admin_password: "{{ vault_keycloak_admin_password }}"
+keycloak_url: http://52.172.195.214
 
 keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth"
 keycloak_realm: sunbird
@@ -103,15 +103,15 @@ sunbird_encryption_mode: local
 sunbird_cassandra_urls: "{{ cassandra_server_private_ip }}:{{ cassandra_port }}"
 sunbird_session_store_type: cassandra
 sunird_web_url: "https://{{ proxy_server_name }}"
-sunbird_portal_title_name: portal
-sunbird_keycloak_realm: 'sunbird'
-sunbird_keycloak_client_id: 'portal'
-sunbird_keycloak_public: true
-sunbird_cache_store: 'memory'
-sunbird_cache_ttl: 1800
+sunbird_portal_title_name:
+sunbird_keycloak_realm:
+sunbird_keycloak_client_id:
+sunbird_keycloak_public:
+sunbird_cache_store:
+sunbird_cache_ttl:
 sunbird_env_logo_url: http://www.paramountias.com/media/images/current-affairs/diksha-portal.jpg
 
-project: sunbird
+project: ntp
 application_postgres_database: quartz
 application_postgres_user: quartz
 keycloak_postgres_database: keycloak
@@ -152,11 +152,11 @@ kong_postgres_port: 5432
 kong_postgres_user: api_manager_staging
 kong_postgres_database: api_manager_staging
 
-es_curl_host: 10.11.3.4
+es_curl_host: 10.10.1.4
 
 ## Logging details
 syslog:
-    host: 172.16.1.5
+    host: 172.16.0.5
     port: 51415
 
 ## PostgreSQL config
@@ -189,20 +189,20 @@ deployer_ssh_key: "{{ vault_deployer_ssh_key }}"
 proxy_prometheus_admin_creds: "{{ vault_proxy_prometheus_admin_creds }}"
 
 # ADDITIONAL CONFIGURATION
-backup_storage_name: "sunbirdbackupsstaging"
+backup_storage_name: "ntpbackupsstaging"
 prometheus_storage_retention_time: 72h0m0s
 curl_host: "{{ proxy_server_name }}"
 
 mail_server_host: smtp.sendgrid.net
 mail_server_port: 587
-mail_server_username: azure_4cff8295c6371012454e62016f063db6@azure.com
+mail_server_username: azure_9f4958288fdb111362201640e638d7ed@azure.com
 mail_server_password: "{{ vault_mail_server_password }}"
 
-logger_es_host: "{{ groups['staging-log-es'][0] }}"
+logger_es_host: "{{ groups['ntp-staging-log-es'][0] }}"
 logger_es_port: 9200
 
 kibana_oauth_redirect_url: "https://{{ proxy_server_name }}/oauth2/callback"
-slack_channel: sunbird-staging-alert
+slack_channel: ntp-staging-alert
 keycloak: True
 
 api__host: "{{ proxy_server_name }}"
@@ -223,35 +223,22 @@ adminutil_limit_memory: 1024M
 actor_replicas: 2
 actor_reservation_memory: 768M
 actor_limit_memory: 1024M
-
 learner_replicas: 2
 learner_reservation_memory: 256M
 learner_limit_memory: 512M
-
 player_replicas: 2
 player_reservation_memory: 64M
-player_limit_memory: 256M
-
+player_limit_memory: 512M
 content_replicas: 2
 content_reservation_memory: 64M
-content_limit_memory: 256M
-
-keycloak1_replicas: 1
-keycloak1_reservation_memory: 768M
-keycloak1_limit_memory: 1024M
-
-keycloak2_replicas: 1
-keycloak2_reservation_memory: 768M
-keycloak2_limit_memory: 1024M
+content_limit_memory: 512M
 
 monitor_es_host: "{{ groups['es'][0] }}"
 
-swarm_load_balancer: 10.1.0.100
+swarm_load_balancer: 10.0.0.100
 filebeat_logtsash_host: "{{ swarm_load_balancer }}"
 
 expected_minimum_logs_per_minute: 50
-
-proxy_prometheus: true
 
 enable_scraping_docker_metrics: true
 
@@ -286,8 +273,7 @@ kibana_oauth_authenticated_email_ids:
   - shailesh.kochhar@gmail.com
   - vijetha.nayak@riflexions.com
 
-static_site_url: http://open-sunbird.org/
-monitor_alerts_mail_from_email: alerts@open-sunbird.org
+monitor_alerts_mail_from_email: alerts@ntp.net.in
 monitor_alerts_mail_server_host: "{{ mail_server_host }}"
 monitor_alerts_mail_server_port: "{{ mail_server_port }}"
 monitor_alerts_mail_server_username: "{{ mail_server_username }}"
