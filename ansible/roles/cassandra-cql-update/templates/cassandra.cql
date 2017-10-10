@@ -545,4 +545,5 @@ CREATE TABLE IF NOT EXISTS sunbird.media_type(id text, name text, PRIMARY KEY (i
 
 insert into media_type(id,name) values('fb', 'facebook');
 insert into media_type(id,name) values('twitter','twitter');
-insert into media_type(id,name) values('in','linkedin'); 
+insert into media_type(id,name) values('in','linkedin');
+insert into media_type(id,name) values('blog','blog'); 
