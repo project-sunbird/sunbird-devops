@@ -5,20 +5,20 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                sh('./pipelines/setupDevopsCodeOldStructure.sh')
+                sh('./pipelines/setupDevopsCode.sh')
             }
         }
         stage('Pre-Build'){
             steps {
-                sh('./ansible/installDeps.sh')
+                sh('./sunbird-devops/ansible/installDeps.sh')
             }
         }
         stage('Deploy') {
             steps {
                 sh '''
-                cd ansible
-                ansible-playbook -i inventory/ntp-performance postgresql-slave-to-master-promotion.yml --tags ensure-postgresql-master-stopped --vault-password-file /run/secrets/vault-pass || echo "Ignoring error while stopping master"
-                ansible-playbook -i inventory/ntp-performance postgresql-slave-to-master-promotion.yml --tags postgresql-slave-to-master-promotion --vault-password-file /run/secrets/vault-pass
+                cd sunbird-devops/ansible
+                ansible-playbook -i ../../ansible/inventories/ntp-performance postgresql-slave-to-master-promotion.yml --tags ensure-postgresql-master-stopped --vault-password-file /run/secrets/vault-pass || echo "Ignoring error while stopping master"
+                ansible-playbook -i ../../ansible/inventories/ntp-performance postgresql-slave-to-master-promotion.yml --tags postgresql-slave-to-master-promotion --vault-password-file /run/secrets/vault-pass
                 '''
             }
         }
