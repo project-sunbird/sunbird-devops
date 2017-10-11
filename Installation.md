@@ -105,6 +105,7 @@ Included in the next demo
 - Update `sunbird_api_auth_token` in your configuration with the above copied token.
 - Obtain API token from Ekstep platform by following steps listed [here](https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs)
 - Update `sunbird_ekstep_api_key` in your configuration with the API token obtained from ekstep portal.
+- Update `keycloak_admin_initial_password` value in the config `<implementation-name>-devops/ansible/inventories/<environment-name>/group_vars/<environment-name>`.
 - Run `sudo ./deploy-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will deploy keycloak service.
 - Follow the instructions [here](https://github.com/project-sunbird/sunbird-commons/wiki/Keycloak-realm-configuration) to setup auth realm in keycloak
 
