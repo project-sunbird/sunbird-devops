@@ -7,14 +7,15 @@ node('general-dev') {
 
        stage('Checkout'){
           checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
        }
 
        stage('Pre-Build'){
-         sh('./ansible/installDeps.sh')
+         sh('./sunbird-devops/ansible/installDeps.sh')
        }
 
        stage('Build'){
-        sh('ansible-playbook -i ansible/inventory/db-bootstrap ansible/bootstrap.yml --extra-vars "hosts=dev bootstrap_secret_file=bootstrap" --vault-password-file  /run/secrets/vault-pass ')
+        sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/db-bootstrap bootstrap.yml --extra-vars "hosts=dev bootstrap_secret_file=secrets" --vault-password-file  /run/secrets/vault-pass ')
        }
     }
     catch (err) {
