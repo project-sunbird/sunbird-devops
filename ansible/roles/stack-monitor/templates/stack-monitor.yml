@@ -11,9 +11,6 @@ services:
         volumes:
             - /var/dockerdata/prometheus/data:/prometheus
         command: "-config.file=/etc/prometheus/prometheus.yml -alertmanager.url http://alertmanager:9093/alertmanager -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -storage.local.target-heap-size=157286400 -storage.local.retention={{prometheus_storage_retention_time}} -web.console.templates=/etc/prometheus/consoles -web.route-prefix={{prometheus_route_prefix}} -web.external-url=https://{{api__host}}/prometheus"
-        labels:
-            com.docker.stack.namespace: "monitoring"
-            com.docker.service.name: "prometheus"
         configs:
             - source: prometheus.yml
               target: /etc/prometheus/prometheus.yml
@@ -121,7 +118,7 @@ services:
             replicas: 1
             placement:
                 constraints:
-                    - "node.labels.monitor==1"
+                    - "node.labels.alertmanager==1"
 
     elasticsearch_exporter:
         image: justwatch/elasticsearch_exporter:1.0.1
