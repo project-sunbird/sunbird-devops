@@ -125,6 +125,10 @@ sunbird_keycloak_client_id: # Eg: portal
 sunbird_trampoline_client_id:  # Eg: trampoline
 sunbird_trampoline_secret:     # Eg: HJKDHJEHbdggh23737
 ```
+**NOTE**: If you want to customize tenant home page of sunbird portal set the variable `player_tenant_dir` for example `player_tenant_dir: /var/tenantdata` in `<implementation-name>-devops/ansible/inventories/<environment-name>/group_vars/<environment-name>`. We need to create the `/var/tenantdata` directory on all the manager and slave nodes of docker swarm manually(not yet automated). Permissions of the `/var/tenantdata` should be `mode=0775`,`user=root` and `group=root`.  If you dont set the `player_tenant_dir` variable by default it doesn't  mount any volume. 
+
+**Customising Sunbird Tenant**
+Refer this doc for the sunbird customising (https://github.com/project-sunbird/sunbird-commons/wiki/Customising-Sunbird.git)
 
 - Run `sudo ./deploy-core.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup all the sunbird core services.
 - Run `sudo ./deploy-proxy.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup sunbird proxy services.
