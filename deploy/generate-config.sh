@@ -27,8 +27,8 @@ BACKUP_SUFFIX=-`date +"%Y-%m-%d-%H-%M-%S"`.bak
 if [ $3 == "deploy" ]; then
     echo "Creating deployment configuration files...\n"
 
-    SAMPLE_INVENTORY_FILE=$SUNBIRD_DEVOPS_FOLDER/ansible/inventory/sample
-    SAMPLE_GROUP_VARS_FILE=$SUNBIRD_DEVOPS_FOLDER/ansible/group_vars/sample
+    SAMPLE_INVENTORY_FILE=$SUNBIRD_DEVOPS_FOLDER/ansible/inventories/sample/hosts
+    SAMPLE_GROUP_VARS_FILE=$SUNBIRD_DEVOPS_FOLDER/ansible/inventories/sample/group_vars/sample
 
     ENVIRONMENT_INVENTORY_DIR=$IMPLEMENTATION_DEVOPS_DIR/ansible/inventories/$ENVIRONMENT_NAME
     ENVIRONMENT_GROUP_VARS_DIR=$ENVIRONMENT_INVENTORY_DIR/group_vars
@@ -58,7 +58,7 @@ if [ $3 == "deploy" ]; then
     echo "You can remove backup files by running find $IMPLEMENTATION_DEVOPS_DIR -name *.bak -type f -delete"
 elif [ $3 == "cloud" ]; then
     echo "Creating cloud configuration files..."
-    
+
     APP_DEPLOY_PARAMS_DIR=$IMPLEMENTATION_DEVOPS_DIR/$ENVIRONMENT_NAME/azure/app
     SAMPLE_APP_DEPLOY_PARAMS_DIR=$SUNBIRD_DEVOPS_FOLDER/cloud/azure/arm/swarm/acs-engine
     SAMPLE_DEPLOY_PARAMS_COMMON_FILE=$SAMPLE_APP_DEPLOY_PARAMS_DIR/common/azuredeploy.json
@@ -76,7 +76,7 @@ elif [ $3 == "cloud" ]; then
     echo "Please update azuredeploy.parameters.json and env.sh"
 
     echo "Creating DB VM configuration files..."
-    
+
     DB_DEPLOY_PARAMS_DIR=$IMPLEMENTATION_DEVOPS_DIR/$ENVIRONMENT_NAME/azure/db
     SAMPLE_DB_DEPLOY_PARAMS_DIR=$SUNBIRD_DEVOPS_FOLDER/cloud/azure/arm/vm
     SAMPLE_DEPLOY_PARAMS_COMMON_FILE=$SAMPLE_DB_DEPLOY_PARAMS_DIR/azuredeploy.json
