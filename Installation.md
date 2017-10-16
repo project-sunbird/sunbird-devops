@@ -125,10 +125,18 @@ sunbird_keycloak_client_id: # Eg: portal
 sunbird_trampoline_client_id:  # Eg: trampoline
 sunbird_trampoline_secret:     # Eg: HJKDHJEHbdggh23737
 ```
-**NOTE**: If you want to customize tenant home page of sunbird portal set the variable `player_tenant_dir` for example `player_tenant_dir: /var/tenantdata` in `<implementation-name>-devops/ansible/inventories/<environment-name>/group_vars/<environment-name>`. We need to create the `/var/tenantdata` directory on all the manager and slave nodes of docker swarm manually(not yet automated). Permissions of the `/var/tenantdata` should be `mode=0775`,`user=root` and `group=root`.  If you dont set the `player_tenant_dir` variable by default it doesn't  mount any volume. 
+
+### Additional config to customise Sunbird instance
+
+Sunbird supports customisation of home page, logo, and fav icon for the portal. The customisations can be loaded by mounting the volume containing the customisations into the docker container.
+
+- Set the variable `player_tenant_dir` in `<implementation-name>-devops/ansible/inventories/<environment-name>/group_vars/<environment-name>`. For example, `player_tenant_dir: /data/extensions`.
+- Create the above folder (e.g. /data/extensions) on all the docker swarm nodes. Permissions of the folder should be `mode=0775`,`user=root` and `group=root`.
+
+**NOTE**: If the variable `player_tenant_dir` is not set, the volume will not be mounted and customisations will not be loaded.
 
 **Customising Sunbird Tenant**
-Refer this doc for the sunbird customising (https://github.com/project-sunbird/sunbird-commons/wiki/Customising-Sunbird.git)
+Refer this doc for the sunbird customising (https://github.com/project-sunbird/sunbird-commons/wiki/Customising-Sunbird)
 
 - Run `sudo ./deploy-core.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup all the sunbird core services.
 - Run `sudo ./deploy-proxy.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup sunbird proxy services.
@@ -138,13 +146,13 @@ Refer this doc for the sunbird customising (https://github.com/project-sunbird/s
 [Part 6](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-6.gif)
 [Part 7](https://sunbirdpublic.blob.core.windows.net/installation/demo/demo-8.gif)
 
-# Step 4: Check Installation
+# Step 5: Check Installation
 
 - Browse Sunbird Portal by accessing https://{proxy_server_name}/ (publicly accessible URL, it could be the load balancer URL or the actual domain name for production).
 
 **TODO** Need link to functional documentation to perform just enough user flows to ensure Sunbird implementation is functional
 
-# Step 5: Upgrade with a new version of Sunbird
+# Step 6: Upgrade with a new version of Sunbird
 To update/redeploy sunbird please follow these steps:
 
 - Update the Sunbird image versions to latest gold version (e.g. `PLAYER_VERSION`).
@@ -154,10 +162,10 @@ To update/redeploy sunbird please follow these steps:
 - Run `sudo ./deploy-core.sh /ansible/inventories/`. This will setup all the sunbird core services.
 - Run `sudo ./deploy-proxy.sh /ansible/inventories/`. This will setup sunbird proxy services.
 
-# Step 6: Customize assets
+# Step 7: Customize assets
 **TODO** This section will explain how to make cosmetic changed to Sunbird to give a custom look and feel.
 
-# Step 7: Customize sunbird
+# Step 8: Customize sunbird
 **TODO** You can also build software extensions to Sunbird custom built to your requirements. Look forward to more detail here.
 
 # FAQ
