@@ -1,0 +1,30 @@
+pipeline {
+    agent {
+        label 'build-slave'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+
+        stage('Pre-Build'){
+            steps {
+                sh('./ansible/installDeps.sh')
+            }
+        }
+
+        stage('Update') {
+            steps {
+                sh '''
+                cp cloud/azure/scripts/acs-engine-swarm/common/azuredeploy.json cloud/azure/scripts/acs-engine-swarm/sunbird-staging/azuredeploy.json
+                export APP_DEPLOYMENT_JSON_PATH=`pwd`/cloud/azure/scripts/acs-engine-swarm/sunbird-staging
+                ls -al $APP_DEPLOYMENT_JSON_PATH
+                cd sunbird-devops/deploy
+                DB_DEPLOYMENT=false ./provision-servers.sh
+                '''
+            }
+        }
+    }
+}
