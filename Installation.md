@@ -127,16 +127,13 @@ sunbird_trampoline_secret:     # Eg: HJKDHJEHbdggh23737
 ```
 
 ### Additional config to customise Sunbird instance
-
 Sunbird supports customisation of home page, logo, and fav icon for the portal. The customisations can be loaded by mounting the volume containing the customisations into the docker container.
 
 - Set the variable `player_tenant_dir` in `<implementation-name>-devops/ansible/inventories/<environment-name>/group_vars/<environment-name>`. For example, `player_tenant_dir: /data/extensions`.
 - Create the above folder (e.g. /data/extensions) on all the docker swarm nodes. Permissions of the folder should be `mode=0775`,`user=root` and `group=root`.
+- Refer this doc for the sunbird customising (https://github.com/project-sunbird/sunbird-commons/wiki/Customising-Sunbird)
 
 **NOTE**: If the variable `player_tenant_dir` is not set, the volume will not be mounted and customisations will not be loaded.
-
-**Customising Sunbird Tenant**
-Refer this doc for the sunbird customising (https://github.com/project-sunbird/sunbird-commons/wiki/Customising-Sunbird)
 
 - Run `sudo ./deploy-core.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup all the sunbird core services.
 - Run `sudo ./deploy-proxy.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will setup sunbird proxy services.
