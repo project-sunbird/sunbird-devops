@@ -1,1 +1,1 @@
-copy sunbird.user_org(organisationid,userid,username,provider,orgjoindate,roles) to '{{csv_output_root_dir}}/{{item}}.csv' with HEADER=true;
+copy sunbird.user_org(organisationid,userid,provider,orgjoindate,roles) to '{{csv_output_root_dir}}/{{item}}.csv' with HEADER=true;
