@@ -550,4 +550,9 @@ insert into media_type(id,name) values('blog','blog');
 //Oct 12th
 ALTER TABLE sunbird.user ADD tempPassword text;
 ALTER TABLE sunbird.user ADD currentLoginTime text;
+//Oct 18th
+UPDATE sunbird.media_type SET name = 'Facebook' where id = 'fb';
+UPDATE sunbird.media_type SET name = 'Twitter' where id = 'twitter';
+UPDATE sunbird.media_type SET name = 'LinkedIn' where id = 'in';
+UPDATE sunbird.media_type SET name = 'Blog' where id = 'blog';
  
