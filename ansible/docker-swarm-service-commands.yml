@@ -3,7 +3,10 @@
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   tasks:
-    - command: "docker service ls"
+    - name: "List all services"
+      command: "docker service ls"
+      register: command_result
+    - debug: var=command_result.stdout_lines
   tags:
     - docker-swarm-service-list
 
@@ -12,6 +15,9 @@
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   tasks:
-    - command: "docker service update {{ docker_swarm_service_name }} --force --detach=false"
+    - name: "Restart service {{ docker_swarm_service_name }}"
+      command: "docker service update {{ docker_swarm_service_name }} --force --detach=false"
+      register: command_result
+    - debug: var=command_result.stdout_lines
   tags:
     - docker-swarm-service-restart
