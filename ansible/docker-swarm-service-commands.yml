@@ -23,3 +23,26 @@
     - debug: var=command_result.stdout_lines
   tags:
     - docker-swarm-service-restart
+
+- hosts: swarm-bootstrap-manager
+  become: yes
+  gather_facts: no
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: "List service replication info for {{ docker_swarm_service_name }}"
+      command: bash -lc "docker service ls | grep {{ docker_swarm_service_name }}"
+      register: ls_command_result
+    - debug: var=ls_command_result.stdout_lines
+
+    - name: "Get service process info for {{ docker_swarm_service_name }}"
+      command: "docker service ps {{ docker_swarm_service_name }} --no-trunc"
+      register: ps_command_result
+    - debug: var=ps_command_result.stdout_lines
+
+    - name: "Get service logs for {{ docker_swarm_service_name }}"
+      command: "docker service logs {{ docker_swarm_service_name }} --tail {{ docker_swarm_service_log_lines | default(200) }}"
+      register: logs_command_result
+    - debug: var=logs_command_result.stdout_lines
+  tags:
+    - docker-swarm-service-info
