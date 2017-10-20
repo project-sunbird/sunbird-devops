@@ -1,0 +1,27 @@
+pipeline {
+    agent {
+        label 'general-dev'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+
+        stage('Pre-Build'){
+            steps {
+                sh('./sunbird-devops/ansible/installDeps.sh')
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd sunbird-devops/ansible
+                ansible-playbook -v -i ../../ansible/inventories/dev docker-swarm-service-commands.yml --tags docker-swarm-service-list --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
