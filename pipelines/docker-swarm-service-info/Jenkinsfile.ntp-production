@@ -1,0 +1,30 @@
+pipeline {
+    agent {
+        label 'general-production'
+    }
+    parameters {
+        string(name: 'docker_swarm_service_name', defaultValue: '', description: 'Specify the name of service. Use Docker_Swarm_Service_List job to list all services')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+
+        stage('Pre-Build'){
+            steps {
+                sh('./sunbird-devops/ansible/installDeps.sh')
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd sunbird-devops/ansible
+                ansible-playbook -i ../../ansible/inventories/ntp-production docker-swarm-service-commands.yml --tags docker-swarm-service-info --extra-vars "docker_swarm_service_name=${docker_swarm_service_name}" --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
