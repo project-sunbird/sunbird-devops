@@ -239,6 +239,23 @@ services:
                 limits:
                     memory: "{{ jsonpath_exporter.limit_memory }}"
 
+    data_backup_azure_blob_exporter:
+        image: sunbird/prometheus-azure-blob-exporter:v0.0.1
+        ports:
+            - 9358:9358
+        networks:
+            - monitoring
+        command: /etc/data_backup_azure_blob_exporter/config.yml
+        configs:
+            - source: data_backup_azure_blob_exporter_config.yml
+              target: /etc/data_backup_azure_blob_exporter/config.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ azure_blob_exporter.reservation_memory }}"
+                limits:
+                    memory: "{{ azure_blob_exporter.limit_memory }}"
+
     grafana:
         image: grafana/grafana:4.5.0
         ports:
@@ -343,6 +360,8 @@ configs:
   jmx_httpserver.yml:
     external: true
   kong_cluster_exporter_config.yml:
+    external: true
+  data_backup_azure_blob_exporter_config.yml:
     external: true
   monitor_logstash.conf:
     external: true
