@@ -1,7 +1,15 @@
-ALERT stale_backup
-  IF absent(azure_blob_latest_file_timestamp{job="data-backup-azure-blob-exporter"}) OR (time() * 1000) - azure_blob_latest_file_timestamp{job="data-backup-azure-blob-exporter"} > {{ expected_data_backup_interval_in_minutes|int * 60 * 1000 }}
+ALERT backup_is_too_old
+  IF (time() * 1000) - azure_blob_latest_file_timestamp{job="data-backup-azure-blob-exporter"} > {{ expected_data_backup_interval_in_minutes|int * 60 * 1000 }}
   FOR 5m
   ANNOTATIONS {
-      summary = "Backup is stale",
+      summary = "Backup is too old",
       description = "{% raw %}{{ $labels.container }}{% endraw %}: Latest backup file was created {% raw %}{{ $value / (60 * 1000) }}{% endraw %} minutes ago. Threshold: {{ expected_data_backup_interval_in_minutes }} minutes",
+  }
+
+ALERT backup_size_is_too_small
+  IF azure_blob_latest_file_size{job="data-backup-azure-blob-exporter"} < {{ expected_data_backup_size_in_bytes }}
+  FOR 5m
+  ANNOTATIONS {
+      summary = "Backup size is too small",
+      description = "{% raw %}{{ $labels.container }}{% endraw %}: Latest backup file is {% raw %}{{ $value }}{% endraw %} bytes, smaller than the threshold {{ expected_data_backup_size_in_bytes }} bytes",
   }
