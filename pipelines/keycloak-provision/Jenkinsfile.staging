@@ -1,0 +1,26 @@
+#!groovy
+
+node('general-staging') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+       stage('Checkout'){
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+
+       stage('Pre-Build'){
+         sh('./sunbird-devops/ansible/installDeps.sh')
+       }
+
+       stage('Build'){
+        sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/staging  keycloak.yml --tags provision --vault-password-file  /run/secrets/vault-pass ')
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
+
