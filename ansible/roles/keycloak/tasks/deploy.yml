@@ -12,6 +12,11 @@
   poll: 5
   async: 10
 
+- name: remove keycloak 
+  become: yes
+  file: path="{{keycloak_home}}" state=absent
+
+
 - name: change build script permissions
   become: yes
   file: path=/opt owner={{wildfly_user}} group={{wildfly_group}} mode=0755 recurse=yes
@@ -23,7 +28,12 @@
   unarchive: src=/opt/keycloak-3.2.0.Final.tar.gz dest=/opt/ copy=no owner={{wildfly_user}} group={{wildfly_group}}
 
 - name: move the folder name
-  command: mv  /opt/keycloak-3.2.0.Final "{{keycloak_home}}"
+  command: cp -r  /opt/keycloak-3.2.0.Final/* {{keycloak_home}}/
+ 
+- name: remove the keycloak-3.2.0.Final
+  become: yes
+  file: path=/opt/keycloak-3.2.0.Final state=absent
+
 
 - name: copy the artifacts 
   copy: src={{keycloak_theme_path}} dest="{{keycloak_home}}/themes/" owner={{wildfly_user}} group={{wildfly_group}}
