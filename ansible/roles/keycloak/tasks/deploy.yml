@@ -12,29 +12,33 @@
   poll: 5
   async: 5
 
-- name: copy the artifacts 
-  copy: src={{keycloak_tar_path}} dest=/opt/
+- name: change build script permissions
+  become: yes
+  file: path=/opt owner={{wildfly_user}} group={{wildfly_group}} mode=0755 recurse=yes
+
+- name: get the keycloak tarball
+  get_url: url=https://downloads.jboss.org/keycloak/3.2.0.Final/keycloak-3.2.0.Final.tar.gz dest=/opt/keycloak-3.2.0.Final.tar.gz force=no owner={{wildfly_user}} group={{wildfly_group}}
   
 - name: extarct the folder 
-  unarchive: src=/opt/keycloak.tar.gz dest=/opt/ copy=no owner=keycloak group=keycloak
-  
-- name: remove files inside 
-  file: path=/opt/keycloak/themes/sunrise/login state=absent
-  
+  unarchive: src=/opt/keycloak-3.2.0.Final.tar.gz dest=/opt/ copy=no owner={{wildfly_user}} group={{wildfly_group}}
+
+- name: move the folder name
+  command: mv  /opt/keycloak-3.2.0.Final "{{keycloak_home}}"
+
 - name: copy the artifacts 
-  copy: src={{keycloak_theme_path}} dest=/opt/keycloak/themes/ owner=keycloak group=keycloak
+  copy: src={{keycloak_theme_path}} dest={{keycloak_home}}/themes/ owner={{wildfly_user}} group={{wildfly_group}}
   
 - name: XML file 
   template:
     src: standalone-ha.xml
-    dest: /opt/keycloak/standalone/configuration/standalone-ha.xml
+    dest: {{keycloak_home}}/standalone/configuration/standalone-ha.xml
     owner: "{{ wildfly_user }}"
     group: "{{ wildfly_group }}"
     mode: 0750
   
 - name: Create driver directory
   file:
-    path: /opt/keycloak/modules/system/layers/keycloak/org/postgresql/main
+    path: {{keycloak_home}}/modules/system/layers/keycloak/org/postgresql/main
     owner: "{{ wildfly_user }}"
     group: "{{ wildfly_group }}"
     mode: 750
@@ -48,7 +52,7 @@
 - name: Download driver
   get_url:
     url: https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
-    dest: /opt/keycloak/modules/system/layers/keycloak/org/postgresql/main
+    dest: {{keycloak_home}}/modules/system/layers/keycloak/org/postgresql/main
     owner: "{{ wildfly_user }}"
     group: "{{ wildfly_group }}"
     mode: 0750
@@ -61,7 +65,7 @@
 - name: Copy module.xml
   template:
     src: module.xml.j2
-    dest: "/opt/keycloak/modules/system/layers/keycloak/org/postgresql/main/module.xml"
+    dest: "{{keycloak_home}}/modules/system/layers/keycloak/org/postgresql/main/module.xml"
     owner: "{{ wildfly_user }}"
     group: "{{ wildfly_group }}"
     mode: 0750
