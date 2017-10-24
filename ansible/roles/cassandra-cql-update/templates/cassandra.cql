@@ -555,4 +555,19 @@ UPDATE sunbird.media_type SET name = 'Facebook' where id = 'fb';
 UPDATE sunbird.media_type SET name = 'Twitter' where id = 'twitter';
 UPDATE sunbird.media_type SET name = 'LinkedIn' where id = 'in';
 UPDATE sunbird.media_type SET name = 'Blog' where id = 'blog';
+
+ALTER TABLE sunbird.bulk_upload_process ADD retryCount int;
+
+// userSkill table to store the user skills - Oct 18, 2017 ---
+/*
+creation of id = one way hash of (userId##skillnametolowercase)
+*/
+CREATE TABLE IF NOT EXISTS sunbird.user_skills(id text, userId  text, skillname text,skillnametolowercase text, addedby text, addedat text, endorsementcount int ,endorsers Map<text, text>, PRIMARY KEY (id));
+CREATE INDEX inx_us_userId ON sunbird.user_skills(userId);
+
+// skills table - Oct 18, 2017 ---
+/*
+creation of id = one way hash of (userId##skillnametolowercase)
+*/
+CREATE TABLE IF NOT EXISTS sunbird.skills(id text,skills list<text>, PRIMARY KEY (id));
  
