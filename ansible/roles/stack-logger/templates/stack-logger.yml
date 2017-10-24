@@ -5,8 +5,6 @@ services:
     image: kibana:4.6
     environment:
       - LOGSPOUT=ignore
-    depends_on:
-      - logger_elasticsearch
     ports:
       - '5601:5601'
     configs:
@@ -31,8 +29,6 @@ services:
     configs:
       - source: logstash.conf
         target: /conf/logstash.conf
-    depends_on:
-      - logger_elasticsearch
     ports:
       - '51415:51415'
       - '5044:5044'
@@ -46,16 +42,10 @@ services:
       mode: global
     environment:
       - SYSLOG_FORMAT=rfc3164
-    depends_on:
-      - logger_logstash
     volumes:
       - '/var/run/docker.sock:/tmp/docker.sock'
     networks:
       - logger
-      - api-manager_default
-      - jenkins_default
-      - monitoring
-      - application_default
 
   oauth:
     image: mryu/oauth2-proxy:2.1
@@ -89,13 +79,5 @@ configs:
     external: true
 
 networks:
-  api-manager_default:
-    external: true
-  jenkins_default:
-    external: true
-  monitoring:
-    external: true
-  application_default:
-    external: true
   logger:
     external: true
