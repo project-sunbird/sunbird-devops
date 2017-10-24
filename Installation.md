@@ -104,9 +104,23 @@ Included in the next demo
 
 - Update `sunbird_api_auth_token` in your configuration with the above copied token.
 - Obtain API token from Ekstep platform by following steps listed [here](https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs)
-- Update `sunbird_ekstep_api_key` in your configuration with the API token obtained from ekstep portal.
-- Update `keycloak_admin_initial_password` value in the config `<implementation-name>-devops/ansible/inventories/<environment-name>/group_vars/<environment-name>`.
-- Run `sudo ./deploy-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will deploy keycloak service.
+- Update `sunbird_ekstep_api_key` in your configuration with the API token obtained from ekstep portal
+
+***Keycloak Provision:***
+Keycloak is deployed on vm.Below steps will help to deploy keycloak on vm. 
+
+ `cd sunbird-devops/deploy`
+ 
+RUN `./provision-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>` this script creates the keycloak username,groupname and servicify keycloak service on vm. 
+
+***Keycloak Deploy:***
+Update below variables in the config <implementation-name>-devops/ansible/inventories/<environment-name>/group_vars/<environment-name>.
+
+1) keycloak_password: (which admin initial password)
+2) keycloak_theme_path: ex- path/to/the/nile/themes. Sample themes directory of sunbird can be seen [here](https://github.com/project-sunbird/sunbird-devops/tree/master/ansible/artifacts) 
+
+Run `sudo ./deploy-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>`.
+
 - Follow the instructions [here](https://github.com/project-sunbird/sunbird-commons/wiki/Keycloak-realm-configuration) to setup auth realm in keycloak
 
 - Update following configs
