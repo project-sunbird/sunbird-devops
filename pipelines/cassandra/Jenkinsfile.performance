@@ -7,15 +7,15 @@ node('general-performance') {
     try {
        stage('Checkout'){
           checkout scm
-          sh('./pipelines/setupDevopsCodeOldStructure.sh')
+          sh('./pipelines/setupDevopsCode.sh')
        }
 
        stage('Pre-Build'){
-         sh('./ansible/installDeps.sh')
+         sh('./sunbird-devops/ansible/installDeps.sh')
        }
 
        stage('Build'){
-        sh('ansible-playbook -i ansible/inventory/ntp-performance ansible/provision.yml --tags cassandra --vault-password-file  /run/secrets/vault-pass ')
+        sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/ntp-performance provision.yml --tags cassandra --vault-password-file  /run/secrets/vault-pass ')
        }
     }
     catch (err) {
