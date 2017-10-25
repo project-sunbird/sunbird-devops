@@ -570,4 +570,7 @@ CREATE INDEX inx_us_userId ON sunbird.user_skills(userId);
 creation of id = one way hash of (userId##skillnametolowercase)
 */
 CREATE TABLE IF NOT EXISTS sunbird.skills(id text,skills list<text>, PRIMARY KEY (id));
+
+//25th Oct
+ALTER TABLE sunbird.organisation ADD orgTypeId text;
  
