@@ -241,6 +241,23 @@ services:
                 limits:
                     memory: "{{ jsonpath_exporter.limit_memory }}"
 
+    elasticsearch_snapshots_exporter:
+        image: sunbird/prometheus-jsonpath-exporter:v0.0.1
+        ports:
+            - 9159:9158
+        networks:
+            - monitoring
+        command: /etc/elasticsearch_snapshots_exporter/config.yml
+        configs:
+            - source: elasticsearch_snapshots_exporter_config.yml
+              target: /etc/elasticsearch_snapshots_exporter/config.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ jsonpath_exporter.reservation_memory }}"
+                limits:
+                    memory: "{{ jsonpath_exporter.limit_memory }}"
+
     data_backup_azure_blob_exporter:
         image: sunbird/prometheus-azure-blob-exporter:v0.0.2
         ports:
@@ -364,6 +381,8 @@ configs:
   jmx_httpserver.yml:
     external: true
   kong_cluster_exporter_config.yml:
+    external: true
+  elasticsearch_snapshots_exporter_config.yml:
     external: true
   data_backup_azure_blob_exporter_config.yml:
     external: true
