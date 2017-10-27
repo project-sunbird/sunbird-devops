@@ -1,0 +1,20 @@
+- name: Debian - Add Elasticsearch repository key
+  apt_key: url="https://artifacts.elastic.co/GPG-KEY-elasticsearch" state=present
+
+- name: Add ES repo
+  apt_repository: repo='deb [arch=amd64] http://packages.elastic.co/curator/5/debian9 stable main' state=present update_cache=yes
+
+- name: Install elasticsearch curator
+  apt:
+    name: elasticsearch-curator=5.2.0
+
+- name: Ensure curator config dir exists
+  file: dest={{es_curator_config_dir}} state=directory
+
+- name: Create curator.yml
+  template: src=curator.yml dest={{es_curator_config_file}}
+
+- name: Delete old snapshots
+  shell: curator_cli delete_snapshots --config {{ es_curator_config_file }} --repository {{ es_snapshot_repository }} --filter_list '{ "filtertype":"age","source":"creation_date","direction":"older","unit":"days","unit_count": {{ es_snapshot_retention_days }} }'
+  async: 108000
+  poll: 10

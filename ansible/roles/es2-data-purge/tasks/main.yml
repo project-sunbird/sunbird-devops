@@ -1,0 +1,14 @@
+- name: Debian - Add Elasticsearch repository key
+  apt_key: url="https://artifacts.elastic.co/GPG-KEY-elasticsearch" state=present
+
+- name: Add ES repo
+  apt_repository: repo='deb [arch=amd64] http://packages.elastic.co/curator/3/debian9 stable main' state=present update_cache=yes
+
+- name: Install elasticsearch curator
+  apt:
+    name: elasticsearch-curator=3.4.1-1
+
+- name: Delete old indices
+  shell: curator delete indices --older-than {{ data_retention_days }} --time-unit days --timestring '%Y.%m.%d'
+  async: 3600
+  poll: 10
