@@ -43,6 +43,24 @@ services:
               limits:
                 memory: "{{ prometheus.limit_memory | default('4G') }}"
 
+    alertmanager:
+        image: prom/alertmanager:v0.8.0
+        ports:
+            - "9093:9093"
+        networks:
+            - monitoring
+        volumes:
+            - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
+        command: "-config.file=/etc/alertmanager/alertmanagerconfig.yml -storage.path=/alertmanager/data -web.route-prefix={{prometheus_alertmanager_route_prefix}} -web.external-url={{prometheus_alertmanager_web_external_url}}"
+        configs:
+            - source: alertmanagerconfig.yml
+              target: /etc/alertmanager/alertmanagerconfig.yml
+        deploy:
+            replicas: 1
+            placement:
+                constraints:
+                    - "node.labels.alertmanager==1"
+
     blackbox-exporter:
         image: quay.io/prometheus/blackbox-exporter:v0.8.1
         ports:
@@ -103,24 +121,6 @@ services:
                     memory: "{{ node_exporter.reservation_memory }}"
                 limits:
                     memory: "{{ node_exporter.limit_memory }}"
-
-    alertmanager:
-        image: prom/alertmanager:v0.8.0
-        ports:
-            - "9093:9093"
-        networks:
-            - monitoring
-        volumes:
-            - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
-        command: [-config.file=/etc/alertmanager/alertmanagerconfig.yml,-storage.path=/alertmanager/data,-web.route-prefix={{prometheus_alertmanager_route_prefix}},-web.external-url={{prometheus_alertmanager_web_external_url}}]
-        configs:
-            - source: alertmanagerconfig.yml
-              target: /etc/alertmanager/alertmanagerconfig.yml
-        deploy:
-            replicas: 1
-            placement:
-                constraints:
-                    - "node.labels.alertmanager==1"
 
     elasticsearch_exporter:
         image: justwatch/elasticsearch_exporter:1.0.1
