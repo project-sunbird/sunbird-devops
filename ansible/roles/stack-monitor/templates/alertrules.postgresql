@@ -1,5 +1,5 @@
 {% if enable_postgres_availability_check %}
-ALERT PostgresUnavailable
+ALERT postgres_unavailable
 IF pg_exporter_last_scrape_error == 1
 FOR 5m
 LABELS {
@@ -11,7 +11,7 @@ ANNOTATIONS {
 }
 {% endif %}
 
-ALERT PostgresHighNumberOfConnections
+ALERT postgres_high_number_of_connections
 IF sum(pg_stat_database_numbackends) > 90
 FOR 5m
 LABELS {
@@ -22,7 +22,7 @@ ANNOTATIONS {
   description = "Number of connections is above the high water mark: {% raw %}{{$value}}{% endraw %}",
 }
 
-ALERT PostgresMasterInRecovery
+ALERT postgres_master_in_recovery
 IF pg_server_standby_status_in_recovery{job="master-postgres-exporter"} == 1
 FOR 5m
 LABELS {
@@ -33,7 +33,7 @@ ANNOTATIONS {
   description = "PostgreSQL master is in recovery. pg_server_standby_status_in_recovery: {% raw %}{{$value}}{% endraw %}",
 }
 
-ALERT PostgresSlaveNotInRecovery
+ALERT postgres_slave_not_in_recovery
 IF pg_server_standby_status_in_recovery{job="slave-postgres-exporter"} == 0
 FOR 5m
 LABELS {
@@ -44,7 +44,7 @@ ANNOTATIONS {
   description = "PostgreSQL slave is not in recovery. pg_server_standby_status_in_recovery: {% raw %}{{$value}}{% endraw %}",
 }
 
-ALERT PostgresHighReplicationByteLag
+ALERT postgres_high_peplication_byte_lag
 IF pg_stat_replication_byte_lag > 1000000
 FOR 5m
 LABELS {
@@ -55,7 +55,7 @@ ANNOTATIONS {
   description = "The replication byte lag for salve: {% raw %}{{$labels.slave_addr}}{% endraw %} is above the high water mark: {% raw %}{{$value}}{% endraw %}",
 }
 
-ALERT PostgresHighReplicationLagSeconds
+ALERT postgres_high_replication_lag_seconds
 IF pg_replication_lag > 60
 FOR 5m
 LABELS {
