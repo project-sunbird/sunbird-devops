@@ -1,7 +1,7 @@
 #!/bin/sh
 
 MONIT_IP="{{ inventory_hostname }}"
-COLOR=${MONIT_COLOR:-$([[ $MONIT_EVENT == *"succeeded"* ]] && echo good || echo danger)}
+COLOR=${MONIT_COLOR:-$([[ $MONIT_DESCRIPTION == *"succeeded"* ]] && echo good || echo danger)}
 
 /usr/bin/curl \
     -X POST \
