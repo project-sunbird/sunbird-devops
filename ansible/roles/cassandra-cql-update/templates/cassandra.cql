@@ -574,4 +574,4 @@ CREATE TABLE IF NOT EXISTS sunbird.skills(id text,skills list<text>, PRIMARY KEY
 //25th Oct
 ALTER TABLE sunbird.organisation ADD orgTypeId text;
  
-COPY sunbird.user_notes(id, userid,courseid,contentid,title,note,tags,createddate,updateddate,isdeleted) FROM '/tmp/cql/notes.csv’; 
+COPY sunbird.user_notes(id, userid,courseid,contentid,title,note,tags,createddate,updateddate,isdeleted) FROM '/tmp/cql/notes-dev.csv’; 
