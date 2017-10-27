@@ -9,12 +9,15 @@
     name: elasticsearch-curator=5.2.0
 
 - name: Ensure curator config dir exists
-  file: dest={{es_curator_config_dir}} state=directory
+  file: dest="{{es_curator_config_dir}}" state=directory
 
 - name: Create curator.yml
-  template: src=curator.yml dest={{es_curator_config_file}}
+  template: src=curator.yml dest="{{es_curator_config_file}}"
+
+- name: Create snapshot-purge-action.yml
+  template: src=snapshot-purge-action.yml dest="{{es_curator_config_dir}}/snapshot-purge-action.yml"
 
 - name: Delete old snapshots
-  shell: curator_cli delete_snapshots --config {{ es_curator_config_file }} --repository {{ es_snapshot_repository }} --filter_list '{ "filtertype":"age","source":"creation_date","direction":"older","unit":"days","unit_count": {{ es_snapshot_retention_days }} }'
+  shell: "curator --config {{ es_curator_config_file }} {{es_curator_config_dir}}/snapshot-purge-action.yml"
   async: 108000
   poll: 10
