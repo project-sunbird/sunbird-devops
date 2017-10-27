@@ -571,3 +571,4 @@ creation of id = one way hash of (userId##skillnametolowercase)
 */
 CREATE TABLE IF NOT EXISTS sunbird.skills(id text,skills list<text>, PRIMARY KEY (id));
  
+COPY sunbird.user_notes(id, userid,courseid,contentid,title,note,tags,createddate,updateddate,isdeleted) FROM '/tmp/cql/notes.csv’; 
