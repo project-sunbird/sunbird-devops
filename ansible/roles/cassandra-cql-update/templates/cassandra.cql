@@ -586,4 +586,4 @@ CREATE TABLE sunbirdplugin.announcementauth (id text,userid text,rootorgid text,
 
  
 //mongodb import , env var is taken from group_vars
-COPY sunbird.user_notes(id, userid,courseid,contentid,title,note,tags,createddate,updateddate,isdeleted) FROM '/tmp/notes-{{env}}.csv'; 
+//COPY sunbird.user_notes(id, userid,courseid,contentid,title,note,tags,createddate,updateddate,isdeleted) FROM '/tmp/notes-{{env}}.csv'; 
