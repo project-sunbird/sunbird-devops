@@ -115,7 +115,7 @@ Included in the next demo
  keycloak_password: (which admin initial password)
  keycloak_theme_path: ex- path/to/the/nile/themes. Sample themes directory of sunbird can be seen [here](https://github.com/project-sunbird/sunbird-devops/tree/master/ansible/artifacts) 
 ```
-- Run `sudo ./deploy-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>`.
+- Run `sudo ./deploy-keycloak-vm.sh <implementation-name>-devops/ansible/inventories/<environment-name>`.
 
 - Follow the instructions [here](https://github.com/project-sunbird/sunbird-commons/wiki/Keycloak-realm-configuration) to setup auth realm in keycloak
 
