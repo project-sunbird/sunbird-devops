@@ -225,26 +225,6 @@ scrape_configs:
         replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
   {% endif %}
 
-  {% if enable_mongodb_availability_check %}
-  # This empty line ensures indentation is correct after ansible jinja2 template is materialized
-  - job_name: 'availability_mongodb'
-    metrics_path: /probe
-    params:
-      module: [tcp_connect]
-    static_configs:
-    - targets:
-      - {{ sunbird_mongo_ip }}:{{ sunbird_mongo_port }}
-      labels:
-        "owner": "app_team"
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
-  {% endif %}
-
   - job_name: 'availability_cassandra'
     metrics_path: /probe
     params:
