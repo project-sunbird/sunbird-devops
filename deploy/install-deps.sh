@@ -3,7 +3,7 @@
 # set -o errexit
 
 DOCKER_VERSION=17.06.2~ce-0~ubuntu
-ANSIBLE_VERSION=2.4.0.0-1ppa~xenial
+ANSIBLE_VERSION=2.4.1.0-1ppa~xenial
 SWARM_MASTER_IP=$(ip route get 8.8.8.8 | awk '{print $NF; exit}')
 echo "MasterIP: $SWARM_MASTER_IP"
 
