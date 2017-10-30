@@ -583,7 +583,9 @@ CREATE TABLE sunbirdplugin.metrics (id text,userid text,announcementid text,acti
 CREATE TABLE sunbirdplugin.announcementtype (id text,rootorgid text,name text,status text,createddate text, PRIMARY KEY (id));
 CREATE TABLE sunbirdplugin.announcementauth (id text,userid text,rootorgid text,permissions map<text, text>,status text,createddate text, PRIMARY KEY (id));
 
-
+insert into sunbird.role_group (id,name) values ('ANNOUNCEMENT_SENDER','Announcement Sender');
+update sunbird.role_group set url_action_ids=['Announcement Sender'] where id='ANNOUNCEMENT_SENDER';
+insert into sunbird.role (id,name,rolegroupid,status) values ('ANNOUNCEMENT_SENDER','Announcement Sender',['ANNOUNCEMENT_SENDER'],1);
  
 //mongodb import , env var is taken from group_vars
 //COPY sunbird.user_notes(id, userid,courseid,contentid,title,note,tags,createddate,updateddate,isdeleted) FROM '/tmp/notes-{{env}}.csv'; 
