@@ -28,7 +28,8 @@ if [ $3 == "deploy" ]; then
     echo "Creating deployment configuration files...\n"
 
     SAMPLE_INVENTORY_FILE=$SUNBIRD_DEVOPS_FOLDER/ansible/inventories/sample/hosts
-    SAMPLE_GROUP_VARS_FILE=$SUNBIRD_DEVOPS_FOLDER/ansible/inventories/sample/group_vars/sample
+    SAMPLE_GROUP_VARS_DIR=$SUNBIRD_DEVOPS_FOLDER/ansible/inventories/sample/group_vars
+    SAMPLE_GROUP_VARS_FILE=$SAMPLE_GROUP_VARS_DIR/sample
 
     ENVIRONMENT_INVENTORY_DIR=$IMPLEMENTATION_DEVOPS_DIR/ansible/inventories/$ENVIRONMENT_NAME
     ENVIRONMENT_GROUP_VARS_DIR=$ENVIRONMENT_INVENTORY_DIR/group_vars
@@ -47,6 +48,8 @@ if [ $3 == "deploy" ]; then
     mkdir -p $ENVIRONMENT_GROUP_VARS_DIR
     cp --backup --suffix $BACKUP_SUFFIX $SAMPLE_GROUP_VARS_FILE $ENVIRONMENT_GROUP_VARS_FILE
     sed -i -e s/"$SAMPLE_ENVIRONMENT_NAME"/"$ENVIRONMENT_NAME"/g $ENVIRONMENT_GROUP_VARS_FILE
+    ## Additional group_vars
+    cp --backup --suffix $BACKUP_SUFFIX $SAMPLE_GROUP_VARS_DIR/postgresql-master $ENVIRONMENT_GROUP_VARS_DIR/postgresql-master
 
     # Create secrets
     if [ ! -e "$ENVIRONMENT_SECRET_FILE" ]; then
