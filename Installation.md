@@ -91,7 +91,6 @@ Included in the next demo
 - The automated setup also creates a proxy server and like all proxy servers, it will require a SSL certificate. Details of the certificates have to added in the configuration, please see [this wiki](https://github.com/project-sunbird/sunbird-devops/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service) for details on how to do this. Note: If you don't have SSL certificates and want to get started you could generate and use [self-signed certificates](https://en.wikipedia.org/wiki/Self-signed_certificate), steps for this are detailed in [this wiki](https://github.com/project-sunbird/sunbird-devops/wiki/Generating-a-self-signed-certificate)
 - Run `cd sunbird-devops/deploy`
 - Run `sudo ./install-deps.sh`. This will install dependencies.
-- Edit the inventory file to put in the IP of the
 - Run `sudo ./deploy-apis.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will onboard various APIs and consumer groups.
 
 **Note:** Next 2 steps are necessary only when the application is being deployed for the first time and could be skipped for subsequent deploys.
@@ -106,14 +105,12 @@ Included in the next demo
 - Obtain API token from Ekstep platform by following steps listed [here](https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs)
 - Update `sunbird_ekstep_api_key` in your configuration with the API token obtained from ekstep portal
 
-- Keycloak is deployed on vm.
-
-- RUN `./provision-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>` this script creates the keycloak username,groupname and servicify keycloak service on vm. 
+- Keycloak is deployed on vm. RUN `./provision-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>` this script creates the keycloak username,groupname and servicify keycloak service on vm.
 
 - Update below variables in the config ` <implementation-name>-devops/ansible/inventories/<environment-name>/group_vars/<environment-name>`.
 ```
  keycloak_password: (which admin initial password)
- keycloak_theme_path: ex- path/to/the/nile/themes. Sample themes directory of sunbird can be seen [here](https://github.com/project-sunbird/sunbird-devops/tree/master/ansible/artifacts) 
+ keycloak_theme_path: ex- path/to/the/nile/themes. Sample themes directory of sunbird can be seen [here](https://github.com/project-sunbird/sunbird-devops/tree/master/ansible/artifacts)
 ```
 - Run `sudo ./deploy-keycloak-vm.sh <implementation-name>-devops/ansible/inventories/<environment-name>`.
 
