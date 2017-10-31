@@ -1,0 +1,34 @@
+- name: ensure backup dir exists
+  file: path="{{ prometheus_backup_dir }}" state=directory
+
+- name: ensure backup dir is empty
+  shell: "rm -rf {{ prometheus_backup_dir }}/*""
+
+- set_fact:
+    prometheus_backup_gzip_file_name: "prometheus_backup_{{ lookup('pipe', 'date +%Z-%Y-%m-%d-%H-%M-%S') }}.tar.gz"
+
+- set_fact:
+    prometheus_backup_gzip_file_path: "{{ prometheus_backup_dir }}/{{ prometheus_backup_gzip_file_name }}"
+
+- name: Save backup
+  shell: tar czf {{ prometheus_backup_gzip_file_path }} /var/dockerdata/prometheus/data
+  async: 3600
+  poll: 10
+
+- name: Ensure azure blob storage container exists
+  command: az storage container create  --name {{ prometheus_backup_azure_container_name }}
+  ignore_errors: true
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{ backup_storage_name }}"
+    AZURE_STORAGE_KEY: "{{ backup_storage_key }}"
+
+- name: Upload to azure blob storage
+  command: az storage blob upload --name {{ prometheus_backup_gzip_file_name }} --file {{ prometheus_backup_gzip_file_path }} --container-name {{ prometheus_backup_azure_container_name }}
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{ backup_storage_name }}"
+    AZURE_STORAGE_KEY: "{{ backup_storage_key }}"
+  async: 3600
+  poll: 10
+
+- name: clean up backup dir after upload
+  file: path="{{ prometheus_backup_dir }}" state=absent
