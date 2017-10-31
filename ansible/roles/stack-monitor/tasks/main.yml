@@ -13,12 +13,6 @@
     owner: '{{ root_owner }}'
     group: '{{ root_group }}'
 
-- name: Save stack file
-  template: src=stack-monitor.yml dest=/opt/docker/stacks/monitor/stack/monitor.yml mode=0644
-
-- name: Save stack file
-  shell: "cat /opt/docker/stacks/monitor/stack/monitor.yml"
-
 - name: Save prometheus config {{ item }}
   template: src={{ item }} dest="{{ monitor_config_files_dest_dir }}/{{ item }}" mode=0644
   with_items: "{{ monitor_config_templates }}"
@@ -35,7 +29,16 @@
 - name: Save docker config {{ item }}
   shell: "docker config create {{ item }} {{ monitor_config_files_dest_dir }}/{{ item }}"
   with_items: "{{ monitor_config_templates }}"
-  ignore_errors: yes
+
+- name: Save docker config {{ item }} with versioned_name
+  shell: "docker config create {{ item | versioned_name(lookup('file', monitor_config_files_dest_dir + '/' + item)) }} {{ monitor_config_files_dest_dir }}/{{ item }}"
+  with_items: "{{ monitor_config_templates }}"
+
+- name: Save stack file
+  template: src=stack-monitor.yml dest=/opt/docker/stacks/monitor/stack/monitor.yml mode=0644
+
+- name: Cat stack file
+  shell: "cat /opt/docker/stacks/monitor/stack/monitor.yml"
 
 - name: Deploy stack
   shell: "docker stack deploy -c monitor.yml monitor"

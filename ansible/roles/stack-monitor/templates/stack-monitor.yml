@@ -12,7 +12,7 @@ services:
             - /var/dockerdata/prometheus/data:/prometheus
         command: "-config.file=/etc/prometheus/prometheus.yml -alertmanager.url http://alertmanager:9093/alertmanager -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -storage.local.target-heap-size=157286400 -storage.local.retention={{prometheus_storage_retention_time}} -web.console.templates=/etc/prometheus/consoles -web.route-prefix={{prometheus_route_prefix}} -web.external-url={{prometheus_web_external_url}}"
         configs:
-            - source: prometheus.yml
+            - source: {{ 'prometheus.yml' | versioned_name(lookup('file', monitor_config_files_dest_dir + '/prometheus.yml')) }}
               target: /etc/prometheus/prometheus.yml
             - source: alertrules.nodes
               target: /etc/prometheus-rules/alertrules.nodes
@@ -348,7 +348,7 @@ services:
             - monitoring
 
 configs:
-  prometheus.yml:
+  {{ 'prometheus.yml' | versioned_name(lookup('file', monitor_config_files_dest_dir + '/prometheus.yml')) }}:
     external: true
   alertrules.nodes:
     external: true
