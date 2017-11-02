@@ -156,7 +156,34 @@ Sunbird supports customization of home page, logo, and fav icon for the portal. 
 
 **TODO** Need link to functional documentation to perform just enough user flows to ensure Sunbird implementation is functional
 
-# Step 6: Upgrade with a new version of Sunbird
+# Step 6: Generate key and secrets for mobile app
+
+This is required only if you are planning to release your own mobile app using sunbird mobile app codebase.
+
+- Run `sudo ./deploy-apis.sh <implementation-name>-devops/ansible/inventories/<environment-name>`
+- In console output of above script, copy the JWT token printed for `mobile_admin` user
+- Run
+
+```sh
+curl -X POST \
+  <sunbird-base-url>/api/api-manager/v1/consumer/mobile_app/credential/register \
+  -H 'authorization: Bearer <mobile_admin_jwt_token>' \
+  -H 'content-type: application/json' \
+  -d '{
+  "request": {
+    "key": "<implementation-name>-mobile-app-<version-number>"
+  }
+}'
+```
+Result will be
+```js
+{"result":{"key":"<implementation-name>-mobile-app-<version-number>","secret":"<secret>"}}
+```
+- Use the value of "key" and "secret" from the response above for `MOBILE_APP_KEY` and `MOBILE_APP_SECRET` configuration in mobile app
+
+- **TODO**: Mobile app build instructions to be added here. Waiting for mobile team to provide link for appropriate wiki page
+
+# Step 7: Upgrade with a new version of Sunbird
 To update/redeploy sunbird please follow these steps:
 
 - Update the Sunbird image versions to latest gold version (e.g. `PLAYER_VERSION`).
@@ -166,10 +193,10 @@ To update/redeploy sunbird please follow these steps:
 - Run `sudo ./deploy-core.sh /ansible/inventories/`. This will setup all the sunbird core services.
 - Run `sudo ./deploy-proxy.sh /ansible/inventories/`. This will setup sunbird proxy services.
 
-# Step 7: Customize assets
+# Step 8: Customize assets
 **TODO** This section will explain how to make cosmetic changed to Sunbird to give a custom look and feel.
 
-# Step 8: Customize sunbird
+# Step 9: Customize sunbird
 **TODO** You can also build software extensions to Sunbird custom built to your requirements. Look forward to more detail here.
 
 # FAQ
