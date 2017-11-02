@@ -1,9 +1,9 @@
 ALERT backup_is_too_old
-  IF (time() * 1000) - azure_blob_latest_file_timestamp{job="data-backup-azure-blob-exporter"} > {{ expected_data_backup_interval_in_minutes|int * 60 * 1000 }}
+  IF time() - azure_blob_latest_file_timestamp{job="data-backup-azure-blob-exporter"} / 1000 > {{ expected_data_backup_interval_in_minutes|int * 60 }}
   FOR 5m
   ANNOTATIONS {
       summary = "Backup is too old",
-      description = "{% raw %}{{ $labels.container }}{% endraw %}: Latest backup file was created {% raw %}{{ $value / (60 * 1000) }}{% endraw %} minutes ago. Threshold: {{ expected_data_backup_interval_in_minutes }} minutes",
+      description = "{% raw %}{{ $labels.container }}{% endraw %}: Latest backup file was created {% raw %}{{ humanizeDuration $value }}{% endraw %} ago. Threshold: {{ expected_data_backup_interval_in_minutes }} minutes",
   }
 
 ALERT backup_size_is_too_small

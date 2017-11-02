@@ -23,10 +23,10 @@ ALERT elasticsearch_heap_too_high
   }
 
 ALERT elasticsearch_snapshot_is_too_old
-  IF (time() * 1000) - elasticsearch_snapshots_latest_successful_snapshot_timestamp{job="elasticsearch-snapshots-exporter"} > {{ expected_elasticsearch_snapshot_interval_in_minutes|int * 60 * 1000 }}
+  IF time() - elasticsearch_snapshots_latest_successful_snapshot_timestamp{job="elasticsearch-snapshots-exporter"} / 1000 > {{ expected_elasticsearch_snapshot_interval_in_minutes|int * 60 }}
   FOR 5m
   LABELS {severity="critical"}
   ANNOTATIONS {
     description="Elasticsearch snapshot is too old",
-    summary="Latest elasticSearch snapshot was taken {% raw %}{{ $value / (60 * 1000) }}{% endraw %} minutes ago. Threshold is {{ expected_elasticsearch_snapshot_interval_in_minutes }} minutes"
+    summary="Latest elasticSearch snapshot was taken {% raw %}{{ humanizeDuration $value }}{% endraw %} ago. Threshold is {{ expected_elasticsearch_snapshot_interval_in_minutes }} minutes"
   }
