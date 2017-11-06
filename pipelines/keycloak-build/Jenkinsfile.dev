@@ -1,0 +1,30 @@
+#!groovy
+
+node('general-dev') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+       stage('Checkout'){
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+
+       stage('Pre-Build'){
+         sh('./sunbird-devops/ansible/installDeps.sh')
+       }
+
+       stage('Build'){
+          steps{
+              sh '''
+              cd  project-sunbird/sunbird-auth/keycloak/sms-provider
+              mvn package
+              '''
+          }
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
