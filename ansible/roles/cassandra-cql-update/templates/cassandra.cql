@@ -610,3 +610,5 @@ ALTER TABLE sunbird.geo_location DROP locationName ;
 ALTER TABLE sunbird.geo_location ADD location text;
 // 3rd Nov 2017
 ALTER TABLE sunbird.organisation ADD locationId text;
+
+ALTER TABLE sunbird.user ADD profileVisibility map<text,text>;
