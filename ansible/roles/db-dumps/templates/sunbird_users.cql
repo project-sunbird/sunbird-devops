@@ -1,1 +1,1 @@
-copy sunbird.user(id,username,provider,createddate,phone,email) to '{{csv_output_root_dir}}/{{item}}.csv' with HEADER=true;
+copy sunbird.user(id,username,provider,createddate,phone,email,profilesummary) to '{{csv_output_root_dir}}/{{item}}.csv' with HEADER=true;
