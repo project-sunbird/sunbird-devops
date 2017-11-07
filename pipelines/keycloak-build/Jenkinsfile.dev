@@ -5,7 +5,6 @@ node('build-slave') {
     currentBuild.result = "SUCCESS"
 
     try {
-       stage('Checkout'){
           checkout scm
           sh('./pipelines/setupDevopsCode.sh')
           sh('rm -rf sunbird-auth') 
@@ -14,12 +13,10 @@ node('build-slave') {
 
        stage('Build'){
          sh('cd sunbird-auth/keycloak/sms-provider && mvn package')
-        
-        sh('cd ../../..')
-        
-        archive includes: "sunbird-auth/keycloak/sms-provider/target/keycloak-email-phone-autthenticator-1.0-SNAPSHOT-shaded.jar"
+       }
 
-         sh('ls')
+       stage('Archive'){
+        archiveArtifacts 'sunbird-auth/keycloak/sms-provider/target/keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar'
        }
     }
     catch (err) {
