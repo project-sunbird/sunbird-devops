@@ -1,0 +1,33 @@
+machine:
+  pre:
+    - curl -sSL https://s3.amazonaws.com/circle-downloads/install-circleci-docker.sh | bash -s -- 1.10.0
+  services:
+    - docker
+
+dependencies:
+  override:
+    - docker info
+    - docker version
+
+    - docker build --rm=true --file=tests/Dockerfile.ubuntu14.04 --tag=ubuntu-14.04:ansible tests
+    
+test:
+  override:
+    - container_id=$(mktemp)
+    # Run container in detached state
+    - docker run --detach --volume=${PWD}:/etc/ansible/roles/apache-maven:ro ubuntu-14.04:ansible /sbin/init > ${container_id}
+
+    # Ansible syntax check.
+    - docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/apache-maven/tests/test.yml --syntax-check
+
+    # Test role.
+    - docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/apache-maven/tests/test.yml
+
+    # Test role idempotence.
+    - >
+      docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/apache-maven/tests/test.yml
+      | grep -q 'changed=0.*failed=0'
+      && (echo 'Idempotence test: pass' && exit 0)
+      || (echo 'Idempotence test: fail' && exit 1)
+    # Clean up
+    - docker stop "$(cat ${container_id})"
