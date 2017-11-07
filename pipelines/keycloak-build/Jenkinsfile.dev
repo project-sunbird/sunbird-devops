@@ -8,18 +8,23 @@ node('build-slave') {
        stage('Checkout'){
           checkout scm
           sh('./pipelines/setupDevopsCode.sh')
-          sh('rm -rf sunbird-auth')
+          sh('rm -rf sunbird-auth') 
           sh('git clone https://github.com/project-sunbird/sunbird-auth.git')
-          sh('uname -a')
        }
 
        stage('Build'){
          sh('cd sunbird-devops && ls')
+
          step ([$class: 'CopyArtifact',
-          projectName: 'Build/Keycloak_Build',
-          filter: 'keycloak.tar.gz',
-          target: 'sunbird-devops/ansible' ]);
+          projectName: 'Dev/Keycloak_Build/sunbird-auth/keycloak/sms-provider/target',
+          filter: 'keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar']);
+
+          sh 'METADATA_FILE=keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar ARTIFACT_LABEL=bronze ENV=dev ./pipelines/keycloak-build/deploy.sh'
+          
+          archive includes: "keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar"
+         
          sh('ls')
+         
          sh('cd sunbird-auth/keycloak/sms-provider && mvn package')
        }
     }
