@@ -1,33 +1,33 @@
-#!groovy
-
-node('general-production') {
-
-    currentBuild.result = "SUCCESS"
-
-    try {
-
-       stage('Checkout'){
-
-          checkout scm
-          sh('./pipelines/setupDevopsCode.sh')
-       }
-
-
-
-       stage('Pre-Build'){
-         sh('./sunbird-devops/ansible/installDeps.sh')
-       }
-
-       stage('Build'){
-
-        sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/ntp-production cassandra-backup.yml  --vault-password-file  /run/secrets/vault-pass ')
-       }
-
+pipeline {
+    agent {
+        label 'general-production'
     }
-    catch (err) {
-        currentBuild.result = "FAILURE"
-        slackSend channel: '#devops-team', color: 'danger', message: "Build Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
-        throw err
+    triggers {
+        cron('@midnight')
     }
-
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+        stage('Pre-Build'){
+            steps {
+                sh('./sunbird-devops/ansible/installDeps.sh')
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd sunbird-devops/ansible
+                ansible-playbook -i ../../ansible/inventories/ntp-production cassandra-backup.yml --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+    post {
+        failure {
+            slackSend channel: '#devops-team', color: 'danger', message: "Build Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+        }
+    }
 }
