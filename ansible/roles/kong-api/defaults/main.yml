@@ -1889,7 +1889,7 @@ kong_apis:
       config.allowed_payload_size: '{{ small_request_size_limit }}'
 
   - name: registerClient
-    request_path: '{{ data_service_prefix }}/v1/client/registert'
+    request_path: '{{ data_service_prefix }}/v1/client/register'
     upstream_url: '{{ learning_service_url }}/v1/client/register'
     strip_request_path: true
     plugins:
@@ -2068,3 +2068,19 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
+  - name: sendNotification
+    request_path: '{{ data_service_prefix }}/v1/notification/send'
+    upstream_url: '{{ learning_service_url }}/v1/notification/send'
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - '{{ statsd_pulgin }}'
+    - name: acl
+      config.whitelist: dataAdmin
+    - name: rate-limiting
+      config.hour: '{{ medium_rate_limit_per_hour }}'
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: '{{ small_request_size_limit }}'  
+  
