@@ -1,0 +1,23 @@
+pipeline {
+  agent {
+      label 'general-staging'
+  }
+  stages {
+    stage('Checkout') {
+      steps {
+        sh('./pipelines/setupDevopsCode.sh')
+      }
+    }
+    stage('Pre-Build'){
+      steps {
+        sh('./sunbird-devops/ansible/installDeps.sh')
+      }
+    }
+    stage('Deploy') {
+      steps {
+        sh 'METADATA_FILE=./pipelines/registry/metadata.json ARTIFACT_LABEL=gold  ENV=ntp-staging ./pipelines/registry/deploy.sh'
+        archive includes: "./pipelines/registry/metadata.json"
+      }
+    }
+  }
+}
