@@ -1,0 +1,20 @@
+pipeline {
+    agent {
+        label 'general-dev'
+    }
+    stages {
+        stage('Deploy') {
+            steps {
+                step ([$class: 'CopyArtifact',
+                    projectName: 'Tag_As_Silver/Registry_Tag_Silver ',
+                    filter: 'metadata.json']);
+                sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=gold PREVIOUS_LABEL=silver ./pipelines/dockerTag.sh'
+            }
+        }
+    }
+    post {
+        success {
+            archive includes: "metadata.json"
+        }
+    }
+}
