@@ -1,0 +1,42 @@
+#!groovy
+
+node('general-dev') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+       stage('Build'){
+
+         env.NODE_ENV = "build"
+
+         print "Environment will be : ${env.NODE_ENV}"
+         sh('chmod a+x ./images/docker-registry/metadata.sh')
+         sh('chmod a+x ./images/docker-registry/build.sh')
+         sh('./images/docker-registry/build.sh')
+
+       }
+
+       stage('Publish'){
+
+         echo 'Push to Repo'
+         sh 'ls -al ~/'
+         sh 'chmod a+x ./images/docker-registry/dockerPushToRepo.sh'
+         sh 'chmod a+x ./images/docker-registry/metadata.sh'
+         sh 'ARTIFACT_LABEL=bronze ./images/docker-registry/dockerPushToRepo.sh'
+         sh './images/docker-registry/metadata.sh > metadata.json'
+         archive includes: "metadata.json"
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
