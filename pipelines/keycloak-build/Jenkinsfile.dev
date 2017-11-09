@@ -10,7 +10,10 @@ node('build-slave') {
           checkout scm
           sh('./pipelines/setupDevopsCode.sh')
           sh('rm -rf sunbird-auth') 
+          
           sh('git clone https://github.com/project-sunbird/sunbird-auth.git')
+          
+          // @Todo Remove bellow line
           sh('cd sunbird-auth && git checkout sms_provider_configuraton')
       }
 
@@ -19,11 +22,19 @@ node('build-slave') {
        }
 
        stage('Archive'){
+        // Copy file to root directory
+        sh('cp sunbird-auth/keycloak/sms-provider/target/keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar .')
 
+        // Archive SMS OTP jar
+        archiveArtifacts 'keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar'
+        
+        
+        // Copy file to root directory
         sh('cd sunbird-auth/keycloak/sms-provider/templates && tar -zcvf templates.tar.gz *')
-        archiveArtifacts 'sunbird-auth/keycloak/sms-provider/templates/templates.tar.gz'
-
-        archiveArtifacts 'sunbird-auth/keycloak/sms-provider/target/keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar'
+        sh('cp sunbird-auth/keycloak/sms-provider/templates/templates.tar.gz .')
+        
+        // Archive templates
+        archiveArtifacts 'templates.tar.gz'
        }
     }
     catch (err) {
