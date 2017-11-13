@@ -616,3 +616,5 @@ ALTER TABLE sunbird.user ADD profileVisibility map<text,text>;
 // 9th Nov 2017
 ALTER TABLE sunbirdplugin.announcement DROP target ;
 ALTER TABLE sunbirdplugin.announcement ADD target map<text, frozen<map<text ,frozen<list<text>>>>>;
+//adding default one Skills.
+insert into skills (id,skills) values ('001',['java']);
