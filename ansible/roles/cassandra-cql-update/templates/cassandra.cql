@@ -598,7 +598,6 @@ CREATE TABLE IF NOT EXISTS sunbird.client_info(id text, clientname text, masterk
 CREATE INDEX inx_ci_clientname ON sunbird.client_info(clientname);
 // Geo Location - Oct 31,2017
 
-ALTER TABLE sunbird.user DROP tcupdatedat ;
 ALTER TABLE sunbird.user ADD tcupdateddate text;
 
 CREATE TABLE IF NOT EXISTS sunbird.geo_location(id text,locationName text,rootOrgId text,type text, createdDate  text,createdBy text,updatedDate text,updatedBy text,topicName text,topicId text, PRIMARY KEY (id));
