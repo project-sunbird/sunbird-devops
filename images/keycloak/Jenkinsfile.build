@@ -1,6 +1,6 @@
 #!groovy
 
-node('build-slave2') {
+node('build-slave') {
 
     currentBuild.result = "SUCCESS"
 
