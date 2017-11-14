@@ -22,20 +22,23 @@
   become: yes
   file: path=/opt owner={{wildfly_user}} group={{wildfly_group}} mode=0755 recurse=yes
 
-- name: get the keycloak tarball
-  get_url: url=https://downloads.jboss.org/keycloak/3.2.0.Final/keycloak-3.2.0.Final.tar.gz dest=/opt/keycloak-3.2.0.Final.tar.gz force=no owner={{wildfly_user}} group={{wildfly_group}}
+# - name: get the keycloak tarball
+#   get_url: url=https://downloads.jboss.org/keycloak/3.2.0.Final/keycloak-3.2.0.Final.tar.gz dest=/opt/keycloak-3.2.0.Final.tar.gz force=no owner={{wildfly_user}} group={{wildfly_group}}
+
+- name: Paste keycloak package on server
+  copy: src="{{keycloak_build_src}}/{{keycloak_ver}}.tar.gz" dest="/opt/" force=no owner={{wildfly_user}} group={{wildfly_group}}
 
 - name: extarct the folder
-  unarchive: src=/opt/keycloak-3.2.0.Final.tar.gz dest=/opt/ copy=no owner={{wildfly_user}} group={{wildfly_group}}
+  unarchive: src="/opt/{{keycloak_ver}}.tar.gz" dest=/opt/ copy=no owner={{wildfly_user}} group={{wildfly_group}}
 
 - name: move the folder name
-  command: mv keycloak-3.2.0.Final keycloak
+  command: mv {{keycloak_ver}} keycloak
   args:
        chdir: /opt
 
-- name: remove the keycloak-3.2.0.Final
+- name: remove the {{keycloak_ver}}
   become: yes
-  file: path=/opt/keycloak-3.2.0.Final state=absent
+  file: path=/opt/{{keycloak_ver}} state=absent
 
 - name: copy the artifacts
   copy: src={{keycloak_theme_path}} dest="{{keycloak_home}}/themes/" owner={{wildfly_user}} group={{wildfly_group}}
