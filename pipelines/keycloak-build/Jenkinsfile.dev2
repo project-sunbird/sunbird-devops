@@ -10,15 +10,17 @@ node('build-slave') {
           checkout scm
           sh('rm -rf sunbird-auth') 
           sh('git clone https://github.com/project-sunbird/sunbird-auth.git')
+
+          // Download keycloak package
+          sh('rm -rf keycloak-3.2.0.Final.tar.gz')
+          sh('wget https://downloads.jboss.org/keycloak/3.2.0.Final/keycloak-3.2.0.Final.tar.gz');
       }
 
        stage('Build'){
          sh('cd sunbird-auth/keycloak/sms-provider && mvn package')
-       }
-
-       stage('Archive'){
 
         sh('mkdir -p keycloak_build');
+        sh('cp keycloak-3.2.0.Final.tar.gz keycloak_build')
 
         // Copy file to root directory
         sh('cp sunbird-auth/keycloak/sms-provider/target/keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar keycloak_build')
@@ -28,7 +30,9 @@ node('build-slave') {
         sh('cp sunbird-auth/keycloak/sms-provider/templates/templates.tar.gz keycloak_build')
         
         sh('tar -zcvf keycloak_build.tar.gz keycloak_build')
+       }
 
+       stage('Archive'){
         archiveArtifacts 'keycloak_build.tar.gz'
        }
     }
