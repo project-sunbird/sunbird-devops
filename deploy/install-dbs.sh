@@ -30,4 +30,4 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags  postgresql-
 
 # Mongodb installation
 echo "@@@@@@@@@ Mongodb installation"
-ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags  mongodb
+ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags "mongodb"
