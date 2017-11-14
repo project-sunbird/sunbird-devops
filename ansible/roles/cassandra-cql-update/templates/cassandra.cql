@@ -598,7 +598,6 @@ CREATE TABLE IF NOT EXISTS sunbird.client_info(id text, clientname text, masterk
 CREATE INDEX inx_ci_clientname ON sunbird.client_info(clientname);
 // Geo Location - Oct 31,2017
 
-ALTER TABLE sunbird.user DROP tcupdatedat ;
 ALTER TABLE sunbird.user ADD tcupdateddate text;
 
 CREATE TABLE IF NOT EXISTS sunbird.geo_location(id text,locationName text,rootOrgId text,type text, createdDate  text,createdBy text,updatedDate text,updatedBy text,topicName text,topicId text, PRIMARY KEY (id));
@@ -612,3 +611,9 @@ ALTER TABLE sunbird.geo_location ADD location text;
 ALTER TABLE sunbird.organisation ADD locationId text;
 
 ALTER TABLE sunbird.user ADD profileVisibility map<text,text>;
+
+// 9th Nov 2017
+ALTER TABLE sunbirdplugin.announcement DROP target ;
+ALTER TABLE sunbirdplugin.announcement ADD target map<text, frozen<map<text ,frozen<list<text>>>>>;
+//adding default one Skills.
+insert into skills (id,skills) values ('001',['java']);
