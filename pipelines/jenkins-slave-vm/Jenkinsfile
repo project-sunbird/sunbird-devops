@@ -1,0 +1,21 @@
+pipeline {
+    agent {
+        label 'master'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd sunbird-devops/ansible
+                ansible-playbook -i ../../ansible/inventories/admin jenkins-slave-vm.yml  --vault-password-file /run/secrets/vault-pass-dev
+                '''
+            }
+        }
+    }
+}
