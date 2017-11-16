@@ -7,12 +7,11 @@ node('general-dev') {
     try {
        stage('Checkout'){
           checkout scm
-          
+
           // @Todo clone from sunbird public devops repo - call sh file instead following code
           sh('set -ex')
           sh('rm -rf sunbird-devops')
           sh('git -C sunbird-devops pull || git clone https://github.com/ahghatol/sunbird-devops-1.git sunbird-devops')
-
        }
 
        stage('Pre-Build'){
@@ -23,26 +22,19 @@ node('general-dev') {
 
          step ([$class: 'CopyArtifact',
           projectName: 'New_Build/Keycloak_Build',
-          filter: 'keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar',
+          filter: 'keycloak_build.tar.gz',
           target: 'sunbird-devops/ansible' ]); 
 
-         step ([$class: 'CopyArtifact',
-          projectName: 'New_Build/Keycloak_Build',
-          filter: 'templates.tar.gz',
-          target: 'sunbird-devops/ansible' ]);
+          sh('cd sunbird-devops/ansible && tar zxvf keycloak_build.tar.gz')
 
           sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/dev  keycloak.yml --tags deploy --vault-password-file  /run/secrets/vault-pass ')
        }
 
        stage('Archive'){
-        sh('cp sunbird-devops/ansible/keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar .')
 
-        // Archive SMS OTP jar
-        archiveArtifacts 'keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar'
-
-        sh('cp sunbird-devops/ansible/templates.tar.gz .')
-        // Archive templates
-        archiveArtifacts 'templates.tar.gz'
+        // Archive Artifact
+         sh('cp sunbird-devops/ansible/keycloak_build.tar.gz .')
+        archiveArtifacts 'keycloak_build.tar.gz'
        }
 
     }
