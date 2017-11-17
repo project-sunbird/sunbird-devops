@@ -10,6 +10,9 @@
             <div class="ui centered grid container">
                 <div class="ten wide column signInGridAlign">
                     <div class="ui fluid card">
+                        <div class="ui centered medium image signInLogo margin-top3em">
+                            <img src="${url.resourcesPath}/img/logo.png">
+                        </div>
                         <div class="ui basic segment">
                             <h2 class="ui header">${msg("emailForgotTitle")}</h2>
                         </div>
@@ -17,18 +20,21 @@
                             <form id="kc-reset-password-form" class="ui form pre-signin" action="${url.loginAction}" method="post">
                             <div class="field">
                                 <label for="username"><#if !realm.loginWithEmailAllowed>${msg("username")}<#elseif !realm.registrationEmailAsUsername>${msg("usernameOrEmail")}<#else>${msg("email")}</#if></label>
-                                <input type="text" id="username" name="username" autofocus/>
+                                <input type="text" id="username" name="username" placeholder="${msg("emailInstruction")}" autofocus/>
                             </div>
 
                             <div class="ui grid margin-top2em">
-                                <div id="kc-form-options">
-                                    <div class="${properties.kcFormOptionsWrapperClass!}">
-                                        <span><a href="${url.loginUrl}">${msg("backToLogin")}</a></span>
-                                    </div>
+                                <div class="six wide column">
+                                        <div id="kc-form-options">
+                                            <div class="${properties.kcFormOptionsWrapperClass!}">
+                                                <span><a href="${url.loginUrl}">${msg("backToLogin")}</a></span>
+                                            </div>
+                                        </div>
                                 </div>
-
-                                <div id="kc-form-buttons">
-                                    <button class="ui primary right floated button buttonResizeClass" type="submit">${msg("doSubmit")}</button>
+                                <div class="six wide column">
+                                    <div id="kc-form-buttons">
+                                     <button class="ui primary right floated button buttonResizeClass" type="submit">${msg("doSubmit")}</button>
+                                    </div>
                                 </div>
                             </div>
                             </form>
@@ -38,6 +44,6 @@
             </div>
         </div>
     <#elseif section = "info" >
-        ${msg("emailInstruction")}
     </#if>
 </@layout.registrationLayout>
+                              

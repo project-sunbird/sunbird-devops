@@ -10,6 +10,9 @@
             <div class="ui centered grid container">
                 <div class="ten wide column signInGridAlign">
                     <div class="ui fluid card">
+                        <div class="ui centered medium image signInLogo margin-top3em">
+                            <img src="${url.resourcesPath}/img/logo.png">
+                        </div>
                         <div class="ui basic segment">
                             <h2 class="ui header">${msg("updatePasswordTitle")}</h2>
                         </div>
