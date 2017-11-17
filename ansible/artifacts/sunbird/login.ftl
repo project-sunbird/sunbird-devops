@@ -12,7 +12,7 @@
                 <div class="ten wide column signInGridAlign">
                   <div class="ui fluid card">
                     <div class="ui centered medium image signInLogo margin-top3em">
-                        <img src="/auth/resources/3.2.0.final/login/sunrise/img/logo.png">
+                        <img src="${url.resourcesPath}/img/logo.png">
                     </div>
                     <div class="ui basic segment">
                         <h2 class="ui header">${msg("loginTitle",(realm.displayName!''))}</h2>
