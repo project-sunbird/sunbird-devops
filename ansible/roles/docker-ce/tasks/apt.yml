@@ -1,0 +1,48 @@
+---
+- name: Remove previous version
+  apt:
+    name: '{{ item }}'
+    state: removed
+    force: yes
+    update_cache: yes
+    cache_valid_time: 3600
+  with_items:
+    - docker
+    - docker-engine
+    - docker.io
+  become: true
+
+- name: Determine revision
+  shell: "echo -n `uname -r`"
+  register: revision
+
+- name: Determine release
+  shell: lsb_release -a 2>/dev/null | grep Codename | awk '{printf("%s"), $2}'
+  register: release
+
+- name: Install dependencies for Ubuntu
+  apt:
+    name: '{{ item }}'
+    state: installed
+    force: yes
+    update_cache: yes
+    cache_valid_time: 3600
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+    - linux-image-extra-virtual
+    - linux-image-extra-{{ revision.stdout }}
+  become: true
+
+- name: Add key
+  raw: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+- name: Add docker repository
+  become: true
+  lineinfile:
+    line: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ release.stdout }} stable"
+    dest: /etc/apt/sources.list.d/docker.list
+    state: present
+    create: yes

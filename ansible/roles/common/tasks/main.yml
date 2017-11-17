@@ -1,0 +1,24 @@
+---
+- name: Installing common packages
+  apt:
+    name: "{{item}}"
+    state: latest
+  with_items:
+    - zip
+    - unzip
+    - curl
+    - python-pip
+- name: Installing ansible
+  pip:
+    name: ansible
+    version: 2.3
+- name: configuring slave
+  shell: |
+    wget -q https://repo.jenkins-ci.org/releases/org/jenkins-ci/plugins/swarm-client/3.3/swarm-client-3.3.jar
+    sudo nohup java -jar swarm-client-3.3.jar -username "{{jenkins_admin_username}}" -password "{{jenkins_admin_password}}" -master http://10.20.0.4:8080/jenkins/ -labels build-slave-test -executors 2 &
+    touch ~/vault_pass
+- name: adding password
+  lineinfile:
+    path: ~/vault_pass
+    line: "{{vault_docker_hub}}"
+    state: present
