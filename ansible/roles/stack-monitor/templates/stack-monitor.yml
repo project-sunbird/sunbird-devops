@@ -39,9 +39,9 @@ services:
                     - "node.labels.prometheus==1"
             resources:
               reservations:
-                memory: "{{ prometheus.reservation_memory | default('2G') }}"
+                memory: "{{ prometheus_reservation_memory }}"
               limits:
-                memory: "{{ prometheus.limit_memory | default('4G') }}"
+                memory: "{{ prometheus_limit_memory }}"
 
     alertmanager:
         image: prom/alertmanager:v0.8.0
@@ -77,9 +77,9 @@ services:
         deploy:
             resources:
                 reservations:
-                    memory: "{{ blackbox_exporter.reservation_memory }}"
+                    memory: "{{ blackbox_exporter_reservation_memory }}"
                 limits:
-                    memory: "{{ blackbox_exporter.limit_memory }}"
+                    memory: "{{ blackbox_exporter_limit_memory }}"
 
     cadvisor:
         image: google/cadvisor:v0.25.0
@@ -96,9 +96,9 @@ services:
             mode: global
             resources:
                 reservations:
-                    memory: "{{ cadvisor.reservation_memory }}"
+                    memory: "{{ cadvisor_reservation_memory }}"
                 limits:
-                    memory: "{{ cadvisor.limit_memory }}"
+                    memory: "{{ cadvisor_limit_memory }}"
 
     node-exporter:
         image: basi/node-exporter:v0.1.1
@@ -118,9 +118,9 @@ services:
             mode: global
             resources:
                 reservations:
-                    memory: "{{ node_exporter.reservation_memory }}"
+                    memory: "{{ node_exporter_reservation_memory }}"
                 limits:
-                    memory: "{{ node_exporter.limit_memory }}"
+                    memory: "{{ node_exporter_limit_memory }}"
 
     elasticsearch_exporter:
         image: justwatch/elasticsearch_exporter:1.0.1
@@ -135,9 +135,9 @@ services:
             replicas: 1
             resources:
                 reservations:
-                    memory: "{{ elasticsearch_exporter.reservation_memory }}"
+                    memory: "{{ elasticsearch_exporter_reservation_memory }}"
                 limits:
-                    memory: "{{ elasticsearch_exporter.limit_memory }}"
+                    memory: "{{ elasticsearch_exporter_limit_memory }}"
 
 {% if groups['log-es'] %}
     log_elasticsearch_exporter:
@@ -153,9 +153,9 @@ services:
             replicas: 1
             resources:
                 reservations:
-                    memory: "{{ elasticsearch_exporter.reservation_memory }}"
+                    memory: "{{ elasticsearch_exporter_reservation_memory }}"
                 limits:
-                    memory: "{{ elasticsearch_exporter.limit_memory }}"
+                    memory: "{{ elasticsearch_exporter_limit_memory }}"
 {% endif %}
 
     master_postgres_exporter:
@@ -174,9 +174,9 @@ services:
         deploy:
             resources:
                 reservations:
-                    memory: "{{ postgres_exporter.reservation_memory }}"
+                    memory: "{{ postgres_exporter_reservation_memory }}"
                 limits:
-                    memory: "{{ postgres_exporter.limit_memory }}"
+                    memory: "{{ postgres_exporter_limit_memory }}"
 
 
     {% if groups['postgresql-slave'][0] is defined %}
@@ -197,9 +197,9 @@ services:
         deploy:
             resources:
                 reservations:
-                    memory: "{{ postgres_exporter.reservation_memory }}"
+                    memory: "{{ postgres_exporter_reservation_memory }}"
                 limits:
-                    memory: "{{ postgres_exporter.limit_memory }}"
+                    memory: "{{ postgres_exporter_limit_memory }}"
     {% endif %}
 
     statsd_exporter:
@@ -219,9 +219,9 @@ services:
         deploy:
             resources:
                 reservations:
-                    memory: "{{ statsd_exporter.reservation_memory }}"
+                    memory: "{{ statsd_exporter_reservation_memory }}"
                 limits:
-                    memory: "{{ statsd_exporter.limit_memory }}"
+                    memory: "{{ statsd_exporter_limit_memory }}"
 
     kong_cluster_exporter:
         image: sunbird/prometheus-jsonpath-exporter:v0.0.1
@@ -237,9 +237,9 @@ services:
         deploy:
             resources:
                 reservations:
-                    memory: "{{ jsonpath_exporter.reservation_memory }}"
+                    memory: "{{ jsonpath_exporter_reservation_memory }}"
                 limits:
-                    memory: "{{ jsonpath_exporter.limit_memory }}"
+                    memory: "{{ jsonpath_exporter_limit_memory }}"
 
     elasticsearch_snapshots_exporter:
         image: sunbird/prometheus-jsonpath-exporter:v0.0.1
@@ -254,9 +254,9 @@ services:
         deploy:
             resources:
                 reservations:
-                    memory: "{{ jsonpath_exporter.reservation_memory }}"
+                    memory: "{{ jsonpath_exporter_reservation_memory }}"
                 limits:
-                    memory: "{{ jsonpath_exporter.limit_memory }}"
+                    memory: "{{ jsonpath_exporter_limit_memory }}"
 
     data_backup_azure_blob_exporter:
         image: sunbird/prometheus-azure-blob-exporter:v0.0.2
@@ -271,9 +271,9 @@ services:
         deploy:
             resources:
                 reservations:
-                    memory: "{{ azure_blob_exporter.reservation_memory }}"
+                    memory: "{{ azure_blob_exporter_reservation_memory }}"
                 limits:
-                    memory: "{{ azure_blob_exporter.limit_memory }}"
+                    memory: "{{ azure_blob_exporter_limit_memory }}"
 
     grafana:
         image: grafana/grafana:4.5.0
@@ -314,7 +314,7 @@ services:
         command: logstash -f /conf/logstash.conf
         environment:
             - LOGSPOUT=ignore
-            - LS_HEAP_SIZE={{ monitor_logstash.heap_size }}
+            - LS_HEAP_SIZE={{ monitor_logstash_heap_size }}
         configs:
             - source: monitor_logstash.conf
               target: /conf/logstash.conf
@@ -326,12 +326,12 @@ services:
         networks:
             - monitoring
         deploy:
-            replicas: {{ monitor_logstash.replicas }}
+            replicas: {{ monitor_logstash_replicas }}
             resources:
                 reservations:
-                    memory: "{{ monitor_logstash.reservation_memory }}"
+                    memory: "{{ monitor_logstash_reservation_memory }}"
                 limits:
-                    memory: "{{ monitor_logstash.limit_memory }}"
+                    memory: "{{ monitor_logstash_limit_memory }}"
 
     logspout:
         image: gliderlabs/logspout:v3.2.3
