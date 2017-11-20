@@ -1,6 +1,10 @@
+# NOTE
+
+If you are installing Sunbird on a laptop, please follow [laptop installation](http://www.sunbird.org/developer-docs/installation/installing_sunbirdon_laptop/). The following steps work on a cloud provider (scripts are for azure but feel free to add support for other cloud providers). Mileage for following steps will vary on a laptop and not recommended/supported. The following steps are for a distributed production like setup. Your laptop will most likely not satisfy the pre-requisites for memory.
+
 # Pre-requisites
 
-You will need servers with the following minimum system requirements:
+You will at least 2 servers with the following minimum system requirements:
 
 - Operating System: Ubuntu 16.04 LTS
 - RAM: 7GB
@@ -44,7 +48,9 @@ Run the following steps from a machine which is connected to the internet:
 ### Others
 Not automated as of now but you are free to contribute back! Send in a PR.
 ## Manual
-Get 2 servers and prepare to get your hands dirty when needed. 1st server would serve as the DB server and the 2nd, the application server plus the administration server. Note that the default automation creates 3 servers because it separates the application and the administration server.
+The automated provisioning setup sets up a azure Virtual Network (aka VPC in AWS), creates multiple subnets (one for swarm master, one for swarm slave machines and DB servers), creates master servers, a replication set of slaves (so that you can add or subtract slave nodes easily), load balancers for master and slaves, opens up ports for communication between servers, creates a DB server, sets up FQDNs and runs the Docker Swarm.
+Doing all of this manually is exhaustive and not recommended. Also, the manual setup is not supported. It is however recommended to use the automation scripts and contribute code into it to make it more awesome.
+However, if for some reason you need to set it up manually, the main requirement for the following steps is to have Docker Swarm installed and working (multi node cluster), have servers available to install the DB and have ports open for communication.
 
 # Step 2: Setup your DBs
 You are free to either use existing DBs, create DBs manually or run the following automation scripts to create them. The DBs Sunbird uses are:

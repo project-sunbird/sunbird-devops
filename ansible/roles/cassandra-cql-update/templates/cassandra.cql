@@ -617,3 +617,5 @@ ALTER TABLE sunbirdplugin.announcement DROP target ;
 ALTER TABLE sunbirdplugin.announcement ADD target map<text, frozen<map<text ,frozen<list<text>>>>>;
 //adding default one Skills.
 insert into skills (id,skills) values ('001',['java']);
+ALTER TABLE sunbird.user_skills drop endorsers;
+ALTER TABLE sunbird.user_skills ADD endorsersList frozen<List<Map<text , text>>>;
