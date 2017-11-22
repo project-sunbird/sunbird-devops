@@ -91,109 +91,6 @@ scrape_configs:
     static_configs:
       - targets: ['monitor_data_backup_azure_blob_exporter:9358']
 
-  - job_name: 'availability_composite_search'
-    metrics_path: /probe
-    params:
-      module: [composite_search]  # Look for a HTTP 200 response.
-    static_configs:
-    - targets:
-      - https://{{api__host}}/api/composite/v1/search
-      labels:
-        "owner": "app_team"
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
-
-  - job_name: 'availability_page_assemble'
-    metrics_path: /probe
-    params:
-      module: [page_assemble]  # Look for a HTTP 200 response.
-    static_configs:
-    - targets:
-      - https://{{api__host}}/api/data/v1/page/assemble
-      labels:
-        "owner": "app_team"
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
-
-  - job_name: 'availability_general'
-    metrics_path: /probe
-    params:
-      module: [http_2xx]  # Look for a HTTP 200 response.
-    static_configs:
-    - targets:
-      - http://adminutil_adminutil:4000/health
-      - http://api-manager_echo:9595/hello
-      - http://kibana:5601/
-      - https://{{api__host}}/grafana
-      - https://{{api__host}}/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=foo&redirect_uri=https%3A%2F%2F{{api__host}}%2Fprivate%2Findex%3Fauth_callback%3D1&scope=openid&response_type=code
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
-
-  - job_name: 'availability_application'
-    metrics_path: /probe
-    params:
-      module: [http_2xx]  # Look for a HTTP 200 response.
-    static_configs:
-    - targets:
-      - https://{{api__host}}
-      - http://player_player:3000
-      - http://content_service_content_service:5000/health
-      - http://learner-service:9000/health
-      labels:
-        "owner": "app_team"
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
-
-  - job_name: 'availability_monit'
-    metrics_path: /probe
-    params:
-      module: [http_2xx]  # Look for a HTTP 200 response.
-    static_configs:
-    - targets:
-      - http://{{ groups['swarm-bootstrap-manager'][0] }}:2812
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
-
-  - job_name: 'availability_dashboard_oauth'
-    metrics_path: /probe
-    params:
-      module: [http_4xx_auth]
-    static_configs:
-    - targets:
-      - https://{{api__host}}/dashboard
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
-
   - job_name: 'prometheus'
     metrics_path: /prometheus/metrics
     static_configs:
@@ -208,17 +105,36 @@ scrape_configs:
     static_configs:
       - targets: {{ groups['node-exporter'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9101' ) | list | to_yaml }}
 
+  {% for item in service_blackbox_checks %}
+  # This empty line ensures indentation is correct after ansible jinja2 template is materialized
+  - job_name: 'availability_{{ item.service_name }}'
+    metrics_path: /probe
+    params:
+      module: {{ item.probe_modules | to_json }}
+    static_configs:
+    - targets: {{ item.targets | to_yaml }}
+      labels:
+        "service_name": "{{ item.service_name }}"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
+  {% endfor %}
+
   {% if static_site_url is defined %}
   # This empty line ensures indentation is correct after ansible jinja2 template is materialized
-  - job_name: 'availability_static_site'
+  - job_name: 'availability_sunbird_static_site'
     metrics_path: /probe
     params:
       module: [http_2xx]  # Look for a HTTP 200 response.
     static_configs:
     - targets:
-      - {{static_site_url}}
+      - {{ static_site_url }}
       labels:
-        "owner": "site_team"
+        "service_name": "sunbird_static_site"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -227,20 +143,3 @@ scrape_configs:
       - target_label: __address__
         replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
   {% endif %}
-
-  - job_name: 'availability_cassandra'
-    metrics_path: /probe
-    params:
-      module: [tcp_connect]
-    static_configs:
-    - targets:
-      - {{ sunbird_cassandra_host }}:{{ cassandra_port }}
-      labels:
-        "owner": "app_team"
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: monitor_blackbox-exporter:9115  # Blackbox exporter.
