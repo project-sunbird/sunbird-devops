@@ -14,7 +14,6 @@ set -e
 
 INVENTORY_DIR=$1
 
-cd $SUNBIRD_DEVOPS_FOLDER/ansible
-for playbook_yaml in *.yml; do
+for playbook_yaml in $SUNBIRD_DEVOPS_FOLDER/ansible/*.yml; do
   ansible-playbook -i $INVENTORY_DIR $playbook_yaml --syntax-check -e "hosts=dummy"
 done
