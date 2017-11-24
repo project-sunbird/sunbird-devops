@@ -22,9 +22,6 @@
   become: yes
   file: path=/opt owner={{wildfly_user}} group={{wildfly_group}} mode=0755 recurse=yes
 
-# - name: get the keycloak tarball
-#   get_url: url=https://downloads.jboss.org/keycloak/3.2.0.Final/keycloak-3.2.0.Final.tar.gz dest=/opt/keycloak-3.2.0.Final.tar.gz force=no owner={{wildfly_user}} group={{wildfly_group}}
-
 - name: Paste keycloak package on server
   copy: src="{{keycloak_build_src}}/{{keycloak_ver}}.tar.gz" dest="/opt/" force=no owner={{wildfly_user}} group={{wildfly_group}}
 
@@ -64,18 +61,24 @@
         keycloak_custom_driver
 
 
-- name: Download driver
-  get_url:
-    url: https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
-    dest: "{{keycloak_home}}/modules/system/layers/keycloak/org/postgresql/main"
-    owner: "{{ wildfly_user }}"
-    group: "{{ wildfly_group }}"
-    mode: 0750
+- name: Deploy postgresql driver
+  copy: src="{{keycloak_build_src}}/{{keycloak_postgresql}}" dest= "{{keycloak_home}}/modules/system/layers/keycloak/org/postgresql/main" owner={{wildfly_user}} group={{wildfly_group}} mode=0750
   when: keycloak_ds_driver_url and
         keycloak_ds_driver_name and
         keycloak_ds_driver_module and
         keycloak_custom_driver
 
+#~ - name: Download driver
+  #~ get_url:
+    #~ url: https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
+    #~ dest: "{{keycloak_home}}/modules/system/layers/keycloak/org/postgresql/main"
+    #~ owner: "{{ wildfly_user }}"
+    #~ group: "{{ wildfly_group }}"
+    #~ mode: 0750
+  #~ when: keycloak_ds_driver_url and
+        #~ keycloak_ds_driver_name and
+        #~ keycloak_ds_driver_module and
+        #~ keycloak_custom_driver
 
 - name: Copy module.xml
   template:
