@@ -1,15 +1,15 @@
 ALERT high_cpu_usage_on_container
-  IF sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_task_name=~".+"}[5m])) by (container_label_com_docker_swarm_task_name,instance) * 100 > 90
+  IF sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_task_name=~".+"}[5m])) by (container_label_com_docker_swarm_service_name,container_label_com_docker_swarm_task_name,instance) * 100 > {{ container_cpu_usage_percentage_theshold }}
   FOR 5m
   ANNOTATIONS {
       summary = "HIGH CPU USAGE WARNING: TASK '{% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %}' on '{% raw %}{{ $labels.instance }}{% endraw %}'",
-      description = "{% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %} is using {% raw %}{{ $value }}{% endraw %}% CPU",
+      description = "{% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %} is using {% raw %}{{ $value }}{% endraw %}% CPU. Threshold is : {{ container_cpu_usage_percentage_theshold }}%",
   }
 
 ALERT high_memory_usage_on_container
-  IF (container_memory_usage_bytes{container_label_com_docker_swarm_task_name=~".+"} / container_spec_memory_limit_bytes)  * 100 > 90 < Inf
+  IF (container_memory_usage_bytes{container_label_com_docker_swarm_task_name=~".+"} / container_spec_memory_limit_bytes)  * 100 > {{ container_memory_usage_percentage_theshold }} < Inf
   FOR 5m
   ANNOTATIONS {
       summary = "HIGH MEMORY USAGE WARNING: TASK '{% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %}' on '{% raw %}{{ $labels.instance }}{% endraw %}'",
-      description = "{% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %} is using {% raw %}{{ $value }}{% endraw %}% memory",
+      description = "{% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %} is using {% raw %}{{ $value }}{% endraw %}% memory. Threshold is : {{ container_memory_usage_percentage_theshold }}%",
   }

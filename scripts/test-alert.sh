@@ -1,7 +1,7 @@
 #!/bin/bash
 
 name=$RANDOM
-url='http://localhost:9093/api/v1/alerts'
+url='http://localhost:9093/alertmanager/api/v1/alerts'
 
 echo "firing up alert $name"
 
