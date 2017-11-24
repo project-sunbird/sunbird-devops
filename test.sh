@@ -2,7 +2,7 @@
 
 set -e
 
-cd ansible
-for playbook_yaml in *.yml; do
-  ansible-playbook -i inventories/sample $playbook_yaml --syntax-check -e "hosts=dummy"
-done
+SCRIPT_BASE_DIR=$(dirname $0)
+SUNBIRD_DEVOPS_FOLDER=$SCRIPT_BASE_DIR
+
+$SUNBIRD_DEVOPS_FOLDER/ansible-syntax-check.sh $SUNBIRD_DEVOPS_FOLDER/ansible/inventories/sample
