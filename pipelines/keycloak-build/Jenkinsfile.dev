@@ -6,27 +6,33 @@ node('build-slave') {
 
     try {
 
-      stage('Checkout'){
-          checkout scm
+      stage('Cleanup'){
           sh('rm -rf sunbird-auth') 
-          //sh('rm -rf sunbird-devops') 
-          sh('git clone https://github.com/project-sunbird/sunbird-auth.git')
-
-          // Download keycloak package
           sh('rm -rf keycloak-3.2.0.Final.tar.gz')
-          // sh('wget https://downloads.jboss.org/keycloak/3.2.0.Final/keycloak-3.2.0.Final.tar.gz');
-
           sh('rm -rf keycloak_build/login.tar.gz')
           sh('rm -rf ansible/artifacts/sunbird/login.tar.gz')
+          sh('rm -rf keycloak_build')
+      }
+      
+      stage('Checkout'){
+          checkout scm
+          sh('git clone https://github.com/project-sunbird/sunbird-auth.git')
           
-          sh('cd ansible/artifacts/sunbird && tar -zcvf login.tar.gz *')
+          // Download keycloak package and driver
+          sh('wget https://downloads.jboss.org/keycloak/3.2.0.Final/keycloak-3.2.0.Final.tar.gz')
+          sh('wget https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar')
       }
 
-       stage('Build'){
+      stage('Build'){
+        // Login theme build
+        sh('cd ansible/artifacts/sunbird && tar -zcvf login.tar.gz *')
+
+        // Sms plugin build
          sh('cd sunbird-auth/keycloak/sms-provider && mvn package')
 
         sh('mkdir -p keycloak_build');
-        //sh('cp keycloak-3.2.0.Final.tar.gz keycloak_build')
+        sh('cp keycloak-3.2.0.Final.tar.gz keycloak_build')
+        sh('cp postgresql-9.4.1212.jar keycloak_build')
 
         // Copy file to keycloak_build directory
         sh('cp sunbird-auth/keycloak/sms-provider/target/keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar keycloak_build')
@@ -35,16 +41,14 @@ node('build-slave') {
         sh('cd sunbird-auth/keycloak/sms-provider/templates && tar -zcvf templates.tar.gz *')
         sh('cp sunbird-auth/keycloak/sms-provider/templates/templates.tar.gz keycloak_build')
         
-
         sh('cp ansible/artifacts/sunbird/login.tar.gz keycloak_build')
-
         sh('tar -zcvf keycloak_build.tar.gz keycloak_build')
-       }
+      }
 
-       stage('Archive'){
-        archiveArtifacts 'keycloak_build/login.tar.gz'
-        archiveArtifacts 'keycloak_build.tar.gz'
-       }
+      stage('Archive'){
+          archiveArtifacts 'keycloak_build/login.tar.gz'
+          archiveArtifacts 'keycloak_build.tar.gz'
+      }
     }
     catch (err) {
         currentBuild.result = "FAILURE"
