@@ -15,7 +15,7 @@ if [ -d $SUNBIRD_DEVOPS_DIR_NAME ]; then
     git reset --hard && git clean -fd
     git checkout master
     git pull --all
-    git branch | grep -v "master" | xargs $XARGS_OPTION_TO_IGNORE_EMPTY git branch -D
+    git branch --list | grep -v "master" | xargs $XARGS_OPTION_TO_IGNORE_EMPTY git branch -D
 else
     git clone https://github.com/project-sunbird/sunbird-devops.git $SUNBIRD_DEVOPS_DIR_NAME
     cd $SUNBIRD_DEVOPS_DIR_NAME
