@@ -6,7 +6,7 @@ COMMIT_REF=${1:-master}
 SUNBIRD_DEVOPS_DIR_NAME=sunbird-devops
 
 XARGS_OPTION_TO_IGNORE_EMPTY=''
-if [[ `uname` == 'Linux' ]]; then
+if [ `uname` == 'Linux' ]; then
    XARGS_OPTION_TO_IGNORE_EMPTY='--no-run-if-empty'
 fi
 
