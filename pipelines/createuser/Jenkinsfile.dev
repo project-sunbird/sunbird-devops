@@ -1,0 +1,30 @@
+#!groovy
+
+node('general-dev') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/createuser/installDeps.sh')
+
+       }
+
+       stage('Deploy'){       
+          sh 'ENV=dev ./pipelines/createuser/deploy.sh $instance_name $username $sudo_password $public_key'
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
