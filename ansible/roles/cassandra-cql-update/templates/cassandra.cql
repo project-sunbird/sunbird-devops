@@ -583,7 +583,45 @@ CREATE TABLE sunbirdplugin.metrics (id text,userid text,announcementid text,acti
 CREATE TABLE sunbirdplugin.announcementtype (id text,rootorgid text,name text,status text,createddate text, PRIMARY KEY (id));
 CREATE TABLE sunbirdplugin.announcementauth (id text,userid text,rootorgid text,permissions map<text, text>,status text,createddate text, PRIMARY KEY (id));
 
-
+insert into sunbird.role_group (id,name) values ('ANNOUNCEMENT_SENDER','Announcement Sender');
+update sunbird.role_group set url_action_ids=['Announcement Sender'] where id='ANNOUNCEMENT_SENDER';
+insert into sunbird.role (id,name,rolegroupid,status) values ('ANNOUNCEMENT_SENDER','Announcement Sender',['ANNOUNCEMENT_SENDER'],1);
  
 //mongodb import , env var is taken from group_vars
 //COPY sunbird.user_notes(id, userid,courseid,contentid,title,note,tags,createddate,updateddate,isdeleted) FROM '/tmp/notes-{{env}}.csv'; 
+//2nd Nov 
+CREATE TABLE IF NOT EXISTS sunbird.tenant_preference(id text,tenantName text,orgId text,role text, data text, PRIMARY KEY (id));
+CREATE INDEX inx_tp_userId ON sunbird.tenant_preference(orgId);
+ALTER TABLE sunbird.user ADD tcstatus text;
+//CLIENT_INFO table for master key
+CREATE TABLE IF NOT EXISTS sunbird.client_info(id text, clientname text, masterkey text, createddate text, updateddate text, PRIMARY KEY (id));
+CREATE INDEX inx_ci_clientname ON sunbird.client_info(clientname);
+// Geo Location - Oct 31,2017
+
+ALTER TABLE sunbird.user ADD tcupdateddate text;
+
+CREATE TABLE IF NOT EXISTS sunbird.geo_location(id text,locationName text,rootOrgId text,type text, createdDate  text,createdBy text,updatedDate text,updatedBy text,topicName text,topicId text, PRIMARY KEY (id));
+CREATE INDEX inx_gl_rootOrgId ON sunbird.geo_location(rootOrgId);
+ALTER TABLE sunbird.geo_location DROP topicId ;
+ALTER TABLE sunbird.geo_location DROP topicName ;
+ALTER TABLE sunbird.geo_location ADD topic text;
+ALTER TABLE sunbird.geo_location DROP locationName ;
+ALTER TABLE sunbird.geo_location ADD location text;
+// 3rd Nov 2017
+ALTER TABLE sunbird.organisation ADD locationId text;
+
+ALTER TABLE sunbird.user ADD profileVisibility map<text,text>;
+
+// 9th Nov 2017
+ALTER TABLE sunbirdplugin.announcement DROP target ;
+ALTER TABLE sunbirdplugin.announcement ADD target map<text, frozen<map<text ,frozen<list<text>>>>>;
+//adding default one Skills.
+insert into skills (id,skills) values ('001',['java']);
+ALTER TABLE sunbird.user_skills drop endorsers;
+ALTER TABLE sunbird.user_skills ADD endorsersList frozen<List<Map<text , text>>>;
+// 16th Nov 2017
+ALTER TABLE sunbird.user ADD emailVerified boolean;
+
+// 23rd Nov 2017
+ALTER TABLE sunbird.user ADD countryCode text;
+CREATE TABLE IF NOT EXISTS sunbird.system_settings (id text ,field text ,value text ,PRIMARY KEY (id));

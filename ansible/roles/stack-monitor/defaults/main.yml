@@ -1,32 +1,37 @@
-node_exporter:
-  reservation_memory: 16M
-  limit_memory: 32M
-cadvisor:
-  reservation_memory: 64M
-  limit_memory: 128M
-elasticsearch_exporter:
-  reservation_memory: 8M
-  limit_memory: 16M
-postgres_exporter:
-  reservation_memory: 8M
-  limit_memory: 16M
-statsd_exporter:
-  reservation_memory: 8M
-  limit_memory: 16M
-blackbox_exporter:
-  reservation_memory: 16M
-  limit_memory: 32M
-jsonpath_exporter:
-  reservation_memory: 16M
-  limit_memory: 32M
-azure_blob_exporter:
-  reservation_memory: 16M
-  limit_memory: 32M
-monitor_logstash:
-  replicas: 1
-  heap_size: 512m
-  reservation_memory: 1G
-  limit_memory: 1G
+prometheus_reservation_memory: 2G
+prometheus_limit_memory: 4G
+
+node_exporter_reservation_memory: 16M
+node_exporter_limit_memory: 32M
+
+cadvisor_reservation_memory: 64M
+cadvisor_limit_memory: 196M
+
+elasticsearch_exporter_reservation_memory: 8M
+elasticsearch_exporter_limit_memory: 24M
+
+postgres_exporter_reservation_memory: 8M
+postgres_exporter_limit_memory: 16M
+
+statsd_exporter_reservation_memory: 8M
+statsd_exporter_limit_memory: 16M
+
+blackbox_exporter_reservation_memory: 16M
+blackbox_exporter_limit_memory: 32M
+
+jsonpath_exporter_reservation_memory: 16M
+jsonpath_exporter_limit_memory: 32M
+
+azure_blob_exporter_reservation_memory: 16M
+azure_blob_exporter_limit_memory: 64M
+
+monitor_logstash_replicas: 1
+monitor_logstash_heap_size: 512m
+monitor_logstash_reservation_memory: 1G
+monitor_logstash_limit_memory: 1G
+
+container_cpu_usage_percentage_theshold: 90
+container_memory_usage_percentage_theshold: 90
 
 # Override this at environment level
 expected_minimum_logs_per_minute: 0
@@ -78,9 +83,94 @@ monitor_config_templates:
   - monitor_logstash_grok_patterns
   - jmx_httpserver.yml
 
-prometheus:
-  reservation_memory: 2G
-  limit_memory: 4G
+devops_alerts_mailing_list: ""
+
+service_teams:
+  - team: devops_team
+    alerts_mailing_list: "{{ devops_alerts_mailing_list }}"
+    services:
+      - monitor_.*
+      - monit
+      - logger_.*
+      - proxy_.*
+  - team: app_team
+    alerts_mailing_list: "{{ app_alerts_mailing_list | default(devops_alerts_mailing_list) }}"
+    services:
+      - actor-service
+      - learner-service
+      - content_service_content_service
+      - player_player
+      - cassandra
+      - composite_search
+      - page_assemble
+  - team: keycloak_team
+    alerts_mailing_list: "{{ keycloak_alerts_mailing_list | default(devops_alerts_mailing_list)}}"
+    services:
+      - keycloak
+  - team: api_manager_team
+    alerts_mailing_list: "{{ api_manager_alerts_mailing_list | default(devops_alerts_mailing_list)}}"
+    services:
+      - api-manager_.*
+      - adminutil_.*
+  - team: site_team
+    alerts_mailing_list: "{{ site_alerts_mailing_list | default(devops_alerts_mailing_list)}}"
+    services:
+      - sunbird_static_site
+
+service_blackbox_checks:
+  - service_name: 'adminutil_adminutil'
+    probe_module: http_2xx
+    targets:
+      - http://adminutil_adminutil:4000/health
+  - service_name: 'api-manager_echo'
+    probe_module: http_2xx
+    targets:
+      - http://api-manager_echo:9595/hello
+  - service_name: 'logger_kibana'
+    probe_module: http_2xx
+    targets:
+      - http://logger_kibana:5601/
+  - service_name: 'logger_grafana'
+    probe_module: http_2xx
+    targets:
+      - "https://{{api__host}}/grafana"
+  - service_name: 'player_player'
+    probe_module: http_2xx
+    targets:
+      - "https://{{api__host}}"
+      - "http://player_player:3000"
+  - service_name: 'content_service_content_service'
+    probe_module: http_2xx
+    targets:
+      - http://content_service_content_service:5000/health
+  - service_name: 'learner-service'
+    probe_module: http_2xx
+    targets:
+      - http://learner-service:9000/health
+  - service_name: 'monit'
+    probe_module: http_2xx
+    targets:
+      - "http://{{ groups['swarm-bootstrap-manager'][0] }}:2812"
+  - service_name: 'logger_oauth'
+    probe_module: http_4xx_auth
+    targets:
+      - "https://{{api__host}}/dashboard"
+  - service_name: 'cassandra'
+    probe_module: tcp_connect
+    targets:
+      - "{{ sunbird_cassandra_host }}:{{ cassandra_port }}"
+  - service_name: 'composite_search'
+    probe_module: composite_search
+    targets:
+      - "https://{{api__host}}/api/composite/v1/search"
+  - service_name: 'page_assemble'
+    probe_module: page_assemble
+    targets:
+      - "https://{{api__host}}/api/data/v1/page/assemble"
+  - service_name: 'keycloak'
+    probe_module: http_2xx
+    targets:
+      - "https://{{api__host}}/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=foo&redirect_uri=https%3A%2F%2F{{api__host}}%2Fprivate%2Findex%3Fauth_callback%3D1&scope=openid&response_type=code"
 
 prometheus_route_prefix: prometheus
 prometheus_web_external_url: "https://{{api__host}}/{{ prometheus_route_prefix }}"
@@ -91,7 +181,6 @@ prometheus_alertmanager_web_external_url: "https://{{api__host}}/{{ prometheus_a
 postgres_exporter_password: "{{ vault_postgres_exporter_password }}"
 postgres_exporter_postgres_port: 5432
 postgres_exporter_user: postgres_exporter
-prometheus_scrape_interval: 15s
 
 root_group: root
 root_owner: root

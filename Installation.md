@@ -1,6 +1,10 @@
+# NOTE
+
+If you are installing Sunbird on a laptop, please follow [laptop installation](http://www.sunbird.org/developer-docs/installation/installing_sunbirdon_laptop/). The following steps work on a cloud provider (scripts are for azure but feel free to add support for other cloud providers). Mileage for following steps will vary on a laptop and not recommended/supported. The following steps are for a distributed production like setup. Your laptop will most likely not satisfy the pre-requisites for memory.
+
 # Pre-requisites
 
-You will need servers with the following minimum system requirements:
+You will at least 2 servers with the following minimum system requirements:
 
 - Operating System: Ubuntu 16.04 LTS
 - RAM: 7GB
@@ -44,7 +48,9 @@ Run the following steps from a machine which is connected to the internet:
 ### Others
 Not automated as of now but you are free to contribute back! Send in a PR.
 ## Manual
-Get 2 servers and prepare to get your hands dirty when needed. 1st server would serve as the DB server and the 2nd, the application server plus the administration server. Note that the default automation creates 3 servers because it separates the application and the administration server.
+The automated provisioning setup sets up a azure Virtual Network (aka VPC in AWS), creates multiple subnets (one for swarm master, one for swarm slave machines and DB servers), creates master servers, a replication set of slaves (so that you can add or subtract slave nodes easily), load balancers for master and slaves, opens up ports for communication between servers, creates a DB server, sets up FQDNs and runs the Docker Swarm.
+Doing all of this manually is exhaustive and not recommended. Also, the manual setup is not supported. It is however recommended to use the automation scripts and contribute code into it to make it more awesome.
+However, if for some reason you need to set it up manually, the main requirement for the following steps is to have Docker Swarm installed and working (multi node cluster), have servers available to install the DB and have ports open for communication.
 
 # Step 2: Setup your DBs
 You are free to either use existing DBs, create DBs manually or run the following automation scripts to create them. The DBs Sunbird uses are:
@@ -69,7 +75,7 @@ Run the following steps starting from your local machine:
 Following is a set of scripts which install the DBs into the `db-server` and copy over `master` data.
 
 - Run `cd sunbird-devops/deploy`
-- Run `sudo ./install-dbs.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This script takes roughly 10-15 mins (in an environment with fast internet) and will install the databases.
+- Run `sudo ./install-dbs.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This script takes roughly 10-15 mins (in an environment with fast internet).
 
 ### Manual
 Refer to DB user guides.
@@ -91,7 +97,6 @@ Included in the next demo
 - The automated setup also creates a proxy server and like all proxy servers, it will require a SSL certificate. Details of the certificates have to added in the configuration, please see [this wiki](https://github.com/project-sunbird/sunbird-devops/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service) for details on how to do this. Note: If you don't have SSL certificates and want to get started you could generate and use [self-signed certificates](https://en.wikipedia.org/wiki/Self-signed_certificate), steps for this are detailed in [this wiki](https://github.com/project-sunbird/sunbird-devops/wiki/Generating-a-self-signed-certificate)
 - Run `cd sunbird-devops/deploy`
 - Run `sudo ./install-deps.sh`. This will install dependencies.
-- Edit the inventory file to put in the IP of the
 - Run `sudo ./deploy-apis.sh <implementation-name>-devops/ansible/inventories/<environment-name>`. This will onboard various APIs and consumer groups.
 
 **Note:** Next 2 steps are necessary only when the application is being deployed for the first time and could be skipped for subsequent deploys.
@@ -106,16 +111,14 @@ Included in the next demo
 - Obtain API token from Ekstep platform by following steps listed [here](https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs)
 - Update `sunbird_ekstep_api_key` in your configuration with the API token obtained from ekstep portal
 
-- Keycloak is deployed on vm.
-
-- RUN `./provision-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>` this script creates the keycloak username,groupname and servicify keycloak service on vm. 
+- Keycloak is deployed on vm. RUN `./provision-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>` this script creates the keycloak username,groupname and servicify keycloak service on vm.
 
 - Update below variables in the config ` <implementation-name>-devops/ansible/inventories/<environment-name>/group_vars/<environment-name>`.
 ```
  keycloak_password: (which admin initial password)
- keycloak_theme_path: ex- path/to/the/nile/themes. Sample themes directory of sunbird can be seen [here](https://github.com/project-sunbird/sunbird-devops/tree/master/ansible/artifacts) 
+ keycloak_theme_path: ex- path/to/the/nile/themes. Sample themes directory of sunbird can be seen [here](https://github.com/project-sunbird/sunbird-devops/tree/master/ansible/artifacts)
 ```
-- Run `sudo ./deploy-keycloak.sh <implementation-name>-devops/ansible/inventories/<environment-name>`.
+- Run `sudo ./deploy-keycloak-vm.sh <implementation-name>-devops/ansible/inventories/<environment-name>`.
 
 - Follow the instructions [here](https://github.com/project-sunbird/sunbird-commons/wiki/Keycloak-realm-configuration) to setup auth realm in keycloak
 
@@ -159,7 +162,34 @@ Sunbird supports customization of home page, logo, and fav icon for the portal. 
 
 **TODO** Need link to functional documentation to perform just enough user flows to ensure Sunbird implementation is functional
 
-# Step 6: Upgrade with a new version of Sunbird
+# Step 6: Generate key and secrets for mobile app
+
+This is required only if you are planning to release your own mobile app using sunbird mobile app codebase.
+
+- Run `sudo ./deploy-apis.sh <implementation-name>-devops/ansible/inventories/<environment-name>`
+- In console output of above script, copy the JWT token printed for `mobile_admin` user
+- Run
+
+```sh
+curl -X POST \
+  <sunbird-base-url>/api/api-manager/v1/consumer/mobile_app/credential/register \
+  -H 'authorization: Bearer <mobile_admin_jwt_token>' \
+  -H 'content-type: application/json' \
+  -d '{
+  "request": {
+    "key": "<implementation-name>-mobile-app-<version-number>"
+  }
+}'
+```
+Result will be
+```js
+{"result":{"key":"<implementation-name>-mobile-app-<version-number>","secret":"<secret>"}}
+```
+- Use the value of "key" and "secret" from the response above for `MOBILE_APP_KEY` and `MOBILE_APP_SECRET` configuration in mobile app
+
+- **TODO**: Mobile app build instructions to be added here. Waiting for mobile team to provide link for appropriate wiki page
+
+# Step 7: Upgrade with a new version of Sunbird
 To update/redeploy sunbird please follow these steps:
 
 - Update the Sunbird image versions to latest gold version (e.g. `PLAYER_VERSION`).
@@ -169,10 +199,10 @@ To update/redeploy sunbird please follow these steps:
 - Run `sudo ./deploy-core.sh /ansible/inventories/`. This will setup all the sunbird core services.
 - Run `sudo ./deploy-proxy.sh /ansible/inventories/`. This will setup sunbird proxy services.
 
-# Step 7: Customize assets
+# Step 8: Customize assets
 **TODO** This section will explain how to make cosmetic changed to Sunbird to give a custom look and feel.
 
-# Step 8: Customize sunbird
+# Step 9: Customize sunbird
 **TODO** You can also build software extensions to Sunbird custom built to your requirements. Look forward to more detail here.
 
 # FAQ

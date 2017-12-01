@@ -1,4 +1,4 @@
-FROM vfarcic/jenkins-swarm-agent
+FROM vfarcic/jenkins-swarm-agent:17.10.07-4
 
 USER root
 RUN apk --update add sudo && \

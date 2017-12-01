@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   jenkins-slave:
-    image: vfarcic/jenkins-swarm-agent
+    image: vfarcic/jenkins-swarm-agent:17.10.07-4
     environment:
       USER_NAME_SECRET: "/run/secrets/${JENKINS_USER_SECRET:-jenkins-user}"
       PASSWORD_SECRET: "/run/secrets/${JENKINS_PASS_SECRET:-jenkins-pass}"
@@ -26,10 +26,9 @@ services:
       replicas: 2
       resources:
         reservations:
-          memory: 512M
+          memory: "{{ general_jenkins_slave_reservation_memory }}"
         limits:
-          memory: 512M
-
+          memory: "{{ general_jenkins_slave_limit_memory }}"
     networks:
       - jenkins_default
 
@@ -49,9 +48,9 @@ services:
       replicas: 1
       resources:
         reservations:
-          memory: 256M
+          memory: "{{ api_manager_jenkins_slave_reservation_memory }}"
         limits:
-          memory: 512M
+          memory: "{{ api_manager_jenkins_slave_limit_memory }}"
     networks:
       - jenkins_default
       - api-manager_default
