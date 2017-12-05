@@ -625,3 +625,10 @@ ALTER TABLE sunbird.user ADD emailVerified boolean;
 // 23rd Nov 2017
 ALTER TABLE sunbird.user ADD countryCode text;
 CREATE TABLE IF NOT EXISTS sunbird.system_settings (id text ,field text ,value text ,PRIMARY KEY (id));
+
+// Dec 5th 2017
+
+ALTER TABLE sunbird.geo_location ADD userCount int;
+
+insert into sunbird.system_settings (id,field,value) values ('phoneUnique','phoneUnique','false');
+insert into sunbird.system_settings (id,field,value) values ('emailUnique','emailUnique','false');
