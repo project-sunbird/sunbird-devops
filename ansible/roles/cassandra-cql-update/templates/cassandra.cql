@@ -632,3 +632,5 @@ ALTER TABLE sunbird.geo_location ADD userCount int;
 
 insert into sunbird.system_settings (id,field,value) values ('phoneUnique','phoneUnique','false');
 insert into sunbird.system_settings (id,field,value) values ('emailUnique','emailUnique','false');
+// Dec 6th 2017
+ALTER TABLE sunbird.geo_location ADD userCountTTL text;
