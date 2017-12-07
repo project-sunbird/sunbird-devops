@@ -13,6 +13,7 @@ fi
 if [ -d $SUNBIRD_DEVOPS_DIR_NAME ]; then
     cd $SUNBIRD_DEVOPS_DIR_NAME
     git reset --hard && git clean -fd
+    git fetch
     git checkout release-1.3
     git pull --all
     git branch --list | grep -v "release-1.3" | xargs $XARGS_OPTION_TO_IGNORE_EMPTY git branch -D
