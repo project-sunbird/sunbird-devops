@@ -1,6 +1,6 @@
 #!groovy
 
-node('build-slave') {
+node('  build-slave') {
 
     currentBuild.result = "SUCCESS"
 
@@ -14,15 +14,15 @@ node('build-slave') {
           sh('rm -rf ansible/artifacts/sunbird/login.tar.gz')
           sh('rm -rf keycloak_build')
       }
-      
+
       stage('Checkout'){
           checkout scm
           sh('git clone https://github.com/project-sunbird/sunbird-auth.git')
 
           // @Todo Update the URL
-          // sh('git clone https://github.com/ahghatol/sunbird-devops-1.git project-sunbird-devops')
+          sh('git clone https://github.com/ahghatol/sunbird-devops-1.git project-sunbird-devops')
           
-          sh('git clone https://github.com/project-sunbird/sunbird-devops project-sunbird-devops')
+          //sh('git clone https://github.com/project-sunbird/sunbird-devops project-sunbird-devops')
 
           // Download keycloak package and driver
           sh('wget https://downloads.jboss.org/keycloak/3.2.0.Final/keycloak-3.2.0.Final.tar.gz')
@@ -30,13 +30,15 @@ node('build-slave') {
       }
 
       stage('Build'){
+        sh('mkdir -p keycloak_build');
+
         // Login theme build
         sh('cd ansible/artifacts/sunbird && tar -zcvf login.tar.gz *')
 
         // Sms plugin build
          sh('cd sunbird-auth/keycloak/sms-provider && mvn package')
 
-        sh('mkdir -p keycloak_build');
+
         sh('cp keycloak-3.2.0.Final.tar.gz keycloak_build')
         sh('cp postgresql-9.4.1212.jar keycloak_build')
 
