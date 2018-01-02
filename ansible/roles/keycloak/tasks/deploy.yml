@@ -15,14 +15,7 @@
 
 - name: remove keycloak
   become: yes
-  file: path="{{keycloak_home}}" state=absent
-
-- name: Create theme directory
-  file:
-    path: "{{keycloak_ekstep_sunbird_login_theme_dest}}/"
-    state: directory
-    mode: 0755
-    recurse: yes
+  file: path="{{keycloak_home}}" state=absent owner={{wildfly_user}} group={{wildfly_group}} force=yes
 
 - name: change build script permissions
   become: yes
@@ -51,7 +44,6 @@
     path: "{{keycloak_home}}/standalone/configuration"
     state: directory
     mode: 0755
-    recurse: yes
 
 - name: XML file
   template:
@@ -74,7 +66,6 @@
     group: "{{ wildfly_group }}"
     mode: 0755
     state: directory
-    recurse: yes
   when: keycloak_ds_driver_url and
         keycloak_ds_driver_name and
         keycloak_ds_driver_module and
@@ -142,6 +133,12 @@
 - name: remove templates.tar.gz
   become: yes
   file: path="{{keycloak_sms_provider_templates_dest}}/templates.tar.gz" state=absent
+
+- name: Create theme directory
+  file:
+    path: "{{keycloak_ekstep_sunbird_login_theme_dest}}"
+    state: directory
+    mode: 0755
 
 - name: Deploy ekstep login themes
   copy: src="{{keycloak_build_src}}/{{keycloak_ekstep_sunbird_login_theme_file}}" dest="{{keycloak_ekstep_sunbird_login_theme_dest}}" force=no owner={{wildfly_user}} group={{wildfly_group}}
