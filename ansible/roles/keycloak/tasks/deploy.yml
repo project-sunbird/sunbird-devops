@@ -131,6 +131,15 @@
     group: "{{wildfly_group}}"
     mode: 0755
 
+- name: Create theme directory
+  file:
+    path: "{{keycloak_ekstep_sunbird_login_theme_dest}}"
+    state: directory
+    owner: "{{wildfly_user}}"
+    group: "{{wildfly_group}}"
+    mode: 0755
+    recurse: yes
+
 - name: Deploy sms-provider templates
   copy: src="{{keycloak_build_src}}/{{keycloak_sms_provider_templates_src}}" dest={{keycloak_sms_provider_templates_dest}} owner={{wildfly_user}} group={{wildfly_group}}
 
@@ -141,17 +150,8 @@
   become: yes
   file: path="{{keycloak_sms_provider_templates_dest}}/templates.tar.gz" state=absent
 
-- name: Create theme directory
-  file:
-    path: "{{keycloak_ekstep_sunbird_login_theme_dest}}"
-    state: directory
-    owner: "{{wildfly_user}}"
-    group: "{{wildfly_group}}"
-    mode: 0755
-    recurse: yes
-
 - name: Deploy ekstep login themes
-  copy: src="{{keycloak_build_src}}/{{keycloak_ekstep_sunbird_login_theme_file}}" dest="{{keycloak_ekstep_sunbird_login_theme_dest}}" force=no owner={{wildfly_user}} group={{wildfly_group}}
+  copy: src="{{keycloak_build_src}}/{{keycloak_ekstep_sunbird_login_theme_file}}" dest="{{keycloak_ekstep_sunbird_login_theme_dest}}" owner={{wildfly_user}} group={{wildfly_group}}
 
 - name: Ekstract the folder
   unarchive: src="{{keycloak_ekstep_sunbird_login_theme_dest}}/{{keycloak_ekstep_sunbird_login_theme_file}}" dest="{{keycloak_ekstep_sunbird_login_theme_dest}}/" copy=no owner={{wildfly_user}} group={{wildfly_group}}
