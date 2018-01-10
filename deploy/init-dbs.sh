@@ -11,7 +11,7 @@ INVENTORY_PATH=$1
 
 # Cassandra installation
 echo "@@@@@@@@@ Cassandra data"
-#ansible-playbook -i $INVENTORY_PATH ../ansible/cassandra-data.yml
+ansible-playbook -i $INVENTORY_PATH ../ansible/cassandra-data.yml
 
 # Postgresql installation
 echo "@@@@@@@@@ Postgresql data"
