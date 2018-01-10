@@ -6,7 +6,6 @@ proxy_site_crt:   #SSL certificate's site.crt file contents. More details in thi
 
 
 # DB CONFIGURATION
-
 ## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
 application_postgres_password:    #Password for Application database.
 keycloak_postgres_password:       #Password for Keycloak (Authentication service) database.
@@ -19,6 +18,18 @@ swarm_address_space:  #Application server address space (e.g. 10.3.0.0/24), also
 cassandra_server_private_ip:  #Private IP of cassandra server
 keystore_password:   #Password to use for encrypting cassandra keystore. Use a strong password.
 truststore_password:   #Password to use for encrypting cassandra truststore. Use a strong password.
+cassandra_listen_address: "{{ cassandra_server_private_ip }}"
+cassandra_seeds: "{{ cassandra_server_private_ip }}"
+cassandra_broadcast_rpc_address: "{{ cassandra_server_private_ip }}"
+cassandra_broadcast_address: "{{ cassandra_server_private_ip }}"
+cassandra_listen_interface: ''
+cassandra_log_dir: '/var/log/cassandra'
+cassandra_root_dir: '/etc/cassandra'
+cassandra_version: '3.9'
+cassandra_port: 9042
+cassandra_rpc_address: 0.0.0.0
+cassandra_restore_dir: /home/deployer/
+
 
 # APPLICATION CONFIGURATION
 
@@ -50,8 +61,8 @@ sunbird_actor_system_name:
 ## Keycloak (auth server) login details
 sunbird_sso_username:
 sunbird_sso_password:
-keycloak_admin_username: #username for the keycloak_auth login
-keycloak_admin_password: #password for the keycloak_auth login
+keycloak_password: #admin password for the keycloak_auth login
+keycloak_theme_path:: #path to the keycloak theme files
 
 ## Content Repo configuration
 sunbird_api_auth_token:  #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
@@ -60,27 +71,12 @@ sunbird_trampoline_secret:
 
 
 # ADVANCED CONFIGURATIONS
-
-cassandra_listen_address: "{{ cassandra_server_private_ip }}"
-cassandra_seeds: "{{ cassandra_server_private_ip }}"
-cassandra_broadcast_rpc_address: "{{ cassandra_server_private_ip }}"
-cassandra_broadcast_address: "{{ cassandra_server_private_ip }}"
-cassandra_listen_interface: ''
-cassandra_log_dir: '/var/log/cassandra'
-cassandra_root_dir: '/etc/cassandra'
-cassandra_version: '3.9'
-cassandra_port: 9042
-cassandra_rpc_address: 0.0.0.0
-cassandra_restore_dir: /home/deployer/
-
-keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth/"
+keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth"
 keycloak_realm: sunbird
 sunbird_content_player_url: https://{{ proxy_server_name }}/api/
 sunbird_learner_player_url: https://{{ proxy_server_name }}/api/
 sunbird_sso_url: https://{{ proxy_server_name }}/auth/
 sunbird_sso_client_id: admin-cli
-sunbird_mongo_port: 27017
-sunbird_mongodb_port: 27017
 sunbird_portal_realm: sunbird
 sunbird_portal_auth_server_client: portal
 sunbird_trampoline_client_id: trampoline
@@ -100,8 +96,9 @@ sunbird_cassandra_urls: "{{ cassandra_server_private_ip }}:{{ cassandra_port }}"
 sunbird_session_store_type: cassandra
 sunbird_portal_title_name:
 sunbird_keycloak_client_id:
-keycloak_admin_initial_password:
-
+sunbird_msg_91_auth:
+sunbird_keycloak_public: true
+sunbird_msg_sender:
 project: sunbird
 application_postgres_database: quartz
 application_postgres_user: quartz
@@ -123,7 +120,6 @@ kong_postgres_port: 5432
 kong_postgres_user: api_manager_sample
 kong_postgres_database: api_manager_sample
 
-es_curl_host:
 
 ## Logging details
 syslog:
@@ -151,3 +147,33 @@ postgresql_users:
     password: "{{application_postgres_password}}"
     db: "{{application_postgres_database}}"
     priv: "ALL"
+
+
+proxy_replicas: 1
+proxy_reservation_memory: 64M
+proxy_limit_memory: 128M
+kong_replicas: 1
+kong_reservation_memory: 120M
+kong_limit_memory: 256M
+echo_service_replicas: 1
+echo_service_reservation_memory: 16M
+echo_service_limit_memory: 32M
+adminutil_replicas: 1
+adminutil_reservation_memory: 512M
+adminutil_limit_memory: 1024M
+
+actor_replicas: 1
+actor_reservation_memory: 500M
+actor_limit_memory: 1024M
+
+learner_replicas: 1
+learner_reservation_memory: 1500M
+learner_limit_memory: 1500M
+
+player_replicas: 1
+player_reservation_memory: 256M
+player_limit_memory: 512M
+
+content_replicas: 1
+content_reservation_memory: 125M
+content_limit_memory: 256M
