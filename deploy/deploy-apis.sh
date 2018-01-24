@@ -27,7 +27,7 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-adminuti
 
 # Onboard APIs
 echo "@@@@@@@@@ Onboard APIs"
-ansible-playbook -i $INVENTORY_PATH ../ansible/api-manager.yml --tags kong-api
+ansible-playbook -i $INVENTORY_PATH ../ansible/api-manager.yml --tags kong-api 
 
 # Onboard Consumers
 echo "@@@@@@@@@ Onboard Consumers"
