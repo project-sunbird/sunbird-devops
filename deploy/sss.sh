@@ -9,7 +9,7 @@ env_name=$(awk '/environment: / {print $2}' mcf)
 ansible_variable_path=$implimentation_name-devops/ansible/inventories/$env_name/group_vars/$env_name
 
 # Installing dependencies
-./install-deps.sh
+sudo ./install-deps.sh
 
 # Generating configs
 config() { ./generate-config.sh $implimentation_name $env_name core; }
