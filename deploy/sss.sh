@@ -1,24 +1,26 @@
 #!/bin/bash
 
-usage() { echo "Usage: $0 -s {config|dbs|apis|proxy|keycloak|core}" 1>&2; exit 1; }
+set -e
+
+usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core} ]" 1>&2; exit 1; }
 
 # Reading environment and implimentation name
-implimentation_name=$(awk '/implementation_name: / {print $2}' mcf)
-env_name=$(awk '/environment: / {print $2}' mcf)
+IMPLIMENTATION_NAME=$(awk '/implementation_name: / {print $2}' mcf)
+ENV_NAME=$(awk '/environment: / {print $2}' mcf)
 
-ansible_variable_path=$implimentation_name-devops/ansible/inventories/$env_name/group_vars/$env_name
+ANSIBLE_VARIABLE_PATH=$IMPLIMENTATION_NAME-devops/ansible/inventories/$ENV_NAME/group_vars/$ENV_NAME
 
 # Installing dependencies
-sudo ./install-deps.sh
+deps() { sudo ./install-deps.sh; }
 
 # Generating configs
-config() { ./generate-config.sh $implimentation_name $env_name core; }
+config() { ./generate-config.sh $IMPLIMENTATION_NAME $ENV_NAME core; }
 
 # Installing and initializing dbs
-dbs() { ./install-dbs.sh $ansible_variable_path; ./init-dbs.sh $ansible_variable_path; }
+dbs() { ./install-dbs.sh $ANSIBLE_VARIABLE_PATH; ./init-dbs.sh $ANSIBLE_VARIABLE_PATH; }
 
 # Apis
-apis() { ./deploy-apis.sh $ansible_variable_path; }
+apis() { ./deploy-apis.sh $ANSIBLE_VARIABLE_PATH; }
 
 # Proxy
 proxy() { ./deploy-proxy.sh; }
@@ -52,11 +54,17 @@ while getopts "s:h" o;do
                     ;;
                 *)
                     usage
+                    exit 0
                     ;;
             esac
             ;;
+
         *)
             usage
+            exit 0
             ;;
     esac
 done
+
+# Default action: install and configure from scratch
+deps; config; dbs; apis; proxy; keycloak
