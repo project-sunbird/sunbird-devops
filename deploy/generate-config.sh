@@ -3,8 +3,8 @@
 if [ "$#" -ne 3 ]; then
     echo "ERROR: Illegal number of parameters"
     echo "Usage: $0 <implementation-name> <environment-name> <type>"
-    echo "\nOPTIONS\n"
-    echo "type: deploy, app or db"
+    echo  -e "\nOPTIONS\n"
+    echo "type: core, azure"
     echo "implementation-name: Name of the implementation organization or the project using sunbird eg: ntp, nile"
     echo "environment-name: Name of the environment for which config should be generated. eg: dev, staging, production"
     exit 1
@@ -19,14 +19,16 @@ CONFIG_TYPE=$3
 IMPLEMENTATION_DEVOPS_DIR="$IMPLEMENTATION_NAME-devops"
 
 SCRIPT_BASE_DIR=$(dirname $0)
+echo "SCRIPT_BASE_DIR" $SCRIPT_BASE_DIR
 SUNBIRD_DEVOPS_FOLDER=$SCRIPT_BASE_DIR/.. # TODO: This should be derived from script base path
+echo "SUNBIRD_DEVOPS_FOLDER" $SUNBIRD_DEVOPS_FOLDER
 SAMPLE_ENVIRONMENT_NAME=sample
 
 BACKUP_SUFFIX=-`date +"%Y-%m-%d-%H-%M-%S"`.bak
 
-if [ $3 == "deploy" ]; then
-    echo "Creating deployment configuration files...\n"
-
+if [ $3 == "core" ]; then
+    echo -e "Creating core service/db configuration files...\n"
+    sleep 1
     SAMPLE_INVENTORY_FILE=$SUNBIRD_DEVOPS_FOLDER/ansible/inventories/sample/hosts
     SAMPLE_GROUP_VARS_DIR=$SUNBIRD_DEVOPS_FOLDER/ansible/inventories/sample/group_vars
     SAMPLE_GROUP_VARS_FILE=$SAMPLE_GROUP_VARS_DIR/sample
@@ -59,9 +61,9 @@ if [ $3 == "deploy" ]; then
     echo "Successfully generated $IMPLEMENTATION_DEVOPS_DIR directory with environment $ENVIRONMENT_NAME"
     echo "Please review & edit files $ENVIRONMENT_INVENTORY_HOSTS_FILE and $ENVIRONMENT_GROUP_VARS_FILE"
     echo "You can remove backup files by running find $IMPLEMENTATION_DEVOPS_DIR -name *.bak -type f -delete"
-elif [ $3 == "cloud" ]; then
-    echo "Creating cloud configuration files..."
-
+elif [ $3 == "azure" ]; then
+    echo "Creating azure cloud configuration files..."
+    sleep 1
     APP_DEPLOY_PARAMS_DIR=$IMPLEMENTATION_DEVOPS_DIR/$ENVIRONMENT_NAME/azure/app
     SAMPLE_APP_DEPLOY_PARAMS_DIR=$SUNBIRD_DEVOPS_FOLDER/cloud/azure/arm/swarm/acs-engine
     SAMPLE_DEPLOY_PARAMS_COMMON_FILE=$SAMPLE_APP_DEPLOY_PARAMS_DIR/common/azuredeploy.json
