@@ -7,13 +7,6 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-ANSIBLE_VERSION=2.4.1.0-1ppa~xenial
-# Install Ansible
-apt-get -y install software-properties-common
-apt-add-repository -y ppa:ansible/ansible
-apt-get update
-apt-get -y install ansible=$ANSIBLE_VERSION
-
 INVENTORY_PATH=$1
 
 #Elasticsearch installation
