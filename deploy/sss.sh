@@ -5,8 +5,8 @@ set -e
 usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core} ]" 1>&2; exit 1; }
 
 # Reading environment and implimentation name
-IMPLIMENTATION_NAME=$(awk '/implementation_name: / {print $2}' mcf)
-ENV_NAME=$(awk '/environment: / {print $2}' mcf)
+IMPLIMENTATION_NAME=$(awk '/implementation_name: / {print $2}' config)
+ENV_NAME=$(awk '/environment: / {print $2}' config)
 
 ANSIBLE_VARIABLE_PATH=$IMPLIMENTATION_NAME-devops/ansible/inventories/$ENV_NAME/group_vars/$ENV_NAME
 
