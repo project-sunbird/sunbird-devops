@@ -28,9 +28,6 @@ proxy() { ./deploy-proxy.sh; }
 # Keycloak
 keycloak() { ./provision-keycloak.sh; ./deploy-keycloak-vm.sh; }
 
-# Core services
-core() { ./deploy-core.sh; }
-
 while getopts "s:h" o;do
     case "${o}" in
         s)
