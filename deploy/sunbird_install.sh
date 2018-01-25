@@ -35,23 +35,23 @@ while getopts "s:h" o;do
             echo "help.."
             case "${s}" in
                 config)
-                    config 2>&1 | tee config.log
+                    echo -e "\n$(date)\n">>config.log; config 2>&1 | tee -a config.log
                     exit 0
                     ;;
                 dbs)
-                    dbs 2>&1 | tee dbs.log
+                    echo -e "\n$(date)\n">>dbs.log; dbs 2>&1 | tee -a dbs.log
                     exit 0
                     ;;
                 apis)
-                    apis 2>&1 | tee apis.log
+                    echo -e "\n$(date)\n">>apis.log; apis 2>&1 | tee -a apis.log
                     exit 0
                     ;;
                 proxy)
-                    proxy 2>&1 | tee proxy.log
+                    echo -e "\n$(date)\n">>proxy.log; proxy 2>&1 | tee -a proxy.log
                     exit 0
                     ;;
                 keycloak)
-                    keycloak 2>&1 | tee keycloak.log
+                    echo -e "\n$(date)\n">>keycloak.log; keycloak 2>&1 | tee -a keycloak.log
                     exit 0
                     ;;
                 *)
@@ -69,9 +69,9 @@ while getopts "s:h" o;do
 done
 
 # Default action: install and configure from scratch
-deps 2>&1 | tee deps.log
-config 2>&1 | tee config.log
-dbs 2>&1 | tee dbs.log
-apis 2>&1 | tee apis.log
-proxy 2>&1 | tee proxies.log
-keycloak 2>&1 | tee keycloak.log
+echo -e \n$(date)\n >> deps.log; deps 2>&1 | tee -a deps.log
+echo -e \n$(date)\n >> config.log; config 2>&1 | tee -a config.log
+echo -e \n$(date)\n >> dbs.log; dbs 2>&1 | tee -a dbs.log
+echo -e \n$(date)\n >> apis.log; apis 2>&1 | tee -a apis.log
+echo -e \n$(date)\n >> proxies.log; proxy 2>&1 | tee -a proxies.log
+echo -e \n$(date)\n >> keycloak.log; keycloak 2>&1 | tee -a keycloak.log
