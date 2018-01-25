@@ -14,7 +14,7 @@ ANSIBLE_VARIABLE_PATH=$IMPLIMENTATION_NAME-devops/ansible/inventories/$ENV_NAME/
 deps() { sudo ./install-deps.sh; }
 
 # Generating configs
-config() { ./generate-config.sh $IMPLIMENTATION_NAME $ENV_NAME core; }
+config() { time ./generate-config.sh $IMPLIMENTATION_NAME $ENV_NAME core; }
 
 # Installing and initializing dbs
 dbs() { ./install-dbs.sh $ANSIBLE_VARIABLE_PATH; ./init-dbs.sh $ANSIBLE_VARIABLE_PATH; }
@@ -67,4 +67,9 @@ while getopts "s:h" o;do
 done
 
 # Default action: install and configure from scratch
-deps; config; dbs; apis; proxy; keycloak
+deps 2>&1 | tee deps.log
+config 2>&1 | tee config.log
+dbs 2>&1 | tee dbs.log
+apis 2>&1 | tee apis.log
+proxy 2>&1 | tee proxies.log
+keycloak 2>&1 | tee keycloak.log
