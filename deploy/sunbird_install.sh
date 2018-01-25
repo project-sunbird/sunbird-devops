@@ -2,7 +2,7 @@
 
 set -e
 
-usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core} ]" 1>&2; exit 1; }
+usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak} ]" 1>&2; exit 1; }
 
 # Reading environment and implimentation name
 IMPLIMENTATION_NAME=$(awk '/implementation_name: / {print $2}' config)
