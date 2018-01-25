@@ -38,19 +38,24 @@ while getopts "s:h" o;do
             echo "help.."
             case "${s}" in
                 config)
-                    config
+                    config 2>&1 | tee config.log
+                    exit 0
                     ;;
                 dbs)
-                    dbs
+                    dbs 2>&1 | tee dbs.log
+                    exit 0
                     ;;
                 apis)
-                    apis
+                    apis 2>&1 | tee apis.log
+                    exit 0
                     ;;
                 proxy)
-                    proxy
+                    proxy 2>&1 | tee proxy.log
+                    exit 0
                     ;;
                 keycloak)
-                    keycloak
+                    keycloak 2>&1 | tee keycloak.log
+                    exit 0
                     ;;
                 *)
                     usage
