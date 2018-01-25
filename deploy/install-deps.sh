@@ -3,7 +3,7 @@
 # set -o errexit
 
 DOCKER_VERSION=17.06.2~ce-0~ubuntu
-ANSIBLE_VERSION=2.4.1.0-1ppa~xenial
+ANSIBLE_VERSION=2.4.1.0
 SWARM_MASTER_IP=$(ip route get 8.8.8.8 | awk '{print $NF; exit}')
 echo "MasterIP: $SWARM_MASTER_IP"
 
@@ -34,10 +34,8 @@ apt-get -y update
 apt-get -y install docker-ce=$DOCKER_VERSION
 
 # Install Ansible
-apt-get -y install software-properties-common
-apt-add-repository -y ppa:ansible/ansible
-apt-get update
-apt-get -y install ansible=$ANSIBLE_VERSION
+apt install -y python-pip
+pip install ansible==$ANSIBLE_VERSION
 
 # Setup docker to system service
 systemctl enable docker
