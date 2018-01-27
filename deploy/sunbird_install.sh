@@ -7,14 +7,27 @@ usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak} ]" 1>&2; exit 1;
 # Reading environment and implimentation name
 IMPLIMENTATION_NAME=$(awk '/implementation_name: / {print $2}' config)
 ENV_NAME=$(awk '/environment: / {print $2}' config)
-
-ANSIBLE_VARIABLE_PATH=$IMPLIMENTATION_NAME-devops/ansible/inventories/$ENV_NAME/group_vars/$ENV_NAME
+APP_HOST=$(awk '/application_host: / {print $2}' config)
+DB_HOST=$(awk '/database_host: / {print $2}' config)
+SSH_ANSIBLE_USER=$(awk '/ssh_ansible_user: / {print $2}' config)
+SSH_ANSIBLE_FILE=$(awk '/ssh_ansible_file: / {print $2}' config)
+ANSIBLE_PRIVATE_KEY_PATH=$(awk '/ansible_private_key_path: / {print $2}' config)
+ANSIBLE_VARIABLE_PATH=$IMPLIMENTATION_NAME-devops/ansible/inventories/$ENV_NAME
 
 # Installing dependencies
 deps() { sudo ./install-deps.sh; }
 
 # Generating configs
-config() { time ./generate-config.sh $IMPLIMENTATION_NAME $ENV_NAME core; }
+config() { 
+    time ./generate-config.sh $IMPLIMENTATION_NAME $ENV_NAME core; 
+    # Creating inventory
+    sed -i s#\"{{database_host}}\"#$DB_HOST#g $ANSIBLE_VARIABLE_PATH/hosts
+    sed -i s#\"{{application_host}}\"#$APP_HOST#g $ANSIBLE_VARIABLE_PATH/hosts
+    sed -i s#\"{{ssh_ansible_user}}\"#$SSH_ANSIBLE_USER#g $ANSIBLE_VARIABLE_PATH/hosts
+    sed -i s#\"{{ssh_ansible_file}}\"#$SSH_ANSIBLE_FILE#g $ANSIBLE_VARIABLE_PATH/hosts
+    sed -i s#\"{{ansible_private_key_path}}\"#$ANSIBLE_PRIVATE_KEY_PATH#g $ANSIBLE_VARIABLE_PATH/hosts
+}
+
 
 # Installing and initializing dbs
 dbs() { ./install-dbs.sh $ANSIBLE_VARIABLE_PATH; ./init-dbs.sh $ANSIBLE_VARIABLE_PATH; }
