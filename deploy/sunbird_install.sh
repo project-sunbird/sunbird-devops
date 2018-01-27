@@ -36,10 +36,10 @@ dbs() { ./install-dbs.sh $ANSIBLE_VARIABLE_PATH; ./init-dbs.sh $ANSIBLE_VARIABLE
 apis() { ./deploy-apis.sh $ANSIBLE_VARIABLE_PATH; }
 
 # Proxy
-proxy() { ./deploy-proxy.sh; }
+proxy() { ./deploy-proxy.sh $ANSIBLE_VARIABLE_PATH; }
 
 # Keycloak
-keycloak() { ./provision-keycloak.sh; ./deploy-keycloak-vm.sh; }
+keycloak() { ./provision-keycloak.sh $ANSIBLE_VARIABLE_PATH; ./deploy-keycloak-vm.sh $ANSIBLE_VARIABLE_PATH; }
 
 while getopts "s:h" o;do
     case "${o}" in
