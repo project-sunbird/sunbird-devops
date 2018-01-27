@@ -6,7 +6,7 @@ usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak} ]" 1>&2; exit 1;
 
 # Reading environment and implimentation name
 IMPLIMENTATION_NAME=$(awk '/implementation_name: / {print $2}' config)
-ENV_NAME=$(awk '/environment: / {print $2}' config)
+ENV_NAME=$(awk '/env: / {print $2}' config)
 APP_HOST=$(awk '/application_host: / {print $2}' config)
 DB_HOST=$(awk '/database_host: / {print $2}' config)
 SSH_ANSIBLE_USER=$(awk '/ssh_ansible_user: / {print $2}' config)
