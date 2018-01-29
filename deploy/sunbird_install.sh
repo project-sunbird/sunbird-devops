@@ -14,6 +14,9 @@ SSH_ANSIBLE_FILE=$(awk '/ssh_ansible_file: / {print $2}' config)
 ANSIBLE_PRIVATE_KEY_PATH=$(awk '/ansible_private_key_path: / {print $2}' config)
 ANSIBLE_VARIABLE_PATH=$IMPLIMENTATION_NAME-devops/ansible/inventories/$ENV_NAME
 
+#TO skip the host key verification
+export ANSIBLE_HOST_KEY_CHECKING=False
+
 # Installing dependencies
 deps() { sudo ./install-deps.sh; }
 
