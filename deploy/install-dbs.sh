@@ -20,7 +20,3 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags cassandra --
 # Postgresql-master installation
 echo "@@@@@@@@@ Postgresql-master installation"
 ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags  postgresql-master --extra-vars=@config
-
-# Mongodb installation
-echo "@@@@@@@@@ Mongodb installation"
-ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags "mongodb" --extra-vars=@config
