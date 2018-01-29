@@ -23,12 +23,6 @@ deps() { sudo ./install-deps.sh; }
 # Generating configs
 config() { 
     time ./generate-config.sh $IMPLIMENTATION_NAME $ENV_NAME core; 
-    # Creating inventory
-    sed -i s#\"{{database_host}}\"#$DB_HOST#g $ANSIBLE_VARIABLE_PATH/hosts
-    sed -i s#\"{{application_host}}\"#$APP_HOST#g $ANSIBLE_VARIABLE_PATH/hosts
-    sed -i s#\"{{ssh_ansible_user}}\"#$SSH_ANSIBLE_USER#g $ANSIBLE_VARIABLE_PATH/hosts
-    sed -i s#\"{{ssh_ansible_file}}\"#$SSH_ANSIBLE_FILE#g $ANSIBLE_VARIABLE_PATH/hosts
-    sed -i s#\"{{ansible_private_key_path}}\"#$ANSIBLE_PRIVATE_KEY_PATH#g $ANSIBLE_VARIABLE_PATH/hosts
 }
 
 
