@@ -1,8 +1,15 @@
 #!/bin/sh
 
-DNS_NAME=$(awk '/dns_name: / {print $2}' config)
-SSH_ANSIBLE_USER=$(awk '/ssh_ansible_user: / {print $2}' config)
-CERTBOT_HOME=/etc/letsencrypt/archive/$DNS_NAME
+# This script won't work for aws, as it's black listed
+
+echo -e "This script won't work for aws, as it's black listed\n so if youre running on aws please press ctrl+c"
+
+sleep 5
+
+echo please enter your dns name
+read dns_name
+ssh_ansible_user=$(whoami)
+certbot_home=/etc/letsencrypt/archive/$dns_name
 
 
 #Check certbot installed or not 
@@ -18,13 +25,13 @@ else
     sudo apt-get install -y certbot 	
 fi
 
-sudo ls $CERTBOT_HOME
+sudo ls $certbot_home
 if [ $? -eq 0 ]
 then
     echo "Certs are already created"
 else
-	sudo certbot certonly --standalone -d $DNS_NAME 
+	sudo certbot certonly --standalone -d $dns_name 
 fi
-sudo cp -r $CERTBOT_HOME/cert1.pem $CERTBOT_HOME/privkey1.pem /home/$SSH_ANSIBLE_USER/
-sudo chown -R $SSH_ANSIBLE_USER:$SSH_ANSIBLE_USER /home/$SSH_ANSIBLE_USER/cert1.pem /home/$SSH_ANSIBLE_USER/privkey1.pem
-sudo chmod 775 /home/$SSH_ANSIBLE_USER/cert1.pem /home/$SSH_ANSIBLE_USER/privkey1.pem
+sudo cp -r $certbot_home/cert1.pem $certbot_home/privkey1.pem /home/$ssh_ansible_user/
+sudo chown -R $ssh_ansible_user:$ssh_ansible_user /home/$ssh_ansible_user/cert1.pem /home/$ssh_ansible_user/privkey1.pem
+sudo chmod 775 /home/$ssh_ansible_user/cert1.pem /home/$ssh_ansible_user/privkey1.pem
