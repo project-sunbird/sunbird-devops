@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eu -o pipefail
 
 usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak} ]" 1>&2; exit 1; }
 
