@@ -5,14 +5,8 @@ set -eu -o pipefail
 usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak} ]" 1>&2; exit 1; }
 
 # Reading environment and implimentation name
-IMPLIMENTATION_NAME=$(awk '/implementation_name: / {print $2}' config)
-ENV_NAME=$(awk '/env: / {print $2}' config)
-APP_HOST=$(awk '/application_host: / {print $2}' config)
-DB_HOST=$(awk '/database_host: / {print $2}' config)
-SSH_ANSIBLE_USER=$(awk '/ssh_ansible_user: / {print $2}' config)
-SSH_ANSIBLE_FILE=$(awk '/ssh_ansible_file: / {print $2}' config)
-ANSIBLE_PRIVATE_KEY_PATH=$(awk '/ansible_private_key_path: / {print $2}' config)
-ANSIBLE_VARIABLE_PATH=$IMPLIMENTATION_NAME-devops/ansible/inventories/$ENV_NAME
+implimentation_name=$(awk '/implementation_name: / {print $2}' config)
+env_name=$(awk '/env: / {print $2}' config)
 
 #TO skip the host key verification
 export ANSIBLE_HOST_KEY_CHECKING=False
@@ -21,22 +15,19 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 deps() { sudo ./install-deps.sh; }
 
 # Generating configs
-config() { 
-    time ./generate-config.sh $IMPLIMENTATION_NAME $ENV_NAME core; 
-}
-
+config() { time ./generate-config.sh $implimentation_name $env_name core; }
 
 # Installing and initializing dbs
-dbs() { ./install-dbs.sh $ANSIBLE_VARIABLE_PATH; ./init-dbs.sh $ANSIBLE_VARIABLE_PATH; }
+dbs() { ./install-dbs.sh $ansible_variable_path; ./init-dbs.sh $ansible_variable_path; }
 
 # Apis
-apis() { ./deploy-apis.sh $ANSIBLE_VARIABLE_PATH; }
+apis() { ./deploy-apis.sh $ansible_variable_path; }
 
 # Proxy
-proxy() { ./deploy-proxy.sh $ANSIBLE_VARIABLE_PATH; }
+proxy() { ./deploy-proxy.sh $ansible_variable_path; }
 
 # Keycloak
-keycloak() { ./provision-keycloak.sh $ANSIBLE_VARIABLE_PATH; ./deploy-keycloak-vm.sh $ANSIBLE_VARIABLE_PATH; }
+keycloak() { ./provision-keycloak.sh $ansible_variable_path; ./deploy-keycloak-vm.sh $ansible_variable_path; }
 
 while getopts "s:h" o;do
     case "${o}" in
