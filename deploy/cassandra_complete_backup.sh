@@ -21,3 +21,7 @@ done < dbs.log
 echo 'creating tar'
 
 tar -cvf complete_cassandra_bakup_$(date +%Y%m%d).tar keyspace_backup schemas dbs.log
+
+if [ $# -eq 0 ];then
+    rm -rf keyspace_backup schemas dbs.log
+fi
