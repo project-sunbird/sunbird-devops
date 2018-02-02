@@ -7,6 +7,7 @@ usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak} ]" 1>&2; exit 1;
 # Reading environment and implimentation name
 implimentation_name=$(awk '/implementation_name: / {print $2}' config)
 env_name=$(awk '/env: / {print $2}' config)
+ansible_variable_path=$implimentation_name-devops/ansible/inventories/$env_name
 
 #TO skip the host key verification
 export ANSIBLE_HOST_KEY_CHECKING=False
