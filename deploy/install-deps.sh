@@ -8,7 +8,9 @@ SWARM_MASTER_IP=$(ip route get 8.8.8.8 | awk '{print $NF; exit}')
 echo "MasterIP: $SWARM_MASTER_IP"
 
 # Remove other versions of docker
+if [ $(which docker) ];
 apt-get -y remove docker docker-engine docker.io
+fi
 
 # Install extra packages needed for docker
 apt-get -y update && \
