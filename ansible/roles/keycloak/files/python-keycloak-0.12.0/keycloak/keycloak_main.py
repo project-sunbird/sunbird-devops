@@ -21,7 +21,7 @@ def keycloak_create_user(email, username, firstName, lastName, password):
                     "credentials": [{"value": "12345","type": password}],
                     "realmRoles": ["user_default"]})
 
-# Update client roles under role mappings to ensure that this user has the manage-users, query-users, query-groups and view-users permissions.
+# Create the user and assign the role to access the user management API
 def update_user_roles(config):
     realm_json = json.load(open(config['keycloak_realm_json_file_path']))
     clientId = "realm-management"
@@ -31,7 +31,6 @@ def update_user_roles(config):
             client_id = client["id"]
             break
 
-    # @Todo get username from ansible
     user = keycloak_admin.get_users({"username":config['keycloak_api_management_username']})
     user_id = user[0]['id'];
 
