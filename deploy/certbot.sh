@@ -15,7 +15,7 @@ certbot_home=/etc/letsencrypt/archive/$dns_name
 
 
 #Check certbot installed or not
-if $(which certbot) ; then
+if [ $(which certbot) ]; then
     echo "certbot is already installed"
 else
     sudo apt-get update
@@ -25,13 +25,7 @@ else
     sudo apt-get install -y certbot
 fi
 
-sudo ls $certbot_home
-if [ $? -eq 0 ]
-then
-    echo "Certs are already created"
-else
-    sudo certbot certonly --standalone -d $dns_name
-fi
+sudo certbot certonly --standalone -d $dns_name
 sudo cp -r $certbot_home/cert1.pem $certbot_home/privkey1.pem /home/$ssh_ansible_user/
 sudo chown -R $ssh_ansible_user:$ssh_ansible_user /home/$ssh_ansible_user/cert1.pem /home/$ssh_ansible_user/privkey1.pem
 sudo chmod 775 /home/$ssh_ansible_user/cert1.pem /home/$ssh_ansible_user/privkey1.pem
