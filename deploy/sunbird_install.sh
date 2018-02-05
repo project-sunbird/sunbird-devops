@@ -30,6 +30,9 @@ proxy() { ./deploy-proxy.sh $ansible_variable_path; }
 # Keycloak
 keycloak() { ./provision-keycloak.sh $ansible_variable_path; ./deploy-keycloak-vm.sh $ansible_variable_path; }
 
+# Core
+core() { ./deploy-core.sh $ansible_variable_path; }
+
 while getopts "s:h" o;do
     case "${o}" in
         s)
@@ -54,6 +57,10 @@ while getopts "s:h" o;do
                     ;;
                 keycloak)
                     echo -e "\n$(date)\n">>keycloak.log; keycloak 2>&1 | tee -a keycloak.log
+                    exit 0
+                    ;;
+                core)
+                    echo -e "\n$(date)\n">>core.log; core 2>&1 | tee -a core.log
                     exit 0
                     ;;
                 *)
