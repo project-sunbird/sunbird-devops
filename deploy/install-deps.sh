@@ -2,13 +2,16 @@
 # Build script
 # set -o errexit
 
-DOCKER_VERSION=17.06.2~ce-0~ubuntu
-ANSIBLE_VERSION=2.4.1.0
-SWARM_MASTER_IP=$(ip route get 8.8.8.8 | awk '{print $NF; exit}')
-echo "MasterIP: $SWARM_MASTER_IP"
+docker_version=17.06.2~ce-0~ubuntu
+ansible_versioN=2.4.1.0
+swarm_master_iP=$(ip route get 8.8.8.8 | awk '{print $NF; exit}')
+echo "MasterIP: $swarm_master_iP"
 
 # Check for docker
-if [ ! $(which docker) ];then
+case "$(docker --version)" in
+    *17.06.2-ce*)
+        ;;
+    *)
     # Remove other versions of docker
     apt-get -y remove docker docker-engine docker.io
 
@@ -33,21 +36,26 @@ if [ ! $(which docker) ];then
     apt-get -y update
 
     # Install Docker engine
-    apt-get -y install docker-ce=$DOCKER_VERSION
+    apt-get -y install docker-ce=$docker_version
 
     # Setup docker to system service
     systemctl enable docker
     systemctl restart docker
 
     # Initialise Docker Swarm, with current machine as Master (which is active)
-    docker swarm init --advertise-addr $SWARM_MASTER_IP
+    docker swarm init --advertise-addr $swarm_master_iP
 
     docker node ls
-fi
+    ;;
+ esac
 
 # Checking for ansible
-if [ ! $(which ansible) ];then
-# Install Ansible
-    apt install -y python-pip
-    pip install ansible==$ANSIBLE_VERSION
-fi
+case "$(ansible --version | head -n1)" in 
+    *2.4.1.0*)
+        ;;
+     *)
+    # Install Ansible
+    sudo apt install -y python-pip
+    sudo pip install ansible==$ansible_versioN
+    ;;
+esac
