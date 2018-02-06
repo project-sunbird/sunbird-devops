@@ -5,9 +5,14 @@ set -eu -o pipefail
 usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak} ]" 1>&2; exit 1; }
 
 # Reading environment and implimentation name
-implimentation_name=$(awk '/implementation_name: / {print $2}' config)
-env_name=$(awk '/env: / {print $2}' config)
-ansible_variable_path=$implimentation_name-devops/ansible/inventories/$env_name
+IMPLIMENTATION_NAME=$(awk '/implementation_name: / {print $2}' config)
+ENV_NAME=$(awk '/env: / {print $2}' config)
+APP_HOST=$(awk '/application_host: / {print $2}' config)
+DB_HOST=$(awk '/database_host: / {print $2}' config)
+SSH_ANSIBLE_USER=$(awk '/ssh_ansible_user: / {print $2}' config)
+SSH_ANSIBLE_FILE=$(awk '/ssh_ansible_file: / {print $2}' config)
+ANSIBLE_PRIVATE_KEY_PATH=$(awk '/ansible_private_key_path: / {print $2}' config)
+ANSIBLE_VARIABLE_PATH=$IMPLIMENTATION_NAME-devops/ansible/inventories/$ENV_NAME
 
 #TO skip the host key verification
 export ANSIBLE_HOST_KEY_CHECKING=False
@@ -16,22 +21,28 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 deps() { sudo ./install-deps.sh; }
 
 # Generating configs
-config() { time ./generate-config.sh $implimentation_name $env_name core; }
+config() { 
+    time ./generate-config.sh $IMPLIMENTATION_NAME $ENV_NAME core; 
+    # Creating inventory
+    sed -i s#\"{{database_host}}\"#$DB_HOST#g $ANSIBLE_VARIABLE_PATH/hosts
+    sed -i s#\"{{application_host}}\"#$APP_HOST#g $ANSIBLE_VARIABLE_PATH/hosts
+    sed -i s#\"{{ssh_ansible_user}}\"#$SSH_ANSIBLE_USER#g $ANSIBLE_VARIABLE_PATH/hosts
+    sed -i s#\"{{ssh_ansible_file}}\"#$SSH_ANSIBLE_FILE#g $ANSIBLE_VARIABLE_PATH/hosts
+    sed -i s#\"{{ansible_private_key_path}}\"#$ANSIBLE_PRIVATE_KEY_PATH#g $ANSIBLE_VARIABLE_PATH/hosts
+}
+
 
 # Installing and initializing dbs
-dbs() { ./install-dbs.sh $ansible_variable_path; ./init-dbs.sh $ansible_variable_path; }
+dbs() { ./install-dbs.sh $ANSIBLE_VARIABLE_PATH; ./init-dbs.sh $ANSIBLE_VARIABLE_PATH; }
 
 # Apis
-apis() { ./deploy-apis.sh $ansible_variable_path; }
+apis() { ./deploy-apis.sh $ANSIBLE_VARIABLE_PATH; }
 
 # Proxy
-proxy() { ./deploy-proxy.sh $ansible_variable_path; }
+proxy() { ./deploy-proxy.sh $ANSIBLE_VARIABLE_PATH; }
 
 # Keycloak
-keycloak() { ./provision-keycloak.sh $ansible_variable_path; ./deploy-keycloak-vm.sh $ansible_variable_path; }
-
-# Core
-core() { ./deploy-core.sh $ansible_variable_path; }
+keycloak() { ./provision-keycloak.sh $ANSIBLE_VARIABLE_PATH; ./deploy-keycloak-vm.sh $ANSIBLE_VARIABLE_PATH; }
 
 while getopts "s:h" o;do
     case "${o}" in
@@ -57,10 +68,6 @@ while getopts "s:h" o;do
                     ;;
                 keycloak)
                     echo -e "\n$(date)\n">>keycloak.log; keycloak 2>&1 | tee -a keycloak.log
-                    exit 0
-                    ;;
-                core)
-                    echo -e "\n$(date)\n">>core.log; core 2>&1 | tee -a core.log
                     exit 0
                     ;;
                 *)
