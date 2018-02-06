@@ -7,7 +7,6 @@ import urllib2, argparse, json
 # Import realm
 def keycloak_import_realm(keycloak_realm_file):
     data = json.load(open(keycloak_realm_file))
-    print data
     realm_import = keycloak_admin.import_realm(data)
 
 # Add user and set password
@@ -34,7 +33,6 @@ def update_user_roles(config):
     user = keycloak_admin.get_users({"username":config['keycloak_api_management_username']})
     user_id = user[0]['id'];
 
-    print config['keycloak_user_manager_roles_json_file_path']
     # Read the role from file
     with open(config['keycloak_user_manager_roles_json_file_path'], 'r') as data_file:
         json_data = data_file.read()
