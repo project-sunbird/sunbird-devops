@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CASS_DATA_PATH=/var/lib/cassandra/data
+cass_data_path=/var/lib/cassandra/data
 
 mkdir keyspace_backup schemas
 
@@ -10,11 +10,11 @@ nodetool clearsnapshot
 nodetool flush
 
 echo 'Backing up schema and keyspaces'
-ls $CASS_DATA_PATH | grep -v system* > dbs.log
+ls $Cass_data_path | grep -v system* > dbs.log
 
 while read keyspace
 do
-    cp -rf $CASS_DATA_PATH/$keyspace keyspace_backup/
+    cp -rf $cass_data_path/$keyspace keyspace_backup/
     cqlsh -e "DESC $keyspace" > schemas/$keyspace.schema
 done < dbs.log
 
