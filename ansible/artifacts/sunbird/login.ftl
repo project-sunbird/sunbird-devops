@@ -20,7 +20,7 @@
                     <div class="content signin-contentPadding">
                         <form id="kc-form-login" class="ui form pre-signin" method="POST" action="${url.loginAction}">
                             <div class="field">
-                                <label for="username"><#if !realm.loginWithEmailAllowed>${msg("username")}<#elseif !realm.registrationEmailAsUsername>${msg("usernameOrEmail")}<#else>${msg("email")}</#if></label>
+                                <label for="username"><#if !realm.loginWithEmailAllowed>${msg("username")}<#elseif !realm.registrationEmailAsUsername>${msg("usernameOrEmailOrPhone")}<#else>${msg("email")}</#if></label>
                                 <#if usernameEditDisabled??>
                                     <input id="username" name="username" value="${(login.username!'')?html}" type="text" disabled />
                                 <#else>
@@ -41,11 +41,11 @@
                                 </div>
                                 <div class="six wide column">
                                     <button class="ui primary right floated button buttonResizeClass" name="login" id="kc-login" type="submit">${msg("doLogIn")}</button>
-                                </div>                
+                                </div>
                             </div>
                         </form>
-                    </div>                 
-                    <div>            
+                    </div>
+                    <div>
                     </div>
                   </div>
                 </div>
