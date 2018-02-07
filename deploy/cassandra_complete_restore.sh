@@ -10,19 +10,19 @@ if [ $# -ne 1 ];then
     exit 1
 fi
 
-CASS_DATA_PATH=/var/lib/cassandra/data
-CASS_ROOT_PATH=$1
-CASS_IP=$(hostname -I | awk '{print $1}')
+cass_data_path=/var/lib/cassandra/data
+cass_root_path=$1
+cass_ip=$(hostname -I | awk '{print $1}')
 
 echo 'Restoring schemas'
-for schema in $CASS_ROOT_PATH/schemas/*.schema; do
-    cqlsh $CASS_IP -e "source '$schema'"
+for schema in $cass_root_path/schemas/*.schema; do
+    cqlsh $cass_ip -e "source '$schema'"
 done
 
 echo 'Restoring KeySpaces'
 
-for keyspace in $CASS_ROOT_PATH/keyspace_backup/*;do
+for keyspace in $cass_root_path/keyspace_backup/*;do
     for table in $keyspace/*; do
-        sstableloader -d $CASS_IP $table
+        sstableloader -d $cass_ip $table
     done
 done
