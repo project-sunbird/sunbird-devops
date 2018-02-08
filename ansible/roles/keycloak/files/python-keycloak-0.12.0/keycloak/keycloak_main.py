@@ -43,7 +43,7 @@ def update_user_roles(config):
 
 if  __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Configure keycloak user apis')
-    parser.add_argument('keycloak_bootstrap_config', help='keycloak server url')
+    parser.add_argument('keycloak_bootstrap_config', help='configuration json file that is needed for keycloak bootstrap')
     args = parser.parse_args()
 
     with open(args.keycloak_bootstrap_config) as keycloak_bootstrap_config:
