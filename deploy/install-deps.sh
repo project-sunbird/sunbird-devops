@@ -3,9 +3,9 @@
 # set -o errexit
 
 docker_version=17.06.2~ce-0~ubuntu
-ansible_versioN=2.4.1.0
-swarm_master_iP=$(ip route get 8.8.8.8 | awk '{print $NF; exit}')
-echo "MasterIP: $swarm_master_iP"
+ansible_version=2.4.1.0
+swarm_master_ip=$(ip route get 8.8.8.8 | awk '{print $NF; exit}')
+echo "MasterIP: $swarm_master_ip"
 
 # Check for docker
 case "$(docker --version)" in
@@ -43,11 +43,11 @@ case "$(docker --version)" in
     systemctl restart docker
 
     # Initialise Docker Swarm, with current machine as Master (which is active)
-    docker swarm init --advertise-addr $swarm_master_iP
+    docker swarm init --advertise-addr $swarm_master_ip
 
     docker node ls
     ;;
- esac
+esac
 
 # Checking for ansible
 case "$(ansible --version | head -n1)" in 
@@ -56,6 +56,6 @@ case "$(ansible --version | head -n1)" in
      *)
     # Install Ansible
     sudo apt install -y python-pip
-    sudo pip install ansible==$ansible_versioN
+    sudo pip install ansible==$ansible_version
     ;;
 esac

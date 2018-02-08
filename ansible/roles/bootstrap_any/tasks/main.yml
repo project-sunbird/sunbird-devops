@@ -1,63 +1,17 @@
 - include_vars: "{{inventory_dir}}/secrets.yml"
 
-# - name: APT update
-#   become: yes
-#   apt: update_cache=yes
-
 - name: Create group deployer
   group: name=deployer state=present
   become: yes
 
 - name: Create user deployer
-  user: name=deployer comment="deployer" group=deployer groups=sudo shell=/bin/bash password='{{ sudo_crypt_deployer }}' update_password=always
+  user: name=deployer comment="deployer" group=deployer groups=sudo shell=/bin/bash password="{{sudo_crypt_deployer}}" update_password=always
   become: yes
 
 - name: Add ssh public key deployer
   authorized_key: user=deployer key='{{ssh_public_key_deployer}}'
   become: yes
 
-# - name: SSH configuration file change
-#   become: yes
-#   template:
-#     src: sshd.j2
-#     dest: /etc/ssh/sshd_config
-#     group: root
-#     owner: root
-#     mode: 0644
-
-# - name: Forward ssh-agent
-#   become: yes
-#   template:
-#     src: ssh.j2
-#     dest: /etc/ssh/ssh_config
-#     group: root
-#     owner: root
-#     mode: 0644
-
-# - name: Creating banner
-#   become: yes
-#   template:
-#     src: banner.j2
-#     dest: /etc/issue.net
-#     group: root
-#     owner: root
-#     mode: 0644
-
-# - name: Install python-dev
-#   apt: name=python-dev state=present
-#   become: yes
-
-# - name: Install pip
-#   apt: name=python-pip state=present
-#   become: yes
-
-# - name: Install zip
-#   apt: name=zip state=present
-#   become: yes
-
-# - name: Install unzip
-#   apt: name=unzip state=present
-#   become: yes
 
 - name: Create ulimit configuration
   template:
