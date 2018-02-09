@@ -17,6 +17,9 @@ ANSIBLE_VARIABLE_PATH=$IMPLIMENTATION_NAME-devops/ansible/inventories/$ENV_NAME
 #TO skip the host key verification
 export ANSIBLE_HOST_KEY_CHECKING=False
 
+# Creating logging directory
+mkdir logs &> /dev/null
+
 # Installing dependencies
 deps() { sudo ./install-deps.sh; }
 
@@ -51,23 +54,23 @@ while getopts "s:h" o;do
             echo "help.."
             case "${s}" in
                 config)
-                    echo -e "\n$(date)\n">>config.log; config 2>&1 | tee -a config.log
+                    echo -e "\n$(date)\n">>config.log; config 2>&1 | tee -a logs/config.log
                     exit 0
                     ;;
                 dbs)
-                    echo -e "\n$(date)\n">>dbs.log; dbs 2>&1 | tee -a dbs.log
+                    echo -e "\n$(date)\n">>dbs.log; dbs 2>&1 | tee -a logs/dbs.log
                     exit 0
                     ;;
                 apis)
-                    echo -e "\n$(date)\n">>apis.log; apis 2>&1 | tee -a apis.log
+                    echo -e "\n$(date)\n">>apis.log; apis 2>&1 | tee -a logs/apis.log
                     exit 0
                     ;;
                 proxy)
-                    echo -e "\n$(date)\n">>proxy.log; proxy 2>&1 | tee -a proxy.log
+                    echo -e "\n$(date)\n">>proxy.log; proxy 2>&1 | tee -a logs/proxy.log
                     exit 0
                     ;;
                 keycloak)
-                    echo -e "\n$(date)\n">>keycloak.log; keycloak 2>&1 | tee -a keycloak.log
+                    echo -e "\n$(date)\n">>keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
                     exit 0
                     ;;
                 *)
@@ -85,9 +88,9 @@ while getopts "s:h" o;do
 done
 
 # Default action: install and configure from scratch
-echo -e \n$(date)\n >> deps.log; deps 2>&1 | tee -a deps.log
-echo -e \n$(date)\n >> config.log; config 2>&1 | tee -a config.log
-echo -e \n$(date)\n >> dbs.log; dbs 2>&1 | tee -a dbs.log
-echo -e \n$(date)\n >> apis.log; apis 2>&1 | tee -a apis.log
-echo -e \n$(date)\n >> proxies.log; proxy 2>&1 | tee -a proxies.log
-echo -e \n$(date)\n >> keycloak.log; keycloak 2>&1 | tee -a keycloak.log
+echo -e \n$(date)\n >> deps.log; deps 2>&1 | tee -a logs/deps.log
+echo -e \n$(date)\n >> config.log; config 2>&1 | tee -a logs/config.log
+echo -e \n$(date)\n >> dbs.log; dbs 2>&1 | tee -a logs/dbs.log
+echo -e \n$(date)\n >> apis.log; apis 2>&1 | tee -a logs/apis.log
+echo -e \n$(date)\n >> proxies.log; proxy 2>&1 | tee -a logs/proxies.log
+echo -e \n$(date)\n >> keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
