@@ -18,7 +18,7 @@ ANSIBLE_VARIABLE_PATH=$IMPLIMENTATION_NAME-devops/ansible/inventories/$ENV_NAME
 export ANSIBLE_HOST_KEY_CHECKING=False
 
 # Creating logging directory
-mkdir logs &> /dev/null
+if [ ! -d logs ];then mkdir logs &> /dev/null;fi
 
 # Installing dependencies
 deps() { sudo ./install-deps.sh; }
@@ -79,7 +79,6 @@ while getopts "s:h" o;do
                     ;;
             esac
             ;;
-
         *)
             usage
             exit 0
