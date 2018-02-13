@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 
-# ----------------------------------------------
-# script to copy cassandra snaps to a remote dir
-# usage script  --datadir /path/to/datadir \
-#               --snapshotname snapshot name
-#               --targetdir /path/targetdir
-# ----------------------------------------------
+'''
+ Please run nodetool snapshot -t <snap_name> before running the script
+
+ script to copy cassandra snaps to a remote dir
+ usage script  --datadir /path/to/datadir \
+               --snapshotname snapshot name
+               --targetdir /path/targetdir
+ eg: ./cassandra_copy_backup.py --datadir /var/lib/cassandra/data \
+                                --snapshotname my_snapshot
+                                --targetdir /backups/cassandra/$(date +%Y-%m-%d)
+'''
 
 from os import path, walk, sep
 import argparse
