@@ -76,6 +76,7 @@ while getopts "s:h" o;do
                     ;;
                 core)
                     echo -e "\n$(date)\n">>core.log; core2>&1 | tee -a logs/core.log
+                    exit 0
                     ;;
                 *)
                     usage
