@@ -1,5 +1,12 @@
 #!/usr/bin/python3
 
+'''
+
+To restore the cassandra database snapshot
+
+usage: ./cassandra_restore.py --cassandra_host ipaddress --snapshotdir <backup dir>
+
+'''
 from os import walk, sep
 from subprocess import STDOUT, call
 from argparse import ArgumentParser
