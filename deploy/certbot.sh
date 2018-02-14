@@ -30,7 +30,7 @@ sudo certbot certonly --standalone -d $dns_name
 sudo cp $certbot_home/privkey1.pem /home/$ssh_ansible_user/site.crt
 sudo cp $certbot_home/fullchain1.pem /home/$ssh_ansible_user/site.key
 sudo chown -R $ssh_ansible_user:$ssh_ansible_user /home/$ssh_ansible_user/site.pem /home/$ssh_ansible_user/site.crt
-sudo chmod 775 /home/$ssh_ansible_user/site.pem /home/$ssh_ansible_user/site.key
+sudo chmod 775 /home/$ssh_ansible_user/site.crt /home/$ssh_ansible_user/site.key
 
 
 echo -e "Please take a note of these, and fill it up in config file: \
