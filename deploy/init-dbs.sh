@@ -16,3 +16,9 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/cassandra-data.yml --extra-vars=@
 # Postgresql installation
 echo "@@@@@@@@@ Postgresql data"
 ansible-playbook -i $INVENTORY_PATH ../ansible/postgresql-data-update.yml --extra-vars=@config
+
+# Elasticsearch installation
+echo "@@@@@@@@@ Postgresql data"
+ansible-playbook -i $INVENTORY_PATH ../ansible/curl_commands.yml --extra-vars=@config
+
+
