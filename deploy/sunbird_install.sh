@@ -94,7 +94,6 @@ done
 # Default action: install and configure from scratch
 echo -e \n$(date)\n >> deps.log; deps 2>&1 | tee -a logs/deps.log
 echo -e \n$(date)\n >> config.log; config 2>&1 | tee -a logs/config.log
-# Installing sunbird_ansible prerequisites
 echo -e \n$(date)\n >> dbs.log; dbs 2>&1 | tee -a logs/dbs.log
 echo -e \n$(date)\n >> apis.log; apis 2>&1 | tee -a logs/apis.log
 echo -e \n$(date)\n >> proxies.log; proxy 2>&1 | tee -a logs/proxies.log
