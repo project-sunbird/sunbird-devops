@@ -78,6 +78,10 @@ while getopts "s:h" o;do
                     echo -e "\n$(date)\n">>core.log; core 2>&1 | tee -a logs/core.log
                     exit 0
                     ;;
+                core)
+                    echo -e "\n$(date)\n">>core.log; core2>&1 | tee -a logs/core.log
+                    exit 0
+                    ;;
                 *)
                     usage
                     exit 0
@@ -94,6 +98,8 @@ done
 # Default action: install and configure from scratch
 echo -e \n$(date)\n >> deps.log; deps 2>&1 | tee -a logs/deps.log
 echo -e \n$(date)\n >> config.log; config 2>&1 | tee -a logs/config.log
+# Installing sunbird_ansible prerequisites
+ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config
 echo -e \n$(date)\n >> dbs.log; dbs 2>&1 | tee -a logs/dbs.log
 echo -e \n$(date)\n >> apis.log; apis 2>&1 | tee -a logs/apis.log
 echo -e \n$(date)\n >> proxies.log; proxy 2>&1 | tee -a logs/proxies.log
