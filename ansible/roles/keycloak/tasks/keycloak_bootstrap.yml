@@ -1,14 +1,14 @@
-- name: initialize python library to run keycloak bootstrap script
-  shell: cd roles/keycloak/files/python-keycloak-0.12.0 && python setup.py install
+- name: Initialize python library to run keycloak bootstrap script
+  shell: cd {{ role_path }}/files/python-keycloak-0.12.0 && python setup.py install
 
 - name: Save keycalok vars to json
-  template: src="roles/keycloak/templates/keycloak-bootstrap.conf.j2" dest="/tmp/keycloak-bootstrap.conf.json" mode="0644"
+  template: src="keycloak-bootstrap.conf.j2" dest="/tmp/keycloak-bootstrap.conf.json" mode="0644"
 
 - name: Copy realm json file to tmp location
-  copy: src="roles/keycloak/files/python-keycloak-0.12.0/keycloak-realm.json" dest="/tmp" mode="0644" remote_src="yes"
+  template: src="keycloak-realm.j2" dest="/tmp/keycloak-realm.json" mode="0644" 
 
 - name: Copy user manager roles file to tmp location
-  copy: src="roles/keycloak/files/python-keycloak-0.12.0/roles.json" dest="/tmp" mode="0644" remote_src="yes"
+  template: src="roles.j2" dest="/tmp/roles.json" mode="0644" 
 
 - name: Run the keycloak bootstrap script
-  shell: cd roles/keycloak/files/python-keycloak-0.12.0/keycloak && python keycloak_main.py /tmp/keycloak-bootstrap.conf.json
+  shell:  cd {{ role_path }}/files/python-keycloak-0.12.0/keycloak/ && python keycloak_main.py /tmp/keycloak-bootstrap.conf.json
