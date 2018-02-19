@@ -54,7 +54,6 @@ keycloak() {
 # Core
 core() { ./deploy-core.sh $ansible_variable_path; }
 
-logger() { ./deploy-logger.sh $ansible_variable_path; }
 
 while getopts "s:h" o;do
     case "${o}" in
@@ -88,6 +87,7 @@ while getopts "s:h" o;do
                     ;;
                 logger)
                     echo -e "\n$(date)\n">>logs/logger.log; core 2>&1 | tee -a logs/logger.log
+                    logger() { ./deploy-logger.sh $ansible_variable_path; }
                     exit 0
                     ;;
                 *)
