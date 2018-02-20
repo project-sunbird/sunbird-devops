@@ -41,13 +41,13 @@ case "$(docker --version)" in
     # Setup docker to system service
     systemctl enable docker
     systemctl restart docker
-
-    # Initialise Docker Swarm, with current machine as Master (which is active)
-    docker swarm init --advertise-addr $swarm_master_ip
-
-    docker node ls
     ;;
 esac
+
+# Initialise Docker Swarm, with current machine as Master (which is active)
+docker swarm init --advertise-addr $swarm_master_ip
+
+docker node ls
 
 # Checking for ansible
 case "$(ansible --version | head -n1)" in 
