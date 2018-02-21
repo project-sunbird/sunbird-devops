@@ -1,5 +1,4 @@
 #!/bin/bash
-set -v
 
 set -eu -o pipefail
 
@@ -92,11 +91,11 @@ while getopts "s:h" o;do
                     exit 0
                     ;;
                 logger)
-                    echo -e "\n$(date)\n">>logs/logger.log; core 2>&1 | tee -a logs/logger.log
+                    echo -e "\n$(date)\n">>logs/logger.log; logger 2>&1 | tee -a logs/logger.log
                     exit 0
                     ;;
                 monitor)
-                    echo -e "\n$(date)\n">>logs/monitor.log; core 2>&1 | tee -a logs/monitor.log
+                    echo -e "\n$(date)\n">>logs/monitor.log; monitor 2>&1 | tee -a logs/monitor.log
                     exit 0   
                     ;;
                 *)
