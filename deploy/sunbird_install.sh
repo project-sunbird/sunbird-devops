@@ -3,7 +3,7 @@ set -v
 
 set -eu -o pipefail
 
-usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core|logger} ]" &>/dev/null; exit 0; }
+usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core|logger|monitor} ]" &>/dev/null; exit 0; }
 
 # Reading environment and implimentation name
 implimentation_name=$(awk '/implementation_name: / {print $2}' config)
@@ -54,6 +54,12 @@ keycloak() {
 # Core
 core() { ./deploy-core.sh $ansible_variable_path; }
 
+# Logger
+logger() { ./deploy-logger.sh $ansible_variable_path; }
+
+# Logger
+monitor() { ./deploy-monitor.sh $ansible_variable_path; }
+
 
 while getopts "s:h" o;do
     case "${o}" in
@@ -87,9 +93,11 @@ while getopts "s:h" o;do
                     ;;
                 logger)
                     echo -e "\n$(date)\n">>logs/logger.log; core 2>&1 | tee -a logs/logger.log
-                    logger() { ./deploy-logger.sh $ansible_variable_path; }
                     exit 0
                     ;;
+                monitor)
+                    echo -e "\n$(date)\n">>logs/monitor.log; core 2>&1 | tee -a logs/monitor.log
+                    exit 0   
                 *)
                     usage
                     exit 0
@@ -112,4 +120,3 @@ echo -e \n$(date)\n >> dbs.log; dbs 2>&1 | tee -a logs/dbs.log
 echo -e \n$(date)\n >> apis.log; apis 2>&1 | tee -a logs/apis.log
 echo -e \n$(date)\n >> proxies.log; proxy 2>&1 | tee -a logs/proxies.log
 echo -e \n$(date)\n >> keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
-echo -e \n$(date)\n >> logger.log; logger 2>&1 | tee -a logs/logger.log
