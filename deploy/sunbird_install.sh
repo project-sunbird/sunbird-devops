@@ -98,6 +98,7 @@ while getopts "s:h" o;do
                 monitor)
                     echo -e "\n$(date)\n">>logs/monitor.log; core 2>&1 | tee -a logs/monitor.log
                     exit 0   
+                    ;;
                 *)
                     usage
                     exit 0
