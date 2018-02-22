@@ -1,0 +1,34 @@
+#!groovy
+
+node('general-dev') {
+
+	currentBuild.result = "SUCCESS"
+
+	try {
+
+		stage('checkout')
+		{
+			sh('rm -rf sunbird-auth')
+			sh('git clone https://github.com/ahghatol/sunbird-auth.git')
+		}
+
+		stage('Build'){
+
+			step ([$class: 'CopyArtifact',
+				projectName: 'New_Build/Sunbird_Auth_Config_Build',
+				filter: 'sunbird_auth_1.0v.config.zip',
+				target: 'sunbird-auth/keycloak/scripts/ansible' ]
+			);
+
+			sh('cd sunbird-auth/keycloak/scripts/ansible && ansible-playbook -i inventories/dev  keycloak.yml --limit keycloak --tags deploy-config --vault-password-file /run/secrets/vault-pass -vvv')
+		}
+
+		stage('Archive'){
+			archiveArtifacts 'sunbird-auth/keycloak/scripts/ansible/sunbird_auth_1.0v.config.zip'
+		}
+	}
+	catch (err) {
+		currentBuild.result = "FAILURE"
+		throw err
+	}
+}
