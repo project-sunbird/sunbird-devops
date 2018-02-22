@@ -2,7 +2,7 @@
 
 set -eu -o pipefail
 
-usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core} ]" &>/dev/null; exit 0; }
+usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core|logger|monitor} ]" &>/dev/null; exit 0; }
 
 # Reading environment and implimentation name
 implimentation_name=$(awk '/implementation_name: / {print $2}' config)
@@ -43,10 +43,22 @@ apis() { ./deploy-apis.sh $ansible_variable_path; }
 proxy() { ./deploy-proxy.sh $ansible_variable_path; }
 
 # Keycloak
-keycloak() { ./provision-keycloak.sh $ansible_variable_path; ./deploy-keycloak-vm.sh $ansible_variable_path; }
+keycloak() {  
+    ./provision-keycloak.sh $ansible_variable_path
+    ./deploy-keycloak-vm.sh $ansible_variable_path 
+    sleep 15
+    ./bootstrap-keycloak.sh $ansible_variable_path
+}
 
 # Core
 core() { ./deploy-core.sh $ansible_variable_path; }
+
+# Logger
+logger() { ./deploy-logger.sh $ansible_variable_path; }
+
+# Logger
+monitor() { ./deploy-monitor.sh $ansible_variable_path; }
+
 
 while getopts "s:h" o;do
     case "${o}" in
@@ -55,32 +67,36 @@ while getopts "s:h" o;do
             echo "help.."
             case "${s}" in
                 config)
-                    echo -e "\n$(date)\n">>config.log; config 2>&1 | tee -a logs/config.log
+                    echo -e "\n$(date)\n">>logs/config.log; config 2>&1 | tee -a logs/config.log
                     exit 0
                     ;;
                 dbs)
-                    echo -e "\n$(date)\n">>dbs.log; dbs 2>&1 | tee -a logs/dbs.log
+                    echo -e "\n$(date)\n">>logs/dbs.log; dbs 2>&1 | tee -a logs/dbs.log
                     exit 0
                     ;;
                 apis)
-                    echo -e "\n$(date)\n">>apis.log; apis 2>&1 | tee -a logs/apis.log
+                    echo -e "\n$(date)\n">>logs/apis.log; apis 2>&1 | tee -a logs/apis.log
                     exit 0
                     ;;
                 proxy)
-                    echo -e "\n$(date)\n">>proxy.log; proxy 2>&1 | tee -a logs/proxy.log
+                    echo -e "\n$(date)\n">>logs/proxy.log; proxy 2>&1 | tee -a logs/proxy.log
                     exit 0
                     ;;
                 keycloak)
-                    echo -e "\n$(date)\n">>keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
+                    echo -e "\n$(date)\n">>logs/keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
                     exit 0
                     ;;
                 core)
-                    echo -e "\n$(date)\n">>core.log; core 2>&1 | tee -a logs/core.log
+                    echo -e "\n$(date)\n">>logs/core.log; core 2>&1 | tee -a logs/core.log
                     exit 0
                     ;;
-                core)
-                    echo -e "\n$(date)\n">>core.log; core2>&1 | tee -a logs/core.log
+                logger)
+                    echo -e "\n$(date)\n">>logs/logger.log; logger 2>&1 | tee -a logs/logger.log
                     exit 0
+                    ;;
+                monitor)
+                    echo -e "\n$(date)\n">>logs/monitor.log; monitor 2>&1 | tee -a logs/monitor.log
+                    exit 0   
                     ;;
                 *)
                     usage
