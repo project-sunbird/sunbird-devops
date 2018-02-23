@@ -8,7 +8,11 @@ node('general-dev') {
 
 		stage('checkout')
 		{
-			sh('git -C sunbird-devops pull || git clone https://github.com/ahghatol/sunbird-devops-1.git sunbird-devops')
+			sh('set -ex')       
+			sh('rm -rf sunbird-devops')
+			sh('rm -rf public-sunbird-devops')
+			sh('git clone -b release-1.5 https://github.com/ahghatol/sunbird-devops-1.git public-sunbird-devops')
+			// sh('mv public-sunbird-devops/* sunbird-devops')
 		}
 
 		stage('Build'){
@@ -19,7 +23,7 @@ node('general-dev') {
 				target: 'sunbird-devops/ansible' ]
 			);
 
-			sh('cd sunbird-devops/ansible && ansible-playbook -i inventories/dev keycloak.yml --limit keycloak --tags auth-deploy --vault-password-file /run/secrets/vault-pass -vvv')
+			// sh('cd sunbird-devops/ansible && ansible-playbook -i inventories/dev keycloak.yml --limit keycloak --tags auth-deploy --vault-password-file /run/secrets/vault-pass -vvv')
 		}
 
 		stage('Archive'){
