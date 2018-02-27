@@ -1,0 +1,154 @@
+#!/bin/bash
+#Elasticsearch hosts ip list with comma seperated
+elasticsearch_host=10.10.1.1,10.10.1.3,10.11.2.3
+cassandra_host=10.10.4.4
+postgres_host=11.11.1.2,11.11.2.3,11.2.22.2
+swarm_manager_host=172.10.0.5
+swarm_manager_node=172.10.0.5,10.10.0.2
+keycloak_host=12.1.1.1,12.1.1.4
+log_es_host=152.122.21.1
+
+
+#Fucntion to get the count of no of hosts
+get_ips_count()
+{
+char=","
+count=`awk -F"${char}" '{print NF}' <<< "$1"`
+}
+
+get_host_entries_elasticsearch()
+{
+	get_ips_count $1
+	for (( c=1; c<=$count; c++ ))
+	do
+        	ip_list=`echo $1 | cut -d "," -f$c `
+        	echo "[es-$c]"
+            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}" es_instance_name="es-$c" es_etc_node_master=true ansible_sudo_pass="{{sudo_passwd|default('')}}" es_etc_node_data=true
+            echo -e "\n"
+        done
+}
+
+
+get_host_entries_cassandra()
+{
+	get_ips_count $1
+	for (( c=1; c<=$count; c++ ))
+	do       
+        	ip_list=`echo $1 | cut -d "," -f$c `
+        	echo "[cassandra-$c]"
+            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"
+            echo -e "\n"
+        done
+}
+
+
+get_host_entries_postgres()
+{
+	get_ips_count $1
+	for (( c=1; c<=$count; c++ ))
+	do
+        	ip_list=`echo $1 | cut -d "," -f$c `
+        	echo "[postgres-$c]"
+            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"
+            echo -e "\n"
+        done
+}
+
+get_host_entries_swarm_manager()
+{
+	get_ips_count $1
+	for (( c=1; c<=$count; c++ ))
+	do
+        	ip_list=`echo $1 | cut -d "," -f$c `
+        	echo "[swarm-manager-$c]"
+         echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"  swarm_master=true
+            echo -e "\n"
+        done
+}
+
+get_host_entries_swarm_nodes()
+{
+	get_ips_count $1
+	for (( c=1; c<=$count; c++ ))
+	do
+        	ip_list=`echo $1 | cut -d "," -f$c `
+        	echo "[swarm-node-$c]"
+         echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"  swarm_master=true
+            echo -e "\n"
+        done
+}
+
+
+get_host_entries_keycloak()
+{
+	get_ips_count $1
+	for (( c=1; c<=$count; c++ ))
+	do
+        	ip_list=`echo $1 | cut -d "," -f$c `
+        	echo "[keycloak-$c]"
+            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"
+            echo -e "\n"
+        done
+}
+
+get_host_entries_log_es()
+{
+	get_ips_count $1
+	for (( c=1; c<=$count; c++ ))
+	do
+        	ip_list=`echo $1 | cut -d "," -f$c `
+        	echo "[log-es-$c]"
+            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"
+            echo -e "\n"
+        done
+}
+
+
+
+get_host_entries_elasticsearch $elasticsearch_host
+get_host_entries_cassandra $cassandra_host 
+get_host_entries_postgres $postgres_host 
+get_host_entries_swarm_nodes $swarm_manager_host
+get_host_entries_swarm_nodes $swarm_manager_node
+get_host_entries_keycloak $keycloak_host
+get_host_entries_log_es $log_es_host
+
+
+echo "
+[dev-log-es:children]
+dev-log-es-1
+
+
+[log-es:children]
+dev-log-es
+
+
+[non-swarm-nodes:children]
+postgresql-master
+postgresql-slave
+es
+cassandra
+kong-api
+keycloak
+log-es
+
+
+[swarm-nodes:children]
+swarm-manager
+swarm-bootstrap-manager
+swarm-agent-for-prometheus
+swarm-agent-for-grafana
+swarm-agent-for-alertmanager
+
+[node-exporter:children]
+non-swarm-nodes
+swarm-manager
+
+[log-forwarder:children]
+non-swarm-nodes
+swarm-manager
+
+[sample:children]
+non-swarm-nodes
+swarm-nodes
+"
