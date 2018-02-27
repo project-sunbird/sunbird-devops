@@ -112,6 +112,9 @@ while getopts "s:h" o;do
 done
 
 # Default action: install and configure from scratch
+ansible-playbook -i "localhost," -c local generate-hosts.yml --extra-vars @config --extra-vars @advanced --extra-vars "host_path=$ansible_variable_path"
+
+ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config
 echo -e \n$(date)\n >> deps.log; deps 2>&1 | tee -a logs/deps.log
 echo -e \n$(date)\n >> config.log; config 2>&1 | tee -a logs/config.log
 # Installing sunbird_ansible prerequisites
