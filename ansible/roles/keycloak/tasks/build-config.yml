@@ -1,0 +1,28 @@
+- name: Create directory for sunbird auth package config
+  file:
+    path: sunbird_auth_{{sunbird_auth_version}}.config
+    state: directory
+    mode: 0755
+
+- name: Keycloak configuration XML file
+  template:
+    src: "roles/keycloak/templates/standalone-ha.xml"
+    dest: "sunbird_auth_{{sunbird_auth_version}}.config/standalone-ha.xml"
+    mode: 0750
+
+- name: Postgresql Configuration- module.xml
+  template:
+    src: "roles/keycloak/templates/module.xml.j2"
+    dest: "sunbird_auth_{{sunbird_auth_version}}.config/module.xml"
+    mode: 0750
+
+- name: SMS provider configuration file
+  template:
+    src: "roles/keycloak/templates/Msg91Creds.json.j2"
+    dest: "sunbird_auth_{{sunbird_auth_version}}.config/Msg91Creds.json"
+    mode: 0755
+
+- archive:
+    path: sunbird_auth_{{sunbird_auth_version}}.config
+    dest: "sunbird_auth_{{sunbird_auth_version}}.config.zip"
+    format: zip
