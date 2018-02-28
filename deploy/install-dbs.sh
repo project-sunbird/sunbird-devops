@@ -11,12 +11,12 @@ INVENTORY_PATH=$1
 
 #Elasticsearch installation
 echo "@@@@@@@@@ Elasticsearch installation"
-ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags es --extra-vars=@config
+ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags es --extra-vars=@config --extra-vars=@advanced
 
 # Cassandra installation
 echo "@@@@@@@@@ Cassandra installation"
-ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags cassandra --extra-vars=@config
+ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags cassandra --extra-vars=@config --extra-vars=@advanced
 
 # Postgresql-master installation
 echo "@@@@@@@@@ Postgresql-master installation"
-ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags  postgresql-master --extra-vars=@config
+ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --tags  postgresql-master --extra-vars=@config --extra-vars=@advanced
