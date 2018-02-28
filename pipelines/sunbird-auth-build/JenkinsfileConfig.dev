@@ -1,0 +1,28 @@
+#!groovy
+
+node('build-slave') {
+
+	currentBuild.result = "SUCCESS"
+
+	try {
+
+		stage('checkout')
+		{
+			checkout scm
+			sh('./pipelines/setupDevopsCode.sh')
+		}
+
+		stage('Build'){
+			sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/dev keycloak.yml --limit localhost --tags build-config --vault-password-file /home/ops/vault -vvv')
+		}
+
+		stage('Archive'){
+			sh('cp sunbird-devops/ansible/sunbird_auth_1.0v.config.zip .')
+			archiveArtifacts 'sunbird_auth_1.0v.config.zip'
+		}
+	}
+	catch (err) {
+		currentBuild.result = "FAILURE"
+		throw err
+	}
+}
