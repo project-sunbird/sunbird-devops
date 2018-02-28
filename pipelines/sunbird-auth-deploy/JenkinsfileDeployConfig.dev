@@ -8,23 +8,24 @@ node('general-dev') {
 
 		stage('checkout')
 		{
-			sh('rm -rf sunbird-auth')
-			sh('git clone https://github.com/ahghatol/sunbird-auth.git')
+			checkout scm
+			sh('./pipelines/setupDevopsCode.sh')
 		}
 
 		stage('Build'){
 
 			step ([$class: 'CopyArtifact',
-				projectName: 'New_Build/Sunbird_Auth_Config_Build',
+				projectName: 'Dev/Sunbird_Auth_Config_Build',
 				filter: 'sunbird_auth_1.0v.config.zip',
-				target: 'sunbird-auth/keycloak/scripts/ansible' ]
+				target: 'sunbird-devops/ansible' ]
 			);
 
-			sh('cd sunbird-auth/keycloak/scripts/ansible && ansible-playbook -i inventories/dev  keycloak.yml --limit keycloak --tags deploy-config --vault-password-file /run/secrets/vault-pass -vvv')
+			sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/dev keycloak.yml --limit keycloak --tags deploy-config --vault-password-file /run/secrets/vault-pass -vvv')
 		}
 
 		stage('Archive'){
-			archiveArtifacts 'sunbird-auth/keycloak/scripts/ansible/sunbird_auth_1.0v.config.zip'
+			sh('cp sunbird-devops/ansible/sunbird_auth_1.0v.config.zip .')
+			archiveArtifacts 'sunbird_auth_1.0v.config.zip'
 		}
 	}
 	catch (err) {
