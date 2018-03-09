@@ -4,7 +4,7 @@
 from settings import *
 from mainsite import TOP_DIR
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 DEBUG_ERRORS = DEBUG
 DEBUG_STATIC = DEBUG
