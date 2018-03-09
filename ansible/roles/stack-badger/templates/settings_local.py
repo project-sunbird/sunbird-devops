@@ -17,9 +17,9 @@ LANGUAGE_CODE = 'en-us'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2', # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': "{{badger_name}}",
-        'USER': "{{badger_user}}",                      # Not used with sqlite3.
-        'PASSWORD': "{{badger_password}}",                  # Not used with sqlite3.
+        'NAME': "{{badger_postgres_database}}",
+        'USER': "{{badger_postgres_user}}",                      # Not used with sqlite3.
+        'PASSWORD': "{{badger_postgres_password}}",                  # Not used with sqlite3.
         'HOST': "{{badger_host}}",                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '5432',                      # Set to empty string for default. Not used with sqlite3.
         'OPTIONS': {
@@ -27,6 +27,8 @@ DATABASES = {
         },
     }
 }
+
+
 
 CACHES = {
     'default': {
