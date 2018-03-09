@@ -13,19 +13,14 @@ DEBUG_MEDIA = DEBUG
 TIME_ZONE = 'America/Los_Angeles'
 LANGUAGE_CODE = 'en-us'
 
-#DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
-#AZURE_ACCOUNT_NAME = 'azureaccountname'
-#AZURE_ACCOUNT_KEY = ''
-#MEDIA_URL = 'http://azureaccountname.blob.core.windows.net/'
-#AZURE_CONTAINER = 'mediafiles'
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2', # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'NAME': "{{badger_name}}",
+        'USER': "{{badger_user}}",                      # Not used with sqlite3.
+        'PASSWORD': "{{badger_password}}",                  # Not used with sqlite3.
+        'HOST': "{{badger_host}}",                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '5432',                      # Set to empty string for default. Not used with sqlite3.
         'OPTIONS': {
 #            "init_command": "SET storage_engine=InnoDB",  # Uncomment when using MySQL to ensure consistency across servers
