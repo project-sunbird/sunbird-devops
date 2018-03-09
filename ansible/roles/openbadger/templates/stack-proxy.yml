@@ -1,0 +1,62 @@
+version: '3.3'
+
+services:
+  proxy:
+    image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
+    ports:
+      - "443:443"
+      - "80:80"
+    deploy:
+      replicas: {{ proxy_replicas }}
+      resources:
+        reservations:
+          memory: "{{ proxy_reservation_memory }}"
+        limits:
+          memory: "{{ proxy_limit_memory }}"
+      update_config:
+        parallelism: 1
+        delay: 30s
+    secrets:
+      - site.key
+      - site.crt
+      - prom_admin_creds
+    configs:
+      - source: nginx.conf
+        target: /etc/nginx/nginx.conf
+      - source: proxy-default.conf
+        target: /etc/nginx/conf.d/default.conf
+    networks:
+      - proxy_default
+      - api-manager_default
+      - jenkins_default
+      - application_default
+      - logger
+      - monitoring
+
+secrets:
+  site.key:
+    external: true
+  site.crt:
+    external: true
+  prom_admin_creds:
+    external: true
+
+configs:
+  nginx.conf:
+    external: true
+  proxy-default.conf:
+    external: true
+
+networks:
+  api-manager_default:
+    external: true
+  jenkins_default:
+    external: true
+  application_default:
+    external: true
+  logger:
+    external: true
+  monitoring:
+    external: true
+  proxy_default:
+    external: true
