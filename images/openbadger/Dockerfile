@@ -2,7 +2,7 @@ FROM alpine:3.7
 MAINTAINER Rajesh Rajendran<rjshrjndrn@gmail.com>
 
 # Installing and configuring packages
-COPY configure.sh /tmp
+COPY configure.sh /tmp/
 RUN /tmp/configure.sh
 
 # Application running on 8000
