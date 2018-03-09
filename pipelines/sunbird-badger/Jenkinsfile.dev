@@ -1,0 +1,35 @@
+#!groovy
+
+node('general-dev') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/sunbird-badger/installDeps.sh')
+
+       }
+
+       stage('Deploy'){
+        step ([$class: 'CopyArtifact',
+          projectName: 'New_Build/Sunbird_Badger',
+          filter: 'metadata.json']);
+          sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=dev ./pipelines/sunbird-badger/deploy.sh'
+          archive includes: "metadata.json"
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
