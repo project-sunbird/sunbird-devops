@@ -10,4 +10,4 @@ COPY ./images/openbadger/entrypoint.sh /badger
 EXPOSE 8000
 WORKDIR /badger
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/badger/entrypoint.sh"]
