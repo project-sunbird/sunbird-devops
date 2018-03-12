@@ -6,6 +6,6 @@
 /badger/code/manage.py migrate
 
 # Running server
-/badger/code/manage.py runserver 0.0.0.0:8000
+/badger/code/manage.py runserver 0.0.0.0:8004
 
 exec $@
