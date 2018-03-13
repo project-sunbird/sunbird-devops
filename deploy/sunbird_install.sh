@@ -112,10 +112,13 @@ while getopts "s:h" o;do
 done
 
 # Default action: install and configure from scratch
+
 echo -e \n$(date)\n >> deps.log; deps 2>&1 | tee -a logs/deps.log
 echo -e \n$(date)\n >> config.log; config 2>&1 | tee -a logs/config.log
+ansible-playbook -i "localhost," -c local ../ansible/generate-hosts.yml --extra-vars @config --extra-vars @advanced --extra-vars "host_path=$ansible_variable_path"
+$ansible_variable_path/generate_host.sh  > $ansible_variable_path/hosts 2>&1
 # Installing sunbird_ansible prerequisites
-ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config
+ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config --extra-vars @advanced
 echo -e \n$(date)\n >> dbs.log; dbs 2>&1 | tee -a logs/dbs.log
 echo -e \n$(date)\n >> apis.log; apis 2>&1 | tee -a logs/apis.log
 echo -e \n$(date)\n >> proxies.log; proxy 2>&1 | tee -a logs/proxies.log

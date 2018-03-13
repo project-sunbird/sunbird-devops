@@ -1,0 +1,203 @@
+#!/bin/bash
+
+#elasticsearch_ips="{{elasticsearch_host if elasticsearch_host else database_host}}"
+#cassandra_ips="{{cassandra_host if cassandra_host else database_host}}"
+#postgres_master_ips="{{postgres_master_host if postgres_master_host else database_host}}"
+#postgres_slave_ips="{{postgres_slave_host if postgres_slave_host else database_host}}"
+#swarm_manager_ips="{{swarm_manager_host if swarm_manager_host else application_host}}"
+#swarm_node_ips="{{swarm_node_host if swarm_node_host else application_host}}"
+#keycloak_ips="{{keycloak_host if keycloak_host else application_host}}"
+#log_es_ips="{{log_es_host if keycloak_host else application_host}}"
+
+
+#Function to get the count of no of hosts
+get_ips_count()
+{
+char=","
+count=`awk -F"${char}" '{print NF}' <<< "$1"`
+}
+
+
+#Function to update the elasticsearch host details in invenotry file  
+get_host_entries_elasticsearch()
+{
+    get_ips_count $1
+    for (( c=1; c<=$count; c++ ))
+    do
+            ip_list=`echo $1 | cut -d "," -f$c `
+            echo "[es-$c]"
+            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}" es_instance_name="es-$c" es_etc_node_master=true ansible_sudo_pass="{{sudo_passwd|default('')}}" es_etc_node_data=true
+            echo -e "\n"
+        done
+}
+
+
+#Function to update the cassandra host details in invenotry file  
+get_host_entries_cassandra()
+{
+    get_ips_count $1
+    for (( c=1; c<=$count; c++ ))
+    do
+            ip_list=`echo $1 | cut -d "," -f$c `
+            echo "[cassandra-$c]"
+            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"
+            echo -e "\n"
+        done
+}
+
+#Function to update the postgres master host details in invenotry file
+get_host_entries_postgres_master()
+{
+        get_ips_count $1
+        for (( c=1; c<=$count; c++ ))
+        do
+                ip_list=`echo $1 | cut -d "," -f$c `
+                echo "[postgres-$c]"
+            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"
+            echo -e "\n"
+           if [ $c -eq 1 ]
+            then
+                echo "[postgresql-master:children]"
+                echo "postgres-$c"
+                echo -e "\n"
+            fi
+
+     done
+}
+
+#Function to update the postgres slave host details in invenotry file
+get_host_entries_postgres_slaves()
+{
+        get_ips_count $1
+        for (( c=1; c<=$count; c++ ))
+        do
+                a=`expr $c + 1`
+                ip_list=`echo $1 | cut -d "," -f$c `
+                echo "[postgres-$a]"
+            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"
+            echo -e "\n"
+            if [ $c -eq 1 ]
+            then
+               echo "[postgresql-slave:children]"
+                echo "postgres-$a"
+            fi
+            echo -e "\n"
+
+     done
+}
+
+
+#Function to update the Swarm manager host details in invenotry file
+get_host_entries_swarm_manager()
+{
+    get_ips_count $1
+    for (( c=1; c<=$count; c++ ))
+    do
+            ip_list=`echo $1 | cut -d "," -f$c `
+            echo "[swarm-manager-$c]"
+         echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"  swarm_master=true
+            echo -e "\n"
+        done
+}
+
+#Function to update the swarm node host details in invenotry file
+get_host_entries_swarm_nodes()
+{
+    get_ips_count $1
+    for (( c=1; c<=$count; c++ ))
+    do
+            ip_list=`echo $1 | cut -d "," -f$c `
+            echo "[swarm-node-$c]"
+         echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"  swarm_master=true
+            echo -e "\n"
+        done
+}
+
+
+#Function to update the keycloak host details in invenotry file
+get_host_entries_keycloak()
+{
+    get_ips_count $1
+    for (( c=1; c<=$count; c++ ))
+    do
+            ip_list=`echo $1 | cut -d "," -f$c `
+            echo "[keycloak-$c]"
+            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"
+            echo -e "\n"
+        done
+}
+
+#Function to update the logger elasticsearch host details in invenotry file
+get_host_entries_log_es()
+{
+    get_ips_count $1
+    for (( c=1; c<=$count; c++ ))
+    do
+            ip_list=`echo $1 | cut -d "," -f$c `
+            echo "[log-es-$c]"
+            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"
+            echo -e "\n"
+        done
+}
+
+
+
+get_host_entries_elasticsearch $elasticsearch_ips
+get_host_entries_cassandra $cassandra_ips
+get_host_entries_postgres_master $postgres_master_ips
+get_host_entries_postgres_slaves $postgres_slave_ips
+get_host_entries_swarm_manager $swarm_manager_ips
+get_host_entries_swarm_nodes $swarm_node_ips
+get_host_entries_keycloak $keycloak_ips
+get_host_entries_log_es $log_es_ips
+
+
+
+echo "
+
+[cassandra:children]
+cassandra-1
+
+[log-es:children]
+log-es-1
+
+
+[keycloak:children]
+keycloak-1
+
+[es:children]
+es-1
+
+[log-es:children]
+log-es-1
+
+
+[non-swarm-nodes:children]
+postgresql-master
+postgresql-slave
+es
+cassandra
+kong-api
+keycloak
+log-es
+
+
+[swarm-nodes:children]
+swarm-manager
+swarm-bootstrap-manager
+swarm-agent-for-prometheus
+swarm-agent-for-grafana
+swarm-agent-for-alertmanager
+
+[node-exporter:children]
+non-swarm-nodes
+swarm-manager
+
+[log-forwarder:children]
+non-swarm-nodes
+swarm-manager
+
+["{{env}}":children]
+non-swarm-nodes
+swarm-nodes
+"
