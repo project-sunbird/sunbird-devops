@@ -2,24 +2,24 @@
 
 set -ex
 
-COMMIT_REF=${1:-release-1.5}
-SUNBIRD_DEVOPS_DIR_NAME=sunbird-devops
+commit_ref=${1:-release-1.5}
+sunbird_devops_dir_name=sunbird-devops
 
-XARGS_OPTION_TO_IGNORE_EMPTY=''
+xargs_option_to_ignore_empty=''
 if [ `uname` = 'Linux' ]; then
-   XARGS_OPTION_TO_IGNORE_EMPTY='--no-run-if-empty'
+   xargs_option_to_ignore_empty='--no-run-if-empty'
 fi
 
-if [ -d $SUNBIRD_DEVOPS_DIR_NAME ]; then
-    cd $SUNBIRD_DEVOPS_DIR_NAME
+if [ -d $sunbird_devops_dir_name ]; then
+    cd $sunbird_devops_dir_name
     git reset --hard && git clean -fd
     git fetch
-    git checkout release-1.5
+    git checkout $commit_ref
     git pull --all
-    git branch --list | grep -v "release-1.5" | xargs $XARGS_OPTION_TO_IGNORE_EMPTY git branch -D
+    git branch --list | grep -v "$commit_ref" | xargs $xargs_option_to_ignore_empty git branch -D
 else
-    git clone https://github.com/project-sunbird/sunbird-devops.git $SUNBIRD_DEVOPS_DIR_NAME
-    cd $SUNBIRD_DEVOPS_DIR_NAME
+    git clone https://github.com/project-sunbird/sunbird-devops.git $sunbird_devops_dir_name
+    cd $sunbird_devops_dir_name
 fi
 
-git checkout $COMMIT_REF
+git checkout "$commit_ref"
