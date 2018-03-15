@@ -22,4 +22,4 @@ else
     cd $sunbird_devops_dir_name
 fi
 
-git checkout $commit_ref
+git checkout "$commit_ref"
