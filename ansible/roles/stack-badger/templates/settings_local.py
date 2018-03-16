@@ -29,7 +29,6 @@ DATABASES = {
 }
 
 
-
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -102,6 +101,16 @@ DEFAULT_FROM_EMAIL = ''
 #    '127.0.0.1',
 #)
 #DEBUG_TOOLBAR_CONFIG = {'INTERCEPT_REDIRECTS': False}
+
+
+##AZURE CONFIGURATION###
+DEFAULT_FILE_STORAGE = "{{badger_file_storage}}"
+AZURE_ACCOUNT_NAME = "{{sunbird_account_name}}"
+AZURE_ACCOUNT_KEY = "{{vault_sunbird_account_key}}"
+MEDIA_URL = "{{badger_url}}"
+AZURE_CONTAINER = "{{badger_container}}"
+
+
 
 
 
