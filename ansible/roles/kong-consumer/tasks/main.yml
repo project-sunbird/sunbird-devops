@@ -29,16 +29,20 @@
   register: jwt_token
 
 - name: write to file
-  copy: content="{{jwt_token.stdout}}" dest=~/jwt_token.txt
+  copy: content="{{jwt_token.stdout}}" dest=~/jwt_token_ouput.txt
   ignore_errors: yes
 
 - name: run the sed command
-  shell: cat ~/jwt_token.txt | grep 'JWT token for player is'
+  shell: cat ~/jwt_token_output.txt | grep 'JWT token'
   register: token
   ignore_errors: yes
 
 - name: Copy the script
-  copy: content="{{token.stdout}}" dest=~/jwt_token_player.txt
+  copy: content="{{token.stdout}}" dest=~/jwt_token.txt
+  ignore_errors: yes
+
+- name: Print the tokens
+  copy: content="{{token.stdout}}" dest=~/jwt_token.txt
   ignore_errors: yes
 
 - name: remove the file
