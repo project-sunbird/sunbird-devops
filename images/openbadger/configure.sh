@@ -1,11 +1,12 @@
 mkdir /badger
 
 # Installing all prerequisites
-apk update
-apk add git python-dev py-pip \
-    nodejs-npm build-base libffi-dev libxml2-dev libxslt-dev \
-    postgresql-dev
-pip install  psycopg2
+apt-get update && apt-get install -y \
+	git python-pip python-dev build-essential \
+    nodejs npm libffi-dev libxml2-dev libxslt-dev \
+    postgresql-client
+
+pip install psycopg2
 
 # Cloning source code of badger
 cd /badger
@@ -20,5 +21,5 @@ pip install -r requirements-dev.txt
 npm install
 
 # Removing unwanted packages
-apk del build-base libffi-dev libxml2-dev libxslt-dev
-rm -rf /var/cache/apk/*
+#apk del build-base libffi-dev libxml2-dev libxslt-dev
+# rm -rf /var/cache/apk/*
