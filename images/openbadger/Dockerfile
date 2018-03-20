@@ -8,7 +8,6 @@ RUN /tmp/configure.sh
 # Application running on 8000
 EXPOSE 8004
 WORKDIR /badger
-COPY ./images/openbadger/entrypoint.sh /badger
-
-
-ENTRYPOINT ["entrypoint.sh"]
+COPY ./images/openbadger/entrypoint.sh /badger/
+RUN chmod 755 /badger/entrypoint.sh
+ENTRYPOINT ["/badger/entrypoint.sh"]
