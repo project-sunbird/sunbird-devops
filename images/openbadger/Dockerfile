@@ -6,7 +6,7 @@ COPY ./images/openbadger/configure.sh /tmp
 RUN /tmp/configure.sh
 
 # Application running on 8000
-EXPOSE 8000
+EXPOSE 8004
 WORKDIR /badger
 COPY ./images/openbadger/entrypoint.sh /badger
 
