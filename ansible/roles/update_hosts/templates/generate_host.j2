@@ -1,5 +1,7 @@
 #!/bin/bash
 
+swarm_managers="{{swarm_manager_host if swarm_manager_host else application_host}}"
+swarm_nodes="{{swarm_node_host if swarm_node_host else application_host}}"
 elasticsearch_ips="{{elasticsearch_host if elasticsearch_host else database_host}}"
 cassandra_ips="{{cassandra_host if cassandra_host else database_host}}"
 postgres_master_ips="{{postgres_master_host if postgres_master_host else database_host}}"
@@ -18,13 +20,13 @@ ips(){
 service_vars(){
     case $1 in
         es)
-            service_var=es_instance_name="es-$ip" es_etc_node_master=true ansible_sudo_pass="{{sudo_passwd|default('')}}" es_etc_node_data=true
+            echo es_instance_name="es-$count" es_etc_node_master=true es_etc_node_data=true
+            group_name=es
             ;;
         swarm-manager|swarm-node)
-            swarm_master=true
+            echo "swarm_master=true"
             ;;
         *)
-           service_var=''
            ;;
     esac
 }
@@ -32,83 +34,49 @@ service_vars(){
 get_host_entries()
 {
     if [ $# -ne 2 ];then 
-        echo Usage: get_host_entries <comma seperated ips> <service name>
+        echo "Usage: get_host_entries <comma seperated ips> <service name>"
         exit 1
     fi
 
-    ips $1
-    # Gettig service specific services 
-    service_vars $2
+    # Generating ip array of the service
+    ips $2
 
+    
+    count=1
     for ip in ${arr[@]}
     do
         # Creating group/host name for ansible
-        echo "[${service}-$((${arr["$ip"]}+1))] "
-        echo $ip ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}" ansible_sudo_pass="{{sudo_passwd|default('')}} $service_var"
+        echo -e "\n[$1-$count] "
+        echo -n $ip ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}" ansible_sudo_pass="{{sudo_passwd}} "
+        service_vars $1
+        ((count++))
     done
+    echo -e "\n"
+
+    # Creating groups
+    count=1
+    echo "[$1:children]"
+    # Escaping $# as it's a comment in ansible templating
+    for ip in ${arr[@]}
+    do
+        echo "$1-$count"
+        ((count++))
+    done
+
     unset arr
-    unset service_var
+    unset count
 }
 
-#Function to update the postgres master host details in invenotry file
-get_host_entries_postgres_master()
-{
-        get_ips_count $1
-        for (( c=1; c<=$count; c++ ))
-        do
-            ip_list=`echo $1 | cut -d "," -f$c `
-            echo "[postgres-$c]"
-            echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"
-            echo -e "\n"
-        if [ $c -eq 1 ]; then
-            echo "[postgresql-master:children]"
-            echo "postgres-$c"
-            echo -e "\n"
-        fi
-
-        done
-}
-
-#Function to update the postgres slave host details in invenotry file
-get_host_entries_postgres_slaves()
-{
-    if [ $c -eq 1 ]
-        then
-           echo "[postgresql-slave:children]"
-            echo "postgres-$a"
-        fi
-        echo -e "\n"
-    done
-}
-
-get_host_entries elasticsearch $elasticsearch_ips
+get_host_entries es $elasticsearch_ips
 get_host_entries cassandra $cassandra_ips
-get_host_entries postgres_master $postgres_master_ips
-get_host_entries postgres_slaves $postgres_slave_ips
-get_host_entries swarm_manager $swarm_manager_ips
-get_host_entries swarm_nodes $swarm_node_ips
+get_host_entries postgresql-master $postgres_master_ips
+get_host_entries postgresql-slaves $postgres_slave_ips
+get_host_entries swarm-manager $swarm_manager_ips
+get_host_entries swarm-nodes $swarm_node_ips
 get_host_entries keycloak $keycloak_ips
-get_host_entries log_es $log_es_ips
+get_host_entries log-es $log_es_ips
 
 echo "
-
-[cassandra:children]
-cassandra-1
-
-[log-es:children]
-log-es-1
-
-
-[keycloak:children]
-keycloak-1
-
-[es:children]
-es-1
-
-[log-es:children]
-log-es-1
-
-
 [non-swarm-nodes:children]
 postgresql-master
 postgresql-slave
@@ -117,14 +85,6 @@ cassandra
 kong-api
 keycloak
 log-es
-
-
-[swarm-nodes:children]
-swarm-manager
-swarm-bootstrap-manager
-swarm-agent-for-prometheus
-swarm-agent-for-grafana
-swarm-agent-for-alertmanager
 
 [node-exporter:children]
 non-swarm-nodes
