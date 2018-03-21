@@ -34,7 +34,7 @@ echo "@@@@@@@@@ Onboard Consumers"
 sudo docker exec $ansible_container ansible-playbook -v -i $inventory_path ansible/api-manager.yml --tags kong-consumer --extra-vars=@deploy/config --connection local
 
 # Removing service as it's not needed anymore
-sudo docker service rm ansible_container
+sudo docker service rm -f ansible_container
 sleep 5
-sudo docker rmi sunbird/ansible:latest
+sudo docker rmi -f sunbird/ansible:latest
 sudo docker image prune -f
