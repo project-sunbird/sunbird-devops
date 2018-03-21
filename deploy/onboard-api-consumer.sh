@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo docker service rm ansible_container
+sudo docker service rm -f ansible_container
 sleep 10 
 set -e -o pipefail
 
