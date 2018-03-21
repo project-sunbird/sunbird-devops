@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# This script will create dynamic host file for multinodal installation
+# Ansible will overwrite all variables, and creates a bash script
+# Executing that will generate formatted host entries for ansible
+#
+# Authors: <manoj@illimi.in> <rajesh.r@optit.co>
+
 swarm_managers="{{swarm_manager_host if swarm_manager_host else application_host}}"
 swarm_nodes="{{swarm_node_host if swarm_node_host else application_host}}"
 elasticsearch_ips="{{elasticsearch_host if elasticsearch_host else database_host}}"
@@ -20,11 +26,11 @@ ips(){
 service_vars(){
     case $1 in
         es)
-            echo es_instance_name="es-$count" es_etc_node_master=true es_etc_node_data=true
+            echo -n es_instance_name="es-$count" es_etc_node_master=true es_etc_node_data=true
             group_name=es
             ;;
         swarm-manager|swarm-node)
-            echo "swarm_master=true"
+            echo -n "swarm_master=true"
             ;;
         *)
            ;;
@@ -40,7 +46,6 @@ get_host_entries()
 
     # Generating ip array of the service
     ips $2
-
     
     count=1
     for ip in ${arr[@]}
@@ -56,7 +61,6 @@ get_host_entries()
     # Creating groups
     count=1
     echo "[$1:children]"
-    # Escaping $# as it's a comment in ansible templating
     for ip in ${arr[@]}
     do
         echo "$1-$count"
@@ -75,6 +79,8 @@ get_host_entries swarm-manager $swarm_manager_ips
 get_host_entries swarm-nodes $swarm_node_ips
 get_host_entries keycloak $keycloak_ips
 get_host_entries log-es $log_es_ips
+
+# Static Groups
 
 echo "
 [non-swarm-nodes:children]
