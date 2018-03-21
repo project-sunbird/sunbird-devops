@@ -99,7 +99,7 @@ get_host_entries_swarm_manager()
          echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"  swarm_master=true
             echo -e "\n"
         done
-        echo "[swarm-manager]"
+        echo "[swarm-manager:children]"
         echo "swarm-manager-1"
 }
 
@@ -115,8 +115,9 @@ get_host_entries_swarm_nodes()
          echo "$ip_list" ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}"  ansible_sudo_pass="{{sudo_passwd|default('')}}"  swarm_master=true
             echo -e "\n"
         done
-       echo "[swarm-node]"
+       echo "[swarm-node:children]"
        echo "swarm-node-1"
+       echo "swarm-node-2"
 }
 
 
@@ -160,6 +161,14 @@ get_host_entries_log_es $log_es_ips
 
 
 echo "
+[swarm-agent-for-prometheus]
+{{swarm-agent-for-prometheus | default('127.0.0.1')}
+
+[swarm-agent-for-grafana]
+{{swarm-agent-for-grafana | default('127.0.0.1')}}
+
+[swarm-agent-for-alertmanager]
+{{swarm-agent-for-alertmanager | default('127.0.0.1')}}
 
 [cassandra:children]
 cassandra-1
@@ -194,6 +203,7 @@ swarm-bootstrap-manager
 swarm-agent-for-prometheus
 swarm-agent-for-grafana
 swarm-agent-for-alertmanager
+swarm-node
 
 [node-exporter:children]
 non-swarm-nodes
