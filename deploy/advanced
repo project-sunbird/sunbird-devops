@@ -25,8 +25,11 @@ vault_proxy_prometheus_admin_creds:
 
 
 ## Keycloak (auth server) login details
-sunbird_sso_username: "{{ vault_sunbird_sso_username }}"
-sunbird_sso_password: "{{ vault_sunbird_sso_password }}"
+sunbird_env:   #ekstep env which we connecting 
+
+##APP
+ekstep_api_base_url:
+
 
 #List of application and database hosts
 elasticsearch_host:
@@ -41,10 +44,38 @@ log_es_host:
 #es config:
 es_etc_discovery_zen_minimum_master_nodes:
 es_etc_node_datagroups['es']:
-es_api_host: 
-backup_storage_name: 
-backup_storage_key: 
+es_api_host: "{{elasticsearch_host if elasticsearch_host else database_host}}"
+backup_storage_name:
+backup_storage_key:
+es_heap_size: 1500m
 es_etc_cluster_name: 
-es_instance_name: 
-es_etc_node_master:
-es_etc_discovery_zen_minimum_master_nodes:
+es_etc_discovery_zen_minimum_master_nodes: 2
+es_snapshot_host: "{{ groups['es'][0] }}"
+es_restore_host: "{{ groups['es'][0] }}"
+snapshot_base_path: application
+
+
+# Consumers to be on-boarded
+kong_consumers:
+  - username: api-management-test-user
+    groups: "{{ kong_all_consumer_groups }}"
+    state: present
+  - username: add-any-consumer-to-be-deleted
+    state: absent
+  - username: player
+    groups: "{{ kong_all_consumer_groups }}"
+    state: present
+    rate_limits: "{{ premium_consumer_rate_limits }}"
+  - username: mobile_admin
+    groups: "{{ mobile_admin_groups }}"
+    print_credentials: true
+    state: present
+  - username: mobile_app
+    groups: "{{ mobile_app_groups }}"
+    state: present
+  - username: mobile_device
+    groups: "{{ mobile_device_groups }}"
+    state: present
+
+
+  
