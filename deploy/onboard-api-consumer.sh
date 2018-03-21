@@ -1,5 +1,6 @@
 #!/bin/bash
-
+sudo docker service rm ansible_container
+sleep 10 
 set -e -o pipefail
 
 if [ "$#" -ne 1 ]; then
