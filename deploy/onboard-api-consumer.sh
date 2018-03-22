@@ -20,7 +20,7 @@ ansible_mount_dir=$(readlink -f ../)
 echo "@@@@@@@@ Creating ansible service"
 
 # Creating ansible service
-if [ ! $(sudo docker service ls | grep ansible_container ) ];then
+if [[ ! $(sudo docker service ls | grep ansible_container ) ]];then
 sudo docker service create --name ansible_container --mount source=$ansible_mount_dir,target=/ansible,type=bind,readonly --network api-manager_default sunbird/ansible:latest
 fi
 
