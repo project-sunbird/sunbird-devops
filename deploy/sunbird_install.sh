@@ -74,6 +74,10 @@ while getopts "s:h" o;do
                     echo -e "\n$(date)\n">>logs/config.log; config 2>&1 | tee -a logs/config.log
                     exit 0
                     ;;
+                deps)
+                    echo -e "\n$(date)\n">>logs/deps.log; deps 2>&1 | tee -a logs/config.log
+                    exit 0
+                    ;;
                 dbs)
                     echo -e "\n$(date)\n">>logs/dbs.log; dbs 2>&1 | tee -a logs/dbs.log
                     exit 0
