@@ -1,7 +1,13 @@
 #!/bin/bash
-sudo docker service rm ansible_container
-sleep 10 
 set -e -o pipefail
+
+# Deleting the container if it's already running
+
+if [ $(sudo docker service ls | grep ansible_container ) ];then
+sudo docker service rm ansible_container
+fi
+
+sleep 10 
 
 if [ "$#" -ne 1 ]; then
     echo "ERROR: Illegal number of parameters"
