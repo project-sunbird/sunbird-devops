@@ -19,14 +19,6 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 # Creating logging directory
 if [ ! -d logs ];then mkdir logs &> /dev/null;fi
 
-# Installing dependencies
-deps() { sudo ./install-deps.sh; 
-ansible-playbook -i "localhost," -c local ../ansible/generate-hosts.yml --extra-vars @config --extra-vars @advanced --extra-vars "host_path=$ansible_variable_path"
-$ansible_variable_path/generate_host.sh  > $ansible_variable_path/hosts 2>&1
-ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config --extra-vars @advanced
-ansible-playbook -i $ansible_variable_path/hosts ../ansible/setup-dockerswarm.yml --extra-vars @config --extra-vars @advanced
-}
-
 # Generating configs
 config() { 
     time ./generate-config.sh $implimentation_name $env_name core; 
@@ -34,6 +26,14 @@ config() {
     sed -i s#\"{{database_host}}\"#$db_host#g $ansible_variable_path/hosts
     sed -i s#\"{{application_host}}\"#$app_host#g $ansible_variable_path/hosts
     sed -i s#\"{{ansible_private_key_path}}\"#$ansible_private_key_path#g $ansible_variable_path/hosts
+    ansible-playbook -i "localhost," -c local ../ansible/generate-hosts.yml --extra-vars @config --extra-vars @advanced --extra-vars "host_path=$ansible_variable_path"
+    $ansible_variable_path/generate_host.sh  > $ansible_variable_path/hosts 2>&1
+}
+
+# Installing dependencies
+deps() { sudo ./install-deps.sh; 
+ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config --extra-vars @advanced
+ansible-playbook -i $ansible_variable_path/hosts ../ansible/setup-dockerswarm.yml --extra-vars @config --extra-vars @advanced
 }
 
 
@@ -121,8 +121,8 @@ done
 
 # Default action: install and configure from scratch
 
-echo -e \n$(date)\n >> deps.log; deps 2>&1 | tee -a logs/deps.log
 echo -e \n$(date)\n >> config.log; config 2>&1 | tee -a logs/config.log
+echo -e \n$(date)\n >> deps.log; deps 2>&1 | tee -a logs/deps.log
 # Installing sunbird_ansible prerequisites
 echo -e \n$(date)\n >> dbs.log; dbs 2>&1 | tee -a logs/dbs.log
 echo -e \n$(date)\n >> apis.log; apis 2>&1 | tee -a logs/apis.log
