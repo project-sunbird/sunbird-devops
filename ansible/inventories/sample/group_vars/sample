@@ -8,20 +8,20 @@ sunbird_private_key_path:
 
 # DB CONFIGURATION
 ## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
-application_postgres_password: "{{database_password}}" #Password for Application database.
-keycloak_postgres_password: "{{database_password}}" #Password for Keycloak (Authentication service) database.
-kong_postgres_password: "{{database_password}}"  #Password for Kong (API Manager) database.
+application_postgres_password: "{{postgres|default(database_password)}}" #Password for Application database.
+keycloak_postgres_password: "{{postgres|default(database_password)}}" #Password for Keycloak (Authentication service) database.
+kong_postgres_password: "{{postgres|default(database_password)}}"  #Password for Kong (API Manager) database.
 
 ## Postgres configuration
 swarm_address_space: "{{app_address_space}}" #Application server address space (e.g. 10.3.0.0/24), also the agentpublicSubnet if using Azure scripts provided
 
 ## Cassandra configuration
-keystore_password: "{{database_password}}"   #Password to use for encrypting cassandra keystore. Use a strong password.
-truststore_password: "{{database_password}}"  #Password to use for encrypting cassandra truststore. Use a strong password.
-cassandra_listen_address: "{{ database_host }}"
-cassandra_seeds: "{{ database_host }}"
-cassandra_broadcast_rpc_address: "{{ database_host }}"
-cassandra_broadcast_address: "{{ database_host }}"
+keystore_password: "{{cassandra_password|default(database_password)}}"   #Password to use for encrypting cassandra keystore. Use a strong password.
+truststore_password: "{{cassandra_password|default(database_password)}}"  #Password to use for encrypting cassandra truststore. Use a strong password.
+cassandra_listen_address: "{{ groups['cassandra'][0]|default(database_host) }}"
+cassandra_seeds: "{{ groups['cassandra'][0]|default(database_host) }}"
+cassandra_broadcast_rpc_address: "{{ groups['cassandra'][0]|default(database_host) }}"
+cassandra_broadcast_address: "{{ groups['cassandra'][0]|default(database_host) }}"
 cassandra_listen_interface: ''
 cassandra_log_dir: '/var/log/cassandra'
 cassandra_root_dir: '/etc/cassandra'
