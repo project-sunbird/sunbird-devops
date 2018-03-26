@@ -2,7 +2,7 @@
 
 set -eu -o pipefail
 
-usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core|logger|monitor} ]" &>/dev/null; exit 0; }
+usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core|logger|monitor} ]" ; exit 0; }
 
 # Reading environment and implimentation name
 implimentation_name=$(awk '/implementation_name: / {print $2}' config)
