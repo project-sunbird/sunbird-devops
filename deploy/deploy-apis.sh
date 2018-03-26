@@ -14,7 +14,7 @@ ECHO_SERVER_VERSION=0.0.2-silver
 ADMIN_UTILS_VERSION=0.0.1-SNAPSHOT-gold
 
 # Saving kong api url
-kong_admin_api_url=$(docker service ps api-manager_kong | grep Runn | head -n1 | awk 'print $4')
+kong_admin_api_url=$(docker service ps api-manager_kong | grep Runn | head -n1 | awk '{print $4}')
 
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
