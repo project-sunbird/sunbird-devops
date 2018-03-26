@@ -41,7 +41,7 @@ ansible-playbook -i $ansible_variable_path/hosts ../ansible/setup-dockerswarm.ym
 dbs() { ./install-dbs.sh $ansible_variable_path; ./init-dbs.sh $ansible_variable_path; }
 
 # Apis
-apis() { ./deploy-apis.sh $ansible_variable_path; ./onboard-api-consumer.sh $ansible_variable_path; }
+apis() { ./deploy-apis.sh $ansible_variable_path; }
 
 # Proxy
 proxy() { ./deploy-proxy.sh $ansible_variable_path; }
