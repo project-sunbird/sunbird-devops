@@ -12,12 +12,22 @@ node('general-staging') {
 
        stage('Pre-Build'){
          sh('./sunbird-devops/ansible/installDeps.sh')
+         sh('git clone https://github.com/project-sunbird/open-saber.git sunbird-devops')
        }
 
        stage('Build'){
-        sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/staging  registry.yml --tags provision --vault-password-file  /run/secrets/vault-pass ')
-        sh('cd open-saber/java && mvn clean install')
-        sh('java -jar target/registry.jar')
+        sh('cd sunbird-devops/open-saber/java')
+        sh('cp registry/src/main/resources/config-prod.properties.sample registry/src/main/resources/config-prod.properties ')
+        sh('cp registry/src/main/resources/application.properties.sample registry/src/main/resources//application.properties ')
+        sh('cp registry/src/main/resources/validations.shex.sample registry/src/main/resources//validations.shex ')
+        sh('cp registry/src/main/resources/schema-configuration.jsonld.sample registry/src/main/resources/schema--configuration.jsonld ')
+        sh('cp registry/src/main/resources/frame.json.sample registry/src/main/resources//frame.json ')
+
+        sh('mvn clean install')
+        
+        sh('cd registry && mvn clean install')
+        sh('cp -r target ../../../sunbird-devops/ansible/roles/registry/templates/')
+        sh('cd ../../../sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/staging  registry.yml --vault-password-file  /run/secrets/vault-pass ')
        }
     }
     catch (err) {
