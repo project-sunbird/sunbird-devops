@@ -10,7 +10,8 @@ case "$(ansible --version | head -n1)" in
         ;;
      *)
     # Install Ansible
-    sudo apt install -y python-pip
+    sudo apt update 
+    sudo apt install -y  python python-pkg-resources python-pip
     sudo pip install ansible==$ansible_version
     ;;
 esac
