@@ -1,0 +1,30 @@
+#!groovy
+
+node('build-slave') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+       stage('Checkout'){
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+
+       stage('Pre-Build'){
+         sh('./sunbird-devops/ansible/installDeps.sh')
+         sh('rm -rf open-saber')
+         sh('git clone https://github.com/project-sunbird/open-saber.git')
+       }
+
+       stage('Build'){
+        sh('pwd')
+        sh('./pipelines/registry-provision/buildRegistry.sh')
+        sh('cd ../../../sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/staging  registry.yml --vault-password-file  /run/secrets/vault-pass ')
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
+
