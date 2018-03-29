@@ -49,9 +49,9 @@ proxy() { ./deploy-proxy.sh $ansible_variable_path; }
 
 # Keycloak
 keycloak() {  
-#    ./provision-keycloak.sh $ansible_variable_path
-#    ./deploy-keycloak-vm.sh $ansible_variable_path 
-#    sleep 15
+    ./provision-keycloak.sh $ansible_variable_path
+    ./deploy-keycloak-vm.sh $ansible_variable_path 
+    sleep 15
     ./bootstrap-keycloak.sh $ansible_variable_path
 }
 
