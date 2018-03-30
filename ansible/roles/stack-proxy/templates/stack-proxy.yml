@@ -17,9 +17,12 @@ services:
         parallelism: 1
         delay: 30s
     secrets:
+      - prom_admin_creds
+# Skip copying ssls for no domain configs
+{% if not ip_only %}
       - site.key
       - site.crt
-      - prom_admin_creds
+{% endif %}
     configs:
       - source: nginx.conf
         target: /etc/nginx/nginx.conf
@@ -34,12 +37,15 @@ services:
       - monitoring
 
 secrets:
+  prom_admin_creds:
+    external: true
+# Skip copying ssls for no domain configs
+{% if not ip_only %}
   site.key:
     external: true
   site.crt:
     external: true
-  prom_admin_creds:
-    external: true
+{% endif %}
 
 configs:
   nginx.conf:
