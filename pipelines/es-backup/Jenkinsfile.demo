@@ -1,0 +1,30 @@
+pipeline {
+  agent {
+      label 'build-slave'
+  }
+  triggers {
+        cron('H 0 * * *')
+  }
+  stages {
+    stage('Checkout') {
+      steps {
+        sh('./pipelines/setupDevopsCode.sh')
+      }
+    }
+    stage('Pre-Build'){
+      steps {
+        sh('./pipelines/es-backup/installDeps.sh')
+      }
+    }
+    stage('Deploy') {
+      steps {
+        sh 'ENV=demo ./pipelines/es-backup/deploy.sh'
+      }
+    }
+  }
+  post {
+    failure {
+      slackSend channel: '#devops-team', color: 'danger', message: "Build Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+    }
+  }
+}

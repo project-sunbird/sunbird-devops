@@ -1,0 +1,82 @@
+# ENVIRONMENT CONFIGURATION
+env: demo #Name of the environment, e.g. dev, staging or production.
+proxy_server_name: demo.open-sunbird.org #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
+
+# DB CONFIGURATION
+
+## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
+application_postgres_password: "{{vault_application_postgres_password}}"   #Password for Application database.
+
+## Cassandra configuration
+cassandra_server_private_ip: 172.17.0.5 #Private IP of cassandra server
+
+## DB address
+sunbird_cassandra_host: 172.17.0.5  #Private IP of Cassandra server
+sunbird_es_host: 172.17.0.5   #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
+
+
+sunbird_env: demo #Ekstep environment to con172.17.0.5nect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
+
+cassandra_listen_address: "{{ cassandra_server_private_ip }}"
+cassandra_seeds: "{{ cassandra_server_private_ip }}"
+cassandra_broadcast_rpc_address: "{{ cassandra_server_private_ip }}"
+cassandra_broadcast_address: "{{ cassandra_server_private_ip }}"
+cassandra_listen_interface: ''
+cassandra_log_dir: '/var/log/cassandra'
+cassandra_root_dir: '/etc/cassandra'
+cassandra_version: '3.9'
+cassandra_port: 9042
+cassandra_rpc_address: 0.0.0.0
+cassandra_restore_dir: /home/deployer/
+cassandra_backup_azure_container_name: cassandra-backup
+cassandra_backup_azure_storage_account_name: "{{ backup_storage_name }}"
+cassandra_backup_azure_storage_access_key: "{{backup_storage_key}}"
+cassandra_backup_dir: /data/cassandra/backup
+
+
+sunbird_echo_api_url: "https://{{ proxy_server_name }}/api/echo/"
+sunbird_pg_host: "{{ application_postgres_host }}"
+sunbird_pg_port: 5432
+sunbird_pg_db: quartz
+sunbird_pg_user: quartz
+sunbird_pg_password: "{{ application_postgres_password }}"
+sunbird_installation: "Sunbird Dev"
+sunbird_account_name: sunbirddev
+sunbird_account_key: "{{ vault_sunbird_account_key }}"
+sunbird_sunbird_quartz_mode: cluster
+sunbird_encryption_mode: local
+sunbird_cassandra_urls: "{{ cassandra_server_private_ip }}:{{ cassandra_port }}"
+sunbird_session_store_type: cassandra
+sunbird_azure_storage_account: "{{vault_sunbird_azure_storage_account}}"
+sunbird_azure_storage_key: "{{vault_sunbird_azure_storage_key}}"
+
+#API Manager
+kong_postgres_port: 5432
+kong_postgres_user: api_manager_dev
+kong_postgres_database: api_manager_dev
+
+postgresql_hba_entries:
+  - { type: local, database: all, user: postgres, auth_method: peer }
+  - { type: local, database: all, user: all, auth_method: peer }
+  - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: md5 }
+  - { type: host, database: all, user: all, address: '::1/128', auth_method: md5 }
+  - { type: host, database: all, user: all, address: '0.0.0.0/0', auth_method: md5 }
+
+ansible_vault_password: "{{ vault_ansible_vault_password }}"
+docker_hub_password: "{{ vault_docker_hub_password }}"
+jenkins_slave_jenkins_username: "{{ vault_jenkins_slave_jenkins_username }}"
+jenkins_slave_jenkins_password: "{{ vault_jenkins_slave_jenkins_password }}"
+ops_private_key: "{{ vault_ops_private_key }}"
+deployer_ssh_key: "{{ vault_deployer_ssh_key }}"
+
+# ADDITIONAL CONFIGURATION
+backup_storage_name: "sunbirdbackupsdemo"
+curl_host: demo.open-sunbird.org
+
+
+postgresql_backup_azure_storage_account_name: "{{ backup_storage_name }}"
+postgresql_backup_azure_storage_access_key: "{{ backup_storage_key }}"
+postgresql_restore_azure_storage_account_name: "{{ backup_storage_name }}"
+postgresql_restore_azure_storage_access_key: "{{ backup_storage_key }}"
+
+
