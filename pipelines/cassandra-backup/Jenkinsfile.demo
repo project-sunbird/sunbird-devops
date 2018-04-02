@@ -1,6 +1,9 @@
 pipeline {
     agent {
-        label 'general-staging'
+        label 'build-slave'
+    }
+    triggers {
+        cron('@midnight')
     }
     stages {
         stage('Checkout') {
@@ -8,22 +11,17 @@ pipeline {
                 sh('./pipelines/setupDevopsCode.sh')
             }
         }
-
         stage('Pre-Build'){
             steps {
                 sh('./sunbird-devops/ansible/installDeps.sh')
             }
         }
-
         stage('Deploy') {
             steps {
-              step ([$class: 'CopyArtifact',
-                projectName: 'Dev/Proxy',
-                filter: 'metadata.json']);
-
-               sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=silver ENV=staging ./pipelines/proxy/deploy.sh'
-
-               archive includes: "metadata.json"
+                sh '''
+                cd sunbird-devops/ansible
+                ansible-playbook -i ../../ansible/inventories/demo cassandra-backup.yml --vault-password-file /home/ops/vault_pass
+                '''
             }
         }
     }
