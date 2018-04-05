@@ -1,3 +1,3 @@
 #!/bin/sh
 # return version
-echo '{"name":"proxy","version":"0.0.1","org":"sunbird","hubuser":"purplesunbird"}'
+echo '{"name":"proxy","version":"1.5.0","org":"sunbird","hubuser":"purplesunbird"}'
