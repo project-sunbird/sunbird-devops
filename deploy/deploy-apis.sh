@@ -10,8 +10,8 @@ fi
 INVENTORY_PATH=$1
 
 ORG=sunbird
-ECHO_SERVER_VERSION=0.0.2-silver
-ADMIN_UTILS_VERSION=0.0.1-SNAPSHOT-gold
+ECHO_SERVER_VERSION=1.5.0-gold
+ADMIN_UTILS_VERSION=1.5.0-gold
 
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
