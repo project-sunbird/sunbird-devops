@@ -4,6 +4,12 @@ set -eu -o pipefail
 
 usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core|logger|monitor} ]" ; exit 0; }
 
+# Checking for valid argument
+if [[ ! -z ${1:-} ]] && [[  ${1:-} != -* ]]; then
+    usage
+    exit 1
+fi
+
 # Reading environment and implimentation name
 implimentation_name=$(awk '/implementation_name: / {print $2}' config)
 env_name=$(awk '/env: / {print $2}' config)
