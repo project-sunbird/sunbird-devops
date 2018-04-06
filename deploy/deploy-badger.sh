@@ -12,3 +12,11 @@ inventory_path=$1
 #Deploy Badger
 echo "@@@@@@@@@ Badger "
 ansible-playbook -i $inventory_path ../ansible/deploy-badger.yml  --extra-vars=@config 
+
+inventory_path="$1"                                                                                                                                       
+org="sunbird" 
+badger_version="1.5.0-gold" 
+
+#Deploy Badger             
+echo "@@@@@@@@@ Badger "  
+ansible-playbook -i $inventory_path ../ansible/deploy-badger.yml  --extra-vars=@config --extra-vars "hub_org=${org} image_name=badger image_tag=${badger_version}"
