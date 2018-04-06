@@ -5,7 +5,7 @@ set -eu -o pipefail
 usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core|logger|monitor} ]" ; exit 0; }
 
 # Checking for valid argument
-if [[ ! -z ${1:-} ]] && [[  ${1:-} != -* ]]; then
+if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
     usage
     exit 1
 fi
