@@ -28,15 +28,21 @@
   shell: "python /tmp/kong-api-scripts/kong_consumers.py /tmp/kong_consumers.json --kong-admin-api-url={{ kong_admin_api_url }}"
   register: jwt_token
 
-- name: write to file
-  copy: content="{{jwt_token.stdout}}" dest=~/jwt_token.txt
-  ignore_errors: yes
+- name: Touch the token file
+  become: yes
+  file: path={{item}} state=touch
+  with_items:
+             - /tmp/jwt_token_output.txt
+             - /tmp/jwt_token.txt
 
+- name: write to file
+  become: yes
+  copy: content="{{jwt_token.stdout}}" dest=/tmp/jwt_token_output.txt
+  
 - name: run the sed command
   shell: cat ~/jwt_token.txt | grep 'JWT token for player is' | cut -d ':' -f2
   register: token
-  ignore_errors: yes
-
+  
 - name: Copy the script
   copy: content="{{token.stdout}}" dest=~/jwt_token_player.txt
   ignore_errors: yes
