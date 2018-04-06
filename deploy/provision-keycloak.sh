@@ -11,4 +11,4 @@ INVENTORY_PATH=$1
 
 #Keycloak installation
 echo "@@@@@@@@@ Keycloak "
-ansible-playbook -i $INVENTORY_PATH ../ansible/keycloak.yml --tags provision --extra-vars=@config --extra-vars @advanced
+ansible-playbook -i $INVENTORY_PATH ../ansible/keycloak.yml --tags provision --extra-vars=@config

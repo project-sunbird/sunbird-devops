@@ -10,5 +10,5 @@ fi
 INVENTORY_PATH=$1
 
 #Deploy monitor 
-ansible-playbook -i $INVENTORY_PATH ../ansible/monitoring.yml --extra-vars @config --extra-vars=@advanced
+ansible-playbook -i $INVENTORY_PATH ../ansible/monitoring.yml --extra-vars @config 
 
