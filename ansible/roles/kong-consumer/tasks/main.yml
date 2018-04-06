@@ -26,3 +26,21 @@
 
 - name: Run script to save consumers
   shell: "python /tmp/kong-api-scripts/kong_consumers.py /tmp/kong_consumers.json --kong-admin-api-url={{ kong_admin_api_url }}"
+  register: jwt_token
+
+- name: write to file
+  copy: content="{{jwt_token.stdout}}" dest=~/jwt_token.txt
+  ignore_errors: yes
+
+- name: run the sed command
+  shell: cat ~/jwt_token.txt | grep 'JWT token for player is'
+  register: token
+  ignore_errors: yes
+
+- name: Copy the script
+  copy: content="{{token.stdout}}" dest=~/jwt_token_player.txt
+  ignore_errors: yes
+
+- name: remove the file
+  file: path=~/jwt_token.txt state=absent
+  ignore_errors: yes
