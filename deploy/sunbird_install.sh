@@ -55,6 +55,9 @@ keycloak() {
     ./bootstrap-keycloak.sh $ansible_variable_path
 }
 
+# badger
+badger() { ./deploy-badger.sh $ansible_variable_path; }
+
 # Core
 core() { ./deploy-core.sh $ansible_variable_path; }
 
@@ -122,10 +125,13 @@ done
 
 # Default action: install and configure from scratch
 
-echo -e \n$(date)\n >> config.log; config 2>&1 | tee -a logs/config.log
-echo -e \n$(date)\n >> deps.log; deps 2>&1 | tee -a logs/deps.log
-# Installing sunbird_ansible prerequisites
-echo -e \n$(date)\n >> dbs.log; dbs 2>&1 | tee -a logs/dbs.log
-echo -e \n$(date)\n >> apis.log; apis 2>&1 | tee -a logs/apis.log
-echo -e \n$(date)\n >> proxies.log; proxy 2>&1 | tee -a logs/proxies.log
-echo -e \n$(date)\n >> keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
+## Installing and configuring prerequisites
+echo -e \n$(date)\n >> logs/config.log; config 2>&1 | tee -a logs/config.log
+echo -e \n$(date)\n >> logs/deps.log; deps 2>&1 | tee -a logs/deps.log
+
+## Installing services and dbs
+echo -e \n$(date)\n >> logs/dbs.log; dbs 2>&1 | tee -a logs/dbs.log
+echo -e \n$(date)\n >> logs/apis.log; apis 2>&1 | tee -a logs/apis.log
+echo -e \n$(date)\n >> logs/proxies.log; proxy 2>&1 | tee -a logs/proxies.log
+echo -e \n$(date)\n >> logs/keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
+echo -e \n$(date)\n >> logs/badger.log; badger 2>&1 | tee -a logs/badger.log
