@@ -2,7 +2,7 @@
 
 set -eu -o pipefail
 
-usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core|logger|monitor} ]" ; exit 0; }
+usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|badger|core|logger|monitor} ]" ; exit 0; }
 
 # Checking for valid argument
 if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
@@ -102,6 +102,10 @@ while getopts "s:h" o;do
                     ;;
                 keycloak)
                     echo -e "\n$(date)\n">>logs/keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
+                    exit 0
+                    ;;
+                badger)
+                    echo -e "\n$(date)\n">>logs/badger.log; badger2>&1 | tee -a logs/badger.log
                     exit 0
                     ;;
                 core)
