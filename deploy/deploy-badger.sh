@@ -7,12 +7,6 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-inventory_path=$1
-
-#Deploy Badger
-echo "@@@@@@@@@ Badger "
-ansible-playbook -i $inventory_path ../ansible/deploy-badger.yml  --extra-vars=@config 
-
 inventory_path="$1"                                                                                                                                       
 org="sunbird" 
 badger_version="1.5.0-gold" 
