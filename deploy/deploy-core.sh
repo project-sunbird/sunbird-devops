@@ -11,11 +11,12 @@ INVENTORY_PATH=$1
 
 ENV=sample
 ORG=sunbird
-ACTOR_SERVICE_VERSION=0.0.4-gold
-PLAYER_VERSION=0.0.9-gold
-CONTENT_SERVICE_VERSION=0.0.4-gold
-LEARNER_SERVICE_VERSION=0.0.4-gold
-PROXY_VERSION=0.0.1-gold
+ACTOR_SERVICE_VERSION=1.5.0-gold
+PLAYER_VERSION=1.5.0-gold
+CONTENT_SERVICE_VERSION=1.5.0-gold
+LEARNER_SERVICE_VERSION=1.5.0-gold
+PROXY_VERSION=1.5.0-gold
+BADGER_SERVICE_VERSION=1.5.0-gold
 
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
@@ -36,3 +37,7 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird"
 # Re-deploy Actor service
 echo "@@@@@@@@@ Redeploy actor service"
 ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=actor-service image_tag=$ACTOR_SERVICE_VERSION service_name=actor-service deploy_actor=True" --extra-vars @config
+
+# Re-deploy Badger
+echo "@@@@@@@@@ Redeploy badger service"
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy-badger.yml --extra-vars "hub_org=${ORG} image_name=badger image_tag=$BADGER_SERVICE_VERSION service_name=badger-service " --extra-vars @config 	 
