@@ -10,7 +10,7 @@ fi
 INVENTORY_PATH=$1
 
 ORG=sunbird
-PROXY_VERSION=0.0.1-gold
+PROXY_VERSION=1.5.0-gold
 
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"

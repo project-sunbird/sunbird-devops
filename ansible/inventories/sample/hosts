@@ -45,6 +45,18 @@ cassandra-1
 [swarm-agent-for-alertmanager]
 "{{application_host}}" ansible_ssh_user="{{ssh_ansible_user}}" ansible_sudo_pass="{{sudo_passwd|default('')}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}" 
 
+
+[dev-log-es-1]
+"{{application_host}}" ansible_ssh_user="{{ssh_ansible_user}}" ansible_sudo_pass="{{sudo_passwd|default('')}}"  node_name=dev-log-es-1 es_etc_node_master=true es_etc_node_data=true ansible_ssh_private_key_file="{{ansible_private_key_path}}" 
+
+
+[dev-log-es:children]
+dev-log-es-1
+
+
+[log-es:children]
+dev-log-es
+
 [non-swarm-nodes:children]
 postgresql-master
 postgresql-slave
@@ -52,6 +64,8 @@ es
 cassandra
 kong-api
 keycloak
+log-es
+
 
 [swarm-nodes:children]
 swarm-manager
