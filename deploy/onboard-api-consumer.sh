@@ -1,6 +1,10 @@
 #!/bin/bash
-
 set -e -o pipefail
+
+# Deleting the container if it's already running
+
+
+sleep 10 
 
 if [ "$#" -ne 1 ]; then
     echo "ERROR: Illegal number of parameters"
@@ -16,7 +20,9 @@ ansible_mount_dir=$(readlink -f ../)
 echo "@@@@@@@@ Creating ansible service"
 
 # Creating ansible service
+if [[ ! $(sudo docker service ls | grep ansible_container ) ]];then
 sudo docker service create --name ansible_container --mount source=$ansible_mount_dir,target=/ansible,type=bind,readonly --network api-manager_default sunbird/ansible:latest
+fi
 
 # Waiting for service to start
 sleep 5
@@ -35,5 +41,5 @@ sudo docker exec $ansible_container ansible-playbook -v -i $inventory_path ansib
 # Removing service as it's not needed anymore
 sudo docker service rm ansible_container
 sleep 5
-sudo docker rmi sunbird/ansible:latest
+sudo docker rmi -f sunbird/ansible:latest
 sudo docker image prune -f

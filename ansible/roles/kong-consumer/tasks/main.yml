@@ -40,14 +40,13 @@
   copy: content="{{jwt_token.stdout}}" dest=/tmp/jwt_token_output.txt
   
 - name: run the sed command
-  become: yes
-  shell: cat /tmp/jwt_token_output.txt | grep 'JWT token'
+  shell: cat /tmp/jwt_token_output.txt | grep 'JWT token for player is' | cut -d ':' -f2
   register: token
   
 - name: Copy the script
-  become: yes
-  copy: content="{{token.stdout}}" dest=/tmp/jwt_token.txt
-  
-- name: Print the tokens
-  become: yes
-  copy: content="{{token.stdout}}" dest=/tmp/jwt_token.txt
+  copy: content="{{token.stdout}}" dest=~/jwt_token_player.txt
+  ignore_errors: yes
+
+- name: remove the file
+  file: path=~/jwt_token.txt state=absent
+  ignore_errors: yes
