@@ -20,24 +20,20 @@ BADGER_SERVICE_VERSION=1.5.0-gold
 
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
-ansible-playbook -i $INVENTORY_PATH ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm --extra-vars @config
+ansible-playbook -i $INVENTORY_PATH ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm --extra-vars @config 
 
 # Re-deploy Player service
 echo "@@@@@@@@@ Redeploy player service"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=player image_tag=${PLAYER_VERSION} service_name=player deploy_stack=True" --extra-vars @config
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=player image_tag=${PLAYER_VERSION} service_name=player deploy_stack=True" --extra-vars @config 
 
 # Re-deploy Content service
 echo "Redeploy content service"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=content_service image_tag=${CONTENT_SERVICE_VERSION} service_name=content_service deploy_stack=True" --extra-vars @config
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=content-service image_tag=${CONTENT_SERVICE_VERSION} service_name=content_service deploy_stack=True" --extra-vars @config 
 
 # Re-deploy Learner service
 echo "Redeploy learner service"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=learner_service image_tag=${LEARNER_SERVICE_VERSION} service_name=learner-service deploy_learner=True" --extra-vars @config
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=learner_service image_tag=${LEARNER_SERVICE_VERSION} service_name=learner-service deploy_learner=True" --extra-vars @config 
 
 # Re-deploy Actor service
 echo "@@@@@@@@@ Redeploy actor service"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=actor-service image_tag=$ACTOR_SERVICE_VERSION service_name=actor-service deploy_actor=True" --extra-vars @config
-
-# Re-deploy Badger
-echo "@@@@@@@@@ Redeploy badger service"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy-badger.yml --extra-vars "hub_org=${ORG} image_name=badger image_tag=$BADGER_SERVICE_VERSION service_name=badger-service " --extra-vars @config 	 
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=actor-service image_tag=$ACTOR_SERVICE_VERSION service_name=actor-service deploy_actor=True" --extra-vars @config 
