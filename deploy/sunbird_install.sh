@@ -108,6 +108,10 @@ while getopts "s:h" o;do
                     echo -e "\n$(date)\n">>logs/badger.log; badger 2>&1 | tee -a logs/badger.log
                     exit 0
                     ;;
+                badger)
+                    echo -e "\n$(date)\n">>logs/badger.log; badger 2>&1 | tee -a logs/badger.log
+                    exit 0
+                    ;;
                 core)
                     echo -e "\n$(date)\n">>core.log; core 2>&1 | tee -a logs/core.log
                     exit 0
