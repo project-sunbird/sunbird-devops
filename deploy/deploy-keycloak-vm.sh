@@ -11,4 +11,4 @@ INVENTORY_PATH=$1
 
 #Deploy keycloak
 echo "@@@@@@@@@ Keycloak "
-ansible-playbook -i $INVENTORY_PATH ../ansible/keycloak.yml --tags deploy --extra-vars=@config
+ansible-playbook -i $INVENTORY_PATH ../ansible/keycloak.yml --tags deploy --extra-vars=@config 
