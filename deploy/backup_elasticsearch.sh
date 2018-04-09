@@ -1,38 +1,39 @@
 #!/bin/sh
 backup_path=/etc/elasticsearch/backup
-es_ip=10.2.1.5
+es_ip=$(ip route get 8.8.8.8 | awk '{print $NF; exit}')
 
-if [ -f $backup_path ]
+if [ -d $backup_path ];
 then
-	echo "directory exists"
+  echo "directory exists"
 else
-	mkdir -p /etc/elasticsearch/backup
+  mkdir -p /etc/elasticsearch/backup
 fi 
 
-cat >> /etc/elasticsearch/es-1/elasticsearch.yml << EOF
+temp=$(grep "path.repo:" /etc/elasticsearch/es-1/elasticsearch.yml)
+
+if [ $? -ne 0 ]; then
+
+ cat >> /etc/elasticsearch/es-1/elasticsearch.yml << EOF
 path.repo: ["/etc/elasticsearch/backup"]
 EOF
 
-/usr/share/elasticsearch/bin/elasticsearch \
-                                    -p /var/run/elasticsearch/10.2.1.5-es-1/elasticsearch.pid \
-                                    --quiet \
-                                    -Edefault.path.logs=${LOG_DIR} \
-                                    -Edefault.path.data=${DATA_DIR} \
-                                    -Edefault.path.conf=${CONF_DIR}
+fi
 
 chown -R elasticsearch:elasticsearch $backup_path
 
 
+echo $es_ip
 
-curl -XPUT 'http://$es_ip:9200/_snapshot/my_backup' -d {
+curl -XPUT http://$es_ip:9200/_snapshot/my_backup -d '{
   "type": "fs",
   "settings": {
-     "location": "$backup_path",
+     "location": "'$backup_path'",
      "compress": true
   }
 }'
 
 
 
-curl -XPUT "$es_ip:9200/_snapshot/my_backup/snapshot_1?wait_for_completion=true"
+timestamp=`date '+%d_%m_%Y%H%M%S'`
 
+curl -XPUT http://$es_ip:9200/_snapshot/my_backup/snapshot_$timestamp?wait_for_completion=true
