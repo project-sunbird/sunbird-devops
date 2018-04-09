@@ -2,7 +2,6 @@
 
 set -eu -o pipefail
 
-
 usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|badger|core|logger|monitor} ]" ; exit 0; }
 
 # Checking for valid argument
@@ -49,7 +48,7 @@ ansible-playbook -i $ansible_variable_path/hosts ../ansible/setup-dockerswarm.ym
 dbs() { ./install-dbs.sh $ansible_variable_path; ./init-dbs.sh $ansible_variable_path; }
 
 # Apis
-apis() { ./deploy-apis.sh $ansible_variable_path;}
+apis() { ./deploy-apis.sh $ansible_variable_path; }
 
 # Proxy
 proxy() { ./deploy-proxy.sh $ansible_variable_path; }
@@ -103,6 +102,10 @@ while getopts "s:h" o;do
                     ;;
                 keycloak)
                     echo -e "\n$(date)\n">>keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
+                    exit 0
+                    ;;
+                badger)
+                    echo -e "\n$(date)\n">>logs/badger.log; badger 2>&1 | tee -a logs/badger.log
                     exit 0
                     ;;
                 badger)
