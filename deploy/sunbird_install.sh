@@ -83,13 +83,10 @@ while getopts "s:h" o;do
             case "${s}" in
                 config)
                     echo -e "\n$(date)\n">>logs/config.log; config 2>&1 | tee -a logs/config.log
-<<<<<<< HEAD
-=======
                     exit 0
                     ;;
                 deps)
                     echo -e "\n$(date)\n">>logs/deps.log; deps 2>&1 | tee -a logs/config.log
->>>>>>> origin/release-1.5
                     exit 0
                     ;;
                 dbs)
@@ -106,10 +103,6 @@ while getopts "s:h" o;do
                     ;;
                 keycloak)
                     echo -e "\n$(date)\n">>keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
-                    exit 0
-                    ;;
-                badger)
-                    echo -e "\n$(date)\n">>logs/badger.log; badger 2>&1 | tee -a logs/badger.log
                     exit 0
                     ;;
                 badger)
