@@ -2,9 +2,7 @@
 
 set -eu -o pipefail
 
-<<<<<<< HEAD
-usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core|logger|monitor} ]" &>/dev/null; exit 0; }
-=======
+
 usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|badger|core|logger|monitor} ]" ; exit 0; }
 
 # Checking for valid argument
@@ -12,7 +10,6 @@ if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
     usage
     exit 1
 fi
->>>>>>> origin/release-1.5
 
 # Reading environment and implimentation name
 implimentation_name=$(awk '/implementation_name: / {print $2}' config)
@@ -64,12 +61,9 @@ keycloak() {
     sleep 15
     ./bootstrap-keycloak.sh $ansible_variable_path
 }
-<<<<<<< HEAD
-=======
 
 # badger
 badger() { ./deploy-badger.sh $ansible_variable_path; }
->>>>>>> origin/release-1.5
 
 # Core
 core() { ./deploy-core.sh $ansible_variable_path; }
