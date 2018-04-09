@@ -1,27 +1,28 @@
 # ENVIRONMENT CONFIGURATION
 env: "{{env}}"  #Name of the environment, e.g. dev, staging or production.
 proxy_server_name: "{{dns_name}}"  #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
-proxy_site_key: "{{lookup('file',key_path)}}"   #SSL certificate's site.key file path. More details in this wiki: https://github.com/project-sunbird/sunbird-devops/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
-proxy_site_crt: "{{lookup('file',cert_path)}}"  #SSL certificate's site.crt file path. More details in this wiki: https://github.com/project-sunbird/sunbird-devops/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
+proxy_site_key: "{{lookup('file',key_path) if key_path else ''}}"   #SSL certificate's site.key file path. More details in this wiki: https://github.com/project-sunbird/sunbird-devops/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
+proxy_site_crt: "{{lookup('file',cert_path) if cert_path else ''}}"  #SSL certificate's site.crt file path. More details in this wiki: https://github.com/project-sunbird/sunbird-devops/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 sunbird_private_key_path: 
+hub_org: sunbird
 
 
 # DB CONFIGURATION
 ## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
-application_postgres_password: "{{database_password}}" #Password for Application database.
-keycloak_postgres_password: "{{database_password}}" #Password for Keycloak (Authentication service) database.
-kong_postgres_password: "{{database_password}}"  #Password for Kong (API Manager) database.
+application_postgres_password: "{{postgres|default(database_password)}}" #Password for Application database.
+keycloak_postgres_password: "{{postgres|default(database_password)}}" #Password for Keycloak (Authentication service) database.
+kong_postgres_password: "{{postgres|default(database_password)}}"  #Password for Kong (API Manager) database.
 
 ## Postgres configuration
 swarm_address_space: "{{app_address_space}}" #Application server address space (e.g. 10.3.0.0/24), also the agentpublicSubnet if using Azure scripts provided
 
 ## Cassandra configuration
-keystore_password: "{{database_password}}"   #Password to use for encrypting cassandra keystore. Use a strong password.
-truststore_password: "{{database_password}}"  #Password to use for encrypting cassandra truststore. Use a strong password.
-cassandra_listen_address: "{{ database_host }}"
-cassandra_seeds: "{{ database_host }}"
-cassandra_broadcast_rpc_address: "{{ database_host }}"
-cassandra_broadcast_address: "{{ database_host }}"
+keystore_password: "{{cassandra_password|default(database_password)}}"   #Password to use for encrypting cassandra keystore. Use a strong password.
+truststore_password: "{{cassandra_password|default(database_password)}}"  #Password to use for encrypting cassandra truststore. Use a strong password.
+cassandra_listen_address: "{{ groups['cassandra'][0]|default(database_host) }}"
+cassandra_seeds: "{{ groups['cassandra'][0]|default(database_host) }}"
+cassandra_broadcast_rpc_address: "{{ groups['cassandra'][0]|default(database_host) }}"
+cassandra_broadcast_address: "{{ groups['cassandra'][0]|default(database_host) }}"
 cassandra_listen_interface: ''
 cassandra_log_dir: '/var/log/cassandra'
 cassandra_root_dir: '/etc/cassandra'
@@ -29,25 +30,25 @@ cassandra_version: '3.9'
 cassandra_port: 9042
 cassandra_rpc_address: 0.0.0.0
 cassandra_restore_dir: /home/deployer/
-cassandra_server_private_ip: "{{database_host}}"
+cassandra_server_private_ip: "{{groups['cassandra'][0]|default(database_host)}}"
 
 
 # APPLICATION CONFIGURATION
 
 kong_host: api-manager_kong # Private IP of the application server
-keycloak_url: "http://{{ application_host }}:8080" #Internal url of keycloak. Example: http://<key_cloak_server_ip>:8080
+keycloak_url: "http://{{ groups['keycloak'][0] | default(application_host) }}:8080" #Internal url of keycloak. Example: http://<key_cloak_server_ip>:8080
 
 ## DB address
-application_postgres_host: "{{ database_host }}"   #Private IP of Postgres server
-keycloak_postgres_host: "{{ database_host }}"   #Private IP of Postgres server
-kong_postgres_host: "{{ database_host }}"  #Private IP of Postgres server
-sunbird_cassandra_host: "{{ database_host }}"  #Private IP of Cassandra server
-sunbird_es_host: "{{ database_host }}" #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
+application_postgres_host: "{{ groups['postgresql-master'][0] | default(database_host) }}"   #Private IP of Postgres server
+keycloak_postgres_host: "{{ groups['postgresql-master'][0] | default(database_host) }}"   #Private IP of Postgres server
+kong_postgres_host: "{{ groups['postgresql-master'][0] | default(database_host) }}"  #Private IP of Postgres server
+sunbird_cassandra_host: "{{ groups['cassandra'][0] | default(database_host) }}"  #Private IP of Cassandra server
+sunbird_es_host: "{{ groups['es-1'][0] | default(database_host) }}" #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
 
 ## Application server configurations
-sunbird_ekstep_api_base_url: "{{ekstep_base_url}}/api"    #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
-sunbird_ekstep_proxy_base_url: "{{ekstep_base_url}}"  #Base URL of the Ekstep environment. Use `https://qa.ekstep.in/` for non-prod deployments, and `https://community.ekstep.in/` for prod deployment.
-sunbird_env: qa #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
+sunbird_ekstep_api_base_url: "{{ekstep_api_base_url}}"    #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
+sunbird_ekstep_proxy_base_url: "{{ekstep_proxy_base_url}}"  #Base URL of the Ekstep environment. Use `https://qa.ekstep.in/` for non-prod deployments, and `https://community.ekstep.in/` for prod deployment.
+sunbird_env: qa  #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
 sunbird_mail_server_host: #SMTP server IP. Could be ignored if not mails are to be sent.
 sunbird_mail_server_port: #SMTP port. Could be ignored if not mails are to be sent.
 sunbird_mail_server_username: #SMTP username. Could be ignored if not mails are to be sent.
@@ -59,53 +60,51 @@ sunbird_background_actor_host: actor-service
 sunbird_actor_system_name: BackGroundRemoteMiddlewareActorSystem
 
 
-
-
-
 ## Keycloak (auth server) login details
-sunbird_sso_username: "{{sso_username}}"
+sunbird_sso_username: user-manager
 sunbird_sso_password: "{{sso_password}}"
+sunbird_sso_publickey: 
 keycloak_password: "{{keycloak_admin_password}}" #admin password for the keycloak_auth login
 keycloak_theme_path:  #path to the keycloak theme files
 
 ## Keycloak bootstrap
 keycloak_realm_json_file_path: "roles/keycloak/files/python-keycloak-0.12.0/keycloak-realm.json"
 keycloak_user_manager_roles_json_file_path: "roles/keycloak/files/python-keycloak-0.12.0/roles.json"
-keycloak_api_management_username: "user-manager"
-keycloak_api_management_user_email: "rajesh.r@optit.co"
-keycloak_api_management_user_first_name: "User"
-keycloak_api_management_user_last_name: "Manager"
-keycloak_api_management_user_password: "password"
+keycloak_api_management_username: ""
+keycloak_api_management_user_email: ""
+keycloak_api_management_user_first_name: ""
+keycloak_api_management_user_last_name: ""
+keycloak_api_management_user_password: ""
 
 ## Content Repo configuration
-sunbird_api_auth_token: "{{ekstep_auth_token}}" #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
+sunbird_api_auth_token: "{{sunbird_auth_token}}" #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
 sunbird_ekstep_api_key: "{{ekstep_api_key}}" #Authorization key (JWT) to access Ekstep APIs. Steps to generate this are documented on https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs
 sunbird_trampoline_secret: "{{trampoline_secret}}"
 
 
 # ADVANCED CONFIGURATIONS
-keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth"
+keycloak_auth_server_url: "{{proto}}://{{proxy_server_name}}/auth"
 keycloak_realm: sunbird
-sunbird_content_player_url: https://{{ proxy_server_name }}/api/
-sunbird_learner_player_url: https://{{ proxy_server_name }}/api/
-sunbird_sso_url: https://{{ proxy_server_name }}/auth/
+sunbird_content_player_url: "{{proto}}://{{proxy_server_name}}/api"
+sunbird_learner_player_url: "{{proto}}://{{proxy_server_name}}/api"
+sunbird_sso_url: "{{proto}}://{{proxy_server_name}}/auth"
 sunbird_sso_client_id: admin-cli
 sunbird_portal_realm: sunbird
 sunbird_portal_auth_server_client: portal
 sunbird_trampoline_client_id: trampoline
 sunbird_appid: sunbird_portal
 sunbird_default_tenant: sunbird
-sunbird_echo_api_url: https://{{ proxy_server_name }}/api/echo/
+sunbird_echo_api_url: "{{proto}}://{{proxy_server_name}}/api/echo"
 sunbird_pg_host: "{{ application_postgres_host }}"
 sunbird_pg_port: 5432
 sunbird_pg_db: quartz
 sunbird_pg_user: quartz
 sunbird_pg_password: "{{ application_postgres_password }}"
 sunbird_installation: sunbird
-sunbird_account_name: sunbirddev
-sunbird_account_key:
+sunbird_account_name: "{{sunbird_azure_storage_account}}"
+sunbird_account_key: "{{sunbird_azure_storage_key}}"
 sunbird_sunbird_quartz_mode: cluster  #Use `embedded` to run Quartz without any database, use any other value to use Postgres as database
-sunbird_cassandra_urls: "{{ cassandra_server_private_ip }}:{{ cassandra_port }}"
+sunbird_cassandra_urls: "{{groups['cassandra'][0]|default(database_host)}}:{{ cassandra_port }}"
 sunbird_session_store_type: cassandra
 sunbird_portal_title_name: portal
 sunbird_keycloak_client_id: 'portal'
@@ -117,7 +116,7 @@ application_postgres_database: quartz
 application_postgres_user: quartz
 keycloak_postgres_database: keycloak
 keycloak_postgres_user: keycloak
-cassandra_server_private_ip: "{{database_host}}"
+sunbird_dataservice_url: "{{proto}}://{{proxy_server_name}}/api"
 sunbird_azure_storage_account: "{sunbird_azure_storage_account}}"
 sunbird_azure_storage_key: "{{sunbird_azure_storage_key}}"
 sunbird_container_name: portal
@@ -212,7 +211,7 @@ badger_container: badgr
 
 
 #Logging
-kibana_oauth_redirect_url: "https://{{proxy_server_name}}/oauth2/callback"
+kibana_oauth_redirect_url: "{{proto}}://{{proxy_server_name}}/oauth2/callback"
 monitor_alerts_slack_channel: "sunbird-{{env}}-alert"
 google_client_id: "{{vault_google_client_id}}"
 google_client_secret: "{{vault_google_client_secret}}"
@@ -236,7 +235,7 @@ monitor_alerts_mail_server_host: "{{ mail_server_host }}"
 monitor_alerts_mail_server_port: "{{ mail_server_port }}"
 monitor_alerts_mail_server_username: "{{ mail_server_username }}"
 monitor_alerts_mail_server_password: "{{ mail_server_password }}"
-grafana_url: "https://{{proxy_server_name}}/grafana"
+grafana_url: "{{proto}}://{{proxy_server_name}}/grafana"
 grafana_editor_username: editor
 app_alerts_mailing_list: "{{alerts_mailing_list}}"
 site_alerts_mailing_list: "{{alerts_mailing_list}}"

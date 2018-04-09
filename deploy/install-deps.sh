@@ -2,7 +2,6 @@
 # Build script
 # set -o errexit
 
-docker_version=17.06.2~ce-0~ubuntu
 ansible_version=2.4.1.0
 swarm_master_ip=$(ip route get 8.8.8.8 | awk '{print $NF; exit}')
 echo "MasterIP: $swarm_master_ip"
@@ -50,12 +49,13 @@ docker swarm init --advertise-addr $swarm_master_ip
 docker node ls
 
 # Checking for ansible
-case "$(ansible --version | head -n1)" in 
+case "$(ansible --version 2> /dev/null | head -n1)" in 
     *2.4.1.0*)
         ;;
      *)
     # Install Ansible
-    sudo apt install -y python-pip
+    sudo apt update 
+    sudo apt install -y  python python-pkg-resources python-pip
     sudo pip install ansible==$ansible_version
     ;;
 esac
