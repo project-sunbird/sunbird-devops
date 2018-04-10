@@ -9,7 +9,7 @@ then
   echo "directory exists"
 else
   mkdir -p $backup_path
-fi 
+fi
 
 #Adding backup path repo to elasticsearch config
 temp=$(grep "path.repo:" /etc/elasticsearch/es-1/elasticsearch.yml)
