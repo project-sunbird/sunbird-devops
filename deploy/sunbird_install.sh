@@ -2,9 +2,6 @@
 
 set -eu -o pipefail
 
-<<<<<<< HEAD
-usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|core|logger|monitor} ]" &>/dev/null; exit 0; }
-=======
 usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|badger|core|logger|monitor} ]" ; exit 0; }
 
 # Checking for valid argument
@@ -12,7 +9,6 @@ if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
     usage
     exit 1
 fi
->>>>>>> origin/release-1.5
 
 # Reading environment and implimentation name
 implimentation_name=$(awk '/implementation_name: / {print $2}' config)
@@ -52,7 +48,7 @@ ansible-playbook -i $ansible_variable_path/hosts ../ansible/setup-dockerswarm.ym
 dbs() { ./install-dbs.sh $ansible_variable_path; ./init-dbs.sh $ansible_variable_path; }
 
 # Apis
-apis() { ./deploy-apis.sh $ansible_variable_path;}
+apis() { ./deploy-apis.sh $ansible_variable_path; }
 
 # Proxy
 proxy() { ./deploy-proxy.sh $ansible_variable_path; }
@@ -64,12 +60,9 @@ keycloak() {
     sleep 15
     ./bootstrap-keycloak.sh $ansible_variable_path
 }
-<<<<<<< HEAD
-=======
 
 # badger
 badger() { ./deploy-badger.sh $ansible_variable_path; }
->>>>>>> origin/release-1.5
 
 # Core
 core() { ./deploy-core.sh $ansible_variable_path; }
@@ -89,13 +82,10 @@ while getopts "s:h" o;do
             case "${s}" in
                 config)
                     echo -e "\n$(date)\n">>logs/config.log; config 2>&1 | tee -a logs/config.log
-<<<<<<< HEAD
-=======
                     exit 0
                     ;;
                 deps)
                     echo -e "\n$(date)\n">>logs/deps.log; deps 2>&1 | tee -a logs/config.log
->>>>>>> origin/release-1.5
                     exit 0
                     ;;
                 dbs)
@@ -111,11 +101,7 @@ while getopts "s:h" o;do
                     exit 0
                     ;;
                 keycloak)
-                    echo -e "\n$(date)\n">>keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
-                    exit 0
-                    ;;
-                badger)
-                    echo -e "\n$(date)\n">>logs/badger.log; badger 2>&1 | tee -a logs/badger.log
+                    echo -e "\n$(date)\n">>logs/keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
                     exit 0
                     ;;
                 badger)
@@ -123,7 +109,7 @@ while getopts "s:h" o;do
                     exit 0
                     ;;
                 core)
-                    echo -e "\n$(date)\n">>core.log; core 2>&1 | tee -a logs/core.log
+                    echo -e "\n$(date)\n">>logs/core.log; core 2>&1 | tee -a logs/core.log
                     exit 0
                     ;;
                 logger)
