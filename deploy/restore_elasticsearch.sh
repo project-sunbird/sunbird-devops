@@ -3,8 +3,8 @@ backup_path=/etc/elasticsearch/backup
 es_ip=$(hostname -I)
 #es_ip=$(ip route get 8.8.8.8 | awk '{print $NF; exit}')
 
-#Removing exiting indexes 
-curl http://"$es_ip":9200/_cat/indices?v | awk '{print $3}' | awk 'NR>1' > ~/index.txt 
+#Removing exiting indexes
+curl http://"$es_ip":9200/_cat/indices?v | awk '{print $3}' | awk 'NR>1' > ~/index.txt
 
 while read line;
 do

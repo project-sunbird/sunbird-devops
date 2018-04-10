@@ -39,4 +39,3 @@ curl -XPUT http://"$es_ip":9200/_snapshot/my_backup -d '{
 timestamp=`date '+%d_%m_%Y%H%M%S'`
 
 curl -XPUT http://"$es_ip":9200/_snapshot/my_backup/snapshot_$timestamp?wait_for_completion=true
-
