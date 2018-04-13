@@ -15,6 +15,7 @@ if [ -d $sunbird_devops_dir_name ]; then
     git reset --hard && git clean -fd
     git fetch
     git checkout $commit_ref
+    git branch -v
     git pull --all
     git branch --list | grep -v "$commit_ref" | xargs $xargs_option_to_ignore_empty git branch -D
 else
