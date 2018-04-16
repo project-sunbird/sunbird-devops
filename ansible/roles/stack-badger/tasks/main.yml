@@ -6,7 +6,6 @@
 - name: Save configurations into an env file
   template: src=settings_local.py dest=/home/deployer/config/settings_local.py mode=0644
 
-
 - name: Remove old settings_local.py docker config
   shell: "docker config rm settings_local.py"
   ignore_errors: yes
@@ -21,3 +20,20 @@
   shell: "docker service create --replicas {{ badger_replicas }} -p 8004:8004 --name badger-service --hostname badger-service --reserve-memory {{ badger_reservation_memory }} --limit-memory {{ badger_limit_memory }}  --network application_default --config source=settings_local.py,target=/badger/code/apps/mainsite/settings_local.py,mode=0644 {{hub_org}}/{{image_name}}:{{image_tag}}" 
   args:
     chdir: /home/deployer/stack
+
+- name: Checking for the badger containter
+  shell: "docker service ps badger-service| grep Running | head -n1 | awk '{print $4}'"
+  register: server
+
+- name: Copying user creation script to remote machine
+  file:
+    src: files/user.sh
+    dest: /tmp
+    mode: 0755
+
+- name: Creating superuser
+  shell: "ssh {{server.stdout}} 'bash -s ' < /tmp/usercreate.sh"
+
+- name: Cleaning up
+  file: /tmp/user.sh
+  state: absent
