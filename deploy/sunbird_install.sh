@@ -1,5 +1,17 @@
 #!/bin/bash
 
+#--------------------------------------------------------------------------------------------------------#
+# This script installs and configures sunbird according to the confugurations specified in config file
+#
+# Usage 
+#   ./sunbird_install.sh                    ==> Install and configure sunbird from scratch
+#   ./sunbird_install.sh -h                 ==> Help
+#   ./sunbird_install.sh -s <service name>  ==> Install the specific service
+#
+# Original Author: Rajesh Rajendran <rajesh.r@optit.co>
+# Maintainers: Manoj <manojv@illimi.in>
+#---------------------------------------------------------------------------------------------------------#
+
 set -eu -o pipefail
 
 usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|badger|core|logger|monitor} ]" ; exit 0; }
