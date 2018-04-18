@@ -1,7 +1,14 @@
 #!/bin/sh
 
-for host in docker node ls |  awk '{if (NR>1 && NF==4) print $2}'
+for host in `docker node ls |  awk '{if (NR>1 && NF==4) print $2}'`
 do
- ssh -n $host sudo service docker restart 
- sleep 5m
+	ssh -n $host sudo service docker restart 
+ 	while true;
+ 	do
+   		if [ $(docker node ls | grep $host  | awk '{ print $NF }') == "Active" ]
+   		then 
+   			break 
+   		fi 
+   	sleep 10 
+	done
 done
