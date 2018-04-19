@@ -21,6 +21,8 @@ ansible_variable_path=$implimentation_name-devops/ansible/inventories/$env_name
 
 #TO skip the host key verification
 export ANSIBLE_HOST_KEY_CHECKING=False
+#Enable force color
+export ANSIBLE_FORCE_COLOR=true
 
 # Creating logging directory
 if [ ! -d logs ];then mkdir logs &> /dev/null;fi
