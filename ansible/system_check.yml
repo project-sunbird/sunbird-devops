@@ -1,0 +1,20 @@
+---
+- hosts: "{{host}}"
+  tasks:
+  - block:
+      - set_fact:
+          ram: "{{ansible_memtotal_mb/1000}}"
+          cacheable: yes
+    when: hardware
+
+- hosts: "{{host}}"
+  gather_facts: false
+  tasks:
+  - block:
+    - shell: "{{application}} --version | head -n1"
+      register: app_version
+    rescue:
+      - command: ansible --version
+      - debug:
+          var: app_version.stdout
+    when: version
