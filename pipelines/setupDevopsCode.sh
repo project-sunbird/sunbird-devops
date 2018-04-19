@@ -2,7 +2,7 @@
 
 set -ex
 
-commit_ref=${1:-release-1.5.1}
+commit_ref=${1:-release-1.5.2}
 sunbird_devops_dir_name=sunbird-devops
 
 xargs_option_to_ignore_empty=''
