@@ -13,7 +13,7 @@ normal=$(tput sgr0)
 
 # Application versions
 es_version=5.4
-docker_version=17.06
+docker_version=18.06
 
 # Refreshing ssh-agent
 eval $(ssh-agent) &> /dev/null
@@ -26,9 +26,10 @@ source $config_dir/generate_host.sh &> /dev/null
 
 result() {
     if [[ $1 -ne 0 ]];then
-         echo -e "\e[0;31m FAILED"
+         echo -e "\e[0;31m${bold} FAILED${normal}"
+         fail=1
     else
-         echo -e "\e[0;32m OK"
+         echo -e "\e[0;32m${bold} OK${normal}"
     fi
 }
 
@@ -80,3 +81,7 @@ check_es $elasticsearch_ips
 docker_ips=$swarm_manager_ips,$swarm_node_ips
 check_docker $docker_ips
 
+if [[ $fail ]];then 
+    echo "\e[0;31mplease rectify the issues and run again" 
+    exit 1
+fi
