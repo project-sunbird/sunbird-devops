@@ -82,6 +82,6 @@ docker_ips=$swarm_manager_ips,$swarm_node_ips
 check_docker $docker_ips
 
 if [[ $fail ]];then 
-    echo "\e[0;31mplease rectify the issues and run again" 
+    echo -e "\n\e[0;31m ${bold}PLEASE RECTIFY THE ISSUES AND RUN AGAIN${normal}\n" 
     exit 1
 fi
