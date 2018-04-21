@@ -2,12 +2,6 @@
 
 # Author Rajesh Rajendran <rajesh.r@optit.co>
 
-# 1. SSH connectivity
-# 2. Check for application installation
-#       app version
-#       DB check for user and dbs
-# 3. Check for h/w req
- 
 config_dir=.sunbird
 ssh_key=$1
 bold=$(tput bold)
