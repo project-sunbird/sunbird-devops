@@ -88,7 +88,7 @@ check_cassandra() {
     for ip in ${arr[@]}; do
         ssh_connection $ip
         # Checking for elastic search version
-        local version=$(nssh $ip cqlsh localhost 9042 -e "select release_version from system.local;" | tail -3 | head -n1)
+        local version=$(nssh $ip "cqlsh localhost 9042 -e 'select release_version from system.local;'" | tail -3 | head -n1)
         echo -ne "\e[0;35m Cassandra Version: \e[0;32m$version "
         check_compatibility version "$version" "$cassandra_version"
     done
