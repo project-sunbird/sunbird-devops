@@ -93,22 +93,26 @@ check_postgres() {
     ips $1
     for ip in ${arr[@]}; do
         ssh_connection $ip
-        # Checking for elastic search version
+        # Checking for Postgres Version
         local version=$(nssh $ip pg_config --version )
-        echo -ne "\e[0;35m Cassandra Version: \e[0;32m$version "
+        echo -ne "\e[0;35m Postgres Version: \e[0;32m$version "
         check_compatibility version "$version" "$postgres_version"
     done
 }
 
 # Checking docker
 check_docker() {
-    echo -e "\e[0;36m ${bold}Checking Docker${normal}"
+    echo -e "\e[0;36m ${bold}Checking Docker $2 ${normal}"
     ips $1
     for ip in ${arr[@]}; do
         ssh_connection $ip
         local version=$(nssh $ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
         echo -ne "\e[0;35m Docker Version: \e[0;32m $version"
         check_compatibility version "$version" "$docker_version"
+        local ram_=$(($(ram $ip)+1))
+        echo -ne "\e[0;35m Docker $2 RAM: \e[0;32m${ram_}G "
+        local docker_ram=$docker_$2_ram
+        check_compatibility ram $ram_ "$docker_ram"
     done
 }
 
@@ -122,8 +126,8 @@ check_ansible() {
 
 check_ansible
 check_es $elasticsearch_ips
-docker_ips=$swarm_manager_ips,$swarm_node_ips
-check_docker $docker_ips
+check_docker $swarm_manager_ips manager
+check_docker $swarm_node_ips node
 postgres_ips=$postgres_master_ips,$postgres_slave_ips
 check_postgres $postgres_ips
 check_cassandra $cassandra_ips
