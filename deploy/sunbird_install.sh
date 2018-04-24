@@ -21,9 +21,13 @@ ansible_variable_path=$implimentation_name-devops/ansible/inventories/$env_name
 
 #TO skip the host key verification
 export ANSIBLE_HOST_KEY_CHECKING=False
+#Enable force color
+export ANSIBLE_FORCE_COLOR=true
 
 # Creating logging directory
 if [ ! -d logs ];then mkdir logs &> /dev/null;fi
+# Creating temporary directory
+if [ ! -d .sunbird ];then mkdir .sunbird &> /dev/null;fi
 
 # Generating configs
 config() { 
@@ -34,7 +38,7 @@ config() {
     sed -i s#\"{{application_host}}\"#$app_host#g $ansible_variable_path/hosts
     sed -i s#\"{{ansible_private_key_path}}\"#$ansible_private_key_path#g $ansible_variable_path/hosts
     ansible-playbook -i "localhost," -c local ../ansible/generate-hosts.yml --extra-vars @config --extra-vars "host_path=$ansible_variable_path"
-    $ansible_variable_path/generate_host.sh  > $ansible_variable_path/hosts 2>&1
+    .sunbird/generate_host.sh  > $ansible_variable_path/hosts 2>&1 /dev/null
 }
 
 # Sanity check
