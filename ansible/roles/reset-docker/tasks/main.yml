@@ -1,0 +1,24 @@
+- name: Remove actor service 
+  shell: "docker service rm actor-service"
+  ignore_errors: yes
+  
+- name: Remove learner service
+  shell: "docker service rm learner-service"
+  ignore_errors: yes
+
+- name: Remove player service
+  shell: "docker stack rm player"
+  ignore_errors: yes
+
+- name: Remove learner service
+  shell: "docker stack rm player"
+  ignore_errors: yes
+ 
+- name: Copy the restart command script
+  template: src=reset_docker.j2 dest=/home/deployer/reset_docker.sh owner=deployer group=deployer mode=0755 
+
+- name: Run the script 
+  remote_user: ops
+  command: ./reset_docker.sh 
+  args:
+    chdir: /home/deployer

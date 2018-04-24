@@ -9,17 +9,17 @@ hub_org: sunbird
 
 # DB CONFIGURATION
 ## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
-application_postgres_password: "{{postgres_app_password|default(database_password)}}" #Password for Application database.
-keycloak_postgres_password: "{{postgres_keycloak_password|default(database_password)}}" #Password for Keycloak (Authentication service) database.
-kong_postgres_password: "{{postgres_kong_password|default(database_password)}}"  #Password for Kong (API Manager) database.
-badger_postgres_password: "{{postgres_badger_password|default(database_password)}}"
+application_postgres_password: "{{postgres_app_password if postgres_app_password else database_password}}"
+keycloak_postgres_password: "{{postgres_keycloak_password if postgres_keycloak_password else database_password}}"
+kong_postgres_password: "{{postgres_kong_password if postgres_kong_password else database_password}}"
+badger_postgres_password: "{{postgres_badger_password if postgres_badger_password else database_password}}"
 
 ## Postgres configuration
 swarm_address_space: "{{app_address_space}}" #Application server address space (e.g. 10.3.0.0/24), also the agentpublicSubnet if using Azure scripts provided
 
 ## Cassandra configuration
-keystore_password: "{{cassandra_password|default(database_password)}}"   #Password to use for encrypting cassandra keystore. Use a strong password.
-truststore_password: "{{cassandra_password|default(database_password)}}"  #Password to use for encrypting cassandra truststore. Use a strong password.
+keystore_password: "{{cassandra_password if cassandra_password else database_password}}"   #Password to use for encrypting cassandra keystore. Use a strong password.
+truststore_password: "{{cassandra_password if cassandra_password else database_password}}"  #Password to use for encrypting cassandra truststore. Use a strong password.
 cassandra_listen_address: "{{ groups['cassandra'][0]|default(database_host) }}"
 cassandra_seeds: "{{ groups['cassandra'][0]|default(database_host) }}"
 cassandra_broadcast_rpc_address: "{{ groups['cassandra'][0]|default(database_host) }}"
@@ -86,8 +86,8 @@ sunbird_trampoline_secret: "{{trampoline_secret}}"
 # ADVANCED CONFIGURATIONS
 keycloak_auth_server_url: "{{proto}}://{{proxy_server_name}}/auth"
 keycloak_realm: sunbird
-sunbird_content_player_url: "{{proto}}://{{proxy_server_name}}/api"
-sunbird_learner_player_url: "{{proto}}://{{proxy_server_name}}/api"
+sunbird_content_player_url: "{{proto}}://{{proxy_server_name}}/api/"
+sunbird_learner_player_url: "{{proto}}://{{proxy_server_name}}/api/"
 sunbird_sso_url: "{{proto}}://{{proxy_server_name}}/auth"
 sunbird_sso_client_id: admin-cli
 sunbird_portal_realm: sunbird
@@ -126,6 +126,9 @@ sunbird_telemetry_sync_batch_size: 200
 sunbird_installation_email: "{{sunbird_installation_email}}"
 sunbird_content_service_producer_id: "{{sunbird_content_service_producer_id}}"
 sunbird_telemetry_pdata_id: "{{sunbird_telemetry_pdata_id}}"
+sunbird_environment: "{{sunbird_environment}}"
+sunbird_instance: "{{sunbird_instance}}"
+
 
 ## elasticsearch configurations
 
@@ -154,19 +157,19 @@ postgresql_hba_entries:
 
 postgresql_users:
   - name: "{{kong_postgres_user}}"
-    password: "{{kong_postgres_password}}"
+    password: "{{postgres_kong_password if postgres_kong_password else database_password}}"
     db: "{{kong_postgres_database}}"
     priv: "ALL"
   - name: "{{keycloak_postgres_user}}"
-    password: "{{keycloak_postgres_password}}"
+    password: "{{postgres_keycloak_password if postgres_keycloak_password else database_password}}"
     db: "{{keycloak_postgres_database}}"
     priv: "ALL"
   - name: "{{application_postgres_user}}"
-    password: "{{application_postgres_password}}"
+    password: "{{postgres_app_password if postgres_app_password else database_password}}"
     db: "{{application_postgres_database}}"
     priv: "ALL"
   - name: "{{badger_postgres_user}}"
-    password: "{{badger_postgres_password}}"
+    password: "{{postgres_badger_password if postgres_badger_password else database_password}}"
     db: "{{badger_postgres_database}}"
     priv: "ALL"
 
@@ -204,7 +207,7 @@ content_limit_memory: 256M
 #badger
 badger_postgres_user: badger
 badger_postgres_database: badger
-badger_host: "{{ groups['postgresql-master'][0]}}"
+badger_host: "{{ groups['postgresql-master'][0]|default(database_host)}}"
 badger_replicas: 1
 badger_reservation_memory: 500MB
 badger_limit_memory: 500MB
@@ -257,3 +260,4 @@ api__host: "{{proxy_server_name}}"
 kong__test_jwt: "{{kong__test_jwt}}" 
 backup_storage_name: "{{backup_storage_name}}"
 prometheus_storage_retention_time: 72h0m0s
+sunbird_android_app_url: sunbird.org
