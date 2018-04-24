@@ -20,11 +20,13 @@ es_ram=2
 db_ram=2
 
 
+if [ -z $ssh_key ];then
 # Refreshing ssh-agent
 eval $(ssh-agent) &> /dev/null
 
 # Adding key to ssh-agent
 ssh-add $ssh_key &> /dev/null
+fi
 
 # Sourcing the variables
 source $config_dir/generate_host.sh &> /dev/null
@@ -53,8 +55,9 @@ ram() {
 }
 
 check_compatibility() {
+    local service_name=$4
     case $1 in
-        version) if [[ "$2" == *"$3"* ]];then result $? ; else result $?; fi ;;
+        version) if [[ "$2" == *"$3"* ]];then result $?; touch .sunbird/ignore/.${service_name} ; else result $?; fi ;;
         ram) if [[ $2 -ge $3 ]];then result $? ; else result $?; fi ;;
     esac
 }
@@ -68,7 +71,7 @@ check_es() {
         # Checking for elastic search version
         local version=$(nssh $ip curl -sS $ip:9200 | grep number| awk '{print $3}')
         echo -ne "\e[0;35m Elastic search Version: \e[0;32m$version "
-        check_compatibility version "$version" "$es_version"
+        check_compatibility version "$version" "$es_version" es
         # Check RAM
         local ram_=$(($(ram $ip)+1))
         echo -ne "\e[0;35m Elastic search RAM: \e[0;32m${ram_}G "
@@ -84,7 +87,7 @@ check_cassandra() {
         # Checking for elastic search version
         local version=$(nssh $ip "cqlsh localhost 9042 -e 'select release_version from system.local;'" | tail -3 | head -n1)
         echo -ne "\e[0;35m Cassandra Version: \e[0;32m$version "
-        check_compatibility version "$version" "$cassandra_version"
+        check_compatibility version "$version" "$cassandra_version" cassandra
     done
 }
 
@@ -96,7 +99,7 @@ check_postgres() {
         # Checking for Postgres Version
         local version=$(nssh $ip pg_config --version )
         echo -ne "\e[0;35m Postgres Version: \e[0;32m$version "
-        check_compatibility version "$version" "$postgres_version"
+        check_compatibility version "$version" "$postgres_version" postgres
     done
 }
 
@@ -112,19 +115,11 @@ check_docker() {
         local ram_=$(($(ram $ip)+1))
         echo -ne "\e[0;35m Docker $2 RAM: \e[0;32m${ram_}G "
         local docker_ram=$docker_$2_ram
-        check_compatibility ram $ram_ "$docker_ram"
+        check_compatibility ram $ram_ "$docker_ram" docker
     done
 }
 
-# Checking Ansible
-check_ansible() {
-    echo -e "\e[0;36m ${bold}Checking Ansible${normal}"
-    local version=$(ansible --version | head -n1)
-    echo -ne "\e[0;35m Ansible Version: \e[0;32m$version "
-    check_compatibility version "$version" "$ansible_version"
-}
 
-check_ansible
 check_es $elasticsearch_ips
 check_docker $swarm_manager_ips manager
 check_docker $swarm_node_ips node
@@ -132,7 +127,7 @@ postgres_ips=$postgres_master_ips,$postgres_slave_ips
 check_postgres $postgres_ips
 check_cassandra $cassandra_ips
 
-if [[ $fail ]];then 
-    echo -e "\n\e[0;31m ${bold}PLEASE RECTIFY THE ISSUES AND RUN AGAIN${normal}\n" 
-    exit 1
-fi
+# if [[ $fail ]];then
+#     echo -e "\n\e[0;31m ${bold}PLEASE RECTIFY THE ISSUES AND RUN AGAIN${normal}\n"
+#     exit 1
+# fi
