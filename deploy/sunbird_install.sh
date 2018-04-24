@@ -27,7 +27,7 @@ export ANSIBLE_FORCE_COLOR=true
 # Creating logging directory
 if [ ! -d logs ];then mkdir logs &> /dev/null;fi
 # Creating temporary directory
-if [ ! -d .sunbird ];then mkdir .sunbird &> /dev/null;fi
+if [ ! -d .sunbird/ignore ];then mkdir -p .sunbird/ignore &> /dev/null;fi
 
 # Generating configs
 config() { 
@@ -48,7 +48,7 @@ sanity() {
 }
 
 # Installing dependencies
-deps() { sudo ./install-deps.sh; 
+deps() { 
 ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config 
 ansible-playbook -i $ansible_variable_path/hosts ../ansible/setup-dockerswarm.yml --extra-vars @config 
 }
@@ -91,15 +91,20 @@ while getopts "s:h" o;do
             echo "help.."
             case "${s}" in
                 config)
-                    echo -e "\n$(date)\n">>logs/config.log; config 2>&1 | tee -a logs/config.log
+                    echo -e "\n$(date)\n">>logs/config.log;
+                    config 2>&1 | tee -a logs/config.log
                     exit 0
                     ;;
                 sanity)
-                    echo -e "\n$(date)\n">>logs/sanity.log; sanity 2>&1 | tee -a logs/sanity.log
+                    echo -e "\n$(date)\n">>logs/sanity.log;
+                    config 2>&1 | tee -a logs/sanity.log
+                    sanity 2>&1 | tee -a logs/sanity.log
                     exit 0
                     ;;
                 deps)
-                    echo -e "\n$(date)\n">>logs/deps.log; deps 2>&1 | tee -a logs/config.log
+                    echo -e "\n$(date)\n">>logs/deps.log;
+                    sudo ./install-deps.sh 2>&1 | tee -a logs/deps.log
+                    deps 2>&1 | tee -a logs/deps.log
                     exit 0
                     ;;
                 dbs)
@@ -153,7 +158,6 @@ done
 echo -e \n$(date)\n >> logs/config.log; config 2>&1 | tee -a logs/config.log
 ## checking for prerequisites
 echo -e \n$(date)\n >> logs/sanity.log; sanity 2>&1 | tee -a logs/sanity.log
-
 echo -e \n$(date)\n >> logs/deps.log; deps 2>&1 | tee -a logs/deps.log
 
 ## Installing services and dbs
