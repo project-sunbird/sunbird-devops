@@ -37,6 +37,12 @@ config() {
     $ansible_variable_path/generate_host.sh  > $ansible_variable_path/hosts 2>&1
 }
 
+# Sanity check
+
+sanity() {
+    ./sanity.sh $ansible_private_key_path
+}
+
 # Installing dependencies
 deps() { sudo ./install-deps.sh; 
 ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config 
@@ -82,6 +88,10 @@ while getopts "s:h" o;do
             case "${s}" in
                 config)
                     echo -e "\n$(date)\n">>logs/config.log; config 2>&1 | tee -a logs/config.log
+                    exit 0
+                    ;;
+                sanity)
+                    echo -e "\n$(date)\n">>logs/sanity.log; sanity 2>&1 | tee -a logs/sanity.log
                     exit 0
                     ;;
                 deps)
@@ -137,6 +147,9 @@ done
 
 ## Installing and configuring prerequisites
 echo -e \n$(date)\n >> logs/config.log; config 2>&1 | tee -a logs/config.log
+## checking for prerequisites
+echo -e \n$(date)\n >> logs/sanity.log; sanity 2>&1 | tee -a logs/sanity.log
+
 echo -e \n$(date)\n >> logs/deps.log; deps 2>&1 | tee -a logs/deps.log
 
 ## Installing services and dbs
