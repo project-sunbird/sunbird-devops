@@ -33,8 +33,8 @@ config() {
     sed -i s#\"{{database_host}}\"#$db_host#g $ansible_variable_path/hosts
     sed -i s#\"{{application_host}}\"#$app_host#g $ansible_variable_path/hosts
     sed -i s#\"{{ansible_private_key_path}}\"#$ansible_private_key_path#g $ansible_variable_path/hosts
-    ansible-playbook -i "localhost," -c local ../ansible/generate-hosts.yml --extra-vars @config --extra-vars "host_path=$ansible_variable_path"
-    $ansible_variable_path/generate_host.sh  > $ansible_variable_path/hosts 2>&1
+   # ansible-playbook -i "localhost," -c local ../ansible/generate-hosts.yml --extra-vars @config --extra-vars "host_path=$ansible_variable_path"
+   # $ansible_variable_path/generate_host.sh  > $ansible_variable_path/hosts 2>&1
 }
 
 # Installing dependencies
