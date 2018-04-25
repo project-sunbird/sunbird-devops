@@ -25,6 +25,13 @@
   shell: "docker service ps badger-service| grep Running | head -n1 | awk '{print $4}'"
   register: server
 
+- name: Waiting for the container to come up
+  shell: "docker inspect -f '{{'{{'}}.State.Running{{'}}'}}' $(docker ps | grep badger| head -n1 | awk '{print $1}')"
+  register: container
+  until: container.rc == 0
+  retries: 10
+  delay: 5
+
 - name: Copying user creation script to remote machine
   hosts: "{{server.stdout}}"
   template:
