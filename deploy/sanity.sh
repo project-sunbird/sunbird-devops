@@ -20,6 +20,7 @@ es_ram=2
 db_ram=2
 
 echo -e "\n\e[0;36m${bold}checking for sunbird prerequisites...${normal}"
+echo -e "\e[0;32msuccess \e[0;31mfatal \e[0;33mwarning"
 
 if [ -z $ssh_key ];then
 # Refreshing ssh-agent
@@ -36,7 +37,7 @@ source $config_dir/generate_host.sh &> /dev/null
 
 result() {
     if [[ $1 -ne 0 ]];then
-         echo -e "\e[0;31m${bold} INCOMPATIBLE${normal}"
+         echo -e "\e[0;33m${bold} INCOMPATIBLE${normal}"
          fail=1
     else
          echo -e "\e[0;32m${bold} OK${normal}"
@@ -62,8 +63,20 @@ check_compatibility() {
     local version=$3
     local service_name=$4
     case $1 in
-        version) if [[ "$service_version" == *"$version"* ]];then result $?; touch ".sunbird/ignore/${service_name}" ; else result $?; fi ;;
-        ram) if [[ $service_version -ge $version ]];then result $? ; else result $?; fi ;;
+        version)
+            if [[ "$service_version" == *"$version"* ]];then
+                echo -e "\e[0;32m${bold} OK ${normal}"
+                touch ".sunbird/ignore/${service_name}"
+            else
+                echo -e "\e[0;31m${bold} INCOMPATIBLE${normal}"
+            fi
+            ;;
+        ram)
+            if [[ $service_version -ge $version ]];then
+                echo -e "\e[0;32m${bold} OK ${normal}"
+            else 
+                echo -e "\e[0;33m${bold} NOT ENOUGH ${normal}"
+            fi ;;
     esac
 }
 
