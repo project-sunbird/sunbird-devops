@@ -28,7 +28,7 @@ if [ ! -d logs ];then mkdir logs &> /dev/null;fi
 # Generating configs
 config() { 
     sudo ./install-deps.sh
-  #  time ./generate-config.sh $implimentation_name $env_name core; 
+    time ./generate-config.sh $implimentation_name $env_name core; 
     # Creating inventory
     sed -i s#\"{{database_host}}\"#$db_host#g $ansible_variable_path/hosts
     sed -i s#\"{{application_host}}\"#$app_host#g $ansible_variable_path/hosts
