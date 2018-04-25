@@ -35,15 +35,6 @@ rm -rf .sunbird/ignore/*
 # Sourcing the variables
 source $config_dir/generate_host.sh &> /dev/null
 
-result() {
-    if [[ $1 -ne 0 ]];then
-         echo -e "\e[0;33m${bold} INCOMPATIBLE${normal}"
-         fail=1
-    else
-         echo -e "\e[0;32m${bold} OK${normal}"
-    fi
-}
-
 nssh() {
     ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking false" -o "LogLevel ERROR" $@
 }
@@ -76,7 +67,8 @@ check_compatibility() {
                 echo -e "\e[0;32m${bold} OK ${normal}"
             else 
                 echo -e "\e[0;33m${bold} NOT ENOUGH ${normal}"
-            fi ;;
+            fi
+            ;;
     esac
 }
 
