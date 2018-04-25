@@ -24,6 +24,9 @@ if [ -z $ssh_key ];then
 # Refreshing ssh-agent
 eval $(ssh-agent) &> /dev/null
 
+if [ -d .sunbird/ignore ]; then mkdir -p .sunbird/ignore; fi
+rm -rf .sunbird/ignore/*
+
 # Adding key to ssh-agent
 ssh-add $ssh_key &> /dev/null
 fi
@@ -55,10 +58,12 @@ ram() {
 }
 
 check_compatibility() {
+    local service_version=$2
+    local version=$3
     local service_name=$4
     case $1 in
-        version) if [[ "$2" == *"$3"* ]];then result $?; touch .sunbird/ignore/.${service_name} ; else result $?; fi ;;
-        ram) if [[ $2 -ge $3 ]];then result $? ; else result $?; fi ;;
+        version) if [[ "$service_version" == *"$version"* ]];then result $?; touch ".sunbird/ignore/${service_name}" ; else result $?; fi ;;
+        ram) if [[ $service_version -ge $version ]];then result $? ; else result $?; fi ;;
     esac
 }
 
@@ -111,11 +116,11 @@ check_docker() {
         ssh_connection $ip
         local version=$(nssh $ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
         echo -ne "\e[0;35m Docker Version: \e[0;32m $version"
-        check_compatibility version "$version" "$docker_version"
+        check_compatibility version "$version" "$docker_version" docker
         local ram_=$(($(ram $ip)+1))
         echo -ne "\e[0;35m Docker $2 RAM: \e[0;32m${ram_}G "
         local docker_ram=$docker_$2_ram
-        check_compatibility ram $ram_ "$docker_ram" docker
+        check_compatibility ram $ram_ "$docker_ram" 
     done
 }
 
