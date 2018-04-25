@@ -14,6 +14,9 @@ swarm_manager_ips="{{swarm_manager_host if swarm_manager_host else application_h
 swarm_node_ips="{{swarm_node_host if swarm_node_host else application_host}}"
 keycloak_ips="{{keycloak_host if keycloak_host else application_host}}"
 log_es_ips="{{log_es_host if log_es_host else application_host}}"
+swarm_agent_for_prometheus_ips="{{prometheus_host if prometheus_host else application_host}}"
+swarm_agent_for_grafana_ips="{{grafana_host if grafana_host else application_host}}"
+swarm_agent_for_alertmanager_ips="{{alertmanager_host if alertmanager_host else application_host}}"
 
 # Creating an array from comma seperated ips
 ips(){
@@ -78,6 +81,9 @@ get_host_entries swarm-manager $swarm_manager_ips
 get_host_entries swarm-nodes $swarm_node_ips
 get_host_entries keycloak $keycloak_ips
 get_host_entries log-es $log_es_ips
+get_host_entries swarm_agent_for_prometheus $swarm_agent_for_prometheus_ips
+get_host_entries swarm_agent_for_grafana $swarm_agent_for_prometheus_ips
+get_host_entries swarm_agent_for_alertmanager $swarm_agent_for_prometheus_ips
 
 # Static Groups
 
@@ -97,6 +103,13 @@ kong-api
 keycloak
 log-es
 
+[swarm-nodes:children]
+swarm-manager
+swarm-bootstrap-manager
+swarm-agent-for-prometheus
+swarm-agent-for-grafana
+swarm-agent-for-alertmanager
+
 [node-exporter:children]
 non-swarm-nodes
 swarm-manager
@@ -105,8 +118,9 @@ swarm-manager
 non-swarm-nodes
 swarm-manager
 
-["{{env}}":children]
+[{{env}}:children]
 non-swarm-nodes
 swarm-nodes
 swarm-manager
 "
+
