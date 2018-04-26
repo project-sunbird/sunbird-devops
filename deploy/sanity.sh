@@ -22,7 +22,7 @@ db_ram=2
 echo -e "\n\e[0;36m${bold}checking for sunbird prerequisites...${normal}"
 echo -e "\e[0;32msuccess \e[0;31mfatal \e[0;33mwarning"
 
-if [ -z $ssh_key ];then
+if [ ! -z $ssh_key ];then
     # Refreshing ssh-agent
     eval $(ssh-agent) &> /dev/null
     # Adding key to ssh-agent
