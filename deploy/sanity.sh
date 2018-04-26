@@ -112,7 +112,7 @@ check_cassandra() {
         if [ $(nc -z $ip 9042; echo $? ) ];then
             local version=$(nssh $ip "cqlsh localhost 9042 -e 'select release_version from system.local;'" | tail -3 | head -n1)
             echo -ne "\e[0;35m Cassandra Version: \e[0;32m$version "
-            check_compatibility version "$version" "$cassandra_version" es
+            check_compatibility version "$version" "$cassandra_version" cassandra
         else 
             echo -e "\e[0;35m Cassandra Version: \e[0;32m${bold}Not Installed${normal} "
         fi
@@ -128,7 +128,7 @@ check_postgres() {
         if [ $(nc -z $ip 5432; echo $? ) ];then
             local version=$(nssh $ip pg_config --version)
             echo -ne "\e[0;35m Postgres Version: \e[0;32m$version "
-            check_compatibility version "$version" "$postgres_version" es
+            check_compatibility version "$version" "$postgres_version" postgres
         else 
             echo -e "\e[0;35m Postgres Version: \e[0;32m${bold}Not Installed${normal} "
         fi
@@ -144,7 +144,7 @@ check_docker() {
         if [ $(nssh $ip which docker) ];then
             local version=$(nssh $ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
             echo -ne "\e[0;35m Docker Version: \e[0;32m$version "
-            check_compatibility version "$version" "$docker_version" es
+            check_compatibility version "$version" "$docker_version" docker
         else 
             local version=$(nssh $ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
             echo $version
