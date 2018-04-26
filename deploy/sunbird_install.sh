@@ -33,9 +33,13 @@ ansible_variable_path=$implimentation_name-devops/ansible/inventories/$env_name
 
 #TO skip the host key verification
 export ANSIBLE_HOST_KEY_CHECKING=False
+#Enable force color
+export ANSIBLE_FORCE_COLOR=true
 
 # Creating logging directory
 if [ ! -d logs ];then mkdir logs &> /dev/null;fi
+# Creating temporary directory
+if [ ! -d .sunbird/ignore ];then mkdir -p .sunbird/ignore &> /dev/null;fi
 
 # Generating configs
 config() { 
@@ -46,11 +50,17 @@ config() {
     sed -i s#\"{{application_host}}\"#$app_host#g $ansible_variable_path/hosts
     sed -i s#\"{{ansible_private_key_path}}\"#$ansible_private_key_path#g $ansible_variable_path/hosts
     ansible-playbook -i "localhost," -c local ../ansible/generate-hosts.yml --extra-vars @config --extra-vars "host_path=$ansible_variable_path"
-    $ansible_variable_path/generate_host.sh  > $ansible_variable_path/hosts 2>&1
+    .sunbird/generate_host.sh  > $ansible_variable_path/hosts 2>&1 /dev/null
+}
+
+# Sanity check
+
+sanity() {
+    ./sanity.sh $ansible_private_key_path
 }
 
 # Installing dependencies
-deps() { sudo ./install-deps.sh; 
+deps() { 
 ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config 
 ansible-playbook -i $ansible_variable_path/hosts ../ansible/setup-dockerswarm.yml --extra-vars @config 
 }
@@ -93,11 +103,20 @@ while getopts "s:h" o;do
             echo "help.."
             case "${s}" in
                 config)
-                    echo -e "\n$(date)\n">>logs/config.log; config 2>&1 | tee -a logs/config.log
+                    echo -e "\n$(date)\n">>logs/config.log;
+                    config 2>&1 | tee -a logs/config.log
+                    exit 0
+                    ;;
+                sanity)
+                    echo -e "\n$(date)\n">>logs/sanity.log;
+                    config 2>&1 | tee -a logs/sanity.log
+                    sanity 2>&1 | tee -a logs/sanity.log
                     exit 0
                     ;;
                 deps)
-                    echo -e "\n$(date)\n">>logs/deps.log; deps 2>&1 | tee -a logs/config.log
+                    echo -e "\n$(date)\n">>logs/deps.log;
+                    sudo ./install-deps.sh 2>&1 | tee -a logs/deps.log
+                    deps 2>&1 | tee -a logs/deps.log
                     exit 0
                     ;;
                 dbs)
@@ -149,6 +168,8 @@ done
 
 ## Installing and configuring prerequisites
 echo -e \n$(date)\n >> logs/config.log; config 2>&1 | tee -a logs/config.log
+## checking for prerequisites
+echo -e \n$(date)\n >> logs/sanity.log; sanity 2>&1 | tee -a logs/sanity.log
 echo -e \n$(date)\n >> logs/deps.log; deps 2>&1 | tee -a logs/deps.log
 
 ## Installing services and dbs
