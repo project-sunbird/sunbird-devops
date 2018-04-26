@@ -6,7 +6,6 @@
 - name: Save configurations into an env file
   template: src=settings_local.py dest=/home/deployer/config/settings_local.py mode=0644
 
-
 - name: Remove old settings_local.py docker config
   shell: "docker config rm settings_local.py"
   ignore_errors: yes
@@ -21,3 +20,54 @@
   shell: "docker service create --replicas {{ badger_replicas }} -p 8004:8004 --name badger-service --hostname badger-service --reserve-memory {{ badger_reservation_memory }} --limit-memory {{ badger_limit_memory }}  --network application_default --config source=settings_local.py,target=/badger/code/apps/mainsite/settings_local.py,mode=0644 {{hub_org}}/{{image_name}}:{{image_tag}}" 
   args:
     chdir: /home/deployer/stack
+
+- name: Waiting docker to create the service
+  pause:
+    seconds: 10
+
+- name: Checking for the badger containter node ip
+  shell: "docker service ps badger-service| grep Running | head -n1 | awk '{print $4}'"
+  register: server
+
+- name: Waiting for the container to be in start state
+  shell: "docker inspect -f '{{'{{'}}.State.Running{{'}}'}}' $(docker ps | grep badger| head -n1 | awk '{print $1}')"
+  register: container
+  until: container.rc == 0
+  retries: 20
+  delay: 10
+  delegate_to: "{{server.stdout}}"
+
+- name: Pausing for conainer to be fully functional
+  pause:
+    minutes: 1
+  
+- name: Copying user creation script to remote machine
+  template:
+    src: files/user.sh
+    dest: /tmp/user.sh
+    mode: 0755
+  delegate_to: "{{server.stdout}}"
+
+- name: Copying user creation script to docker
+  shell: docker cp /tmp/user.sh $(docker ps | grep badger | awk '{print $1}' | head -n1):/tmp/user.sh 
+  delegate_to: "{{server.stdout}}"
+
+- name: Creating superuser
+  shell: "docker exec $(docker ps | grep badger | awk '{print $1}' | head -n1) /tmp/user.sh"
+  delegate_to: "{{server.stdout}}"
+
+- name: Cleaning up secrets
+  shell: docker exec $(docker ps | grep badger | awk '{print $1}' | head -n1) rm /tmp/user.sh 
+  delegate_to: "{{server.stdout}}"
+
+- name: Getting auth token
+  shell: curl -X POST 'http://localhost:8004/api-auth/token' -d "username="{{badger_admin_user}}"&password={{badger_admin_password}}"
+  register: curl
+  delegate_to: "{{server.stdout}}"
+
+- name: Copy the script
+  connection: local
+  copy: content="{{curl.stdout}}" dest="/home/{{ansible_ssh_user}}/badger_token.txt"
+
+- debug:
+    var: curl.stdout

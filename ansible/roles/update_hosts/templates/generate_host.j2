@@ -14,6 +14,9 @@ swarm_manager_ips="{{swarm_manager_host if swarm_manager_host else application_h
 swarm_node_ips="{{swarm_node_host if swarm_node_host else application_host}}"
 keycloak_ips="{{keycloak_host if keycloak_host else application_host}}"
 log_es_ips="{{log_es_host if log_es_host else application_host}}"
+swarm_agent_for_prometheus_ips="{{prometheus_host if prometheus_host else application_host}}"
+swarm_agent_for_grafana_ips="{{grafana_host if grafana_host else application_host}}"
+swarm_agent_for_alertmanager_ips="{{alertmanager_host if alertmanager_host else application_host}}"
 
 # Creating an array from comma seperated ips
 ips(){
@@ -24,8 +27,12 @@ ips(){
 service_vars(){
     case $1 in
         es)
-            echo -n es_instance_name="es-$count" es_etc_node_master=true es_etc_node_data=true
+            echo -n es_instance_name="es-$count" es_etc_node_master=true es_etc_node_data=true 
             group_name=es
+            ;;
+	log-es)
+            echo -n es_instance_name="es-$count" es_etc_node_master=true es_etc_node_data=true node_name=dev-log-es-$count
+            group_name=log-es
             ;;
         swarm-manager|swarm-nodes)
             echo -n "swarm_master=true"
@@ -73,11 +80,14 @@ get_host_entries()
 get_host_entries es $elasticsearch_ips
 get_host_entries cassandra $cassandra_ips
 get_host_entries postgresql-master $postgres_master_ips
-get_host_entries postgresql-slaves $postgres_slave_ips
+get_host_entries postgresql-slave $postgres_slave_ips
 get_host_entries swarm-manager $swarm_manager_ips
 get_host_entries swarm-nodes $swarm_node_ips
 get_host_entries keycloak $keycloak_ips
 get_host_entries log-es $log_es_ips
+get_host_entries swarm-agent-for-prometheus $swarm_agent_for_prometheus_ips
+get_host_entries swarm-agent-for-grafana $swarm_agent_for_prometheus_ips
+get_host_entries swarm-agent-for-alertmanager $swarm_agent_for_prometheus_ips
 
 # Static Groups
 
@@ -90,12 +100,19 @@ swarm-manager
 
 [non-swarm-nodes:children]
 postgresql-master
-postgresql-slaves
+postgresql-slave
 es
 cassandra
 kong-api
 keycloak
 log-es
+
+[swarm-nodes:children]
+swarm-manager
+swarm-bootstrap-manager
+swarm-agent-for-prometheus
+swarm-agent-for-grafana
+swarm-agent-for-alertmanager
 
 [node-exporter:children]
 non-swarm-nodes
@@ -105,8 +122,9 @@ swarm-manager
 non-swarm-nodes
 swarm-manager
 
-["{{env}}":children]
+[{{env}}:children]
 non-swarm-nodes
 swarm-nodes
 swarm-manager
 "
+
