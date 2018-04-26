@@ -23,10 +23,10 @@ echo -e "\n\e[0;36m${bold}checking for sunbird prerequisites...${normal}"
 echo -e "\e[0;32msuccess \e[0;31mfatal \e[0;33mwarning"
 
 if [ -z $ssh_key ];then
-# Refreshing ssh-agent
-eval $(ssh-agent) &> /dev/null
-# Adding key to ssh-agent
-ssh-add $ssh_key &> /dev/null
+    # Refreshing ssh-agent
+    eval $(ssh-agent) &> /dev/null
+    # Adding key to ssh-agent
+    ssh-add $ssh_key &> /dev/null
 fi
 
 if [ -d .sunbird/ignore ]; then mkdir -p .sunbird/ignore; fi
@@ -37,6 +37,16 @@ source $config_dir/generate_host.sh &> /dev/null
 
 nssh() {
     ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking false" -o "LogLevel ERROR" $@
+    return $?
+}
+
+result() {
+    if [[ $1 -ne 0 ]];then
+         echo -e "\e[0;31m${bold} FAILED${normal}"
+         fail=1
+    else
+         echo -e "\e[0;32m${bold} OK${normal}"
+    fi
 }
 
 ssh_connection() {
@@ -79,7 +89,7 @@ check_es() {
     for ip in ${arr[@]}; do
         ssh_connection $ip
         # Checking for elastic search version
-        if [ $(nc -z $ip 9200 &> /dev/null) ];then
+        if [ $(nssh $ip nc -z localhost 9200; echo $?) ];then
             local version=$(nssh $ip curl -sS $ip:9200 | grep number| awk '{print $3}')
             echo -ne "\e[0;35m Elastic search Version: \e[0;32m$version "
             check_compatibility version "$version" "$es_version" es
@@ -99,10 +109,10 @@ check_cassandra() {
     for ip in ${arr[@]}; do
         ssh_connection $ip
         # Checking for cassandra version
-        if [ $(nc -z $ip 9042 &> /dev/null) ];then
+        if [ $(nc -z $ip 9042; echo $? ) ];then
             local version=$(nssh $ip "cqlsh localhost 9042 -e 'select release_version from system.local;'" | tail -3 | head -n1)
             echo -ne "\e[0;35m Cassandra Version: \e[0;32m$version "
-            check_compatibility version "$version" "$es_version" es
+            check_compatibility version "$version" "$cassandra_version" es
         else 
             echo -e "\e[0;35m Cassandra Version: \e[0;32m${bold}Not Installed${normal} "
         fi
@@ -115,10 +125,10 @@ check_postgres() {
     for ip in ${arr[@]}; do
         ssh_connection $ip
         # Checking for Postgres Version
-        if [ $(nc -z $ip 5432 &> /dev/null) ];then
+        if [ $(nc -z $ip 5432; echo $? ) ];then
             local version=$(nssh $ip pg_config --version)
             echo -ne "\e[0;35m Postgres Version: \e[0;32m$version "
-            check_compatibility version "$version" "$es_version" es
+            check_compatibility version "$version" "$postgres_version" es
         else 
             echo -e "\e[0;35m Postgres Version: \e[0;32m${bold}Not Installed${normal} "
         fi
@@ -131,17 +141,19 @@ check_docker() {
     ips $1
     for ip in ${arr[@]}; do
         ssh_connection $ip
-        if [ $(which docker &> /dev/null) ];then
+        if [ $(nssh $ip which docker) ];then
             local version=$(nssh $ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
             echo -ne "\e[0;35m Docker Version: \e[0;32m$version "
-            check_compatibility version "$version" "$es_version" es
+            check_compatibility version "$version" "$docker_version" es
         else 
+            local version=$(nssh $ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
+            echo $version
             echo -e "\e[0;35m Docker Version: \e[0;32m${bold}Not Installed${normal} "
         fi
         local ram_=$(($(ram $ip)+1))
         echo -ne "\e[0;35m Docker $2 RAM: \e[0;32m${ram_}G "
-        local docker_ram=$docker_$2_ram
-        check_compatibility ram $ram_ "$docker_ram" 
+        local docker_ram=docker_${2}_ram
+        check_compatibility ram $ram_ $docker_ram 
     done
 }
 
