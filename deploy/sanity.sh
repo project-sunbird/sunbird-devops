@@ -142,7 +142,7 @@ check_docker() {
     ips $1
     for ip in ${arr[@]}; do
         ssh_connection $ip
-        if [ $(nssh $ip which docker ; echo $?) -eq 0 ];then
+        if [ $(nssh $ip which docker &> /dev/null; echo $?) -eq 0 ];then
             local version=$(nssh $ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
             echo -ne "\e[0;35m Docker Version: \e[0;32m$version "
             check_compatibility version "$version" "$docker_version" docker
