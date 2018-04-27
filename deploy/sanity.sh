@@ -70,6 +70,7 @@ check_compatibility() {
                 touch ".sunbird/ignore/${service_name}"
             else
                 echo -e "\e[0;31m${bold} INCOMPATIBLE${normal}"
+                fail=1
             fi
             ;;
         ram)
@@ -89,7 +90,7 @@ check_es() {
     for ip in ${arr[@]}; do
         ssh_connection $ip
         # Checking for elastic search version
-        if [ $(nssh $ip nc -z localhost 9200; echo $?) ];then
+        if [ $(nssh $ip nc -z localhost 9200; echo $?) -eq 0 ];then
             local version=$(nssh $ip curl -sS $ip:9200 | grep number| awk '{print $3}')
             echo -ne "\e[0;35m Elastic search Version: \e[0;32m$version "
             check_compatibility version "$version" "$es_version" es
@@ -109,7 +110,7 @@ check_cassandra() {
     for ip in ${arr[@]}; do
         ssh_connection $ip
         # Checking for cassandra version
-        if [ $(nc -z $ip 9042; echo $? ) ];then
+        if [ $(nc -z $ip 9042; echo $? ) -eq 0 ];then
             local version=$(nssh $ip "cqlsh localhost 9042 -e 'select release_version from system.local;'" | tail -3 | head -n1)
             echo -ne "\e[0;35m Cassandra Version: \e[0;32m$version "
             check_compatibility version "$version" "$cassandra_version" cassandra
@@ -125,7 +126,7 @@ check_postgres() {
     for ip in ${arr[@]}; do
         ssh_connection $ip
         # Checking for Postgres Version
-        if [ $(nc -z $ip 5432; echo $? ) ];then
+        if [ $(nc -z $ip 5432; echo $? ) -eq 0 ];then
             local version=$(nssh $ip pg_config --version)
             echo -ne "\e[0;35m Postgres Version: \e[0;32m$version "
             check_compatibility version "$version" "$postgres_version" postgres
@@ -141,13 +142,11 @@ check_docker() {
     ips $1
     for ip in ${arr[@]}; do
         ssh_connection $ip
-        if [ $(nssh $ip which docker) ];then
+        if [ $(nssh $ip which docker ; echo $?) -eq 0 ];then
             local version=$(nssh $ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
             echo -ne "\e[0;35m Docker Version: \e[0;32m$version "
             check_compatibility version "$version" "$docker_version" docker
         else 
-            local version=$(nssh $ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
-            echo $version
             echo -e "\e[0;35m Docker Version: \e[0;32m${bold}Not Installed${normal} "
         fi
         local ram_=$(($(ram $ip)+1))
