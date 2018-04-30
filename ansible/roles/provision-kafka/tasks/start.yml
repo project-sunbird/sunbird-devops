@@ -1,0 +1,12 @@
+---
+- name: wait for zookeeper port
+  wait_for: host={{zookeeper_listen_address| default('localhost')}} port={{zookeeper_port}} state=started timeout=30
+  when: verify
+
+- name: Enable and Start Kafka
+  service: name=kafka state=started enabled=yes
+  become: yes
+
+- name: wait for kafka port
+  wait_for: host={{kafka_listen_address| default('localhost')}} port={{kafka_port}} state=started timeout=30
+  when: verify
