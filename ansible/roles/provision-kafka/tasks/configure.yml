@@ -32,6 +32,7 @@
 
 - name: create upstart config
   template: dest={{kafka_upstart_conf}} owner=root group=root mode=644 src=kafka.conf.j2
+
   notify:
     - restart kafka
   when: not use_systemd
@@ -40,6 +41,13 @@
   template: dest={{kafka_systemd_service}} owner=root group=root mode=644 src=kafka.service.j2
   notify:
     - restart kafka
+  when: use_systemd
+
+
+- name: create systemd config
+  template: dest={{zookeeper_systemd_service}} owner=root group=root mode=644 src=zookeper.service.j2
+  notify:
+    - restart zookeeper
   when: use_systemd
 
 - command: systemctl daemon-reload
@@ -68,6 +76,11 @@
   template: dest="{{kafka_conf_dir}}/server.properties" owner={{kafka_user}} group={{kafka_group}} mode=640 src=server.properties.j2
   notify:
     - restart kafka
+
+- name: create zookeper.properties
+  template: dest="{{kafka_conf_dir}}/zookeeper.properties" owner={{kafka_user}} group={{kafka_group}} mode=640 src=zookeeper.properties.j2
+  notify:
+    - restart zookeper
 
 - meta: flush_handlers
 
