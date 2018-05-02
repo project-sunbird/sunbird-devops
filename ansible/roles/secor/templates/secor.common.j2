@@ -18,17 +18,19 @@
 ############
 
 # Regular expression matching names of consumed topics.
-secor.kafka.topic_filter={{ topic }}
+secor.kafka.topic_filter={{env}}.sunbird.telemetry.raw
 secor.kafka.topic_blacklist=
 
 # Choose what to fill according to the service you are using
 # in the choice option you can fill S3, GS, Swift or Azure
-cloud.service=S3
+cloud.service=Azure
 
 # AWS authentication credentials.
 # Leave empty if using IAM role-based authentication with s3a filesystem.
 aws.access.key=
 aws.secret.key=
+# Session token only required if using temporary S3 access keys
+aws.session.token=
 aws.role=
 
 # Optional Proxy Setting. Set to true to enable proxy
@@ -171,6 +173,10 @@ kafka.seed.broker.port=9092
 # to as the chroot.
 kafka.zookeeper.path=/
 
+#URL of a Confluent Schema Registry: https://docs.confluent.io/current/schema-registry/docs/index.html
+#Only acquired used for decoding Avro messages
+schema.registry.url=
+
 # Store offset in zookeeper and kafka consumer topic.
 # Only used if kafka.offsets.storage is set to "kafka"
 # http://kafka.apache.org/documentation.html#oldconsumerconfigs
@@ -306,7 +312,7 @@ secor.thrift.message.class.*=
 statsd.prefixWithConsumerGroup=true
 
 # Name of field that contains timestamp for JSON, MessagePack, or Thrift message parser. (1405970352123)
-message.timestamp.name={{ timestamp_key }}
+message.timestamp.name=ets
 
 # Separator for defining message.timestamp.name in a nested structure. E.g.
 # {"meta_data": {"created": "1405911096123", "last_modified": "1405912096123"}, "data": "test"}
@@ -341,7 +347,6 @@ secor.compression.codec=org.apache.hadoop.io.compress.GzipCodec
 secor.file.extension=.gz
 
 # The secor file reader/writer used to read/write the data, by default we write sequence files
-#secor.file.reader.writer.factory=com.pinterest.secor.io.impl.SequenceFileReaderWriterFactory
 secor.file.reader.writer.factory=com.pinterest.secor.io.impl.DelimitedTextFileReaderWriterFactory
 #if left blank defaults to \n
 secor.file.reader.Delimiter=\n
@@ -356,12 +361,12 @@ secor.max.message.size.bytes=100000
 
 # Class that will manage uploads. Default is to use the hadoop
 # interface to S3.
-secor.upload.manager.class=com.pinterest.secor.uploader.S3UploadManager
+secor.upload.manager.class=com.pinterest.secor.uploader.AzureUploadManager
 
 #Set below property to your timezone, and partitions in s3 will be created as per timezone provided
 secor.parser.timezone=UTC
 
-# Transformer class that transform message accordingly.
+# Transformer class that transform and filters message accordingly.
 secor.message.transformer.class=com.pinterest.secor.transformer.IdentityMessageTransformer
 
 # Set below property to true if you want to have the md5hash appended to your s3 path.
@@ -387,7 +392,9 @@ secor.kafka.upload_at_minute_mark.topic_filter=
 secor.upload.minute_mark=0
 
 # File age per topic and per partition is checked against secor.max.file.age.seconds by looking at
-# the youngest file when true or at the oldest file when false.
+# the youngest file when true or at the oldest file when false. Setting it to true ensures that files
+# are uploaded when data stops comming and sized based policy cannot trigger. Setting it to false
+# ensures that files older than secor.max.file.age.seconds are uploaded immediately.
 secor.file.age.youngest=true
 
 # Class that manages metric collection.
@@ -416,3 +423,4 @@ parquet.validation=false
 secor.orc.message.schema.*=struct<a:int\,b:int\,c:struct<d:int\,e:string>\,f:array<string>\,g:int>
 # Below config used for defining ORC schema provider class name. User can use the custom implementation for orc schema provider
 secor.orc.schema.provider=com.pinterest.secor.util.orc.schema.DefaultORCSchemaProvider
+
