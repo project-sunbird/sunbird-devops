@@ -1,0 +1,74 @@
+- name: create paths
+  become: yes
+  file:  path={{item}} state=directory
+  with_items: 
+             - "{{ secor.paths }}"
+
+- name: Create secor service
+  become: yes
+  become_user: "{{ user }}"
+  vars:
+    description: Secor service
+    script_dir: "{{ sbin_path }}"
+  template: src=secor-service.j2 dest={{ sbin_path }}/secor mode=755 owner={{ user }} group={{ group }}
+
+## Secor Deployment ##
+- name: Copy secor libraries
+  become: yes
+  become_user: "{{ user }}"
+  copy: src=../../target/secor-0.24-SNAPSHOT-bin.tar.gz dest={{ user_home }} owner={{ user }} group={{ group }}
+
+
+- name: Create service directory on EBS volume
+  become: yes
+  file: path=/mnt/{{ service_name }}/logs owner={{ user }} group={{ group }} state=directory
+
+- name: Cleanup secor lib directory
+  become: yes
+  file: path=/mnt/{{ service_name }}/lib owner={{ user }} group={{ group }} state=absent
+
+- name: Unarchive secor libraries
+  become: yes
+  unarchive: src={{ user_home }}/secor-0.24-SNAPSHOT-bin.tar.gz dest=/mnt/{{ service_name }} copy=no owner={{ user }} group={{ group }}
+
+- name: Delete secor libraries
+  become: yes
+  become_user: "{{ user }}"
+  file: path={{ user_home }}/secor-0.24-SNAPSHOT-bin.tar.gz state=absent
+
+- name: Copy secor properties
+  become: yes
+  become_user: "{{ user }}"
+  template: src={{ item }}.j2 dest=/mnt/{{ service_name }}/{{ item }}.properties mode=755 owner={{ user }} group={{ group }}
+  with_items: "{{ secor.properties }}"
+
+
+## Secor Service ##
+- name: Status of the secor service
+  become: yes
+  become_user: "{{ user }}"
+  command: "{{ sbin_path }}/secor {{ service_name }} status"
+  register: secor_status
+
+
+- name: Stop the secor service
+  become: yes
+  become_user: "{{ user }}"
+  command: "{{ sbin_path }}/secor {{ service_name }} stop"
+  when: "secor_status.stdout.find('RUNNING') != -1"
+  async: 10
+  poll: 5
+
+
+- name: Delete the pid file
+  become: yes
+  become_user: "{{ user }}"
+  file: path={{ sbin_path }}/{{ service_name }}.pid state=absent
+
+- name: Start the secor service
+  become: yes
+  become_user: "{{ user }}"
+  command: "{{ sbin_path }}/secor {{ service_name }} start"
+  async: 20
+  poll: 5
+

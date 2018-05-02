@@ -1,0 +1,37 @@
+---
+- name: Update apt cache
+  apt: update_cache=yes cache_valid_time={{apt_cache_timeout}}
+
+- name: Apt install required system packages.
+  apt: pkg={{item}} state=installed
+  with_items:
+    - zookeeper
+    - zookeeperd
+
+- name: Overwrite myid file.
+  template: src=myid.j2 dest=/etc/zookeeper/conf/myid
+  notify:
+    - Restart zookeeper
+
+- name: Overwrite log4j file.
+  template: src=log4j.properties.j2 dest=/etc/zookeeper/conf/log4j.properties
+  notify:
+    - Restart zookeeper
+
+- name: Overwrite env file.
+  template: src=environment.j2 dest=/etc/zookeeper/conf/environment
+  notify:
+    - Restart zookeeper
+
+- name: Overwrite default config file
+  template: src=zoo.cfg.j2 dest=/etc/zookeeper/conf/zoo.cfg
+  notify:
+    - Restart zookeeper
+
+- name: Start zookeeper service
+  service: name=zookeeper state=started enabled=yes
+
+- name: wait for zookeeper port
+  wait_for: host={{zookeeper_listen_address| default('localhost')}} port={{zookeeper_port}} state=started timeout=30
+  when: verify
+
