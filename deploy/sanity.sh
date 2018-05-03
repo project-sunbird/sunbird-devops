@@ -90,7 +90,7 @@ check_es() {
     for ip in ${arr[@]}; do
         ssh_connection $ip
         # Checking for elastic search version
-        if [ $(nssh $ip nc -z localhost 9200; echo $?) -eq 0 ];then
+        if [ $(nc -z $ip 9200; echo $?) -eq 0 ];then
             local version=$(nssh $ip curl -sS $ip:9200 | grep number| awk '{print $3}')
             echo -ne "\e[0;35m Elastic search Version: \e[0;32m$version "
             check_compatibility version "$version" "$es_version" es
