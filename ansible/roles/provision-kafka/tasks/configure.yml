@@ -43,18 +43,6 @@
   when: use_systemd
 
 
-- name: create zookeper.properties
-  template: dest="{{kafka_conf_dir}}/zookeeper.properties" owner={{kafka_user}} group={{kafka_group}} mode=640 src=zookeeper.properties.j2
-
-- name: create systemd config
-  template: dest={{zookeeper_systemd_service}} owner=root group=root mode=644 src=zookeeper.service.j2
-  notify:
-    - restart zookeeper
-  when: use_systemd
-
-- command: systemctl daemon-reload
-  when: use_systemd
-
 - name: Create data_dir
   file: path={{kafka_data_dir}} state=directory owner={{kafka_user}} group={{kafka_group}} mode=755
 
@@ -72,6 +60,19 @@
   template: dest="{{kafka_conf_dir}}/log4j.properties" owner={{kafka_user}} group={{kafka_group}} mode=644 src=log4j.properties.j2
   notify:
     - restart kafka
+
+- name: create zookeper.properties
+  template: dest="{{kafka_conf_dir}}/zookeeper.properties" owner={{kafka_user}} group={{kafka_group}} mode=640 src=zookeeper.properties.j2
+
+- name: create systemd config
+  template: dest={{zookeeper_systemd_service}} owner=root group=root mode=644 src=zookeeper.service.j2
+  notify:
+    - restart zookeeper
+  when: use_systemd
+
+- command: systemctl daemon-reload
+  when: use_systemd
+
 
 # Setup server.properties
 - name: create server.properties
