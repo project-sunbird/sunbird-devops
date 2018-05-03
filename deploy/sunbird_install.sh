@@ -22,14 +22,14 @@ if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
     exit 1
 fi
 
-# Reading environment and implimentation name
-implimentation_name=$(awk '/implementation_name: / {print $2}' config)
-env_name=$(awk '/env: / {print $2}' config)
-app_host=$(awk '/application_host: / {print $2}' config)
-db_host=$(awk '/database_host: / {print $2}' config)
-ssh_ansible_user=$(awk '/ssh_ansible_user: / {print $2}' config)
-ansible_private_key_path=$(awk '/ansible_private_key_path: / {print $2}' config)
-ansible_variable_path=$implimentation_name-devops/ansible/inventories/$env_name
+# Reading environment and implementation name
+implementation_name=$(awk '/implementation_name: /{ if ($2 !~ /#.*/) {print $2}}' config)
+env_name=$(awk '/env: /{ if ($2 !~ /#.*/) {print $2}}' config)
+app_host=$(awk '/application_host: /{ if ($2 !~ /#.*/) {print $2}}' config)
+db_host=$(awk '/database_host: /{ if ($2 !~ /#.*/) {print $2}}' config)
+ssh_ansible_user=$(awk '/ssh_ansible_user: /{ if ($2 !~ /#.*/) {print $2}}' config)
+ansible_private_key_path=$(awk '/ansible_private_key_path: /{ if ($2 !~ /#.*/) {print $2}}' config)
+ansible_variable_path="${implementation_name}"-devops/ansible/inventories/"$env_name"
 
 #TO skip the host key verification
 export ANSIBLE_HOST_KEY_CHECKING=False
@@ -44,7 +44,7 @@ if [ ! -d .sunbird/ignore ];then mkdir -p .sunbird/ignore &> /dev/null;fi
 # Generating configs
 config() { 
     sudo ./install-deps.sh
-    time ./generate-config.sh $implimentation_name $env_name core; 
+    time ./generate-config.sh $implementation_name $env_name core;
     # Creating inventory
     sed -i s#\"{{database_host}}\"#$db_host#g $ansible_variable_path/hosts
     sed -i s#\"{{application_host}}\"#$app_host#g $ansible_variable_path/hosts
