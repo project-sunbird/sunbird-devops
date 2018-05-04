@@ -57,7 +57,7 @@ ssh_connection() {
 }
 
 ram() {
-    nssh $1 free -g | awk '{print $2}' | head -n2 | tail -1
+    nssh $ssh_user@$1 free -g | awk '{print $2}' | head -n2 | tail -1
 }
 
 check_compatibility() {
