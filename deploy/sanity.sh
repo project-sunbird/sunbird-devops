@@ -3,9 +3,10 @@
 # Author Rajesh Rajendran <rajesh.r@optit.co>
 
 config_dir=.sunbird
-ssh_key=$1
 bold=$(tput bold)
 normal=$(tput sgr0)
+ssh_user=${1:-$(whoami)}
+ssh_key=$2
 
 # Application versions
 es_version=5.4
@@ -51,7 +52,7 @@ result() {
 
 ssh_connection() {
     echo -en "\e[0;35m SSH connection to $1 "
-    nssh -o ConnectTimeout=2 $1 exit 0 &> /dev/null
+    nssh -o ConnectTimeout=2 $ssh_user@$1 exit 0 &> /dev/null
     result $?
 }
 
@@ -91,7 +92,7 @@ check_es() {
         ssh_connection $ip
         # Checking for elastic search version
         if [ $(nc -z $ip 9200; echo $?) -eq 0 ];then
-            local version=$(nssh $ip curl -sS $ip:9200 | grep number| awk '{print $3}')
+            local version=$(nssh $ssh_user@$ip curl -sS $ip:9200 | grep number| awk '{print $3}')
             echo -ne "\e[0;35m Elastic search Version: \e[0;32m$version "
             check_compatibility version "$version" "$es_version" es
         else 
@@ -111,7 +112,7 @@ check_cassandra() {
         ssh_connection $ip
         # Checking for cassandra version
         if [ $(nc -z $ip 9042; echo $? ) -eq 0 ];then
-            local version=$(nssh $ip "cqlsh localhost 9042 -e 'select release_version from system.local;'" | tail -3 | head -n1)
+            local version=$(nssh $ssh_user@$ip "cqlsh localhost 9042 -e 'select release_version from system.local;'" | tail -3 | head -n1)
             echo -ne "\e[0;35m Cassandra Version: \e[0;32m$version "
             check_compatibility version "$version" "$cassandra_version" cassandra
         else 
@@ -127,7 +128,7 @@ check_postgres() {
         ssh_connection $ip
         # Checking for Postgres Version
         if [ $(nc -z $ip 5432; echo $? ) -eq 0 ];then
-            local version=$(nssh $ip pg_config --version)
+            local version=$(nssh $ssh_user@$ip pg_config --version)
             echo -ne "\e[0;35m Postgres Version: \e[0;32m$version "
             check_compatibility version "$version" "$postgres_version" postgres
         else 
@@ -142,8 +143,8 @@ check_docker() {
     ips $1
     for ip in ${arr[@]}; do
         ssh_connection $ip
-        if [ $(nssh $ip which docker &> /dev/null; echo $?) -eq 0 ];then
-            local version=$(nssh $ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
+        if [ $(nssh $ssh_user@$ip which docker &> /dev/null; echo $?) -eq 0 ];then
+            local version=$(nssh $ssh_user@$ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
             echo -ne "\e[0;35m Docker Version: \e[0;32m$version "
             check_compatibility version "$version" "$docker_version" docker
         else 

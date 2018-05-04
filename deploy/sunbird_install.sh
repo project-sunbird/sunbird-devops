@@ -56,7 +56,7 @@ config() {
 # Sanity check
 
 sanity() {
-    ./sanity.sh $ansible_private_key_path
+    ./sanity.sh $ssh_ansible_user $ansible_private_key_path
 }
 
 # Installing dependencies
