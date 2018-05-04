@@ -14,10 +14,10 @@ postgres_version=9.5
 cassandra_version=3.9
 java_version=1.8.0_162
 ubuntu_version=16.06
-docker_manager_ram=1
-docker_node_ram=8
-es_ram=2
-db_ram=2
+docker_manager_ram=2
+docker_node_ram=6
+es_ram=3
+db_ram=3
 
 echo -e "\n\e[0;36m${bold}checking for sunbird prerequisites...${normal}"
 echo -e "\e[0;32msuccess \e[0;31mfatal \e[0;33mwarning"
