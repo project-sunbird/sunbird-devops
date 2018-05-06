@@ -14,7 +14,7 @@
 
 set -eu -o pipefail
 
-usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|badger|core|logger|monitor} ]" ; exit 0; }
+usage() { echo "Usage: $0 [ -s {sanity|config|dbs|apis|proxy|keycloak|badger|core|logger|monitor} ]" ; exit 0; }
 
 # Checking for valid argument
 if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
