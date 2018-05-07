@@ -26,4 +26,4 @@ echo "version:        ${version}"
 echo "ANSIBLE_PATH:   $ANSIBLE_PATH"
 
 ansible-playbook --version
-ansible-playbook -i ansible/inventories/$ENV sunbird-devops/ansible/deploy-badger.yml  --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel} service_name=badger-service" --vault-password-file /run/secrets/vault-pass
+ansible-playbook -i ansible/inventories/$env sunbird-devops/ansible/deploy-badger.yml  --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel} service_name=badger-service" --vault-password-file /run/secrets/vault-pass -v
