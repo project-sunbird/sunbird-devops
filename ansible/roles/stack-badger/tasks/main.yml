@@ -1,22 +1,27 @@
 ---
 - name: Remove badger service
+  become: yes
   shell: "docker service rm badger-service"
   ignore_errors: yes
 
 - name: Save configurations into an env file
+  become: yes
   template: src=settings_local.py dest=/home/deployer/config/settings_local.py mode=0644
 
 - name: Remove old settings_local.py docker config
+  become: yes
   shell: "docker config rm settings_local.py"
   ignore_errors: yes
 
 - name: Save as docker config
+  become: yes
   shell: "docker config create settings_local.py /home/deployer/config/settings_local.py"
 
 - debug: 
     msg: "Image details= {{hub_org}}:{{image_name}}:{{image_tag}}"
 
 - name: Deploy badger service
+  become: yes
   shell: "docker service create --replicas {{ badger_replicas }} -p 8004:8004 --name badger-service --hostname badger-service --reserve-memory {{ badger_reservation_memory }} --limit-memory {{ badger_limit_memory }}  --network application_default --config source=settings_local.py,target=/badger/code/apps/mainsite/settings_local.py,mode=0644 {{hub_org}}/{{image_name}}:{{image_tag}}" 
   args:
     chdir: /home/deployer/stack
@@ -26,6 +31,7 @@
     seconds: 20
 
 - name: Checking for the badger containter node ip
+  become: yes
   shell: "getent hosts $(docker service ps badger-service| grep Running | head -n1 | awk '{print $4}') | awk '{print $1}'"
   register: server
 
@@ -38,5 +44,4 @@
   delegate_to: "{{server.stdout}}"
 
 - name: Copy admin auth token to desktop
-  become: "{{ansible_ssh_user}}"
   copy: content="{{curl.stdout}}" dest=~/badger_token.txt
