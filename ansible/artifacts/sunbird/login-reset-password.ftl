@@ -19,7 +19,7 @@
                         <div class="content signin-contentPadding">
                             <form id="kc-reset-password-form" class="ui form pre-signin" action="${url.loginAction}" method="post">
                             <div class="field">
-                                <label for="username"><#if !realm.loginWithEmailAllowed>${msg("username")}<#elseif !realm.registrationEmailAsUsername>${msg("usernameOrEmail")}<#else>${msg("email")}</#if></label>
+                                <label for="username"><#if !realm.loginWithEmailAllowed>${msg("username")}<#elseif !realm.registrationEmailAsUsername>${msg("usernameOrEmailOrPhone")}<#else>${msg("email")}</#if></label>
                                 <input type="text" id="username" name="username" placeholder="${msg("emailInstruction")}" autofocus/>
                             </div>
 
@@ -46,4 +46,3 @@
     <#elseif section = "info" >
     </#if>
 </@layout.registrationLayout>
-                              

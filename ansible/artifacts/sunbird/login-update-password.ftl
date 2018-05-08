@@ -31,7 +31,7 @@
                                 <input type="password" id="password-confirm" name="password-confirm" autocomplete="off" />
                             </div>
 
-                            <div class="ui grid margin-top2em">
+                            <div class="margin-top2em">
                                 <div id="kc-form-options" class="${properties.kcFormOptionsClass!}">
                                     <div class="${properties.kcFormOptionsWrapperClass!}">
                                     </div>

@@ -1,0 +1,36 @@
+#!groovy
+
+node('build-slave') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+       stage('Checkout'){
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+
+       stage('Pre-Build'){
+         sh('./sunbird-devops/ansible/installDeps.sh')
+         sh('git clone https://github.com/project-sunbird/open-saber.git sunbird-devops')
+       }
+
+       stage('Build'){
+        sh('cd sunbird-devops/open-saber/java')
+        sh('cp registry/src/main/resources/config-prod.properties.sample registry/src/main/resources/config-prod.properties ')
+        sh('cp registry/src/main/resources/application.properties.sample registry/src/main/resources//application.properties ')
+        sh('cp registry/src/main/resources/validations.shex.sample registry/src/main/resources//validations.shex ')
+        sh('cp registry/src/main/resources/schema-configuration.jsonld.sample registry/src/main/resources/schema--configuration.jsonld ')
+        sh('cp registry/src/main/resources/frame.json.sample registry/src/main/resources//frame.json ')
+
+        sh('mvn clean install')
+
+        sh('cd registry && mvn clean install')
+        sh('cd ../../../sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/dev  registry.yml --vault-password-file  /run/secrets/vault-pass ')
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
