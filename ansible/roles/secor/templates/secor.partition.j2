@@ -1,0 +1,65 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+include=secor.properties
+include=secor.azure.properties
+
+# Name of the Kafka consumer group.
+secor.kafka.group={{ consumer_group }}
+
+
+# Parser class that extracts s3 partitions from consumed messages.
+secor.message.parser.class={{ message_parser }}
+
+# S3 path where sequence files are stored.
+secor.s3.path={{ s3_base_path }}
+
+# Swift path where sequence files are stored.
+secor.swift.path=secor_dev/partition
+
+# Local path where sequence files are stored before they are uploaded to s3.
+secor.local.path=/mnt/{{ service_name }}/message_logs/partition
+
+# Port of the Ostrich server.
+ostrich.port={{ ostrich_port }}
+
+# Secor custom properties
+
+secor.s3.output_file_pattern={partition}-{currentTimestamp}.json
+
+# Partition Date Output format. This is used along with PatternDateMessageParser. Defaults to 'yyyy-MM-dd' *New*
+secor.partition.output_dt_format=yyyy-MM-dd
+
+secor.partition.prefix.enable={{ partition_prefix_enabled }}
+# Name of field that contains timestamp for JSON, MessagePack, or Thrift message parser. (1405970352123)
+secor.partition.prefix.identifier={{ partition_prefix_key }}
+
+secor.partition.prefix.mapping={\"DEFAULT\":\"backend\"}
+
+secor.max.file.age.policy=oldest
+
+# Output file pattern excluding prefix. Defaults to topic/partition/generation_kafkaPartition_fmOffset.gz.
+# Available placeholders are 
+# topic - The topic name the data is being fetched
+# partition - The partition name
+# generation - Generation
+# kafkaPartition - The kafka partition
+# fmOffset - First Message offset in the file.
+# randomHex - A 4 character random hex to append to the file name
+# currentTimestamp - Time of upload in epoch format
+# currentTime - Time of upload in HH-mm format
+# currentDate - Time of upload in YYYYMMDD format
+# folder - Folder to use based on message id map lookup
+secor.s3.output_file_pattern={partition}-{currentTimestamp}.json
