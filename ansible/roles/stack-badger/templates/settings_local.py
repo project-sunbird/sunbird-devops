@@ -48,7 +48,7 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULTS_SERIALIZER = 'json'
 CELERY_ACCEPT_CONTENT = ['json']
 
-HTTP_ORIGIN = 'http://localhost:8000'
+HTTP_ORIGIN = '{{sunbird_http_orgin}}'
 
 # Optionally restrict issuer creation to accounts that have the 'issuer.add_issuer' permission
 BADGR_APPROVED_ISSUERS_ONLY = True

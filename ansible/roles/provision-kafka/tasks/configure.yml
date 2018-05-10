@@ -43,6 +43,24 @@
   when: use_systemd
 
 
+- name: Create data_dir
+  file: path={{kafka_data_dir}} state=directory owner={{kafka_user}} group={{kafka_group}} mode=755
+
+- name: Remove lost+found in the datadir
+  file: path="{{kafka_data_dir}}/lost+found" state=absent
+
+- name: Create log_dir
+  file: path={{kafka_log_dir}} state=directory owner={{kafka_user}} group={{kafka_group}} mode=755
+
+- name: link conf_dir to /opt/kafka/config
+  file: path={{kafka_conf_dir}} state=link src=/opt/kafka/config force=yes
+
+# Setup log4j.properties
+- name: create log4j.properties
+  template: dest="{{kafka_conf_dir}}/log4j.properties" owner={{kafka_user}} group={{kafka_group}} mode=644 src=log4j.properties.j2
+  notify:
+    - restart kafka
+
 - name: create zookeper.properties
   template: dest="{{kafka_conf_dir}}/zookeeper.properties" owner={{kafka_user}} group={{kafka_group}} mode=640 src=zookeeper.properties.j2
 
@@ -55,23 +73,6 @@
 - command: systemctl daemon-reload
   when: use_systemd
 
-- name: Create data_dir
-  file: path={{kafka_data_dir}} state=directory owner={{kafka_user}} group={{kafka_group}} mode=755
-
-- name: Remove lost+found in the datadir
-  file: path="{{kafka_data_dir}}/lost+found" state=absent
-
-- name: Create log_dir
-  file: path={{kafka_log_dir}} state=directory owner={{kafka_user}} group={{kafka_group}} mode=755
-
-- name: link conf_dir to /opt/kafka/config
-  file: path={{kafka_conf_dir}} state=link src=/opt/kafka/config
-
-# Setup log4j.properties
-- name: create log4j.properties
-  template: dest="{{kafka_conf_dir}}/log4j.properties" owner={{kafka_user}} group={{kafka_group}} mode=644 src=log4j.properties.j2
-  notify:
-    - restart kafka
 
 # Setup server.properties
 - name: create server.properties
