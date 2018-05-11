@@ -5,16 +5,16 @@ ssh_key=$1
 ssh_user=$2
 protocol=$3
 serverIP=$4
-fName="actorsss"
-lName="actorsss"
-phone="7686954476"
-passwdd="actorsss"
-userName="actorsss"
-mail='actorsss@gmail.com'
+fName="testname"
+lName="testname"
+phone="8095414779"
+passwdd="testname"
+userName="testname"
+mail='smy.altamash@gmail.com'
 
 #Organisation Name
 
-orgName="DevOPSS"
+orgName="DevOPS"
 orgDescription="This is my organisation"
 channelName="myChannel"
 
@@ -46,12 +46,13 @@ check_es() {
     ips $1
     for ip in ${arr[@]}; do
 	local outpt=$(nssh $ssh_user@$ip "sudo netstat -ntpl | grep 9200 | awk 'NR==1{print $4}' | cut -d \":\" -f2" )
-	local outpt1=$(curl -s $ip:9200 | jq '.tagline')
-	if [ "$outpt1" == "\"You Know, for Search\"" ] && [ "$outpt" -eq 9200 ];then
-        	echo "ELASTICSEARCH is working in $ip"
+	local outpt1=$(curl -XGET -s "$ip:9200/_cluster/health" | jq ".status")
+	if [ "$outpt1" == "\"green\"" ] && [ "$outpt" -eq 9200 ];then
+        	echo "ELASTICSEARCH cluster is healthy"
 	else
-		echo "ELASTICSEARCH is Not Working in $ip"
+		echo "ELASTICSEARCH cluster is unhealthy"
         fi
+	break
      done
 }
 
@@ -90,7 +91,6 @@ addUser() {
        } 
         } 
           " -k | jq '.result.userId'`
-	#echo "the USerID is  $ki"
 	echo "$ki" >> ~/uid.txt
 }
 
@@ -102,7 +102,6 @@ getAuthorisation() {
   -H 'content-type: application/x-www-form-urlencoded' \
   -H 'postman-token: 350ca3cd-3a4f-28bf-2c92-0b7d67c5a79d' \
   -d 'client_id=admin-cli&username=$userName&password=$passwdd&grant_type=password' | jq '.access_token'`
-	#echo "The authorisation token is        $autho"
 	echo "$autho" >> ~/authorization_token.txt
 }
 
@@ -123,7 +122,6 @@ addOrganisation() {
  }
 }
 ' -k | jq '.result.organisationId'`
-	echo "adding organisation $addorg"
 	echo "$addorg" >> ~/organisation_token.txt
 }
 
