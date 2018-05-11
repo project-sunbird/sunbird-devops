@@ -33,9 +33,6 @@ def checkContainerReplication():
 	for val in reslt:
 		print("Container "+str(val,"utf-8")+" Failed to replicate")
 
-def checkDockerContainerStatus():
-	print("Hello King")
-
 
 print("\n-----------------------------------------\n")
 print("Checking The service Working Status:-\n")
@@ -47,4 +44,4 @@ print("\n-----------------------------------------\n")
 
 
 
-print("\nThe King Never Fails To Win His Destiny\n")
+#print("\nThe King Never Fails To Win His Destiny\n")
