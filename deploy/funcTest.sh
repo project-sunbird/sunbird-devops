@@ -153,4 +153,4 @@ postgres_ips=$postgres_master_ips,$postgres_slave_ips
 check_postgres $postgres_ips
 check_cassandra $cassandra_ips
 python3 myChecks.py $protocol $serverIP
-userManagement 
+#userManagement 
