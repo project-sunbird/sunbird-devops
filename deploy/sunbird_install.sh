@@ -57,9 +57,7 @@ config() {
 # Sanity check
 
 sanity() {
-  #  ./sanity.sh $ansible_private_key_path
-  echo "Skipping Sanity"
-  sleep 10
+  ./sanity.sh $ansible_private_key_path
 }
 
 test(){
