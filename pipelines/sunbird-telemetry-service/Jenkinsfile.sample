@@ -1,0 +1,33 @@
+#!groovy
+
+node('general-staging') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/sunbird-telemetry-service/installDeps.sh')
+
+       }
+
+       stage('Deploy'){
+        step ([$class: 'CopyArtifact',
+          projectName: 'Dev/Sunbird_TelemetryService_Deploy_Dev',
+          filter: 'metadata.json']);
+          sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=silver ENV=staging ./pipelines/sunbird-telemetry-service/deploy.sh'
+          archive includes: "metadata.json"
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
