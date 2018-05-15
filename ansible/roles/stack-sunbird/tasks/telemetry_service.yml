@@ -7,14 +7,6 @@
   vars:
     sunbird_telemetry_kafka_servers: "{{groups['kafka']|join(':3000,')}}:9042"
 
-- name: debug
-  debug:
-    var: sunbird_telemetry_kafka_servers_config
- 
-- name: debug
-  debug:
-    msg: " kafka_ips:{{ groups['kafka'] | join (':9042,')}}:9042"
-
 - name: Deploy telemetry service
   shell: "docker service create --replicas {{ telemetry_replicas }} -p 9001:9001  --name telemetry-service --hostname telemetry-service --reserve-memory {{ telemetry_reservation_memory }} --limit-memory {{ telemetry_limit_memory }}  --network application_default --env-file /home/deployer/env/sunbird_telemetry-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"
   args:
