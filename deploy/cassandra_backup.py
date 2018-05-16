@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
 
+# Author: Rajesh Rajendran <rjshrjndrn@gmail.com>
+
 '''
-Author: Rajesh Rajendran <rjshrjndrn@gmail.com>
+Create a snapshot and create tar ball in targetdirectory name
 
-Create a snapshot and create tar ball in targetdir name
+usage: script  /path/to/datadirectory snapshot_name /path/targetdirectory
 
-usage: script  --datadir /path/to/datadir \
-              --snapshotname snapshot name \
-              --targetdir /path/targetdir
-eg: ./cassandra_backup.py --datadir /var/lib/cassandra/data \
-                          --snapshotname my_snapshot \
-                          --targetdir /backups/cassandra/$(date +%Y-%m-%d)
+eg: ./cassandra_backup.py /var/lib/cassandra/data my_snapshot /backups/cassandra/$(date +%Y-%m-%d)
 '''
 
 from os import path, walk, sep, system
@@ -19,14 +16,14 @@ from shutil import rmtree, ignore_patterns, copytree
 from re import match, compile
 from sys import exit
 
-parser = ArgumentParser()
-parser.add_argument("--datadir")
-parser.add_argument("--snapshotname")
-parser.add_argument("--targetdir")
+parser = ArgumentParser(description="Create a snapshot and create tar ball in targetdirectory name")
+parser.add_argument("datadirectory", help="path to datadirectory of cassandra")
+parser.add_argument("snapshotname", help="name in which you want to take the snapshot")
+parser.add_argument("targetdirectory", help="name of tarball you want to create")
 args = parser.parse_args()
 
-if path.exists(args.targetdir):
-    print("\033[91m Target directory {} exists; exiting without backing up cassandra...".format(args.targetdir))
+if path.exists(args.targetdirectory):
+    print("\033[91m Directory {} exists; exiting without backing up cassandra...".format(args.targetdirectory))
     exit(1)
 
 def copy():
@@ -34,14 +31,14 @@ def copy():
     Copying the data sanpshots to the target directory
     '''
     print("copying")
-    root_target_dir = args.targetdir.split(sep)[-1]
+    root_target_dir = args.targetdirectory.split(sep)[-1]
     print(root_target_dir)
-    root_levels = args.datadir.count(sep)
-    ignore_list = compile(args.targetdir+sep+'(system|system|systemtauth|system_traces|system_schema|system_distributed)')
+    root_levels = args.datadirectory.count(sep)
+    ignore_list = compile(args.targetdirectory+sep+'(system|system|systemtauth|system_traces|system_schema|system_distributed)')
 
     try:
-        for root, dirs, files in walk(args.datadir):
-            root_target_dir=args.targetdir+sep+sep.join(root.split(sep)[root_levels+1:-2])
+        for root, dirs, files in walk(args.datadirectory):
+            root_target_dir=args.targetdirectory+sep+sep.join(root.split(sep)[root_levels+1:-2])
             if match(ignore_list, root_target_dir):
                 continue
             if root.split(sep)[-1] == args.snapshotname:
@@ -56,5 +53,10 @@ if rc == 0:
     print("Snapshot taken. Copying to target dir")
     copy()
     print("Making a tarball")
-    command = "tar -czvf {}.tar.gz {}".format(args.targetdir,args.targetdir)
+    command = "tar -czvf {}.tar.gz {}".format(args.targetdirectory,args.targetdirectory)
     system(command)
+
+# Cleaning up backup directory
+print("Cleaning up temporary directory")
+rmtree(args.targetdirectory)
+print("Cassandra backup completed and stored as {}.tar.gz".format(args.targetdirectory))
