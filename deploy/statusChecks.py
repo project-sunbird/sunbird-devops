@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 import sys
 import subprocess
 import multiprocessing
@@ -12,12 +12,18 @@ serverIP=sys.argv[2]
 def checkStatus(req,name):
         try:
                 response = urlopen(req)
+                print(str(name) + ' ' + str(" is working"))
+                print("Header data is "+str(response.headers))
+                print("Response Status is "+str(response.status))
+               # print(response.info())
         except HTTPError as e:
                 print(str(name) + ' ' + str(" is not Working"))
+                print("Header data is "+str(response.headers))
+                print("Response Status is "+str(response.status))
         except URLError as e:
                 print(str(name) + ' ' + str(' is not Working'))
-        else:
-                print(str(name) + ' ' + str(" is working"))
+                print("Header data is "+str(response.headers))
+                print("Response Status is "+str(response.status))
 
 def checkAvailibility():
         with open("ServiceDetails.csv","r") as k:
@@ -30,7 +36,7 @@ def checkAvailibility():
                                 if Port == "":
                                         req="{}://{}{}".format(protocol,serverIP,AdditionalURL)
                                         name=ServiceName
-                                        p = multiprocessing.Process(target=checkStatus(req,name))
+                                        print("---------------------------------------------")
                                         p.start()
                                         p.join(5)
                                         if p.is_alive():
@@ -39,7 +45,9 @@ def checkAvailibility():
                                                 p.join(5)
                                 else:
                                         req="{}://{}:{}{}".format(protocol,serverIP,Port,AdditionalURL)
-                                        name=ServiceName   
+                                        name=ServiceName
+                                        print("---------------------------------------------")
+                                       # checkStatus(req,name)   
                                         p = multiprocessing.Process(target=checkStatus(req,name))
                                         p.start()
                                         p.join(5)
