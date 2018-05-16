@@ -5,40 +5,38 @@
 '''
 Create a snapshot and create tar ball in targetdirectory name
 
-usage: script  /path/to/datadirectory snapshot_name /path/targetdirectory
+usage: script  /path/to/datadirectory snapshot_name
 
-eg: ./cassandra_backup.py /var/lib/cassandra/data my_snapshot /backups/cassandra/$(date +%Y-%m-%d)
+eg: ./cassandra_backup.py /var/lib/cassandra/data my_snapshot
 '''
 
-from os import path, walk, sep, system
+from os import path, walk, sep, system, getcwd, makedirs
 from argparse import ArgumentParser 
 from shutil import rmtree, ignore_patterns, copytree
 from re import match, compile
 from sys import exit
+from tempfile import mkdtemp
 
-parser = ArgumentParser(description="Create a snapshot and create tar ball in targetdirectory name")
+parser = ArgumentParser(description="Create a snapshot and create tar ball inside tardirectory")
 parser.add_argument("datadirectory", help="path to datadirectory of cassandra")
 parser.add_argument("snapshotname", help="name in which you want to take the snapshot")
-parser.add_argument("targetdirectory", help="name of tarball you want to create")
+parser.add_argument("-t","--tardirectory", metavar="tardir",  default=getcwd(), help="path to create the tarball. Default {}".format(getcwd()))
 args = parser.parse_args()
 
-if path.exists(args.targetdirectory):
-    print("\033[91m Directory {} exists; exiting without backing up cassandra...".format(args.targetdirectory))
-    exit(1)
+# Create temporary directory to copy data
+tmpdir=mkdtemp()
+makedirs(tmpdir+sep+"cassandra_backup")
 
 def copy():
     '''
     Copying the data sanpshots to the target directory
     '''
-    print("copying")
-    root_target_dir = args.targetdirectory.split(sep)[-1]
-    print(root_target_dir)
     root_levels = args.datadirectory.count(sep)
-    ignore_list = compile(args.targetdirectory+sep+'(system|system|systemtauth|system_traces|system_schema|system_distributed)')
+    ignore_list = compile(tmpdir+sep+"cassandra_backup"+sep+'(system|system|systemtauth|system_traces|system_schema|system_distributed)')
 
     try:
         for root, dirs, files in walk(args.datadirectory):
-            root_target_dir=args.targetdirectory+sep+sep.join(root.split(sep)[root_levels+1:-2])
+            root_target_dir=tmpdir+sep+"cassandra_backup"+sep+sep.join(root.split(sep)[root_levels+1:-2])
             if match(ignore_list, root_target_dir):
                 continue
             if root.split(sep)[-1] == args.snapshotname:
@@ -46,17 +44,22 @@ def copy():
     except Exception as e:
         print(e)
 
+# Creating schema
+command = "cqlsh -e 'DESC SCHEMA' > {}/cassandra_backup/db_schema.cql".format(tmpdir)
+rc = system(command)
+if rc != 0:
+    print("Couldn't backup schema, exiting...")
+    exit(1)
+print("Schema backup completed. saved in {}/cassandra_backup/db_schema.sql".format(tmpdir))
 # Creating snapshots
 command = "nodetool snapshot -t {}".format(args.snapshotname)
 rc = system(command)
 if rc == 0:
-    print("Snapshot taken. Copying to target dir")
+    print("Snapshot taken.")
     copy()
-    print("Making a tarball")
-    command = "tar -czvf {}.tar.gz {}".format(args.targetdirectory,args.targetdirectory)
+    print("Making a tarball: {}.tar.gz".format(args.snapshotname))
+    command = "cd {} && tar -czvf {}/{}.tar.gz *".format(tmpdir, args.tardirectory, args.snapshotname)
     system(command)
-
-# Cleaning up backup directory
-print("Cleaning up temporary directory")
-rmtree(args.targetdirectory)
-print("Cassandra backup completed and stored as {}.tar.gz".format(args.targetdirectory))
+    # Cleaning up backup directory
+    rmtree(tmpdir)
+    print("Cassandra backup completed and stored in {}/{}.tar.gz".format(args.tardirectory,args.snapshotname))
