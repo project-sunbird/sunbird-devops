@@ -3,7 +3,7 @@
 # Author: Rajesh Rajendran <rjshrjndrn@gmail.com>
 
 '''
-Create a snapshot and create tar ball in targetdirectory name
+Create a snapshot and create tar ball in targetdirectory
 
 usage: script  /path/to/datadirectory snapshot_name
 
@@ -17,15 +17,15 @@ from re import match, compile
 from sys import exit
 from tempfile import mkdtemp
 
-parser = ArgumentParser(description="Create a snapshot and create tar ball inside tardirectory")
-parser.add_argument("datadirectory", help="path to datadirectory of cassandra")
+parser = ArgumentParser(description="Create a snapshot and create tar ball in targetdirectory")
 parser.add_argument("snapshotname", help="name in which you want to take the snapshot")
-parser.add_argument("-t","--tardirectory", metavar="tardir",  default=getcwd(), help="path to create the tarball. Default {}".format(getcwd()))
+parser.add_argument("datadirectory", help="path to datadirectory of cassandra")
+parser.add_argument("targetdirectory", help="path to the directory where you want to create the tar ball")
 args = parser.parse_args()
 
-# Create temporary directory to copy data
-tmpdir=mkdtemp()
-makedirs(tmpdir+sep+"cassandra_backup")
+#  if path.exists(args.targetdirectory):
+#      print("\033[91m Directory {} exists; exiting without backing up cassandra...".format(args.targetdirectory))
+#      exit(1)
 
 def copy():
     '''
