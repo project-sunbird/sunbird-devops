@@ -14,7 +14,7 @@
 
 set -eu -o pipefail
 
-usage() { echo "Usage: $0 [ -s {sanity|config|dbs|apis|proxy|keycloak|badger|core|logger|monitor} ]" ; exit 0; }
+usage() { echo "Usage: $0 [ -s {config|dbs|apis|proxy|keycloak|badger|core|logger|monitor|test} ]" ; exit 0; }
 
 # Checking for valid argument
 if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
@@ -22,15 +22,16 @@ if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
     exit 1
 fi
 
-# Reading environment and implementation name
-implementation_name=$(awk '/implementation_name: /{ if ($2 !~ /#.*/) {print $2}}' config)
-env_name=$(awk '/env: /{ if ($2 !~ /#.*/) {print $2}}' config)
-app_host=$(awk '/application_host: /{ if ($2 !~ /#.*/) {print $2}}' config)
-db_host=$(awk '/database_host: /{ if ($2 !~ /#.*/) {print $2}}' config)
-ssh_ansible_user=$(awk '/ssh_ansible_user: /{ if ($2 !~ /#.*/) {print $2}}' config)
-ansible_private_key_path=$(awk '/ansible_private_key_path: /{ if ($2 !~ /#.*/) {print $2}}' config)
-ansible_variable_path="${implementation_name}"-devops/ansible/inventories/"$env_name"
-
+# Reading environment and implimentation name
+implimentation_name=$(awk '/implementation_name: / {print $2}' config)
+env_name=$(awk '/env: / {print $2}' config)
+app_host=$(awk '/application_host: / {print $2}' config)
+db_host=$(awk '/database_host: / {print $2}' config)
+ssh_ansible_user=$(awk '/ssh_ansible_user: / {print $2}' config)
+ansible_private_key_path=$(awk '/ansible_private_key_path: / {print $2}' config)
+ansible_variable_path=$implimentation_name-devops/ansible/inventories/$env_name
+protocol=$(awk '/proto: / {print $2}' config)
+serverIP=$(awk '/dns_name: / {print $2}' config)
 #TO skip the host key verification
 export ANSIBLE_HOST_KEY_CHECKING=False
 #Enable force color
@@ -44,7 +45,7 @@ if [ ! -d .sunbird/ignore ];then mkdir -p .sunbird/ignore &> /dev/null;fi
 # Generating configs
 config() { 
     sudo ./install-deps.sh
-    time ./generate-config.sh $implementation_name $env_name core;
+    time ./generate-config.sh $implimentation_name $env_name core; 
     # Creating inventory
     sed -i s#\"{{database_host}}\"#$db_host#g $ansible_variable_path/hosts
     sed -i s#\"{{application_host}}\"#$app_host#g $ansible_variable_path/hosts
@@ -56,7 +57,11 @@ config() {
 # Sanity check
 
 sanity() {
-    ./sanity.sh $ssh_ansible_user $ansible_private_key_path
+  ./sanity.sh $ansible_private_key_path
+}
+
+test(){
+	./funcTest.sh $ansible_private_key_path $ssh_ansible_user $protocol $serverIP
 }
 
 # Installing dependencies
@@ -100,7 +105,7 @@ while getopts "s:h" o;do
     case "${o}" in
         s)
             s=${OPTARG}
-            echo "help.."
+            #echo "help.."
             case "${s}" in
                 config)
                     echo -e "\n$(date)\n">>logs/config.log;
@@ -147,6 +152,10 @@ while getopts "s:h" o;do
                     echo -e "\n$(date)\n">>logs/logger.log; logger 2>&1 | tee -a logs/logger.log
                     exit 0
                     ;;
+		test)
+                    echo -e "\n$(date)\n">>logs/test.log; test 2>&1 | tee -a logs/test.log
+                    exit 0
+                    ;;
                 monitor)
                     echo -e "\n$(date)\n">>logs/monitor.log; monitor 2>&1 | tee -a logs/monitor.log
                     exit 0   
@@ -178,3 +187,4 @@ echo -e \n$(date)\n >> logs/apis.log; apis 2>&1 | tee -a logs/apis.log
 echo -e \n$(date)\n >> logs/proxies.log; proxy 2>&1 | tee -a logs/proxies.log
 echo -e \n$(date)\n >> logs/keycloak.log; keycloak 2>&1 | tee -a logs/keycloak.log
 echo -e \n$(date)\n >> logs/badger.log; badger 2>&1 | tee -a logs/badger.log
+echo -e \n$(date)\n >> logs/test.log; test 2>&1 | tee -a logs/test.log
