@@ -13,17 +13,17 @@ def checkStatus(req,name):
         try:
                 response = urlopen(req)
                 print(str(name) + ' ' + str(" is working"))
-                print("Header data is "+str(response.headers))
-                print("Response Status is "+str(response.status))
+                #print("HTTP Header:\n" .join(str(response.headers).split("\n")[:-1]))
+                print("HTTP Header:")
+                print(str(response.headers).rsplit("\n", 2)[0])
+                print("HTTP Response Status code: "+str(response.status))
                # print(response.info())
         except HTTPError as e:
-                print(str(name) + ' ' + str(" is not Working"))
-                print("Header data is "+str(response.headers))
-                print("Response Status is "+str(response.status))
+                print('The server couldn\'t fulfill the request.')
+                print('Error code: ', e.code)
         except URLError as e:
-                print(str(name) + ' ' + str(' is not Working'))
-                print("Header data is "+str(response.headers))
-                print("Response Status is "+str(response.status))
+                print('We failed to reach a server.')
+                print('Reason: ', e.reason)
 
 def checkAvailibility():
         with open("ServiceDetails.csv","r") as k:
@@ -33,28 +33,20 @@ def checkAvailibility():
                                 ServiceName,Port,AdditionalURL=data
                                 if ServiceName == "ServiceName" and Port == "Port" and AdditionalURL == "AdditionalURL":
                                         continue
+                                name=ServiceName
+                                print("\n\nService name: " +str(name))
                                 if Port == "":
                                         req="{}://{}{}".format(protocol,serverIP,AdditionalURL)
-                                        name=ServiceName
-                                        print("---------------------------------------------")
-                                        p.start()
-                                        p.join(5)
-                                        if p.is_alive():
-                                                print(str(k) + ' ' + str(' is not Working'))
-                                                p.terminate()
-                                                p.join(5)
                                 else:
                                         req="{}://{}:{}{}".format(protocol,serverIP,Port,AdditionalURL)
-                                        name=ServiceName
-                                        print("---------------------------------------------")
-                                       # checkStatus(req,name)   
-                                        p = multiprocessing.Process(target=checkStatus(req,name))
-                                        p.start()
-                                        p.join(5)
-                                        if p.is_alive():
-                                                print(str(k) + ' ' + str(' is not Working'))
-                                                p.terminate()
-                                                p.join(5)                                
+
+                                p = multiprocessing.Process(target=checkStatus(req,name))
+                                p.start()
+                                p.join(5)
+                                if p.is_alive():
+                                        print(str(k) + ' ' + str(' is not Working'))
+                                        p.terminate()
+                                        p.join(5)                                
                         except Exception as e:
                                 continue
 
@@ -70,4 +62,3 @@ print("\n-----------------------------------------\n")
 print("Checking The service status:-\n")
 checkAvailibility()
 print("\n-----------------------------------------\n")
-
