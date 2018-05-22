@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# Author S M Y ALTAMASH <smy.altamash@gmail.com>
 import sys
 import subprocess
 import multiprocessing
