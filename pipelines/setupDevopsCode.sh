@@ -11,4 +11,6 @@ fi
 cd $sunbird_devops_dir_name
 git reset --hard
 git clean -fd
-git checkout -3 "$commit_ref"
+git fetch
+git checkout "$commit_ref"
+get pull -X theirs
