@@ -20,5 +20,4 @@ else
     git clone https://github.com/project-sunbird/sunbird-devops.git $sunbird_devops_dir_name
     cd $sunbird_devops_dir_name
 fi
-
 git checkout "$commit_ref"
