@@ -34,7 +34,7 @@ check_es() {
     for ip in ${arr[@]}; do
 	local outpt=$(nssh $ssh_user@$ip "sudo netstat -ntpl | grep 9200 | awk 'NR==1{print $4}' | cut -d \":\" -f2" )
 	local outpt1=$(curl -XGET -s "$ip:9200/_cluster/health" | jq ".status")
-	if [ "$outpt1" == "\"green\"" ] && [ "$outpt" -eq 9200 ];then
+	if [ "$outpt1" == "\"green\"" ] || [ "$outpt1" == "\"yellow\"" ] && [ "$outpt" -eq 9200 ];then
         	echo "ELASTICSEARCH cluster is healthy"
 	else
 		echo "ELASTICSEARCH cluster is unhealthy"
