@@ -13,4 +13,4 @@ git reset --hard
 git clean -fd
 git fetch
 git checkout "$commit_ref"
-get pull -X theirs
+git pull -X theirs
