@@ -10,11 +10,6 @@ perf-postgresql-master
 [postgresql-slave:children]
 perf-postgresql-1
 
-[postgresql-backup:children]
-postgresql-master
-
-[postgresql-restore:children]
-postgresql-master
 
 
 [perf-es-1]
@@ -23,83 +18,40 @@ postgresql-master
 [perf-cassandra-1]
 10.12.1.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
-[spike-swarm-bootstrap-manager]
-172.16.2.5 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[spike-swarm-manager]
-172.16.2.5 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[swarm-agent-docker-prune]
-localhost ansible_connection=local
-
-[spike-kong-api]
-localhost ansible_connection=local
-
-[kong-api:children]
-spike-kong-api
-
-[swarm-bootstrap-manager:children]
-spike-swarm-bootstrap-manager
-
-[swarm-manager:children]
-spike-swarm-manager
-
-
 [perf-es:children]
 perf-es-1
 
 
-[spike-log-es:children]
-spike-log-es-1
-
 [es:children]
 perf-es
-
-[es-backup:children]
-perf-es-1
 
 
 [cassandra:children]
 perf-cassandra-1
 
-[swarm-agent-for-prometheus]
-10.2.0.x ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
-[swarm-agent-for-grafana]
-10.2.0.y ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
-[swarm-agent-for-alertmanager]
-10.2.0.z ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
 
 [non-swarm-nodes:children]
 postgresql-master
 postgresql-slave
-postgresql-backup
-postgresql-restore
 es
 cassandra
-log-es
 
-[local-task-runners:children]
-kong-api
 
-[swarm-nodes:children]
-swarm-manager
-swarm-bootstrap-manager
-swarm-agent-for-prometheus
-swarm-agent-for-grafana
-swarm-agent-for-alertmanager
+# [swarm-nodes:children]
+# swarm-manager
+# swarm-bootstrap-manager
+# swarm-agent-for-prometheus
+# swarm-agent-for-grafana
+# swarm-agent-for-alertmanager
 
-[node-exporter:children]
-non-swarm-nodes
-swarm-manager
+# [node-exporter:children]
+# non-swarm-nodes
+# swarm-manager
 
-[log-forwarder:children]
-non-swarm-nodes
-swarm-manager
+# [log-forwarder:children]
+# non-swarm-nodes
+# swarm-manager
 
 [perf:children]
 non-swarm-nodes
-swarm-nodes
-local-task-runners
 
