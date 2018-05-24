@@ -1,3 +1,78 @@
+[perf-keycloak-1]
+10.12.1.5 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[perf-swarm-bootstrap-manager]
+172.10.0.5 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[perf-swarm-manager]
+172.10.0.5 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[keycloak:children]
+perf-keycloak1
+
+[swarm-agent-docker-prune]
+localhost ansible_connection=local
+
+[perf-kong-api]
+localhost ansible_connection=local
+
+[kong-api:children]
+perf-kong-api
+
+[swarm-bootstrap-manager:children]
+perf-swarm-bootstrap-manager
+
+[swarm-manager:children]
+perf-swarm-manager
+
+
+[swarm-node-1]
+11.0.0.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+
+[swarm-node-2]
+11.0.0.5 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+
+[swarm-node-3]
+11.0.0.6 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[jenkins-slave-node]
+10.20.0.5 ansible_ssh_user=ops ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[registry]
+10.2.1.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[jenkins-master]
+10.20.0.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[jenkins-slave]
+10.20.0.5 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[swarm-node:children]
+swarm-node-1
+swarm-node-2
+swarm-node-3
+
+
+[non-swarm-nodes:children]
+postgresql-master
+postgresql-slave
+es
+cassandra
+keycloak
+jenkins-master
+jenkins-slave
+
+[local-task-runners:children]
+kong-api
+
+[swarm-nodes:children]
+swarm-manager
+swarm-bootstrap-manager
+
+
+
 [perf-postgresql-1]
 10.12.3.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
@@ -9,6 +84,7 @@ perf-postgresql-master
 
 [postgresql-slave:children]
 perf-postgresql-1
+
 
 
 
@@ -56,4 +132,8 @@ es-backup
 
 [perf:children]
 non-swarm-nodes
+non-swarm-nodes
+swarm-nodes
+local-task-runners
+
 
