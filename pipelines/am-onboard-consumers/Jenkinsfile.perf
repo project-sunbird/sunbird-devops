@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'general-spike'
+        label 'kong-dev'
     }
     stages {
         stage('Checkout') {
@@ -8,20 +8,19 @@ pipeline {
                 sh('./pipelines/setupDevopsCode.sh')
             }
         }
+
         stage('Pre-Build'){
             steps {
                 sh('./sunbird-devops/ansible/installDeps.sh')
             }
         }
+
         stage('Deploy') {
             steps {
-              step ([$class: 'CopyArtifact',
-                projectName: 'Build/Proxy',
-                filter: 'metadata.json']);
-
-               sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=spike ./pipelines/proxy/deploy.sh'
-
-               archive includes: "metadata.json"
+                sh '''
+                cd sunbird-devops/ansible
+                ansible-playbook -i ../../ansible/inventories/perf api-manager.yml --tags kong-consumer --vault-password-file /run/secrets/vault-pass -v
+                '''
             }
         }
     }
