@@ -18,9 +18,6 @@
                         </div>
                         <div class="content signin-contentPadding">
                             <form id="kc-passwd-update-form" class="ui form pre-signin" action="${url.loginAction}" method="post">
-                            <input type="text" readonly value="this is not a login form" style="display: none;">
-                            <input type="password" readonly value="this is not a login form" style="display: none;">
-
                             <div class="field">
                                 <label for="password-new">${msg("passwordNew")}</label>
                                 <input type="password" id="password-new" name="password-new" autofocus autocomplete="off" />
