@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 if [ "$#" -ne 1 ]; then
@@ -11,7 +11,7 @@ INVENTORY_PATH=$1
 
 ORG=sunbird
 # Getting versions
-source variable.env
+source version.env
 
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
