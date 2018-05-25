@@ -11,12 +11,8 @@ INVENTORY_PATH=$1
 
 ENV=sample
 ORG=sunbird
-ACTOR_SERVICE_VERSION=1.6.0-gold
-PLAYER_VERSION=1.6.0-gold
-CONTENT_SERVICE_VERSION=1.6.0-gold
-LEARNER_SERVICE_VERSION=1.6.0-gold
-PROXY_VERSION=1.6.0-gold
-BADGER_SERVICE_VERSION=1.6.0-gold
+# Getting image versions
+source version.env
 
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
