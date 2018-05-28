@@ -1,0 +1,30 @@
+#!groovy
+
+node('general-perf') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/sunbird-jmeter-deploy/installDeps.sh')
+
+       }
+
+       stage('Deploy'){
+          sh 'ENV=perf ./pipelines/sunbird-jmeter-deploy/deploy.sh'
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
