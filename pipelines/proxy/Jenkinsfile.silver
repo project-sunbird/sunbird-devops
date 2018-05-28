@@ -1,0 +1,28 @@
+#!groovy
+
+node('general-staging'){
+
+    currentBuild.result = "SUCCESS"
+
+    try{
+        stage('Checkout') {
+            checkout scm
+        }
+
+        stage('Pre-Build'){
+                sh('./pipelines/proxy/installDeps.sh')
+        }
+
+        stage('Deploy') {
+              step ([$class: 'CopyArtifact',
+                projectName: 'Dev/Proxy',
+                filter: 'metadata.json']);
+               sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=silver ENV=staging ./pipelines/dockerTagSilver.sh'
+               archive includes: "metadata.json"
+            }
+        }
+        catch (err){
+            currentBuild.result = "FAILURE"
+            throw err
+        }
+}
