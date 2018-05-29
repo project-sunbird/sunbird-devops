@@ -4,6 +4,9 @@ proxy_server_name: perf.open-sunbird.org #Domain on which the portal will be acc
 proxy_site_key: "{{ vault_proxy_site_key }}"  #SSL certificate's site.key file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 proxy_site_crt: "{{ vault_proxy_site_crt }}"  #SSL certificate's site.crt file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 
+user: deployer
+become_user: deployer
+
 proto: https
 # DB CONFIGURATION
 
@@ -31,7 +34,7 @@ application_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of
 keycloak_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
 kong_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
 sunbird_cassandra_host: "{{ cassandra_server_private_ip }}"  #Private IP of Cassandra server
-sunbird_es_host: 10.12.2.4   #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
+sunbird_es_host: 10.12.2.4,10.12.2.5,10.12.2.6   #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
 
 ## Application server configurations
 sunbird_ekstep_api_base_url: https://perf.ekstep.in/api  #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
@@ -74,7 +77,7 @@ cassandra_backup_dir: /data/cassandra/backup
 
 keycloak_url: "http://10.12.1.5:8080"
 
-keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth/"
+keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth"
 keycloak_realm: sunbird
 sunbird_content_player_url: "https://{{ proxy_server_name }}/api/"
 sunbird_learner_player_url: "https://{{ proxy_server_name }}/api/"
@@ -93,7 +96,7 @@ sunbird_pg_db: quartz
 sunbird_pg_user: quartz
 sunbird_pg_password: "{{ application_postgres_password }}"
 sunbird_installation: sunbird
-sunbird_account_name: sunbirdspike
+sunbird_account_name: sunbirdperf
 sunbird_account_key: "{{ vault_sunbird_account_key }}"
 sunbird_sunbird_quartz_mode: cluster
 sunbird_encryption_mode: local
@@ -120,6 +123,7 @@ sunbird_default_channel: sunbird-perf
 sunbird_msg_91_auth: "{{vault_sunbird_msg_91_auth}}"
 sunbird_fcm_account_key: "{{vault_sunbird_fcm_account_key}}"
 sunbird_msg_sender: SBPERF
+sunbird_es_port: 9300,9300,9300
 
 project: sunbird
 application_postgres_database: quartz
@@ -133,8 +137,8 @@ cassandra_repo_key: 'https://www.apache.org/dist/cassandra/KEYS'
 
 #API Manager
 kong_postgres_port: 5432
-kong_postgres_user: api_manager_spike
-kong_postgres_database: api_manager_spike
+kong_postgres_user: api_manager_perf
+kong_postgres_database: api_manager_perf
 
 es_curl_host: 10.12.2.4
 
@@ -162,7 +166,7 @@ proxy_prometheus_admin_creds: "{{ vault_proxy_prometheus_admin_creds }}"
 
 # ADDITIONAL CONFIGURATION
 backup_storage_name: "sunbirdbackupsspike"
-curl_host: spike.open-sunbird.org
+curl_host: perf.open-sunbird.org
 
 mail_server_host: smtp.sendgrid.net
 mail_server_port: 587
@@ -177,11 +181,11 @@ monitor_alerts_slack_channel: sunbird-spike-alert
 keycloak: True
 
 api__host: perf.open-sunbird.org
-
+proto: https
 proxy_replicas: 2
-proxy_reservation_memory: 32M
+proxy_reservation_memory: 64M
 proxy_limit_memory: 128M
-kong_replicas: 3
+kong_replicas: 2
 kong_reservation_memory: 64M
 kong_limit_memory: 256M
 echo_service_replicas: 2
@@ -192,20 +196,22 @@ adminutil_reservation_memory: 512M
 adminutil_limit_memory: 1024M
 
 actor_replicas: 2
-actor_reservation_memory: 768M
+actor_reservation_memory: 500M
 actor_limit_memory: 1024M
 
 learner_replicas: 2
-learner_reservation_memory: 256M
-learner_limit_memory: 512M
+learner_reservation_memory: 2000M
+learner_limit_memory: 2000M
 
+# New variable
+sunbird_external_content_whitelisted_domains: 'juliabox.com,youtube.com'
 player_replicas: 2
-player_reservation_memory: 64M
-player_limit_memory: 256M
+player_reservation_memory: 256M
+player_limit_memory: 512M
 
 content_replicas: 2
-content_reservation_memory: 64M
-content_limit_memory: 256M
+content_reservation_memory: 1000M
+content_limit_memory: 1000M
 
 keycloak1_replicas: 1
 keycloak1_reservation_memory: 768M
@@ -215,6 +221,8 @@ keycloak2_replicas: 1
 keycloak2_reservation_memory: 768M
 keycloak2_limit_memory: 1024M
 
+logger_logspout_reservation_memory: 200M
+logger_logspout_limit_memory: 200M
 
 learner_limit_cpu: 1
 learner_reservation_cpu: 1
@@ -238,7 +246,7 @@ enable_mongodb_availability_check: false
 postgres_exporter_postgres_port: 5432
 postgres_exporter_user: postgres_exporter
 postgres_exporter_password: "{{ vault_postgres_exporter_password }}"
-sunbird_learner_service_base_url: https://spike.open-sunbird.org/api
+sunbird_learner_service_base_url: https://perf.open-sunbird.org/api
 kong_admin_api_url: http://api-manager_kong:8001
 
 postgresql_backup_azure_storage_account_name: "{{ backup_storage_name }}"
@@ -272,7 +280,7 @@ monitor_alerts_mail_server_host: "{{ mail_server_host }}"
 monitor_alerts_mail_server_port: "{{ mail_server_port }}"
 monitor_alerts_mail_server_username: "{{ mail_server_username }}"
 monitor_alerts_mail_server_password: "{{ mail_server_password }}"
-env_short_name: spike
+env_short_name: perf
 
 # New varialbles player
 sunbird_external_content_whitelisted_domains: 'juliabox.com,youtube.com'
@@ -304,3 +312,12 @@ badger_url: http://azureaccountname.blob.core.windows.net/
 badger_container: badgr
 sunbird_http_orgin: "https://{{proxy_server_name}}/badging"
 
+jmeter:
+  client_hosts: 10.12.1.7,10.12.1.8
+  home: /mnt/data/benchmark
+  paths: ['/mnt/','/mnt/data/','/mnt/data/benchmark/','/mnt/data/benchmark/scenarios/','/mnt/data/benchmark/scripts/', '/mnt/data/benchmark/logs/', '/mnt/data/benchmark/current_scenario']
+  scripts: ['test_data','run_scenario', 'cleanup_data', 'upload_jmeter_logs']
+  scenarios: ['composite_search_v3']
+  scenario_inputs: ['search_input']
+  current_scenario: composite_search_v3
+  current_input_file: search_input.csv
