@@ -53,7 +53,7 @@ def checkAvailibility():
 
 def checkContainerReplication():
         print("Checking Container Replication:-\n")
-        reslt=(subprocess.check_output("sudo docker service ls | awk 'NR>1{print $2,$4 }' | sed 's/\// /g'| awk '$2!=$3{ print $1}'", shell=True)).splitlines()
+        reslt=(subprocess.check_output("sudo docker service ls | awk 'NR>1{print $2,$4 }' | sed 's/\// /g'| awk '($2!=$3) || (($2==0) && ($3==0)){ print $1}'", shell=True)).splitlines()
         for val in reslt:
                 print("Container "+str(val,"utf-8")+" Failed to replicate")
 
