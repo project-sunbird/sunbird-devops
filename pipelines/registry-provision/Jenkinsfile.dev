@@ -1,27 +1,27 @@
-#!groovy
+pipeline {
+    agent {
+        label 'general-dev'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
 
-node('build-slave') {
-
-    currentBuild.result = "SUCCESS"
-
-    try {
-       stage('Checkout'){
-          checkout scm
-          sh('./pipelines/setupDevopsCode.sh')
-       }
-
-       stage('Pre-Build'){
-       steps { 
-         sh '''
-         ./sunbird-devops/ansible/installDeps.sh
-         git clone https://github.com/project-sunbird/open-saber.git opensaber
-         '''
+        stage('Pre-Build'){
+            steps {
+             sh '''
+              ./sunbird-devops/ansible/installDeps.sh
+              git clone https://github.com/project-sunbird/open-saber.git opensaber
+              '''
          }
-       }
 
-       stage('Build'){
-        steps {             
-         sh '''
+        }
+
+        stage('Configure') {
+            steps {
+            sh '''
             cd opensaber/java
             mvn clean install
             cd ..
@@ -35,12 +35,8 @@ node('build-slave') {
             pwd
             ansible-playbook -i ansible/inventories/$ENV registry.yml --vault-password-file /home/ops/vault
             '''
+            }
         }
-       }
-    }
-    
-    catch (err) {
-        currentBuild.result = "FAILURE"
-        throw err
     }
 }
+
