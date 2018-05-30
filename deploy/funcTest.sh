@@ -89,7 +89,7 @@ check_postgres_databases() {
         echo -e "Checking Postgres Databases:-\n"
         ip=${arr[0]}
 	local outpt2=$(nssh $ssh_user@$ip 'sudo su postgres bash -c "psql -c \"SELECT datname FROM pg_database;\""' | awk 'NR>2' | head -n -2 | tr "\n" " ")
-	dbNames=("api_manager" "keycloak" "quartz" "Santhosh" "badger")
+	dbNames=("api_manager" "keycloak" "quartz" "badger")
         flag=0
         for db in ${dbNames[@]}; do
           echo $outpt2 | grep $db &>/dev/null
