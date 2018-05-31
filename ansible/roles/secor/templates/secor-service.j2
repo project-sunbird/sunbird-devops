@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# chkconfig: 2345 95 05
+# description: {{ description }}
+
+# Source function library.
+. /lib/lsb/init-functions
+
+service_name=$1
+prog="$service_name"
+PIDFILE="{{ script_dir }}/$service_name.pid"
+DESC="Secor Service"
+GREP_KEY=secor.main.ConsumerMain
+DAEMON=/usr/bin/java
+DAEMON_ARGS="-- -Xms256M -Xmx1024M -ea -Duser.timezone=UTC -Dsecor_group=$service_name -Dlog4j.configuration=log4j.properties -Dconfig=secor.partition.properties -cp secor-0.24-SNAPSHOT.jar:lib/* com.pinterest.secor.main.ConsumerMain"
+DAEMON_HOME="/mnt/$service_name"
+SBIN_HOME="{{ script_dir }}"
+
+#echo "All value sets"
+
+start() {
+    if [ -f $PIDFILE ]; then
+        PID=`cat $PIDFILE`
+        if [ -z "`pgrep $PID`" ] && [ "$PID" != "`ps aux|grep -vE 'grep|runuser|bash'|grep -w "$GREP_KEY"|awk '{print $2}'`" ]; then
+            printf "%s\n" "Process dead but pidfile exists"
+        else
+            printf "$prog is already running!\n"
+        fi
+    else
+        printf "%-50s" "Starting $prog ..."
+        cd $DAEMON_HOME
+        start-stop-daemon --start --quiet --background --name $service_name -d $DAEMON_HOME --exec $DAEMON $DAEMON_ARGS >/mnt/secor/logs/$service_name-service.log 2>&1
+        sleep 10
+        PID=`ps aux|grep -vE 'grep|runuser|bash'|grep -w "$GREP_KEY"|awk '{print $2}'`
+        if [ -z "$PID" ]; then
+            printf "[ \e[31mFAIL\033[0m ]\n"
+            exit 1
+        else
+            echo $PID > $PIDFILE
+            printf "[ \e[32mOK\033[0m ]\n"
+        fi
+    fi
+}
+
+stop() {
+    printf "%-50s" "Shutting down $prog:"
+    if [ -f $PIDFILE ]; then
+        PID=`cat $PIDFILE`
+        start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE 2>/dev/null
+        sleep 5
+        PID=`ps aux|grep -vE 'grep|runuser|bash'|grep -w "$GREP_KEY"|awk '{print $2}'`
+        if [ ! -z "$PID" ]; then
+            printf "[ \e[31mFAIL\033[0m ]\n"
+            exit 1
+        else
+            rm -f $PIDFILE
+            printf "[ \e[32mOK\033[0m ]\n"
+        fi
+    else
+        printf "[ \e[32mNOT RUNNING\033[0m ]\n" 
+    fi
+}
+
+check_status() {
+    printf "%-50s" "Checking $prog ..."
+    if [ -f $PIDFILE ]; then
+        PID=`cat $PIDFILE`
+        if [ -z "`pgrep $PID`" ] && [ "$PID" != "`ps aux|grep -vE 'grep|runuser|bash'|grep -w "$GREP_KEY"|awk '{print $2}'`" ]; then
+            printf "%s\n" "Process dead but pidfile exists"
+        else
+            printf "[ \e[32mRUNNING\033[0m ]\n"
+        fi
+    else
+        printf "[ \e[31mSTOPPED\033[0m ]\n"
+    fi
+}
+
+case "$2" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        check_status
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    *)
+        echo "Usage: $prog {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+exit 0

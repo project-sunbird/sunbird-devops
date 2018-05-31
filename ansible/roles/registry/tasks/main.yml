@@ -1,0 +1,32 @@
+---
+- name: Ensure stack directory exists
+  file:
+    path: /home/deployer/stack
+    state: directory
+    owner: root
+    group: root
+
+- name: Copy the target files to stack
+  copy: src="/home/deployer/open-saber/java/registry/target" dest="/home/deployer/stack/" mode="0644"
+
+- name: Save stack file
+  template: src=stack-registry.yml dest=/home/deployer/stack/registry.yml mode=0644
+
+- name: Initialize docker swarm
+  shell: "docker swarm init --advertise-addr $(hostname -i)"
+
+- name: Save stack file
+  template: src=stack-registry.yml dest=/home/deployer/stack/registry.yml mode=0644
+
+- name: Remove stack
+  shell: "docker stack rm registry"
+  ignore_errors: yes
+
+- name: Ensure network exists
+  shell: "docker network create --driver overlay registry_default"
+  ignore_errors: true
+
+- name: Deploy stack
+  shell: "docker stack deploy -c registry.yml registry"
+  args:
+    chdir: /home/deployer/stack

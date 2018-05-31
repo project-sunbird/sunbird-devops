@@ -1,0 +1,57 @@
+- stat:
+    path: /etc/init.d/keycloak
+  register: keycloak_service
+
+- name: status service
+  become: yes
+  command: /etc/init.d/keycloak status
+  register: keycloak
+  poll: 5
+  async: 10
+  when: keycloak_service.stat.islnk is defined
+
+- name: stop service
+  become: yes
+  command: /etc/init.d/keycloak stop && Pkill keycloak
+  when: "keycloak.stdout.find('running') != -1"
+  poll: 5
+  async: 10
+  ignore_errors: yes
+  when: keycloak_service.stat.islnk is defined
+
+- name: remove keycloak
+  become: yes
+  file: path="{{keycloak_home}}" state=absent
+
+- name: change build script permissions
+  become: yes
+  file: path=/opt owner={{wildfly_user}} group={{wildfly_group}} mode=0755 recurse=yes
+
+- name: Paste keycloak package on server
+  copy: src="sunbird_auth_{{sunbird_auth_version}}.zip" dest="/opt/" force=no owner={{wildfly_user}} group={{wildfly_group}}
+
+- name: extarct the folder
+  unarchive: src="/opt/sunbird_auth_{{sunbird_auth_version}}.zip" dest=/opt/ copy=no owner={{wildfly_user}} group={{wildfly_group}}
+
+- name: move the folder name
+  command: mv sunbird_auth_{{sunbird_auth_version}} keycloak
+  args:
+       chdir: /opt
+
+- name: remove the sunbird_auth_{{sunbird_auth_version}}
+  become: yes
+  file: path=/opt/sunbird_auth_{{sunbird_auth_version}} state=absent
+
+- name: Create admin user
+  become_user: "{{ wildfly_user }}"
+  command: "{{ wildfly_dir }}/bin/add-user-keycloak.sh -r master -u {{ keycloak_management_user }} -p {{ keycloak_management_password }}"
+  when: keycloak_management_user is defined and
+        keycloak_management_password is defined
+  ignore_errors: yes
+
+- name: start service
+  become: yes
+  command: /etc/init.d/keycloak start
+  poll: 5
+  async: 5
+  when: keycloak_service.stat.islnk is defined

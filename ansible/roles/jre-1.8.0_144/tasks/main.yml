@@ -1,0 +1,23 @@
+---
+# This role is for installing jre1.8.0_144 
+# Because cassandra 3.9 is not compatible with other latest java versions
+
+- name: Uncompressing and copying to system path
+  unarchive:
+    src: https://sunbirdpublic.blob.core.windows.net/installation/jre-8u144-linux-x64.tar.gz
+    dest: /opt/
+    remote_src: yes
+    keep_newer: yes
+  register: tar
+
+- name: Updating java jre to system path
+  shell: update-alternatives --install /usr/bin/java java /opt/jre1.8.0_144/bin/java 9999
+  when: tar.changed
+
+- name: Checking java version
+  shell: java -version
+  register: java
+
+- name: Java version
+  debug:
+    var: java.stderr

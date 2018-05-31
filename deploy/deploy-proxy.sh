@@ -10,12 +10,12 @@ fi
 INVENTORY_PATH=$1
 
 ORG=sunbird
-PROXY_VERSION=0.0.1-gold
+PROXY_VERSION=1.5.0-gold
 
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
-ansible-playbook -i $INVENTORY_PATH ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm --extra-vars=@config
+ansible-playbook -i $INVENTORY_PATH ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm --extra-vars=@config 
 
 # Re-deploy Proxy
 echo "Redeploy Proxy"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-proxy" --extra-vars "hub_org=${ORG} image_name=proxy image_tag=${PROXY_VERSION}" --extra-vars=@config
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-proxy" --extra-vars "hub_org=${ORG} image_name=proxy image_tag=${PROXY_VERSION}" --extra-vars=@config 

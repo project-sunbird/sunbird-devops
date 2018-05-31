@@ -1,0 +1,130 @@
+#!/bin/bash
+
+# This script will create dynamic host file for multinodal installation
+# Ansible will overwrite all variables, and creates a bash script
+# Executing that will generate formatted host entries for ansible
+#
+# Authors: <manoj@illimi.in> <rajesh.r@optit.co>
+
+elasticsearch_ips="{{elasticsearch_host if elasticsearch_host else database_host}}"
+cassandra_ips="{{cassandra_host if cassandra_host else database_host}}"
+postgres_master_ips="{{postgres_master_host if postgres_master_host else database_host}}"
+postgres_slave_ips="{{postgres_slave_host if postgres_slave_host else database_host}}"
+swarm_manager_ips="{{swarm_manager_host if swarm_manager_host else application_host}}"
+swarm_node_ips="{{swarm_node_host if swarm_node_host else application_host}}"
+keycloak_ips="{{keycloak_host if keycloak_host else application_host}}"
+log_es_ips="{{log_es_host if log_es_host else application_host}}"
+swarm_agent_for_prometheus_ips="{{prometheus_host if prometheus_host else application_host}}"
+swarm_agent_for_grafana_ips="{{grafana_host if grafana_host else application_host}}"
+swarm_agent_for_alertmanager_ips="{{alertmanager_host if alertmanager_host else application_host}}"
+
+# Creating an array from comma seperated ips
+ips(){
+    IFS=',' read -ra arr <<<$1
+}
+
+# Generating service specific variables
+service_vars(){
+    case $1 in
+        es)
+            echo -n es_instance_name="es-$count" es_etc_node_master=true es_etc_node_data=true 
+            group_name=es
+            ;;
+	log-es)
+            echo -n es_instance_name="es-$count" es_etc_node_master=true es_etc_node_data=true node_name=dev-log-es-$count
+            group_name=log-es
+            ;;
+        swarm-manager|swarm-nodes)
+            echo -n "swarm_master=true"
+            ;;
+        *)
+           ;;
+    esac
+}
+
+get_host_entries()
+{
+    if [ $# -ne 2 ];then 
+        echo "Usage: get_host_entries <comma seperated ips> <service name>"
+        exit 1
+    fi
+
+    # Generating ip array of the service
+    ips $2
+    
+    count=1
+    for ip in ${arr[@]}
+    do
+        # Creating group/host name for ansible
+        echo -e "\n[$1-$count] "
+        echo -n $ip ansible_ssh_user="{{ssh_ansible_user}}" ansible_ssh_private_key_file="{{ansible_private_key_path}}" \
+            ansible_sudo_pass="{{sudo_passwd}} "
+        service_vars $1
+        ((count++))
+    done
+    echo -e "\n"
+
+    # Creating groups
+    count=1
+    echo "[$1:children]"
+    for ip in ${arr[@]}
+    do
+        echo "$1-$count"
+        ((count++))
+    done
+
+    unset arr
+    unset count
+}
+
+get_host_entries es $elasticsearch_ips
+get_host_entries cassandra $cassandra_ips
+get_host_entries postgresql-master $postgres_master_ips
+get_host_entries postgresql-slave $postgres_slave_ips
+get_host_entries swarm-manager $swarm_manager_ips
+get_host_entries swarm-nodes $swarm_node_ips
+get_host_entries keycloak $keycloak_ips
+get_host_entries log-es $log_es_ips
+get_host_entries swarm-agent-for-prometheus $swarm_agent_for_prometheus_ips
+get_host_entries swarm-agent-for-grafana $swarm_agent_for_prometheus_ips
+get_host_entries swarm-agent-for-alertmanager $swarm_agent_for_prometheus_ips
+
+# Static Groups
+
+echo "
+[kong-api]
+localhost ansible_connection=local
+
+[swarm-bootstrap-manager:children]
+swarm-manager
+
+[non-swarm-nodes:children]
+postgresql-master
+postgresql-slave
+es
+cassandra
+kong-api
+keycloak
+log-es
+
+[swarm-nodes:children]
+swarm-manager
+swarm-bootstrap-manager
+swarm-agent-for-prometheus
+swarm-agent-for-grafana
+swarm-agent-for-alertmanager
+
+[node-exporter:children]
+non-swarm-nodes
+swarm-manager
+
+[log-forwarder:children]
+non-swarm-nodes
+swarm-manager
+
+[{{env}}:children]
+non-swarm-nodes
+swarm-nodes
+swarm-manager
+"
+

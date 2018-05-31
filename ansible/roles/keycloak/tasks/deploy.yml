@@ -13,12 +13,13 @@
 - name: stop service
   become: yes
   command: /etc/init.d/keycloak stop && pkill keycloak
-  when: "keycloak.stdout.find('running') != -1"
   poll: 5
   async: 10
   ignore_errors: yes
-  when: keycloak_service.stat.islnk is defined
-
+  when: 
+    - "keycloak.stdout.find('running') != -1"
+    - keycloak_service.stat.islnk is defined
+  
 - name: remove keycloak
   become: yes
   file: path="{{keycloak_home}}" state=absent owner={{wildfly_user}} group={{wildfly_group}} force=yes
@@ -55,8 +56,8 @@
 - name: copy the custom theme
   copy: src={{keycloak_theme_path}} dest="{{keycloak_home}}/themes/" owner={{wildfly_user}} group={{wildfly_group}}
   ignore_errors: true
-  
-- name: XML file 
+
+- name: XML file
   template:
     src: "{{keycloak_build_src}}/ansible-templates/standalone-ha.xml"
     dest: "{{keycloak_home}}/standalone/configuration/standalone-ha.xml"
@@ -160,9 +161,20 @@
 - name: Ekstract the folder
   unarchive: src="{{keycloak_ekstep_sunbird_login_theme_dest}}/{{keycloak_ekstep_sunbird_login_theme_file}}" dest="{{keycloak_ekstep_sunbird_login_theme_dest}}/" copy=no owner={{wildfly_user}} group={{wildfly_group}}
 
+- name: status service
+  become: yes
+  command: /etc/init.d/keycloak status
+  register: keycloak_status
+  poll: 5
+  async: 10
+  when: keycloak_service.stat.islnk is defined
+
 - name: start service
   become: yes
   command: /etc/init.d/keycloak start
   poll: 5
   async: 5
-
+  ignore_errors: yes
+  when: 
+    - "keycloak_status.stdout.find('running') != -1"
+    - keycloak_service.stat.islnk is defined

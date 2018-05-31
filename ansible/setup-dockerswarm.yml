@@ -1,0 +1,66 @@
+- name: Install Ansible Prereqs
+  hosts: swarm-nodes:swarm-manager
+  become: yes
+  gather_facts: no
+  tasks:
+  - raw: bash -c "test -e /usr/bin/python" || (apt install python -y)
+
+- name: Install Docker
+  hosts: swarm-nodes:swarm-manager
+  become: yes
+  roles:
+    - docker-ce
+
+- name: Initialize Swarm Master
+  hosts: swarm-manager-1
+  become: yes
+  tasks:
+    - shell: docker info
+      changed_when: False
+      register: docker_info
+    - shell: "docker swarm init --advertise-addr $(hostname -i)"
+      when: "docker_info.stdout.find('Swarm: active') == -1"
+    - shell: "docker swarm join-token -q manager"
+      register: manager_token
+    - set_fact: managertoken={{manager_token.stdout}}
+    - shell: "docker swarm join-token -q worker"
+      register: worker_token
+    - set_fact: workertoken={{worker_token.stdout}}
+    - shell: "echo $(hostname -i)"
+      register: swarm_master
+    - set_fact: swarmmaster={{swarm_master.stdout}}  
+  
+- name: Join Swarm Nodes
+  hosts: swarm-nodes
+  become: yes
+  gather_facts: yes
+  tasks:
+  - shell: docker info
+    changed_when: False
+    register: docker_info
+  - shell: "docker swarm join --advertise-addr {{hostvars[groups['swarm-manager-1'][0]].swarmmaster}} --token {{hostvars[groups['swarm-manager-1'][0]].workertoken}} {{hostvars[groups['swarm-manager-1'][0]].swarmmaster}}:2377"
+    when: "docker_info.stdout.find('Swarm: active') == -1"
+
+- name: Join Swarm Managers
+  hosts: swarm-manager
+  become: yes
+  gather_facts: yes
+  tasks:
+  - shell: docker info
+    changed_when: False
+    register: docker_info  
+  - shell: "docker swarm join --token {{hostvars[groups['swarm-manager-1'][0]].managertoken}} {{hostvars[groups['swarm-manager-1'][0]].swarmmaster}}:2377"
+    when: "docker_info.stdout.find('Swarm: active') == -1"
+
+- name: Drain Swarm Managers if not same node for manager and worker
+  hosts: swarm-manager
+  become: yes
+  gather_facts: yes
+  tasks:
+  - shell: docker node update --availability active $(hostname)
+    when: 
+      - groups['swarm-nodes']|length==1
+      - groups['swarm-manager']==groups['swarm-nodes']
+    register: result
+  - shell: docker node update --availability drain $(hostname)
+    when: result is skipped
