@@ -20,7 +20,7 @@
                             <form id="kc-passwd-update-form" class="ui form pre-signin" action="${url.loginAction}" method="post">
                             <div class="field">
                                 <label for="password-new">${msg("passwordNew")}</label>
-                                <input type="password" id="password-new" name="password-new" autofocus autocomplete="off" />
+                                <input type="password" id="password-new" name="password-new" autocomplete="off" />
                             </div>
 
                             <div class="field">
