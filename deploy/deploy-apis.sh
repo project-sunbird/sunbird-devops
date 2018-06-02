@@ -31,11 +31,11 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-adminuti
 sleep 10
 
 # Saving kong api url
-kong_admin_api_url=$(ansible -e @config -i stackroute-devops/ansible/inventories/staging/hosts swarm-manager-1 -a "/bin/bash -c \"sudo docker service ps api-manager_kong\"" | grep Runn | head -n1 | awk '{print $4}')
+kong_admin_api_url=$(ansible -e @config -i $INVENTORY_PATH swarm-bootstrap-manager -a "/bin/bash -c \"sudo docker service ps api-manager_kong\"" | grep Runn | head -n1 | awk '{print $4}')
 echo $kong_admin_api_url
 retry_count=5
 while [[ $kong_admin_api_url = '' && retry_count -ge 0 ]]; do
-    kong_admin_api_url=$(ansible -e @config -i stackroute-devops/ansible/inventories/staging/hosts swarm-manager-1 -a "/bin/bash -c \"sudo docker service ps api-manager_kong\"" | grep Runn | head -n1 | awk '{print $4}')
+    kong_admin_api_url=$(ansible -e @config -i $INVENTORY_PATH swarm-bootstrap-manager -a "/bin/bash -c \"sudo docker service ps api-manager_kong\"" | grep Runn | head -n1 | awk '{print $4}')
     echo "api-manager kong container is not running, waiting for 5 more seconds, retying $retry_count"
     sleep 5
     ((retry_count--))
