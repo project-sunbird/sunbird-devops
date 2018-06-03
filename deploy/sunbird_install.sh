@@ -14,7 +14,7 @@
 
 set -eu -o pipefail
 
-usage() { echo "Usage: $0 [ -s {sanity|config|dbs|apis|proxy|keycloak|badger|core|logger|monitor} ]" ; exit 0; }
+usage() { echo "Usage: $0 [ -s {sanity|config|dbs|apis|proxy|keycloak|badger|core|logger|monitor|test} ]" ; exit 0; }
 
 # Checking for valid argument
 if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
@@ -33,6 +33,8 @@ db_host=$(awk '/database_host: /{ if ($2 !~ /#.*/) {print $2}}' config)
 ssh_ansible_user=$(awk '/ssh_ansible_user: /{ if ($2 !~ /#.*/) {print $2}}' config)
 ansible_private_key_path=$(awk '/ansible_private_key_path: /{ if ($2 !~ /#.*/) {print $2}}' config)
 ansible_variable_path="${implementation_name}"-devops/ansible/inventories/"$env_name"
+protocol=$(awk '/proto: /{ if ($2 !~ /#.*/) {print $2}}' config)
+domainname=$(awk '/dns_name: /{ if ($2 !~ /#.*/) {print $2}}' config)
 
 #TO skip the host key verification
 export ANSIBLE_HOST_KEY_CHECKING=False
@@ -95,9 +97,11 @@ core() { ./deploy-core.sh $ansible_variable_path; }
 # Logger
 logger() { ./deploy-logger.sh $ansible_variable_path; }
 
-# Logger
+# Monitor
 monitor() { ./deploy-monitor.sh $ansible_variable_path; }
 
+#Post Installation Testing
+test() { ./funcTest.sh $ansible_private_key_path $ssh_ansible_user $protocol $domainname; }
 
 while getopts "s:h" o;do
     case "${o}" in
@@ -153,6 +157,12 @@ while getopts "s:h" o;do
                 monitor)
                     echo -e "\n$(date)\n">>logs/monitor.log; monitor 2>&1 | tee -a logs/monitor.log
                     exit 0   
+                    ;;
+                test)
+                    echo -e "\n$(date)\n">>logs/test.log;
+                    config 2>&1 | tee -a logs/test.log
+                    test 2>&1 | tee -a logs/test.log
+                    exit 0
                     ;;
                 *)
                     usage
