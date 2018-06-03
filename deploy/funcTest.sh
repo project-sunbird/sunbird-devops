@@ -177,4 +177,5 @@ get_logs
 check_service_health
 
 #Zipping Logs
+sudo apt-get install zip -y
 zip -r functest logs/test.log $ServiceLogsFolder/*
