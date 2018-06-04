@@ -9,7 +9,8 @@ fi
 
 inventory_path="$1"                                                                                                                                       
 org="sunbird" 
-badger_version="1.5.0-gold" 
+# Importing versions
+source version.env
 
 #Deploy Badger             
 echo "@@@@@@@@@ Badger "  
