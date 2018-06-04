@@ -8,6 +8,8 @@ if [ "$#" -ne 1 ]; then
 fi
 
 INVENTORY_PATH=$1
+# Importing variables
+source version.env
 
 ORG=sunbird
 ECHO_SERVER_VERSION=0.0.2-silver
@@ -20,7 +22,7 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/bootstrap.yml  --extra-vars "host
 
 # Deploy API Manager
 echo "@@@@@@@@@ Deploy API Manager"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-api-manager" --extra-vars "hub_org=${ORG} echo_server_image_name=echo-server echo_server_image_tag=${ECHO_SERVER_VERSION}" --extra-vars=@config 
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-api-manager" --extra-vars "hub_org=${ORG} echo_server_image_name=echo-server echo_server_image_tag=${ECHO_SERVER_VERSION} kong_version=${KONG_VERSION}" --extra-vars=@config 
 
 # Deploy Admin Utils API
 echo "@@@@@@@@@ Deploy Admin Utils API"

@@ -176,5 +176,6 @@ check_cassandra_keyspaces $cassandra_ips
 get_logs
 check_service_health
 
-#Zipping Logs
+#Zipping Logs to send it via email
+sudo apt-get install zip -y
 zip -r functest logs/test.log $ServiceLogsFolder/*

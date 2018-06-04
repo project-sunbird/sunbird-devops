@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 if [ "$#" -ne 1 ]; then
@@ -10,7 +10,8 @@ fi
 INVENTORY_PATH=$1
 
 ORG=sunbird
-PROXY_VERSION=1.5.0-gold
+# Getting versions
+source version.env
 
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
