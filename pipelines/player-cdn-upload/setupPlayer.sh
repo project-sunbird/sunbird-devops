@@ -2,7 +2,7 @@
 
 set -ex
 
-commit_ref=${1:-angular-migration}
+commit_ref=${GIT_BRANCH}
 player_dir=sunbird-portal
 [ -d $sunbird_devops_dir_name ] || git clone https://github.com/project-sunbird/$sunbird_devops_dir_name -b $commit_ref && exit 0
 cd $sunbird_devops_dir_name
