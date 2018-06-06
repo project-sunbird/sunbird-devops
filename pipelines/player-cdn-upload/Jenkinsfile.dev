@@ -9,19 +9,19 @@ node('build-slave') {
        stage('Checkout'){
 
           checkout scm
-          sh('./pipelines/player-cdn-upload/clone.sh')
+          sh('./pipelines/setupPlayer.sh')
        }
 
-       stage('Pre-Build'){
-
-         sh('./pipelines/player-cdn-upload/installDeps.sh')
-
-       }
-
-       stage('Deploy'){
+       stage('Build'){
           sh("./pipelines/player-cdn-upload/build.sh ${cdn}")
-       }
-
+        }
+        
+        stage('Deploy'){
+            sh """
+                cd sunbird-devops/ansible
+                ansible-playbook -c local assets-upload.yml --vault-password-file /run/secrets/vault-pass
+                """
+        }
     }
     catch (err) {
         currentBuild.result = "FAILURE"
