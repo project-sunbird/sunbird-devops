@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Build script
 # set -o errexit
 
