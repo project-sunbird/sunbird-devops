@@ -2,7 +2,10 @@
 # Build script
 # set -o errexit
 
-cd sunbird-portal/src/app/client
+npm install -g gulp
+cd sunbird-portal/src/app
+gulp download:editors
+cd client
 pwd
 echo ==================
 printenv
