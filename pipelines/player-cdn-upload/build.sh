@@ -7,7 +7,6 @@ pwd
 echo ==================
 printenv
 echo ==================
-cd
 source ~/.nvm/nvm.sh
 nvm install 8.11
 nvm use 8
