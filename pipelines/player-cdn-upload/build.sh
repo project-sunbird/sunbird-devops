@@ -2,10 +2,10 @@
 # Build script
 # set -o errexit
 
-apk add --no-cache git
-npm install -g gulp-cli
+apk add --no-cache git python make g++
 cd sunbird-portal/src/app
-gulp download:editors
+npm install
+./node_modules/.bin/gulp download:editors
 cd client
 npm install
 npm run build-cdn -- --deployUrl $1
