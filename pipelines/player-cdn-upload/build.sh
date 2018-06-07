@@ -7,5 +7,6 @@ pwd
 echo ==================
 printenv
 echo ==================
+nvm use 8
 npm install
 npm run build-cdn -- --deployUrl $1
