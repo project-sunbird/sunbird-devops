@@ -12,5 +12,6 @@ nvm install 8.11
 nvm use 8
 chmod -R 777 /home/ops/.npm
 whoami
+npm cache clean
 npm install
 npm run build-cdn -- --deployUrl $1
