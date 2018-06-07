@@ -8,6 +8,7 @@ echo ==================
 printenv
 echo ==================
 source ~/.nvm/nvm.sh
+nvm install 8.11
 nvm use 8
 npm install
 npm run build-cdn -- --deployUrl $1
