@@ -4,7 +4,7 @@ set -ex
 
 commit_ref=${1:-angular-migration}
 player_dir=sunbird-portal
-if [ ! -d $player_dir ]; 
+if [ ! -d $player_dir ]; then
     git clone https://github.com/project-sunbird/sunbird-player -b $commit_ref
     exit 0
 fi
