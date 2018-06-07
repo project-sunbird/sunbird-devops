@@ -7,6 +7,7 @@ pwd
 echo ==================
 printenv
 echo ==================
+whoami
 nvm use 8
 npm install
 npm run build-cdn -- --deployUrl $1
