@@ -4,6 +4,8 @@
 
 cd sunbird-portal/src/app/client
 pwd
-echo ${GIT_BRANCH}
+echo ==================
+printenv
+echo ==================
 npm install
 npm run build-cdn -- --deployUrl $1
