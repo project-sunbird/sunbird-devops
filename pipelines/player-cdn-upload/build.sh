@@ -15,3 +15,4 @@ whoami
 npm cache clean
 npm install
 npm run build-cdn -- --deployUrl $1
+mv ../dist/index.html ../dist/index.ejs
