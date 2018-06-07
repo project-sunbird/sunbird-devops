@@ -2,6 +2,7 @@
 # Build script
 # set -o errexit
 
+apk add --no-cache git
 npm install -g gulp
 cd sunbird-portal/src/app
 gulp download:editors
