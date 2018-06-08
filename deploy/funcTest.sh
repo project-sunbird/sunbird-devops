@@ -161,7 +161,7 @@ check_service_health() {
         echo ""
         proxyServerID=$(getent hosts $(sudo docker service ps proxy_proxy | grep Running | awk '{print $4}') | awk '{print $1}')
         echo "Proxy server IP is $proxyServerID"
-        ansible-playbook  -i "$proxyServerID," ../ansible/servicehealth.yml --extra-vars "ansible_ssh_private_key_file=$1 ansible_ssh_username=$2" 
+        ansible-playbook  -i "$proxyServerID," ../ansible/servicehealth.yml --extra-vars "ansible_ssh_private_key_file=$ssh_key ansible_ssh_username=$ssh_user" 
 }
 
 check_es $elasticsearch_ips
