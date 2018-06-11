@@ -14,7 +14,7 @@
 
 set -eu -o pipefail
 
-usage() { echo "Usage: $0 [ -s {sanity|config|dbs|apis|proxy|keycloak|badger|core|logger|monitor|test} ]" ; exit 0; }
+usage() { echo "Usage: $0 [ -s {sanity|config|dbs|apis|proxy|keycloak|badger|core|logger|monitor|posttest} ]" ; exit 0; }
 
 # Checking for valid argument
 if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
@@ -101,7 +101,7 @@ logger() { ./deploy-logger.sh $ansible_variable_path; }
 monitor() { ./deploy-monitor.sh $ansible_variable_path; }
 
 #Post Installation Testing
-test() { ./funcTest.sh $ansible_private_key_path $ssh_ansible_user $protocol $domainname; }
+posttest() { ./postInstallation.sh $ansible_private_key_path $ssh_ansible_user $protocol $domainname; }
 
 while getopts "s:h" o;do
     case "${o}" in
@@ -158,10 +158,10 @@ while getopts "s:h" o;do
                     echo -e "\n$(date)\n">>logs/monitor.log; monitor 2>&1 | tee -a logs/monitor.log
                     exit 0   
                     ;;
-                test)
-                    echo -e "\n$(date)\n">>logs/test.log;
-                    config 2>&1 | tee -a logs/test.log
-                    test 2>&1 | tee -a logs/test.log
+                posttest)
+                    echo -e "\n$(date)\n">>logs/postInstallationLogs.log;
+                    config 2>&1 | tee -a logs/postInstallationLogs.log
+                    posttest 2>&1 | tee -a logs/postInstallationLogs.log
                     exit 0
                     ;;
                 *)

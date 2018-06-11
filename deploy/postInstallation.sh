@@ -178,4 +178,4 @@ check_service_health
 
 #Zipping Logs to send it via email
 sudo apt-get install zip -y
-zip -r functest logs/test.log $ServiceLogsFolder/*
+zip -r logs logs/*
