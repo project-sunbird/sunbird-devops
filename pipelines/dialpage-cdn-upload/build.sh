@@ -11,6 +11,7 @@ echo ========================================================================
 echo ========================================================================
 npm install
 npm run build
+echo =================== build completed
 # Created dist folder
 # Replace only staging
 [[ $env == 'staging' ]] && sed -i s#https://dev.open-sunbird.org#https://staging.open-sunbird.org#g dist/script.js
