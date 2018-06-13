@@ -1,5 +1,7 @@
 - name: ensure prometheus is stopped before backup
   shell: "docker service scale monitor_prometheus=0"
+  delegate_to: swarm-bootstrap-manager
+  run_once: true
 
 - name: Starting Prometheus backup 
   block:
@@ -22,6 +24,8 @@
   always:
     - name: ensure prometheus is started after backup
       shell: "docker service scale monitor_prometheus=1"
+      delegate_to: swarm-bootstrap-manager
+      run_once: true
 
 - name: Ensure azure blob storage container exists
   command: az storage container create  --name {{ prometheus_backup_azure_container_name }}
