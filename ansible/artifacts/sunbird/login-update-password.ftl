@@ -35,7 +35,7 @@
                                 </div>
 
                                 <div id="kc-form-buttons" class="${properties.kcFormButtonsClass!}">
-                                    <button class="ui primary right floated button buttonResizeClass" type="submit">${msg("doSubmit")}</button>
+                                    <button class="ui primary right floated button buttonResizeClass" onclick="javascript:makeDivUnclickable()" type="submit">${msg("doSubmit")}</button>
                                 </div>
                             </div>
                             </form>

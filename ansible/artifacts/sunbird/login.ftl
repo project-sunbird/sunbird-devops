@@ -35,12 +35,12 @@
                                 <div class="six wide column">
                                     <div class="forgot-passwordText">
                                         <#if realm.resetPasswordAllowed>
-                                        <span><a href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a></span>
+                                        <span><a onclick="javascript:makeDivUnclickable()" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a></span>
                                         </#if>
                                     </div>
                                 </div>
                                 <div class="six wide column">
-                                    <button class="ui primary right floated button buttonResizeClass" name="login" id="kc-login" type="submit">${msg("doLogIn")}</button>
+                                    <button class="ui primary right floated button buttonResizeClass" name="login" id="kc-login" onclick="javascript:makeDivUnclickable()" type="submit">${msg("doLogIn")}</button>
                                 </div>
                             </div>
                         </form>
