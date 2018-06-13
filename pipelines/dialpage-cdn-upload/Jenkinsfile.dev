@@ -1,0 +1,31 @@
+#!groovy
+
+node('build-slave') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+          sh"""
+            ./pipelines/setupDevopsCode.sh
+            ./pipelines/player-cdn-upload/setupPlayer.sh release-1.7
+            """
+       }
+
+       stage('Build'){
+          sh ("docker run --rm -v `pwd`:/work -w /work node:8.11.2-alpine sh ./pipelines/player-cdn-upload/build.sh ")
+        }
+        
+        stage('Deploy'){
+            sh("./pipelines/player-cdn-upload/deploy.sh dev")
+        }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
