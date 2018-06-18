@@ -1,27 +1,6 @@
-- hosts: swarm-bootstrap-manager
-  become: yes
-  vars_files:
-    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-  tasks:
-    # This brings down all monitoring when play book fails. Need to figure out better way
-    # - name: ensure monit is stopped before stopping prometheus
-    #   service: name=monit state=stopped
-    - name: ensure prometheus is stopped before backup
-      shell: "docker service scale monitor_prometheus=0"
-
 - hosts: swarm-agent-for-prometheus
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   roles:
     - prometheus-backup
-
-- hosts: swarm-bootstrap-manager
-  become: yes
-  vars_files:
-    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-  tasks:
-    - name: ensure prometheus is started after backup
-      shell: "docker service scale monitor_prometheus=1"
-    - name: ensure monit is started after starting prometheus
-      service: name=monit state=started
