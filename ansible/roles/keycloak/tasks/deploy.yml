@@ -8,7 +8,6 @@
 - name: stop service
   become: yes
   command: /etc/init.d/keycloak stop && Pkill keycloak
-  when: "keycloak.stdout.find('running') != -1"
   poll: 5
   async: 10
   ignore_errors: yes
@@ -95,10 +94,17 @@
         keycloak_management_password is defined
   ignore_errors: yes
 
+- name: status service
+  become: yes
+  command: /etc/init.d/keycloak status
+  register: keycloak_status
+  poll: 5
+  async: 10
+
 - name: start service
   become: yes
   command: /etc/init.d/keycloak start
+  when: "keycloak_status.stdout.find('running') == -1"
   poll: 5
   async: 5
   ignore_errors: yes
-

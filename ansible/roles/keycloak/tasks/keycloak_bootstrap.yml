@@ -1,3 +1,8 @@
+- name: Waiting Until Keycloak is fully functional 
+  wait_for:
+    port: 8080
+    delay: 5
+
 - name: Initialize python library to run keycloak bootstrap script
   shell: cd {{ role_path }}/files/python-keycloak-0.12.0 && python setup.py install
 
@@ -10,5 +15,13 @@
 - name: Copy user manager roles file to tmp location
   copy: src="files/python-keycloak-0.12.0/roles.json" dest="/tmp/roles.json" mode="0644" 
 
+- name: Pausing for 100 seconds sometime for keycloak to run completely 
+  pause:
+    seconds: 100
+
 - name: Run the keycloak bootstrap script
   shell:  cd {{ role_path }}/files/python-keycloak-0.12.0/keycloak/ && python keycloak_main.py /tmp/keycloak-bootstrap.conf.json
+  register: out
+  until: '"404" not in out.stderr'
+  retries: 2
+  delay: 10

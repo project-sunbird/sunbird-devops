@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 if [ "$#" -ne 1 ]; then
@@ -9,8 +9,9 @@ fi
 
 inventory_path="$1"                                                                                                                                       
 org="sunbird" 
-badger_version="1.5.0-gold" 
+# Importing versions
+source version.env
 
 #Deploy Badger             
 echo "@@@@@@@@@ Badger "  
-ansible-playbook -i $inventory_path ../ansible/deploy-badger.yml  --extra-vars=@config --extra-vars "hub_org=${org} image_name=badger image_tag=${badger_version}"
+ansible-playbook -i $inventory_path ../ansible/deploy-badger.yml  --extra-vars=@config --extra-vars "hub_org=${org} image_name=badger image_tag=${BADGER_SERVICE_VERSION}"
