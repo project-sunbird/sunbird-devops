@@ -85,7 +85,7 @@ keycloak() {
     ./provision-keycloak.sh $ansible_variable_path
     ./deploy-keycloak-vm.sh $ansible_variable_path 
     sleep 15
-#    ./bootstrap-keycloak.sh $ansible_variable_path
+    ./bootstrap-keycloak.sh $ansible_variable_path
 }
 
 # badger
