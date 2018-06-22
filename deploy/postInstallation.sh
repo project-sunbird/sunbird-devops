@@ -37,10 +37,10 @@ check_es() {
 	local outpt2=$(curl -XGET -s "$ip:9200" | jq ".version.number")
 	if [ "$outpt1" == "\"green\"" ] || [ "$outpt1" == "\"yellow\"" ] && [ "$outpt" -eq 9200 ];then
         	echo "ELASTICSEARCH cluster is healthy"
+		echo -e "The Version of Elasticsearch being used is \"$outpt2\"\n"
 	else
-		echo "ELASTICSEARCH cluster is unhealthy"
+		echo -e "ELASTICSEARCH cluster is unhealthy\n"
         fi
-	echo -e "The Version of Elasticsearch we are using is \"$outpt2\"\n"
 }
 
 
@@ -83,7 +83,7 @@ check_es_indices() {
     ip=${arr[0]}
     local outpt1=$(curl -XGET -s "$ip:9200/_cat/indices" | awk '{print $3}')
         if [ "$outpt1" == "searchindex" ];then
-                echo "ELASTICSEARCH indices exists"
+                echo "OK: ELASTICSEARCH indices exists"
         else
                 echo "WARNING: ELASTICSEARCH indices does NOT EXISTS"
         fi
@@ -136,14 +136,14 @@ check_cassandra_keyspaces() {
 check_version() {
 	list=(actor-service player_player learner-service content_service_content_service proxy_proxy api-manager_kong)
 	versionReq=$(git branch | grep \* | cut -d '-' -f2)
-	echo "The Version is $versionReq"
+	echo -e "The Sunbird Version being used is $versionReq \n"
 	if [ $(git branch | grep \* | cut -d '-' -f2 | grep -Ewo '.' | wc -l) -ne 3 ]; then
 		versionReq="${versionReq}.0"
 	fi
         for service in ${list[@]}; do
 	    versionGot=$( sudo docker service ls | grep  $service | awk '{ print $5 }' | cut -d ':' -f2 | cut -d '-' -f1)
             if [ "$versionReq" == "$versionGot" ]; then
-		echo "$service Version is as per the Latest Release"
+		echo "OK: $service Version is as per the Latest Release"
 	    else
 	        echo "WARNING: $service Version is NOT as per the latest release,the version obtained is $versionGot"
 	    fi
@@ -153,9 +153,9 @@ check_version() {
 
 get_logs() {
 	mkdir -p $ServiceLogsFolder
-	echo "Taking Logs of services in $ServiceLogsFolder"
+	echo "Storing logs of core services in $ServiceLogsFolder"
 	echo "-----------------------------------------"
-	serviceNames=(actor-service player_player learner-service content_service_content_service proxy_proxy api-manager_kong)
+	serviceNames=(player_player learner-service content_service_content_service proxy_proxy api-manager_kong)
 	for service in ${serviceNames[@]}; do
 		echo -e "\nexporting $service logs to $ServiceLogsFolder"
 		sudo docker service logs $service --tail 10000 > $ServiceLogsFolder/$service
