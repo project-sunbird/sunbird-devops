@@ -1,0 +1,37 @@
+#!/bin/bash
+
+scenario_id=$1
+numThreads=$2
+rampupTime=$3
+ctrlLoops=$4
+JMETER_HOME={{ jmeter.home }}apache-jmeter-4.0
+SCENARIO_LOGS={{ jmeter.home }}logs
+echo "Executing $scenario_id"
+
+if [ -f {{ jmeter.home }}logs/$scenario_id ]
+then
+	rm {{ jmeter.home }}logs/$scenario_id
+fi
+
+echo "Instance Id: {{ ansible_default_ipv4.address }}"
+IP_ADDR=`echo "{{ ansible_default_ipv4.address }}" | sed 's/\.//g'`
+
+JMX_FILE_PATH={{ jmeter.home }}current_scenario/{{ jmeter.current_scenario }}.jmx
+
+mkdir {{ jmeter.home }}logs/$scenario_id
+mkdir {{ jmeter.home }}logs/$scenario_id/logs
+mkdir {{ jmeter.home }}logs/$scenario_id/server/
+rm {{ jmeter.home }}current_scenario/*.jmx
+cp {{ jmeter.home }}scenarios/base_{{ jmeter.current_scenario }}.jmx $JMX_FILE_PATH
+#cp {{ jmeter.home }}scenarios/{{ jmeter.current_input_file }} {{ jmeter.home }}current_scenario/{{ jmeter.current_input_file }}
+sed -i "s/THREADS_COUNT/${numThreads}/g" $JMX_FILE_PATH
+sed -i "s/RAMPUP_TIME/${rampupTime}/g" $JMX_FILE_PATH
+sed -i "s/CTRL_LOOPS/${ctrlLoops}/g" $JMX_FILE_PATH
+sed -i "s/AUTH_KEY/AUTH_KEY/g" $JMX_FILE_PATH
+sed -i "s/SCENARIO_ID/${scenario_id}/g" $JMX_FILE_PATH
+sed -i "s/IP_ADDR/${IP_ADDR}/g" $JMX_FILE_PATH
+
+
+nohup $JMETER_HOME/bin/jmeter.sh -n -t $JMX_FILE_PATH -R{{ jmeter.client_hosts }} -l $SCENARIO_LOGS/$scenario_id/logs/output.xml -j $SCENARIO_LOGS/$scenario_id/logs/jmeter.log > $SCENARIO_LOGS/$scenario_id/logs/scenario.log 2>&1 &
+
+echo "Execution of $scenario_id Complete."
