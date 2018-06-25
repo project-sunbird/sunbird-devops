@@ -1,0 +1,9 @@
+---
+- name: Remove learner service
+  shell: "docker service rm telemetry-service"
+  ignore_errors: yes
+
+- name: Deploy telemetry service
+  shell: "docker service create --replicas {{ telemetry_replicas }} -p 9001:9001  --name telemetry-service --hostname telemetry-service --reserve-memory {{ telemetry_reservation_memory }} --limit-memory {{ telemetry_limit_memory }}  --network application_default --env-file /home/deployer/env/sunbird_telemetry-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"
+  args:
+    chdir: /home/deployer/stack
