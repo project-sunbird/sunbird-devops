@@ -411,9 +411,14 @@
         "description": "The azure deploy environment. Currently support: AzurePublicCloud, AzureChinaCloud"
       },
       "type": "string"
-    }
+    },
+    "slaveOSDiskSizeGB": {
+      "defaultValue": "110GB",
+      "type": "string"
+    }  
   },
   "variables": {
+    "slaveOSDiskSizeGB": "[parameters('slaveOSDiskSizeGB')]",
     "adminUsername": "[parameters('linuxAdminUsername')]",
     "agentCustomScript": "[concat('/usr/bin/nohup /bin/bash -c \"/bin/bash /opt/azure/containers/',variables('configureClusterScriptFile'), ' ',variables('clusterInstallParameters'),' >> /var/log/azure/cluster-bootstrap.log 2>&1 &\" &')]",
     "agentMaxVMs": 100,
@@ -682,33 +687,16 @@
               "publisher": "[variables('osImagePublisher')]",
               "sku": "[variables('osImageSKU')]",
               "version": "[variables('osImageVersion')]"
-            },
-            "osDisk": {
+            }, 
+            "osDisk": {              
               "caching": "ReadWrite",
-              "createOption": "FromImage"
+              "createOption": "FromImage",
+              "diskSizeGB": "[variables('slaveOSDiskSizeGB')]"
             }
-          },
-          "extensionProfile": {
-            "extensions": [
-              {
-                "type": "Microsoft.Compute/virtualMachines/extensions",
-                "name": "[concat(variables('agentpublicVMNamePrefix'), '-SwarmNodePostInstallScript')]",
-                "properties": {
-                  "publisher": "Microsoft.Azure.Extensions",
-                  "type": "CustomScript",
-                  "typeHandlerVersion": "2.0",
-                  "settings": {
-                    "fileUris": [
-                      "https://raw.githubusercontent.com/project-sunbird/sunbird-devops/master/deploy/docker-swam-node-post-install.sh"
-                    ],
-                    "commandToExecute": "sh docker-swam-node-post-install.sh"
-                  }
-                }
-              }
-            ]
           }
         }
       },
+          
       "sku": {
         "capacity": "[variables('agentpublicCount')]",
         "name": "[variables('agentpublicVMSize')]",

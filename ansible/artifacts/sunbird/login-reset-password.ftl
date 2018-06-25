@@ -27,13 +27,13 @@
                                 <div class="six wide column">
                                         <div id="kc-form-options">
                                             <div class="${properties.kcFormOptionsWrapperClass!}">
-                                                <span><a href="${url.loginUrl}">${msg("backToLogin")}</a></span>
+                                                <span><a onclick="javascript:makeDivUnclickable()" href="${url.loginUrl}">${msg("backToLogin")}</a></span>
                                             </div>
                                         </div>
                                 </div>
                                 <div class="six wide column">
                                     <div id="kc-form-buttons">
-                                     <button class="ui primary right floated button buttonResizeClass" type="submit">${msg("doSubmit")}</button>
+                                     <button class="ui primary right floated button buttonResizeClass" onclick="javascript:makeDivUnclickable()" type="submit">${msg("doSubmit")}</button>
                                     </div>
                                 </div>
                             </div>

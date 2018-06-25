@@ -1,0 +1,25 @@
+pipeline {
+    agent {
+        label 'general-perf'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+        stage('Pre-Build'){
+            steps {
+                sh('./sunbird-devops/ansible/installDeps.sh')
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd sunbird-devops/ansible
+                ansible-playbook -i ../../ansible/inventories/perf provision.yml --tags postgresql-slave --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
