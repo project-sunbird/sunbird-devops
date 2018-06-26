@@ -4,7 +4,7 @@
 #apk add curl
 #apk update jq
 #apk add jq
-outpt1=$(curl -s content_service_content_service:5000/health | jq '.result.healthy')
+outpt1=$(curl -s content-service:5000/health | jq '.result.healthy')
 outpt2=$(curl -s player_player:3000/health| jq '.result.healthy')
 outpt3=$(curl -s learner-service:9000/health | jq '.result.response.checks[0].healthy')
 echo ""
