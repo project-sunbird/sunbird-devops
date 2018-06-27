@@ -1,0 +1,25 @@
+pipeline {
+    agent {
+        label 'general-staging'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+        stage('Pre-Build'){
+            steps {
+                sh('./sunbird-devops/ansible/installDeps.sh')
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd sunbird-devops/ansible
+                ansible-playbook -v -i ../../ansible/inventories/staging setup-dockerswarm.yml --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
