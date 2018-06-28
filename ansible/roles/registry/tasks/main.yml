@@ -11,6 +11,10 @@
     path: /home/deployer/config
     state: directory
 
+- name: Remove stack
+  shell: "docker stack rm registry"
+  ignore_errors: yes
+
 - name: Save templates
   template: src="{{item}}" dest="/home/deployer/config/{{item}}" mode=0644
   with_items: "{{registry_config}}" 
@@ -30,9 +34,6 @@
 - name: Save stack file
   template: src=sunbird_registry.env dest=/home/deployer/stack/sunbird_registry.env mode=0644
 
-- name: Remove stack
-  shell: "docker stack rm registry"
-  ignore_errors: yes
 
 - name: Deploy stack
   shell: "docker stack deploy -c registry.yml registry"
