@@ -1,19 +1,31 @@
 version: "3.3"
 services:
   registry:
-    image: frolvlad/alpine-oraclejdk8:slim
+    image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
     deploy:
       replicas: 1
     ports:
       - "8080:8080"
+    configs:
+      - source: audit_frame.json
+        target: /home/opensaber/config/audit_frame.json
+      - source: frame.json
+        target: /home/opensaber/config/frame.json
+      - source: schema-configuration.jsonld
+        target: /home/opensaber/config/schema-configuration.jsonld
+      - source: validations_create.shex
+        target: /home/opensaber/config/validations_create.shex
+      - source: validations_update.shex
+        target: /home/opensaber/config/validations_update.shex
     volumes:
-      - /data:/data
-      - /logs:/logs
-    command: java -jar /data/registry.jar
+      - /var/dockerdata/registry/data:/data
+      - /var/dockerdata/registry/data/logs:/logs
+    command: java -cp /home/opensaber/config/* -Xms1024m -Xmx2048m -XX:+UseG1GC -jar /home/opensaber/registry.jar
     env_file:
       /home/deployer/stack/sunbird_registry.env
     networks:
-      - registry_default
+      - application_default
 networks:
-  registry_default:
+  application_default:
     external: true
+
