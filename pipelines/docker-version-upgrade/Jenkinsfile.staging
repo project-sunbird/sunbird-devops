@@ -8,17 +8,12 @@ pipeline {
                 sh('./pipelines/setupDevopsCode.sh')
             }
         }
-        stage('Pre-Build'){
-            steps {
-                sh('./sunbird-devops/ansible/installDeps.sh')
-            }
-        }
         stage('Deploy') {
             steps {
                 sh '''
                 cd sunbird-devops/ansible
-                ansible-playbook -v -i ../../ansible/inventories/staging docker-version-upgrade.yml --vault-password-file /home/ops/vault
-                '''
+                ansible-playbook -i ../../ansible/inventories/staging docker-version-upgrade.yml --vault-password-file /home/ops/vault --extra-vars "ansible_ssh_user=ops ansible_ssh_private_key_file=/home/ops/ops"               
+		 '''
             }
         }
     }
