@@ -4,6 +4,14 @@ services:
     image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
     deploy:
       replicas: 1
+      placement:
+          constraints:
+                - "node.labels.prometheus==1"
+      resources:
+          reservations:
+            memory: "{{ registry_reservation_memory }}"
+          limits:
+            memory: "{{ registry_limit_memory }}"
     ports:
       - "8080:8080"
     configs:
@@ -18,8 +26,8 @@ services:
       - source: validations_update.shex
         target: /home/opensaber/config/validations_update.shex
     volumes:
-      - /var/dockerdata/registry/data:/data
-      - /var/dockerdata/registry/data/logs:/logs
+      - /var/dockerdata/registry/data/:/data
+      - /var/dockerdata/registry/logs:/logs
     command: java -cp /home/opensaber/config/* -Xms1024m -Xmx2048m -XX:+UseG1GC -jar /home/opensaber/registry.jar
     env_file:
       /home/deployer/stack/sunbird_registry.env
