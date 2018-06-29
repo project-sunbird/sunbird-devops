@@ -155,6 +155,7 @@ while getopts "s:h" o;do
                     exit 0
                     ;;
                 monitor)
+		    echo -e "\n$(date)\n">>logs/proxy.log; proxy 2>&1 | tee -a logs/proxy.log
                     echo -e "\n$(date)\n">>logs/monitor.log; monitor 2>&1 | tee -a logs/monitor.log
                     exit 0   
                     ;;
