@@ -12,10 +12,13 @@
   file: path=/opt/kafka state=link src=/opt/kafka_{{kafka_scala_version}}-{{kafka_version}} owner={{kafka_user}} group={{kafka_group}}
 
 - name: Overwrite the start script so the Java Opts can be changed if Kafka 0.10.0.1
-  lineinfile: dest=/opt/kafka_{{kafka_scala_version}}-{{kafka_version}}/bin/kafka-server-start.sh regexp="^export KAFKA_HEAP_OPTS=" line="export KAFKA_HEAP_OPTS=\"{{ kafka_heap_opts }}\""
+  lineinfile: 
+    dest: "/opt/kafka_{{kafka_scala_version}}-{{kafka_version}}/bin/kafka-server-start.sh"
+    regexp: "^export KAFKA_HEAP_OPTS=" 
+    line: "export KAFKA_HEAP_OPTS=\"{{ kafka_heap_opts }}\""
   notify:
     - restart kafka
-  when: kafka_version == "{{kafka_version}}"
+  when: kafka_version == "0.10.0.1"
 
 - name: Insert KAFKA_OPTS to kafka-server-start.sh
   lineinfile: dest=/opt/kafka_{{kafka_scala_version}}-{{kafka_version}}/bin/kafka-server-start.sh insertafter="^COMMAND=" line="export KAFKA_OPTS={{ kafka_opts }}"
