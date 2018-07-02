@@ -1,0 +1,410 @@
+# ENVIRONMENT CONFIGURATION
+env: dev #Name of the environment, e.g. dev, staging or production.
+proxy_server_name: dev.open-sunbird.org #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
+proto: https
+proxy_site_key: "{{ vault_proxy_site_key }}"  #SSL certificate's site.key file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
+proxy_site_crt: "{{ vault_proxy_site_crt }}"  #SSL certificate's site.crt file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
+
+
+# DB CONFIGURATION
+
+## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
+application_postgres_password: "{{vault_application_postgres_password}}"   #Password for Application database.
+keycloak_postgres_password: "{{vault_keycloak_postgres_password}}"  #Password for Keycloak (Authentication service) database.
+kong_postgres_password:  "{{ vault_kong_postgres_password }}"         #Password for Kong (API Manager) database.
+
+## Postgres configuration
+swarm_address_space: 10.0.0.0/16  #Application server address space (e.g. 10.3.0.0/24), also the agentpublicSubnet if using Azure scripts provided
+keycloak_address_space: 10.113.0.0/24
+postgres_address_space: 10.10.0.0/24
+sunbird_content_service_whitelisted_channels: ''
+sunbird_content_service_blacklisted_channels: ''
+## Cassandra configuration
+cassandra_server_private_ip: 10.10.4.4 #Private IP of cassandra server
+keystore_password: "{{vault_keystore_password}}"  #Password to use for encrypting cassandra keystore. Use a strong password.
+truststore_password: "{{vault_truststore_password}}"  #Password to use for encrypting cassandra truststore. Use a strong password.
+
+# APPLICATION CONFIGURATION
+
+kong_host: api-manager_kong
+
+## DB address
+application_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
+keycloak_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
+kong_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
+sunbird_mongo_ip: 10.10.2.5 #Private IP of Mongo DB server
+sunbird_cassandra_host: 10.10.4.4  #Private IP of Cassandra server
+sunbird_es_host: 10.10.3.7,10.10.3.8,10.10.3.6   #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
+
+## Application server configurations
+sunbird_ekstep_api_base_url: https://dev.ekstep.in/api  #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
+sunbird_ekstep_proxy_base_url: https://dev.ekstep.in  #Base URL of the Ekstep environment. Use `https://qa.ekstep.in/` for non-prod deployments, and `https://community.ekstep.in/` for prod deployment.
+sunbird_env: qa #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
+sunbird_mail_server_host: "{{ mail_server_host }}"  #SMTP server IP. Could be ignored if not mails are to be sent.
+sunbird_mail_server_port: "{{ mail_server_port }}" #SMTP port. Could be ignored if not mails are to be sent.
+sunbird_mail_server_username: "{{ mail_server_username }}"  #SMTP username. Could be ignored if not mails are to be sent.
+sunbird_mail_server_password: "{{ mail_server_password }}"  #SMTP server pasword. Could be ignored if not mails are to be sent.
+sunbird_mail_server_from_email: support-dev@open-sunbird.org #Email ID that should be as from address in mails
+
+## Keycloak (auth server) login details
+sunbird_sso_username: "{{ vault_sunbird_sso_username }}"
+sunbird_sso_password: "{{ vault_sunbird_sso_password }}"
+keycloak_admin_username: admin
+keycloak_admin_initial_password: "{{ vault_keycloak_admin_password }}"
+keycloak_tar_path: keycloak.tar.gz
+keycloak_theme_path: artifacts/sunbird
+
+
+## Content Repo configuration
+sunbird_api_auth_token: "{{ vault_sunbird_api_auth_token }}" #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
+sunbird_ekstep_api_key: "{{ vault_sunbird_ekstep_api_key }}" #Authorization key (JWT) to access Ekstep APIs. Steps to generate this are documented on https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs
+sunbird_trampoline_secret: "{{ vault_sunbird_trampoline_secret }}"
+
+# ADVANCED CONFIGURATIONS
+
+cassandra_listen_address: "{{ cassandra_server_private_ip }}"
+cassandra_seeds: "{{ cassandra_server_private_ip }}"
+cassandra_broadcast_rpc_address: "{{ cassandra_server_private_ip }}"
+cassandra_broadcast_address: "{{ cassandra_server_private_ip }}"
+cassandra_listen_interface: ''
+cassandra_log_dir: '/var/log/cassandra'
+cassandra_root_dir: '/etc/cassandra'
+cassandra_version: '3.9'
+cassandra_port: 9042
+cassandra_rpc_address: 0.0.0.0
+cassandra_restore_dir: /home/deployer/
+cassandra_backup_azure_container_name: cassandra-backup
+cassandra_backup_azure_storage_account_name: "{{ backup_storage_name }}"
+cassandra_backup_azure_storage_access_key: "{{backup_storage_key}}"
+cassandra_backup_dir: /data/cassandra/backup
+
+keycloak_url: http://10.113.0.7
+registry_url: http://10.2.1.4:8080
+keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth"
+keycloak_realm: sunbird
+sunbird_content_player_url: "https://{{ proxy_server_name }}/api/"
+sunbird_learner_player_url: "https://{{ proxy_server_name }}/api/"
+sunbird_sso_client_id: admin-cli
+sunbird_mongo_port: 27017
+sunbird_mongodb_port: 27017
+sunbird_portal_realm: sunbird
+sunbird_portal_auth_server_client: portal
+sunbird_trampoline_client_id: trampoline
+sunbird_appid: "{{env}}.sunbird.portal"
+sunbird_default_tenant: sunbird
+sunbird_echo_api_url: "https://{{ proxy_server_name }}/api/echo/"
+sunbird_pg_host: "{{ application_postgres_host }}"
+sunbird_pg_port: 5432
+sunbird_pg_db: quartz
+sunbird_pg_user: quartz
+sunbird_pg_password: "{{ application_postgres_password }}"
+sunbird_installation: "Sunbird_Dev"
+sunbird_account_name: sunbirddev
+sunbird_account_key: "{{ vault_sunbird_account_key }}"
+sunbird_sunbird_quartz_mode: cluster
+sunbird_encryption_mode: local
+sunbird_cassandra_urls: "{{ cassandra_server_private_ip }}:{{ cassandra_port }}"
+sunbird_session_store_type: cassandra
+sunbird_keycloak_client_id: 'portal'
+sunbird_keycloak_public: true
+sunbird_cache_store: "memory"
+sunbird_cache_ttl: 1800
+sunbird_portal_title_name: portal
+sunbird_web_url: "https://{{ proxy_server_name }}"
+sunbird_sso_publickey: "{{vault_sunbird_sso_publickey}}"
+sunbird_azure_storage_account: "{{vault_sunbird_azure_storage_account}}"
+sunbird_azure_storage_key: "{{vault_sunbird_azure_storage_key}}"
+sunbird_container_name: portal
+mongo_backup_dir: /home/deployer/mongo-backups
+sunbird_background_actor_host: actor-service
+sunbird_actor_system_name: BackGroundRemoteMiddlewareActorSystem
+sunbird_app_url:
+sunbird_fcm_account_key: "{{vault_sunbird_fcm_account_key}}"
+sunbird_env_logo_url: https://dev.open-sunbird.org/common/images/sunbird_logo.png
+sunbird_msg_91_auth: "{{vault_sunbird_msg_91_auth}}"
+sunbird_msg_sender: SBDEVS
+sunbird_image_storage_url: https://sunbirddev.blob.core.windows.net/dial/
+sunbird_telemetry_packet_size: 200
+sunbird_telemetry_sync_batch_size: 200
+sunbird_telemetry_dispatchers: kafka
+sunbird_installation_email: support-dev@open-sunbird.org
+sunbird_content_service_producer_id: dev.sunbird.content-service
+sunbird_telemetry_pdata_id: dev.sunbird.learning.service
+sunbird_environment: dev
+sunbird_instance: sunbird
+sunbird_android_app_url: sunbird.org
+sunbird_default_channel: sunbird-dev
+sunbird_es_port: 9300,9300,9300
+
+sunbird_http_orgin: "https://{{ proxy_server_name }}/badging"
+
+#player_tenant_dir:
+sunbird_dataservice_url: https://{{ proxy_server_name }}/api/
+project: sunbird
+application_postgres_database: quartz
+application_postgres_user: quartz
+keycloak_postgres_database: keycloak
+keycloak_postgres_user: keycloak
+
+
+## Cassandra download URI
+cassandra_repo: 'deb http://www.apache.org/dist/cassandra/debian 39x main'
+cassandra_repo_key: 'https://www.apache.org/dist/cassandra/KEYS'
+
+#API Manager
+kong_postgres_port: 5432
+kong_postgres_user: api_manager_dev
+kong_postgres_database: api_manager_dev
+
+es_curl_host: 10.10.3.7
+
+## Logging details
+syslog:
+    host: 172.16.0.5
+    port: 51415
+
+## PostgreSQL config
+postgres_replication_user_name: replication
+postgres_replication_user_password: "{{ vault_postgres_replication_user_password }}"
+
+postgresql_hba_entries:
+  - { type: local, database: all, user: postgres, auth_method: peer }
+  - { type: local, database: all, user: all, auth_method: peer }
+  - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: md5 }
+  - { type: host, database: all, user: all, address: '::1/128', auth_method: md5 }
+  - { type: host, database: all, user: "{{ postgres_exporter_user }}", address: '{{ swarm_address_space }}', auth_method: md5 }
+  - { type: host, database: replication, user: "{{ postgres_replication_user_name }}", address: '{{ postgres_address_space }}', auth_method: md5 }
+  - { type: host, database: all, user: all, address: '{{ swarm_address_space }}', auth_method: md5 }
+  - { type: host, database: all, user: all, address: '{{ keycloak_address_space }}', auth_method: md5 }
+
+ansible_vault_password: "{{ vault_ansible_vault_password }}"
+docker_hub_password: "{{ vault_docker_hub_password }}"
+jenkins_slave_jenkins_username: "{{ vault_jenkins_slave_jenkins_username }}"
+jenkins_slave_jenkins_password: "{{ vault_jenkins_slave_jenkins_password }}"
+ops_private_key: "{{ vault_ops_private_key }}"
+deployer_ssh_key: "{{ vault_deployer_ssh_key }}"
+proxy_prometheus_admin_creds: "{{ vault_proxy_prometheus_admin_creds }}"
+
+# ADDITIONAL CONFIGURATION
+backup_storage_name: "sunbirdbackupsdev"
+prometheus_storage_retention_time: 72h0m0s
+curl_host: dev.open-sunbird.org
+prometheus_data_dir: /var/dockerdata/prometheus/data
+mail_server_host: smtp.sendgrid.net
+mail_server_port: 587
+mail_server_username: azure_139dddf1c9ba120b125bebfa48922037@azure.com
+mail_server_password: "{{ vault_mail_server_password }}"
+
+logger_es_host: "{{ groups['dev-log-es'][0] }}"
+logger_es_port: 9200
+
+kibana_oauth_redirect_url: https://dev.open-sunbird.org/oauth2/callback
+monitor_alerts_slack_channel: sunbird-dev-alert
+keycloak: True
+
+api__host: dev.open-sunbird.org
+
+proxy_replicas: 2
+proxy_reservation_memory: 64M
+proxy_limit_memory: 128M
+kong_replicas: 2
+kong_reservation_memory: 64M
+kong_limit_memory: 256M
+echo_service_replicas: 2
+echo_service_reservation_memory: 8M
+echo_service_limit_memory: 16M
+adminutil_replicas: 2
+adminutil_reservation_memory: 512M
+adminutil_limit_memory: 1024M
+
+actor_replicas: 2
+actor_reservation_memory: 500M
+actor_limit_memory: 1024M
+
+learner_replicas: 2
+learner_reservation_memory: 2000M
+learner_limit_memory: 2000M
+
+# New variable
+sunbird_external_content_whitelisted_domains: 'juliabox.com,youtube.com'
+player_replicas: 2
+player_reservation_memory: 256M
+player_limit_memory: 512M
+sunbird_enable_signup: 'true'
+
+content_replicas: 2
+content_reservation_memory: 1000M
+content_limit_memory: 1000M
+
+keycloak1_replicas: 1
+keycloak1_reservation_memory: 768M
+keycloak1_limit_memory: 1024M
+
+keycloak2_replicas: 1
+keycloak2_reservation_memory: 768M
+keycloak2_limit_memory: 1024M
+
+logger_logspout_reservation_memory: 200M
+logger_logspout_limit_memory: 200M
+
+learner_limit_cpu: 1
+learner_reservation_cpu: 1
+
+
+telemetry_replicas: 1
+telemetry_reservation_memory: 750M
+telemetry_limit_memory: 1024M
+
+monitor_es_host: "{{ groups['es'][0] }}"
+alertmanager_host: "{{ groups['swarm-agent-for-alertmanager'][0] }}"
+prometheus_host: "{{ groups['swarm-agent-for-prometheus'][0] }}"
+
+swarm_load_balancer: 10.0.0.100
+filebeat_logtsash_host: "{{ swarm_load_balancer }}"
+
+expected_minimum_logs_per_minute: 30
+
+proxy_prometheus: true
+
+enable_scraping_docker_metrics: true
+enable_mongodb_availability_check: false
+
+postgres_exporter_postgres_port: 5432
+postgres_exporter_user: postgres_exporter
+postgres_exporter_password: "{{ vault_postgres_exporter_password }}"
+sunbird_learner_service_base_url: https://dev.open-sunbird.org/api
+sunbird_cs_base_url: "https://{{proxy_server_name}}/api"
+kong_admin_api_url: http://api-manager_kong:8001
+
+postgresql_backup_azure_storage_account_name: "{{ backup_storage_name }}"
+postgresql_backup_azure_storage_access_key: "{{ backup_storage_key }}"
+postgresql_restore_azure_storage_account_name: "{{ backup_storage_name }}"
+postgresql_restore_azure_storage_access_key: "{{ backup_storage_key }}"
+
+grafana_url: https://dev.open-sunbird.org/grafana
+grafana_editor_username: editor
+
+
+app_alerts_mailing_list: "rayulu@ilimi.in, harishg@ilimi.in, manzarul.haque@tarento.com,{{devops_alerts_mailing_list}}"
+devops_alerts_mailing_list: "manojv@ilimi.in, shashankt@sahajsoft.com, mathew.pallan@tarento.com, santhosh.g@optit.in"
+site_alerts_mailing_list: "shailesh@ekstepplus.org, ashwin@tekditechnologies.com, lakhan_m@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
+keycloak_alerts_mailing_list: "ashwin@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
+api_manager_alerts_mailing_list: "ashwin@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
+alerts_mailing_list : "{{devops_alerts_mailing_list}}"
+
+jenkins_url: http://10.20.0.4:8080/jenkins
+
+kibana_oauth_authenticated_email_domains:
+  - ekstep.org
+  - sahajsoft.com
+  - ilimi.in
+  - tarento.com
+
+kibana_oauth_authenticated_email_ids:
+  - shailesh@ekstepplus.org
+  - vijetha.nayak@riflexions.com
+  - arvind.yadav@compassitesinc.com
+  - santhosh.g@optit.in
+  - rajesh.r@optit.co
+  - altamash.s@optit.co
+
+monitor_alerts_mail_from_email: alerts@open-sunbird.org
+monitor_alerts_mail_server_host: "{{ mail_server_host }}"
+monitor_alerts_mail_server_port: "{{ mail_server_port }}"
+monitor_alerts_mail_server_username: "{{ mail_server_username }}"
+monitor_alerts_mail_server_password: "{{ mail_server_password }}"
+env_short_name: dev
+
+# keycloak sms provider
+keycloak_build_src: "keycloak_build"
+keycloak_ver: "keycloak-3.2.0.Final"
+keycloak_sms_provider_build: "keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar"
+keycloak_sms_provider_templates_src: "templates.tar.gz"
+keycloak_sms_provider_templates_dest: "/opt/keycloak/themes/sunbird/login"
+keycloak_ekstep_sunbird_login_theme_file: "login.tar.gz"
+keycloak_ekstep_sunbird_login_theme_dest: "/opt/keycloak/themes/sunbird/login"
+keycloak_postgresql: "postgresql-9.4.1212.jar"
+sunbird_auth_version: 1.0v
+
+
+#badger
+badger_postgres_user: badger
+badger_postgres_password: "{{vault_badger_postgres_password}}"
+badger_admin_password: "{{vault_badger_admin_password}}"
+badger_admin_email: madhu@ekstep.org
+badger_postgres_database: badger
+badger_host: "{{ groups['postgresql-master'][0]}}"
+badger_replicas: 1
+badger_reservation_memory: 500MB
+badger_limit_memory: 500MB
+badger_file_storage: storages.backends.azure_storage.AzureStorage
+badger_url: http://azureaccountname.blob.core.windows.net/
+badger_container: badgr
+sunbird_http_orgin: "https://{{proxy_server_name}}/badging"
+
+#enc-service
+enc_postgres_user: encryption
+enc_postgres_database: encryption
+enc_postgres_password: "{{vault_enc_postgres_password}}"
+
+#kafka vars
+zk_hosts: "127.0.0.1:2181"
+kafka_conf_dir: /etc/kafka
+kafka_data_dir: /var/kafka
+kafka_group: kafka
+kafka_user: kafka
+kafka_log_dir: /var/log/kafka
+kafka_upstart_conf: /etc/init/kafka.conf
+kafka_systemd_service: /etc/systemd/system/kafka.service
+zookeeper_systemd_service: /etc/systemd/system/zookeeper.service
+kafka_auto_create_topics: "false"
+kafka_jvm_opts: "-Xmx1G -Xms1G"
+kafka_log_retention_hours: 2400
+monasca_log_level: ERROR
+delete_topic_enable: "true"
+zk_port: 2181
+
+#Secor vars
+sbin_path: /home/ops/sbin
+user: ops
+group: ops
+user_home: /home/ops
+service_name: secor
+sunbird_secor_container_name: telemetry
+secor:
+  artifact_dir: /mnt/secor
+  paths: ['/mnt/secor', '/mnt/secor/reports', '/mnt/secor/logs', '/home/ops/sbin']
+  properties: ['secor.common', 'secor', 'secor.partition', 'secor.azure']
+consumer_group: "{{env}}.sunbird.telemetry.backup"
+message_parser: com.pinterest.secor.parser.PatternDateMessageParser
+s3_base_path: 
+s3_bucket: 
+kafka_broker_host: 10.5.0.4
+zookeeper_quorum: "10.5.0.4:2181"
+max_file_size: 10000
+max_file_age: 10
+ostrich_port: 9998
+partition_prefix_enabled: false
+partition_prefix_key: eid
+partition_prefix_mapping: 
+sunbird_secor_container_name: telemetry
+sunbird_account_key: "{{vault_sunbird_azure_storage_key}}"
+sunbird_telemetry_kafka_topic: dev.telemetry.raw
+sunbird_telemetry_request_max_count: 100
+sunbird_telemetry_api: "{{sunbird_ekstep_api_base_url}}/data/v3/telemetry"
+sunbird_cdn_url: "https://dev-sunbird-temp.azureedge.net"
+sunbird_portal_cdn_url: "{{sunbird_cdn_url}}/player/"
+content_service_whitelisted_channels: ""
+content_service_blacklisted_channels: ""
+
+# CDN
+player_cdn_account_key: "{{vault_sunbird_account_key}}"
+player_cdn_container: player
+player_cdn_account: sunbirddev
+
+# Nginx s3 url
+ekstep_s3_env: dev
+
+#Additional Variables
+sunbird_user_bulk_upload_size: 1001
+sunbird_email_env: "Sunbird dev"

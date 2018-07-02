@@ -1,0 +1,30 @@
+pipeline {
+    agent {
+        label 'general-dev'
+    }
+    triggers {
+        pollSCM('H/5 * * * *')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+        stage('Pre-Build'){
+            steps {
+                sh('./sunbird-devops/ansible/installDeps.sh')
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'ANSIBLE_VAULT_PASSWORD_FILE=/run/secrets/vault-pass ./sunbird-devops/ansible-syntax-check.sh ansible/inventories/dev'
+            }
+        }
+    }
+    post {
+        failure {
+            slackSend channel: '#devops-team', color: 'danger', message: "Build Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+        }
+    }
+}

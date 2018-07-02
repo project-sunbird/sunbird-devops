@@ -1,0 +1,30 @@
+#!groovy
+
+node('general-dev') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+      ansiColor('xterm') {
+       stage('Pre-Build'){
+
+         sh('./pipelines/sunbird-player/installDeps.sh')
+         sh 'ENV=dev ./pipelines/run-command/deploy.sh $HOST_PATTERN'
+         }
+
+       }
+
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
