@@ -1,0 +1,44 @@
+pipeline {
+    agent {
+        label 'build-slave'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+
+        stage('Pre-Build'){
+            steps {
+             sh '''
+              ./sunbird-devops/ansible/installDeps.sh
+              rm -rf opensaber
+              git clone https://github.com/project-sunbird/open-saber.git opensaber
+              '''
+         }
+
+        }
+
+        stage('Configure') {
+            steps {
+            sh '''
+            cd opensaber
+            ./configure-dependencies.sh
+            cd java
+            mvn clean install
+            cd registry
+            mvn clean install
+            cp target/registry.jar /home/ops/workspace/Dev/Registry_Provision/sunbird-devops/ansible/
+            pwd
+            cd ../../../
+            ls
+            pwd
+            cd sunbird-devops
+            ansible-playbook -i ../ansible/inventories/dev ansible/registry.yaml --vault-password-file /home/ops/vault
+            '''
+            }
+        }
+    }
+}
+
