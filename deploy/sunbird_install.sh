@@ -107,7 +107,6 @@ while getopts "s:h" o;do
     case "${o}" in
         s)
             s=${OPTARG}
-            echo "help.."
             case "${s}" in
                 config)
                     echo -e "\n$(date)\n">>logs/config.log;
