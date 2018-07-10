@@ -16,7 +16,6 @@ source version.env
 [ -f ~/jwt_token_player.txt ] || echo "JWT token (~/jwt_token_player.txt) not found" || exit 1
 sunbird_api_auth_token=$(cat ~/jwt_token_player.txt|sed 's/ //g')
 
-echo $sunbird_api_auth_token
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
 ansible-playbook -i $INVENTORY_PATH ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm --extra-vars @config 
