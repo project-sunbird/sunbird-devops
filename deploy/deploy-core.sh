@@ -16,7 +16,6 @@ source version.env
 [ -f ~/jwt_token_player.txt ] || echo "JWT token (~/jwt_token_player.txt) not found" || exit 1
 sunbird_api_auth_token=$(cat ~/jwt_token_player.txt|sed 's/ //g')
 
-echo $sunbird_api_auth_token
 # Bootstrap swarm
 echo "@@@@@@@@@ Bootstrap swarm"
 ansible-playbook -i $INVENTORY_PATH ../ansible/bootstrap.yml  --extra-vars "hosts=swarm-manager" --tags bootstrap_swarm --extra-vars @config 
@@ -35,7 +34,7 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird"
 
 # Re-deploy Content service
 echo "Redeploy content service"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=content-service image_tag=${CONTENT_SERVICE_VERSION} service_name=content_service deploy_stack=True sunbird_api_auth_token=${sunbird_api_auth_token} vault_badging_authorization_key=${badger_token}" --extra-vars @config 
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=content-service image_tag=${CONTENT_SERVICE_VERSION} service_name=content-service deploy_content=True sunbird_api_auth_token=${sunbird_api_auth_token} vault_badging_authorization_key=${badger_token}" --extra-vars @config 
 
 # Re-deploy Learner service
 echo "Redeploy learner service"
