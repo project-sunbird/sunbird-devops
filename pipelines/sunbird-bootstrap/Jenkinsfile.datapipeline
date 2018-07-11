@@ -1,0 +1,25 @@
+#!groovy
+
+node('build-slave') {
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+
+       stage('Pre-Build'){
+         sh('./sunbird-devops/ansible/installDeps.sh')
+       }
+
+       stage('Build'){
+        sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/db-bootstrap bootstrap.yml --extra-vars "hosts=ekstep bootstrap_secret_file=secrets" --vault-password-file  /home/ops/vault_pass')
+       }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
