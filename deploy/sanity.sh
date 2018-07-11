@@ -10,7 +10,7 @@ ssh_key=$2
 
 # Application versions
 es_version=5.4
-docker_version=17.06
+docker_version=18.03
 postgres_version=9.5
 cassandra_version=3.9
 java_version=1.8.0_162
