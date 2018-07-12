@@ -10,10 +10,15 @@
 - set_fact:
     prometheus_backup_gzip_file_path: "{{ prometheus_backup_dir }}/{{ prometheus_backup_gzip_file_name }}"
 
-- name: Save backup
-  shell: "tar -czf {{ prometheus_backup_gzip_file_path }} -P {{prometheus_data_dir}} --warning=no-file-changed"
-  async: 3600
-  poll: 10
+#- name: Save backup
+#  shell: "tar -czf {{ prometheus_backup_gzip_file_path }} -P {{prometheus_data_dir}} --warning=no-file-changed"
+#  async: 3600
+#  poll: 10
+
+- name: Save Backup
+  archive:
+    path: " {{ prometheus_data_dir }}"
+    dest: " {{ prometheus_backup_gzip_file_path }} "
 
 - name: Ensure azure blob storage container exists
   command: az storage container create  --name {{ prometheus_backup_azure_container_name }}
