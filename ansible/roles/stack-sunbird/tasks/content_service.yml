@@ -1,0 +1,13 @@
+---
+- name: Remove content service from stack (previous mode of deploy)
+  shell: "docker service rm content_service_content_service"
+  ignore_errors: yes
+
+- name: Remove content service
+  shell: "docker service rm content-service"
+  ignore_errors: yes
+
+- name: Deploy content service
+  shell: "docker service create --replicas {{ content_replicas }} -p 5000:5000  --name content-service --hostname content-service --reserve-memory {{ content_reservation_memory }} --limit-memory {{ content_limit_memory }} --limit-cpu {{ content_limit_cpu }} --reserve-cpu {{ content_reservation_cpu }} --health-cmd 'wget -qO- content-service:5000/health || exit 1' --health-timeout 3s --health-retries 3  --network application_default --env-file /home/deployer/env/sunbird_content-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"
+  args:
+    chdir: /home/deployer/stack
