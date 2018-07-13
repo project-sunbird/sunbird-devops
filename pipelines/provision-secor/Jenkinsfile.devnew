@@ -1,0 +1,34 @@
+#!groovy
+
+node('general-dev') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/provision-secor/installDeps.sh')
+
+       }
+
+       stage('Deploy'){
+          step ([$class: 'CopyArtifact',
+          projectName: 'New_Build/Secor_Build',
+          filter: 'target/secor-0.24-SNAPSHOT-bin.tar.gz']);
+          sh 'ENV=dev ./pipelines/provision-secor/deploy.sh'
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}

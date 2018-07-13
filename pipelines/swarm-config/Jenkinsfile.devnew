@@ -1,0 +1,27 @@
+pipeline {
+    agent {
+        label 'general-devnew'
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                sh('./pipelines/setupDevopsCode.sh')
+            }
+        }
+
+        stage('Pre-Build'){
+            steps {
+                sh('./sunbird-devops/ansible/installDeps.sh')
+            }
+        }
+
+        stage('Configure') {
+            steps {
+                sh '''
+                cd sunbird-devops/ansible
+                ansible-playbook -i ../../ansible/inventories/devnew docker-swarm.yml --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}

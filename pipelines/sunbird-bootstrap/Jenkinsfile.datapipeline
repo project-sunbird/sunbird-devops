@@ -1,10 +1,10 @@
 #!groovy
 
-node('build-slave') {
-
+node('10.6.0.6-42af1517') {
     currentBuild.result = "SUCCESS"
 
     try {
+
        stage('Checkout'){
           checkout scm
           sh('./pipelines/setupDevopsCode.sh')
@@ -12,14 +12,10 @@ node('build-slave') {
 
        stage('Pre-Build'){
          sh('./sunbird-devops/ansible/installDeps.sh')
-         sh('rm -rf open-saber')
-         sh('git clone https://github.com/project-sunbird/open-saber.git')
        }
 
        stage('Build'){
-        sh('./pipelines/registry-provision/buildRegistry.sh')
-        sh('pwd')
-        sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/staging  registry.yml --vault-password-file  /run/secrets/vault-pass ')
+        sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/db-bootstrap bootstrap.yml --extra-vars "hosts=ekstep bootstrap_secret_file=secrets" --vault-password-file  /home/ops/vault')
        }
     }
     catch (err) {
@@ -27,4 +23,3 @@ node('build-slave') {
         throw err
     }
 }
-

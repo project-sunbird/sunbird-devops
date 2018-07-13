@@ -1,0 +1,25 @@
+pipeline {
+  agent {
+      label 'general-dev'
+  }
+  triggers {
+        cron('H 0 * * *')
+  }
+  stages {
+    stage('Checkout') {
+      steps {
+        sh('./pipelines/setupDevopsCode.sh')
+      }
+    }
+    stage('Pre-Build'){
+      steps {
+        sh('./pipelines/metrics-exporter/installDeps.sh')
+      }
+    }
+    stage('Deploy') {
+      steps {
+        sh 'ENV=dev ./pipelines/metrics-exporter/deploy.sh'
+      }
+    }
+  }
+}

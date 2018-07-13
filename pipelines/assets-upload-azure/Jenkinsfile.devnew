@@ -1,0 +1,24 @@
+#!groovy
+
+node('build-slave') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+          sh ("./pipelines/setupDevopsCode.sh release-1.7")
+       }
+
+       stage('Deploy'){
+            sh("./pipelines/player-cdn-upload/deploy.sh dev")
+        }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}

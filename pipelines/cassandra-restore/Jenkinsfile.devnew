@@ -1,0 +1,34 @@
+#!groovy
+
+node('general-dev') {
+
+    properties([parameters([string(defaultValue: '', description: 'time ', name: 'snapshot')]), pipelineTriggers([])])
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+          sh('./pipelines/setupDevopsCode.sh')
+       }
+
+       stage('Pre-Build'){
+         sh('./sunbird-devops/ansible/installDeps.sh')
+       }
+
+       stage('Build'){
+
+        sh('cd sunbird-devops/ansible && ansible-playbook -i ../../ansible/inventories/dev cassandra-restore.yml --vault-password-file  /run/secrets/vault-pass --extra-vars "cassandra_restore_gzip_file_name=cassandra_backup_${snapshot}.zip snapshot=${snapshot}"')
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
+
+

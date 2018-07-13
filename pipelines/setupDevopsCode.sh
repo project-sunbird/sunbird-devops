@@ -2,7 +2,7 @@
 
 set -ex
 
-commit_ref=${1:-release-1.7.1}
+commit_ref=${1:-release-1.8}
 sunbird_devops_dir_name=sunbird-devops
 if [ ! -d $sunbird_devops_dir_name ];then
     git clone https://github.com/project-sunbird/$sunbird_devops_dir_name -b $commit_ref
