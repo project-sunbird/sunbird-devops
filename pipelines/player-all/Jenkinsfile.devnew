@@ -15,13 +15,28 @@ node('build-slave') {
             """
        }
 
-       stage('Build'){
+       stage('Build-cdn'){
           sh ("docker run --rm -v `pwd`:/work -w /work node:8.11.2-alpine sh ./pipelines/player-all/build.sh ${cdn}")
         }
         
-        stage('Deploy'){
-            sh("./pipelines/player-all/deploy.sh dev")
+        stage('Deploy-cdn'){
+            sh("./pipelines/player-all/deploy.sh devnew")
         }
+
+        stage('Pre-Build'){
+
+         sh('./pipelines/player-all/installDeps.sh')
+
+       }
+
+       stage('Deploy'){
+        step ([$class: 'CopyArtifact',
+          projectName: 'New_Build/Sunbird_Player_Build',
+          filter: 'metadata.json']);
+          sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=devnew ./pipelines/player-all/player-deploy.sh'
+          archive includes: "metadata.json"
+       }
+        
     }
     catch (err) {
         currentBuild.result = "FAILURE"
