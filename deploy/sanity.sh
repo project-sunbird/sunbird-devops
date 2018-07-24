@@ -150,8 +150,8 @@ check_docker() {
                 echo -e "\e[0;32m${bold} OK ${normal}"
                 touch ".sunbird/ignore/${service_name}"
             else
-                echo -e "\e[0;31m${bold} WARNING${normal}"
-                echo -e "\e[0;31m${bold} The Version required for sunbird is $docker_version ${normal}"
+                echo -e "\e[0;33m${bold} WARNING${normal}"
+                echo -e "\e[0;33m${bold} Sunbird has been tested with $docker_version ${normal}"
             fi
         else 
             echo -e "\e[0;35m Docker Version: \e[0;32m${bold}Not Installed${normal} "
