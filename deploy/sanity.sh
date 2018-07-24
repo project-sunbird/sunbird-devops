@@ -146,7 +146,13 @@ check_docker() {
         if [ $(nssh $ssh_user@$ip which docker &> /dev/null; echo $?) -eq 0 ];then
             local version=$(nssh $ssh_user@$ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
             echo -ne "\e[0;35m Docker Version: \e[0;32m$version "
-            check_compatibility version "$version" "$docker_version" docker
+            if [[ "$docker_version" == *"$version"* ]];then
+                echo -e "\e[0;32m${bold} OK ${normal}"
+                touch ".sunbird/ignore/${service_name}"
+            else
+                echo -e "\e[0;31m${bold} WARNING${normal}"
+                echo -e "\e[0;31m${bold} The Version required for sunbird is $docker_version ${normal}"
+            fi
         else 
             echo -e "\e[0;35m Docker Version: \e[0;32m${bold}Not Installed${normal} "
         fi
