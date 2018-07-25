@@ -10,7 +10,7 @@ ssh_key=$2
 
 # Application versions
 es_version=5.4
-docker_version=18.03
+docker_version=17.06,18.03
 postgres_version=9.5
 cassandra_version=3.9
 java_version=1.8.0_162
@@ -61,27 +61,37 @@ ram() {
 }
 
 check_compatibility() {
-    local service_version=$2
+	'''
+		Checking the compatibility of installed applications with supported versions and RAM requirement.
+		eg: check_compatibility <version> <supported_version1,2,3,4> <installed_application_version>
+		eg: check_compatibility <required_RAM_size in GB> <server_ram_size in GB>
+	'''
+	# Creating array out of service versions
+    IFS=',' read -ra service_versions <<<$2
     local version=$3
-    local service_name=$4
+	local compatibility=0
     case $1 in
         version)
-            if [[ "$service_version" == *"$version"* ]];then
-                echo -e "\e[0;32m${bold} OK ${normal}"
-                touch ".sunbird/ignore/${service_name}"
-            else
-                echo -e "\e[0;31m${bold} INCOMPATIBLE${normal}"
-                fail=1
-            fi
-            ;;
+			for service_version in $service_versions; do
+				echo $service_version
+				[[ "$service_version" == *"$version"* ]] && compatibility=0 && break || compatibility=1
+			done
+			if [[ $compatibility == 0 ]];then
+				echo -e "\e[0;31m${bold} INCOMPATIBLE \n \e[0;32mSupported Versions: ${service_versions[@]} ${normal}" 
+			else
+				echo -e "\e[0;32m${bold} OK ${normal}"
+			fi
+			;;
         ram)
-            if [[ $service_version -ge $version ]];then
-                echo -e "\e[0;32m${bold} OK ${normal}"
-            else 
-                echo -e "\e[0;33m${bold} NOT ENOUGH ${normal}"
-            fi
-            ;;
+            if [[ $service_version -ge $version ]]; then
+				echo -e "\e[0;32m${bold} OK ${normal}"
+			else
+				echo -e "\e[0;33m${bold} NOT ENOUGH ${normal}"
+				echo -e "\e[0;33m${bold} Minimum Requirement: ${version} ${normal}"
+			fi
+			;;
     esac
+unset service_versions
 }
 
 # Checks for elastic search
