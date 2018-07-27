@@ -3,7 +3,7 @@
 # set -o errexit
 
 apk add --no-cache git python make g++
-git clone https://github.com/DIKSHA-NCTE/diksha-tenant sunbird-portal/src/app/
+git clone https://github.com/DIKSHA-NCTE/diksha-tenant
 cp -r diksha-tenant/tenants sunbird-portal/src/app/tenant
 cd sunbird-portal/src/app
 
