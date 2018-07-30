@@ -46,6 +46,7 @@ dialcode_service_prefix: /dialcode
 channel_service_prefix: /channel
 framework_service_prefix: /framework
 badge_service_prefix: /badging
+plugin_service_prefix: /plugins
 
 # Service URLs
 content_service_url: "http://content-service:5000"
@@ -3082,3 +3083,18 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: pluginSearch
+    request_path: "{{ plugin_service_prefix }}/v1/search"
+    upstream_url: "{{ content_service_url }}/v1/plugins/search"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: contentUser
+    - name: rate-limiting
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"    
