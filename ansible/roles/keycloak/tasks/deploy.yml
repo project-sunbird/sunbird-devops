@@ -16,10 +16,10 @@
   poll: 5
   async: 10
   ignore_errors: yes
-  when: 
+  when:
     - "keycloak.stdout.find('running') != -1"
     - keycloak_service.stat.islnk is defined
-  
+
 - name: remove keycloak
   become: yes
   file: path="{{keycloak_home}}" state=absent owner={{wildfly_user}} group={{wildfly_group}} force=yes
@@ -161,6 +161,25 @@
 - name: Ekstract the folder
   unarchive: src="{{keycloak_ekstep_sunbird_login_theme_dest}}/{{keycloak_ekstep_sunbird_login_theme_file}}" dest="{{keycloak_ekstep_sunbird_login_theme_dest}}/" copy=no owner={{wildfly_user}} group={{wildfly_group}}
 
+- name: remove email folder
+  become: yes
+  file: path="{{keycloak_home}}/themes/base/email" state=absent owner={{wildfly_user}} group={{wildfly_group}} force=yes
+
+- name: Create email theme directory
+  file:
+    path: "{{wildfly_dir}}/themes/base/email"
+    state: directory
+    owner: "{{wildfly_user}}"
+    group: "{{wildfly_group}}"
+    mode: 0755
+    recurse: yes
+
+- name: Deploy ekstep Email themes
+  copy: src="{{keycloak_build_src}}/email.tar.gz" dest="{{wildfly_dir}}/themes/base/email" owner={{wildfly_user}} group={{wildfly_group}}
+
+- name: Ekstract the folder
+  unarchive: src="{{wildfly_dir}}/themes/base/email/email.tar.gz" dest="{{wildfly_dir}}/themes/base/email/" copy=no owner={{wildfly_user}} group={{wildfly_group}}
+
 - name: status service
   become: yes
   command: /etc/init.d/keycloak status
@@ -175,6 +194,6 @@
   poll: 5
   async: 5
   ignore_errors: yes
-  when: 
+  when:
     - "keycloak_status.stdout.find('running') != -1"
     - keycloak_service.stat.islnk is defined
