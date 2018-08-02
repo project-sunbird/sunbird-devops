@@ -1,0 +1,25 @@
+---
+- hosts: swarm-agent-for-registry
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Create registyr data dir
+      file: path=/mnt/dockerdata/registry/data/ state=directory mode=755
+    - name: Create registyr data log dir
+      file: path=/mnt/dockerdata/registry/logs/ state=directory mode=755
+
+- hosts: swarm-bootstrap-manager
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Add label for prometheus node
+      command: "docker node update --label-add registry=1 {{ hostvars[groups['swarm-agent-for-registry'][0]]['ansible_hostname'] }}"
+
+- hosts: swarm-bootstrap-manager
+  become: true
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - registry
