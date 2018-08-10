@@ -3135,3 +3135,15 @@ kong_apis:
      - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "channelSpecificTelemetryExhaust"
+    request_path: "{{ data_service_prefix }}/v3/dataset/get"
+    upstream_url: "{{ learning_analytics_service_url }}/dataset/get"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
