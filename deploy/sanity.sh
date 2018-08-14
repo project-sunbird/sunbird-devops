@@ -63,18 +63,17 @@ ram() {
 check_compatibility() {
 	
 	# Checking the compatibility of installed applications with supported versions and RAM requirement.
-	# eg: check_compatibility <version> <supported_version1,2,3,4> <installed_application_version>
+	# eg: check_compatibility version <installed_application_version> <supported_version1,2,3,4>
 	# eg: check_compatibility <required_RAM_size in GB> <server_ram_size in GB>
 	
 	# Creating array out of service versions
-    IFS=',' read -ra service_versions <<<$2
-    local version=$3
+    IFS=',' read -ra service_versions <<<$3
+    local version=$2
 	local compatibility=0
     case $1 in
         version)
-			for service_version in $service_versions; do
-				echo $service_version
-				[[ "$service_version" == *"$version"* ]] && compatibility=1 && break || compatibility=0
+			for service_version in ${service_versions[@]}; do
+				[[ "$version" =~ "$service_version" ]] && compatibility=1 && break || compatibility=0
 			done
 			if [[ $compatibility == 0 ]];then
 				echo -e "\e[0;31m${bold} INCOMPATIBLE \n \e[0;32mSupported Versions: ${service_versions[@]} ${normal}" 
@@ -83,8 +82,8 @@ check_compatibility() {
 			fi
 			;;
         ram)
-			for service_version in $service_versions; do
-                if [[ $service_version -ge $version ]]; then
+			for service_version in ${service_versions[@]}; do
+                if [[ $service_version -le $version ]]; then
                     echo -e "\e[0;32m${bold} OK ${normal}"
                 else
                     echo -e "\e[0;33m${bold} NOT ENOUGH ${normal}"
@@ -93,6 +92,7 @@ check_compatibility() {
             done
 			;;
     esac
+
 unset service_versions
 }
 
@@ -105,7 +105,7 @@ check_es() {
         # Checking for elastic search version
         if [ $(nc -z $ip 9200; echo $?) -eq 0 ];then
             local version=$(nssh $ssh_user@$ip curl -sS $ip:9200 | grep number| awk '{print $3}')
-            echo -ne "\e[0;35m Elastic search Version: \e[0;32m$version "
+            echo -ne "\e[0;35m Elastic search Version: \e[0;32m$version asdfasdf "
             check_compatibility version "$version" "$es_version" es
         else 
             echo -e "\e[0;35m Elastic search Version: \e[0;32m${bold}Not Installed${normal} "
@@ -116,6 +116,7 @@ check_es() {
         check_compatibility ram $ram_ "$es_ram"
     done
 }
+
 
 check_cassandra() {
     echo -e "\n\e[0;36m ${bold}Checking Cassandra${normal}"
@@ -168,6 +169,7 @@ check_docker() {
         check_compatibility ram $ram_ $docker_ram 
     done
 }
+
 
 
 check_es $elasticsearch_ips
