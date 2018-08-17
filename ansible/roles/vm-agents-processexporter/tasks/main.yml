@@ -1,0 +1,69 @@
+---
+- name: create prometheus system group
+  group:
+    name: "{{ prometheus_exporters_common_group }}"
+    system: yes
+    state: present
+
+- name: create prometheus system user
+  user:
+    name: "{{ prometheus_exporters_common_user }}"
+    system: yes
+    shell: "/sbin/nologin"
+    group: "{{ prometheus_exporters_common_group }}"
+    createhome: no
+
+- name: download prometheus process exporter binary
+  get_url:
+    url: "{{ prometheus_process_exporter_download_url }}"
+    dest: "{{ prometheus_exporters_common_dist_dir }}/{{ prometheus_process_exporter_release_name }}.tar.gz"
+
+- name: unarchive binary tarball
+  unarchive:
+    copy: no
+    src: "{{ prometheus_exporters_common_dist_dir }}/{{ prometheus_process_exporter_release_name }}.tar.gz"
+    dest: "{{ prometheus_exporters_common_dist_dir }}"
+    creates: "{{ prometheus_exporters_common_dist_dir }}/{{ prometheus_process_exporter_release_name }}/process_exporter"
+  register: prometheus_process_exporter_updated
+  notify:
+    - restart process exporter
+
+- name: copy the custom configuration file
+  copy:
+    src: config.yml
+    dest: "{{ prometheus_exporters_common_dist_dir }}/{{ prometheus_process_exporter_release_name }}"
+  
+- name: update group and owner for files
+  file:
+    path: "{{ prometheus_process_exporter_release_name }}"
+    state: directory
+    recurse: yes
+    owner: "{{ prometheus_exporters_common_user}}"
+    group: "{{ prometheus_exporters_common_group }}"
+  when: prometheus_process_exporter_updated | changed
+
+- name: create symlink to the current release
+  file:
+    src: "{{ prometheus_exporters_common_dist_dir }}/{{ prometheus_process_exporter_release_name }}"
+    path: "{{ prometheus_exporters_common_root_dir }}/process_exporter_current"
+    state: link
+
+- name: create systemd service unit
+  template:
+    src: process-exporter.service.j2
+    dest: /etc/systemd/system/process-exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - reenable process exporter service
+    - restart process exporter
+
+- meta: flush_handlers
+
+- name: ensure prometheus process exporter service is enabled and started
+  service:
+    name: process-exporter
+    state: started
+    enabled: yes
+
