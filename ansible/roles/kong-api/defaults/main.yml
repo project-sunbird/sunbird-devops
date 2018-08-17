@@ -1650,6 +1650,38 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: updateUserSkill
+    request_path: "{{ user_service_prefix }}/v1/skill/update"
+    upstream_url: "{{ learning_service_url }}/v1/user/skill/update"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: publicUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: addUserSkillEndorsement
+    request_path: "{{ user_service_prefix }}/v1/skill/endorse/add"
+    upstream_url: "{{ learning_service_url }}/v1/user/skill/endorse/add"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: publicUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getAllData
     request_path: "{{ data_service_prefix }}/v1/object/read/list"
     upstream_url: "{{ learning_service_url }}/v1/object/read/list"
