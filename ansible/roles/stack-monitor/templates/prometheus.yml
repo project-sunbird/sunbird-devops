@@ -5,6 +5,7 @@ global:
 
 rule_files:
   - '/etc/prometheus-rules/alertrules.nodes'
+  - '/etc/prometheus-rules/alertrules.process'
   - '/etc/prometheus-rules/alertrules.task'
   - '/etc/prometheus-rules/alertrules.es'
   - '/etc/prometheus-rules/alertrules.logs'
@@ -104,6 +105,11 @@ scrape_configs:
   - job_name: 'vm-node-exporter'
     static_configs:
       - targets: {{ groups['node-exporter'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9101' ) | list | to_yaml }}
+
+  - job_name: 'process-exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets: {{ groups['node-exporter'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:1111' ) | list | to_yaml }} 
 
   {% for item in service_blackbox_checks %}
   # This empty line ensures indentation is correct after ansible jinja2 template is materialized
