@@ -11,5 +11,7 @@ npm install
 cd client
 npm install
 npm run build-cdn -- --deployUrl $1
-# package.json in app folder
-mv ../dist/index.html ../dist/index_${version}.${build_number}.ejs
+cd ..
+# Gzipping of assets
+./node_modules/.bin/gulp gzip:editors client:gzip
+mv dist/index.html dist/index_${version}.${build_number}.ejs
