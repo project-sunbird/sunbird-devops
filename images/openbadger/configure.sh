@@ -12,6 +12,7 @@ pip install psycopg2
 cd /badger
 git clone https://github.com/concentricsky/badgr-server.git code
 cd code
+git checkout -b sunbird e6b8568798686217d1b9fff06dde57e0a681dd25
 
 # Mysql is not needed, but uses postgres
 sed -i s/MySQL-python==1.2.5/#\ MySQL-python==1.2.5/ requirements.txt
