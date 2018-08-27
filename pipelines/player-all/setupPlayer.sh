@@ -2,6 +2,7 @@
 
 set -ex
 
+echo $(pwd)
 commit_ref=${1}
 build_hash=$(jq '.buildHash' ../../../metadata.json | sed 's/\"//g')
 player_dir=sunbird-portal
