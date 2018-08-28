@@ -1,7 +1,7 @@
 #!/bin/bash
 # Build script
 # set -o errexit
-# set -x
+set -x
 
 apk add --no-cache git python make g++ jq
 cd sunbird-portal/src/app

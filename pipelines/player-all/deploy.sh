@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 home_dir=$(pwd)
 env=${1}
 [[ -d app_dist ]] && rm -rf app_dist 
