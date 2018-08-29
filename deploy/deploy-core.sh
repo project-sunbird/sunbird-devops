@@ -44,3 +44,6 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird"
 echo "Redeploy Telemetry service"
 ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=telemetry-service image_tag=${TELEMETRY_SERVICE_VERSION} service_name=telemetry-service deploy_telemetry=True" --extra-vars @config
 
+#Config-Service
+echo "Deploy Config service"
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=config-service image_tag=${CONFIG_SERVICE_VERSION} service_name=config-service deploy_config=True" --extra-vars @config
