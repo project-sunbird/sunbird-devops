@@ -1,40 +1,56 @@
-ALERT high_cpu_usage_on_node
-  IF sum(rate(process_cpu_seconds_total[5m]) * on (instance) group_left(nodename) node_uname_info * 100) by (nodename) > 80
-  FOR 5m
+ALERT kafka_process_not_running
+  IF namedprocess_namegroup_states{groupname="kafka",state="Sleeping"} < 1
+  FOR 1m
   ANNOTATIONS {
-      summary = "HIGH CPU USAGE WARNING ON '{% raw %}{{ $labels.nodename }}{% endraw %}'",
-      description = "{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of CPU. CPU usage is {% raw %}{{ humanize $value}}{% endraw %}%.",
+      summary = "Kafka process is not running",
+      description = "Number of running processes are: {% raw %}{{$value}}{% endraw %}",
   }
-
-ALERT high_memory_usage_on_node
-  IF sum(((node_memory_MemTotal-node_memory_MemAvailable)/node_memory_MemTotal) *  on (instance) group_left(nodename) node_uname_info * 100 )  by (nodename) > 90
-  FOR 5m
+ALERT secor_process_not_running
+  IF namedprocess_namegroup_states{groupname="secor",state="Sleeping"} < 6
+  FOR 1m
   ANNOTATIONS {
-      summary = "HIGH MEMORY USAGE WARNING TASK ON '{% raw %}{{ $labels.nodename }}{% endraw %}'",
-      description = "{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}%.",
+      summary = "Secor process is not running",
+      description = "Number of running processes are: {% raw %}{{$value}}{% endraw %}",
   }
-
-# node_load5 is not acaptured by all node hence using node_load1
-ALERT high_load_on_node
-  IF sum((node_load1 / count without (cpu, mode) (node_cpu{mode="system"})) * on (instance) group_left(nodename) node_uname_info * 100 )  by (nodename) > 100
-  FOR 5m
+ALERT zookeeper_process_not_running
+IF namedprocess_namegroup_states{groupname="zookeeper",state="Sleeping"} < 1
+FOR 1m
+ANNOTATIONS {
+    summary = "Zookeeper process is not running",
+    description = "Number of running processes are: {% raw %}{{$value}}{% endraw %}",
+}
+ALERT yarn_process_not_running
+  IF namedprocess_namegroup_states{groupname="yarn",state="Sleeping"} < 1
+  FOR 1m
   ANNOTATIONS {
-      summary = "HIGH LOAD AVERAGE WARNING ON '{% raw %}{{ $labels.nodename }}{% endraw %}'",
-      description = "{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.",
+      summary = "YARN process is not running",
+      description = "Number of running processes are: {% raw %}{{$value}}{% endraw %}",
   }
-
-ALERT monitoring_service_down
-  IF up == 0
-  FOR 5m
+ALERT cassandra_process_not_running
+  IF namedprocess_namegroup_states{groupname="cassandra",state="Sleeping"} < 1
+  FOR 1m
   ANNOTATIONS {
-      summary = "MONITORING SERVICE DOWN WARNING: NODE '{% raw %}{{ $labels.host }}{% endraw %}'",
-      description = "The monitoring service '{% raw %}{{ $labels.job }}{% endraw %}' is down.",
+      summary = "Cassandra process is not running",
+      description = "Number of running processes are: {% raw %}{{$value}}{% endraw %}",
   }
-
-ALERT node_running_out_of_disk_space
-  IF sum((node_filesystem_size{ mountpoint="/"} - node_filesystem_free{ mountpoint="/"}) * 100/ node_filesystem_size{mountpoint="/"}  * on (instance) group_left(nodename) node_uname_info )  by (nodename) > 80
-  FOR 5m
+ALERT elasticsearch_process_not_running
+  IF namedprocess_namegroup_states{groupname="elasticsearch",state="Sleeping"} < 1
+  FOR 1m
   ANNOTATIONS {
-      summary = "LOW DISK SPACE WARING: NODE '{% raw %}{{ $labels.nodename }}{% endraw %}' ",
-      description = "More than 80% of disk used. Disk usage is {% raw %}{{ humanize $value }}{% endraw %}%",
+      summary = "Elasticsearch process is not running",
+      description = "Number of running processes are: {% raw %}{{$value}}{% endraw %}",
+  }
+ALERT logstash_process_not_running
+  IF namedprocess_namegroup_states{groupname="logstash",state="Sleeping"} < 1
+  FOR 1m
+  ANNOTATIONS {
+      summary = "Logstash process is not running",
+      description = "Number of running processes are: {% raw %}{{$value}}{% endraw %}",
+  }
+ALERT Analytics_api_process_not_running
+  IF namedprocess_namegroup_states{groupname="analyticsapi",state="Sleeping"} < 1
+  FOR 1m
+  ANNOTATIONS {
+      summary = "Analytics API process is not running",
+      description = "Number of running processes are: {% raw %}{{$value}}{% endraw %}",
   }
