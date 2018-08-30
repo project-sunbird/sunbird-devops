@@ -28,6 +28,11 @@ postgresql-master
 [kafka:children]
 kafka-1
 
+[processing-cluster-kafka]
+11.3.2.6 iam_group=ep kafka_id=1 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass=d3pl0y3r 
+11.3.2.8 iam_group=ep kafka_id=2 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass=d3pl0y3r
+11.3.2.9 iam_group=ep kafka_id=3 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass=d3pl0y3r
+
 [zookeeper-1]
 10.2.3.4 server_id=1 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
@@ -63,7 +68,7 @@ secor-1
 
 
 [staging-swarm-manager-1]
-172.16.1.7 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+172.16.1.7 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}" 
 
 [staging-swarm-manager:children]
 staging-swarm-manager-1
@@ -133,6 +138,9 @@ staging-cassandra
 staging-keycloak-1
 staging-keycloak-2
 
+[swarm-agent-for-registry]
+10.1.0.6 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
 [swarm-agent-for-prometheus]
 10.1.0.6 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
 
@@ -166,11 +174,55 @@ staging-keycloak-2
 [swarm-node-6]
 10.1.0.9 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
 
+[kafka-servers-staging]
+11.3.2.6
+11.3.2.8
+11.3.2.9
+
+[kafka-servers-staging:vars]
+ansible_ssh_user=ops 
+ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
 
 [registry]
 10.2.2.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
 
+[staging-servers]
+11.3.2.4
+11.3.2.6
+11.3.2.7
+11.3.2.8
+11.3.2.9
+11.3.2.10
+11.3.2.11
+11.3.2.12
+11.3.2.13
+11.3.2.14
+11.3.3.4
+11.3.3.5
+11.3.3.6
+11.3.3.7
+11.3.3.8
+11.3.3.9
+11.3.3.11
+11.3.3.12
+11.3.3.13
+11.3.3.14
+11.3.0.4
+11.3.2.15
+11.3.2.16
+11.3.3.4
+11.3.3.5
+11.3.3.6
+11.3.3.7
 
+
+[spark-server]
+11.3.3.10 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[staging-servers:vars]
+ansible_ssh_user=ops
+ansible_ssh_private_key_file=/run/secrets/ops-private-key
 
 [swarm-node:children]
 swarm-node-1
@@ -190,6 +242,24 @@ es
 cassandra
 log-es
 keycloak
+staging-servers
+kafka-servers-staging
+spark-server
+
+[non-swarm-nodes-process:children]
+postgresql-master
+postgresql-slave
+postgresql-backup
+postgresql-restore
+keycloak
+staging-servers
+kafka-ps
+yarn-ps
+secor-ps
+es-ps
+logstash-ps
+analytics-ps
+
 
 [local-task-runners:children]
 kong-api
@@ -206,10 +276,16 @@ swarm-node
 [node-exporter:children]
 non-swarm-nodes
 swarm-manager
+spark-server
+
+[process-exporter:children]
+non-swarm-nodes-process
+swarm-manager
 
 [log-forwarder:children]
 non-swarm-nodes
 swarm-manager
+spark-server
 
 [staging:children]
 non-swarm-nodes
@@ -217,3 +293,40 @@ swarm-nodes
 local-task-runners
 secor
 kafka
+spark-server
+
+[kafka-ps]
+11.3.2.6 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+11.3.2.8 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+11.3.2.9 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+10.3.2.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+
+[secor-ps]
+11.3.3.9 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+
+[yarn-ps]
+11.3.3.10 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+11.3.3.11 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+11.3.3.12 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+11.3.3.13 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+11.3.3.15 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+11.3.3.16 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+
+[cassandra-ps]
+10.11.4.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+[es-ps]
+10.11.3.7 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+10.11.3.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+10.11.3.5 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+10.11.3.6 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[logstash-ps]
+11.3.2.16 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+
+[analytics-ps]
+10.6.0.22 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+

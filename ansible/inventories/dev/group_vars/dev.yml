@@ -4,8 +4,8 @@ proxy_server_name: dev.open-sunbird.org #Domain on which the portal will be acce
 proto: https
 proxy_site_key: "{{ vault_proxy_site_key }}"  #SSL certificate's site.key file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 proxy_site_crt: "{{ vault_proxy_site_crt }}"  #SSL certificate's site.crt file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
-
-
+sunbird_app_name: Sunbird
+ep_es_host: 10.6.0.30
 # DB CONFIGURATION
 
 ## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
@@ -17,8 +17,6 @@ kong_postgres_password:  "{{ vault_kong_postgres_password }}"         #Password 
 swarm_address_space: 10.0.0.0/16  #Application server address space (e.g. 10.3.0.0/24), also the agentpublicSubnet if using Azure scripts provided
 keycloak_address_space: 10.113.0.0/24
 postgres_address_space: 10.10.0.0/24
-sunbird_content_service_whitelisted_channels: ''
-sunbird_content_service_blacklisted_channels: ''
 ## Cassandra configuration
 cassandra_server_private_ip: 10.10.4.4 #Private IP of cassandra server
 keystore_password: "{{vault_keystore_password}}"  #Password to use for encrypting cassandra keystore. Use a strong password.
@@ -37,6 +35,10 @@ sunbird_cassandra_host: 10.10.4.4  #Private IP of Cassandra server
 sunbird_es_host: 10.10.3.7,10.10.3.8,10.10.3.6   #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
 
 ## Application server configurations
+#sunbird_analytics_api_base_url: https://dev.ekstep.in/api/data/v3
+sunbird_analytics_api_base_url: http://10.6.0.22:9000
+#sunbird_search_service_api_base_url: https://dev.ekstep.in/api/search
+sunbird_search_service_api_base_url: http://10.6.0.5:9000
 sunbird_ekstep_api_base_url: https://dev.ekstep.in/api  #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
 sunbird_ekstep_proxy_base_url: https://dev.ekstep.in  #Base URL of the Ekstep environment. Use `https://qa.ekstep.in/` for non-prod deployments, and `https://community.ekstep.in/` for prod deployment.
 sunbird_env: qa #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
@@ -81,8 +83,8 @@ cassandra_backup_dir: /data/cassandra/backup
 keycloak_url: http://10.113.0.7
 keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth"
 keycloak_realm: sunbird
-sunbird_content_player_url: "https://{{ proxy_server_name }}/api/"
-sunbird_learner_player_url: "https://{{ proxy_server_name }}/api/"
+sunbird_content_player_url: "http://api-manager_kong:8000/"
+sunbird_learner_player_url: "http://api-manager_kong:8000/"
 sunbird_sso_client_id: admin-cli
 sunbird_mongo_port: 27017
 sunbird_mongodb_port: 27017
@@ -90,7 +92,7 @@ sunbird_portal_realm: sunbird
 sunbird_portal_auth_server_client: portal
 sunbird_trampoline_client_id: trampoline
 sunbird_appid: "{{env}}.sunbird.portal"
-sunbird_default_tenant: sunbird
+sunbird_default_channel: sunbird
 sunbird_echo_api_url: "https://{{ proxy_server_name }}/api/echo/"
 sunbird_pg_host: "{{ application_postgres_host }}"
 sunbird_pg_port: 5432
@@ -144,6 +146,18 @@ application_postgres_database: quartz
 application_postgres_user: quartz
 keycloak_postgres_database: keycloak
 keycloak_postgres_user: keycloak
+
+#Content Service Vars
+#sunbird_content_repo_api_base_url: https://dev.ekstep.in/api
+sunbird_content_repo_api_base_url: http://10.6.0.4:8080/learning-service
+sunbird_content_repo_api_key: "{{ vault_sunbird_ekstep_api_key }}" 
+sunbird_search_service_api_key: "{{ vault_sunbird_ekstep_api_key }}" 
+sunbird_dial_repo_api_base_url: https://dev.ekstep.in/api
+sunbird_dial_repo_api_key: "{{ vault_sunbird_ekstep_api_key }}"
+sunbird_plugin_repo_api_base_url: https://dev.ekstep.in/api
+sunbird_plugin_repo_api_key: "{{ vault_sunbird_ekstep_api_key }}"
+sunbird_data_service_api_base_url: https://dev.ekstep.in/api
+sunbird_data_service_api_key: "{{ vault_sunbird_ekstep_api_key }}"
 
 
 ## Cassandra download URI
@@ -285,7 +299,7 @@ grafana_editor_username: editor
 
 
 app_alerts_mailing_list: "rayulu@ilimi.in, harishg@ilimi.in, manzarul.haque@tarento.com,{{devops_alerts_mailing_list}}"
-devops_alerts_mailing_list: "manojv@ilimi.in, shashankt@sahajsoft.com, mathew.pallan@tarento.com, santhosh.g@optit.in"
+devops_alerts_mailing_list: "rajesh.r@optit.co, altamash.s@optit.co, shashankt@sahajsoft.com, mathew.pallan@tarento.com, santhosh.g@optit.in"
 site_alerts_mailing_list: "shailesh@ekstepplus.org, ashwin@tekditechnologies.com, lakhan_m@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
 keycloak_alerts_mailing_list: "ashwin@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
 api_manager_alerts_mailing_list: "ashwin@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
@@ -346,6 +360,12 @@ enc_postgres_user: encryption
 enc_postgres_database: encryption
 enc_postgres_password: "{{vault_enc_postgres_password}}"
 
+#analytics-service
+analytics_postgres_user: analytics
+analytics_postgres_database: analytics
+analytics_postgres_password: "{{vault_analytics_postgres_password}}"
+
+
 #kafka vars
 zk_hosts: "127.0.0.1:2181"
 kafka_conf_dir: /etc/kafka
@@ -388,25 +408,30 @@ partition_prefix_key: eid
 partition_prefix_mapping: 
 sunbird_secor_container_name: telemetry
 sunbird_account_key: "{{vault_sunbird_azure_storage_key}}"
-sunbird_telemetry_kafka_topic: dev.telemetry.raw
+sunbird_telemetry_kafka_topic: sunbirddev.telemetry.ingestion
+sunbird_data_pipeline_kafka_topic: sunbirddev.telemetry.ingest
+telemetry_proxy_url: "{{sunbird_ekstep_api_base_url}}/data/v3/telemetry"
 sunbird_telemetry_request_max_count: 100
 sunbird_telemetry_api: "{{sunbird_ekstep_api_base_url}}/data/v3/telemetry"
 sunbird_cdn_url: "https://dev-sunbird-temp.azureedge.net"
 sunbird_portal_cdn_url: "{{sunbird_cdn_url}}/player/"
+sunbird_tenant_cdn_url: "{{sunbird_cdn_url}}/tenants"
 content_service_whitelisted_channels: ""
 content_service_blacklisted_channels: ""
 
-# CDN
+# sunbird_cdn_url
 player_cdn_account_key: "{{vault_sunbird_account_key}}"
 player_cdn_container: player
 player_cdn_account: sunbirddev
 
-# Nginx s3 url
-ekstep_s3_env: dev
 
 #Additional Variables
 sunbird_user_bulk_upload_size: 1001
-sunbird_email_env: "Sunbird dev"
+sunbird_installation_display_name: "Sunbird Dev"
+
+#Ekstep s3 env
+ekstep_s3_env: dev
+
 
 #Registry Variables
 perf_monitoring_enabled: true
@@ -437,4 +462,30 @@ decryption_batch_uri: "{{decryption_uri}}obj"
 audit_enabled: false
 audit_frame_file: audit_frame.json
 authentication_enabled: false
->>>>>>> release-1.8
+
+
+sunbird_app_name: Sunbird
+sunbird_open_saber_bridge_enable: 'true'
+
+# --- Content service specific ENV vars --- #
+content_service_whitelisted_channels: ''
+content_service_blacklisted_channels: ''
+content_service_channel_refresh_cron: '*/5 * * * *'
+content_service_whitelisted_framework: ''
+content_service_blacklisted_framework: ''
+content_service_blacklisted_contenttype: ''
+content_service_blacklisted_resourcetype: ''
+content_service_whitelisted_resourcetype: ''
+content_service_whitelisted_mimetype: ''
+content_service_blacklisted_mimetype: ''
+sunbird_content_service_enable_logging: 'true'
+sunbird_language_service_api_key: "{{vault_sunbird_ekstep_api_key}}"
+sunbird_language_service_api_base_url: 'https://dev.ekstep.in/api/language'
+
+kong_version: 1.5.0-gold
+
+# Player service vars
+sunbird_cloud_storage_urls: 'https://s3.ap-south-1.amazonaws.com/ekstep-public-dev/,https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/,https://sunbirddev.blob.core.windows.net/sunbird-content-dev/'
+
+# Data pipeline vars
+learning_analytics_service_url: 'http://10.6.0.22:9000'

@@ -7,7 +7,7 @@ node('  build-slave') {
     try {
 
       stage('Cleanup'){
-          sh('rm -rf sunbird-auth') 
+          sh('rm -rf sunbird-auth')
           sh('rm -rf project-sunbird-devops')
           sh('rm -rf keycloak-3.2.0.Final.tar.gz')
           sh('rm -rf keycloak_build/login.tar.gz')
@@ -21,25 +21,26 @@ node('  build-slave') {
 
           // @Todo Update the URL
           sh('git clone https://github.com/ahghatol/sunbird-devops-1.git project-sunbird-devops')
-          
+
           //sh('git clone https://github.com/project-sunbird/sunbird-devops project-sunbird-devops')
 
           // Download keycloak package and driver
-          sh('wget https://downloads.jboss.org/keycloak/3.2.0.Final/keycloak-3.2.0.Final.tar.gz')
+         // sh('wget https://downloads.jboss.org/keycloak/3.2.0.Final/keycloak-3.2.0.Final.tar.gz')
           sh('wget https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar')
       }
 
       stage('Build'){
         sh('mkdir -p keycloak_build');
 
-        // Login theme build
+        // Login and Email theme build
         sh('cd ansible/artifacts/sunbird && tar -zcvf login.tar.gz *')
+		sh('cd ansible/artifacts/email && tar -zcvf email.tar.gz *')
 
         // Sms plugin build
          sh('cd sunbird-auth/keycloak/sms-provider && mvn package')
 
 
-        sh('cp keycloak-3.2.0.Final.tar.gz keycloak_build')
+        sh('cp sunbird-auth/keycloak/keycloak-custom-package/distribution/server-dist/target/keycloak-3.2.0.Final.tar.gz keycloak_build')
         sh('cp postgresql-9.4.1212.jar keycloak_build')
 
         // Copy file to keycloak_build directory
@@ -51,10 +52,12 @@ node('  build-slave') {
 
         // Copy ansible template for Provider config and keycloak configuration
         sh('mkdir -p keycloak_build/ansible-templates');
-        
+
         sh('cp project-sunbird-devops/ansible/roles/keycloak/templates/* keycloak_build/ansible-templates')
-        
+
+		// COPY email and Login theme to Build
         sh('cp ansible/artifacts/sunbird/login.tar.gz keycloak_build')
+        sh('cp ansible/artifacts/email/email.tar.gz keycloak_build')
         sh('tar -zcvf keycloak_build.tar.gz keycloak_build')
       }
 

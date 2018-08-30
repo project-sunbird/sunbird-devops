@@ -4,7 +4,7 @@ proto: https
 proxy_server_name: staging.open-sunbird.org #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
 proxy_site_key: "{{ vault_proxy_site_key }}"  #SSL certificate's site.key file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 proxy_site_crt: "{{ vault_proxy_site_crt }}"  #SSL certificate's site.crt file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
-
+ep_es_host: 11.3.2.11
 
 # DB CONFIGURATION
 
@@ -81,8 +81,6 @@ registry_url: http://10.2.2.4:8080
 keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth"
 keycloak_realm: sunbird
 sunbird_content_player_url: "https://{{ proxy_server_name }}/api/"
-sunbird_content_service_whitelisted_channels: ""
-sunbird_content_service_blacklisted_channels: ""
 sunbird_learner_player_url: "https://{{ proxy_server_name }}/api/"
 sunbird_sso_client_id: admin-cli
 sunbird_mongo_port: 27017
@@ -91,7 +89,7 @@ sunbird_portal_realm: sunbird
 sunbird_portal_auth_server_client: portal
 sunbird_trampoline_client_id: trampoline
 sunbird_appid: "{{env}}.sunbird.portal"
-sunbird_default_tenant: sunbird
+sunbird_default_channel: sunbird
 sunbird_echo_api_url: "https://{{ proxy_server_name }}/api/echo/"
 sunbird_pg_host: "{{ application_postgres_host }}"
 sunbird_pg_port: 5432
@@ -262,7 +260,7 @@ grafana_url: "https://{{ proxy_server_name }}/grafana"
 grafana_editor_username: editor
 
 app_alerts_mailing_list: "rayulu@ilimi.in, harishg@ilimi.in, manzarul.haque@tarento.com,{{devops_alerts_mailing_list}}"
-devops_alerts_mailing_list: "manojv@ilimi.in, shashankt@sahajsoft.com, mathew.pallan@tarento.com, santhosh.g@optit.in"
+devops_alerts_mailing_list: "rajesh.r@optit.co, altamash.s@optit.co, shashankt@sahajsoft.com, mathew.pallan@tarento.com, santhosh.g@optit.in"
 site_alerts_mailing_list: "shailesh@ekstepplus.org, ashwin@tekditechnologies.com, lakhan_m@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
 keycloak_alerts_mailing_list: "ashwin@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
 api_manager_alerts_mailing_list: "ashwin@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
@@ -275,15 +273,16 @@ kibana_oauth_authenticated_email_domains:
   - sahajsoft.com
   - ilimi.in
   - tarento.com
-  - optit.co
 
 kibana_oauth_authenticated_email_ids:
   - shailesh@ekstepplus.org
   - vijetha.nayak@riflexions.com
   - arvind.yadav@compassitesinc.com
   - rajesh.r@optit.co
+  - altamash.s@optit.co
   - jaikumarsrajan@gmail.com
   - juthika.paul@qualitrix.com
+  - santhosh.s@optit.in
 
 monitor_alerts_mail_from_email: alerts@open-sunbird.org
 monitor_alerts_mail_server_host: "{{ mail_server_host }}"
@@ -329,7 +328,9 @@ enc_postgres_password: "{{vault_enc_postgres_password}}"
 sunbird_external_content_whitelisted_domains: 'juliabox.com'
 
 # telemetry-service
-sunbird_telemetry_kafka_topic: staging.telemetry.raw
+sunbird_telemetry_kafka_topic: staging.telemetry.ingestion
+sunbird_data_pipeline_kafka_topic: sunbirdstaging.telemetry.ingest
+telemetry_proxy_url: "{{sunbird_ekstep_api_base_url}}/data/v3/telemetry"
 sunbird_telemetry_request_max_count: 500
 # telemetry-logstash
 sunbird_telemetry_api: "{{sunbird_ekstep_api_base_url}}/data/v3/telemetry"
@@ -340,8 +341,76 @@ player_cdn_container: player
 player_cdn_account: sunbirdstaging
 sunbird_cdn_url: https://staging-sunbird.azureedge.net
 sunbird_portal_cdn_url: "{{sunbird_cdn_url}}/player/"
+sunbird_tenant_cdn_url: "{{sunbird_cdn_url}}/tenants"
 
 sunbird_user_bulk_upload_size: 1001
 sunbird_installation_display_name: "Sunbird Staging"
 
 kong_version: 1.5.0-gold
+
+#cotent-service vars
+content_service_whitelisted_channels: ''
+content_service_blacklisted_channels: ''
+content_service_channel_refresh_cron: ''
+content_service_whitelisted_framework: ''
+content_service_blacklisted_framework: ''
+content_service_blacklisted_contenttype: ''
+content_service_blacklisted_resourcetype: ''
+content_service_whitelisted_resourcetype: ''
+content_service_whitelisted_mimetype: ''
+content_service_blacklisted_mimetype: ''
+sunbird_content_repo_api_base_url: https://qa.ekstep.in/api
+sunbird_content_repo_api_key: "{{ vault_sunbird_ekstep_api_key }}"
+sunbird_search_service_api_key: "{{ vault_sunbird_ekstep_api_key }}"
+sunbird_dial_repo_api_base_url: https://qa.ekstep.in/api
+sunbird_dial_repo_api_key: "{{ vault_sunbird_ekstep_api_key }}"
+sunbird_plugin_repo_api_base_url: https://qa.ekstep.in/api
+sunbird_plugin_repo_api_key: "{{ vault_sunbird_ekstep_api_key }}"
+sunbird_data_service_api_base_url: https://qa.ekstep.in/api
+sunbird_data_service_api_key: "{{ vault_sunbird_ekstep_api_key }}"
+sunbird_content_service_enable_logging: 'true'
+sunbird_language_service_api_key: "{{sunbird_dial_repo_api_key}}"
+sunbird_language_service_api_base_url: 'https://qa.ekstep.in/api/language'
+
+#Learner service vars
+sunbird_analytics_api_base_url: "{{sunbird_ekstep_api_base_url}}/data/v3"
+sunbird_search_service_api_base_url: "{{sunbird_ekstep_api_base_url}}/search"
+
+#player Service vars
+#sunbird_tenant_cdn_url: "{{sunbird_cdn_url}}/tenant"
+sunbird_cloud_storage_urls: 'https://s3.ap-south-1.amazonaws.com/ekstep-public-qa/,https://ekstep-public-qa.s3-ap-south-1.amazonaws.com/,https://sunbirdstaging.blob.core.windows.net/sunbird-content-staging/'
+
+sunbird_sso_publickey: "{{vault_sunbird_sso_publickey}}"
+
+#Registry Variables
+perf_monitoring_enabled: true
+host_url: https://staging.open-sunbird.org/registry/
+registry_context_base: "{{host_url}}"
+registry_system_base: "{{host_url}}opensaber/"
+registry_config_dir: file:///home/opensaber/config/
+config_schema_file: "{{registry_config_dir}}schema-configuration.jsonld"
+database_provider: neo4j
+database_embedded: true
+database_host: localhost
+database_port: 7687
+database_directory: /data/databases/graph.db
+database_profiler_enabled: false
+validations_create_file: "{{registry_config_dir}}validations_create.shex"
+validations_update_file: "{{registry_config_dir}}validations_update.shex"
+frame_file: "{{registry_config_dir}}frame.json"
+audit_frame_file: "{{registry_config_dir}}audit_frame.json"
+connection_timeout: 5000
+connection_request_timeout: 5000
+read_timeout: 5000
+encryption_enabled: true
+encryption_base: https://staging.open-sunbird.org/encryption/
+encryption_uri: "{{encryption_base}}encrypt/"
+encryption_batch_uri: "{{encryption_uri}}obj"
+decryption_uri: "{{encryption_base}}decrypt/"
+decryption_batch_uri: "{{decryption_uri}}obj"
+audit_enabled: false
+audit_frame_file: audit_frame.json
+authentication_enabled: false
+
+# Data pipeline vars
+learning_analytics_service_url: "http://11.3.3.17:9000"
