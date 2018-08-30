@@ -32,10 +32,15 @@ badger_token=$(cat ~/badger_token.txt | cut -d '"' -f 4)
 echo "@@@@@@@@@ Redeploy player service"
 ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=player image_tag=${PLAYER_VERSION} service_name=player deploy_stack=True sunbird_api_auth_token=${sunbird_api_auth_token} vault_badging_authorization_key=${badger_token}" --extra-vars @config 
 
+# Re-deploy Learner service
+echo "Redeploy learner service"
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=learner_service image_tag=${LEARNER_SERVICE_VERSION} service_name=learner-service deploy_learner=True  sunbird_api_auth_token=${sunbird_api_auth_token} vault_badging_authorization_key=${badger_token}" --extra-vars @config -v
+
 # Re-deploy Content service
 echo "Redeploy content service"
 ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=content-service image_tag=${CONTENT_SERVICE_VERSION} service_name=content-service deploy_content=True sunbird_api_auth_token=${sunbird_api_auth_token} vault_badging_authorization_key=${badger_token}" --extra-vars @config 
 
-# Re-deploy Learner service
-echo "Redeploy learner service"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=learner_service image_tag=${LEARNER_SERVICE_VERSION} service_name=learner-service deploy_learner=True  sunbird_api_auth_token=${sunbird_api_auth_token} vault_badging_authorization_key=${badger_token}" --extra-vars @config -v
+#Telemetry-Service
+echo "Redeploy Telemetry service"
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=telemetry-service image_tag=${TELEMETRY_SERVICE_VERSION} service_name=telemetry-service deploy_telemetry=True" --extra-vars @config
+
