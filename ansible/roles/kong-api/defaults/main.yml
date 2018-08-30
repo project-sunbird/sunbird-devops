@@ -46,6 +46,7 @@ dialcode_service_prefix: /dialcode
 channel_service_prefix: /channel
 framework_service_prefix: /framework
 badge_service_prefix: /badging
+plugin_service_prefix: /plugins
 
 # Service URLs
 content_service_url: "http://content-service:5000"
@@ -101,15 +102,12 @@ kong_apis:
     upstream_url: "{{ content_service_url }}/v1/content/search"
     strip_request_path: true
     plugins:
-    - name: jwt
     - name: cors
     - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: contentUser
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
+      config.limit_by: ip
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateContent
@@ -133,15 +131,12 @@ kong_apis:
     upstream_url: "{{ content_service_url }}/v1/content/read"
     strip_request_path: true
     plugins:
-    - name: jwt
     - name: cors
     - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: contentUser
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
+      config.limit_by: ip
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: submitContentForReview
@@ -325,15 +320,12 @@ kong_apis:
     upstream_url: "{{ content_service_url }}/v1/course/hierarchy"
     strip_request_path: true
     plugins:
-    - name: jwt
     - name: cors
     - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: courseUser
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
+      config.limit_by: ip
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: courseEnrolment
@@ -533,15 +525,12 @@ kong_apis:
     upstream_url: "{{ learning_service_url }}/v1/page/assemble"
     strip_request_path: true
     plugins:
-    - name: jwt
     - name: cors
     - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: publicUser
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
+      config.limit_by: ip
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createNote
@@ -1262,7 +1251,7 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: assignRole
-    request_path: "{{ org_service_prefix }}/v1/role/assign"
+    request_path: "{{ user_service_prefix }}/v1/role/assign"
     upstream_url: "{{ learning_service_url }}/v1/user/assign/role"
     strip_request_path: true
     plugins:
@@ -2339,15 +2328,12 @@ kong_apis:
     upstream_url: "{{ content_service_url }}/v1/channel/read"
     strip_request_path: true
     plugins:
-    - name: jwt
     - name: cors
     - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: domainUser
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ x_large_rate_limit_per_hour }}"
-      config.limit_by: credential
+      config.limit_by: ip
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listChannel
@@ -2419,15 +2405,12 @@ kong_apis:
     upstream_url: "{{ content_service_url }}/v1/framework/read"
     strip_request_path: true
     plugins:
-    - name: jwt
     - name: cors
     - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: domainUser
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ premium_consumer_large_rate_limit_per_hour }}"
-      config.limit_by: credential
+      config.limit_by: ip
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listFramework
@@ -2979,15 +2962,12 @@ kong_apis:
     upstream_url: "{{ content_service_url }}/v1/data/form/read"
     strip_request_path: true
     plugins:
-    - name: jwt
     - name: cors
     - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: publicUser
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
+      config.limit_by: ip
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: masterLocationCreate
@@ -3074,7 +3054,7 @@ kong_apis:
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: fetchURLMetaInformation
     request_path: "{{ content_service_prefix }}/v1/fetchmeta"
-    upstream_url: "{{ content_service_url }}/url/v1/fetchmeta"
+    upstream_url: "{{ content_service_url }}/v1/url/fetchmeta"
     strip_request_path: true
     plugins:
     - name: jwt
@@ -3099,7 +3079,71 @@ kong_apis:
     - name: acl
       config.whitelist: domainUpdate
     - name: rate-limiting
+      config.policy: local
       config.hour: "{{ large_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: pluginSearch
+    request_path: "{{ plugin_service_prefix }}/v1/search"
+    upstream_url: "{{ content_service_url }}/v1/plugins/search"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: publicUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"    
+
+  # Data pipeline 
+  - name: "datasetSubmitRequest"
+    request_path: "{{ data_service_prefix }}/v3/dataset/request/submit"
+    upstream_url: "{{ learning_analytics_service_url }}/dataset/request/submit"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: "datasetReadRequest"
+    request_path: "{{ data_service_prefix }}/v3/dataset/request/read"
+    upstream_url: "{{ learning_analytics_service_url }}/dataset/request/read"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: "datasetListRequest"
+    request_path: "{{ data_service_prefix }}/v3/dataset/request/list"
+    upstream_url: "{{ learning_analytics_service_url }}/dataset/request/list"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "channelSpecificTelemetryExhaust"
+    request_path: "{{ data_service_prefix }}/v3/dataset/get"
+    upstream_url: "{{ learning_analytics_service_url }}/dataset/get"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
