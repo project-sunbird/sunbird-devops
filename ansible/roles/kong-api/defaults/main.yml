@@ -47,6 +47,7 @@ channel_service_prefix: /channel
 framework_service_prefix: /framework
 badge_service_prefix: /badging
 plugin_service_prefix: /plugins
+config_service_prefix: /config
 
 # Service URLs
 content_service_url: "http://content-service:5000"
@@ -55,6 +56,7 @@ telemetry_service_url: "http://telemetry-service:9001"
 player_service_url: "http://player_player:3000"
 echo_service_url: "http://api-manager_echo:9595"
 am_util_url: http://adminutil_adminutil:4000
+config_service_url: http://config-service:6000
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -3131,9 +3133,9 @@ kong_apis:
       config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"    
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  # Data pipeline 
+  # Data pipeline
   - name: "datasetSubmitRequest"
     request_path: "{{ data_service_prefix }}/v3/dataset/request/submit"
     upstream_url: "{{ learning_analytics_service_url }}/dataset/request/submit"
@@ -3178,4 +3180,28 @@ kong_apis:
      - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
      - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "configRefresh"
+    request_path: "{{ config_service_prefix }}/v1/refresh"
+    upstream_url: "{{ config_service_url }}/config-service/v1/refresh"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'dataAdmin'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "getConfigByKey"
+    request_path: "{{ config_service_prefix }}/v1/read"
+    upstream_url: "{{ config_service_url }}/config-service/v1/read"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
