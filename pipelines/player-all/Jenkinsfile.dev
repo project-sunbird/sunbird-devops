@@ -7,7 +7,11 @@ node('build-slave') {
     try{
        stage('Checkout'){
           checkout scm
-          sh( "./pipelines/setupDevopsCode.sh" )
+          sh"""
+            ./pipelines/setupDevopsCode.sh
+            ls
+            ./pipelines/player-all/setupPlayer.sh ${portal_git_branch}
+            """
        }
 
        stage('Copy Artifact'){
@@ -21,10 +25,11 @@ node('build-slave') {
         sh("./pipelines/player-all/deploy.sh dev")
        }
 
-       stage('Deploy Player'){
+       stage('Deploy'){
           sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=dev ./pipelines/player-all/player-deploy.sh'
           archive includes: "metadata.json"
        }
+        
     }
     catch (err) {
         currentBuild.result = "FAILURE"
