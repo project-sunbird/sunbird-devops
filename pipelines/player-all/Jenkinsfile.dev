@@ -4,8 +4,16 @@ node('build-slave') {
 
     currentBuild.result = "SUCCESS"
 
-    try{
+    try {
+        
+        stage(' setup'){
+          step ([$class: 'CopyArtifact',
+          projectName: 'New_Build/Sunbird_Player_Build',
+          filter: 'metadata.json']);
+        }
+
        stage('Checkout'){
+
           checkout scm
           sh"""
             ./pipelines/setupDevopsCode.sh
@@ -14,16 +22,14 @@ node('build-slave') {
             """
        }
 
-       stage('Copy Artifact'){
-        step ([$class: 'CopyArtifact',
-        verbose: true,
-        projectName: 'New_Build/Sunbird_Player_Build']);
-        archive includes: "player-dist.tar.gz"
-       }
+       stage('Build Assets'){
+          sh ("docker run --rm -v `pwd`:/work -w /work node:8.11.2-alpine sh ./pipelines/player-all/build.sh ${cdn}")
+        }
+        
+        stage('Deploy-cdn'){
+            sh("./pipelines/player-all/deploy.sh dev")
+        }
 
-       stage('Deploy CDN'){
-        sh("./pipelines/player-all/deploy.sh dev")
-       }
 
        stage('Deploy'){
           sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=bronze ENV=dev ./pipelines/player-all/player-deploy.sh'
@@ -35,4 +41,5 @@ node('build-slave') {
         currentBuild.result = "FAILURE"
         throw err
     }
+
 }
