@@ -2,15 +2,10 @@
 
 set -ex
 
+echo $(pwd)
 commit_ref=${1}
+build_hash=$(jq '.commitHash' metadata.json | sed 's/\"//g')
 player_dir=sunbird-portal
-if [ ! -d $player_dir ]; then
-    git clone https://github.com/project-sunbird/sunbird-portal -b $commit_ref
-    exit 0
-fi
-cd $player_dir
-git reset --hard
-git clean -fd
-git fetch
-git checkout "$commit_ref"
-git pull -X theirs
+git -C sunbird-portal pull || git clone https://github.com/project-sunbird/sunbird-portal -b ${commit_ref}
+cd sunbird-portal
+git checkout -f "$build_hash" .
