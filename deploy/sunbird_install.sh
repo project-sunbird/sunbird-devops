@@ -14,7 +14,7 @@
 
 set -eu -o pipefail
 
-usage() { echo "Usage: $0 [ -s {sanity|config|dbs|apis|proxy|keycloak|badger|core|logger|monitor|posttest} ]" ; exit 0; }
+usage() { echo "Usage: $0 [ -s {sanity|config|dbs|apis|proxy|keycloak|badger|core|configservice|logger|monitor|posttest} ]" ; exit 0; }
 
 # Checking for valid argument
 if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
@@ -35,7 +35,8 @@ ansible_private_key_path=$(awk '/ansible_private_key_path: /{ if ($2 !~ /#.*/) {
 ansible_variable_path="${implementation_name}"-devops/ansible/inventories/"$env_name"
 protocol=$(awk '/proto: /{ if ($2 !~ /#.*/) {print $2}}' config)
 domainname=$(awk '/dns_name: /{ if ($2 !~ /#.*/) {print $2}}' config)
-
+ENV=sample
+ORG=sunbird
 #TO skip the host key verification
 export ANSIBLE_HOST_KEY_CHECKING=False
 #Enable force color
@@ -62,6 +63,11 @@ config() {
 
 sanity() {
     ./sanity.sh $ssh_ansible_user $ansible_private_key_path
+}
+
+configservice() {
+	echo "Deploy Config service"
+	ansible-playbook -i $ansible_variable_path ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=config-service image_tag=${CONFIG_SERVICE_VERSION} service_name=config-service deploy_config=True" --extra-vars @config
 }
 
 # Installing dependencies
@@ -147,6 +153,10 @@ while getopts "s:h" o;do
                     ;;
                 core)
                     echo -e "\n$(date)\n">>logs/core.log; core 2>&1 | tee -a logs/core.log
+                    exit 0
+                    ;;
+		configservice)
+                    echo -e "\n$(date)\n">>logs/configservice.log; configservice 2>&1 | tee -a logs/configservice.log
                     exit 0
                     ;;
                 logger)
