@@ -5,9 +5,9 @@
 '''
 Create a snapshot and create tar ball in targetdirectory name
 
-usage: script  /path/to/datadirectory snapshot_name
+usage: script snapshot_name
 
-eg: ./cassandra_backup.py /var/lib/cassandra/data my_snapshot
+eg: ./cassandra_backup.py my_snapshot
 '''
 
 from os import path, walk, sep, system, getcwd, makedirs
@@ -18,7 +18,7 @@ from sys import exit
 from tempfile import mkdtemp
 
 parser = ArgumentParser(description="Create a snapshot and create tar ball inside tardirectory")
-parser.add_argument("datadirectory", help="path to datadirectory of cassandra")
+parser.add_argument("-d","--datadirectory", metavar="datadir",  default='/var/lib/cassandra/data', help="path to create the tarball. Default /var/lib/cassadra/data")
 parser.add_argument("snapshotname", help="name in which you want to take the snapshot")
 parser.add_argument("-t","--tardirectory", metavar="tardir",  default=getcwd(), help="path to create the tarball. Default {}".format(getcwd()))
 args = parser.parse_args()
