@@ -5,6 +5,8 @@ from subprocess import run, check_output
 from re import match, DOTALL
  
 root_dir = '/home/ops/cassandra_backup'
+
+os.chdir(root_dir)
  
 for i in os.listdir(root_dir):
     try:
