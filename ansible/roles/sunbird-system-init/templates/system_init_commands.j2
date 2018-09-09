@@ -1,0 +1,344 @@
+#!/bin/sh
+
+validateConfigFields() {
+        if [ -z "{{sunbird_custodian_tenant_name}}" ] || [ -z "{{sunbird_custodian_tenant_description}}" ] || \
+           [ -z "{{sunbird_custodian_tenant_channel}}" ] || [ -z "{{sunbird_root_user_firstname}}" ] || \
+           [ -z "{{sunbird_root_user_username}}" ] || [ -z "{{sunbird_root_user_password}}" ] || \
+           [ -z "{{sunbird_root_user_email}}" ] || [ -z "{{sunbird_root_user_phone}}" ];
+        then
+                echo "System Initialisation failed. One or more mandatory variables are not configured(sunbird_custodian_tenant_name,"\
+                "sunbird_custodian_tenant_description,sunbird_custodian_tenant_channel,sunbird_root_user_firstname,"\
+                "sunbird_root_user_username,sunbird_root_user_password,sunbird_root_user_email,sunbird_root_user_phone)";
+                exit 1;
+        fi
+}
+
+initializeVariables() {
+        sunbird_custodian_tenant_slug="$(echo -n "{{sunbird_custodian_tenant_channel}}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | sed -e 's/\s/-/g' | sed -e 's/[^a-zA-Z0-9-]//g' | tr -s '-' | tr A-Z a-z)"
+        currenttime=$(date +'%F %T:%3N%z')
+        if [ -z "$sunbird_custodian_tenant_slug" ] || [ -z "$currenttime" ];
+        then
+                echo "System Initialisation failed. Unable to initialise variables.";
+                exit 1;
+        fi
+}
+
+getExistingCustodianTenantId() {
+        sunbird_custodian_tenant_id=$(cqlsh -e "select id from sunbird.organisation where isrootorg=true and channel='{{sunbird_custodian_tenant_channel}}' allow filtering;" | awk 'FNR == 4 {print}' | sed 's/ //g')
+}
+
+getNewCustodianTenantId() {
+        sunbird_custodian_tenant_id='0'$((($(date +%s%3N)+$(shuf -i 0-999999 -n 1))<<13))'0';
+}
+
+getValueFromSystemSettings() {
+        system_settings_value=$(cqlsh -e "select value from sunbird.system_settings where id='"$system_settings_id"';" | awk 'FNR == 4 {print}' | sed 's/ //g')
+}
+
+setValueInSystemSettings() {
+        cqlsh -e "update sunbird.system_settings set value='"$system_settings_value"',field='"$system_settings_id"' where id='"$system_settings_id"';"
+}
+
+setPropertyInSystemSettings() {
+        cqlsh -e "insert into sunbird.system_settings(id,field,value) values('"$system_settings_id"','"$system_settings_id"','"$system_settings_value"');"
+}
+
+registerChannel() {
+        register_channel_response_code=$(curl -o /dev/null -s -w "%{http_code}\n" \
+                -X POST {{ekstep_proxy_base_url}}/api/channel/v3/create \
+                -H 'authorization: Bearer {{ekstep_api_key}}' \
+                -H 'cache-control: no-cache' \
+                -H 'content-type: application/json' \
+                -d '{
+                        "request": {
+                                "channel": {
+                                        "name":"{{sunbird_custodian_tenant_channel}}",
+                                        "description":"{{sunbird_custodian_tenant_description}}",
+                                        "code":"'$sunbird_custodian_tenant_id'"
+                                }
+                        }
+                    }')
+}
+
+registerHashTag() {
+        register_hashtag_response_code=$(curl -o /dev/null -s -w "%{http_code}\n" \
+                -X POST {{ekstep_proxy_base_url}}/api/data/v3/tag/register/$sunbird_custodian_tenant_id \
+                -H 'authorization: Bearer {{ekstep_api_key}}' \
+                -H 'cache-control: no-cache' \
+                -H 'content-type: application/json' \
+                -d '{}')
+}
+
+createOrgInCassandra() {
+        sunbird_cassandra_org_insert_query="insert into sunbird.organisation \
+        (orgname,description,channel,slug,id,hashtagid, \
+        rootorgid,createddate,createdby,isrootorg,isdefault, status) values \
+        ('""{{sunbird_custodian_tenant_name}}""', '""{{sunbird_custodian_tenant_description}}""', \
+        '""{{sunbird_custodian_tenant_channel}}""', '"$sunbird_custodian_tenant_slug"', \
+        '"$sunbird_custodian_tenant_id"', '"$sunbird_custodian_tenant_id"', \
+        '"$sunbird_custodian_tenant_id"', '"$currenttime"', 'system', true, true, 1);"
+
+        cqlsh -e "$sunbird_cassandra_org_insert_query"
+}
+
+createOrgInES() {
+        es_host="$(echo "{{sunbird_es_host}}" | cut -d ',' -f1)"
+        es_create_org_response=$(curl -X PUT $es_host:9200/searchindex/org/$sunbird_custodian_tenant_id \
+                -H 'cache-control: no-cache' \
+                -H 'content-type: application/json' \
+                -d '{
+                        "orgName":"{{sunbird_custodian_tenant_name}}",
+                        "description":"{{sunbird_custodian_tenant_description}}",
+                        "channel":"{{sunbird_custodian_tenant_channel}}",
+                        "slug":"'"$sunbird_custodian_tenant_slug"'",
+                        "id":"'"$sunbird_custodian_tenant_id"'",
+                        "identifier":"'"$sunbird_custodian_tenant_id"'",
+                        "hashTagId":"'"$sunbird_custodian_tenant_id"'",
+                        "rootOrgId":"'"$sunbird_custodian_tenant_id"'",
+                        "createdDate":"'"$currenttime"'",
+                        "createdBy":"system",
+                        "isRootOrg":true,
+                        "isDefault":true,
+                        "status":1
+                    }')
+}
+
+fetchOrgFromES() {
+        es_host="$(echo "{{sunbird_es_host}}" | cut -d ',' -f1)"
+        es_fetch_org_response=$(curl -X GET $es_host:9200/searchindex/org/$sunbird_custodian_tenant_id)
+}
+
+getKeycloakToken() {
+        sunbird_login_id={{sunbird_root_user_username}}'@'{{sunbird_custodian_tenant_channel}}
+        keycloak_access_token=$(curl -s -X POST {{proto}}://{{proxy_server_name}}/auth/realms/sunbird/protocol/openid-connect/token \
+                -H 'cache-control: no-cache' \
+                -H 'content-type: application/x-www-form-urlencoded' \
+                -d 'client_id=admin-cli&username='"$sunbird_login_id"'&password={{sunbird_root_user_password}}&grant_type=password' | jq '.access_token' | tr -d "\"")
+}
+
+createUser() {
+        user_creation_response=$(curl -X POST {{proto}}://{{proxy_server_name}}/api/user/v1/create \
+                -H 'Cache-Control: no-cache' \
+                -H 'Content-Type: application/json' \
+                -H 'accept: application/json' \
+                -H 'authorization: Bearer {{sunbird_api_auth_token}}' \
+                -d '{
+                        "request": {
+                                "firstName":"{{sunbird_root_user_firstname}}",
+                                "lastName":"{{sunbird_root_user_lastname}}",
+                                "userName":"{{sunbird_root_user_username}}",
+                                "password":"{{sunbird_root_user_password}}",
+                                "email":"{{sunbird_root_user_email}}",
+                                "phone":"{{sunbird_root_user_phone}}",
+                                "channel": "{{sunbird_custodian_tenant_channel}}",
+                                "emailVerified": true,
+                                "phoneVerified": true
+                        }
+                    }')
+}
+
+addUserToCustodianOrg() {
+        getKeycloakToken
+        add_user_response=$(curl -X POST {{proto}}://{{proxy_server_name}}/api/org/v1/member/add \
+                -H 'Cache-Control: no-cache' \
+                -H 'Content-Type: application/json' \
+                -H 'accept: application/json' \
+                -H 'authorization: Bearer {{sunbird_api_auth_token}}' \
+                -H 'x-authenticated-user-token: '"$keycloak_access_token" \
+                -d '{
+                        "request": {
+                                "organisationId": "'"$sunbird_custodian_tenant_id"'",
+                                "userId": "'"$sunbird_root_user_id"'",
+                                "roles": ["ORG_ADMIN"]
+                        }
+                    }')
+}
+
+assignRoleToRootUser() {
+        getKeycloakToken
+        assign_role_response=$(curl -X POST {{proto}}://{{proxy_server_name}}/api/user/v1/role/assign \
+                -H 'Cache-Control: no-cache' \
+                -H 'Content-Type: application/json' \
+                -H 'accept: application/json' \
+                -H 'authorization: Bearer {{sunbird_api_auth_token}}' \
+                -H 'x-authenticated-user-token: '"$keycloak_access_token" \
+                -d '{
+                        "request": {
+                                "organisationId": "'"$sunbird_custodian_tenant_id"'",
+                                "userId": "'"$sunbird_root_user_id"'",
+                                "roles": ["ORG_ADMIN"]
+                        }
+                    }')
+}
+
+updateSettingsCustodianOrgCreated() {
+        system_settings_id="custodianOrgCreated";
+        system_settings_value="true";
+        setValueInSystemSettings;
+}
+
+updateSettingsCustodianOrgId() {
+        system_settings_id="custodianOrgId";
+        system_settings_value="$sunbird_custodian_tenant_id";
+        setValueInSystemSettings;
+}
+
+updateSettingsCustodianOrgChannel() {
+        system_settings_id="custodianOrgChannel";
+        system_settings_value="{{sunbird_custodian_tenant_channel}}";
+        setValueInSystemSettings;
+}
+
+updateSettingsSystemInit() {
+        system_settings_id="systemInit";
+        system_settings_value="true";
+        setValueInSystemSettings;
+}
+
+updateSettingsChannelRegistered() {
+        system_settings_id="custodianOrgChannelRegistered";
+        system_settings_value="true";
+        setValueInSystemSettings;
+}
+
+updateSettingsHashTagRegistered() {
+        system_settings_id="custodianOrgHashTagRegistered";
+        system_settings_value="true";
+        setValueInSystemSettings;
+}
+
+updateSettingsRootUserCreated() {
+        system_settings_id="custodianOrgRootUserCreated";
+        system_settings_value="true";
+        setValueInSystemSettings;
+}
+
+system_settings_id="systemInit";
+getValueFromSystemSettings;
+if [ "$system_settings_value" = "false" ];
+then
+        echo "Starting System Initialisation...";
+        validateConfigFields;
+        initializeVariables;
+        getExistingCustodianTenantId;
+        if [ -z "$sunbird_custodian_tenant_id" ];
+        then
+                echo "Creating Custodian Organisation in Cassandra...";
+                getNewCustodianTenantId;
+                createOrgInCassandra;
+                getExistingCustodianTenantId;
+                if [ -z "$sunbird_custodian_tenant_id" ];
+                then
+                        echo "Custodian Organisation creation FAILED in Cassandra.";
+                        exit 1;
+                else
+                        echo "Custodian Organisation is created in Cassandra.";
+                fi
+        else
+                echo "Already a Tenant Organisation exists with the configured channel - ""{{sunbird_custodian_tenant_channel}}";
+                echo "Making Tenant Organisation with Id - ""$sunbird_custodian_tenant_id"" as Custodian Organisation...";
+        fi
+
+        fetchOrgFromES;
+        isOrgFoundInES=$(echo -n "$es_fetch_org_response" | jq '.found' | tr -d "\"");
+        if [ "$isOrgFoundInES" = "false" ];
+        then
+                echo "Syncing Custodian Organisation data to Elastic Search...";
+                createOrgInES;
+                fetchOrgFromES;
+                isOrgFoundInES=$(echo -n "$es_fetch_org_response" | jq '.found' | tr -d "\"");
+                if [ "$isOrgFoundInES" = "true" ];
+                then
+                        echo "Custodian Organisation data synced to Elastic Search.";
+                        updateSettingsCustodianOrgCreated;
+                else
+                        echo "System Initialisation failed. Unable to sync custodian organisation data to Elastic Search.";
+                        exit 1;
+                fi
+        elif [ "$isOrgFoundInES" = "true" ];
+        then
+                echo "Custodian Organisation data is already available in Elastic Search.";
+                updateSettingsCustodianOrgCreated;
+        else
+                echo "System Initialisation failed. Unable to fetch data from Elastic Search - index=searchindex, type=org";
+                exit 1;
+        fi
+
+        system_settings_id="custodianOrgChannelRegistered";
+        getValueFromSystemSettings;
+        if [ "$system_settings_value" != "true" ];
+        then
+                echo "Registering Custodian Organisation Channel...";
+                registerChannel;
+                if [ "$register_channel_response_code" = "200" ];
+                then
+                        echo "Custodian Organisation Channel Registered Successfully.";
+                        updateSettingsChannelRegistered;
+                else
+                        echo "System Initialisation failed due to Custodian Organisation Channel Registration failure.";
+                        exit 1;
+                fi
+        else
+                echo "Channel is already registered. So skipping channel registration...";
+        fi
+
+        system_settings_id="custodianOrgHashTagRegistered";
+        getValueFromSystemSettings;
+        if [ "$system_settings_value" != "true" ];
+        then
+                echo "Registering Custodian Organisation HashTag for Analytics...";
+                registerHashTag;
+                if [ "$register_hashtag_response_code" = "200" ];
+                then
+                        echo "Custodian Organisation HashTag Registered Successfully.";
+                        updateSettingsHashTagRegistered;
+                else
+                        echo "System Initialisation failed due to Custodian Organisation HashTag Registration failure.";
+                        exit 1;
+                fi
+        else
+                echo "HashTag is already registered. So skipping hashTag registration...";
+        fi
+
+        updateSettingsCustodianOrgId;
+        updateSettingsCustodianOrgChannel;
+
+        system_settings_id="custodianOrgRootUserCreated";
+        getValueFromSystemSettings;
+        if [ "$system_settings_value" != "true" ];
+        then
+                echo "Creating Sunbird Root User...";
+                createUser;
+                user_creation_status=$(echo -n "$user_creation_response" | jq '.params.status' | tr -d "\"");
+                if [ "$user_creation_status" = "success" ];
+                then
+                        sunbird_root_user_id=$(echo -n "$user_creation_response" | jq '.result.userId' | tr -d "\"");
+                        addUserToCustodianOrg;
+                        add_user_status=$(echo -n "$add_user_response" | jq '.result.response' | tr -d "\"");
+                        if [ "$add_user_status" = "SUCCESS" ];
+                        then
+                                echo "Sunbird root user created successfully";
+                                updateSettingsRootUserCreated;
+                        else
+                                echo "Sunbird root user - assign role failed.";
+                                exit 1;
+                        fi
+                else
+                        echo "Sunbird root user creation failed";
+                        exit 1;
+                fi
+        else
+                echo "Sunbird root user is already created. So skipping user creation...";
+        fi
+
+        updateSettingsSystemInit;
+        echo "System Initialisation Completed Successfully.";
+
+elif [ "$system_settings_value" = "true" ];
+then
+        echo "System already Initialised. Exiting program...";
+        exit 0;
+else
+        echo "System Initialisation failed due to setup issue. Unable to fetch systemInit status from  sunbird.system_settings table";
+        exit 1;
+fi
