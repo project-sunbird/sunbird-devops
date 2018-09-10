@@ -13,5 +13,5 @@ INVENTORY_PATH=$1
 sunbird_api_auth_token=$(cat ~/jwt_token_player.txt|sed 's/ //g')
 
 # System Initialisation
-echo "@@@@@@@@@ System Initialisation"
+echo "System Initialisation"
 ansible-playbook -i $INVENTORY_PATH ../ansible/system-init.yml --extra-vars=@config --extra-vars "sunbird_api_auth_token=${sunbird_api_auth_token}"
