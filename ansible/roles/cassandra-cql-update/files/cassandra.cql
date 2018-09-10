@@ -561,10 +561,3 @@ ALTER TABLE sunbird.geo_location ADD userCountTTL text;
 // adding new column in client-info to save the channel
 ALTER TABLE sunbird.client_info ADD channel text;
 CREATE INDEX inx_ci_clientchannel ON sunbird.client_info(channel);
-
-// Sep 9th 2018 System Initialisation
-insert into sunbird.system_settings (id,field,value) values ('systemInit','systemInit','false');
-insert into sunbird.system_settings (id,field,value) values ('custodianOrgRootUserCreated','custodianOrgRootUserCreated','false');
-insert into sunbird.system_settings (id,field,value) values ('custodianOrgCreated','custodianOrgCreated','false');
-insert into sunbird.system_settings (id,field,value) values ('custodianOrgChannelRegistered','custodianOrgChannelRegistered','false');
-insert into sunbird.system_settings (id,field,value) values ('custodianOrgHashTagRegistered','custodianOrgHashTagRegistered','false');
