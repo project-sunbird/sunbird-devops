@@ -4,7 +4,7 @@ proto: https
 proxy_server_name: staging.open-sunbird.org #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
 proxy_site_key: "{{ vault_proxy_site_key }}"  #SSL certificate's site.key file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 proxy_site_crt: "{{ vault_proxy_site_crt }}"  #SSL certificate's site.crt file contents. More details in this wiki: https://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
-
+ep_es_host: 11.3.2.11
 
 # DB CONFIGURATION
 
@@ -36,7 +36,7 @@ sunbird_cassandra_host: "{{ cassandra_server_private_ip }}"  #Private IP of Cass
 sunbird_es_host: 10.11.3.4,10.11.3.5,10.11.3.6   #Private IP of Elastic Search server. If ES cluster has multiple nodes then add all nodes by separating them with comma. e.g. 10.2.0.1,10.2.0.2,10.2.0.3
 
 ## Application server configurations
-sunbird_ekstep_api_base_url: https://api-qa.ekstep.in  #API base URL of the Ekstep environment. Use `https://api-qa.ekstep.in for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
+sunbird_ekstep_api_base_url: https://qa.ekstep.in  #API base URL of the Ekstep environment. Use `https://api-qa.ekstep.in for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
 sunbird_ekstep_proxy_base_url: https://qa.ekstep.in  #Base URL of the Ekstep environment. Use `https://qa.ekstep.in for non-prod deployments, and `https://community.ekstep.in/` for prod deployment.
 sunbird_env: qa #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
 sunbird_mail_server_host: "{{ mail_server_host }}"  #SMTP server IP. Could be ignored if not mails are to be sent.
@@ -81,8 +81,6 @@ registry_url: http://10.2.2.4:8080
 keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth"
 keycloak_realm: sunbird
 sunbird_content_player_url: "https://{{ proxy_server_name }}/api/"
-sunbird_content_service_whitelisted_channels: ""
-sunbird_content_service_blacklisted_channels: ""
 sunbird_learner_player_url: "https://{{ proxy_server_name }}/api/"
 sunbird_sso_client_id: admin-cli
 sunbird_mongo_port: 27017
@@ -262,7 +260,7 @@ grafana_url: "https://{{ proxy_server_name }}/grafana"
 grafana_editor_username: editor
 
 app_alerts_mailing_list: "rayulu@ilimi.in, harishg@ilimi.in, manzarul.haque@tarento.com,{{devops_alerts_mailing_list}}"
-devops_alerts_mailing_list: "manojv@ilimi.in, shashankt@sahajsoft.com, mathew.pallan@tarento.com, santhosh.g@optit.in"
+devops_alerts_mailing_list: "rajesh.r@optit.co, altamash.s@optit.co, mathew.pallan@tarento.com, santhosh.g@optit.in"
 site_alerts_mailing_list: "shailesh@ekstepplus.org, ashwin@tekditechnologies.com, lakhan_m@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
 keycloak_alerts_mailing_list: "ashwin@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
 api_manager_alerts_mailing_list: "ashwin@tekditechnologies.com, amol_g@techjoomla.com, {{devops_alerts_mailing_list}}"
@@ -327,10 +325,12 @@ enc_postgres_database: encryption
 enc_postgres_password: "{{vault_enc_postgres_password}}"
 
 # New variables player
-sunbird_external_content_whitelisted_domains: 'juliabox.com'
+sunbird_external_content_whitelisted_domains: ''
 
 # telemetry-service
-sunbird_telemetry_kafka_topic: staging.telemetry.raw
+sunbird_telemetry_kafka_topic: staging.telemetry.ingestion
+sunbird_data_pipeline_kafka_topic: sunbirdstaging.telemetry.ingest
+telemetry_proxy_url: "{{sunbird_ekstep_api_base_url}}/data/v3/telemetry"
 sunbird_telemetry_request_max_count: 500
 # telemetry-logstash
 sunbird_telemetry_api: "{{sunbird_ekstep_api_base_url}}/data/v3/telemetry"
@@ -340,8 +340,8 @@ player_cdn_account_key: "{{vault_sunbird_account_key}}"
 player_cdn_container: player
 player_cdn_account: sunbirdstaging
 sunbird_cdn_url: https://staging-sunbird.azureedge.net
-sunbird_portal_cdn_url: "{{sunbird_cdn_url}}/player/"
-sunbird_tenant_cdn_url: "{{sunbird_cdn_url}}/tenants"
+sunbird_portal_cdn_url: 
+sunbird_tenant_cdn_url:
 
 sunbird_user_bulk_upload_size: 1001
 sunbird_installation_display_name: "Sunbird Staging"
@@ -349,14 +349,18 @@ sunbird_installation_display_name: "Sunbird Staging"
 kong_version: 1.5.0-gold
 
 #cotent-service vars
-content_service_whitelisted_channels: '505c7c48ac6dc1edc9b08f21db5a571d,$.instance.all'
-content_service_blacklisted_channels: 'b00bc992ef25f1a9a8d63291e20efc8d'
-content_service_channel_refresh_cron: '*/5 * * * *'
-content_service_whitelisted_framework: 'NCF'
-content_service_blacklisted_contenttype: 'Asset'
-content_service_blacklisted_resourcetype: 'Read'
-content_service_blacklisted_mimetype: 'video/x-youtube'
-sunbird_content_repo_api_base_url: https://qa.ekstep.in/api
+content_service_whitelisted_channels: ''
+content_service_blacklisted_channels: ''
+content_service_channel_refresh_cron: ''
+content_service_whitelisted_framework: ''
+content_service_blacklisted_framework: ''
+content_service_blacklisted_contenttype: ''
+content_service_blacklisted_resourcetype: ''
+content_service_whitelisted_resourcetype: ''
+content_service_whitelisted_mimetype: ''
+content_service_blacklisted_mimetype: ''
+#sunbird_content_repo_api_base_url: https://qa.ekstep.in/api
+sunbird_content_repo_api_base_url: http://11.3.3.8:8080/learning-service
 sunbird_content_repo_api_key: "{{ vault_sunbird_ekstep_api_key }}"
 sunbird_search_service_api_key: "{{ vault_sunbird_ekstep_api_key }}"
 sunbird_dial_repo_api_base_url: https://qa.ekstep.in/api
@@ -366,15 +370,24 @@ sunbird_plugin_repo_api_key: "{{ vault_sunbird_ekstep_api_key }}"
 sunbird_data_service_api_base_url: https://qa.ekstep.in/api
 sunbird_data_service_api_key: "{{ vault_sunbird_ekstep_api_key }}"
 sunbird_content_service_enable_logging: 'true'
+sunbird_language_service_api_key: "{{sunbird_dial_repo_api_key}}"
+sunbird_language_service_api_base_url: 'https://qa.ekstep.in/api/language'
 
 #Learner service vars
-sunbird_analytics_api_base_url: "{{sunbird_ekstep_api_base_url}}/data/v3"
-sunbird_search_service_api_base_url: "{{sunbird_ekstep_api_base_url}}/search"
+#sunbird_analytics_api_base_url: "{{sunbird_ekstep_api_base_url}}/api/data/v3"
+sunbird_analytics_api_base_url: http://11.3.3.4:9000
+#sunbird_search_service_api_base_url: "{{sunbird_ekstep_api_base_url}}/api/search"
+sunbird_search_service_api_base_url: http://11.3.3.21:9000
 
 #player Service vars
 #sunbird_tenant_cdn_url: "{{sunbird_cdn_url}}/tenant"
+sunbird_cloud_storage_urls: 'https://s3.ap-south-1.amazonaws.com/ekstep-public-qa/,https://ekstep-public-qa.s3-ap-south-1.amazonaws.com/,https://sunbirdstaging.blob.core.windows.net/sunbird-content-staging/'
 
 sunbird_sso_publickey: "{{vault_sunbird_sso_publickey}}"
+
+#Ekstep s3 env
+sunbird_blob_env: staging
+ekstep_s3_env: qa
 
 #Registry Variables
 perf_monitoring_enabled: true
@@ -405,3 +418,31 @@ decryption_batch_uri: "{{decryption_uri}}obj"
 audit_enabled: false
 audit_frame_file: audit_frame.json
 authentication_enabled: false
+learning_analytics_service_url: "http://11.3.3.20:9000"
+
+#config Service env Vars
+cloud_storage_type: azure
+azure_storage_key: sunbirdstaging
+azure_storage_secret: "{{vault_sunbird_account_key}}"
+azure_storage_container: config-service
+
+#Config Service env Vars
+config_replicas: 1
+config_reservation_memory: 1400M
+config_limit_memory: 1400M
+config_limit_cpu: 1
+config_reservation_cpu: 1
+sunbird_cassandra_port: 9042
+sunbird_cassandra_username: cassandra
+sunbird_cassandra_password: password
+aws_storage_key: 
+aws_storage_secret: 
+aws_storage_container:
+sunbird_config_service_url: 'https://staging.open-sunbird.org/api/config/'
+config_cache_ttl: 600
+
+#Poratl vars
+sunbird_portal_base_url: https://staging.open-sunbird.org
+
+#Learner Vars
+sunbird_email_max_recipients_limit: 100

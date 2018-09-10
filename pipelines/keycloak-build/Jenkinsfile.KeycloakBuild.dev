@@ -1,0 +1,31 @@
+#!groovy
+
+node('build-slave') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+      stage('Cleanup'){
+         sh('rm -rf sunbird-auth');
+      }
+
+      stage('Checkout'){
+         checkout scm
+         sh('git clone https://github.com/ahghatol/sunbird-auth');
+      }
+
+      stage('Build'){
+         sh('cd sunbird-auth/keycloak/keycloak-custom-package && sudo mvn install -Pdistribution -DskipTests');
+      }
+
+      stage('Archive'){
+       sh('cp sunbird-auth/keycloak/keycloak-custom-package/distribution/server-dist/target/keycloak-3.2.0.Final.tar.gz .');
+       archiveArtifacts 'keycloak-3.2.0.Final.tar.gz';
+      }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}

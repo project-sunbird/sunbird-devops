@@ -1,0 +1,33 @@
+#!groovy
+
+node('general-dev') {
+
+    currentBuild.result = "SUCCESS"
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+       }
+
+       stage('Pre-Build'){
+
+         sh('./pipelines/sunbird-config-service/installDeps.sh')
+
+       }
+
+       stage('Deploy'){
+        step ([$class: 'CopyArtifact',
+          projectName: 'Staging/Sunbird_ConfigService_Deploy_Staging',
+          filter: 'metadata.json']);
+          sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=gold ./pipelines/dockerTag.sh'
+       }
+
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
