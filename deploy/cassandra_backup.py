@@ -5,9 +5,9 @@
 '''
 Create a snapshot and create tar ball in targetdirectory name
 
-usage: script  /path/to/datadirectory snapshot_name
+usage: script snapshot_name
 
-eg: ./cassandra_backup.py /var/lib/cassandra/data my_snapshot
+eg: ./cassandra_backup.py
 '''
 
 from os import path, walk, sep, system, getcwd, makedirs
@@ -16,11 +16,12 @@ from shutil import rmtree, ignore_patterns, copytree
 from re import match, compile
 from sys import exit
 from tempfile import mkdtemp
+from time import strftime
 
 parser = ArgumentParser(description="Create a snapshot and create tar ball inside tardirectory")
-parser.add_argument("datadirectory", help="path to datadirectory of cassandra")
-parser.add_argument("snapshotname", help="name in which you want to take the snapshot")
-parser.add_argument("-t","--tardirectory", metavar="tardir",  default=getcwd(), help="path to create the tarball. Default {}".format(getcwd()))
+parser.add_argument("-d","--datadirectory", metavar="datadir",  default='/var/lib/cassandra/data', help="Path to cassadandra keyspaces. Default /var/lib/cassadra/data")
+parser.add_argument("-s","--snapshotname", metavar="snapshotname",  default="cassandra_backup-"+strftime("%Y-%m-%d"), help="Name with which snapshot to be taken. Default {}".format("cassandra_backup-"+strftime("%Y-%m-%d")))
+parser.add_argument("-t","--tardirectory", metavar="tardir",  default=getcwd(), help="Path to create the tarball. Default {}".format(getcwd()))
 args = parser.parse_args()
 
 # Create temporary directory to copy data
@@ -51,6 +52,9 @@ if rc != 0:
     print("Couldn't backup schema, exiting...")
     exit(1)
 print("Schema backup completed. saved in {}/cassandra_backup/db_schema.sql".format(tmpdir))
+# Cleaning all old snapshots
+command = "nodetool clearsnapshot"
+system(command)
 # Creating snapshots
 command = "nodetool snapshot -t {}".format(args.snapshotname)
 rc = system(command)
