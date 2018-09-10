@@ -19,9 +19,9 @@ from tempfile import mkdtemp
 from time import strftime
 
 parser = ArgumentParser(description="Create a snapshot and create tar ball inside tardirectory")
-parser.add_argument("-d","--datadirectory", metavar="datadir",  default='/var/lib/cassandra/data', help="path to create the tarball. Default /var/lib/cassadra/data")
-parser.add_argument("-s","--snapshotname", metavar="tardir",  default="cassandra_backup-"+strftime("%Y-%m-%d"), help="Snap shot name, default {}".format("cassandra_backup-"+strftime("%Y-%m-%d")))
-parser.add_argument("-t","--tardirectory", metavar="tardir",  default=getcwd(), help="path to create the tarball. Default {}".format(getcwd()))
+parser.add_argument("-d","--datadirectory", metavar="datadir",  default='/var/lib/cassandra/data', help="Path to cassadandra keyspaces. Default /var/lib/cassadra/data")
+parser.add_argument("-s","--snapshotname", metavar="snapshotname",  default="cassandra_backup-"+strftime("%Y-%m-%d"), help="Name with which snapshot to be taken. Default {}".format("cassandra_backup-"+strftime("%Y-%m-%d")))
+parser.add_argument("-t","--tardirectory", metavar="tardir",  default=getcwd(), help="Path to create the tarball. Default {}".format(getcwd()))
 args = parser.parse_args()
 
 # Create temporary directory to copy data
