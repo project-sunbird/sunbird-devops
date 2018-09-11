@@ -206,11 +206,16 @@ getValueFromSystemSettings "systemInitialisationStatus";
 if [ -z "$system_settings_value" ];
 then
         echo "Adding systemInitialisationStatus field to System Settings table...";
-        setValueInSystemSettings "systemInitialisationStatus" "Uninitialised";
+        setValueInSystemSettings "systemInitialisationStatus" "SYSTEM_UNINITIALISED";
 fi
 
 getValueFromSystemSettings "systemInitialisationStatus";
-if [ "$system_settings_value" = "Initialised" ] || [ -z "$system_settings_value" ];
+if [ -z "$system_settings_value" ];
+then
+        echo "Unable to connect to Cassandra. Exiting program...";
+        exit 1;
+fi
+if [ "$system_settings_value" = "SYSTEM_INITIALISED" ];
 then
         echo "System already Initialised. Exiting program...";
         exit 0;
@@ -247,7 +252,7 @@ then
         if [ "$isOrgFoundInES" = "true" ];
         then
                 echo "Custodian Organisation data synced to Elastic Search.";
-                setValueInSystemSettings "systemInitialisationStatus" "custodianOrgCreated";
+                setValueInSystemSettings "systemInitialisationStatus" "CUSTODIAN_ORG_CREATED";
         else
                 echo "System Initialisation failed. Unable to sync custodian organisation data to Elastic Search.";
                 exit 1;
@@ -255,21 +260,21 @@ then
 elif [ "$isOrgFoundInES" = "true" ];
 then
         echo "Custodian Organisation data is already available in Elastic Search.";
-        setValueInSystemSettings "systemInitialisationStatus" "custodianOrgCreated";
+        setValueInSystemSettings "systemInitialisationStatus" "CUSTODIAN_ORG_CREATED";
 else
         echo "System Initialisation failed. Unable to fetch data from Elastic Search - index=searchindex, type=org";
         exit 1;
 fi
 
 getValueFromSystemSettings "systemInitialisationStatus";
-if [ "$system_settings_value" = "custodianOrgCreated" ];
+if [ "$system_settings_value" = "CUSTODIAN_ORG_CREATED" ];
 then
         echo "Registering Custodian Organisation Channel...";
         registerChannel;
         if [ "$register_channel_response_code" = "200" ];
         then
                 echo "Custodian Organisation Channel Registered Successfully.";
-                setValueInSystemSettings "systemInitialisationStatus" "custodianOrgChannelRegistered";
+                setValueInSystemSettings "systemInitialisationStatus" "CUSTODIAN_ORG_CHANNEL_REGISTERED";
         else
                 echo "System Initialisation failed due to Custodian Organisation Channel Registration failure.";
                 exit 1;
@@ -277,14 +282,14 @@ then
 fi
 
 getValueFromSystemSettings "systemInitialisationStatus";
-if [ "$system_settings_value" = "custodianOrgChannelRegistered" ];
+if [ "$system_settings_value" = "CUSTODIAN_ORG_CHANNEL_REGISTERED" ];
 then
         echo "Registering Custodian Organisation HashTag for Analytics...";
         registerHashTag;
         if [ "$register_hashtag_response_code" = "200" ];
         then
                 echo "Custodian Organisation HashTag Registered Successfully.";
-                setValueInSystemSettings "systemInitialisationStatus" "custodianOrgHashTagRegistered";
+                setValueInSystemSettings "systemInitialisationStatus" "CUSTODIAN_ORG_HASHTAG_REGISTERED";
         else
                 echo "System Initialisation failed due to Custodian Organisation HashTag Registration failure.";
                 exit 1;
@@ -295,7 +300,7 @@ setValueInSystemSettings "custodianOrgId" "$sunbird_custodian_tenant_id";
 setValueInSystemSettings "custodianOrgChannel" "$sunbird_custodian_tenant_channel";
 
 getValueFromSystemSettings "systemInitialisationStatus";
-if [ "$system_settings_value" = "custodianOrgHashTagRegistered" ];
+if [ "$system_settings_value" = "CUSTODIAN_ORG_HASHTAG_REGISTERED" ];
 then
         echo "Creating Sunbird Root User...";
         createUser;
@@ -308,7 +313,7 @@ then
                 if [ "$add_user_status" = "SUCCESS" ];
                 then
                         echo "Sunbird root user created successfully";
-                        setValueInSystemSettings "systemInitialisationStatus" "custodianOrgRootUserCreated";
+                        setValueInSystemSettings "systemInitialisationStatus" "SYS_ADMIN_USER_CREATED";
                 else
                         echo "Sunbird root user - assign role failed.";
                         exit 1;
@@ -319,5 +324,5 @@ then
         fi
 fi
 
-setValueInSystemSettings "systemInitialisationStatus" "Initialised";
+setValueInSystemSettings "systemInitialisationStatus" "SYSTEM_INITIALISED";
 echo "System Initialisation Completed Successfully.";
