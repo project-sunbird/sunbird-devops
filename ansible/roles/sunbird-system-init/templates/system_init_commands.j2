@@ -260,7 +260,11 @@ then
 elif [ "$isOrgFoundInES" = "true" ];
 then
         echo "Custodian Organisation data is already available in Elastic Search.";
-        setValueInSystemSettings "systemInitialisationStatus" "CUSTODIAN_ORG_CREATED";
+        getValueFromSystemSettings "systemInitialisationStatus";
+        if [ "$system_settings_value" = "SYSTEM_UNINITIALISED" ];
+        then
+            setValueInSystemSettings "systemInitialisationStatus" "CUSTODIAN_ORG_CREATED";
+        fi
 else
         echo "System Initialisation failed. Unable to fetch data from Elastic Search - index=searchindex, type=org";
         exit 1;
@@ -324,5 +328,9 @@ then
         fi
 fi
 
-setValueInSystemSettings "systemInitialisationStatus" "SYSTEM_INITIALISED";
+getValueFromSystemSettings "systemInitialisationStatus";
+if [ "$system_settings_value" = "SYS_ADMIN_USER_CREATED" ];
+then
+    setValueInSystemSettings "systemInitialisationStatus" "SYSTEM_INITIALISED";
+fi
 echo "System Initialisation Completed Successfully.";
