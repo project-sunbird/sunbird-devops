@@ -15,11 +15,11 @@ proto="{{proto}}"
 proxy_server_name="{{proxy_server_name}}"
 sunbird_api_auth_token="{{sunbird_api_auth_token}}"
 sunbird_analytics_base_url="{{ekstep_proxy_base_url}}"
-register_channel_api_endpoint="api/channel/v3/create"
-register_hashtag_api_endpoint="api/data/v3/tag/register"
-create_user_api_endpoint="api/user/v1/create"
-add_user_api_endpoint="api/org/v1/member/add"
-assign_role_api_endpoint="api/user/v1/role/assign"
+register_channel_api_endpoint="$ekstep_proxy_base_url/api/channel/v3/create"
+register_hashtag_api_endpoint="$sunbird_analytics_base_url/api/data/v3/tag/register"
+create_user_api_endpoint="$proto://$proxy_server_name/api/user/v1/create"
+add_user_api_endpoint="$proto://$proxy_server_name/api/org/v1/member/add"
+assign_role_api_endpoint="$proto://$proxy_server_name/api/user/v1/role/assign"
 
 
 # Mandatory validation for user configured fields
@@ -98,7 +98,7 @@ setPropertyInSystemSettings() {
 # response code will be set in register_channel_response_code variable
 registerChannel() {
         register_channel_response_code=$(curl -o /dev/null -s -w "%{http_code}\n" \
-                -X POST $ekstep_proxy_base_url/$register_channel_api_endpoint \
+                -X POST $register_channel_api_endpoint \
                 -H 'authorization: Bearer '"$ekstep_api_key" \
                 -H 'cache-control: no-cache' \
                 -H 'content-type: application/json' \
@@ -117,7 +117,7 @@ registerChannel() {
 # response code will be set in register_hashtag_response_code variable
 registerHashTag() {
         register_hashtag_response_code=$(curl -o /dev/null -s -w "%{http_code}\n" \
-                -X POST $sunbird_analytics_base_url/$register_hashtag_api_endpoint/$sunbird_custodian_tenant_id \
+                -X POST $register_hashtag_api_endpoint/$sunbird_custodian_tenant_id \
                 -H 'authorization: Bearer '"$ekstep_api_key" \
                 -H 'cache-control: no-cache' \
                 -H 'content-type: application/json' \
@@ -181,7 +181,7 @@ getKeycloakToken() {
 # calls user creation api with the configured user details
 # response will be set in user_creation_response variable
 createUser() {
-        user_creation_response=$(curl -X POST $proto://$proxy_server_name/$create_user_api_endpoint \
+        user_creation_response=$(curl -X POST $create_user_api_endpoint \
                 -H 'Cache-Control: no-cache' \
                 -H 'Content-Type: application/json' \
                 -H 'accept: application/json' \
@@ -205,7 +205,7 @@ createUser() {
 # response will be set in add_user_response variable
 addUserToCustodianOrg() {
         getKeycloakToken
-        add_user_response=$(curl -X POST $proto://$proxy_server_name/$add_user_api_endpoint \
+        add_user_response=$(curl -X POST $add_user_api_endpoint \
                 -H 'Cache-Control: no-cache' \
                 -H 'Content-Type: application/json' \
                 -H 'accept: application/json' \
@@ -224,7 +224,7 @@ addUserToCustodianOrg() {
 # response will be set in assign_role_response variable
 assignRoleToRootUser() {
         getKeycloakToken
-        assign_role_response=$(curl -X POST $proto://$proxy_server_name/$assign_role_api_endpoint \
+        assign_role_response=$(curl -X POST $assign_role_api_endpoint \
                 -H 'Cache-Control: no-cache' \
                 -H 'Content-Type: application/json' \
                 -H 'accept: application/json' \
@@ -412,3 +412,4 @@ then
     setValueInSystemSettings "systemInitialisationStatus" "SYSTEM_INITIALISED";
 fi
 echo "System Initialisation Completed Successfully.";
+# End of system initialisation process
