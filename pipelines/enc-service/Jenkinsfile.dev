@@ -1,6 +1,6 @@
 #!groovy
 
-node('build-slave') {
+node('general-dev') {
 
     currentBuild.result = "SUCCESS"
 
@@ -11,9 +11,13 @@ node('build-slave') {
           checkout scm
           sh" ./pipelines/setupDevopsCode.sh "
        }
+       stage('Pre-Build'){
 
+         sh('./pipelines/sunbird-player/installDeps.sh')
+
+       }
         stage('Deploy'){
-            sh("./pipelines/enc-service/deploy.sh dev")
+            sh 'METADATA_FILE=./pipelines/enc-service/metadata.json ARTIFACT_LABEL=bronze ENV=dev ./pipelines/enc-service/deploy.sh'
         }
     }
     catch (err) {
