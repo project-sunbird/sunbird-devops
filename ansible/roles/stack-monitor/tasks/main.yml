@@ -16,15 +16,22 @@
 - name: Save stack file
   template: src=stack-monitor.yml dest=/opt/docker/stacks/monitor/stack/monitor.yml mode=0644
 
-- name: Save prometheus config 
+- name: Save prometheus config {{ item }}
   template:
     src="{{ item }}"
     dest="{{ monitor_config_files_dest_dir }}/{{ item }}" 
     mode=0644
   with_items: 
     - "{{ monitor_config_templates }}"
-  when: 
-   - (item.value == "postgresmasterqueries.yml" and groups['postgres-master'] is defined) or (item.value == "postgresslavequeries.yml" and groups['postgres-master'] is defined)) or (item.value != "postgresmasterqueries.yml") or (item.value != "postgresslavequeries.yml")
+
+- name: Save Postgres config {{ item }}
+  template:
+    src="{{ item }}"
+    dest="{{ monitor_config_files_dest_dir }}/{{ item }}"
+    mode=0644
+  with_items: 
+    - "{{ monitor_config_templates_postgres }}"
+  when: groups['postgres-master'] is defined
 
 - name: Remove monitor stack
   shell: "docker stack rm monitor"
@@ -33,14 +40,24 @@
 - name: Remove old docker config {{ item }}
   shell: "docker config rm {{ item }}"
   with_items: "{{ monitor_config_templates }}"
-  #when: (item.value == postgresmasterqueries.yml and groups['postgres-master'] is defined) or (item.value == postgresslavequeries.yml and groups['postgres-master'] is defined) or (item.value != postgresmasterqueries.yml or item.value != postgresslavequeries.yml)
   ignore_errors: yes
+
+- name: Remove old docker config for postgres {{ item }}
+  shell: "docker config rm {{ item }}"
+  with_items: "{{ monitor_config_templates_postgres }}"
+  ignore_errors: yes
+  when: groups['postgres-master'] is defined
 
 - name: Save docker config {{ item }}
   shell: "docker config create {{ item }} {{ monitor_config_files_dest_dir }}/{{ item }}"
   with_items: "{{ monitor_config_templates }}"
   #when: (item.value == postgresmasterqueries.yml and groups['postgres-master'] is defined) or (item.value == postgresslavequeries.yml and groups['postgres-master'] is defined) or (item.value != postgresmasterqueries.yml or item.value != postgresslavequeries.yml)
   #ignore_errors: yes
+
+- name: Save docker config for postgres {{ item }}
+  shell: "docker config create {{ item }} {{ monitor_config_files_dest_dir }}/{{ item }}"
+  with_items: "{{ monitor_config_templates_postgres }}"
+  when: groups['postgres-master'] is defined
 
 - name: Deploy stack
   shell: "docker stack deploy -c monitor.yml monitor"
