@@ -1,0 +1,23 @@
+version: '3.1'
+services:
+  config_service:
+    image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
+    env_file:
+      /home/deployer/env/sunbird_config_service.env
+    deploy:
+      replicas: {{ config_replicas | default(1) }}
+      resources:
+        reservations:
+          memory: "{{ config_reservation_memory  | default('256M') }}"
+        limits:
+          memory: "{{ config_limit_memory  | default('512M') }}"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+     - "6000:8080"
+    networks:
+      - application_default
+networks:
+  application_default:
+    external: true
