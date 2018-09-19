@@ -54,18 +54,19 @@ fi
 
 # Login to server using username and private key
 check_login(){
-app_ip=`ssh -i $2 -o StrictHostKeyChecking=no $3@$4 "curl -s ipinfo.io/ip"`
-if ! [[ "$app_ip" == "$4" ]]; then
+app_user=`ssh -i $2 -o StrictHostKeyChecking=no $3@$4 "whoami"`
+if ! [[ "$app_user" == "$3" ]]; then
   echo -e "\e[0;31m${bold}ERROR - Login to app server failed. Please check the username / private key / server address${normal}"
-  fail=1
+    fail=1
 fi
 
-db_ip=`ssh -i $2 -o StrictHostKeyChecking=no $3@$4 "ssh -i $2 -o StrictHostKeyChecking=no $3@$5 \"hostname  --all-ip-addresses\""`
-if ! [[ "$db_ip" == "$5" ]]; then
-   echo -e "\e[0;31m${bold}ERROR - Login to db server failed. Please check the username / private key / server address${normal}"
-   fail=1
+db_user=`ssh -i $2 -o StrictHostKeyChecking=no $3@$4 "ssh -i $2 -o StrictHostKeyChecking=no $3@$5 \"whoami\""`
+if ! [[ "$db_user" == "$3" ]]; then
+  echo -e "\e[0;31m${bold}ERROR - Login to db server failed. Please check the username / private key / server address${normal}"
+    fail=1
 fi
 }
+
 
 # Validate user can run sudo commands using the sudo password
 check_sudo(){
