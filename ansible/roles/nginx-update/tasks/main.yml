@@ -1,16 +1,13 @@
 ---
 - name: Copying dialpage redirect config
-  template: src=dialpage.conf.custom dest=/home/deployer/dialpage.conf.custom
+  template: src=nginx-opensaber.conf dest=/home/deployer/nginx-opensaber.conf
+  register: opensaber_nginx
   
-- name: Removing docker config if exists
+- name: Updating nginx-opensaber.conf
+  block:
+    - shell: docker config rm dialpage.conf.custom
+      ignore_errors: yes
+    - shell: docker config create opensaber_nginx.conf /home/deployer/nginx-opensaber.conf
+    - shell: docker service update --config-add src=opensaber_nginx.conf,target=/etc/nginx/conf.d/nginx-opensaber.conf proxy_proxy
   become: yes
-  shell: docker config rm dialpage.conf.custom
-  ignore_errors: yes
-
-- name: Create docker dialpage redirect config
-  become: yes
-  shell: docker config create dialpage.conf.custom /home/deployer/dialpage.conf.custom
-
-- name: Updating the service
-  become: yes
-  shell: docker service update --config-add src=dialpage.conf.custom,target=/etc/nginx/conf.d/dialpage.conf.custom proxy_proxy
+  when: opensaber_nginx.changed
