@@ -26,17 +26,23 @@
       with_items: "{{opensaber_config}}"
       ignore_errors: yes
 
-    - shell: "docker config create opensaber_{{item}} /home/deployer/config/{{item}}"
+    - shell: "docker config create {{item}} /home/deployer/config/{{item}}"
       with_items: "{{opensaber_config}}"
   when: remove_saber.changed
 
 - name: Save stack file
-  template: src=stack-opensaber.yml dest=/home/deployer/stack/opensaber.yml mode=0644
+  template: 
+    src: stack-opensaber.yml 
+    dest: /home/deployer/stack/opensaber.yml 
+    mode: 0644
 
 - name: Save env file
-  template: src=opensaber.env dest=/home/deployer/stack/opensaber.env mode=0644
+  template: 
+    src: opensaber.env 
+    dest: /home/deployer/stack/opensaber.env 
+    mode: 0644
 
 - name: Deploy stack
-  shell: "docker stack deploy -c registry.yml opensaber"
+  shell: "docker stack deploy -c opensaber.yml opensaber"
   args:
     chdir: /home/deployer/stack

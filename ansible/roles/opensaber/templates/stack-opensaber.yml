@@ -1,36 +1,33 @@
 version: "3.3"
 services:
-  registry:
+  opensaber-service:
     image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
     deploy:
       replicas: 1
       placement:
           constraints:
-            - "node.labels.registry==1"
+            - "node.labels.opensaber==1"
       resources:
           reservations:
-            memory: "{{ registry_reservation_memory }}"
+            memory: "{{ opensaber_reservation_memory }}"
           limits:
-            memory: "{{ registry_limit_memory }}"
-    ports:
-      - "8080:8080"
+            memory: "{{ opensaber_limit_memory }}"
     configs:
-      - source: audit_frame.json
+      - source: opensaber_audit_frame.json
         target: /home/opensaber/config/audit_frame.json
-      - source: frame.json
+      - source: opensaber_frame.json
         target: /home/opensaber/config/frame.json
-      - source: schema-configuration.jsonld
+      - source: opensaber_schema-configuration.jsonld
         target: /home/opensaber/config/schema-configuration.jsonld
-      - source: validations_create.shex
+      - source: opensaber_validations_create.shex
         target: /home/opensaber/config/validations_create.shex
-      - source: validations_update.shex
+      - source: opensaber_validations_update.shex
         target: /home/opensaber/config/validations_update.shex
     volumes:
-      - /var/dockerdata/registry/data/:/data
-      - /var/dockerdata/registry/logs:/logs
-    #command: "java -cp /home/opensaber/config/* {{xms}} {{xmx}} -XX:+UseG1GC -jar /home/opensaber/registry.jar"
+      - /var/dockerdata/opensaber/data/:/data
+      - /var/dockerdata/opensaber/logs:/logs
     env_file:
-      /home/deployer/stack/sunbird_registry.env
+      /home/deployer/stack/opensaber.env
     networks:
       - application_default
 
@@ -39,14 +36,13 @@ networks:
     external: true
 
 configs:
-  audit_frame.json:
+  opensaber_audit_frame.json:
     external: true
-  frame.json:
+  opensaber_frame.json:
     external: true
-  schema-configuration.jsonld:
+  opensaber_schema-configuration.jsonld:
     external: true
-  validations_create.shex:
+  opensaber_validations_create.shex:
     external: true
-  validations_update.shex:
+  opensaber_validations_update.shex:
     external: true
-
