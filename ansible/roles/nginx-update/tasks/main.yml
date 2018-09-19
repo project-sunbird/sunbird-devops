@@ -1,0 +1,16 @@
+---
+- name: Copying dialpage redirect config
+  template: src=dialpage.conf.custom dest=/home/deployer/dialpage.conf.custom
+  
+- name: Removing docker config if exists
+  become: yes
+  shell: docker config rm dialpage.conf.custom
+  ignore_errors: yes
+
+- name: Create docker dialpage redirect config
+  become: yes
+  shell: docker config create dialpage.conf.custom /home/deployer/dialpage.conf.custom
+
+- name: Updating the service
+  become: yes
+  shell: docker service update --config-add src=dialpage.conf.custom,target=/etc/nginx/conf.d/dialpage.conf.custom proxy_proxy
