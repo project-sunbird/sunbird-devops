@@ -54,7 +54,6 @@ fi
 
 # Login to server using username and private key
 check_login(){
-echo -e "\e[0;33mValidating login to server..."
 response=`ssh -i $2 -o StrictHostKeyChecking=no $3@$4 "whoami"`
 if ! [[ "$response" == "$3" ]]; then
   echo -e "\e[0;31m${bold}ERROR - Login failed. Please check the username / private key / server address${normal}"
@@ -64,7 +63,6 @@ fi
 
 # Validate user can run sudo commands using the sudo password
 check_sudo(){
-echo -e "\e[0;33mValidating sudo password..."
 result=`ssh -i $4 -o StrictHostKeyChecking=no $3@$5 "echo $2 | sudo -S apt-get check"`
 if ! [[ "$result" =~ (Reading|Building) ]]; then
   echo -e "\e[0;31m${bold}ERROR - Sudo login failed. Please check the username / password"
