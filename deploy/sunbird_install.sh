@@ -164,6 +164,7 @@ while getopts "s:h" o;do
                     exit 0
                     ;;
                 core)
+                    echo -e "\n$(date)\n">>logs/validateconfig.log; validateconfig "${s}" 2>&1 | tee -a logs/validateconfig.log
                     echo -e "\n$(date)\n">>logs/core.log; core 2>&1 | tee -a logs/core.log
                     exit 0
                     ;;
