@@ -69,6 +69,7 @@ if ! [[ "$result" =~ (Reading|Building) ]]; then
   echo -e "\e[0;31m${bold}ERROR - Sudo login failed. Please check the username / password"
   fail=1
 fi
+echo ""
 }
 
 
