@@ -54,10 +54,16 @@ fi
 
 # Login to server using username and private key
 check_login(){
-response=`ssh -i $2 -o StrictHostKeyChecking=no $3@$4 "whoami"`
-if ! [[ "$response" == "$3" ]]; then
-  echo -e "\e[0;31m${bold}ERROR - Login failed. Please check the username / private key / server address${normal}"
+app_ip=`ssh -i $2 -o StrictHostKeyChecking=no $3@$4 "curl -s ipinfo.io/ip"`
+if ! [[ "$app_ip" == "$4" ]]; then
+  echo -e "\e[0;31m${bold}ERROR - Login to app server failed. Please check the username / private key / server address${normal}"
   fail=1
+fi
+
+db_ip=`ssh -i $2 -o StrictHostKeyChecking=no $3@$4 "ssh -i $2 -o StrictHostKeyChecking=no $3@$5 \"hostname  --all-ip-addresses\""`
+if ! [[ "$db_ip" == "$5" ]]; then
+   echo -e "\e[0;31m${bold}ERROR - Login to db server failed. Please check the username / private key / server address${normal}"
+   fail=1
 fi
 }
 
@@ -117,7 +123,7 @@ do
   echo -e "\e[0;31m${bold}ERROR - Valid values for $key are https://community.ekstep.in or https://qa.ekstep.in${normal}"; fail=1;
 
   elif [[ "$key" == "ansible_private_key_path" && ! "$value" == "" &&  ! "${values[ssh_ansible_user]}" == "" && ! "${values[dns_name]}" == "" ]]; then 
-  check_login $key $value ${values[ssh_ansible_user]} ${values[dns_name]}
+  check_login $key $value ${values[ssh_ansible_user]} ${values[dns_name]} ${values[database_host]}
 
   elif [[ "$key" == "sudo_passwd" && ! "$value" == "" && ! "${values[ssh_ansible_user]}" == "" && ! "${values[dns_name]}" == "" && ! "${values[ansible_private_key_path]}" == "" ]]; then 
   check_sudo $key $value ${values[ssh_ansible_user]} ${values[ansible_private_key_path]} ${values[dns_name]};
