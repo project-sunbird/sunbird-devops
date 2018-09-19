@@ -1,0 +1,36 @@
+---
+# Redirect requests from staging.open-sunbird.org/open-saber
+# to OpenSaber
+- hosts: swarm_bootstrap_manager
+  become: yes
+  roles:
+    - nginx-update
+  run_once: true
+  ignore_errors: true
+
+# Provisioning OpenSaber
+
+- hosts: swarm-agent-for-registry
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Create registyr data dir
+      file: path=/mnt/dockerdata/opensaber/data/ state=directory mode=755
+    - name: Create registyr data log dir
+      file: path=/mnt/dockerdata/opensaber/logs/ state=directory mode=755
+
+- hosts: swarm-bootstrap-manager
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Add label for opensaber node
+      command: "docker node update --label-add opensaber=1 {{ hostvars[groups['swarm-agent-for-registry'][0]]['ansible_hostname'] }}"
+
+- hosts: swarm-bootstrap-manager
+  become: true
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - opensaber
