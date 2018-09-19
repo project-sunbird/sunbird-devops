@@ -1,0 +1,30 @@
+#!groovy
+
+node('general-dev') {
+
+    currentBuild.result = "SUCCESS"
+
+    checkout scm
+
+    try {
+
+       stage('Checkout'){
+
+          checkout scm
+          sh" ./pipelines/setupDevopsCode.sh "
+       }
+       stage('Pre-Build'){
+
+         sh('./pipelines/sunbird-player/installDeps.sh')
+
+       }
+        stage('Deploy'){
+            sh 'METADATA_FILE=./pipelines/enc-service/metadata.json ARTIFACT_LABEL=bronze ENV=dev ./pipelines/enc-service/deploy.sh'
+        }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
