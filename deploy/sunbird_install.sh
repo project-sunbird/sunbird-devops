@@ -61,6 +61,10 @@ config() {
 
 # Sanity check
 
+validateConfig(){
+    ./validateConfig.sh
+}
+
 sanity() {
     ./sanity.sh $ssh_ansible_user $ansible_private_key_path
 }
@@ -120,6 +124,11 @@ while getopts "s:h" o;do
                 config)
                     echo -e "\n$(date)\n">>logs/config.log;
                     config 2>&1 | tee -a logs/config.log
+                    exit 0
+                    ;;
+                validateConfig)
+                    echo -e "\n$(date)\n">>logs/validateConfig.log;
+                    validateConfig 2>&1 | tee -a logs/sanity.log
                     exit 0
                     ;;
                 sanity)
@@ -197,6 +206,7 @@ done
 # Default action: install and configure from scratch
 
 ## Installing and configuring prerequisites
+echo -e \n$(date)\n >> logs/validateConfig.log validateConfig 2>&1 | tee -a logs/validateConfig.log
 echo -e \n$(date)\n >> logs/config.log; config 2>&1 | tee -a logs/config.log
 ## checking for prerequisites
 echo -e \n$(date)\n >> logs/sanity.log; sanity 2>&1 | tee -a logs/sanity.log
