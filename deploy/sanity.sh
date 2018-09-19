@@ -159,14 +159,22 @@ check_docker() {
         if [ $(nssh $ssh_user@$ip which docker &> /dev/null; echo $?) -eq 0 ];then
             local version=$(nssh $ssh_user@$ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
             echo -ne "\e[0;35m Docker Version: \e[0;32m$version "
-            check_compatibility version "$version" "$docker_version" docker
-        else 
+            version=$(echo -ne "$version" | cut -c1-5)
+            if [ "$docker_version" == "$version" ] || [ "$version" == "17.06" ];then
+                echo -e "\e[0;32m${bold} OK ${normal}"
+                touch ".sunbird/ignore/${service_name}"
+            else
+                echo -e "\e[0;31m${bold} FATAL${normal}"
+                echo -e "\e[0;31m${bold} Sunbird has been tested with Docker version $docker_version and 17.06, Please Install $docker_version${normal}"
+                fail=1
+            fi
+        else
             echo -e "\e[0;35m Docker Version: \e[0;32m${bold}Not Installed${normal} "
         fi
         local ram_=$(($(ram $ip)+1))
         echo -ne "\e[0;35m Docker $2 RAM: \e[0;32m${ram_}G "
         local docker_ram=docker_${2}_ram
-        check_compatibility ram $ram_ $docker_ram 
+        check_compatibility ram $ram_ $docker_ram
     done
 }
 
