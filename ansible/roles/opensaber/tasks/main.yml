@@ -1,0 +1,42 @@
+---
+- name: Ensure stack directory exists
+  file:
+    path: /home/deployer/stack
+    state: directory
+    owner: root
+    group: root
+
+- name: Ensure stack directory exists
+  file:
+    path: /home/deployer/config
+    state: directory
+
+- name: Saving opensaber configs
+  template: src="{{item}}" dest="/home/deployer/config/{{item}}" mode=0644
+  with_items: "{{opensaber_config}}" 
+  register: remove_saber
+  
+# Deleting configs and stack only if configuration files chagned
+- name: Removing Opensaber
+  block:
+    - shell: "docker stack rm opensaber"
+      ignore_errors: yes
+
+    - shell: "docker config rm opensaber_{{item}}"
+      with_items: "{{opensaber_config}}"
+      ignore_errors: yes
+
+    - shell: "docker config create opensaber_{{item}} /home/deployer/config/{{item}}"
+      with_items: "{{opensaber_config}}"
+  when: remove_saber.changed
+
+- name: Save stack file
+  template: src=stack-opensaber.yml dest=/home/deployer/stack/opensaber.yml mode=0644
+
+- name: Save env file
+  template: src=opensaber.env dest=/home/deployer/stack/opensaber.env mode=0644
+
+- name: Deploy stack
+  shell: "docker stack deploy -c registry.yml opensaber"
+  args:
+    chdir: /home/deployer/stack
