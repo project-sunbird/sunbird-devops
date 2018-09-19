@@ -49,7 +49,7 @@ if [ ! -d .sunbird/ignore ];then mkdir -p .sunbird/ignore &> /dev/null;fi
 
 # Validate config file
 validateconfig(){
-    ./validateConfig.sh
+    ./validateConfig.sh $1
 }
 
 # Generating configs

@@ -117,7 +117,7 @@ do
   elif [[ "$key" =~ ^(env|implementation_name|ssh_ansible_user|dns_name|database_password|keycloak_admin_password|sso_password|backup_storage_key|badger_admin_password|ekstep_api_key|sunbird_image_storage_url|sunbird_azure_storage_key|sunbird_azure_storage_account|sunbird_default_channel)$ && "$value" == "" ]]; then  
   echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value${normal}"; fail=1;
   elif [[ "$key" == "sunbird_sso_publickey" && "$core_install" == "core" && "$value" == "" ]]; then
-  echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value before running core"
+  echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value before running core"; fail=1
   fi
 done
 
