@@ -6,21 +6,15 @@ node('general-staging') {
 
     try {
 
-       stage('Checkout'){
-
-          checkout scm
-          sh('./pipelines/setupDevopsCode.sh')
-       }
-
        stage('Pre-Build'){
 
-         sh('./pipelines/sunbird-registry/installDeps.sh')
+         sh('./pipelines/opensaber/installDeps.sh')
 
        }
 
        stage('Deploy'){
         step ([$class: 'CopyArtifact',
-          projectName: 'Dev/Sunbird_Registry_Deploy_Dev',
+          projectName: 'New_Build/Sunbird_Registry_Build',
           filter: 'metadata.json']);
           sh 'METADATA_FILE=metadata.json ARTIFACT_LABEL=silver ENV=staging ./pipelines/sunbird-registry/deploy.sh'
           archive includes: "metadata.json"
