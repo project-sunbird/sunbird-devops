@@ -66,7 +66,6 @@ check_sudo(){
 echo -e "\e[0;33mValidating sudo password"
 result=`ssh -i $4 -o StrictHostKeyChecking=no $3@$5 "echo $2 | sudo -S apt-get check"`
 if ! [[ "$result" =~ (Reading|Building) ]]; then
-else
   echo -e "\e[0;31m${bold}ERROR - Sudo login failed. Please check the username / password"
   fail=1
 fi
