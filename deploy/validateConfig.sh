@@ -4,8 +4,6 @@ check_proto(){
 if ! [[ "$2" =~ ^(http|https)$ ]]; then
   echo -e "\e[0;31m${bold}ERROR - Invalid value for $1. Valid values are http / https${normal}"
   fail=1
-else
-  echo -e "\e[0;32mOK - $1: $2"
 fi
 }
 
@@ -19,8 +17,6 @@ if [[ "$2" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
   if ! [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]; then
     echo -e "\e[0;31m${bold}ERROR - Invalid value for $1. Value for each IP group ranges from 0-255${normal}"
     fail=1
-  else
-    echo -e "\e[0;32mOK - $1: $2"
   fi
 else
   echo -e "\e[0;31m${bold}ERROR - Invalid value for $1. IP address should be of the form 10.10.10.10${normal}"
@@ -40,8 +36,6 @@ if [[ "$2" =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/[0-3][0-9]$ ]]; th
   if ! [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && ${ip[2]} -le 255 && ${ip[3]} -le 255 && $block -le 32 && $block -gt 0 ]]; then
      echo -e "\e[0;31m${bold}ERROR - Invalid value for $1. Value for each IP group ranges from 0-255 and CIDR blocks range from 1-32${normal}"
      fail=1
-  else
-     echo -e "\e[0;32mOK - $1: $2"
   fi
 else
   echo -e "\e[0;31m${bold}ERROR - Invalid value for $1. CIDR is of the form 10.0.0.0/24 and blocks range from 1-32${normal}"
@@ -54,8 +48,6 @@ check_email(){
 if ! [[ "$2" =~ ^([a-zA-Z0-9])*@([a-zA-Z0-9])*\.([a-zA-Z0-9])*$ ]]; then
   echo -e "\e[0;31m${bold}ERROR - Invalid value for $1. Email must be of the format admin@sunbird.com${normal}"
   fail=1
-else
-  echo -e "\e[0;32mOK - $1: $2"
 fi
 }
 
@@ -63,9 +55,7 @@ fi
 check_login(){
 echo -e "\e[0;33mValidating login to server"
 response=`ssh -i $2 -o StrictHostKeyChecking=no $3@$4 "whoami"`
-if [[ "$response" == "$3" ]]; then
-  echo -e "\e[0;32m\nOK - Login successful"
-else
+if ! [[ "$response" == "$3" ]]; then
   echo -e "\e[0;31m${bold}ERROR - Login failed. Please check the username / private key / server address${normal}"
   fail=1
 fi
@@ -75,8 +65,7 @@ fi
 check_sudo(){
 echo -e "\e[0;33mValidating sudo password"
 result=`ssh -i $4 -o StrictHostKeyChecking=no $3@$5 "echo $2 | sudo -S apt-get check"`
-if [[ "$result" =~ (Reading|Building) ]]; then
-  echo -e "\e[0;32m\nOK - Sudo login successful"
+if ! [[ "$result" =~ (Reading|Building) ]]; then
 else
   echo -e "\e[0;31m${bold}ERROR - Sudo login failed. Please check the username / password"
   fail=1
@@ -126,10 +115,12 @@ do
   check_sudo $key $value ${values[ssh_ansible_user]} ${values[ansible_private_key_path]} ${values[dns_name]};
   elif [[ "$key" =~ ^(env|implementation_name|ssh_ansible_user|dns_name|database_password|keycloak_admin_password|sso_password|trampoline_secret|backup_storage_key|badger_admin_password|ekstep_api_key|sunbird_image_storage_url|sunbird_azure_storage_key|sunbird_azure_storage_account|sunbird_default_channel)$ && "$value" == "" ]]; then  
   echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value${normal}"; fail=1;
-  else echo -e "\e[0;32mOK - $key: $value"; fi
+  fi
 done
 
-if [[ $fail == 1 ]]; then
+if [[ $fail ]]; then
   echo -e "\e[0;31m${bold}\nConfig file has errors. Please rectify the issues and rerun${normal}"
   exit 1
+else
+  echo -e "\e[0;32m${bold}\nConfig file successfully validated${normal}"
 fi
