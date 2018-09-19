@@ -122,8 +122,8 @@ do
 done
 
 if [[ $fail ]]; then
-  echo -e "\e[0;31m${bold}\nConfig file has errors. Please rectify the issues and rerun${normal}"
+  echo -e "\e[0;31m${bold}Config file has errors. Please rectify the issues and rerun${normal}"
   exit 1
 else
-  echo -e "\e[0;32m${bold}\nConfig file successfully validated${normal}"
+  echo -e "\e[0;32m${bold}Config file successfully validated${normal}"
 fi
