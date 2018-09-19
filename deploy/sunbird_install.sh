@@ -195,6 +195,17 @@ while getopts "s:h" o;do
 done
 
 # Default action: install and configure from scratch
+echo """
+
+ ######  ##     ## ##    ## ########  #### ########  ########  
+##    ## ##     ## ###   ## ##     ##  ##  ##     ## ##     ## 
+##       ##     ## ####  ## ##     ##  ##  ##     ## ##     ## 
+ ######  ##     ## ## ## ## ########   ##  ########  ##     ## 
+      ## ##     ## ##  #### ##     ##  ##  ##   ##   ##     ## 
+##    ## ##     ## ##   ### ##     ##  ##  ##    ##  ##     ## 
+ ######   #######  ##    ## ########  #### ##     ## ########   $(git rev-parse --abbrev-ref HEAD)
+
+"""
 
 ## Installing and configuring prerequisites
 echo -e \n$(date)\n >> logs/config.log; config 2>&1 | tee -a logs/config.log
