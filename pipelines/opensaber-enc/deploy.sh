@@ -22,4 +22,4 @@ echo "version:        ${version}"
 echo "ANSIBLE_PATH:   $ANSIBLE_PATH"
  
 ansible-playbook --version
-ansible-playbook -i ansible/inventories/$ENV ansible/deploy.yml  --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel} service_name=opensaber-enc deploy_encryption=True" --vault-password-file /run/secrets/vault-pass
+ansible-playbook -i ansible/inventories/$ENV ansible/opensaber.yml  --extra-vars "hub_org=${org} image_name=${name} image_tag=${version}-${artifactLabel}"  --vault-password-file /run/secrets/vault-pass
