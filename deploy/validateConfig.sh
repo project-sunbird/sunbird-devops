@@ -1,10 +1,26 @@
 #!/bin/bash
 
-# Protocal validation
-check_proto(){
-if ! [[ "$2" =~ ^(http|https)$ ]]; then
-  echo -e "\e[0;31m${bold}ERROR - Invalid value for $1. Valid values are http / https${normal}"
-  fail=1
+# Trampoline secret length validation
+check_tram_secret(){
+if ! [[ "$2" == "" ]]; then
+  val_length=`echo $2 | awk '{print length}'`
+    if [[ $val_length -lt 8 ]]; then
+      echo -e "\e[0;31m${bold}ERROR - Value for $1 must be at least 8 characters in length"; fail=1
+    fi
+else	
+  echo -e "\e[0;31m${bold}ERROR - Value for $1 cannot be empty. Please fill this value with a minimum of 8 characters${normal}"; fail=1
+fi
+}
+
+# Basic check for phone number
+check_phone(){
+if ! [[ "$2" == "" ]]; then
+  phone_length=`echo $2 | awk '{print length}'`
+  if [[ $phone_length -lt 8 || $2 =~ [a-zA-Z] ]]; then
+     echo -e "\e[0;31m${bold}ERROR - Please enter a valid phone number. Phone number cannot include alphabets and should contain 8 digits minimum${normal}"; fail=1
+  fi
+else
+ echo -e "\e[0;31m${bold}ERROR - Value for $1 cannot be empty. Please fill this value with a minimum of 8 digits${normal}"; fail=1
 fi
 }
 
@@ -103,7 +119,8 @@ do
   key=$i
   value=${values[$i]}
 
-  if [[ "$key" == "proto" ]]; then check_proto $key $value;
+  if [[ "$key" == "proto" && ! "$value" =~ ^(http|https)$ ]]; then
+  echo -e "\e[0;31m${bold}ERROR - Invalid value for $key. Valid values are http / https${normal}"; fail=1
 
   elif [[ "$key" =~ ^(application_host|database_host)$ ]]; then 
   check_ip $key $value;
@@ -112,31 +129,37 @@ do
   check_cidr $key $value;
 
   elif [[ "$key" =~ ^(cert_path|key_path)$ && "$value" == "" && "${values[proto]}" == "https" ]]; then 
-  echo -e "\e[0;31m${bold}ERROR - Protocal https specified but no value for $key entered. Please fill this value${normal}"; fail=1;
+  echo -e "\e[0;31m${bold}ERROR - Protocal https specified but no value for $key entered. Please fill this value${normal}"; fail=1
 
-  elif [[ "$key" == "badger_admin_email" ]]; then 
+  elif [[ "$key" =~ ^(badger_admin_email|sunbird_root_user_email)$ ]]; then 
   check_email $key $value;
 
   elif [[ "$key" == "ekstep_api_base_url" && ! "$value" =~ ^(https://api-qa.ekstep.in|https://api.ekstep.in)$ ]]; then 
-  echo -e "\e[0;31m${bold}ERROR - Valid values for $key are https://api.ekstep.in or https://api-qa.ekstep.in${normal}"; fail=1;
+  echo -e "\e[0;31m${bold}ERROR - Valid values for $key are https://api.ekstep.in or https://api-qa.ekstep.in${normal}"; fail=1
 
   elif [[ "$key" == "ekstep_proxy_base_url" && ! "$value" =~ ^(https://community.ekstep.in|https://qa.ekstep.in)$ ]]; then 
-  echo -e "\e[0;31m${bold}ERROR - Valid values for $key are https://community.ekstep.in or https://qa.ekstep.in${normal}"; fail=1;
+  echo -e "\e[0;31m${bold}ERROR - Valid values for $key are https://community.ekstep.in or https://qa.ekstep.in${normal}"; fail=1
 
   elif [[ "$key" == "ansible_private_key_path" && ! "$value" == "" &&  ! "${values[ssh_ansible_user]}" == "" && ! "${values[dns_name]}" == "" ]]; then 
-  check_login $key $value ${values[ssh_ansible_user]} ${values[dns_name]} ${values[database_host]}
+  check_login $key $value ${values[ssh_ansible_user]} ${values[dns_name]} ${values[database_host]};
 
   elif [[ "$key" == "sudo_passwd" && ! "$value" == "" && ! "${values[ssh_ansible_user]}" == "" && ! "${values[dns_name]}" == "" && ! "${values[ansible_private_key_path]}" == "" ]]; then 
   check_sudo $key $value ${values[ssh_ansible_user]} ${values[ansible_private_key_path]} ${values[dns_name]};
 
   elif [[ "$key" =~ ^(env|implementation_name|ssh_ansible_user|dns_name|database_password|keycloak_admin_password|sso_password|backup_storage_key|badger_admin_password|ekstep_api_key| \
                       sunbird_image_storage_url|sunbird_azure_storage_key|sunbird_azure_storage_account|sunbird_default_channel|sunbird_custodian_tenant_name|sunbird_custodian_tenant_description| \
-                      sunbird_custodian_tenant_channel|sunbird_root_user_firstname|sunbird_root_user_lastname|sunbird_root_user_username|sunbird_root_user_password|sunbird_root_user_email| \
+                      sunbird_custodian_tenant_channel|sunbird_root_user_firstname|sunbird_root_user_lastname|sunbird_root_user_username|sunbird_root_user_password| \
                       sunbird_root_user_phone)$ && "$value" == "" ]]; then  
-  echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value${normal}"; fail=1;
+  echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value${normal}"; fail=1
 
   elif [[ "$key" == "sunbird_sso_publickey" && "$core_install" == "core" && "$value" == "" ]]; then
   echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value before running core"; fail=1
+
+  elif [[ "$key" == "trampoline_secret" ]]; then
+  check_tram_secret $key $value;
+
+  elif [[ "$key" == "sunbird_root_user_phone" ]]; then
+  check_phone $key $value;
 
   fi
 done
