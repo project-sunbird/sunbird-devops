@@ -209,6 +209,17 @@ while getopts "s:h" o;do
 done
 
 # Default action: install and configure from scratch
+echo """
+
+ ######  ##     ## ##    ## ########  #### ########  ########  
+##    ## ##     ## ###   ## ##     ##  ##  ##     ## ##     ## 
+##       ##     ## ####  ## ##     ##  ##  ##     ## ##     ## 
+ ######  ##     ## ## ## ## ########   ##  ########  ##     ## 
+      ## ##     ## ##  #### ##     ##  ##  ##   ##   ##     ## 
+##    ## ##     ## ##   ### ##     ##  ##  ##    ##  ##     ## 
+ ######   #######  ##    ## ########  #### ##     ## ########   $(git rev-parse --abbrev-ref HEAD)
+
+"""
 
 ## Installing and configuring prerequisites
 echo -e \n$(date)\n >> logs/validateconfig.log; validateconfig 2>&1 | tee -a logs/validateconfig.log
