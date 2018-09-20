@@ -165,7 +165,7 @@ check_docker() {
                 touch ".sunbird/ignore/${service_name}"
             else
                 echo -e "\e[0;31m${bold} FATAL${normal}"
-                echo -e "\e[0;31m${bold} Sunbird has been tested with Docker version $docker_version and 17.06, Please Install $docker_version${normal}"
+                echo -e "\e[0;31m${bold} Sunbird has been tested with Docker version $docker_version. Please Install $docker_version${normal}"
                 fail=1
             fi
         else
