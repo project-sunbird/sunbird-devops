@@ -1,0 +1,29 @@
+---
+# tasks file for encryption
+- name: Ensure swarm config directories exist
+  file:
+    path: "{{item}}"
+    state: directory
+    owner: root
+    group: root
+  with_items:
+    - /home/deployer/stack
+    - /home/deployer/env
+    - /home/deployer/config
+
+- name: Save stack file
+  template: 
+    src: stack-encryption.yml 
+    dest: /home/deployer/stack/opensaber-encryption.yml 
+    mode: 0644
+
+- name: Save env file
+  template: 
+    src: encryption.env 
+    dest: /home/deployer/env/opensaber-encryption.env 
+    mode: 0644
+
+- name: Deploy stack
+  shell: "docker stack deploy -c encryption.yml encryption"
+  args:
+    chdir: /home/deployer/stack
