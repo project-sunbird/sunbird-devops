@@ -1,7 +1,7 @@
 proto: https
-
 application_postgres_password: "{{vault_application_postgres_password}}"   #Password for Application database.
-
+proxy_server_name: dev.open-sunbird.org #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
+opensaber_upstream_url: 'open-saber.ddns.net'
 ## DB address
 application_postgres_host: "{{ groups['postgresql-master'][0]}}"  #Private IP of Postgres server
 
@@ -10,5 +10,38 @@ enc_postgres_user: sunbirddevnew@sunbirddevnewenv
 enc_postgres_database: encryption
 enc_postgres_password: "{{vault_enc_postgres_password}}"
 
-#Opensaber variables
+#Opensaber_enc variables
 opensaber_encryption_password: "{{vault_opensaber_encryption_password}}"
+
+
+keycloak_auth_server_url: "https://{{ proxy_server_name }}/auth"
+keycloak_realm: sunbird
+sunbird_sso_client_id: admin-cli
+perf_monitoring_enabled: true
+host_url: "{{proto}}://{{opensaber_upstream_url}}/"
+registry_context_base: "{{host_url}}"
+registry_system_base: "{{host_url}}opensaber/"
+registry_config_dir: file:///home/opensaber/config/
+config_schema_file: "{{registry_config_dir}}schema-configuration.jsonld"
+database_provider: neo4j
+database_embedded: true
+database_host: localhost
+database_port: 7687
+database_directory: /data/databases/graph.db
+database_profiler_enabled: false
+validations_create_file: "{{registry_config_dir}}validations_create.shex"
+validations_update_file: "{{registry_config_dir}}validations_update.shex"
+frame_file: "{{registry_config_dir}}frame.json"
+audit_frame_file: "{{registry_config_dir}}audit_frame.json"
+connection_timeout: 5000
+connection_request_timeout: 5000
+read_timeout: 5000
+encryption_enabled: true
+encryption_base: "{{host_url}}/encryption/"
+encryption_uri: "{{encryption_base}}encrypt/"
+encryption_batch_uri: "{{encryption_uri}}obj"
+decryption_uri: "{{encryption_base}}decrypt/"
+decryption_batch_uri: "{{decryption_uri}}obj"
+audit_enabled: false
+audit_frame_file: audit_frame.json
+authentication_enabled: false
