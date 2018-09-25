@@ -5,8 +5,12 @@ proxy_site_key: "{{lookup('file',key_path) if key_path else ''}}"   #SSL certifi
 proxy_site_crt: "{{lookup('file',cert_path) if cert_path else ''}}"  #SSL certificate's site.crt file path. More details in this wiki: https://github.com/project-sunbird/sunbird-devops/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 sunbird_private_key_path: 
 hub_org: sunbird
-
-
+sunbird_external_content_whitelisted_domains:
+learner_limit_cpu: 1
+learner_reservation_cpu: 1
+sunbird_default_channel:
+sunbird_cs_base_url:
+sunbird_content_service_whitelisted_channels:
 # DB CONFIGURATION
 ## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
 application_postgres_password: "{{postgres_app_password if postgres_app_password else database_password}}"
@@ -78,7 +82,7 @@ keycloak_api_management_user_last_name: "manager"
 keycloak_api_management_user_password: "{{sso_password}}"
 
 ## Content Repo configuration
-sunbird_api_auth_token: "{{sunbird_auth_token}}" #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
+sunbird_api_auth_token: #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
 sunbird_ekstep_api_key: "{{ekstep_api_key}}" #Authorization key (JWT) to access Ekstep APIs. Steps to generate this are documented on https://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs
 sunbird_trampoline_secret: "{{trampoline_secret}}"
 
@@ -125,8 +129,8 @@ sunbird_image_storage_url: "{{sunbird_image_storage_url}}"
 sunbird_telemetry_sync_batch_size: 200
 sunbird_installation_email: "{{sunbird_installation_email}}"
 sunbird_telemetry_pdata_id: "{{sunbird_telemetry_pdata_id}}"
-sunbird_environment: "{{sunbird_environment}}"
-sunbird_instance: "{{sunbird_instance}}"
+sunbird_environment: "{{env}}"
+sunbird_instance: "{{implementation_name}}"
 
 
 ## elasticsearch configurations
@@ -233,8 +237,10 @@ logger_es_port: 9200
 swarm_load_balancer: "{{application_host}}"
 filebeat_logtsash_host: "{{ application_host }}"
 expected_minimum_logs_per_minute: 30
-kibana_oauth_authenticated_email_domains: "{{kibana_access_domain_list}}"
-kibana_oauth_authenticated_email_ids: "{{kibana_access_mail_list}}"
+#kibana_oauth_authenticated_email_domains: 
+#  - optit.co 
+#kibana_oauth_authenticated_email_ids: 
+#  - smy.altamash@gmail.com
 
 
 
@@ -258,6 +264,82 @@ postgres_exporter_user: postgres_exporter
 postgres_exporter_password: "{{ vault_postgres_exporter_password }}"
 api__host: "{{proxy_server_name}}"
 kong__test_jwt: "{{kong__test_jwt}}" 
-backup_storage_name: "{{backup_storage_name}}"
 prometheus_storage_retention_time: 72h0m0s
 sunbird_android_app_url: sunbird.org
+
+sunbird_user_bulk_upload_size: 1001
+sunbird_installation_display_name: 
+
+telemetry_proxy_url: https://dev.ekstep.in/api/data/v3/telemetry
+
+#content service vars
+
+sunbird_content_repo_api_base_url: https://qa.ekstep.in/api
+sunbird_content_repo_api_key: "{{ekstep_api_key}}"
+sunbird_search_service_api_base_url: https://qa.ekstep.in/api/search
+sunbird_search_service_api_key: "{{ekstep_api_key}}"
+sunbird_dial_repo_api_base_url: https://qa.ekstep.in/api
+sunbird_dial_repo_api_key: "{{ekstep_api_key}}"
+sunbird_plugin_repo_api_base_url: https://qa.ekstep.in/api
+sunbird_plugin_repo_api_key: "{{ekstep_api_key}}"
+sunbird_data_service_api_base_url: https://qa.ekstep.in/api
+sunbird_data_service_api_key: "{{ekstep_api_key}}"
+sunbird_content_service_enable_logging: true
+
+learning_analytics_service_url: "http://{{application_host}}:9000"
+sunbird_tenant_cdn_url:
+sunbird_cloud_storage_urls: 'https://s3.ap-south-1.amazonaws.com/ekstep-public-qa/,https://ekstep-public-qa.s3-ap-south-1.amazonaws.com/'
+sunbird_analytics_api_base_url:
+content_service_channel_refresh_cron:
+content_service_whitelisted_framework:
+content_service_blacklisted_framework:
+content_service_blacklisted_contenttype:
+content_service_blacklisted_resourcetype:
+content_service_blacklisted_mimetype:
+content_service_whitelisted_mimetype:
+content_service_whitelisted_resourcetype:
+sunbird_language_service_api_key:
+sunbird_language_service_api_base_url: "https://qa.ekstep.in/api/language"
+
+#Telemetry Service vars
+sunbird_telemetry_kafka_servers:
+sunbird_data_pipeline_kafka_servers:
+sunbird_telemetry_kafka_topic:
+
+#Config Service Vars
+cloud_storage_type: "azure"
+azure_storage_key: "{{sunbird_azure_storage_account}}"
+azure_storage_secret: "{{sunbird_azure_storage_key}}"
+azure_storage_container:
+aws_storage_key:
+aws_storage_secret:
+aws_storage_container:
+
+sunbird_cassandra_host: "{{groups['cassandra'][0]|default(database_host)}}"
+sunbird_cassandra_port: 9042
+sunbird_cassandra_username: cassandra
+sunbird_cassandra_password: "{{cassandra_password if cassandra_password else database_password}}"
+sunbird_config_service_url: "{{proto}}://{{proxy_server_name}}/api/config/"
+config_cache_ttl: 600
+
+#Portal vars
+sunbird_portal_base_url: https://staging.open-sunbird.org
+
+#Learner Vars
+sunbird_email_max_recipients_limit: 100
+
+#Proxy vars
+sunbird_blob_env: "{{env}}"
+
+#encryption Service
+encryption_service_user: encryption
+encryption_db_name: encryption
+encryption_db_dialect: postgres
+encryption_reservation_memory: 750MB
+encryption_replicas: 1
+encryption_limit_memory: 750MB
+encryption_limit_cpu: 1
+encryption_reservation_cpu: 1
+
+#Portal vars:
+sunbird_portal_user_upload_ref_link: http://www.sunbird.org/features-documentation/register_user

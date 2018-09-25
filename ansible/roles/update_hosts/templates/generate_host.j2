@@ -34,7 +34,7 @@ service_vars(){
             echo -n es_instance_name="es-$count" es_etc_node_master=true es_etc_node_data=true node_name=dev-log-es-$count
             group_name=log-es
             ;;
-        swarm-manager|swarm-nodes)
+        swarm-manager|swarm-worker)
             echo -n "swarm_master=true"
             ;;
         *)
@@ -82,7 +82,7 @@ get_host_entries cassandra $cassandra_ips
 get_host_entries postgresql-master $postgres_master_ips
 get_host_entries postgresql-slave $postgres_slave_ips
 get_host_entries swarm-manager $swarm_manager_ips
-get_host_entries swarm-nodes $swarm_node_ips
+get_host_entries swarm-worker $swarm_node_ips
 get_host_entries keycloak $keycloak_ips
 get_host_entries log-es $log_es_ips
 get_host_entries swarm-agent-for-prometheus $swarm_agent_for_prometheus_ips
@@ -115,6 +115,10 @@ swarm-agent-for-grafana
 swarm-agent-for-alertmanager
 
 [node-exporter:children]
+non-swarm-nodes
+swarm-manager
+
+[process-exporter:children]
 non-swarm-nodes
 swarm-manager
 

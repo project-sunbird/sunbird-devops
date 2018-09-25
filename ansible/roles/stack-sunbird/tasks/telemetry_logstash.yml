@@ -1,0 +1,29 @@
+---
+- name: Remove telemetry-service service
+  become: yes
+  shell: "docker service rm logstash-telemetry"
+  ignore_errors: yes
+
+- name: Remove telemetry-service service
+  become: yes
+  shell: "docker service rm telemetry-logstash"
+  ignore_errors: yes
+
+- name: Save configurations into docker config
+  become: yes
+  template: src="telemetry-logstash.conf" dest="/home/deployer/stack/telemetry-logstash.conf" mode=0644
+
+- name: Remove old telemetry-logstash configs
+  become: yes
+  shell: "docker config rm telemetry-logstash.conf"
+  ignore_errors: yes
+
+- name: Save as docker config
+  become: yes
+  shell: "docker config create telemetry-logstash.conf /home/deployer/stack/telemetry-logstash.conf"
+
+- name: Deploy telemetry-logstash
+  become: yes
+  shell: "docker service create --replicas {{ telemetry_logstash_replicas }} --name telemetry-logstash --hostname telemetry-logstash --reserve-memory {{ telemetry_logstash_reservation_memory }} --limit-memory {{ telemetry_logstash_limit_memory }}  --network application_default --config source=telemetry-logstash.conf,target=/etc/telemetry-logstash.conf,mode=0644 sunbird/logstash:5.6-alpine"
+  args:
+    chdir: /home/deployer/stack

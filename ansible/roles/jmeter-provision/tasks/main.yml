@@ -1,0 +1,52 @@
+- name: Add Java repository to sources
+  action: apt_repository repo='ppa:webupd8team/java'
+  become: yes
+  
+- name: Autoaccept license for Java 8
+  debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
+  become: yes
+  
+- name: Update APT package cache
+  action: apt update_cache=yes
+  become: yes
+  
+- name: Install Java 8
+  action: apt pkg=oracle-java8-installer state=latest install_recommends=yes
+  become: yes
+  with_items:
+    - oracle-java8-installer
+    - ca-certificates
+    - oracle-java8-set-default
+  
+# - name: Cleanup directories
+#   become: yes
+#   file: path={{ item }} owner={{ user }} group={{ user }} state=absent
+#   with_items: 
+#     - "/mnt"
+#   tags:
+#     - provision
+
+- name: Create directories for Jmeter setup
+  become: yes
+  file: path={{ item }} owner={{ user }} group={{ user }} state=directory  owner={{ user }} group={{ user }}
+  with_items: "{{ jmeter.paths }}"
+  
+- name: Download Jmeter 4.0 binaries
+  become: yes
+  become_user: "{{ user }}"
+  get_url: url=https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-4.0.tgz dest={{ jmeter.home }}/apache-jmeter-4.0.tgz force=no owner={{ user }} group={{ user }}
+  
+- name: Unarchive Jmeter 4.0 binaries
+  become: yes
+  become_user: "{{ user }}"
+  unarchive: src={{ jmeter.home }}/apache-jmeter-4.0.tgz dest={{ jmeter.home }}/ copy=no owner={{ user }} group={{ user }} creates={{ jmeter.home }}/apache-jmeter-4.0
+  
+- name: Delete Jmeter 4.0 binaries
+  become: yes
+  become_user: "{{ user }}"
+  file: path={{ jmeter.home }}/apache-jmeter-4.0.tgz owner={{ user }} group={{ user }} state=absent
+
+- name: Update Jmeter default config
+  become: yes
+  become_user: "{{ user }}"
+  template: src=jmeter.properties.j2 dest={{ jmeter.home }}/apache-jmeter-4.0/bin/jmeter.properties mode=755 owner={{ user }} group={{ user }}

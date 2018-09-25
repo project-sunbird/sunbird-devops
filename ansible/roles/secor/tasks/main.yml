@@ -2,10 +2,11 @@
   become: yes
   file:  path={{item}} state=directory mode=0775 owner={{ user }} group={{ group }}
   with_items: 
-             - "{{ secor.paths }}"
+    - "{{ secor.paths }}"
 
 - name: create paths
   become: yes
+  become_user: "{{ user }}"
   file:  path=/mnt mode=0775 owner={{ user }} group={{ group }} recurse=yes
 
 - name: Create secor service
@@ -20,7 +21,7 @@
 - name: Copy secor libraries
   become: yes
   become_user: "{{ user }}"
-  copy: src=../../target/secor-0.24-SNAPSHOT-bin.tar.gz dest={{ user_home }} owner={{ user }} group={{ group }}
+  copy: src="{{secor_zip_path}}/secor-0.24-SNAPSHOT-bin.tar.gz" dest={{ user_home }} owner={{ user }} group={{ group }}
 
 - name: Create service directory on EBS volume
   become: yes

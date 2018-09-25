@@ -1,0 +1,40 @@
+---
+- name: Testing Service Healths
+  hosts: all
+  become: yes
+  gather_facts: false
+  tasks:
+   - name: Copying Service Health scripts to remote instance
+     become: yes
+     template:
+       src: static-files/{{ item }}
+       dest: /tmp/{{ item }}
+       mode: 0755
+     with_items: 
+       - health.sh
+       - healthDependenices.sh
+
+   - name: Getting Container ID
+     shell: "docker ps | grep proxy_proxy | awk '{print $1}' | head -n1"
+     register: contID
+
+   - name: Copying Service Health scripts to docker container
+     become: yes
+     shell: docker cp /tmp/{{ item }} $(docker ps | grep proxy_proxy | awk '{print $1}' | head -n1):/tmp/{{ item }}
+     no_log: true
+     with_items:
+       - health.sh
+       - healthDependenices.sh
+
+   - name: Installing Dependencies for the Health Checks
+     become: yes
+     shell: "docker exec $(docker ps | grep proxy_proxy | awk '{print $1}' | head -n1) /tmp/healthDependenices.sh"
+
+   - name: Getting the status of Health Checks
+     become: yes
+     shell: "docker exec $(docker ps | grep proxy_proxy | awk '{print $1}' | head -n1) /tmp/health.sh"
+     register: res
+ 
+   - name: The Status of Health Checks is As Follows:-
+     debug:
+       var: res.stdout_lines

@@ -33,3 +33,19 @@
   wait_for: host={{kafka_listen_address| default('localhost')}} port={{kafka_port}} state=started timeout=30
   when: verify
   ignore_errors: yes
+
+- name: Create kafka topic
+  become: yes
+  command: bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic "{{env}}.telemetry.raw"
+  args:
+    chdir: /opt/kafka
+
+- name: Print the list of topic names
+  become: yes
+  command: bin/kafka-topics.sh --list --zookeeper localhost:2181
+  args:
+    chdir: /opt/kafka
+  register: get_topics
+
+- name: debug
+  debug: var=get_topics.stdout

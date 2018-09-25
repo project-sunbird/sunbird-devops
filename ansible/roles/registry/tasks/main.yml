@@ -6,25 +6,39 @@
     owner: root
     group: root
 
-- name: Copy the target files to stack
-  copy: src="/home/deployer/open-saber/java/registry/target" dest="/home/deployer/stack/" mode="0644"
-
-- name: Save stack file
-  template: src=stack-registry.yml dest=/home/deployer/stack/registry.yml mode=0644
-
-- name: Initialize docker swarm
-  shell: "docker swarm init --advertise-addr $(hostname -i)"
-
-- name: Save stack file
-  template: src=stack-registry.yml dest=/home/deployer/stack/registry.yml mode=0644
+- name: Ensure stack directory exists
+  file:
+    path: /home/deployer/config
+    state: directory
 
 - name: Remove stack
   shell: "docker stack rm registry"
   ignore_errors: yes
 
-- name: Ensure network exists
-  shell: "docker network create --driver overlay registry_default"
-  ignore_errors: true
+- name: Save templates 
+  file: path="/home/deployer/config/{{item}}" mode=0644 state=absent
+  with_items: "{{registry_config}}" 
+  ignore_errors: yes  
+
+- name: Save templates
+  template: src="{{item}}" dest="/home/deployer/config/{{item}}" mode=0644
+  with_items: "{{registry_config}}" 
+
+- name: Remove old nginx.conf docker config
+  shell: "docker config rm {{item}}"
+  with_items: "{{registry_config}}"
+  ignore_errors: yes
+
+- name: Docker config create 
+  shell: "docker config create {{item}} /home/deployer/config/{{item}}"
+  with_items: "{{registry_config}}"
+
+- name: Save stack file
+  template: src=stack-registry.yml dest=/home/deployer/stack/registry.yml mode=0644
+
+- name: Save stack file
+  template: src=sunbird_registry.env dest=/home/deployer/stack/sunbird_registry.env mode=0644
+
 
 - name: Deploy stack
   shell: "docker stack deploy -c registry.yml registry"

@@ -11,7 +11,7 @@
     prometheus_backup_gzip_file_path: "{{ prometheus_backup_dir }}/{{ prometheus_backup_gzip_file_name }}"
 
 - name: Save backup
-  shell: tar czf {{ prometheus_backup_gzip_file_path }} /var/dockerdata/prometheus/data
+  shell: "tar -czf {{ prometheus_backup_gzip_file_path }} -P {{prometheus_data_dir}} --warning=no-file-changed"
   async: 3600
   poll: 10
 
@@ -27,7 +27,7 @@
   environment:
     AZURE_STORAGE_ACCOUNT: "{{ backup_storage_name }}"
     AZURE_STORAGE_KEY: "{{ backup_storage_key }}"
-  async: 3600
+  async: 5000
   poll: 10
 
 - name: clean up backup dir after upload

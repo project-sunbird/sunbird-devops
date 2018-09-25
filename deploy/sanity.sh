@@ -10,7 +10,7 @@ ssh_key=$2
 
 # Application versions
 es_version=5.4
-docker_version=17.06
+docker_version=17.06,18.03
 postgres_version=9.5
 cassandra_version=3.9
 java_version=1.8.0_162
@@ -61,27 +61,39 @@ ram() {
 }
 
 check_compatibility() {
-    local service_version=$2
-    local version=$3
-    local service_name=$4
+	
+	# Checking the compatibility of installed applications with supported versions and RAM requirement.
+	# eg: check_compatibility version <installed_application_version> <supported_version1,2,3,4>
+	# eg: check_compatibility <required_RAM_size in GB> <server_ram_size in GB>
+	
+	# Creating array out of service versions
+    IFS=',' read -ra service_versions <<<$3
+    local version=$2
+	local compatibility=0
     case $1 in
         version)
-            if [[ "$service_version" == *"$version"* ]];then
-                echo -e "\e[0;32m${bold} OK ${normal}"
-                touch ".sunbird/ignore/${service_name}"
-            else
-                echo -e "\e[0;31m${bold} INCOMPATIBLE${normal}"
-                fail=1
-            fi
-            ;;
+			for service_version in ${service_versions[@]}; do
+				[[ "$version" =~ "$service_version" ]] && compatibility=1 && break || compatibility=0
+			done
+			if [[ $compatibility == 0 ]];then
+				echo -e "\e[0;31m${bold} INCOMPATIBLE \n \e[0;32mSupported Versions: ${service_versions[@]} ${normal}" 
+			else
+				echo -e "\e[0;32m${bold} OK ${normal}"
+			fi
+			;;
         ram)
-            if [[ $service_version -ge $version ]];then
-                echo -e "\e[0;32m${bold} OK ${normal}"
-            else 
-                echo -e "\e[0;33m${bold} NOT ENOUGH ${normal}"
-            fi
-            ;;
+			for service_version in ${service_versions[@]}; do
+                if [[ $service_version -le $version ]]; then
+                    echo -e "\e[0;32m${bold} OK ${normal}"
+                else
+                    echo -e "\e[0;33m${bold} NOT ENOUGH ${normal}"
+                    echo -e "\e[0;33m${bold} Minimum Requirement: ${version} ${normal}"
+                fi
+            done
+			;;
     esac
+
+unset service_versions
 }
 
 # Checks for elastic search
@@ -93,7 +105,7 @@ check_es() {
         # Checking for elastic search version
         if [ $(nc -z $ip 9200; echo $?) -eq 0 ];then
             local version=$(nssh $ssh_user@$ip curl -sS $ip:9200 | grep number| awk '{print $3}')
-            echo -ne "\e[0;35m Elastic search Version: \e[0;32m$version "
+            echo -ne "\e[0;35m Elastic search Version: \e[0;32m$version asdfasdf "
             check_compatibility version "$version" "$es_version" es
         else 
             echo -e "\e[0;35m Elastic search Version: \e[0;32m${bold}Not Installed${normal} "
@@ -104,6 +116,7 @@ check_es() {
         check_compatibility ram $ram_ "$es_ram"
     done
 }
+
 
 check_cassandra() {
     echo -e "\n\e[0;36m ${bold}Checking Cassandra${normal}"
@@ -146,16 +159,25 @@ check_docker() {
         if [ $(nssh $ssh_user@$ip which docker &> /dev/null; echo $?) -eq 0 ];then
             local version=$(nssh $ssh_user@$ip docker --version | head -n1 | awk '{print $3" "$4" "$5}')
             echo -ne "\e[0;35m Docker Version: \e[0;32m$version "
-            check_compatibility version "$version" "$docker_version" docker
-        else 
+            version=$(echo -ne "$version" | cut -c1-5)
+            if [ "$docker_version" == "$version" ] || [ "$version" == "17.06" ];then
+                echo -e "\e[0;32m${bold} OK ${normal}"
+                touch ".sunbird/ignore/${service_name}"
+            else
+                echo -e "\e[0;31m${bold} FATAL${normal}"
+                echo -e "\e[0;31m${bold} Sunbird has been tested with Docker version $docker_version and 17.06, Please Install $docker_version${normal}"
+                fail=1
+            fi
+        else
             echo -e "\e[0;35m Docker Version: \e[0;32m${bold}Not Installed${normal} "
         fi
         local ram_=$(($(ram $ip)+1))
         echo -ne "\e[0;35m Docker $2 RAM: \e[0;32m${ram_}G "
         local docker_ram=docker_${2}_ram
-        check_compatibility ram $ram_ $docker_ram 
+        check_compatibility ram $ram_ $docker_ram
     done
 }
+
 
 
 check_es $elasticsearch_ips
