@@ -49,10 +49,10 @@ services:
       - monitoring
 
   oauth:
-    image: mryu/oauth2-proxy:2.1
+    image: rjshrjndrn/oauth2-proxy:2.2
     command: |
       -cookie-secure=false
-      -upstream=http://kibana:5601/
+      -upstream=http://proxy_proxy/oauth2
       -redirect-url={{kibana_oauth_redirect_url}}
       -http-address=0.0.0.0:4111
       {% for email_domain in kibana_oauth_authenticated_email_domains %}
@@ -63,8 +63,6 @@ services:
       - OAUTH2_PROXY_CLIENT_ID={{google_client_id}}
       - OAUTH2_PROXY_CLIENT_SECRET={{google_client_secret}}
       - OAUTH2_PROXY_COOKIE_SECRET={{cookie_secret}}
-    ports:
-      - "4111:4111"
     configs:
       - source: authenticated_email_kibana_oauth
         target: /authenticated_email.txt
