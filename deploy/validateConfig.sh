@@ -12,7 +12,7 @@ fi
 }
 
 
-# Basic check for phone number
+# Basic phone number validation
 check_phone(){
 key=$1
 value=$2
@@ -35,7 +35,7 @@ fi
 }
 
 
-# CIDR validation:
+# Check if the CIDR value specified in app_address_space is valid
 check_cidr(){
 key=$1
 value=$2
@@ -49,7 +49,7 @@ fi
 }
 
 
-# IP Validation to check if it belongs to the CIDR block
+# Check if the IP address belongs to the CIDR block specified in app_address_space
 check_ip(){
 key=$1
 value=$2
@@ -74,7 +74,7 @@ fi
 }
 
 
-# Login to app and db server using username and private key
+# Check if login succeeds to the app and db server using username and private key
 check_login(){
 key=$1
 value=$2
@@ -97,7 +97,7 @@ fi
 }
 
 
-# Validate user can run sudo commands using the sudo password
+# Validate ssh_ansible_user can run sudo commands using the sudo password
 check_sudo(){
 key=$1
 value=$2
@@ -114,7 +114,7 @@ fi
 }
 
 
-# Function to retrieve values of mandatory fields and store it as key value paid
+# Function to retrieve values of mandatory fields and store it as key value pair
 get_config_values(){
 key=$1
 vals[$key]=$(awk ''/^$key:' /{ if ($2 !~ /#.*/) {print $2}}' config)
@@ -132,7 +132,7 @@ fi
 echo -e "\e[0;33m${bold}Validating the config file...${normal}"
 
 
-#An array of mandatory values
+# An array of mandatory values
 declare -a arr=("env" "implementation_name" "ssh_ansible_user" "sudo_passwd" "ansible_private_key_path" "application_host" "app_address_space" "dns_name" "proto" "cert_path" \
      "key_path" "database_host" "database_password" "keycloak_admin_password" "sso_password" "trampoline_secret" "backup_storage_key" "badger_admin_password" \
      "badger_admin_email" "ekstep_api_base_url" "ekstep_proxy_base_url" "ekstep_api_key" "sunbird_image_storage_url" "sunbird_azure_storage_key" \
@@ -149,6 +149,7 @@ do
 get_config_values $i
 done
 
+# Iterate the array of key values and based on key check the validation
 for i in ${!vals[@]}
 do
 key=$i
@@ -234,6 +235,7 @@ case $key in
 esac
 done
 
+# Check if any of the validation failed and exit
 if [[ $fail ]]; then
    echo -e "\e[0;31m${bold}Config file has errors. Please rectify the issues and rerun${normal}"
    exit 1
