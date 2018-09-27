@@ -14,7 +14,7 @@
 
 set -eu -o pipefail
 
-usage() { echo "Usage: $0 [ -s {sanity|config|dbs|apis|proxy|keycloak|badger|core|configservice|logger|monitor|posttest|systeminit} ]" ; exit 0; }
+usage() { echo "Usage: $0 [ -s {validateconfig|sanity|config|dbs|apis|proxy|keycloak|badger|core|configservice|logger|monitor|posttest|systeminit} ]" ; exit 0; }
 
 # Checking for valid argument
 if [[ ! -z ${1:-} ]] && [[  ${1} != -* ]]; then
@@ -47,6 +47,15 @@ if [ ! -d logs ];then mkdir logs &> /dev/null;fi
 # Creating temporary directory
 if [ ! -d .sunbird/ignore ];then mkdir -p .sunbird/ignore &> /dev/null;fi
 
+# Validate config file
+validateconfig(){
+if [[ $# -eq 0 ]]; then
+    ./validateConfig.sh
+else
+   ./validateConfig.sh $1
+fi 
+}
+
 # Generating configs
 config() { 
     sudo ./install-deps.sh
@@ -60,7 +69,6 @@ config() {
 }
 
 # Sanity check
-
 sanity() {
     ./sanity.sh $ssh_ansible_user $ansible_private_key_path
 }
@@ -117,6 +125,11 @@ while getopts "s:h" o;do
         s)
             s=${OPTARG}
             case "${s}" in
+                validateconfig)
+                    echo -e "\n$(date)\n">>logs/validateconfig.log;
+                    validateconfig 2>&1 | tee -a logs/validateconfig.log
+                    exit 0
+                    ;;
                 config)
                     echo -e "\n$(date)\n">>logs/config.log;
                     config 2>&1 | tee -a logs/config.log
@@ -155,6 +168,7 @@ while getopts "s:h" o;do
                     exit 0
                     ;;
                 core)
+                    echo -e "\n$(date)\n">>logs/validateconfig.log; validateconfig "${s}" 2>&1 | tee -a logs/validateconfig.log
                     echo -e "\n$(date)\n">>logs/core.log; core 2>&1 | tee -a logs/core.log
                     exit 0
                     ;;
@@ -208,6 +222,7 @@ echo """
 """
 
 ## Installing and configuring prerequisites
+echo -e \n$(date)\n >> logs/validateconfig.log; validateconfig 2>&1 | tee -a logs/validateconfig.log
 echo -e \n$(date)\n >> logs/config.log; config 2>&1 | tee -a logs/config.log
 ## checking for prerequisites
 echo -e \n$(date)\n >> logs/sanity.log; sanity 2>&1 | tee -a logs/sanity.log
