@@ -77,7 +77,7 @@ if [[ ${vals[app_address_space]} != "" && $cidr_result != "fail" ]]; then
    IFS="./" read -r brod_ip1 brod_ip2 brod_ip3 brod_ip4 <<< $broad_addr
    brod_ip=$(($brod_ip1 * 256 ** 3 + $brod_ip2 * 256 ** 2 + $brod_ip3 * 256 + $brod_ip4))
 
-   if ! [[ $ip_post_mask == $cidr_trim && $host_ip > $net_ip && $host_ip < $brod_ip ]]; then
+   if ! [[ $ip_post_mask == $cidr_trim && $host_ip -gt $net_ip && $host_ip -lt $brod_ip ]]; then
       echo -e "\e[0;31m${bold}ERROR - Invalid value for $key. IP address does not belong to the CIDR group. Valid range for given app_address_space is $range_start to $range_end${normal}"
       fail=1
    fi
