@@ -28,7 +28,7 @@ fi
 check_email(){
 key=$1
 value=$2
-if ! [[ $value =~ ^([a-zA-Z0-9])*@([a-zA-Z0-9])*\.([a-zA-Z0-9])*$ ]]; then
+if ! [[ $value =~ ^([a-zA-Z0-9]).*@([a-zA-Z0-9]).*\.([a-zA-Z0-9]).*$ ]]; then
    echo -e "\e[0;31m${bold}ERROR - Invalid value for $key. Email must be of the format admin@sunbird.com${normal}"
    fail=1
 fi
@@ -55,18 +55,29 @@ key=$1
 value=$2
 if [[ ${vals[app_address_space]} != "" && $cidr_result != "fail" ]]; then
    IFS="." read -r host_ip1 host_ip2 host_ip3 host_ip4 <<< $value
+   host_ip=$(($host_ip1 * 256 ** 3 + $host_ip2 * 256 ** 2 + $host_ip3 * 256 + $host_ip4))
+
    IFS="./" read -r cidr_ip1 cidr_ip2 cidr_ip3 cidr_ip4 N <<< ${vals[app_address_space]}
    set -- $(( 5 - ($N / 8))) 255 255 255 255 $(((255 << (8 - ($N % 8))) & 255 )) 0 0 0
    [ $1 -gt 1 ] && shift $1 || shift
    mask=${1-0}.${2-0}.${3-0}.${4-0}
    IFS="." read -r mask_ip1 mask_ip2 mask_ip3 mask_ip4 <<< $mask
+
    net_addr=$((cidr_ip1&mask_ip1)).$((cidr_ip2&mask_ip2)).$((cidr_ip3&mask_ip3)).$((cidr_ip4&mask_ip4))
    broad_addr=$((cidr_ip1&mask_ip1^(255-$mask_ip1))).$((cidr_ip2&mask_ip2^(255-$mask_ip2))).$((cidr_ip3&mask_ip3^(255-$mask_ip3))).$((cidr_ip4&mask_ip4^(255-$mask_ip4)))
    cidr_trim=$cidr_ip1.$cidr_ip2.$cidr_ip3.$cidr_ip4
    ip_post_mask=$((host_ip1&mask_ip1)).$((host_ip2&mask_ip2)).$((host_ip3&mask_ip3)).$((host_ip4&mask_ip4))
+
    range_start=$((cidr_ip1&mask_ip1)).$((cidr_ip2&mask_ip2)).$((cidr_ip3&mask_ip3)).$(((cidr_ip4&mask_ip4)+1))
    range_end=$((cidr_ip1&mask_ip1^(255-$mask_ip1))).$((cidr_ip2&mask_ip2^(255-$mask_ip2))).$((cidr_ip3&mask_ip3^(255-$mask_ip3))).$(((cidr_ip4&mask_ip4^(255-$mask_ip4))-1))
-   if ! [[ $ip_post_mask == $cidr_trim && $value > $net_addr && $value < $broad_addr ]]; then
+   
+   IFS="./" read -r net_ip1 net_ip2 net_ip3 net_ip4 <<< $net_addr
+   net_ip=$(($net_ip1 * 256 ** 3 + $net_ip2 * 256 ** 2 + $net_ip3 * 256 + $net_ip4))
+
+   IFS="./" read -r brod_ip1 brod_ip2 brod_ip3 brod_ip4 <<< $broad_addr
+   brod_ip=$(($brod_ip1 * 256 ** 3 + $brod_ip2 * 256 ** 2 + $brod_ip3 * 256 + $brod_ip4))
+
+   if ! [[ $ip_post_mask == $cidr_trim && $host_ip > $net_ip && $host_ip < $brod_ip ]]; then
       echo -e "\e[0;31m${bold}ERROR - Invalid value for $key. IP address does not belong to the CIDR group. Valid range for given app_address_space is $range_start to $range_end${normal}"
       fail=1
    fi
