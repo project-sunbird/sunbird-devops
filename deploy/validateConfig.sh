@@ -39,6 +39,7 @@ fi
 check_cidr(){
 key=$1
 value=$2
+cidr_result="OK"
 IFS="./" read -r ip1 ip2 ip3 ip4 N <<< $value
 ip=$(($ip1 * 256 ** 3 + $ip2 * 256 ** 2 + $ip3 * 256 + $ip4))
 if ! [[ $(($ip % 2**(32-$N))) = 0 ]]; then
@@ -70,7 +71,7 @@ if [[ ${vals[app_address_space]} != "" && $cidr_result != "fail" ]]; then
 
    range_start=$((cidr_ip1&mask_ip1)).$((cidr_ip2&mask_ip2)).$((cidr_ip3&mask_ip3)).$(((cidr_ip4&mask_ip4)+1))
    range_end=$((cidr_ip1&mask_ip1^(255-$mask_ip1))).$((cidr_ip2&mask_ip2^(255-$mask_ip2))).$((cidr_ip3&mask_ip3^(255-$mask_ip3))).$(((cidr_ip4&mask_ip4^(255-$mask_ip4))-1))
-   
+
    IFS="./" read -r net_ip1 net_ip2 net_ip3 net_ip4 <<< $net_addr
    net_ip=$(($net_ip1 * 256 ** 3 + $net_ip2 * 256 ** 2 + $net_ip3 * 256 + $net_ip4))
 
@@ -85,26 +86,26 @@ fi
 }
 
 
-# Check if login succeeds to the app and db server using username and private key
+# Check if login succeeds to the app, db, es, cass and pg master server using username and private key if values are not null
 check_login(){
 key=$1
 value=$2
-app_server=${vals[application_host]}
-db_server=${vals[database_host]}
 username=${vals[ssh_ansible_user]}
 
-app_user=$(ssh -i $value -o StrictHostKeyChecking=no -o ConnectTimeout=1  $username@$app_server whoami 2> /dev/null)
-db_user=$(ssh -i $value -o StrictHostKeyChecking=no -o ConnectTimeout=1 $username@$db_server whoami 2> /dev/null)
+declare -a arr_hosts=("${vals[application_host]}" "${vals[database_host]}" "${vals[elasticsearch_host]}" "${vals[cassandra_host]}" "${vals[postgres_master_host]}")
+declare -a index_keys=("application_host" "database_host" "elasticsearch_host" "cassandra_host" "postgres_master_host")
 
-if [[ $app_user != $username ]]; then
-   echo -e "\e[0;31m${bold}ERROR - Login to app server failed. Please check application_host, ssh_ansible_user, ansible_private_key_path${normal}"
-   fail=1
-fi
+for j in ${!arr_hosts[@]}
+do
+  if [[ ${arr_hosts[$j]} != "" ]]; then
+     login_user=$(ssh -i $value -o StrictHostKeyChecking=no -o ConnectTimeout=1  $username@${arr_hosts[$j]} whoami 2> /dev/null)
 
-if [[ $db_user != $username ]]; then
-   echo -e "\e[0;31m${bold}ERROR - Login to db server failed. Please check database_host, ssh_ansible_user, ansible_private_key_path${normal}"
-   fail=1
-fi
+     if [[ $login_user != $username && $j != "" ]]; then
+        echo -e "\e[0;31m${bold}ERROR - Login to ${index_keys[$j]} failed. Please check ${index_keys[$j]}, ssh_ansible_user, ansible_private_key_path${normal}"
+        fail=1
+     fi
+  fi
+done
 }
 
 
@@ -112,16 +113,24 @@ fi
 check_sudo(){
 key=$1
 value=$2
-app_server=${vals[application_host]}
-db_server=${vals[database_host]}
 username=${vals[ssh_ansible_user]}
 private_key=${vals[ansible_private_key_path]}
 
-result=$(ssh -i $private_key -o StrictHostKeyChecking=no  -o ConnectTimeout=1 $username@$app_server "echo $value | sudo -S apt-get check" 2> /dev/null)
-if ! [[ $result =~ (Reading|Building) ]]; then
-   echo -e "\e[0;31m${bold}ERROR - Sudo login failed. Please check the username / password / IP"
-   fail=1
+declare -a arr_hosts=("${vals[application_host]}" "${vals[database_host]}" "${vals[elasticsearch_host]}" "${vals[cassandra_host]}" "${vals[postgres_master_host]}")
+declare -a index_keys=("application_host" "database_host" "elasticsearch_host" "cassandra_host" "postgres_master_host")
+
+
+for j in ${!arr_hosts[@]}
+do
+  if [[ ${arr_hosts[$j]} != "" ]]; then
+     result=$(ssh -i $private_key -o StrictHostKeyChecking=no  -o ConnectTimeout=1 $username@${arr_hosts[$j]} "echo $value | sudo -S apt-get check" 2> /dev/null)
+
+     if ! [[ $result =~ (Reading|Building) ]]; then
+        echo -e "\e[0;31m${bold}ERROR - Sudo check failed. Please check the value provided in ssh_ansible_user, $key, ansible_private_key_path, ${index_keys[$j]}${normal}"
+        fail=1
+     fi
 fi
+done
 }
 
 
@@ -134,22 +143,24 @@ vals[$key]=$(awk ''/^$key:' /{ if ($2 !~ /#.*/) {print $2}}' config)
 # Script start. core_install will receive value as "core" from calling script when -s core option is triggered.
 bold=$(tput bold)
 normal=$(tput sgr0)
+fail=0
 if ! [[ $# -eq 0 ]]; then
-core_install=$1
+   core_install=$1
 else
-core_install="NA"
+   core_install="NA"
 fi
 
 echo -e "\e[0;33m${bold}Validating the config file...${normal}"
 
 
 # An array of mandatory values
-declare -a arr=("env" "implementation_name" "ssh_ansible_user" "sudo_passwd" "ansible_private_key_path" "application_host" "app_address_space" "dns_name" "proto" "cert_path" \
-     "key_path" "database_host" "database_password" "keycloak_admin_password" "sso_password" "trampoline_secret" "backup_storage_key" "badger_admin_password" \
-     "badger_admin_email" "ekstep_api_base_url" "ekstep_proxy_base_url" "ekstep_api_key" "sunbird_image_storage_url" "sunbird_azure_storage_key" \
-     "sunbird_azure_storage_account" "sunbird_custodian_tenant_name" "sunbird_custodian_tenant_description" "sunbird_custodian_tenant_channel" \
-     "sunbird_root_user_firstname" "sunbird_root_user_lastname" "sunbird_root_user_username" "sunbird_root_user_password" "sunbird_root_user_email" \
-     "sunbird_root_user_phone" "sunbird_sso_publickey" "sunbird_default_channel")
+declare -a arr=("env" "implementation_name" "ssh_ansible_user" "dns_name" "proto" "cert_path" "key_path" "database_password" "keycloak_admin_password" \
+                "sso_password" "trampoline_secret" "backup_storage_key" "badger_admin_password" "badger_admin_email" "ekstep_api_base_url" \
+                "ekstep_proxy_base_url" "ekstep_api_key" "sunbird_image_storage_url" "sunbird_azure_storage_key" "sunbird_azure_storage_account" \
+                "sunbird_custodian_tenant_name" "sunbird_custodian_tenant_description" "sunbird_custodian_tenant_channel" "sunbird_root_user_firstname" \
+                "sunbird_root_user_lastname" "sunbird_root_user_username" "sunbird_root_user_password" "sunbird_root_user_email" "sunbird_root_user_phone" \
+                "sunbird_sso_publickey" "sunbird_default_channel" "app_address_space" "application_host" "database_host" "sudo_passwd" \
+                "ansible_private_key_path" "elasticsearch_host" "cassandra_host" "postgres_master_host")
 
 # Create and empty array which will store the key and value pair from config file
 declare -A vals
@@ -160,11 +171,12 @@ do
 get_config_values $i
 done
 
+
 # Iterate the array of key values and based on key check the validation
-for i in ${!vals[@]}
+for i in ${arr[@]}
 do
 key=$i
-value=${vals[$i]}
+value=${vals[$key]}
 case $key in
    proto)
        if [[ ! "$value" =~ ^(http|https)$ ]]; then
@@ -214,7 +226,7 @@ case $key in
           check_cidr $key $value
        fi
        ;;
-   application_host|database_host)
+   application_host)
        if [[ $value == "" ]]; then
           echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value${normal}"; fail=1
        else
@@ -235,19 +247,32 @@ case $key in
        ;;
    sunbird_sso_publickey)
        if [[ $core_install == "core" && $value == "" ]]; then
-       echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value before running core"; fail=1
+          echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value before running core${normal}"; fail=1
+       fi
+       ;;
+   database_host)
+       if [[ $value != "" ]]; then
+          check_ip $key $value
+       fi
+       ;;
+   elasticsearch_host|cassandra_host|postgres_master_host)
+       if [[ $value != "" ]]; then
+           check_ip $key $value
+       elif [[ $value == "" &&  ${vals[database_host]} == "" ]]; then
+           echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value OR provide value for database_host"; fail=1
        fi
        ;;
    *)
-       if [[ "$value" == "" ]]; then
+       if [[ $value == "" ]]; then
           echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value${normal}"; fail=1
        fi
        ;;
 esac
 done
 
+
 # Check if any of the validation failed and exit
-if [[ $fail ]]; then
+if [[ $fail -eq 1 ]]; then
    echo -e "\e[0;31m${bold}Config file has errors. Please rectify the issues and rerun${normal}"
    exit 1
 else
