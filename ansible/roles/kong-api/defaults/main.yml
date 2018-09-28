@@ -3284,14 +3284,25 @@ kong_apis:
      - {name: 'acl', config.whitelist: 'dataAdmin'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
-  - name: "getAllSystemSettings"
-    request_path: "{{ data_service_prefix }}/v1/system/setting/list"
-    upstream_url: "{{ learning_service_url }}/v1/system/setting/list"
+  - name: "getConfigStatus"
+    request_path: "{{ config_service_prefix }}/v1/status"
+    upstream_url: "{{ config_service_url }}/config-service/v1/status"
     strip_request_path: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
      - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
      - {name: 'acl', config.whitelist: 'dataAdmin'}
-     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: "getConfigHealth"
+    request_path: "{{ config_service_prefix }}/v1/health"
+    upstream_url: "{{ config_service_url }}/config-service/v1/health"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'dataAdmin'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
