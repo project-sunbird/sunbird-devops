@@ -55,30 +55,48 @@ check_ip(){
 key=$1
 value=$2
 if [[ ${vals[app_address_space]} != "" && $cidr_result != "fail" ]]; then
-   IFS="." read -r host_ip1 host_ip2 host_ip3 host_ip4 <<< $value
-   host_ip=$(($host_ip1 * 256 ** 3 + $host_ip2 * 256 ** 2 + $host_ip3 * 256 + $host_ip4))
 
-   IFS="./" read -r cidr_ip1 cidr_ip2 cidr_ip3 cidr_ip4 N <<< ${vals[app_address_space]}
+   IFS="." read -r hip1 hip2 hip3 hip4 <<< $value
+   host_ip=$(($hip1 * 256 ** 3 + $hip2 * 256 ** 2 + $hip3 * 256 + $hip4))
+
+   # Obtain the netmask
+   IFS="./" read -r cip1 cip2 cip3 cip4 N <<< ${vals[app_address_space]}
    set -- $(( 5 - ($N / 8))) 255 255 255 255 $(((255 << (8 - ($N % 8))) & 255 )) 0 0 0
    [ $1 -gt 1 ] && shift $1 || shift
    mask=${1-0}.${2-0}.${3-0}.${4-0}
-   IFS="." read -r mask_ip1 mask_ip2 mask_ip3 mask_ip4 <<< $mask
+   IFS="." read -r mip1 mip2 mip3 mip4 <<< $mask
 
-   net_addr=$((cidr_ip1&mask_ip1)).$((cidr_ip2&mask_ip2)).$((cidr_ip3&mask_ip3)).$((cidr_ip4&mask_ip4))
-   broad_addr=$((cidr_ip1&mask_ip1^(255-$mask_ip1))).$((cidr_ip2&mask_ip2^(255-$mask_ip2))).$((cidr_ip3&mask_ip3^(255-$mask_ip3))).$((cidr_ip4&mask_ip4^(255-$mask_ip4)))
-   cidr_trim=$cidr_ip1.$cidr_ip2.$cidr_ip3.$cidr_ip4
-   ip_post_mask=$((host_ip1&mask_ip1)).$((host_ip2&mask_ip2)).$((host_ip3&mask_ip3)).$((host_ip4&mask_ip4))
+   # Network address - Formula to calculate is cidr ip bitwise AND with mask ip
+   # Ex: 172.30.0.0 & 255.255.0.0 = 172.30.0.0 (First address)
+   nip1=$((cip1&mip1))
+   nip2=$((cip2&mip2))
+   nip3=$((cip3&mip3))
+   nip4=$((cip4&mip4))
+   net_ip=$(($nip1 * 256 ** 3 + $nip2 * 256 ** 2 + $nip3 * 256 + $nip4))
 
-   range_start=$((cidr_ip1&mask_ip1)).$((cidr_ip2&mask_ip2)).$((cidr_ip3&mask_ip3)).$(((cidr_ip4&mask_ip4)+1))
-   range_end=$((cidr_ip1&mask_ip1^(255-$mask_ip1))).$((cidr_ip2&mask_ip2^(255-$mask_ip2))).$((cidr_ip3&mask_ip3^(255-$mask_ip3))).$(((cidr_ip4&mask_ip4^(255-$mask_ip4))-1))
+   # Broadcast address - Formula to calculate is cidr ip bitwise AND with mask ip then XOR with 255 - mask IP
+   # Ex: 172.30.0.0 & 255.255.0.0 ^ 0.0.255.255 = 172.30.255.255 (Last address)
+   bip1=$((cip1&mip1^(255-$mip1)))
+   bip2=$((cip2&mip2^(255-$mip2)))
+   bip3=$((cip3&mip3^(255-$mip3)))
+   bip4=$((cip4&mip4^(255-$mip4)))
+   broad_ip=$(($bip1 * 256 ** 3 + $bip2 * 256 ** 2 + $bip3 * 256 + $bip4))
 
-   IFS="./" read -r net_ip1 net_ip2 net_ip3 net_ip4 <<< $net_addr
-   net_ip=$(($net_ip1 * 256 ** 3 + $net_ip2 * 256 ** 2 + $net_ip3 * 256 + $net_ip4))
+   # Bitwise AND host ip with mask ip to obtain CIDR block.
+   # Example: 172.30.30.55 & 255.255.0.0 = 172.30.0.0 (CIDR)
+   hipm1=$((hip1&mip1))
+   hipm2=$((hip2&mip2))
+   hipm3=$((hip3&mip3))
+   hipm4=$((hip4&mip4))
 
-   IFS="./" read -r brod_ip1 brod_ip2 brod_ip3 brod_ip4 <<< $broad_addr
-   brod_ip=$(($brod_ip1 * 256 ** 3 + $brod_ip2 * 256 ** 2 + $brod_ip3 * 256 + $brod_ip4))
+   cidr_trim=$cip1.$cip2.$cip3.$cip4
+   ip_mask=$hipm1.$hipm2.$hipm3.$hipm4
 
-   if ! [[ $ip_post_mask == $cidr_trim && $host_ip -gt $net_ip && $host_ip -lt $brod_ip ]]; then
+   range_start=$nip1.$nip2.$nip3.$((nip4 + 1))
+   range_end=$bip1.$bip2.$bip3.$((bip4 - 1))
+
+
+   if ! [[ $ip_mask == $cidr_trim && $host_ip -gt $net_ip && $host_ip -lt $broad_ip ]]; then
       echo -e "\e[0;31m${bold}ERROR - Invalid value for $key. IP address does not belong to the CIDR group. Valid range for given app_address_space is $range_start to $range_end${normal}"
       fail=1
    fi
@@ -92,15 +110,12 @@ key=$1
 value=$2
 username=${vals[ssh_ansible_user]}
 
-declare -a arr_hosts=("${vals[application_host]}" "${vals[database_host]}" "${vals[elasticsearch_host]}" "${vals[cassandra_host]}" "${vals[postgres_master_host]}")
-declare -a index_keys=("application_host" "database_host" "elasticsearch_host" "cassandra_host" "postgres_master_host")
-
 for j in ${!arr_hosts[@]}
 do
   if [[ ${arr_hosts[$j]} != "" ]]; then
      login_user=$(ssh -i $value -o StrictHostKeyChecking=no -o ConnectTimeout=1  $username@${arr_hosts[$j]} whoami 2> /dev/null)
 
-     if [[ $login_user != $username && $j != "" ]]; then
+     if [[ $login_user != $username ]]; then
         echo -e "\e[0;31m${bold}ERROR - Login to ${index_keys[$j]} failed. Please check ${index_keys[$j]}, ssh_ansible_user, ansible_private_key_path${normal}"
         fail=1
      fi
@@ -115,10 +130,6 @@ key=$1
 value=$2
 username=${vals[ssh_ansible_user]}
 private_key=${vals[ansible_private_key_path]}
-
-declare -a arr_hosts=("${vals[application_host]}" "${vals[database_host]}" "${vals[elasticsearch_host]}" "${vals[cassandra_host]}" "${vals[postgres_master_host]}")
-declare -a index_keys=("application_host" "database_host" "elasticsearch_host" "cassandra_host" "postgres_master_host")
-
 
 for j in ${!arr_hosts[@]}
 do
@@ -154,13 +165,14 @@ echo -e "\e[0;33m${bold}Validating the config file...${normal}"
 
 
 # An array of mandatory values
-declare -a arr=("env" "implementation_name" "ssh_ansible_user" "dns_name" "proto" "cert_path" "key_path" "database_password" "keycloak_admin_password" \
+declare -a arr=("env" "implementation_name" "ssh_ansible_user" "dns_name" "proto" "cert_path" "key_path" "keycloak_admin_password" \
                 "sso_password" "trampoline_secret" "backup_storage_key" "badger_admin_password" "badger_admin_email" "ekstep_api_base_url" \
                 "ekstep_proxy_base_url" "ekstep_api_key" "sunbird_image_storage_url" "sunbird_azure_storage_key" "sunbird_azure_storage_account" \
                 "sunbird_custodian_tenant_name" "sunbird_custodian_tenant_description" "sunbird_custodian_tenant_channel" "sunbird_root_user_firstname" \
                 "sunbird_root_user_lastname" "sunbird_root_user_username" "sunbird_root_user_password" "sunbird_root_user_email" "sunbird_root_user_phone" \
                 "sunbird_sso_publickey" "sunbird_default_channel" "app_address_space" "application_host" "database_host" "sudo_passwd" \
-                "ansible_private_key_path" "elasticsearch_host" "cassandra_host" "postgres_master_host")
+                "ansible_private_key_path" "elasticsearch_host" "cassandra_host" "postgres_master_host" "database_password" "postgres_keycloak_password" \
+                "postgres_app_password" "postgres_kong_password" "postgres_badger_password" "cassandra_password")
 
 # Create and empty array which will store the key and value pair from config file
 declare -A vals
@@ -171,6 +183,9 @@ do
 get_config_values $i
 done
 
+# An array of all the IP addresses which we will use to test login and sudo privilege
+declare -a arr_hosts=("${vals[application_host]}" "${vals[database_host]}" "${vals[elasticsearch_host]}" "${vals[cassandra_host]}" "${vals[postgres_master_host]}")
+declare -a index_keys=("application_host" "database_host" "elasticsearch_host" "cassandra_host" "postgres_master_host")
 
 # Iterate the array of key values and based on key check the validation
 for i in ${arr[@]}
@@ -180,7 +195,7 @@ value=${vals[$key]}
 case $key in
    proto)
        if [[ ! "$value" =~ ^(http|https)$ ]]; then
-          echo -e "\e[0;31m${bold}ERROR - Invalid value for $key. Valid values are http / https${normal}"; fail=1
+          echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Valid values are http / https${normal}"; fail=1
        fi
        ;;
    cert_path|key_path)
@@ -259,9 +274,18 @@ case $key in
        if [[ $value != "" ]]; then
            check_ip $key $value
        elif [[ $value == "" &&  ${vals[database_host]} == "" ]]; then
-           echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value OR provide value for database_host"; fail=1
+           echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value OR provide value for database_host which will be default DB${normal}"; fail=1
        fi
        ;;
+   database_password)
+       continue
+       ;;
+   postgres_keycloak_password|postgres_app_password|postgres_kong_password|postgres_badger_password|cassandra_password)
+       if [[ ${vals[database_password]} == "" && $value == "" ]]; then
+          echo -e "\e[0;31m${bold}ERROR - Value for $key is empty. Please provide fill this value OR provide value for database_password which will be default password${normal}"; fail=1
+       fi
+       ;;
+
    *)
        if [[ $value == "" ]]; then
           echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value${normal}"; fail=1
@@ -273,7 +297,7 @@ done
 
 # Check if any of the validation failed and exit
 if [[ $fail -eq 1 ]]; then
-   echo -e "\e[0;31m${bold}Config file has errors. Please rectify the issues and rerun${normal}"
+   echo -e "\e[0;34m${bold}Config file has errors. Please rectify the issues and rerun${normal}"
    exit 1
 else
    echo -e "\e[0;32m${bold}Config file successfully validated${normal}"
