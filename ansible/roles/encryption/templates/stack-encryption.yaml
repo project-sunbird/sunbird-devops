@@ -1,0 +1,26 @@
+version: '3.1'
+services:
+  opensaber-encryption-service:
+    image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
+    env_file:
+      /home/deployer/env/opensaber-encryption-service.env
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          memory: "{{ encryption_reservation_memory  | default('256M') }}"
+        limits:
+          memory: "{{ encryption_limit_memory  | default('512M') }}"
+    command: "{{opensaber_encryption_password}}"
+    secrets:
+      - source: opensaber-enc-password
+        target: /home/opensaber/pass_file
+    networks:
+      - application_default
+networks:
+  application_default:
+    external: true
+
+secrets:
+  opensaber-enc-password:
+    external: true
