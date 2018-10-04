@@ -1,21 +1,42 @@
----
-sudo: required
 dist: trusty
+addons:
+ apt:
+  packages:
+  - python3-pip 
 
-language: python
-python: "2.7"
+language: generic
+python:
+- "3.6"
 
-env:
-  - ANSIBLE_VERSION=latest
-  - ANSIBLE_VERSION=2.4.1.0
-  - ANSIBLE_VERSION=2.3.1.0
+before_script:
+- ./travis-ci-scripts/cli_install.sh
 
-before_install:
-  - sudo apt-get update -qq
+matrix:
+  allow_failures:
+  include:
+  - name: "master branch"
+    env:  release="master"
+    script: ./travis-ci-scripts/build.sh
+  - name: "release-1.9 tag"
+    env: release="tags/release-1.9"
+    script: ./travis-ci-scripts/build.sh
+  - name: "release-1.10 tag"
+    env: release="tags/release-1.10"
+    script: ./travis-ci-scripts/build.sh
+  - name: "release-1.11 branch"
+    env: release="release-1.11"
+    script: ./travis-ci-scripts/build.sh
 
-install:
-  - if [ "$ANSIBLE_VERSION" = "latest" ]; then pip install ansible; else pip install ansible==$ANSIBLE_VERSION; fi
-  - if [ "$ANSIBLE_VERSION" = "latest" ]; then pip install ansible-lint; fi
+after_script:
+- ./travis-ci-scripts/anisbile_lint.sh
 
-script:
-  - ./test.sh
+notifications:
+ email:
+  recipients:
+   - msknext@gmail.com
+   - rajeev.sathish@tarento.com
+   - rajesh.r@optit.co
+   - santhosh.g@optit.in
+   - altamash.s@optit.co
+  on_success: always
+  on_failure: always
