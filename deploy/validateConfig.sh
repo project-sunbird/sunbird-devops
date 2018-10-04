@@ -170,7 +170,7 @@ declare -a arr=("env" "implementation_name" "ssh_ansible_user" "dns_name" "proto
                 "ekstep_proxy_base_url" "ekstep_api_key" "sunbird_image_storage_url" "sunbird_azure_storage_key" "sunbird_azure_storage_account" \
                 "sunbird_custodian_tenant_name" "sunbird_custodian_tenant_description" "sunbird_custodian_tenant_channel" "sunbird_root_user_firstname" \
                 "sunbird_root_user_lastname" "sunbird_root_user_username" "sunbird_root_user_password" "sunbird_root_user_email" "sunbird_root_user_phone" \
-                "sunbird_sso_publickey" "sunbird_default_channel" "app_address_space" "application_host" "database_host" "sudo_passwd" \
+                "sunbird_sso_publickey" "app_address_space" "application_host" "database_host" "sudo_passwd" \
                 "ansible_private_key_path" "elasticsearch_host" "cassandra_host" "postgres_master_host" "database_password" "postgres_keycloak_password" \
                 "postgres_app_password" "postgres_kong_password" "postgres_badger_password" "cassandra_password")
 
