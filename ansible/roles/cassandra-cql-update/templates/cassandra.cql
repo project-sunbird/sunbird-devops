@@ -1,5 +1,8 @@
-
-CREATE KEYSPACE IF NOT EXISTS sunbird WITH replication = {'class':'SimpleStrategy','replication_factor':1};
+{% if groups['cassandra-2'] is defined %}
+CREATE KEYSPACE IF NOT EXISTS sunbird WITH REPLICATION = { 'class' : 'NetworkTopologyStrategy', 'datacenter1' : 2 };
+{% else %}
+CREATE KEYSPACE IF NOT EXISTS sunbird WITH REPLICATION = {'class':'SimpleStrategy','replication_factor':1};
+{% endif %}
 
 //to change cluster name
 //UPDATE system.local SET cluster_name = 'sunbird' where key='local';
@@ -499,7 +502,11 @@ CREATE TABLE IF NOT EXISTS sunbird.skills(id text,skills list<text>, PRIMARY KEY
 ALTER TABLE sunbird.organisation ADD orgTypeId text;
 
 //Announcement apis -27th Oct 
-CREATE KEYSPACE IF NOT EXISTS sunbirdplugin WITH replication = {'class':'SimpleStrategy','replication_factor':1};
+{% if groups['cassandra-2'] is defined %}
+CREATE KEYSPACE IF NOT EXISTS sunbirdplugin WITH REPLICATION = { 'class' : 'NetworkTopologyStrategy', 'datacenter1' : 2 };
+{% else %}
+CREATE KEYSPACE IF NOT EXISTS sunbirdplugin WITH REPLICATION = {'class':'SimpleStrategy','replication_factor':1};
+{% endif %}
 //CREATE TYPE IF NOT EXISTS sunbirdplugin.attachment (id text,filename text,mimetype text);
 CREATE TABLE sunbirdplugin.announcement (id text,userid text,sourceid text,details map<text, text>,links list<text>,attachments list<text>,target text,sentcount int,priority text,expiry text,status text,createddate text,updateddate text, PRIMARY KEY (id));
 CREATE TABLE sunbirdplugin.attachment (id text,file text,filename text,mimetype text,createdby text,status text,createddate text, PRIMARY KEY (id));
