@@ -6,9 +6,10 @@ echo "Building $release"
 if [[ $? -ne 0 ]]; then
    fail=1
 fi
-./travis-ci-scripts/remove_vm.sh
 
 if [[ $fail -eq 1 ]]; then
-   echo "Sunbird installation for $release failed"
+   echo "Sunbird installation for $release failed. Server instance not removed. Please inspect the server"
    exit 1
+else
+   ./travis-ci-scripts/remove_vm.sh
 fi

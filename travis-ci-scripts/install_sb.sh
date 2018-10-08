@@ -16,8 +16,6 @@ IFS="/" read -r var1 var2 <<< $release
 if [[ $var1 == "tags" ]]; then
    git checkout $release -b $var2
    echo "Building on $var2"
-elif [[ $var1 == "master" ]]; then
-   echo "Buidling on master"
 else
    git checkout -b $var1 origin/$var1
    echo "Building on $var1"
