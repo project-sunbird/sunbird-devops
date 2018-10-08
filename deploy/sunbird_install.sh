@@ -1,4 +1,5 @@
 #!/bin/bash
+# vim: set ts=4 et:
 
 #--------------------------------------------------------------------------------------------------------#
 # This script installs and configures sunbird according to the confugurations specified in config file
