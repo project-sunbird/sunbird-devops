@@ -26,15 +26,15 @@ fi
 source version.env
 
 # Reading environment and implementation name
-implementation_name=$(awk '/implementation_name: /{ if ($2 !~ /#.*/) {print $2}}' config)
-env_name=$(awk '/env: /{ if ($2 !~ /#.*/) {print $2}}' config)
-app_host=$(awk '/application_host: /{ if ($2 !~ /#.*/) {print $2}}' config)
-db_host=$(awk '/database_host: /{ if ($2 !~ /#.*/) {print $2}}' config)
-ssh_ansible_user=$(awk '/ssh_ansible_user: /{ if ($2 !~ /#.*/) {print $2}}' config)
-ansible_private_key_path=$(awk '/ansible_private_key_path: /{ if ($2 !~ /#.*/) {print $2}}' config)
+implementation_name=$(awk '/implementation_name: /{ if ($2 !~ /#.*/) {print $2}}' config.yml)
+env_name=$(awk '/env: /{ if ($2 !~ /#.*/) {print $2}}' config.yml)
+app_host=$(awk '/application_host: /{ if ($2 !~ /#.*/) {print $2}}' config.yml)
+db_host=$(awk '/database_host: /{ if ($2 !~ /#.*/) {print $2}}' config.yml)
+ssh_ansible_user=$(awk '/ssh_ansible_user: /{ if ($2 !~ /#.*/) {print $2}}' config.yml)
+ansible_private_key_path=$(awk '/ansible_private_key_path: /{ if ($2 !~ /#.*/) {print $2}}' config.yml)
 ansible_variable_path="${implementation_name}"-devops/ansible/inventories/"$env_name"
-protocol=$(awk '/proto: /{ if ($2 !~ /#.*/) {print $2}}' config)
-domainname=$(awk '/dns_name: /{ if ($2 !~ /#.*/) {print $2}}' config)
+protocol=$(awk '/proto: /{ if ($2 !~ /#.*/) {print $2}}' config.yml)
+domainname=$(awk '/dns_name: /{ if ($2 !~ /#.*/) {print $2}}' config.yml)
 ENV=sample
 ORG=sunbird
 #TO skip the host key verification
@@ -64,7 +64,7 @@ config() {
     sed -i s#\"{{database_host}}\"#$db_host#g $ansible_variable_path/hosts
     sed -i s#\"{{application_host}}\"#$app_host#g $ansible_variable_path/hosts
     sed -i s#\"{{ansible_private_key_path}}\"#$ansible_private_key_path#g $ansible_variable_path/hosts
-    ansible-playbook -i "localhost," -c local ../ansible/generate-hosts.yml --extra-vars @config --extra-vars "host_path=$ansible_variable_path"
+    ansible-playbook -i "localhost," -c local ../ansible/generate-hosts.yml --extra-vars @config.yml --extra-vars "host_path=$ansible_variable_path"
     .sunbird/generate_host.sh  > $ansible_variable_path/hosts 2>&1 /dev/null
 }
 
@@ -75,13 +75,13 @@ sanity() {
 
 configservice() {
 	echo "Deploy Config service"
-	ansible-playbook -i $ansible_variable_path ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=config-service image_tag=${CONFIG_SERVICE_VERSION} service_name=config-service deploy_config=True" --extra-vars @config
+	ansible-playbook -i $ansible_variable_path ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=config-service image_tag=${CONFIG_SERVICE_VERSION} service_name=config-service deploy_config=True" --extra-vars @config.yml
 }
 
 # Installing dependencies
 deps() { 
-ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config 
-ansible-playbook -i $ansible_variable_path/hosts ../ansible/setup-dockerswarm.yml --extra-vars @config 
+ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config.yml 
+ansible-playbook -i $ansible_variable_path/hosts ../ansible/setup-dockerswarm.yml --extra-vars @config.yml
 }
 
 
