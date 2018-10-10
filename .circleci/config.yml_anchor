@@ -1,0 +1,91 @@
+---
+version: 2
+jobs:
+  previous-tag:
+    docker: &dock
+      - image: keshavprasad/circle-ci:1.0
+    steps:
+      - checkout
+      - run:
+          name: previous tag
+          command: echo ""
+      - run:
+          name: set release version
+          command: |
+              ver=tags/$(git tag | grep "release" | sort -V -r | sed -n 2p)
+              echo Running installer for $ver
+              echo export release=$ver >> $BASH_ENV
+              source $BASH_ENV
+      - run:
+          name: setup cli
+          command: bash ./circle-ci/cli_install.sh
+      - run:
+          name: install sunbird
+          command: bash ./circle-ci/build.sh
+
+  latest-tag:
+   <<: *dock
+    steps:
+      - checkout
+      - run:      - run:
+          name: latest tag
+          command: echo ""
+      - run:
+          name: set release version
+          command: |
+              ver=tags/$(git tag | grep "release" | sort -V -r | sed -n 1p)
+              echo Running installer for $ver
+              echo export release=$ver >> $BASH_ENV
+              source $BASH_ENV
+      - run:
+          name: setup cli
+          command: bash ./circle-ci/cli_install.sh
+      - run:
+          name: install sunbird
+          command: bash ./circle-ci/build.sh
+
+  latest-branch:
+    <<: *dock
+    steps:
+      - checkout
+      - run:
+          name: latest branch
+          command: echo ""
+      - run:
+          name: set release version
+          command: |
+              ver=$(git branch -a | grep release-[0-9].[0-9].* | sed -e 's#.*/.*/##g' | sort -V -r -u | sed -n 1p)
+              echo Running installer for $ver
+              echo export release=$ver >> $BASH_ENV
+              source $BASH_ENV
+      - run:
+          name: setup cli
+          command: bash ./circle-ci/cli_install.sh
+      - run:
+           name: install sunbird
+          command: bash ./circle-ci/build.sh
+
+  ansible-lint:
+    docker:
+     - image: keshavprasad/circle-ci:1.0
+    steps:
+      - checkout
+      - run:
+          name: Check playbooks syntax
+          command: bash ./test.sh
+
+workflows:
+  version: 2
+  nightly:
+#    triggers:
+#     - schedule:
+#         cron: "0 19 * * *"
+#         filters:
+#          branches:
+#           only:
+#            - master
+    jobs:
+     - previous-tag
+     - latest-tag
+     - latest-branch
+     - ansible-lint

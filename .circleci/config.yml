@@ -1,0 +1,119 @@
+version: 2
+jobs:
+  previous-stable:
+    docker:
+      - image: keshavprasad/circle-ci:1.1
+    steps:
+      - checkout
+      - run:
+          name: previous stable
+          command: echo ""
+      - run:
+          name: set release version
+          command: |
+              ver=tags/$(git tag | grep "release" | sort -V -r | sed -n 2p)
+              echo Running installer for $ver
+              echo export release=$ver >> $BASH_ENV
+              source $BASH_ENV
+      - run:
+          name: configure cli
+          command: bash ./circle-ci/cli_configure.sh
+      - run:
+          name: update config
+          command: bash ./circle-ci/update_config.sh
+      - run:
+          name: launch vms
+          command: bash ./circle-ci/launch_vm.sh
+      - run:
+          name: install sunbird
+          command: bash ./circle-ci/copy_script.sh
+      - run:
+          name: remove vms
+          command:  bash ./circle-ci/remove_vm.sh
+
+  current-stable:
+    docker:
+      - image: keshavprasad/circle-ci:1.1
+    steps:
+      - checkout
+      - run:
+          name: current stable
+          command: echo ""
+      - run:
+          name: set release version
+          command: |
+              ver=tags/$(git tag | grep "release" | sort -V -r | sed -n 1p)
+              echo Running installer for $ver
+              echo export release=$ver >> $BASH_ENV
+              source $BASH_ENV
+      - run:
+          name: configure aws cli
+          command: bash ./circle-ci/cli_configure.sh
+      - run:
+          name: update config file
+          command: bash ./circle-ci/update_config.sh
+      - run:
+          name: launch vms
+          command: bash ./circle-ci/launch_vm.sh
+      - run:
+          name: install sunbird
+          command: bash ./circle-ci/copy_script.sh
+      - run:
+          name: remove vms
+          command:  bash ./circle-ci/remove_vm.sh
+
+  current-dev-branch:
+    docker:
+      - image: keshavprasad/circle-ci:1.1
+    steps:
+      - checkout
+      - run:
+          name: current development branch
+          command: echo ""
+      - run:
+          name: set release version
+          command: |
+              ver=$(git branch -a | grep release-[0-9].[0-9].* | sed -e 's#.*/.*/##g' | sort -V -r -u | sed -n 1p)
+              echo Running installer for $ver
+              echo export release=$ver >> $BASH_ENV
+              source $BASH_ENV
+      - run:
+          name: configure aws cli
+          command: bash ./circle-ci/cli_configure.sh
+      - run:
+          name: update config file
+          command: bash ./circle-ci/update_config.sh
+      - run:
+          name: launch vms
+          command: bash ./circle-ci/launch_vm.sh
+      - run:
+          name: install sunbird
+          command: bash ./circle-ci/copy_script.sh
+      - run:
+          name: remove vms
+          command:  bash ./circle-ci/remove_vm.sh
+
+  playbook-check:
+    docker:
+     - image: keshavprasad/circle-ci:1.1
+    steps:
+      - checkout
+      - run:
+          name: Check ansible playbooks
+          command: bash ./test.sh
+
+workflows:
+  version: 2
+  nightly:
+    triggers:
+     - schedule:
+         cron: "0 19 * * *"
+         filters:
+          branches:
+           only:
+            - master
+    jobs:
+     - previous-stable
+     - current-stable
+     - current-dev-branch
+     - playbook-check
