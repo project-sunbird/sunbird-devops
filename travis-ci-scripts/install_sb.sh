@@ -48,13 +48,18 @@ if [[ $? -eq 0 ]]; then
    if [[ $? -eq 0 ]]; then
        jwt_token=$(cat /home/$username/jwt_token_player.txt | tr -d " ")
        access_token_user=$(curl -s -X POST http://$dns_name/auth/realms/sunbird/protocol/openid-connect/token -H "cache-control: no-cache" -H "content-type: application/x-www-form-urlencoded" -d "client_id=admin-cli&username=user-manager&password=$sso_pass&grant_type=password" | jq -r ".access_token")
-       status=$(curl -s -X POST  http://$dns_name/api/org/v1/create -H "Cache-Control: no-cache" -H "Content-Type: application/json" -H "accept: application/json" -H "authorization: Bearer $jwt_token" -H "x-authenticated-user-token: $access_token_user" -d '{"request":{"orgName": "travis-ci", "description": "travis-ci", "isRootOrg": true, "channel": "travis-ci"}}' | jq -r ".responseCode")
+       status=$(curl -s -X POST  http://$dns_name/api/org/v1/create -H "Cache-Control: no-cache" -H "Content-Type: application/json" -H "accept: application/json" -H "authorization: Bearer $jwt_token" -H "x-authenticated-user-token: $access_token_user" -d '{"request":{"orgName": "travis-ci", "description": "travis-ci", "isRootOrg": true, "channel": "travis-ci"}}' | jq -r ".result.response")
        if [[ $status == "SUCCESS" ]]; then
 	  echo ""
 	  echo "********************************************************"
-	  echo "Sunbird installatation successful"
+	  echo "Root org created successfully. Rerunning core install and post test"
 	  echo "********************************************************"
 	  echo ""
+	  ./sunbird_install.sh -s core
+	  ./sunbird_install.sh -s posttest
+	  echo "********************************************************"
+	  echo "Sunbird installatation complete"
+	  echo "********************************************************"
        else
 	  echo ""
 	  echo "********************************************************"
