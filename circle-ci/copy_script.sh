@@ -10,7 +10,6 @@ echo $release > $release_to_build
 scp -i sunbird.pem -o StrictHostKeyChecking=no $config_file sunbird.pem $install_script $release_to_build $user_name@$app_ip:/tmp
 ssh -i sunbird.pem -o StrictHostKeyChecking=no $user_name@$app_ip "/tmp/install_sb.sh"
 if [[ $? -ne 0 ]]; then
-   echo ""
-   echo "Sunbird installation for $release failed. Server instance not removed. Please inspect the server"
+   echo -e "\nSunbird installation for $release failed - Please inspect the server - Instance not removed!"
    exit 1
 fi
