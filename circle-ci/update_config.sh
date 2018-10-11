@@ -1,5 +1,5 @@
 #!/bin/bash
-config_file=$TRAVIS_BUILD_DIR/deploy/config
+config_file=./deploy/config
 sed -i "s/env:/env: $env/g" $config_file
 sed -i "s/implementation_name:/implementation_name: $implementation_name/g" $config_file
 sed -i "s/ssh_ansible_user:/ssh_ansible_user: $ssh_ansible_user/g" $config_file
@@ -29,3 +29,4 @@ sed -i "s/sunbird_root_user_password:/sunbird_root_user_password: $sunbird_root_
 sed -i "s/sunbird_root_user_email:/sunbird_root_user_email: $sunbird_root_user_email/g" $config_file
 sed -i "s/sunbird_root_user_phone:/sunbird_root_user_phone: $sunbird_root_user_phone/g" $config_file
 sed -i "s/sunbird_default_channel:/sunbird_default_channel: $sunbird_default_channel/g"  $config_file
+echo -e "Config file updated..."
