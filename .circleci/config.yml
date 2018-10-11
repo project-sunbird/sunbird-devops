@@ -10,8 +10,8 @@ jobs:
           name: check previous stable release
           command: |
               ver=tags/$(git tag | grep "release" | sort -V -r | sed -n 2p)
-              echo Running installer for tags/release-1.9
-              echo export release=tags/release-1.9 >> $BASH_ENV
+              echo Running installer for $ver
+              echo export release=$ver >> $BASH_ENV
               source $BASH_ENV
       - run: &cli
           name: configure cli
@@ -73,25 +73,16 @@ jobs:
 
 workflows:
   version: 2
-  run-setup:
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 19 * * *"
+          filters:
+            branches:
+              only:
+                - master
     jobs:
-      - previous-stable:
-          filters:
-            branches:
-              only:
-                - master
-      - current-stable:
-          filters:
-            branches:
-              only:
-                - master
-      - current-dev-branch:
-          filters:
-            branches:
-              only:
-                - master
-      - playbook-check:
-          filters:
-            branches:
-              only:
-                - master
+      - previous-stable
+      - current-stable
+      - current-dev-branch
+      - playbook-check
