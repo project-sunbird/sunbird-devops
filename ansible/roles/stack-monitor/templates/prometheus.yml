@@ -10,7 +10,9 @@ rule_files:
   - '/etc/prometheus-rules/alertrules.es'
   - '/etc/prometheus-rules/alertrules.logs'
   - '/etc/prometheus-rules/alertrules.backups'
+{% if groups['postgresql-master'] is defined %}
   - '/etc/prometheus-rules/alertrules.postgresql'
+{% endif %}
   - '/etc/prometheus-rules/alertrules.kong'
   - '/etc/prometheus-rules/alertrules.services'
   - '/etc/prometheus-rules/alertrules.docker'
@@ -61,11 +63,13 @@ scrape_configs:
     static_configs:
       - targets: ['monitor_log_elasticsearch_exporter:9108']
 
+{% if groups['postgresql-master'] is defined %}
   - job_name: 'master-postgres-exporter'
     static_configs:
       - targets: ['monitor_master_postgres_exporter:9187']
+{% endif %}
 
-  {% if groups['postgresql-slave'][0] is defined %}
+  {% if groups['postgresql-slave'] is defined %}
   # This empty line ensures indentation is correct after ansible jinja2 template is materialized
   - job_name: 'slave-postgres-exporter'
     static_configs:

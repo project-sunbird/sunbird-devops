@@ -25,8 +25,10 @@ services:
               target: /etc/prometheus-rules/alertrules.logs
             - source: alertrules.backups
               target: /etc/prometheus-rules/alertrules.backups
+{% if groups['postgresql-master'] is defined %}
             - source: alertrules.postgresql
               target: /etc/prometheus-rules/alertrules.postgresql
+{% endif %}
             - source: alertrules.services
               target: /etc/prometheus-rules/alertrules.services
             - source: alertrules.kong
@@ -69,9 +71,8 @@ services:
         command: "--config.file=/etc/blackbox-exporter/blackboxconfig.yml"
         networks:
             - monitoring
-            - api-manager_default
             - application_default
-            - logger
+            - jenkins_default
         configs:
             - source: blackboxconfig.yml
               target: /etc/blackbox-exporter/blackboxconfig.yml
@@ -159,6 +160,7 @@ services:
                     memory: "{{ elasticsearch_exporter_limit_memory }}"
 {% endif %}
 
+{% if groups['postgresql-master'] is defined %}
     master_postgres_exporter:
         image: wrouesnel/postgres_exporter:v0.2.2
         ports:
@@ -178,9 +180,9 @@ services:
                     memory: "{{ postgres_exporter_reservation_memory }}"
                 limits:
                     memory: "{{ postgres_exporter_limit_memory }}"
+{% endif %}
 
-
-    {% if groups['postgresql-slave'][0] is defined %}
+    {% if groups['postgresql-slave'] is defined %}
     # This empty line ensures indentation is correct after ansible jinja2 template is materialized
     slave_postgres_exporter:
         image: wrouesnel/postgres_exporter:v0.2.2
@@ -211,7 +213,8 @@ services:
             - 9125:9125/udp
         networks:
             - monitoring
-            - api-manager_default
+            - application_default
+            - jenkins_default
         command:
             - '-statsd.mapping-config=/etc/statsd_exporter/statsd_mapping.yml'
         configs:
@@ -230,7 +233,8 @@ services:
             - 9158:9158
         networks:
             - monitoring
-            - api-manager_default
+            - application_default
+            - jenkins_default
         command: /etc/kong_cluster_exporter/config.yml
         configs:
             - source: kong_cluster_exporter_config.yml
@@ -361,8 +365,10 @@ configs:
     external: true
   alertrules.backups:
     external: true
+{% if groups['postgresql-master'] is defined %}
   alertrules.postgresql:
     external: true
+{% endif %}
   alertrules.kong:
     external: true
   alertrules.services:
@@ -373,10 +379,14 @@ configs:
     external: true
   blackboxconfig.yml:
     external: true
+{% if groups['postgresql-master'] is defined %}
   postgresmasterqueries.yml:
     external: true
+{% endif %}
+{% if groups['postgresql-slave'] is defined %}
   postgresslavequeries.yml:
     external: true
+{% endif %}
   statsd_mapping.yml:
     external: true
   jmx_httpserver.yml:
@@ -398,9 +408,7 @@ configs:
 networks:
     monitoring:
         external: true
-    api-manager_default:
-        external: true
     application_default:
         external: true
-    logger:
+    jenkins_default:
         external: true

@@ -11,7 +11,7 @@ services:
       - source: kibana.yml
         target: /opt/kibana/config/kibana.yml
     networks:
-      - logger
+      - monitoring
 
   logstash:
     image: sunbird/logstash:2.4.1
@@ -33,7 +33,7 @@ services:
       - '51415:51415'
       - '5044:5044'
     networks:
-      - logger
+      - monitoring
 
   logspout:
     image: gliderlabs/logspout:v3.2.3
@@ -46,13 +46,13 @@ services:
     volumes:
       - '/var/run/docker.sock:/tmp/docker.sock'
     networks:
-      - logger
+      - monitoring
 
   oauth:
-    image: mryu/oauth2-proxy:2.1
+    image: rjshrjndrn/oauth2-proxy:2.2
     command: |
       -cookie-secure=false
-      -upstream=http://kibana:5601/
+      -upstream=http://proxy_proxy/oauth2
       -redirect-url={{kibana_oauth_redirect_url}}
       -http-address=0.0.0.0:4111
       {% for email_domain in kibana_oauth_authenticated_email_domains %}
@@ -63,13 +63,11 @@ services:
       - OAUTH2_PROXY_CLIENT_ID={{google_client_id}}
       - OAUTH2_PROXY_CLIENT_SECRET={{google_client_secret}}
       - OAUTH2_PROXY_COOKIE_SECRET={{cookie_secret}}
-    ports:
-      - "4111:4111"
     configs:
       - source: authenticated_email_kibana_oauth
         target: /authenticated_email.txt
     networks:
-      - logger
+      - monitoring
 
 configs:
   authenticated_email_kibana_oauth:
@@ -80,6 +78,6 @@ configs:
     external: true
 
 networks:
-  logger:
+  monitoring:
     external: true
 
