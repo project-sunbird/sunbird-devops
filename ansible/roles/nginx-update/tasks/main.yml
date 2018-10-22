@@ -1,0 +1,28 @@
+---
+- name: Copying Opensaber redirect config
+  template: src=nginx-opensaber.conf dest=/home/deployer/config/nginx-opensaber.conf
+  register: opensaber_nginx
+
+- name: Creating ssl cert and keys
+  block:
+    - shell: "docker secret rm {{item}}"
+      with_items: 
+        - saber.crt
+        - saber.key
+      ignore_errors: true
+    - shell: "echo '{{item.value}}' | docker secret create {{item.name}} - "
+      with_items:
+        - {value: "{{opensaber_ssl_cert}}", name: "saber.crt" }
+        - {value: "{{opensaber_ssl_key}}", name: "saber.key" }
+      no_log: true
+  become: yes
+  
+- name: Updating nginx-opensaber.conf
+  block:
+    - shell: docker config rm opensaber_nginx.conf
+      ignore_errors: yes
+    - shell: docker config create opensaber_nginx.conf /home/deployer/config/nginx-opensaber.conf
+    - shell: docker service update --secret-add source=saber.crt,target=/run/secrets/saber.crt --secret-add source=saber.key,target=/run/secrets/saber.key proxy_proxy
+    - shell: docker service update --config-add src=opensaber_nginx.conf,target=/etc/nginx/conf.d/100-nginx-opensaber.conf proxy_proxy
+  become: yes
+  when: opensaber_nginx.changed
