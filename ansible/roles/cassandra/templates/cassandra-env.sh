@@ -56,6 +56,7 @@ calculate_heap_sizes()
     # pick the max
     half_system_memory_in_mb=`expr $system_memory_in_mb / 2`
     quarter_system_memory_in_mb=`expr $half_system_memory_in_mb / 2`
+    max_heap_size_in_mb="$half_system_memory_in_mb"
     #if [ "$half_system_memory_in_mb" -gt "1024" ]
     #then
     #    half_system_memory_in_mb="1024"

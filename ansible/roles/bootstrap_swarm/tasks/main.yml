@@ -3,10 +3,11 @@
   become: yes
 
 - name: Create networks
-  shell: "docker network create --driver overlay {{item}}"
+  # Limiting n/w because of https://github.com/moby/moby/issues/30820
+  shell: "docker network create --subnet {{item.subnet}} --driver overlay {{item.name}}"
   with_items:
     - "{{networks}}"
   ignore_errors: true
   tags:
-      - create_network
+    - create_network
   run_once: true
