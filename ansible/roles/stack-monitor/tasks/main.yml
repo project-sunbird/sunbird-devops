@@ -31,7 +31,7 @@
     mode=0644
   with_items: 
     - "{{ monitor_config_templates_postgres }}"
-  when: groups['postgres-master'] is defined
+  when: groups['postgresql-master'] is defined
 
 - name: Remove monitor stack
   shell: "docker stack rm monitor"
@@ -46,18 +46,18 @@
   shell: "docker config rm {{ item }}"
   with_items: "{{ monitor_config_templates_postgres }}"
   ignore_errors: yes
-  when: groups['postgres-master'] is defined
+  when: groups['postgresql-master'] is defined
 
 - name: Save docker config {{ item }}
   shell: "docker config create {{ item }} {{ monitor_config_files_dest_dir }}/{{ item }}"
   with_items: "{{ monitor_config_templates }}"
-  #when: (item.value == postgresmasterqueries.yml and groups['postgres-master'] is defined) or (item.value == postgresslavequeries.yml and groups['postgres-master'] is defined) or (item.value != postgresmasterqueries.yml or item.value != postgresslavequeries.yml)
+  #when: (item.value == postgresmasterqueries.yml and groups['postgresql-master'] is defined) or (item.value == postgresslavequeries.yml and groups['postgresql-master'] is defined) or (item.value != postgresmasterqueries.yml or item.value != postgresslavequeries.yml)
   #ignore_errors: yes
 
 - name: Save docker config for postgres {{ item }}
   shell: "docker config create {{ item }} {{ monitor_config_files_dest_dir }}/{{ item }}"
   with_items: "{{ monitor_config_templates_postgres }}"
-  when: groups['postgres-master'] is defined
+  when: groups['postgresql-master'] is defined
 
 - name: Deploy stack
   shell: "docker stack deploy -c monitor.yml monitor"
