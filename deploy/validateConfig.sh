@@ -148,7 +148,7 @@ done
 # Function to retrieve values of mandatory fields and store it as key value pair
 get_config_values(){
 key=$1
-vals[$key]=$(awk ''/^$key:' /{ if ($2 !~ /#.*/) {print $2}}' config)
+vals[$key]=$(awk ''/^$key:' /{ if ($2 !~ /#.*/) {print $2}}' config.yml)
 }
 
 # Script start. core_install will receive value as "core" from calling script when -s core option is triggered.
