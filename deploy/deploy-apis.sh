@@ -24,6 +24,8 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/bootstrap.yml  --extra-vars "host
 echo "@@@@@@@@@ Deploy API Manager"
 ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-api-manager" --extra-vars "hub_org=${ORG} echo_server_image_name=echo-server echo_server_image_tag=${ECHO_SERVER_VERSION} kong_version=${KONG_VERSION}" --extra-vars=@config 
 
+sleep 20
+
 # Deploy Admin Utils API
 echo "@@@@@@@@@ Deploy Admin Utils API"
 ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-adminutil" --extra-vars "hub_org=${ORG} image_name=adminutil image_tag=${ADMIN_UTILS_VERSION}" --extra-vars=@config 
