@@ -9,25 +9,28 @@ jobs:
       - run:
           name: check previous stable release
           command: |
-              ver=tags/$(git tag | grep "release" | sort -V -r | sed -n 2p)
-              echo Running installer for tags/release-1.9
-              echo export release=tags/release-1.9 >> $BASH_ENV
+              ver=tags/$(git tag | grep "release-[0-9].*[0-9]$" | sort -V -r | awk -F "." '!($2 in a){i++; a[$2]} (i==2){print $0}' | head -1)
+              echo Running installer for $ver
+              echo export RELEASE=$ver >> $BASH_ENV
               source $BASH_ENV
+      - run: &branch
+          name: checkout specific release
+          command: bash ./test/ci/checkout_release.sh
       - run: &cli
           name: configure cli
-          command: bash ./circle-ci/cli_configure.sh
+          command: bash ./test/ci/cli_configure.sh
       - run: &config
           name: update config
-          command: bash ./circle-ci/update_config.sh
+          command: bash ./test/ci/update_config.sh
       - run: &launch-vm
           name: launch vms
-          command: bash ./circle-ci/launch_vm.sh
+          command: bash ./test/ci/launch_vm.sh
       - run: &install-sb
           name: install sunbird
-          command: bash ./circle-ci/copy_script.sh
+          command: bash ./test/ci/copy_script.sh
       - run: &remove-vm
           name: remove vms
-          command: bash ./circle-ci/remove_vm.sh
+          command: bash ./test/ci/remove_vm.sh
 
   current-stable:
     docker: *dock-img
@@ -36,10 +39,11 @@ jobs:
       - run:
           name: check current stable release
           command: |
-              ver=tags/$(git tag | grep "release" | sort -V -r | sed -n 1p)
+              ver=tags/$(git tag | grep "release-[0-9].*[0-9]$" | sort -V -r | awk -F "." '!($2 in a){i++; a[$2]} (i==1){print $0}' | head -1)
               echo Running installer for $ver
-              echo export release=$ver >> $BASH_ENV
+              echo export RELEASE=$ver >> $BASH_ENV
               source $BASH_ENV
+      - run: *branch
       - run: *cli
       - run: *config
       - run: *launch-vm
@@ -53,10 +57,11 @@ jobs:
       - run:
           name: check current development branch
           command: |
-              ver=$(git branch -a | grep release-[0-9].[0-9].* | sed -e 's#.*/.*/##g' | sort -V -r -u | sed -n 1p)
+              ver=$(git branch -a | grep "release-[0-9].*[0-9]$" | sed 's#.*/.*/##g' |  tr -d ' ' | sort -V -r | awk -F "." '!($2 in a){i++; a[$2]} (i==1){print $0}' | head -1)
               echo Running installer for $ver
-              echo export release=$ver >> $BASH_ENV
+              echo export RELEASE=$ver >> $BASH_ENV
               source $BASH_ENV
+      - run: *branch
       - run: *cli
       - run: *config
       - run: *launch-vm
@@ -69,14 +74,14 @@ jobs:
       - checkout
       - run:
           name: check ansible playbooks syntax
-          command: bash ./test.sh
+          command: bash ./test/playbook_check.sh
 
 workflows:
   version: 2
   nightly:
     triggers:
       - schedule:
-          cron: "0 19 * * *"
+          cron: "0 18 * * *"
           filters:
             branches:
               only:
