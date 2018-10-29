@@ -1,7 +1,6 @@
 ---
 - name: Copying Opensaber redirect config
   template: src=nginx-opensaber.conf dest=/home/deployer/config/nginx-opensaber.conf
-  register: opensaber_nginx
 
 - name: Creating ssl cert and keys
   block:
@@ -25,4 +24,4 @@
     - shell: docker service update --secret-add source=saber.crt,target=/run/secrets/saber.crt --secret-add source=saber.key,target=/run/secrets/saber.key proxy_proxy
     - shell: docker service update --config-add src=opensaber_nginx.conf,target=/etc/nginx/conf.d/100-nginx-opensaber.conf proxy_proxy
   become: yes
-  when: opensaber_nginx.changed
+  ignore_errors: yes
