@@ -4,7 +4,7 @@
 
 """
 To restore the cassandra database snapshot
-usage: ./cassandra_restore.py -d ipaddress snapshot_directory_name
+usage: ./cassandra_restore.py --host <private_ip of the server> snapshot_directory_name
 """
 
 from os import walk, sep
