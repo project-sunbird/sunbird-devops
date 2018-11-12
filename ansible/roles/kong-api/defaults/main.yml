@@ -3287,7 +3287,17 @@ kong_apis:
      - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
-
+  - name: "deviceRegister"
+    request_path: "/v3/device/register"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/device/register"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "channelSpecificTelemetryExhaust"
     request_path: "{{ data_service_prefix }}/v3/dataset/get"
     upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/get"
