@@ -1,117 +1,161 @@
+######################## LP ########################
+
+[learning1]
+11.2.4.15
+
+[learningall:children]
+learning1
+
+[search1]
+11.2.4.16
+
+[searchall:children]
+search1
+
+[redis1]
+11.2.4.15
+
+[redisall:children]
+redis1
+
+[learning-neo4j-node1]
+11.2.3.24
+
+# Enable following host, if you're have neo4j cluster and an arbiter for election
+# [arbiter]
+# 10.2.0.23 dbms_mode=ARBITER
+
+[learning-neo4j-cluster:children]
+learning-neo4j-node1
+
+[lp-cassandra]
+11.2.3.7
+
+[composite-search-cluster]
+11.2.3.30
+11.2.3.31
+11.2.3.32
+
+[lp-yarn-master]
+11.2.4.32
+
+[lp-yarn-slave]
+11.2.4.33
+11.2.4.34
+11.2.4.35
+11.2.4.36
+11.2.4.37
+
+[lp-yarn:children]
+lp-yarn-master
+lp-yarn-slave
+
+[lp:children]
+learningall
+searchall
+learning-neo4j-cluster
+lp-cassandra
+redisall
+lp-yarn
+composite-search-cluster
+
+################# LPA #########################
+[analytics-api]
+11.2.4.31
+
 [secor]
-11.2.4.14 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass=d3pl0y3r
+11.2.4.14
+
+[spark]
+11.2.4.17
+
+[dp-cassandra]
+11.2.3.7
+#[postgres]
+#10.2.0.12
+
+[lpa:children]
+spark
+secor
+analytics-api
+dp-cassandra
+########################### DP #############################
+
+[kafka-indexer]
+11.2.3.25
+
+[influxdb]
+11.2.3.26
+
+[processing-cluster-kafka]
+11.2.3.27
+11.2.3.28
+11.2.3.29
+
+[processing-cluster-zookeepers]
+11.2.3.27
+11.2.3.28
+11.2.3.29
+
+[telemetry-search-cluster1]
+11.2.3.33
+
+[telemetry-search-cluster2]
+11.2.3.34
+
+[telemetry-search-cluster3]
+11.2.3.35
+
+[telemetry-search-cluster:children]
+telemetry-search-cluster1
+telemetry-search-cluster2
+telemetry-search-cluster3
+
+[zookeeper:children]
+processing-cluster-zookeepers
+
+[telemetry-search-cluster-kibana-node:children]
+telemetry-search-cluster2
+
+[dp-yarn-master]
+11.2.4.32
+
+[dp-yarn-slave]
+11.2.4.33
+11.2.4.34
+11.2.4.35
+11.2.4.36
+11.2.4.37
+
+[dp-yarn:children]
+dp-yarn-master
+dp-yarn-slave
+
+[dp:children]
+processing-cluster-kafka
+processing-cluster-zookeepers
+zookeeper
+telemetry-search-cluster
+telemetry-search-cluster-kibana-node
+dp-yarn
+kafka-indexer
+influxdb
+lpa
+
+[sunbirddev:children]
+lp
+dp
+
+[sunbirddev:vars]
+ansible_ssh_user=deployer
+ansible_ssh_private_key_file=~/.ssh/deployer
+#######################################################################################
 
 [kafka-1]
 11.2.1.10 kafka_id=1 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
 [kafka:children]
 kafka-1
-
-[processing-cluster-kafka]
-11.2.3.27 iam_group=ep kafka_id=1 ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
-11.2.3.28 iam_group=ep kafka_id=2 ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
-11.2.3.29 iam_group=ep kafka_id=3 ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
-
-[zookeeper-1]
-11.2.3.27 server_id=1 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-11.2.3.28 server_id=2 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-11.2.3.29 server_id=3 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[zookeeper:children]
-zookeeper-1
-
-[dev-yarn-1]
-11.2.4.33 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[dev-yarn-2]
-11.2.4.34 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[dev-yarn-3]
-11.2.4.35 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[dev-yarn-4]
-11.2.4.36 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[dev-yarn-5]
-11.2.4.37 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[dev-yarn-rm]
-11.2.4.32 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[yarn:children]
-dev-yarn-1
-dev-yarn-2
-dev-yarn-3
-dev-yarn-4
-dev-yarn-5
-dev-yarn-rm
-
-[dev-enc-1]
-#10.10.1.8 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
-[analytics-api]
-11.2.4.31 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
-[sunbird-es-dev-1]
-11.2.3.30 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-	
-[sunbird-es-dev-2]
-11.2.3.31 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-11.2.3.32 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[kafka-dev-1]
-11.2.3.27 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[kafka-dev-2]
-11.2.3.28 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-11.2.3.29 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[learner-dev]
-11.2.4.15 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[cassandra-cluster-dev]
-11.2.3.7 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[datapipeline-jenkins-slave]
-10.6.0.6 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
-[neo4j-dev-1]
-11.2.3.24 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[search-dev]
-11.2.4.16 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[secor-dev]
-11.2.4.14 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[spark-dev]
-11.2.4.17 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[influxdb]
-11.2.3.26 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-[cassandra-cluster-1]
-11.2.3.7 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-#[dev-postgresql-1]
-#sunbirddevnewenv.postgres.database.azure.com ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-#[dev-postgresql-master:children]
-#dev-postgresql-1
-
-#[postgresql-slave]
-
-#[postgresql-master]
-#sunbirddevnewenv.postgres.database.azure.com ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
-#[postgresql-master:children]
-#dev-postgresql-master
-
-#[postgresql-backup:children]
-#postgresql-master
-
-#[postgresql-restore:children]
-#postgresql-master
 
 [dev-keycloak-1]
 11.2.4.5 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
@@ -131,17 +175,17 @@ dev-yarn-rm
 [dev-es-3]
 11.2.3.5 ansible_ssh_user=deployer es_instance_name=es-3 es_etc_node_master=true es_etc_node_data=true ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
-[dev-cassandra-1]
-11.2.3.7 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+#[dev-cassandra-1]
+#11.2.3.7 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
-#[cassandra-1]
-#11.2.3.36 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+[cassandra-1]
+11.2.3.36 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
-#[cassandra-2]
-#11.2.3.37 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+[cassandra-2]
+11.2.3.37 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
-#[cassandra-3]
-#11.2.3.38 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
+[cassandra-3]
+11.2.3.38 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
 [dev-swarm-bootstrap-manager]
 11.2.2.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
@@ -214,63 +258,47 @@ dev-log-es-1
 [log-es:children]
 dev-log-es
 
-[cassandra:children]
-dev-cassandra-1
-
 #[cassandra:children]
-#cassandra-1
-#cassandra-2
-#cassandra-3
+#dev-cassandra-1
+
+[cassandra:children]
+cassandra-1
+cassandra-2
+cassandra-3
 
 [dev-keycloak:children]
 dev-keycloak-1
 dev-keycloak-2
 
-[swarm-agent-for-registry]
-11.2.1.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
 
-[swarm-agent-for-prometheus]
-11.2.1.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
-[swarm-agent-for-grafana]
-11.2.1.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
-[swarm-agent-for-alertmanager]
-11.2.1.5 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
+# Swarm
 [swarm-node-1]
 11.2.1.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
 [swarm-node-2]
 11.2.1.5 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
-
 [swarm-node-3]
 11.2.1.6 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
 [swarm-node-4]
 11.2.1.7 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
 
+[swarm-agent-for-registry]
+11.2.1.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+[swarm-agent-for-prometheus]
+11.2.1.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+[swarm-agent-for-grafana]
+11.2.1.4 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+[swarm-agent-for-alertmanager]
+11.2.1.5 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
+
+# Jenkins
 [jenkins-slave-node]
 11.1.0.6 ansible_ssh_user=ops ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
 [jenkins-master]
 11.1.0.5 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
-
 [jenkins-slave]
 11.1.0.6 ansible_ssh_user=ops ansible_ssh_private_key_file=/run/secrets/ops-private-key
 
-[processing-cluster-kafka]
-# Ekstep-devops is doing all configurations, Sunbird is using only for the ip in logstash
-11.2.3.27
-11.2.3.28
-11.2.3.29
-
 [non-swarm-nodes:children]
-#kong-api
-#postgresql-master
-#postgresql-backup
-#postgresql-restore
 es
 cassandra
 log-es
@@ -321,12 +349,15 @@ swarm-agent-for-registry
 non-swarm-nodes
 swarm-manager
 
+
 [process-exporter:children]
 non-swarm-nodes-process
+
 
 [log-forwarder:children]
 non-swarm-nodes
 swarm-manager
+
 
 [dev:children]
 localhost
@@ -335,6 +366,9 @@ swarm-nodes
 #local-task-runners
 secor
 kafka
+dp
+lp
+
 
 [kafka-ps]
 11.2.3.27 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
@@ -383,4 +417,3 @@ kafka
 
 [redis-ps]
 11.2.4.15 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
-
