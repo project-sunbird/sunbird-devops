@@ -12,52 +12,51 @@
 
 #Basic
 
-env:                                            # Name of the environment you are deploying. Typically, it is one of development, test, staging, production, etc.
-implementation_name:                            # Name of your sunbird implementation. Let's say for the sake of this document, it is ntp. 
-ssh_ansible_user:                               # Ssh user for accessing all servers, who must be a sudo user
-sudo_passwd:                                    # If user have sudo password, else please skip it
-ansible_private_key_path:                       # Path to the private key file to allow ansible to deploy
+env:                                            # The environment type being setup. Typical examples are dev, test, qa, staging, performance, preprod, production etc.
+implementation_name:                            # The name of your sunbird implementation. As a best practice, use the org name that is in the domain (dns) name that you are going to use for this sunbird instance 
+ssh_ansible_user:                               # The SSH user name that has sudo access to all servers. If you have followed the user creation sample in the pre-requisites, then this would be sunbird
+sudo_passwd:                                    # This variable is not required if you have created a user with passwordless ssh as mentioned in the pre-requisites. This variable would be removed in a future release
+ansible_private_key_path:                       # The path of the private SSH key file for the ssh_ansible_user. Ansible uses this file to SSH to the servers. If you have followed the user creation sample in the pre-requisites, it would be /home/yourcurrentuser/key
 
 #Application
-application_host:                               # Private ip of the application server
-app_address_space:                              # Application server address space (e.g. 10.3.0.0/24)
+application_host:                               # The private IP of the designated app server. Every cloud VM would have a private IP associated with it and it can be found by running ifconfig on the VM
+app_address_space:                              # The application server address space in CIDR notation. This has to be calculated from the application_host private IP. For eg. if the application_host IP is 11.12.1.5, then the app_address_space would be 11.12.1.0/24 (derived by setting the last octet in the IP to 0, followed by /24)
 
 #Proxy
-dns_name:                                       # Public DNS url of the app the server / ip address of your server or load balancer
-proto:                                          # http/https; if you're usig ip use http
-cert_path:                                      # Path to .cert file for nginx
-key_path:                                       # Path to .key file for nginx
+dns_name:                                       # The domain name or IP address of your installation. Provide the IP address, if want to access Sunbird over an IP address (http://x.y.z.a). It is best to use a domain name instead of the IP address.
+proto:                                          # The protocol to be used, either http or https. Use http if the value of the dns_name variable is an IP address or if you have a domain but do not to enable SSL. Please note that the latest browsers would mark sites without https as insecure.
+cert_path:                                      # Path to the .cert file in the SSL certificate for nginx. This variable is not mandatory, if the value of the proto variable is set to http
+key_path:                                       # Path to .key file in the SSL certificate for nginx. This variable is not mandatory, if the value of the proto variable is set to http
 
 #Database
 database_host:                                  # Db server private ip 
-database_password:                              # Common password for all the databases
+database_password:                              # All the databases will be secured using this password. You will need to use the same password if you want to connect to the sunbird databases for running any queries directly. Please use an alphanumeric string that is atleast 8 characters long as a best practice.
  
 #Keycloak 
-keycloak_admin_password:                        # Keycloak admin console password. Default user is admin, you can change it in keycloak ui
-sso_password:                                   # Password for keycloak sso_username (by default username is user-manager, you can change it in keycloak ui)
-trampoline_secret:                              # Trampoline secret, atleaset give 8 chars 
-
-# Es configs
-backup_storage_key:                             # Passsword to store the elastic search backup.
+keycloak_admin_password:                        # The Keycloak admin user password. The default admin username is admin. You will need to use this password to login to keycloak for any administration.	Please use an alphanumeric string that is atleast 8 characters long as a best practice.
+sso_password:                                   # The password for the keycloak SSO user. The default username is user-manager. The sunbird backend uses this password to invoke keycloak APIs for user creation, authentication. Please use an alphanumeric string that is atleast 8 characters long as a best practice.
+trampoline_secret:                              # The trampoline secret for Keycloak. This secret is required only while setting up single sign on to sunbird.
 
 # Badger
-badger_admin_password:                          # Admin password 
+badger_admin_password:                          # The password for the Badgr administrator. The default username is admin. This password would be required if you want to invoke APIs on the badger service and is used by the sunbird backend. 
                                                 # Default admin user is admin, you can create new user using `./manage.py createsuperuser` in badger container.
-badger_admin_email:                             # Admin email address for badger 
+badger_admin_email:                             # The email ID of the Badgr administrator
 
 #Ekstep 
-ekstep_api_base_url: https://api-qa.ekstep.in   # Qa/Dev: https://api-qa.ekstep.in & prod: https://api.ekstep.in
-ekstep_proxy_base_url: https://qa.ekstep.in     # Qa/Dev: https://qa.ekstep.in  & prod: https://community.ekstep.in   
+ekstep_api_base_url: https://qa.ekstep.in/api   # The base URL for all EkStep APIs. The URL for staging is: https://qa.ekstep.in/api and production is: https://api.ekstep.in
+ekstep_proxy_base_url: https://qa.ekstep.in     # The proxy URL for EkStep. The URL for staging is: https://qa.ekstep.in and production: https://community.ekstep.in
 
 ekstep_api_key:                                 # Jwt token generated by the key,secret produced from the ekstep portal.
                                                 # Please go through this url for more about jwt:
                                                 # https://community.ekstep.in/developer-knowledgebase/45-getting-started-with-apis
 
+#Azure Storage information for core services
 sunbird_image_storage_url:                      # Azure storage url ex: https://sunbirdtest.blob.core.windows.net/dial/
-sunbird_azure_storage_key:                      # Azure account storage key
-sunbird_azure_storage_account:                  # Azure account storage name
+sunbird_azure_storage_key:                      # Azure account storage key for the player, content, Badger Service
+sunbird_azure_storage_account:                  # Azure account storage name for the player, content, Badger Service
 
 #Sunbird System Initialisation - First organisation and user in Sunbird will be created with these details
+sunbird_default_channel:                             # Enter the channel name which you want to create in the sunbird installation
 sunbird_custodian_tenant_name:                       # Custodian Organisation Name
 sunbird_custodian_tenant_description:                # Custodian Organisation Description
 sunbird_custodian_tenant_channel:                    # Custodian Organisation Channel
@@ -68,27 +67,15 @@ sunbird_root_user_password:                          # password to be used for l
 sunbird_root_user_email:                             # email address of the Sunbird admin user
 sunbird_root_user_phone:                             # mobile number of the Sunbird admin user
 
-#----------------------------------------------------------------------#
-
-# PART 2
-# Please fill the value below and run sunbird_install.sh -s core
+# After Running ./sunbird_install.sh get the sso_publickey from keycloak and update in config,then follow the below Steps:
+# 1> run `./sunbird_install.sh -s core` this script will install all the core services(Player, Content, Learner, Badger)
+# 2> run `./sunbird_install.sh -s systeminit` this script will configure the default channel and create user to login to sunbird
+# 3> run `./sunbird_install.sh -s posttest` this script will validate the sunbird installation and check whether all services are running
 
 sunbird_sso_publickey: # Follow the below to get the key
                        # http://dns_name/auth -> realm settings -> keys -> public keys (click on public keys) and paste the value
                        # Referral: http://www.sunbird.org/developer-docs/configuring_sunbird/
 
-#----------------------------------------------------------------------#
-
-# INFO
-# Now you've to create the root organization and channel
-# Referral: http://www.sunbird.org/developer-docs/installation/install_sbbackend/
-# go to the bottom section of the page
-
-#----------------------------------------------------------------------#
-# PART 3
-# Please fill the value below and run sunbird_install.sh -s core
-
-sunbird_default_channel: # Paste the channel name with which you created the organization
 
 #----------------------------------------------------------------------#
 
@@ -155,13 +142,14 @@ vault_proxy_prometheus_admin_creds:
 
 #es config
 es_etc_node_datagroups['es']:
-es_api_host: "{{ inventory_hostname }}"
+es_api_host: "{{inventory_hostname}}"
 es_heap_size: 1500m
 es_etc_discovery_zen_minimum_master_nodes: 1
 es_snapshot_host: "{{ groups['es'][0] }}"
 es_restore_host: "{{ groups['es'][0] }}"
 snapshot_base_path: application
-
+backup_storage_key: BackupStorageKey                            # The Azure Account Storage key for prometheus, elasticsearch backups
+backup_storage_name: BackupStorageName                            # The Azure Account Storage Name for prometheus, elasticsearch backups
 
 #----------------------------------------------------------------#
 # System generated values. Please don't edit
