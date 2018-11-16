@@ -3,7 +3,7 @@ config_file=./deploy/config.yml.sample
 aws ec2 run-instances --image-id ami-0c510557369b14896 --instance-type t2.large --key-name adoption-keshav --subnet-id  subnet-0241076a --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=circle-app-$CIRCLE_BUILD_NUM-$RELEASE}]" 1> /dev/null
 aws ec2 run-instances --image-id ami-0c510557369b14896 --instance-type t2.large --key-name adoption-keshav --subnet-id  subnet-0241076a --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=circle-db-$CIRCLE_BUILD_NUM-$RELEASE}]" 1> /dev/null
 echo -e "Waiting for servers to launch..."
-sleep 150
+sleep 180
 
 aws_app_instance=$(aws ec2 describe-instances --filters "Name=instance-state-name,Values=running"  "Name=tag:Name,Values=circle-app-$CIRCLE_BUILD_NUM-$RELEASE" --query "Reservations[*].Instances[*].{PrivateIP: PrivateIpAddress, PublicIP: PublicIpAddress, InstanceId: InstanceId}")
 app_instance_id=$(echo -e $aws_app_instance | awk '{print $1}')

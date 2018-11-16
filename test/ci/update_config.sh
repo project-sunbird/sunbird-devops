@@ -1,5 +1,7 @@
 #!/bin/bash
 config_file=./deploy/config.yml.sample
+email_file=./test/ci/send_email.py
+
 sed -i "s|env:.*#|env: $env                    #|g" $config_file
 sed -i "s|implementation_name:.*#|implementation_name: $implementation_name                    #|g" $config_file
 sed -i "s|ssh_ansible_user:.*#|ssh_ansible_user: $ssh_ansible_user                    #|g" $config_file
@@ -30,3 +32,8 @@ sed -i "s|sunbird_root_user_email:.*#|sunbird_root_user_email: $sunbird_root_use
 sed -i "s|sunbird_root_user_phone:.*#|sunbird_root_user_phone: $sunbird_root_user_phone                    #|g" $config_file
 sed -i "s|sunbird_default_channel:.*#|sunbird_default_channel: $sunbird_default_channel                    #|g"  $config_file
 echo -e "Config file updated..."
+
+sed -i "s|from_address|$from_address|g" $email_file
+sed -i "s|to_address|$to_address|g" $email_file
+sed -i "s|email_password|$email_password|g" $email_file
+echo -e "Email file updated..."
