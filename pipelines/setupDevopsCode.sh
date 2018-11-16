@@ -2,7 +2,7 @@
 
 set -ex
 
-commit_ref=${1:-release-1.12}
+commit_ref=${1:-healthcheck-dp}
 sunbird_devops_dir_name=sunbird-devops
 # workaround for fatal: unable to auto-detect email address 
 git config --global user.email "jenkins@open-sunbird.org"
