@@ -73,7 +73,7 @@ postResult(){
 }
 
 config_file=/tmp/config.yml.sample
-release=$(cat /tmp/release_to_build)
+release=$(cat /tmp/release_to_build | head -1)
 username=$(awk '/ssh_ansible_user:/{ if ($2 !~ /#.*/) {print $2}}' $config_file)
 dns_name=$(awk '/dns_name:/{ if ($2 !~ /#.*/) {print $2}}' $config_file)
 keycloak_pass=$(awk '/keycloak_admin_password:/{ if ($2 !~ /#.*/) {print $2}}' $config_file)
