@@ -1,7 +1,26 @@
 #!/bin/bash
+
 config_file=./deploy/config.yml.sample
 email_file=./test/ci/send_email.py
 
+aws_app_instance=$(aws ec2 describe-instances --filters "Name=instance-state-name,Values=running"  "Name=tag:Name,Values=circle-app-$CIRCLE_BUILD_NUM" --query "Reservations[*].Instances[*].{PrivateIP: PrivateIpAddress, PublicIP: PublicIpAddress, InstanceId: InstanceId}")
+app_instance_id=$(echo -e $aws_app_instance | awk '{print $1}')
+app_private_ip=$(echo -e $aws_app_instance | awk '{print $2}')
+app_public_ip=$(echo -e $aws_app_instance | awk '{print $3}')
+
+aws_db_instance=$(aws ec2 describe-instances --filters "Name=instance-state-name,Values=running"  "Name=tag:Name,Values=circle-db-$CIRCLE_BUILD_NUM" --query "Reservations[*].Instances[*].{PrivateIP: PrivateIpAddress, PublicIP: PublicIpAddress, InstanceId: InstanceId}")
+db_instance_id=$(echo -e $aws_db_instance | awk '{print $1}')
+db_private_ip=$(echo -e $aws_db_instance | awk '{print $2}')
+db_public_ip=$(echo -e $aws_db_instance | awk '{print $3}')
+
+echo -e "Application server details:"
+echo -e "Instance ID: $app_instance_id\nPrivate IP: $app_private_ip\nPublic IP: $app_public_ip"
+echo -e "\nDatabase server details"
+echo -e "Instance ID: $db_instance_id\nPrivate IP: $db_private_ip\nPublic IP: $db_public_ip"
+
+sed -i "s|application_host:.*#|application_host: $app_private_ip                    #|g" $config_file
+sed -i "s|dns_name:.*#|dns_name: $app_public_ip                    #|g" $config_file
+sed -i "s|database_host:.*#|database_host: $db_private_ip                    #|g" $config_file
 sed -i "s|env:.*#|env: $env                    #|g" $config_file
 sed -i "s|implementation_name:.*#|implementation_name: $implementation_name                    #|g" $config_file
 sed -i "s|ssh_ansible_user:.*#|ssh_ansible_user: $ssh_ansible_user                    #|g" $config_file
@@ -37,3 +56,4 @@ sed -i "s|from_address|$from_address|g" $email_file
 sed -i "s|to_address|$to_address|g" $email_file
 sed -i "s|email_password|$email_password|g" $email_file
 echo -e "Email file updated..."
+
