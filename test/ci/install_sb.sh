@@ -12,15 +12,15 @@ checkoutRepo(){
    IFS="/" read -r var1 var2 <<< $release
    if [[ $var1 == "tags" ]]; then
       git checkout $release -b $var2
-      echo -e "Installing sunbird $var2" | tee $installer_log
+      echo -e "Installing sunbird $var2" | tee -a $installer_log
    else
       git checkout -b $var1 origin/$var1
-      echo -e "Installing sunbird $var1" | tee $installer_log
+      echo -e "Installing sunbird $var1" | tee -a $installer_log
    fi
+   cd deploy
 }
 
 copyConfig(){
-   cd deploy
    if [[ -f config ]]; then
       cp $config_file config
       config_file=config
@@ -31,7 +31,7 @@ copyConfig(){
 }
 
 installSunbird(){
-   echo -e "Starting installation..." | tee $installer_log
+   echo -e "Starting installation..." | tee -a $installer_log
    bash sunbird_install.sh
 }
 
@@ -42,21 +42,20 @@ updateSSO(){
 }
 
 coreInstall(){
-   echo -e "Sunbird installation complete - Starting core installation..." | tee $installer_log
+   echo -e "Sunbird installation complete - Starting core installation..." | tee -a $installer_log
    bash sunbird_install.sh -s core
 }
 
-createRootOrg(){
-   jwt_token=$(cat /home/$username/jwt_token_player.txt | tr -d " ")
-   access_token_user=$(curl -s -X POST http://$dns_name/auth/realms/sunbird/protocol/openid-connect/token -H "cache-control: no-cache" -H "content-type: application/x-www-form-urlencoded" -d "client_id=admin-cli&username=user-manager&password=$sso_pass&grant_type=password" | jq -r ".access_token")
-   status=$(curl -s -X POST  http://$dns_name/api/org/v1/create -H "Cache-Control: no-cache" -H "Content-Type: application/json" -H "accept: application/json" -H "authorization: Bearer $jwt_token" -H "x-authenticated-user-token: $access_token_user" -d '{"request":{"orgName": "circle-ci", "description": "circle-ci", "isRootOrg": true, "channel": "circle-ci"}}' | jq -r ".result.response")
+systemInit(){
+    bash sunbird_install.sh -s systeminit
 }
 
 postTest(){
-   bash sunbird_install.sh -s posttest
+    bash sunbird_install.sh -s posttest
 }
 
 archiveLogs(){
+   sudo apt install -y zip
    cp $installer_log logs
    zip -r /tmp/serverlogs.zip logs
 }
@@ -67,6 +66,7 @@ sendEmail(){
 
 postResult(){
    echo "failed" >> /tmp/release_to_build
+   echo "Release $release build failed" >> /tmp/release_to_build
    archiveLogs
    sendEmail
    exit 1
@@ -86,7 +86,7 @@ copyConfig
 installSunbird
 
 if [[ $? -ne 0 ]]; then
-   echo -e "Installation failed - Retrying..." | tee $installer_log
+   echo -e "Installation failed - Retrying..." | tee -a $installer_log
    installSunbird
 fi
 
@@ -94,38 +94,31 @@ if [[ $? -eq 0 ]]; then
    updateSSO
    coreInstall
 else
-   echo -e "Sunbird installation failed - Error occured during installation" | tee $installer_log
+   echo -e "Sunbird installation failed - Error occured during installation" | tee -a $installer_log
    postResult
 fi
 
 if [[ $? -eq 0 ]]; then
-   createRootOrg
+   systemInit
 else
-   echo -e "Sunbird installation failed - Error occured during core installation" | tee $installer_log
-   postResult
-fi
-
-if [[ $status == "SUCCESS" ]]; then
-   echo -e "Root org created successfully - Running core install..." | tee $installer_log
-   coreInstall
-else
-   echo -e "Sunbird installation failed - Unable to create root org" | tee $installer_log
+   echo -e "Sunbird installation failed - Error occured during core installation" | tee -a $installer_log
    postResult
 fi
 
 if [[ $? -eq 0 ]]; then
    postTest
 else
-   echo -e "Sunbird installation failed - Error occured during core installation after creating root org" | tee $installer_log
+   echo -e "Sunbird installation failed - Error occured during system initialization" | tee -a $installer_log
    postResult
 fi
 
 if [[ $? -eq 0 ]]; then
-   echo -e "Sunbird installation complete" | tee $installer_log
-   echo "succeeded" >> /tmp/release_to_build
+   echo -e "Sunbird installation complete" | tee -a $installer_log
+   echo "success" >> /tmp/release_to_build
+   echo "Release $release build succeeded" >> /tmp/release_to_build
    archiveLogs
    sendEmail
 else
-   echo -e "Sunbird installation failed - Error occured duing postTest" | tee $installer_log
+   echo -e "Sunbird installation failed - Error occured duing postTest" | tee -a $installer_log
    postResult
 fi

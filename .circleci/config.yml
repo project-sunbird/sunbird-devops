@@ -6,47 +6,37 @@ jobs:
       - image: keshavprasad/circle-ci:1.1
     steps:
       - checkout
-      - run:
-          name: check previous stable release
-          command: |
-              ver=tags/$(git tag | grep "release-[0-9].*[0-9]$" | sort -V -r | awk -F "." '!($2 in a){i++; a[$2]} (i==2){print $0}' | head -1)
-              echo Running installer for $ver
-              echo export RELEASE=$ver >> $BASH_ENV
-              source $BASH_ENV
       - run: &branch
-          name: checkout specific release
+          name: Checkout Release
           command: bash ./test/ci/checkout_release.sh
-      - run: &cli
-          name: configure cli
-          command: bash ./test/ci/cli_configure.sh
-      - run: &config
-          name: update config
-          command: bash ./test/ci/update_config.sh
       - run: &launch-vm
-          name: launch vms
+          name: Launch VM's
           command: bash ./test/ci/launch_vm.sh
+      - run: &config
+          name: Update Config
+          command: bash ./test/ci/update_config.sh
       - run: &install-sb
-          name: install sunbird
-          command: bash ./test/ci/run_install_script.sh
+          name: Install Sunbird
+          command:  bash ./test/ci/run_install_script.sh
+      - run: 
+          <<: *branch
+          environment:
+            addon: upgrade
+      - run: *config
+      - run:
+          name: Upgrade Sunbird
+          command: bash ./test/ci/run_upgrade_script.sh
       - run: &remove-vm
-          name: remove vms
+          name: Remove VM's
           command: bash ./test/ci/remove_vm.sh
 
   current-stable:
     docker: *dock-img
     steps:
       - checkout
-      - run:
-          name: check current stable release
-          command: |
-              ver=tags/$(git tag | grep "release-[0-9].*[0-9]$" | sort -V -r | awk -F "." '!($2 in a){i++; a[$2]} (i==1){print $0}' | head -1)
-              echo Running installer for $ver
-              echo export RELEASE=$ver >> $BASH_ENV
-              source $BASH_ENV
       - run: *branch
-      - run: *cli
-      - run: *config
       - run: *launch-vm
+      - run: *config
       - run: *install-sb
       - run: *remove-vm
 
@@ -54,17 +44,9 @@ jobs:
     docker: *dock-img
     steps:
       - checkout
-      - run:
-          name: check current development branch
-          command: |
-              ver=$(git branch -a | grep "release-[0-9].*[0-9]$" | sed 's#.*/.*/##g' |  tr -d ' ' | sort -V -r | awk -F "." '!($2 in a){i++; a[$2]} (i==1){print $0}' | head -1)
-              echo Running installer for $ver
-              echo export RELEASE=$ver >> $BASH_ENV
-              source $BASH_ENV
       - run: *branch
-      - run: *cli
-      - run: *config
       - run: *launch-vm
+      - run: *config
       - run: *install-sb
       - run: *remove-vm
 
@@ -91,3 +73,4 @@ workflows:
       - current-stable
       - current-dev-branch
 #      - playbook-check
+
