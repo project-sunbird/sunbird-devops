@@ -78,9 +78,9 @@ docker_version=$(sudo docker service ls | awk '/'$i'/{print $5}' | awk -F ":" '{
 release_version=$(awk -F "=" 'tolower($0) ~ /'$i'/ {print $2}' version.env)
 
 if [[ $docker_version == $release_version ]]; then
-   echo -e "\e[0;32m$i service upgraded successfully to $docker_version\e[0;29m" | tee -a $upgrade_log
+   echo -e "\e[0;32m$i service upgraded successfully to $docker_version\e[0;37m" | tee -a $upgrade_log
 else
-   echo -e "\e[0;31m$i service could not be upgraded. Release version is $release_version, but docker version is $docker_version. Please investigate..\e[0;29m" | tee -a $upgrade_log
+   echo -e "\e[0;31m$i service could not be upgraded. Release version is $release_version, but docker version is $docker_version. Please investigate..\e[0;37m" | tee -a $upgrade_log
    flag=1
 fi
 done
