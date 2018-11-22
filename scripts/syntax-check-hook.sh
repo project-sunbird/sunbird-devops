@@ -14,7 +14,7 @@ do
 done
 
 if [[ $flag -eq 1 ]]; then
-  echo -e "\e[1;36m\nAnsible syntax error found. Please correct these and then commit\e[0;37m"
+  echo -e "\e[1;36m\nAnsible syntax error found. Please correct these and then commit.\e[0;37m"
   exit 1
 fi
 }
