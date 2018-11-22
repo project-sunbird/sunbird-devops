@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 checkSyntax(){
 filenames=$(git diff --cached --name-only --diff-filter=ACM)
