@@ -1,8 +1,8 @@
 # Common variables for all dev
-env: sunbirddev
+env: sunbirdstaging
 azure_storage_secret: "{{vault_azure_storage_secret}}"
-#azure_public_container: sunbird-content-dev # azure container name
-azure_account_name: sunbirddevtelemetry # azure storage account name
+#azure_public_container:  # azure container name
+azure_account_name: sunbirdstaging # azure storage account name
 
 secrets_path: '{{inventory_dir}}/secrets/dp_secrets.yml'
 
@@ -47,20 +47,25 @@ searchServiceAuthorizationToken: "{{ search_service_authorization_token }}"
 
 
 # Learning Service organization and location search endpoints
-channelSearchServiceEndpoint: https://dev.open-sunbird.org/api/org/v1/search
-locationSearchServiceEndpoint: https://dev.open-sunbird.org/api/data/v1/location/search
+channelSearchServiceEndpoint: https://staging.open-sunbird.org/api/org/v1/search
+locationSearchServiceEndpoint: https://staging.open-sunbird.org/api/data/v1/location/search
 
 __yarn_host__: "{{ groups['dp-yarn-master'][0] }}"
 __yarn_port__: 8000
-search_service_endpoint: https://dev.ekstep.in/api/search/v2/search
+search_service_endpoint: https://qa.ekstep.in/api/search/v2/search
 yarn_es_hosts: "{{ groups['telemetry-search-cluster'] | join(',') }}"
-env_name: dev
+env_name: sunbirdstaging
 apt_cache_valid_time: 3600
 cloud_store: azure
 kafka_brokers: "{{groups['processing-cluster-kafka']|join(':9092,')}}:9092"
 zookeepers: "{{groups['zookeeper']|join(':2181,')}}:2181"
 # Ingestion cluster
 ingestion_zookeepers: "{{ groups['processing-cluster-zookeepers']|join(':2181,')}}:2181"
+
+ingestion_kafka_overriden_topics:
+  - name: telemetry.ingest
+    retention_time: 172800000
+    replication_factor: 1
 
 processing_kafka_overriden_topics:
   - name: telemetry.raw
@@ -76,10 +81,10 @@ processing_kafka_overriden_topics:
     retention_time: 21600000
     replication_factor: 1
   - name: telemetry.sink
-    retention_time: 21600000
+    retention_time: 172800000
     replication_factor: 1
   - name: telemetry.with_location
-    retention_time: 86400000
+    retention_time: 172800000
     replication_factor: 1
   - name: telemetry.de_normalized
     retention_time: 21600000
@@ -106,12 +111,9 @@ processing_kafka_overriden_topics:
     retention_time: 21600000
     replication_factor: 1
   - name: learning.job.request
-    retention_time: 86400000
+    retention_time: 86400000 
     replication_factor: 1
   - name: learning.job.request.fail
-    retention_time: 1296000000
-    replication_factor: 1
-  - name: learning.republish.job.request
     retention_time: 1296000000
     replication_factor: 1
   - name: telemetry.derived
@@ -128,6 +130,9 @@ processing_kafka_overriden_topics:
     retention_time: 21600000
     replication_factor: 1
   - name: telemetry.indexer.failed
+    retention_time: 21600000
+    replication_factor: 1
+  - name: learning.events.failed
     retention_time: 21600000
     replication_factor: 1
 
@@ -161,9 +166,9 @@ kibana_base_path: "/pipeline-dashboard"
 
 analytics_user: analytics
 analytics_group: analytics
-azure_storage_account: sunbirddevtelemetry
+azure_storage_account: sunbirdstaging
 azure_storage_key: "{{vault_azure_account_key}}"
-secor_azure_container_name: dev-data-store
+secor_azure_container_name: telemetry-data-store
 
 analytics:
    home: /mount/data/analytics
@@ -176,39 +181,38 @@ consumer_channel_cache_type: ConsumerChannel
 analytics_user_home: /home/{{ analytics_user }}
 sbin_path: "{{ analytics_user_home }}/sbin"
 postgres:
-  db_url: sunbirddevnewenv.postgres.database.azure.com #"{{ groups['postgres'][0] }}"
-  db_username: analytics@sunbirddevnewenv #analytics
+  db_url: sunbirdstagingpostgres.postgres.database.azure.com #"{{ groups['postgres'][0] }}"
+  db_username: analytics@sunbirdstagingpostgres #analytics
   db_name: analytics
   db_password: "{{vault_pgdb_password}}"
-  db_table_name: sunbirddev_consumer_channel_mapping
+  db_table_name: sunbirdstaging_consumer_channel_mapping
 
-metrics_search_params_bucket: "dev-data-store"
+metrics_search_params_bucket: "staging-data-store"
 log4j_appender_kafka_topic: "{{env}}.telemetry.backend"
 default_channel_id: in.ekstep
 channel_data_exhaust_bucket: telemetry-data-store
 
 # Data products
-data_exhaust_webhook_url: "https://hooks.slack.com/services/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"
-data_exhaust_Channel: "sunbird-dp-dev-alerts"
+data_exhaust_webhook_url: "https://hooks.slack.com/services/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"
+data_exhaust_Channel: "sunbird-dp-stg-alerts"
 data_exhaust_token: "xoxp-19320441927-104869600647-207667594868-6d8554b70e8f458a40c7453e47b7f61c"
 data_exhaust_name: "dp-monitor"
-stream_base_url: "https://sunbirdspikemedia-inct.streaming.media.azure.net"
-#stream_base_url: "https://sunbirddevmedia-inct.streaming.media.azure.net"
+stream_base_url: "https://sunbirdstagingmedia-inct.streaming.media.azure.net"
 
 # Secor vars
 secor:
   properties: ['secor.azure', 'secor.common', 'secor', 'secor.partition', 'log4j']
   artifact_dir: /mount/secor
   s3:
-    bucket: "dev-data-store"
+    bucket: "staging-data-store"
     #aws_key: "{{vault_aws_key}}"
     #aws_secret: "{{vault_aws_secret}}"
   azure:
-    account_name: "sunbirddevtelemetry"
+    account_name: "sunbirdstaging"
     account_key: "{{ vault_azure_account_key }}"
-    container_name: "dev-data-store"
+    container_name: "telemetry-data-store"
   paths: ['/mount/secor', '/mount/secor/reports', '/mount/secor/logs', '/home/analytics/sbin', '/mount/data/analytics']
-  channel: "#sunbird-dp-dev-alerts"
+  channel: "#sunbird-dp-stg-alerts"
 
 # postgres
 # list of databases to be created
@@ -220,8 +224,8 @@ postgresql_users:
     password: "{{vault_pgdb_password}}"
 
 postgres_address_space: 0.0.0.0/0 # Postgres trust address space
-lp_composite_search: http://11.2.3.30:9200 # Composite Cluster ip of LP
-lp_search: http://11.2.4.16:9000
+lp_composite_search: "http://{{ groups['composite-search-cluster'][0] }}:9200"  # Composite Cluster ip of LP
+lp_search: "http://{{ groups['searchall'][0] }}:9000"
 
 # Values to be depricated ??
 
