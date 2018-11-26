@@ -1,3 +1,157 @@
+############ LP ##########################################
+
+[learning1]
+11.3.3.8 iam_group=lp ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[learningall:children]
+learning1
+
+[search1]
+11.3.3.22 iam_group=lp ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[searchall:children]
+search1
+
+[redis1]
+11.3.3.8 iam_group=lp ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[redisall:children]
+redis1
+
+[lp-cassandra]
+11.3.2.15 iam_group=lp ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+###### neo4j ######
+[learning-neo4j-node1]
+11.3.2.4 iam_group=lp ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[learning-neo4j-cluster:children]
+learning-neo4j-node1
+
+[lp:children]
+learningall
+searchall
+learning-neo4j-cluster
+lp-cassandra
+redisall
+lp-yarn
+samza-monitor
+composite-search-cluster
+
+######################## LPA ###########################
+[analytics-api]
+11.3.3.4 iam_group=lpa ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.3.5 iam_group=lpa ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[spark]
+11.3.3.7 iam_group=lpa ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[secor]
+11.3.3.6 iam_group=lpa ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[postgres]
+10.11.0.4 iam_group=lpa ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[dp-cassandra]
+11.3.2.15 iam_group=lp ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[lpa:children]
+spark
+secor
+analytics-api
+dp-cassandra
+postgres
+
+##################### DP ##################################
+
+[influxdb]
+11.3.3.14 iam_group=ep kafka_id=1 ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[processing-cluster-kafka]
+11.3.2.6 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.2.8 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.2.9 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[processing-cluster-zookeepers]
+11.3.2.6 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.2.8 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.2.9 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[composite-search-cluster]
+11.3.2.7 iam_group=ep es_instance_name=cs-node-1 es_etc_node_master=true es_etc_node_data=true es_heap_size=2g ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.2.14 iam_group=ep es_instance_name=cs-node-2 es_etc_node_master=true es_etc_node_data=true es_heap_size=2g ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.2.10 iam_group=ep es_instance_name=cs-node-3 es_etc_node_master=true es_etc_node_data=true es_heap_size=2g ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[telemetry-search-cluster]
+11.3.2.13 iam_group=ep es_instance_name=es-node-1 es_etc_node_master=true es_etc_node_data=true es_heap_size=2g ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.2.11 iam_group=ep es_instance_name=es-node-2 es_etc_node_master=true es_etc_node_data=true es_heap_size=2g ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.2.12 iam_group=ep es_instance_name=es-node-3 es_etc_node_master=true es_etc_node_data=true es_heap_size=2g ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[zookeeper:children]
+processing-cluster-zookeepers
+
+[telemetry-search-cluster-kibana-node]
+11.3.2.11 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[dp-yarn-master]
+11.3.3.10 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[dp-yarn-slave]
+11.3.3.11 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.3.12 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.3.13 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.3.15 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.3.16 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[dp-yarn:children]
+dp-yarn-master
+dp-yarn-slave
+
+[lp-yarn-master]
+11.3.3.10 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[lp-yarn-slave]
+11.3.3.11 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.3.12 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.3.13 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.3.15 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+11.3.3.16 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[lp-yarn:children]
+lp-yarn-master
+lp-yarn-slave
+
+[samza-monitor:children]
+dp-yarn-master
+
+[kafka-indexer]
+11.3.2.16 iam_group=ep ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+[influxdb:vars]
+host_name=influxdb-staging
+relay_name=influxdb-staging-relay
+nginx=true
+
+[dp:children]
+processing-cluster-kafka
+zookeeper
+composite-search-cluster
+telemetry-search-cluster
+telemetry-search-cluster-kibana-node
+dp-yarn
+kafka-indexer
+samza-monitor
+influxdb
+
+[sunbirdstaging:children]
+dp
+lp
+lpa
+
+[cluster-kafka-staging]
+10.2.3.4 ansible_ssh_user=deployer ansible_ssh_private_key_file=~/.ssh/deployer ansible_sudo_pass=d3pl0y3r
+
+
 #[staging-postgresql-1]
 #sunbirdstagingpostgres.postgres.database.azure.com ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
 
@@ -38,11 +192,6 @@
 
 [kafka:children]
 kafka-1
-
-[processing-cluster-kafka]
-11.3.2.6 iam_group=ep kafka_id=1 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass=d3pl0y3r 
-11.3.2.8 iam_group=ep kafka_id=2 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass=d3pl0y3r
-11.3.2.9 iam_group=ep kafka_id=3 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass=d3pl0y3r
 
 [zookeeper-1]
 11.3.2.6 server_id=1 ansible_ssh_user=deployer ansible_ssh_private_key_file=/run/secrets/deployer-ssh-key ansible_sudo_pass="{{ deployer_sudo_pass }}"
