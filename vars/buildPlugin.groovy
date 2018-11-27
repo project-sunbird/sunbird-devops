@@ -1,5 +1,6 @@
 // common plugin to clone code and build
 def call(Map pipelineParams) {
+def deployScript = libraryResource 'deploy.sh'
 pipeline {
         agent any
         environment{
@@ -21,6 +22,7 @@ pipeline {
                     projectName: pipelineParams.parentProject,
                     filter: pipelineParams.artifactName
                     );
+                    sh(deployScript)
                     archiveArtifacts 'metadata.json'
                 }
             }
