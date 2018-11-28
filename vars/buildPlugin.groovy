@@ -20,10 +20,11 @@ pipeline {
             stage('Deploy') {
                 steps {
                     sh 'ls'
-                    copyArtifacts(
+                    script{
+                    step ([$class: 'CopyArtifact',
                     projectName: pipelineParams.parentProject,
-                    filter: pipelineParams.artifactName
-                    );
+                    filter: pipelineParams.artifactName]);
+                    }
                     sh(deployScript)
                     archiveArtifacts 'metadata.json'
                 }
