@@ -2,7 +2,7 @@
 def call(Map pipelineParams) {
 def deployScript = libraryResource 'deploy.sh'
 pipeline {
-        agent pipelineParams.agent
+        agent { label "${pipelineParams.agent}" }
         environment{
             METADATA_FILE = "${pipelineParams.artifactName}"
             ARTIFACT_LABEL = "${pipelineParams.artifactLabel}"
