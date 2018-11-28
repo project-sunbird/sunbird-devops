@@ -14,11 +14,11 @@ def getValues() {
 }
 
 // Getting env specific values
-def valus = getValues()
+def values = getValues()
 
 //Deploying service
 buildPlugin(agent: 'general-dev',
-            branch: 'master',
+            branch: gitBranch,
             scmUrl: 'https://github.com/project-sunbird/sunbird-devops.git',
             artifactName: 'metadata.json',
             artifactLabel: values.label,
