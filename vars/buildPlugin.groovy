@@ -11,9 +11,13 @@ pipeline {
             DEPLOY_EXTRA_ARGS = "${pipelineParams.deployExtraArgs}"
         }
         stages {
+            // cloning public sunbird-devops
             stage('checkout git') {
                 steps {
+                    checkout scm
+                    dir('sunbird-devops'){
                     git branch: pipelineParams.branch, url: pipelineParams.scmUrl
+                    }
                 }
             }
 
@@ -21,9 +25,9 @@ pipeline {
                 steps {
                     sh 'ls'
                     script{
-                    step ([$class: 'CopyArtifact',
-                    projectName: pipelineParams.parentProject,
-                    filter: pipelineParams.artifactName]);
+                        step ([$class: 'CopyArtifact',
+                        projectName: pipelineParams.parentProject,
+                        filter: pipelineParams.artifactName]);
                     }
                     sh(deployScript)
                     archiveArtifacts 'metadata.json'
