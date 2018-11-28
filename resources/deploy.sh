@@ -1,6 +1,7 @@
 #!/bin/sh
 # Build script
 set -o errexit
+set -x
 # installing prerequisites
 [[ $(which ansible) ]] || apk -v --update --no-cache add ansible
 [[ $(which jq) ]] || apk -v --update --no-cache add jq

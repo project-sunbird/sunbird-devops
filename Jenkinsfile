@@ -16,6 +16,10 @@ def getValues() {
 // Getting env specific values
 values = getValues()
 
+// Debugging values
+echo values.env
+echo values.label
+
 //Deploying service
 buildPlugin(agent: 'general-dev',
             branch: gitBranch,
