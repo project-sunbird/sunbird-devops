@@ -17,7 +17,8 @@ def getValues() {
 def valus = getValues()
 
 //Deploying service
-buildPlugin(branch: 'master',
+buildPlugin(agent: 'general-dev',
+            branch: 'master',
             scmUrl: 'https://github.com/project-sunbird/sunbird-devops.git',
             artifactName: 'metadata.json',
             artifactLabel: values.label,
