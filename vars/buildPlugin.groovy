@@ -31,7 +31,10 @@ pipeline {
                         projectName: pipelineParams.parentProject,
                         filter: pipelineParams.artifactName]);
                     }
-                    sh(deployScript)
+                    script{
+                    sh 'printenv'
+                    sh deployScript
+                    }
                     archiveArtifacts 'metadata.json'
                 }
             }
