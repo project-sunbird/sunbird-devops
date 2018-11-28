@@ -1,4 +1,7 @@
+// Importing deploy configuration
 @Library('deploy-conf') _
+
+// Defining env specific variables
 def getValues() {
     if (environment == "dev") {
         return [label: 'bronze',
@@ -9,7 +12,11 @@ def getValues() {
                env: 'staging']
     }
 }
+
+// Getting env specific values
 def valus = getValues()
+
+//Deploying service
 buildPlugin(branch: 'master',
             scmUrl: 'https://github.com/project-sunbird/sunbird-devops.git',
             artifactName: 'metadata.json',
