@@ -14,7 +14,7 @@ def getValues() {
 }
 
 // Getting env specific values
-def values = getValues()
+values = getValues()
 
 //Deploying service
 buildPlugin(agent: 'general-dev',
