@@ -22,5 +22,7 @@ buildPlugin(branch: 'master',
             artifactName: 'metadata.json',
             artifactLabel: values.label,
             env: values.env,
-            parentProject: 'New_Build/Sunbird_ContentService_Build'
+            serviceName: 'content-service',
+            parentProject: 'New_Build/Sunbird_ContentService_Build',
+            deployExtraArgs: 'deploy_content=True'
             )

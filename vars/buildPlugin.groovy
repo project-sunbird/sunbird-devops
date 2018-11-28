@@ -7,6 +7,8 @@ pipeline {
             METADATA_FILE = "${pipelineParams.artifactName}"
             ARTIFACT_LABEL = "${pipelineParams.artifactLabel}"
             ENV = "${pipelineParams.env}"
+            SERVICE_NAME = "${pipelineParams.serviceName"}
+            DEPLOY_EXTRA_ARGS = "${pipelineParams.deployExtraArgs}"
         }
         stages {
             stage('checkout git') {
