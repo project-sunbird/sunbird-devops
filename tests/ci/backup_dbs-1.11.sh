@@ -1,21 +1,39 @@
 #!/bin/bash
 
+getTags(){
+   declare -A arr
+   i=1
+   while true
+   do
+      tag=$(git tag | grep "release-[0-9].*[0-9]$" | sort -V -r | awk -F "." '!($2 in a){i++; a[$2]} (i=='$i'){print $0}' | head -1)
+      if [[ $tag != "" ]]; then
+         arr[$tag]=$i
+         i=$(expr $i + 1)
+      else
+         break
+      fi
+   done
+   index=${arr["$release"]}
+}
+
 checkoutRepo(){
-cd /home/$username
-git clone https://github.com/project-sunbird/sunbird-devops.git
-cd sunbird-devops
-IFS="/" read -r var1 var2 <<< $release
-if [[ $var1 == "tags" ]]; then
-   git checkout $release -b $var2
-   echo -e "Installing sunbird $var2" | tee -a $backup_log
-else
-   git checkout -b $var1 origin/$var1
-   echo -e "Installing sunbird $var1" | tee -a $backup_log
-fi
-cd deploy
+   cd /home/$username
+   sudo rm -rf sunbird-devops
+   git clone https://github.com/project-sunbird/sunbird-devops.git
+   cd sunbird-devops
+   getTags
+   if [[ $index != "" ]]; then
+      git checkout tags/$release -b $release
+      echo -e "Installing sunbird on tags $release" | tee $wrapper_log
+   else
+      git checkout -b $release origin/$release
+      echo -e "Installing sunbird on branch $release" | tee -a $wrappper_log
+   fi
+   cd deploy
 }
 
 cassandraBackup(){
+echo "Starting cassandra backup" | tee -a $backup_log
 python cassandra_backup.py | tee -a $backup_log
 if [[ -f cassandra_backup-$(date +%Y-%m-%d).tar.gz ]] && [[ -s cassandra_backup-$(date +%Y-%m-%d).tar.gz ]] ; then
    echo "Cassandra backup successful" | tee -a $backup_log
@@ -26,6 +44,7 @@ fi
 }
 
 postgresBackup(){
+echo "Starting postgres backup" | tee -a $backup_log
 bash backup_postgres.sh | tee -a $backup_log
 postgres_backup_file=$(ls /tmp/postgresql-backup/)
 if [[ -f /tmp/postgresql-backup/$postgres_backup_file ]] && [[ -s /tmp/postgresql-backup/$postgres_backup_file ]]; then
@@ -37,6 +56,7 @@ fi
 }
 
 elasticsearchBackup(){
+echo "Staring elasticsearch backup" | tee -a $backup_log
 flag=0
 snapshot_name="null"
 sudo apt install -y jq
@@ -66,12 +86,11 @@ fi
 }
 
 restoreCassandra(){
+echo "Staring cassandra restore" | tee -a $backup_log
 arr=($(cqlsh -e "describe keyspaces"))
 count=${#arr[@]}
 cqlsh -e "drop keyspace dialcodes"
 cqlsh -e "drop keyspace portal"
-#cqlsh -e "drop keyspace qmzbm_form_service"
-#cqlsh -e "drop keyspace rvepo_framework"
 cqlsh -e "drop keyspace sunbird"
 cqlsh -e "drop keyspace sunbirdplugin"
 tar -xvzf cassandra_backup-$(date +%Y-%m-%d).tar.gz | tee -a $backup_log
@@ -87,6 +106,7 @@ fi
 }
 
 restorePostgres(){
+echo "Starting postgres restore" | tee -a $backup_log
 db_count=$(sudo -u postgres psql -c "SELECT count(datname) FROM pg_database" | sed -n 3p | tr -d " ")
 sudo -u postgres psql -c "update pg_database set datallowconn = false where datname in ('badger', 'keycloak', 'api_manager', 'quartz')"
 sudo -u postgres psql -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity where pid <> pg_backend_pid()"
@@ -105,6 +125,7 @@ fi
 }
 
 restoreElasticsearch(){
+echo "Starting elasticsearch restore" | tee -a $backup_log
 snapshot_name=$(sudo cat /etc/elasticsearch/backup/index-0 | jq -r ".snapshots[0].name")
 indices=$(curl -s -X GET http://$hostip:9200/_cat/indices?v | awk 'NR>1{print $3}' | sort | tr -d "\n")
 sudo systemctl restart es-1_elasticsearch.service
@@ -119,10 +140,9 @@ else
 fi
 }
 
-config_file=/tmp/config.yml.sample
-release=$(cat /tmp/release_to_build | head -1)
-username=$(awk '/ssh_ansible_user:/{ if ($2 !~ /#.*/) {print $2}}' $config_file)
-backup_log=/tmp/backup_log.txt
+release=$1
+username=$2
+backup_log=/tmp/backuplog.txt
 hostip=$(hostname -i)
 
 checkoutRepo
