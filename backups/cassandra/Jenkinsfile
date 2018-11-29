@@ -1,0 +1,24 @@
+// Importing deploy configuration
+@Library('deploy-conf') _
+
+// Defining env specific variables
+def getValues() {
+    if (environment == "dev") {
+        return [env: 'dev']
+    }
+    else {
+        return [env: 'staging']
+    }
+}
+
+// Getting env specific values
+values = getValues()
+
+//Deploying service
+backupPlugin(agent: 'general-dev',
+            branch: gitBranch,
+            scmUrl: 'https://github.com/project-sunbird/sunbird-devops.git',
+            env: values.env,
+            playbook: cassandra-backup.yml,
+            deployExtraArgs: '--vault-password-file /run/secrets/vault-pass'
+            )
