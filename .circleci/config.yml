@@ -1,76 +1,53 @@
 ---
-version: 2
+version: 2.1
+
 jobs:
-  previous-stable:
-    docker: &dock-img
+  install:
+    parameters:
+      release:
+        description: "Release version"
+        type: string
+    docker:
       - image: keshavprasad/circle-ci:1.1
     steps:
       - checkout
-      - run: &branch
-          name: Checkout Release
-          command: bash ./test/ci/checkout_release.sh
-      - run: &launch-vm
-          name: Launch VM's
-          command: bash ./test/ci/launch_vm.sh
+      - run: &export
+          name: Export Release Version
+          command: echo 'export release=<< parameters.release >>' >> $BASH_ENV
       - run: &config
-          name: Update Config
-          command: bash ./test/ci/update_config.sh
-      - run: &install-sb
+          name: Setup the build environment
+          command: bash ./tests/ci/setup_env.sh
+      - run: &install
           name: Install Sunbird
-          command:  bash ./test/ci/run_install_script.sh
-      - run: 
-          <<: *branch
-          environment:
-            addon: upgrade
-      - run: *config
-      - run:
-          name: Upgrade Sunbird
-          command: bash ./test/ci/run_upgrade_script.sh
-      - run: &remove-vm
+          command: bash ./tests/ci/run_installer.sh
+      - run: &remove
           name: Remove VM's
-          command: bash ./test/ci/remove_vm.sh
-
-  current-stable:
-    docker: *dock-img
-    steps:
-      - checkout
-      - run: *branch
-      - run: *launch-vm
-      - run: *config
-      - run: *install-sb
-      - run: *remove-vm
-
-  current-dev-branch:
-    docker: *dock-img
-    steps:
-      - checkout
-      - run: *branch
-      - run: *launch-vm
-      - run: *config
-      - run: *install-sb
-      - run: *remove-vm
-
-  playbook-check:
-    docker: *dock-img
-    steps:
-      - checkout
-      - run:
-          name: check ansible playbooks syntax
-          command: bash ./test/playbook_check.sh
+          command: bash ./tests/ci/remove_vm.sh
 
 workflows:
-  version: 2
-  nightly:
-    triggers:
-      - schedule:
-          cron: "0 17 1,5,9,13,17,21,25,29 * *"
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - previous-stable
-      - current-stable
-      - current-dev-branch
-#      - playbook-check
-
+ version: 2.1
+ nightly:
+  triggers:
+   - schedule:
+      cron: "0 17 1,5,9,13,17,21,25,29 * *"
+      filters:
+        branches:
+         only:
+           - master
+           - /release-.*/
+  jobs:
+   - install:
+      release: release-1.10.2
+      filters:
+        branches:
+         only: master
+   - install:
+      release: release-1.11.1
+      filters:
+        branches:
+         only: master
+   - install:
+      release: release-1.12
+      filters:
+       branches:
+        only: release-1.12

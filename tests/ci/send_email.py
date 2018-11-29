@@ -7,27 +7,29 @@ from email.mime.base import MIMEBase
 from email import encoders
 from os import path
 
-fromaddr = "from_address"
-toaddr = [to_address]
+arr = {}
+with open("/tmp/tests/ci/build_info") as f:
+ for line in f:
+   name, value = line.partition(":")[::2]
+   arr[name.strip()] = value
+
+fromaddr = arr["from_address"].strip()
+toaddr = arr["to_address"].strip().split(",")
+release = arr["release"].strip()
+build_url = arr["build_url"].strip()
+status = arr["status"].strip()
+subject = arr["subject"].strip()
+password = arr["email_password"].strip()
 
 s = smtplib.SMTP('smtp.gmail.com', 587) 
 s.starttls() 
-s.login(fromaddr, "email_password")
+s.login(fromaddr, password)
 
-content = "/tmp/release_to_build"
-f = open(content)
-release = f.readline().rstrip()
-jobUrl = f.readline().rstrip()
-buildStatus = f.readline().rstrip()
-subMessage = f.readline().rstrip()
-f.close()
-
-if buildStatus == "success":
+if status == "Success":
  bgcolor = "#51CA5E"
 else:
  bgcolor = "#E33F3A"
 
-subject = "%s" % (subMessage)
 body = """
 <table style="height: 109px;" border="1" width="709" cellspacing="0" cellpadding="0">
 <tbody>
@@ -45,7 +47,7 @@ body = """
 </table>
 <p>If you do not wish to receive these emails, please <a href="mailto:msknext@gmail.com?subject=CI-Notification-Unsubscribe">click here</a></p>
 <p>If you wish to add someone to receive these notifications, please <a href="mailto:msknext@gmail.com?subject=CI-Notification-Add">click here</a></p>
-""" % (bgcolor, release, buildStatus, jobUrl)
+""" % (bgcolor, release, status, build_url)
 
 for i in range(len(toaddr)):
   msg = MIMEMultipart()

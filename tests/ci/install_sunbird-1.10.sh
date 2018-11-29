@@ -1,37 +1,7 @@
 #!/bin/bash
 
-copyPem(){
-   mkdir /home/$username/.ssh 2> /dev/null
-   cp /tmp/sunbird.pem /home/$username/.ssh
-}
-
-checkoutRepo(){
-   cd /home/$username
-   git clone https://github.com/project-sunbird/sunbird-devops.git
-   cd sunbird-devops
-   IFS="/" read -r var1 var2 <<< $release
-   if [[ $var1 == "tags" ]]; then
-      git checkout $release -b $var2
-      echo -e "Installing sunbird $var2" | tee -a $installer_log
-   else
-      git checkout -b $var1 origin/$var1
-      echo -e "Installing sunbird $var1" | tee -a $installer_log
-   fi
-   cd deploy
-}
-
-copyConfig(){
-   if [[ -f config ]]; then
-      cp $config_file config
-      config_file=config
-   else
-      cp $config_file config.yml
-      config_file=config.yml
-   fi
-}
-
 installSunbird(){
-   echo -e "Starting installation..." | tee -a $installer_log
+   echo -e "Starting installation..." | tee $installer_log
    bash sunbird_install.sh
 }
 
@@ -54,35 +24,26 @@ postTest(){
     bash sunbird_install.sh -s posttest
 }
 
-archiveLogs(){
-   sudo apt install -y zip
+copyLogs(){
+   mkdir logs 2> /dev/null
    cp $installer_log logs
-   zip -r /tmp/serverlogs.zip logs
-}
-
-sendEmail(){
-   python /tmp/send_email.py
 }
 
 postResult(){
-   echo "failed" >> /tmp/release_to_build
-   echo "Release $release build failed" >> /tmp/release_to_build
-   archiveLogs
-   sendEmail
+   copyLogs
+   echo "status: Failed" >> $build_info
+   echo "subject: $release build failed" >> $build_info
    exit 1
 }
 
-config_file=/tmp/config.yml.sample
-release=$(cat /tmp/release_to_build | head -1)
-username=$(awk '/ssh_ansible_user:/{ if ($2 !~ /#.*/) {print $2}}' $config_file)
+config_file=$1
+release=$2
+build_info=$3
 dns_name=$(awk '/dns_name:/{ if ($2 !~ /#.*/) {print $2}}' $config_file)
 keycloak_pass=$(awk '/keycloak_admin_password:/{ if ($2 !~ /#.*/) {print $2}}' $config_file)
 sso_pass=$(awk '/sso_password:/{ if ($2 !~ /#.*/) {print $2}}' $config_file)
-installer_log=/tmp/installerLog.txt
+installer_log=/tmp/installerlog.txt
 
-copyPem
-checkoutRepo
-copyConfig
 installSunbird
 
 if [[ $? -ne 0 ]]; then
@@ -113,11 +74,10 @@ else
 fi
 
 if [[ $? -eq 0 ]]; then
+   copyLogs
    echo -e "Sunbird installation complete" | tee -a $installer_log
-   echo "success" >> /tmp/release_to_build
-   echo "Release $release build succeeded" >> /tmp/release_to_build
-   archiveLogs
-   sendEmail
+   echo "status: Success" >> $build_info
+   echo "subject: $release build succeeded" >> $build_info
 else
    echo -e "Sunbird installation failed - Error occured duing postTest" | tee -a $installer_log
    postResult
