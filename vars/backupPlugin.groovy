@@ -21,8 +21,12 @@ pipeline {
 
             stage('Backup') {
                 steps {
-                    sh 'ls'
-                    sh "ansible-playbook -i ansible/inventories/${pipelineParams.env} sunbird-devops/ansible/${pipelineParams.playBook} ${pipelineParams.ansibleExtraArgs}"
+                    script{
+                        sh 'ls'
+                        sh """
+                        ansible-playbook -i ansible/inventories/${pipelineParams.env} sunbird-devops/ansible/${pipelineParams.playBook} ${pipelineParams.ansibleExtraArgs}
+                        """
+                    }
                 }
             }
         }
