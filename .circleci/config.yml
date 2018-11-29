@@ -1,88 +1,53 @@
 ---
-version: 2
+version: 2.1
+
 jobs:
-  previous-stable:
-    docker: &dock-img
+  install:
+    parameters:
+      release:
+        description: "Release version"
+        type: string
+    docker:
       - image: keshavprasad/circle-ci:1.1
     steps:
       - checkout
-      - run:
-          name: check previous stable release
-          command: |
-              ver=tags/$(git tag | grep "release" | sort -V -r | sed -n 2p)
-              echo Running installer for tags/release-1.9
-              echo export release=tags/release-1.9 >> $BASH_ENV
-              source $BASH_ENV
-      - run: &cli
-          name: configure cli
-          command: bash ./circle-ci/cli_configure.sh
+      - run: &export
+          name: Export Release Version
+          command: echo 'export release=<< parameters.release >>' >> $BASH_ENV
       - run: &config
-          name: update config
-          command: bash ./circle-ci/update_config.sh
-      - run: &launch-vm
-          name: launch vms
-          command: bash ./circle-ci/launch_vm.sh
-      - run: &install-sb
-          name: install sunbird
-          command: bash ./circle-ci/copy_script.sh
-      - run: &remove-vm
-          name: remove vms
-          command: bash ./circle-ci/remove_vm.sh
-
-  current-stable:
-    docker: *dock-img
-    steps:
-      - checkout
-      - run:
-          name: check current stable release
-          command: |
-              ver=tags/$(git tag | grep "release" | sort -V -r | sed -n 1p)
-              echo Running installer for $ver
-              echo export release=$ver >> $BASH_ENV
-              source $BASH_ENV
-      - run: *cli
-      - run: *config
-      - run: *launch-vm
-      - run: *install-sb
-      - run: *remove-vm
-
-  current-dev-branch:
-    docker: *dock-img
-    steps:
-      - checkout
-      - run:
-          name: check current development branch
-          command: |
-              ver=$(git branch -a | grep release-[0-9].[0-9].* | sed -e 's#.*/.*/##g' | sort -V -r -u | sed -n 1p)
-              echo Running installer for $ver
-              echo export release=$ver >> $BASH_ENV
-              source $BASH_ENV
-      - run: *cli
-      - run: *config
-      - run: *launch-vm
-      - run: *install-sb
-      - run: *remove-vm
-
-  playbook-check:
-    docker: *dock-img
-    steps:
-      - checkout
-      - run:
-          name: check ansible playbooks syntax
-          command: bash ./test.sh
+          name: Setup the build environment
+          command: bash ./tests/ci/setup_env.sh
+      - run: &install
+          name: Install Sunbird
+          command: bash ./tests/ci/run_installer.sh
+      - run: &remove
+          name: Remove VM's
+          command: bash ./tests/ci/remove_vm.sh
 
 workflows:
-  version: 2
-  nightly:
-    triggers:
-      - schedule:
-          cron: "0 19 * * *"
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - previous-stable
-      - current-stable
-      - current-dev-branch
-      - playbook-check
+ version: 2.1
+ nightly:
+  triggers:
+   - schedule:
+      cron: "0 17 1,5,9,13,17,21,25,29 * *"
+      filters:
+        branches:
+         only:
+           - master
+           - /release-.*/
+  jobs:
+   - install:
+      release: release-1.10.2
+      filters:
+        branches:
+         only: master
+   - install:
+      release: release-1.11.1
+      filters:
+        branches:
+         only: master
+   - install:
+      release: release-1.12
+      filters:
+       branches:
+        only: release-1.12
