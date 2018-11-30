@@ -49,6 +49,7 @@ badge_service_prefix: /badging
 plugin_service_prefix: /plugins
 config_service_prefix: /config
 textbook_service_prefix: /textbook
+lock_service_prefix: /lock
 
 # Service URLs
 content_service_url: "http://content-service:5000"
@@ -3295,6 +3296,70 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist: dialcodeAdmin
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: createLock
+    request_path: "{{ lock_service_prefix }}/v1/create"
+    upstream_url: "{{ content_service_url }}/v1/lock/create"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: contentUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: refreshLock
+    request_path: "{{ lock_service_prefix }}/v1/refresh"
+    upstream_url: "{{ content_service_url }}/v1/lock/refresh"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: contentUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: retireLock
+    request_path: "{{ lock_service_prefix }}/v1/retire"
+    upstream_url: "{{ content_service_url }}/v1/lock/retire"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: contentUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: listLock
+    request_path: "{{ lock_service_prefix }}/v1/list"
+    upstream_url: "{{ content_service_url }}/v1/lock/list"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: orgAdmin
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
