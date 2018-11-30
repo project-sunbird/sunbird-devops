@@ -10,7 +10,9 @@ pipeline {
         stages {
             // installing deps
             stage('installing deps'){
-                sh installDeps
+                steps{
+                    sh installDeps
+                }
             }
 
             // cloning public sunbird-devops
