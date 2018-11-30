@@ -24,9 +24,9 @@ pipeline {
             stage('Backup') {
                 steps {
                     script{
-                        sh 'ls'
-                        sh installDeps
                         sh """
+                        ls
+                        apk -v --update --no-cache add ansible jq
                         ansible-playbook -i ansible/inventories/${pipelineParams.env} sunbird-devops/ansible/${pipelineParams.playBook} ${pipelineParams.ansibleExtraArgs}
                         """
                     }
