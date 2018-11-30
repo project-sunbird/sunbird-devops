@@ -8,12 +8,6 @@ pipeline {
             }
         }
         stages {
-            // installing deps
-            stage('installing deps'){
-                steps{
-                    sh installDeps
-                }
-            }
 
             // cloning public sunbird-devops
             stage('checkout git') {
@@ -31,6 +25,7 @@ pipeline {
                 steps {
                     script{
                         sh 'ls'
+                        sh installDeps
                         sh """
                         ansible-playbook -i ansible/inventories/${pipelineParams.env} sunbird-devops/ansible/${pipelineParams.playBook} ${pipelineParams.ansibleExtraArgs}
                         """
