@@ -3422,6 +3422,18 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
 
+  - name: "channelSpecificTelemetryMetrics"
+    request_path: "{{ data_service_prefix }}/metrics"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/data/v3/metrics"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
   - name: "configRefresh"
     request_path: "{{ config_service_prefix }}/v1/refresh"
     upstream_url: "{{ config_service_url }}/config-service/v1/refresh"
