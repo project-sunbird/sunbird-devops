@@ -1,39 +1,46 @@
   def call(body) {
 
         def deployScript = libraryResource 'deploy.sh'
-        def config = [:]
+        def pipelineParams = [:]
         body.resolveStrategy = Closure.DELEGATE_FIRST
-        body.delegate = config
+        body.delegate = pipelineParams
         body()
-
-        node {
-            // Clean workspace before doing anything
-            deleteDir()
-            label config.agent
-            try {
-                stage ('Clone') {
+        
+        
+pipeline {
+        agent {
+            node {
+                label "${pipelineParams.agent}"
+                env.METADATA_FILE = "${pipelineParams.artifactName}"
+                env.ARTIFACT_LABEL = "${pipelineParams.artifactLabel}"
+                env.ENV = "${pipelineParams.env}"
+                env.SERVICE_NAME = "${pipelineParams.serviceName}"
+                env.DEPLOY_EXTRA_ARGS = "${pipelineParams.deployExtraArgs}"
+            }
+        }
+        stages {
+            // cloning public sunbird-devops
+            stage('checkout git') {
+                steps {
                     checkout scm
-                }
-                stage ('Build') {
-                    sh "ls; echo 'building ${config.projectName} ...'"
-                }
-                stage ('Tests') {
-                    parallel 'static': {
-                        sh "echo 'shell scripts to run static tests...'"
-                    },
-                    'unit': {
-                        sh "echo 'shell scripts to run unit tests...'"
-                    },
-                    'integration': {
-                        sh "echo 'shell scripts to run integration tests...'"
+                    dir('sunbird-devops'){
+                    git branch: pipelineParams.branch, url: pipelineParams.scmUrl
                     }
                 }
-                stage ('Deploy') {
+            }
+
+            stage('Deploy') {
+                steps {
+                    sh 'ls'
+                    script{
+                        step ([$class: 'CopyArtifact',
+                        projectName: pipelineParams.parentProject,
+                        filter: pipelineParams.artifactName]);
+                    }
                     sh deployScript
+                    archiveArtifacts 'metadata.json'
                 }
-            } catch (err) {
-                currentBuild.result = 'FAILED'
-                throw err
             }
         }
     }
+}
