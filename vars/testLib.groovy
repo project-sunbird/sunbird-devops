@@ -22,7 +22,6 @@ def call(body) {
             stage('checkout git') {
                 steps {
                     checkout scm
-                    sh 'printenv'
                     echo pipelineParams.branch
                     dir('sunbird-devops'){
                     git branch: pipelineParams.branch, url: pipelineParams.scmUrl
