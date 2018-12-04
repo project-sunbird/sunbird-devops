@@ -1,5 +1,6 @@
   def call(body) {
 
+        def deployScript = libraryResource 'deploy.sh'
         def config = [:]
         body.resolveStrategy = Closure.DELEGATE_FIRST
         body.delegate = config
@@ -28,7 +29,7 @@
                     }
                 }
                 stage ('Deploy') {
-                    sh "echo 'deploying to server ${config.serverDomain}...'"
+                    sh deployScript
                 }
             } catch (err) {
                 currentBuild.result = 'FAILED'
