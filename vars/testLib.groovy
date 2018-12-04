@@ -9,7 +9,7 @@
         node {
             // Clean workspace before doing anything
             deleteDir()
-
+            label config.agent
             try {
                 stage ('Clone') {
                     checkout scm
