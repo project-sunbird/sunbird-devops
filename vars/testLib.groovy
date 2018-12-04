@@ -1,13 +1,12 @@
-  def call(body) {
+def call(body) {
 
-        def deployScript = libraryResource 'deploy.sh'
-        def pipelineParams = [:]
-        body.resolveStrategy = Closure.DELEGATE_FIRST
-        body.delegate = pipelineParams
-        body()
-        
-        
-pipeline {
+    def deployScript = libraryResource 'deploy.sh'
+    def pipelineParams = [:]
+    body.resolveStrategy = Closure.DELEGATE_FIRST
+    body.delegate = pipelineParams
+    body()
+
+    pipeline {
         agent {
             node {
                 label "${pipelineParams.agent}"
@@ -19,7 +18,7 @@ pipeline {
             }
         }
         stages {
-            // cloning public sunbird-devops
+            // cloning public sunbird-devops and private repo
             stage('checkout git') {
                 steps {
                     checkout scm
