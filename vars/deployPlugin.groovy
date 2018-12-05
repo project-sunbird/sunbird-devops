@@ -6,8 +6,7 @@ def call(body) {
     body.delegate = pipelineParams
     body()
 
-    node {
-            label "${pipelineParams.agent}"
+    node(pipelineParams.agent){
             env.METADATA_FILE = "${pipelineParams.artifactName}"
             env.ARTIFACT_LABEL = "${pipelineParams.artifactLabel}"
             env.ENV = "${pipelineParams.env}"

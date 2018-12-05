@@ -1,8 +1,7 @@
 // common plugin to clone code and build
 def call(Map pipelineParams) {
 def installDeps = libraryResource 'installDeps.sh'
-    node {
-        label "${pipelineParams.agent}"
+    node(pipelineParams.agent){
             // cloning public sunbird-devops
         stage('checkout git') {
             // checkout scm
