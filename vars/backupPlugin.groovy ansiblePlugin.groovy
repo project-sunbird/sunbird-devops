@@ -1,4 +1,4 @@
-// common plugin to clone code and build
+// common plugin to general ansible tasks
 def call(Map pipelineParams) {
 def installDeps = libraryResource 'installDeps.sh'
     node(pipelineParams.agent){
