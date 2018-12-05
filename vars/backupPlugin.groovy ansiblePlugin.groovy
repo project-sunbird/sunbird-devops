@@ -1,8 +1,14 @@
 // common plugin to general ansible tasks
-def call(Map pipelineParams) {
-def installDeps = libraryResource 'installDeps.sh'
+def call(body) {
+
+    def installDeps = libraryResource 'installDeps.sh'
+    def pipelineParams = [:]
+    body.resolveStrategy = Closure.DELEGATE_FIRST
+    body.delegate = pipelineParams
+    body()
+
     node(pipelineParams.agent){
-        // cloning public sunbird-devops
+        // cloning public sunbird-devops and private repo
         stage('checkout git') {
             checkout scm
             dir('sunbird-devops'){
