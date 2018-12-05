@@ -24,11 +24,9 @@ def call(body) {
             }
 
             stage('Deploy') {
-                    script{
-                        step ([$class: 'CopyArtifact',
-                        projectName: pipelineParams.parentProject,
-                        filter: pipelineParams.artifactName]);
-                    }
+                    step ([$class: 'CopyArtifact',
+                    projectName: pipelineParams.parentProject,
+                    filter: pipelineParams.artifactName]);
                     sh deployScript
                     archiveArtifacts 'metadata.json'
             }
