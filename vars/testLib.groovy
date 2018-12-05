@@ -10,11 +10,11 @@ def call(body) {
         agent {
             node {
                 label "${pipelineParams.agent}"
-                env.METADATA_FILE = "${pipelineParams.artifactName}"
-                env.ARTIFACT_LABEL = "${pipelineParams.artifactLabel}"
-                env.ENV = "${pipelineParams.env}"
-                env.SERVICE_NAME = "${pipelineParams.serviceName}"
-                env.DEPLOY_EXTRA_ARGS = "${pipelineParams.deployExtraArgs}"
+                env.METADATA_FILE "${pipelineParams.artifactName}"
+                env.ARTIFACT_LABEL "${pipelineParams.artifactLabel}"
+                env.ENV "${pipelineParams.env}"
+                env.SERVICE_NAME "${pipelineParams.serviceName}"
+                env.DEPLOY_EXTRA_ARGS "${pipelineParams.deployExtraArgs}"
             }
         }
         stages {
