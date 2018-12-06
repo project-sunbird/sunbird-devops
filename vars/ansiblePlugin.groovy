@@ -19,7 +19,6 @@ def call(body) {
         stage('Backup') {
             sh """
             ls
-            apk -v --update --no-cache add ansible jq
             ansible-playbook -i ansible/inventories/${pipelineParams.env} sunbird-devops/ansible/${pipelineParams.playBook} ${pipelineParams.ansibleExtraArgs}
             """
         }
