@@ -19,7 +19,8 @@ def call(body) {
         stage('Backup') {
             sh """
             ls
-            ansible-playbook -i ansible/inventories/${pipelineParams.env} sunbird-devops/ansible/${pipelineParams.playBook} ${pipelineParams.ansibleExtraArgs}
+            ansible-playbook -i ansible/inventories/${pipelineParams.env} \
+            sunbird-devops/ansible/${pipelineParams.playBook} ${pipelineParams.ansibleExtraArgs}
             """
         }
     }
