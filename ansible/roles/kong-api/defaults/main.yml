@@ -56,7 +56,7 @@ telemetry_service_url: "http://telemetry-service:9001"
 player_service_url: "http://player_player:3000"
 echo_service_url: "http://api-manager_echo:9595"
 am_util_url: http://adminutil_adminutil:4000
-config_service_url: http://config-service:8080
+config_service_url: "http://config-service:8080"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -335,7 +335,23 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: courseEnrolment
     request_path: "{{ course_service_prefix }}/v1/enrol"
-    upstream_url: "{{ learning_service_url }}/v1/course/enrol"
+    upstream_url: "{{ learning_service_url }}/v1/course/enroll"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: courseUnEnrolment
+    request_path: "{{ course_service_prefix }}/v1/unenrol"
+    upstream_url: "{{ learning_service_url }}/v1/course/unenroll"
     strip_request_path: true
     plugins:
     - name: jwt
@@ -935,6 +951,41 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: registerMobileAppOpenRAP
+    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_app_openrap/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/mobile_app_openrap/credential/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: mobileAdminOpenRAP
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: registerMobileDeviceOpenRAP
+    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_device_openrap/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/mobile_device_openrap/credential/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: mobileAppOpenRAP
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: compositeSearch
     request_path: "{{ composite_service_prefix }}/v1/search"
     upstream_url: "{{ content_service_url }}/v1/search"
@@ -2932,7 +2983,7 @@ kong_apis:
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: createForm
     request_path: "{{ data_service_prefix }}/v1/form/create"
-    upstream_url: "{{ content_service_url }}/v1/data/form/create"
+    upstream_url: "{{ player_service_url }}/plugin/v1/form/create"
     strip_request_path: true
     plugins:
     - name: jwt
@@ -2948,7 +2999,7 @@ kong_apis:
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: updateForm
     request_path: "{{ data_service_prefix }}/v1/form/update"
-    upstream_url: "{{ content_service_url }}/v1/data/form/update"
+    upstream_url: "{{ player_service_url }}/plugin/v1/form/update"
     strip_request_path: true
     plugins:
     - name: jwt
@@ -3012,7 +3063,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readForm
     request_path: "{{ data_service_prefix }}/v1/form/read"
-    upstream_url: "{{ content_service_url }}/v1/data/form/read"
+    upstream_url: "{{ player_service_url }}/plugin/v1/form/read"
     strip_request_path: true
     plugins:
     - name: cors
@@ -3157,7 +3208,7 @@ kong_apis:
   # Data pipeline
   - name: "datasetSubmitRequest"
     request_path: "{{ data_service_prefix }}/v3/dataset/request/submit"
-    upstream_url: "{{ learning_analytics_service_url }}/dataset/request/submit"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/request/submit"
     strip_request_path: true
     plugins:
      - {name: 'jwt'}
@@ -3168,7 +3219,7 @@ kong_apis:
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "datasetReadRequest"
     request_path: "{{ data_service_prefix }}/v3/dataset/request/read"
-    upstream_url: "{{ learning_analytics_service_url }}/dataset/request/read"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/request/read"
     strip_request_path: true
     plugins:
      - {name: 'jwt'}
@@ -3179,7 +3230,7 @@ kong_apis:
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "datasetListRequest"
     request_path: "{{ data_service_prefix }}/v3/dataset/request/list"
-    upstream_url: "{{ learning_analytics_service_url }}/dataset/request/list"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/request/list"
     strip_request_path: true
     plugins:
      - {name: 'jwt'}
@@ -3191,7 +3242,7 @@ kong_apis:
 
   - name: "channelSpecificTelemetryExhaust"
     request_path: "{{ data_service_prefix }}/v3/dataset/get"
-    upstream_url: "{{ learning_analytics_service_url }}/dataset/get"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/get"
     strip_request_path: true
     plugins:
      - {name: 'jwt'}
@@ -3224,28 +3275,6 @@ kong_apis:
      - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
-  - name: "updateSystemSettings"
-    request_path: "{{ data_service_prefix }}/v1/system/settings"
-    upstream_url: "{{ learning_service_url }}/v1/system/settings"
-    strip_request_path: true
-    plugins:
-     - {name: 'jwt'}
-     - {name: 'cors'}
-     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
-     - {name: 'acl', config.whitelist: 'dataAdmin'}
-     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
-     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
-  - name: "updateSystemSettings"
-    request_path: "{{ data_service_prefix }}/v1/system/settings"
-    upstream_url: "{{ learning_service_url }}/v1/system/settings"
-    strip_request_path: true
-    plugins:
-     - {name: 'jwt'}
-     - {name: 'cors'}
-     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
-     - {name: 'acl', config.whitelist: 'dataAdmin'}
-     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
-     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "addSystemSettings"
     request_path: "{{ data_service_prefix }}/v1/system/setting/set"
     upstream_url: "{{ learning_service_url }}/v1/system/setting/set"
@@ -3268,16 +3297,27 @@ kong_apis:
      - {name: 'acl', config.whitelist: 'dataAdmin'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
-  - name: "getAllSystemSettings"
-    request_path: "{{ data_service_prefix }}/v1/system/setting/list"
-    upstream_url: "{{ learning_service_url }}/v1/system/setting/list"
+  - name: "getConfigStatus"
+    request_path: "{{ config_service_prefix }}/v1/status"
+    upstream_url: "{{ config_service_url }}/config-service/v1/status"
     strip_request_path: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
      - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
      - {name: 'acl', config.whitelist: 'dataAdmin'}
-     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: "getConfigHealth"
+    request_path: "{{ config_service_prefix }}/v1/health"
+    upstream_url: "{{ config_service_url }}/config-service/v1/health"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'dataAdmin'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: onboardConsumer
     request_path: "{{ api_manager_perfix }}/v1/consumer/create/jwt"
