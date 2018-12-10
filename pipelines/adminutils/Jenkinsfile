@@ -18,17 +18,17 @@ def getValues() {
 def values = getValues()
 def publicBranch = gitBranch
 
-copyArtifacts filter: 'metadata.json', projectName: 'staging/testabc'
+copyArtifacts filter: 'metadata.json', projectName: 'test/player_build'
 env.imagename = sh(returnStdout: true, script: 'cat metadata.json').trim()
 println imagename
 
 // Backing up cassandra
 ansiblePlugin{
-    agent = values.agent
+    agent = build-slave
     branch = publicBranch
     image_name = imagename
     scmUrl = 'https =//github.com/project-sunbird/sunbird-devops.git'
     env = values.env
     playBook = 'docker_push.yml'
-    ansibleExtraArgs = '--vault-password-file /run/secrets/vault-pass, image_name'
+    ansibleExtraArgs = ' agent, --vault-password-file /run/secrets/vault-pass, image_name'
 }
