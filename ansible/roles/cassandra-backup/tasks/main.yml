@@ -1,14 +1,24 @@
 - name: Create the directory
   become: yes
-  file: path=/data/cassandra/ state=directory recurse=yes
+  file: path=/data/cassandra/backup state=directory recurse=yes
   
 - name: copy the backup script 
   become: yes
-  template: src=cassandra_backup.j2  dest=/home/deployer/cassandra_backup.sh mode=0755 
+  template: src=cassandra_backup.j2  dest=/data/cassandra/backup/cassandra_backup.py mode=0755 
+
+- set_fact:
+    cassandra_backup_gzip_file_name: "cassandra-backup-{{ lookup('pipe', 'date +%Y%m%d') }}"
+ 
+- set_fact:
+    cassandra_backup_gzip_file_path: "{{ cassandra_backup_dir }}/{{ cassandra_backup_gzip_file_name }}.tar.gz"
 
 - name: run the backup script
   become: yes
-  shell: sh /home/deployer/cassandra_backup.sh
+  shell: python cassandra_backup.py "{{ cassandra_backup_gzip_file_name }}" -d "{{ data_dir }}"
+  args:
+    chdir: /data/cassandra/backup
+  async: 7200
+  poll: 30
   
 - name: Check doc_root path
   shell: ls -all /data/cassandra/backup/
@@ -17,13 +27,6 @@
 - name: print doc_root to console
   debug:
     var: doc_data    
-    
-- set_fact:
-    cassandra_backup_gzip_file_name: "cassandra_backup_{{ lookup('pipe', 'date +%Y%m%d') }}.zip"
- 
-
-- set_fact:
-    cassandra_backup_gzip_file_path: "{{ cassandra_backup_dir }}/{{ cassandra_backup_gzip_file_name }}"
  
 - name: Ensure azure blob storage container exists
   command: az storage container create  --name {{ cassandra_backup_azure_container_name }}
@@ -33,7 +36,7 @@
     AZURE_STORAGE_KEY: "{{ cassandra_backup_azure_storage_access_key }}"
  
 - name: Upload to azure blob storage
-  command: az storage blob upload --name {{ cassandra_backup_gzip_file_name }} --file {{ cassandra_backup_gzip_file_path }} --container-name {{ cassandra_backup_azure_container_name }}
+  command: az storage blob upload --name "{{ cassandra_backup_gzip_file_name }}".tar.gz --file {{ cassandra_backup_gzip_file_path }} --container-name {{ cassandra_backup_azure_container_name }}
   environment:
     AZURE_STORAGE_ACCOUNT: "{{ cassandra_backup_azure_storage_account_name }}"
     AZURE_STORAGE_KEY: "{{ cassandra_backup_azure_storage_access_key }}"
@@ -42,4 +45,3 @@
        
 - name: clean up backup dir after upload
   file: path="{{ cassandra_backup_dir }}" state=absent
- 

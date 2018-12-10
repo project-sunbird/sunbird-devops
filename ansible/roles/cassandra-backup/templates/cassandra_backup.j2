@@ -1,63 +1,68 @@
-#!/bin/sh
+#!/usr/bin/env python3
 
-export PATH=/sbin:/bin:/usr/sbin:/usr/bin:/opt/java/bin
+# Author: Rajesh Rajendran <rjshrjndrn@gmail.com>
 
-DATE=`date +%Y%m%d`
+'''
+Create a snapshot and create tar ball in targetdirectory name
 
-SNAME="snapshot-$DATE"
+usage: script snapshot_name
 
-BACKUPDIRECTORY="/data/cassandra/backup/"
+eg: ./cassandra_backup.py my_snapshot
+'''
 
-if [ ! -d "$BACKUPDIRECTORY" ]; then
-        echo "Directory $BACKUPDIRECTORY not found, creating..."
-        mkdir $BACKUPDIRECTORY
-fi
+from os import path, walk, sep, system, getcwd, makedirs
+from argparse import ArgumentParser 
+from shutil import rmtree, ignore_patterns, copytree
+from re import match, compile
+from sys import exit
+from tempfile import mkdtemp
 
-if [ ! -d "$BACKUPDIRECTORY" ]; then
-        echo "Directory $BACKUPDIRECTORY not found, exit..."
-        exit
-fi
+parser = ArgumentParser(description="Create a snapshot and create tar ball inside tardirectory")
+parser.add_argument("-d","--datadirectory", metavar="datadir",  default='/data/cassandra/data', help="path to create the tarball. Default /var/lib/cassadra/data")
+parser.add_argument("snapshotname", help="name in which you want to take the snapshot")
+parser.add_argument("-t","--tardirectory", metavar="tardir",  default=getcwd(), help="path to create the tarball. Default {}".format(getcwd()))
+args = parser.parse_args()
 
-echo
-echo "Snapshot name: $SNAME"
-echo "Clear all snapshots"
-nodetool -h 127.0.0.1 clearsnapshot
+# Create temporary directory to copy data
+tmpdir=mkdtemp()
+makedirs(tmpdir+sep+"cassandra_backup")
 
-cd $BACKUPDIRECTORY
-pwd
-rm -rf *
+def copy():
+    '''
+    Copying the data sanpshots to the target directory
+    '''
+    root_levels = args.datadirectory.count(sep)
+    ignore_list = compile(tmpdir+sep+"cassandra_backup"+sep+'(system|system|systemtauth|system_traces|system_schema|system_distributed)')
 
-echo "Taking snapshot"
-nodetool -h 127.0.0.1 snapshot -t $SNAME
-SFILES=`ls -1 -d /var/lib/cassandra/data/*/*/snapshots/$SNAME`
-for f in $SFILES
-do
-        echo "Process snapshot $f"
-        TABLE=`echo $f | awk -F/ '{print $(NF-2)}'`
-        KEYSPACE=`echo $f | awk -F/ '{print $(NF-3)}'`
+    try:
+        for root, dirs, files in walk(args.datadirectory):
+            root_target_dir=tmpdir+sep+"cassandra_backup"+sep+sep.join(root.split(sep)[root_levels+1:-2])
+            if match(ignore_list, root_target_dir):
+                continue
+            if root.split(sep)[-1] == args.snapshotname:
+                copytree(src=root, dst=root_target_dir, ignore=ignore_patterns('.*'))
+    except Exception as e:
+        print(e)
 
-        if [ ! -d "$BACKUPDIRECTORY/$SNAME" ]; then
-                mkdir $BACKUPDIRECTORY/$SNAME
-        fi
-
-        if [ ! -d "$BACKUPDIRECTORY/$SNAME/$KEYSPACE" ]; then
-                mkdir $BACKUPDIRECTORY/$SNAME/$KEYSPACE
-        fi
-
-        mkdir $BACKUPDIRECTORY/$SNAME/$KEYSPACE/$TABLE
-        find $f -maxdepth 1 -type f -exec mv -t $BACKUPDIRECTORY/$SNAME/$KEYSPACE/$TABLE/ {} +
-done
-cd /var/lib/cassandra/
-zip -r cassandra_backup_`date +%Y%m%d`.zip data
-cp -r  cassandra_backup_`date +%Y%m%d`.zip $BACKUPDIRECTORY
-cd -
-# cd $BACKUPDIRECTORY
-# zip -r  cassandra_backup_`date +%Y%m%d`.zip snap* 
-echo "Clear Incremental Backups"
-
-SFILES=`ls -1 -d /var/lib/cassandra/data/*/*/backups/`
-for f in $SFILES
-do
-        echo "Clear $f"
-        rm -f $f*
-done
+# Creating schema
+command = "cqlsh -e 'DESC SCHEMA' > {}/cassandra_backup/db_schema.cql".format(tmpdir)
+rc = system(command)
+if rc != 0:
+    print("Couldn't backup schema, exiting...")
+    exit(1)
+print("Schema backup completed. saved in {}/cassandra_backup/db_schema.sql".format(tmpdir))
+# Cleaning all old snapshots
+command = "nodetool clearsnapshot"
+system(command)
+# Creating snapshots
+command = "nodetool snapshot -t {}".format(args.snapshotname)
+rc = system(command)
+if rc == 0:
+    print("Snapshot taken.")
+    copy()
+    print("Making a tarball: {}.tar.gz".format(args.snapshotname))
+    command = "cd {} && tar -czvf {}/{}.tar.gz *".format(tmpdir, args.tardirectory, args.snapshotname)
+    system(command)
+    # Cleaning up backup directory
+    rmtree(tmpdir)
+    print("Cassandra backup completed and stored in {}/{}.tar.gz".format(args.tardirectory,args.snapshotname))

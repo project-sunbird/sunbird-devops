@@ -1,19 +1,29 @@
-- name: ensure backup dir exists
-  file: path="{{ prometheus_backup_dir }}" state=directory
+- name: ensure prometheus is stopped before backup
+  shell: "docker service scale monitor_prometheus=0"
+  delegate_to: "{{groups['swarm-bootstrap-manager'][0]}}"
 
-- name: ensure backup dir is empty
-  shell: "rm -rf {{ prometheus_backup_dir }}/*"
+- name: Starting Prometheus backup 
+  block:
+    - name: ensure backup dir exists
+      file: path="{{ prometheus_backup_dir }}" state=directory
 
-- set_fact:
-    prometheus_backup_gzip_file_name: "prometheus_backup_{{ lookup('pipe', 'date +%Z-%Y-%m-%d-%H-%M-%S') }}.tar.gz"
+    - name: ensure backup dir is empty
+      shell: "rm -rf {{ prometheus_backup_dir }}/*"
 
-- set_fact:
-    prometheus_backup_gzip_file_path: "{{ prometheus_backup_dir }}/{{ prometheus_backup_gzip_file_name }}"
+    - set_fact:
+        prometheus_backup_gzip_file_name: "prometheus_backup_{{ lookup('pipe', 'date +%Z-%Y-%m-%d-%H-%M-%S') }}.tar.gz"
 
-- name: Save backup
-  shell: "tar -czf {{ prometheus_backup_gzip_file_path }} -P {{prometheus_data_dir}} --warning=no-file-changed"
-  async: 3600
-  poll: 10
+    - set_fact:
+        prometheus_backup_gzip_file_path: "{{ prometheus_backup_dir }}/{{ prometheus_backup_gzip_file_name }}"
+
+    - name: Save backup
+      archive:
+        path: "{{prometheus_data_dir}}"
+        dest: "{{prometheus_backup_gzip_file_path}}"
+  always:
+    - name: ensure prometheus is started after backup
+      shell: "docker service scale monitor_prometheus=1"
+      delegate_to: "{{groups['swarm-bootstrap-manager'][0]}}"
 
 - name: Ensure azure blob storage container exists
   command: az storage container create  --name {{ prometheus_backup_azure_container_name }}
@@ -27,7 +37,7 @@
   environment:
     AZURE_STORAGE_ACCOUNT: "{{ backup_storage_name }}"
     AZURE_STORAGE_KEY: "{{ backup_storage_key }}"
-  async: 5000
+  async: 3600
   poll: 10
 
 - name: clean up backup dir after upload
