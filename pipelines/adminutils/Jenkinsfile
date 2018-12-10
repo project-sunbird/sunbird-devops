@@ -1,0 +1,34 @@
+
+// Importing deploy configuration
+@Library('deploy-conf') _
+
+// Defining env specific variables
+def getValues() {
+    if (environment == "dev") {
+        return [env: 'dev',
+                agent: 'general-dev']
+    }
+    else {
+        return [env: 'staging',
+                agent: 'general-staging']
+    }
+}
+
+// Getting env specific values
+def values = getValues()
+def publicBranch = gitBranch
+
+copyArtifacts filter: 'metadata.json', projectName: 'test_jobs/player_build'
+def image_name = sh 'cat metadata.json'
+
+
+// Backing up cassandra
+ansiblePlugin{
+    agent = values.agent
+    branch = publicBranch
+    image_name = image_name
+    scmUrl = 'https =//github.com/project-sunbird/sunbird-devops.git'
+    env = values.env
+    playBook = 'docker_push.yml'
+    ansibleExtraArgs = '--vault-password-file /run/secrets/vault-pass'
+}
