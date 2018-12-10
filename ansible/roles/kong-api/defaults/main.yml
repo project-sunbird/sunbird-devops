@@ -14,7 +14,7 @@ statsd_pulgin:
 
 # Default Rate limits
 small_rate_limit_per_hour: 100
-medium_rate_limit_per_hour: 1000
+medium_rate_limit_per_hour: 5000
 x_medium_rate_limit_per_hour: 5000
 large_rate_limit_per_hour: 10000
 x2_large_rate_limit_per_hour: 15000
@@ -48,6 +48,8 @@ framework_service_prefix: /framework
 badge_service_prefix: /badging
 plugin_service_prefix: /plugins
 config_service_prefix: /config
+textbook_service_prefix: /textbook
+lock_service_prefix: /lock
 
 # Service URLs
 content_service_url: "http://content-service:5000"
@@ -445,6 +447,22 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: createUserVersion3
+    request_path: "{{ user_service_prefix }}/v3/create"
+    upstream_url: "{{ learning_service_url }}/v3/user/create"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: userUpdate
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"  
   - name: updateUser
     request_path: "{{ user_service_prefix }}/v1/update"
     upstream_url: "{{ learning_service_url }}/v1/user/update"
@@ -477,6 +495,22 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: getUserProfileV2
+    request_path: "{{ user_service_prefix }}/v2/read"
+    upstream_url: "{{ learning_service_url }}/v2/user/read"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: publicUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"  
   - name: searchUser
     request_path: "{{ user_service_prefix }}/v1/search"
     upstream_url: "{{ learning_service_url }}/v1/user/search"
@@ -1225,7 +1259,7 @@ kong_apis:
       config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: orgBulkUpload
     request_path: "{{ org_service_prefix }}/v1/upload"
     upstream_url: "{{ learning_service_url }}/v1/org/upload"
@@ -1241,7 +1275,7 @@ kong_apis:
       config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: checkUploadJobStatus
     request_path: "{{ data_service_prefix }}/v1/upload/status"
     upstream_url: "{{ learning_service_url }}/v1/upload/status"
@@ -1258,6 +1292,22 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: getUploadJobStatusLink
+    request_path: "{{ data_service_prefix }}/v1/upload/statusDownloadLink"
+    upstream_url: "{{ learning_service_url }}/v1/upload/statusDownloadLink"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: appAdmin
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"    
   - name: createBatch
     request_path: "{{ course_service_prefix }}/v1/batch/create"
     upstream_url: "{{ learning_service_url }}/v1/course/batch/create"
@@ -2220,8 +2270,8 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateSystemSettings
-    request_path: "{{ data_service_prefix }}/v1/system/settings"
-    upstream_url: "{{ learning_service_url }}/v1/system/settings"
+    request_path: "{{ data_service_prefix }}/v1/system/settings/list"
+    upstream_url: "{{ learning_service_url }}/v1/system/settings/list"
     strip_request_path: true
     plugins:
     - name: jwt
@@ -3204,6 +3254,118 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: updateCollaborators
+    request_path: "{{ content_service_prefix }}/v1/collaborator/update"
+    upstream_url: "{{ content_service_url }}/v1/content/collaborator/update"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: contentUpdate
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: reserveDialcode
+    request_path: "{{ dialcode_service_prefix }}/v1/reserve"
+    upstream_url: "{{ content_service_url }}/v1/dialcode/reserve"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: dialcodeAdmin
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: releaseDialcode
+    request_path: "{{ dialcode_service_prefix }}/v1/release"
+    upstream_url: "{{ content_service_url }}/v1/dialcode/release"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: dialcodeAdmin
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: createLock
+    request_path: "{{ lock_service_prefix }}/v1/create"
+    upstream_url: "{{ content_service_url }}/v1/lock/create"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: contentUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: refreshLock
+    request_path: "{{ lock_service_prefix }}/v1/refresh"
+    upstream_url: "{{ content_service_url }}/v1/lock/refresh"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: contentUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: retireLock
+    request_path: "{{ lock_service_prefix }}/v1/retire"
+    upstream_url: "{{ content_service_url }}/v1/lock/retire"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: contentUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: listLock
+    request_path: "{{ lock_service_prefix }}/v1/list"
+    upstream_url: "{{ content_service_url }}/v1/lock/list"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   # Data pipeline
   - name: "datasetSubmitRequest"
@@ -3239,10 +3401,30 @@ kong_apis:
      - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
-
+  - name: "deviceRegister"
+    request_path: "/v3/device/register"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/v1/device/register"
+    strip_request_path: true
+    plugins:
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "channelSpecificTelemetryExhaust"
     request_path: "{{ data_service_prefix }}/v3/dataset/get"
     upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/get"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "dataproductsCumulativeMetrics"
+    request_path: "{{ data_service_prefix }}/v3/metrics"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/metrics"
     strip_request_path: true
     plugins:
      - {name: 'jwt'}
@@ -3276,8 +3458,8 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "addSystemSettings"
-    request_path: "{{ data_service_prefix }}/v1/system/setting/set"
-    upstream_url: "{{ learning_service_url }}/v1/system/setting/set"
+    request_path: "{{ data_service_prefix }}/v1/system/settings/set"
+    upstream_url: "{{ learning_service_url }}/v1/system/settings/set"
     strip_request_path: true
     plugins:
      - {name: 'jwt'}
@@ -3287,8 +3469,8 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "getSystemSettings"
-    request_path: "{{ data_service_prefix }}/v1/system/setting/read"
-    upstream_url: "{{ learning_service_url }}/v1/system/setting/get"
+    request_path: "{{ data_service_prefix }}/v1/system/settings/get"
+    upstream_url: "{{ learning_service_url }}/v1/system/settings/get"
     strip_request_path: true
     plugins:
      - {name: 'jwt'}
@@ -3351,3 +3533,35 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: uploadTOC
+    request_path: "{{ textbook_service_prefix }}/v1/toc/upload"
+    upstream_url: "{{ learning_service_url }}/v1/textbook/toc/upload"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: downloadTOC
+    request_path: "{{ textbook_service_prefix }}/v1/toc/download"
+    upstream_url: "{{ learning_service_url }}/v1/textbook/toc/download"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
