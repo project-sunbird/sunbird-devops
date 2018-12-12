@@ -17,7 +17,7 @@ def call(body) {
        stage('Push') {
            sh """
            ansible-playbook -i ansible/inventories/${pipelineParams.env} \
-           sunbird-devops/ansible/${pipelineParams.playBook} ${pipelineParams.ansibleExtraArgs}
+           ansible/${pipelineParams.playBook} ${pipelineParams.ansibleExtraArgs}
            """
        }
    }
