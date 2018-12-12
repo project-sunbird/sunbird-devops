@@ -1,17 +1,21 @@
 ---
 - name: "Push docker images to Azure container registory"
-  hosts: jenkins_build
+  hosts: localhost
+  vars_files:
+    - ['{{inventory_path}}/secrets.yml']
   become: yes
+  environment:
+   PYTHONPATH: /home/ops/.local/lib/python2.7/site-packages/
   tasks:
     - name: login to ACR
       docker_login: 
-        registry: {{ docker_registery_url }} 
-        username: {{ docker_registery_user }}
-        password: {{ vault_docker_registory }}
+        registry: "{{ vault_docker_registery_url }}"
+        username: "{{ vault_docker_registery_user }}"
+        password: "{{ vault_docker_registory }}"
         reauth: yes
     
     - name: Push image to registry
       docker_image:
-        name: {{ image_name }}
-        repository: {{ docker_registry_url }}/{{ image_name}}
+        name: "{{ image_name }}"
+        repository: "{{ vault_docker_registery_url }}/{{ image_name}}"
         push: yes
