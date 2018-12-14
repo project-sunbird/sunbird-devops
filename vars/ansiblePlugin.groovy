@@ -13,7 +13,7 @@ def call(Map pipelineParams) {
             println pipelineParams.env
             println pipelineParams.ansiblePlaybook
             println pipelineParams.ansibleExtraArgs
-            sh ""'
+            sh """
             ansible-playbook -i $WORKSPACE/sunbird-devops-private/ansible/inventories/$pipelineParams.env \
             $WORKSPACE/ansible/$pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs -vvv
             """
