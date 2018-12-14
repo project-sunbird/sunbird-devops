@@ -15,8 +15,12 @@ def call(){
   }
   
   // Get the parent dir of where the job resides. This will be used to obtain the inventory file
-  stage('get parent dir'){
-    parentDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[0].trim()
+  stage('get job name and parent dir'){
+    listLength = sh(returnStdout: true, script: "echo $JOB_NAME").split('/').length
+    parentDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[length - 2].trim()
+    env.jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[length -1].split('_')[0].trim()
+    println parentDir
+    println jobname
     values.put('env', parentDir)
   }
   
@@ -25,8 +29,6 @@ def call(){
   // Example - player_build, player_deploy
   stage('append map values'){
     println private_repo_branch
-    env.jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[1].split('_')[0].trim()
-    println jobname
     ansiblePlaybook = sh(returnStdout: true, script: 'jq -r .$jobname.playbook properties.json')
     scmUrl = sh(returnStdout: true, script: 'jq -r .$jobname.scmUrl properties.json')
     vaultFile = sh(returnStdout: true, script: 'jq -r .$jobname.vaultFile properties.json')
