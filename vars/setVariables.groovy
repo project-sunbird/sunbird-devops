@@ -24,6 +24,7 @@ def call(){
   // First part of job name should match the name provided in the json file
   // Example - player_build, player_deploy
   stage('append map values'){
+    println private_repo_branch
     env.jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[1].split('_')[0].trim()
     println jobname
     ansiblePlaybook = sh(returnStdout: true, script: 'jq -r .$jobname.playbook properties.json')
