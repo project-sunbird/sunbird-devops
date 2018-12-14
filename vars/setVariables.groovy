@@ -29,9 +29,9 @@ def call(){
   // Example - player_build, player_deploy
   stage('append map values'){
     println private_repo_branch
-    ansiblePlaybook = sh(returnStdout: true, script: 'jq -r .$jobname.playbook properties.json')
-    scmUrl = sh(returnStdout: true, script: 'jq -r .$jobname.scmUrl properties.json')
-    vaultFile = sh(returnStdout: true, script: 'jq -r .$jobname.vaultFile properties.json')
+    ansiblePlaybook = sh(returnStdout: true, script: 'jq -r .$jobname.playbook properties.json').trim()
+    scmUrl = sh(returnStdout: true, script: 'jq -r .$jobname.scmUrl properties.json').trim()
+    vaultFile = sh(returnStdout: true, script: 'jq -r .$jobname.vaultFile properties.json').trim()
     values.put('ansiblePlaybook', ansiblePlaybook)
     values.put('scmUrl', scmUrl)
     values.put('vaultFile', vaultFile)
