@@ -15,7 +15,7 @@ def call(Map pipelineParams) {
             println pipelineParams.ansibleExtraArgs
             sh """
             ansible-playbook -i $WORKSPACE/sunbird-devops-private/ansible/inventories/$pipelineParams.env \
-            $WORKSPACE/ansible/$pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs -vvv
+            $WORKSPACE/ansible/$pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
             """
         }
     }
