@@ -33,6 +33,10 @@ def call(){
     values.put('scmUrl', scmUrl)
     values.put('vaultFile', vaultFile)
     values.put('branch', private_repo_branch)
+    if (private_credentials == "")
+       values.put('credentials', 'f37ad21f-744a-4817-9f5e-02f8ec620b39')
+    else
+      values.put('credentials', private_credentials)
     return values
   }
 }
