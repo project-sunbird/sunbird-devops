@@ -1,26 +1,20 @@
 // common plugin to general ansible tasks
-def call(body) {
-
-    def installDeps = libraryResource 'installDeps.sh'
-    def pipelineParams = [:]
-    body.resolveStrategy = Closure.DELEGATE_FIRST
-    body.delegate = pipelineParams
-    body()
+def call(Map pipelineParams) {
 
     node(pipelineParams.agent){
         // cloning public sunbird-devops and private repo
-        stage('checkout git') {
-            checkout scm
-            dir('sunbird-devops'){
-            git branch: pipelineParams.branch, url: pipelineParams.scmUrl
+        stage('checkout private repo') {
+            dir('sunbird-devops-private'){
+            git branch: pipelineParams.branch, url: pipelineParams.scmUrl, credentialsId: pipelineParams.credentials
             }
         }
 
-        stage('Backup') {
-            sh """
-            ansible-playbook -i ansible/inventories/${pipelineParams.env} \
-            sunbird-devops/ansible/${pipelineParams.playBook} ${pipelineParams.ansibleExtraArgs}
-            """
+        stage('ansible') {
+//            sh """
+//            ansible-playbook -i ansible/inventories/${pipelineParams.env} \
+//            sunbird-devops/ansible/${pipelineParams.playBook} ${pipelineParams.ansibleExtraArgs}
+//            """
+              sh "echo $pipelineParams"
         }
     }
 }
