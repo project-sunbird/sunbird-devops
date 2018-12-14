@@ -1,27 +1,14 @@
 @Library('deploy-conf') _
- 
-def getValues(){
-   def parentDir = sh(returnStdout: true, script: 'basename $(dirname $PWD)').trim()
-   if (parentDir == "dev")
-     return [label: 'bronze', env: 'dev', agent: 'master']
-   else if (parentDir == "staging")
-     return [label: 'silver', env: 'staging', agent: 'master']
- }
 
 node(){
-def values = getValues()
-def publicBranch = gitBranch
-
-copyArtifacts filter: 'metadata.json', projectName: 'test_jobs/player_build'
-env.imageName = sh(returnStdout: true, script: 'cat metadata.json').trim()
-println imageName
-ansiblePlugin {
-       agent = "11.3.0.4-ed3fd24c"
-       branch = publicBranch
-       scmUrl = 'https://github.com/ekstep/sunbird-devops.git'
-//       artifactLabel = values.label
-       env = "dev"
-       playBook = "docker_image_push.yml"
-       ansibleExtraArgs = '--extra-vars image_name="$imageName" --vault-password-file /home/ops/vault'
-   }
+def values = setVariables()
+ if (values.metadataPath == "manual")
+       copyArtifacts filter: 'metadata.json', projectName: "$metadataPath"
+    else
+       copyArtifacts filter: 'metadata.json', projectName: values.metadataPath
+imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').trim()
+agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json).trim()
+values.put('imageName', imageName)
+values.put('agent', agent)
+ansiblePlugin(values)
 }
