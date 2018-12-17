@@ -15,7 +15,7 @@ def call(){
   }
   
   // Get the parent dir of where the job resides. This will be used to obtain the inventory file
-  stage('get job name and parent dir'){
+  stage('check env'){
     listLength = sh(returnStdout: true, script: "echo $JOB_NAME").split('/').length
     parentDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[listLength - 2].trim()
     env.jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[listLength -1].split('_')[0].trim()
@@ -27,15 +27,23 @@ def call(){
   // Parse the json property file and append the values to the map. This will make use of the job name
   // First part of job name should match the name provided in the json file
   // Example - player_build, player_deploy
-  stage('append map values'){
-    println private_repo_branch
-    ansiblePlaybook = sh(returnStdout: true, script: 'jq -r .$jobname.playbook properties.json').trim()
-    scmUrl = sh(returnStdout: true, script: 'jq -r .$jobname.scmUrl properties.json').trim()
+  stage('read props'){
+    // Common
+    scmUrl = sh(returnStdout: true, script: 'jq -r .$common.scmUrl properties.json').trim()
     vaultFile = sh(returnStdout: true, script: 'jq -r .$jobname.vaultFile properties.json').trim()
-    values.put('ansiblePlaybook', ansiblePlaybook)
+    
+    // Job specific
+    ansiblePlaybook = sh(returnStdout: true, script: 'jq -r .$jobname.playbook properties.json').trim()
+    serviceName = sh(returnStdout: true, script: 'jq -r .$jobname.serviceName properties.json').trim()
+    deployExtraArgs = sh(returnStdout: true, script: 'jq -r .$jobname.deployExtraArgs properties.json').trim()
+    
     values.put('scmUrl', scmUrl)
     values.put('vaultFile', vaultFile)
+    values.put('ansiblePlaybook', ansiblePlaybook)
+    values.put('serviceName', serviceName)
+    values.put('deployExtraArgs', deployExtraArgs)
     values.put('branch', private_repo_branch)
+    
     if (private_credentials == "")
        values.put('credentials', 'f37ad21f-744a-4817-9f5e-02f8ec620b39')
     else
@@ -43,4 +51,3 @@ def call(){
     return values
   }
 }
-
