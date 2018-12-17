@@ -26,8 +26,9 @@ pipeline {
                         projectName: pipelineParams.parentProject,
                         filter: pipelineParams.artifactName]);
                     }
-                    sh deployScript
-                    archiveArtifacts 'metadata.json'
+//                    sh deployScript
+//                    archiveArtifacts 'metadata.json'
+                      println pipelineParams
                 }
             }
         }
