@@ -12,7 +12,7 @@ pipeline {
             }
         }
         stages {
-           stage('checkout private repo') {
+           stage('checkout') {
                     dir('sunbird-devops-private'){
                     sh 'pwd && ls -lrth'
                     println pipelineParams.branch
