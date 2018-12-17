@@ -14,7 +14,6 @@ def deployScript = libraryResource 'deploy.sh'
             }
         }
             stage('Deploy') {
-                steps {
                     sh 'ls'
                     script{
                         step ([$class: 'CopyArtifact',
@@ -24,7 +23,6 @@ def deployScript = libraryResource 'deploy.sh'
 //                    sh deployScript
 //                    archiveArtifacts 'metadata.json'
                       println pipelineParams
-                }
             }
        }
 }
