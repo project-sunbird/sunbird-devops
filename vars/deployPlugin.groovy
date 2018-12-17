@@ -1,28 +1,32 @@
-def call(Map pipelineParams) {
-def deployScript = libraryResource 'deploy.sh'
-        
+def call(Map pipelineParams) { 
  node(pipelineParams.agent){             
-                env.METADATA_FILE = pipelineParams.artifactName
-                env.ARTIFACT_LABEL = pipelineParams.artifactLabel
-                env.ENV = pipelineParams.env
-                env.SERVICE_NAME = pipelineParams.serviceName
-                env.DEPLOY_EXTRA_ARGS = pipelineParams.deployExtraArgs
-        
          stage('checkout private repo') {
             dir('sunbird-devops-private'){
             git branch: pipelineParams.branch, url: pipelineParams.scmUrl, credentialsId: pipelineParams.credentials
             }
         }
             stage('Deploy') {
-                    sh 'ls'
-                    script{
-                        step ([$class: 'CopyArtifact',
-                        projectName: pipelineParams.parentProject,
-                        filter: pipelineParams.artifactName]);
-                    }
-//                    sh deployScript
-//                    archiveArtifacts 'metadata.json'
-                      println pipelineParams
+                org = sh(returnStdout: true, script: 'jq -r .org metadata.json').trim()
+                name = sh(returnStdout: true, script: 'jq -r .name metadata.json').trim()
+                version= sh(returnStdout: true, script: 'jq -r .version metadata.json').trim()
+                artifactLabel = sh(returnStdout: true, script: '${pipelineParams.artifactLabel:-bronze}').trim()
+                environ = sh(returnStdout: true, script: '${pipelineParams.env:-null}').trim()
+
+                println "artifactLabel:  $artifactLabel"
+                println "env:            $environ"
+                println "org:            $org"
+                println "name:           $name"
+                println "version:        $version"
+                println "ANSIBLE_PATH:   $ANSIBLE_PATH"
+
+                println pipelineParams    
+//                sh """ 
+//                ansible-playbook -i $WORKSPACE/ansible/inventories/$environ \ 
+//                $WORKSPACE/sunbird-devops/ansible/$pipelineParams.ansiblePlaybook \
+//                --tags "stack-sunbird" --extra-vars "hub_org=$org image_name=$name image_tag=$version-$artifactLabel \
+//                service_name=$pipelineParams.serviceName $pipelineParams.deployExtraArgs" \
+//                --vault-password-file $pipelineParams.vaultFile
+//                """
             }
        }
 }
