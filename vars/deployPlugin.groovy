@@ -14,6 +14,10 @@ pipeline {
         stages {
            stage('checkout private repo') {
                     dir('sunbird-devops-private'){
+                    sh 'pwd && ls -lrth'
+                    println pipelineParams.branch
+                    println        pipelineParams.scmUrl
+                     println       pipelineParams.credentials
                     git branch: pipelineParams.branch, url: pipelineParams.scmUrl, credentialsId: pipelineParams.credentials
                 }
             }
