@@ -9,15 +9,12 @@ def call(){
     if (triggerCause != null)
          triggerCause = triggerCause.split()[4].replaceAll('"', '')
     values.put('parentProject', triggerCause)
-    println triggerCause
   }
   
   // Get the parent dir of where the job resides. This will be used to obtain the inventory file
   stage('check env'){
     parentDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
     env.jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
-    println parentDir
-    println jobname
     values.put('env', parentDir)
   }
   
