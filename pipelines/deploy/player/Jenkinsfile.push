@@ -4,17 +4,22 @@ node(){
 checkout scm
 println private_repo_branch
 def values = setVariables()
- if (values.metadataPath == "manual")
-       copyArtifacts filter: 'metadata.json', projectName: "$metadataPath"
+ if (values.metadataFile != null)
+       copyArtifacts filter: 'metadata.json', projectName: values.metadataFile
     else
-       copyArtifacts filter: 'metadata.json', projectName: values.metadataPath
+       copyArtifacts filter: 'metadata.json', projectName: $metadataFile
+
 archiveArtifacts 'metadata.json'
+
 imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').trim()
 agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
 values.put('imageName', imageName)
 values.put('agent', agent)
-ansibleExtraArgs = "--extra-vars \"image_name=$values.imageName\" --vault-password-file $values.vaultFile".trim()
-println ansibleExtraArgs
+
+ansibleExtraArgs = """--extra-vars "image_name=$values.imageName" --vault-password-file $values.vaultFile""".trim()
 values.put('ansibleExtraArgs', ansibleExtraArgs)
+
+println values
+
 ansiblePlugin(values)
 }
