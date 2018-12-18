@@ -8,7 +8,7 @@ def call(){
     triggerCause = upstream?.shortDescription
     if (triggerCause != null)
          triggerCause = triggerCause.split()[4].replaceAll('"', '')
-    values.put('metadataFile', triggerCause)
+    values.put('parentProject', triggerCause)
     println triggerCause
   }
   
