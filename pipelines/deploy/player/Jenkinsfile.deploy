@@ -2,31 +2,22 @@
 
 node(){
 checkout scm
-
 def values = setVariables()
-
 if (values.parentProject != null)
-       copyArtifacts filter: 'metadata.json', projectName: values.parentProject
-    else {
-       copyArtifacts filter: 'metadata.json', projectName: params.parentProject
-       values.put('parentProject', params.parentProject)
-       }
-
+    copyArtifacts filter: 'metadata.json', projectName: values.parentProject
+else {
+    copyArtifacts filter: 'metadata.json', projectName: params.parentProject
+    values.put('parentProject', params.parentProject)
+ }
 archiveArtifacts 'metadata.json'
-
 agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
 imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').trim()
 values.put('agent', agent)
 values.put('imageName', imageName)
-
 image_tag = (params.image_tag != "") ? params.image_tag : 'latest'
-
 ansibleExtraArgs = """--tags "stack-sunbird" --extra-vars "hub_org=$hub_org \
 image_name=$values.imageName image_tag=$image_tag service_name=$values.serviceName \
 $values.deployExtraArgs --vault-password-file $values.vaultFile""".trim()
-
 values.put('ansibleExtraArgs', ansibleExtraArgs)
-println values    
-
 ansiblePlugin(values)
 }
