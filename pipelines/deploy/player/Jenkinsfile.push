@@ -1,26 +1,18 @@
 @Library('deploy-conf') _
 
 node(){
-
 checkout scm
 def values = setVariables()
-
  if (values.parentProject != null)
        copyArtifacts filter: 'metadata.json', projectName: values.parentProject
  else
-       copyArtifacts filter: 'metadata.json', projectName: params.parentProject
-        
+       copyArtifacts filter: 'metadata.json', projectName: params.parentProject        
 archiveArtifacts 'metadata.json'
-
 imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').trim()
 agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
 values.put('imageName', imageName)
 values.put('agent', agent)
-
 ansibleExtraArgs = """--extra-vars "image_name=$values.imageName" --vault-password-file $values.vaultFile""".trim()
 values.put('ansibleExtraArgs', ansibleExtraArgs)
-
-println values
-
 ansiblePlugin(values)
 }
