@@ -2,15 +2,13 @@
 
 node(){
 checkout scm
-println private_repo_branch
-def values = setVariables()
 
-println parentProject
+def values = setVariables()
 
 if (values.parentProject != null)
        copyArtifacts filter: 'metadata.json', projectName: values.parentProject
     else
-       copyArtifacts filter: 'metadata.json', projectName: parentProject
+       copyArtifacts filter: 'metadata.json', projectName: params.parentProject
 
 archiveArtifacts 'metadata.json'
 
@@ -19,7 +17,7 @@ imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').tri
 values.put('agent', agent)
 values.put('imageName', imageName)
 
-image_tag = (image_tag != "") ? image_tag : 'latest'
+image_tag = (params.image_tag != "") ? params.image_tag : 'latest'
 
 ansibleExtraArgs = """--tags "stack-sunbird" --extra-vars "hub_org=$hub_org \
 image_name=$values.imageName image_tag=$image_tag service_name=$values.serviceName \
