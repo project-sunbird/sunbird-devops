@@ -1,18 +1,33 @@
-@Library('deploy-conf') _
 
 node(){
-checkout scm
-def values = setVariables()
- if (values.parentProject != null)
-       copyArtifacts filter: 'metadata.json', projectName: values.parentProject
- else
-       copyArtifacts filter: 'metadata.json', projectName: params.parentProject        
-archiveArtifacts 'metadata.json'
-imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').trim()
-agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
-values.put('imageName', imageName)
-values.put('agent', agent)
-ansibleExtraArgs = """--extra-vars "image_name=$values.imageName" --vault-password-file $values.vaultFile""".trim()
-values.put('ansibleExtraArgs', ansibleExtraArgs)
-ansiblePlugin(values)
+    try {
+        stage('checkout public repo') {
+            checkout scm
+        }
+
+        stage('define variables') {
+            def values = setVariables()
+            if (values.parentProject == null && params.parentProject == "")
+                error 'Please specify project name to copy metedata.json file as a parameter to job or set it as a Jenkins environment variable'
+
+            if (values.parentProject != null)
+                copyArtifacts filter: 'metadata.json', projectName: values.parentProject
+            else
+                copyArtifacts filter: 'metadata.json', projectName: params.parentProject
+            
+            imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').trim()
+            agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
+            values.put('imageName', imageName)
+            values.put('agent', agent)
+            ansibleExtraArgs = """--extra-vars "image_name=$values.imageName" --vault-password-file $values.vaultFile""".trim()
+            values.put('ansibleExtraArgs', ansibleExtraArgs)
+            ansiblePlugin(values)
+            archiveArtifacts 'metadata.json'
+        }
+    }
+
+    catch (Exception e)
+    {
+        println e.stackTrace()
+    }
 }
