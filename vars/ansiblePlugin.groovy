@@ -5,9 +5,9 @@ def call(Map pipelineParams) {
         // cloning public sunbird-devops and private repo
         stage('checkout private repo') {
             if (params.private_repo_branch != "")
-                values.put('privateBranch', params.private_repo_branch)
+                pipelineParams.put('privateBranch', params.private_repo_branch)
             else
-                values.put('privateBranch', params.private_repo_branch)
+                pipelineParams.put('privateBranch', private_repo_branch)
             dir('sunbird-devops-private'){
             git branch: pipelineParams.privateBranch, url: pipelineParams.scmUrl, credentialsId: private_repo_credentials
             }
