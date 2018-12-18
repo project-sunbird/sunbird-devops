@@ -6,19 +6,16 @@ def call(){
     values = [:]
     def upstream = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
     triggerCause = upstream?.shortDescription
-    if (triggerCause == null)
-       triggerCause = "manual"
-    else
-      triggerCause = triggerCause.split()[4].replaceAll('"', '')
-    values.put('metadataPath', triggerCause)
+    if (triggerCause != null)
+         triggerCause = triggerCause.split()[4].replaceAll('"', '')
+    values.put('metadataFile', triggerCause)
     println triggerCause
   }
   
   // Get the parent dir of where the job resides. This will be used to obtain the inventory file
   stage('check env'){
-    listLength = sh(returnStdout: true, script: "echo $JOB_NAME").split('/').length
-    parentDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[listLength - 2].trim()
-    env.jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[listLength -1].split('_')[0].trim()
+    parentDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+    env.jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
     println parentDir
     println jobname
     values.put('env', parentDir)
@@ -30,7 +27,7 @@ def call(){
   stage('read props'){
     // Common
     scmUrl = sh(returnStdout: true, script: 'jq -r .$common.scmUrl properties.json').trim()
-    vaultFile = sh(returnStdout: true, script: 'jq -r .$jobname.vaultFile properties.json').trim()
+    vaultFile = sh(returnStdout: true, script: 'jq -r .$common.vaultFile properties.json').trim()
     
     // Job specific
     ansiblePlaybook = sh(returnStdout: true, script: 'jq -r .$jobname.playbook properties.json').trim()
@@ -43,11 +40,7 @@ def call(){
     values.put('serviceName', serviceName)
     values.put('deployExtraArgs', deployExtraArgs)
     values.put('branch', private_repo_branch)
-    
-    if (private_credentials == "")
-       values.put('credentials', 'f37ad21f-744a-4817-9f5e-02f8ec620b39')
-    else
-      values.put('credentials', private_credentials)
+    values.put('credentials', private_credentials)
     return values
   }
 }
