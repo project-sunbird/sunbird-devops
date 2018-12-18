@@ -1,17 +1,15 @@
 @Library('deploy-conf') _
 
 node(){
-checkout scm
-println private_repo_branch
-def values = setVariables()
 
-println parentProject
+checkout scm
+def values = setVariables()
 
  if (values.parentProject != null)
        copyArtifacts filter: 'metadata.json', projectName: values.parentProject
-    else
-       copyArtifacts filter: 'metadata.json', projectName: parentProject
-
+ else
+       copyArtifacts filter: 'metadata.json', projectName: params.parentProject
+        
 archiveArtifacts 'metadata.json'
 
 imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').trim()
