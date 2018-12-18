@@ -8,6 +8,10 @@ def call(Map pipelineParams) {
                 pipelineParams.put('privateBranch', params.private_repo_branch)
             else
                 pipelineParams.put('privateBranch', private_repo_branch)
+           
+            println pipelineParams.privateBranch
+            println private_repo_branch
+            
             dir('sunbird-devops-private'){
             git branch: pipelineParams.privateBranch, url: pipelineParams.scmUrl, credentialsId: private_repo_credentials
             }
