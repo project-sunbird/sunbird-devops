@@ -13,6 +13,7 @@ def call(Map pipelineParams) {
             println private_repo_branch
             
             dir('sunbird-devops-private'){
+                println private_repo_credentials
             git branch: pipelineParams.privateBranch, url: pipelineParams.scmUrl, credentialsId: private_repo_credentials
             }
         }
