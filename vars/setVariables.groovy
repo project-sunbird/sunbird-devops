@@ -26,8 +26,8 @@ def call(){
   // Example - player_build, player_deploy
   stage('read props'){
     // Common
-    scmUrl = sh(returnStdout: true, script: 'jq -r .$common.scmUrl properties.json').trim()
-    vaultFile = sh(returnStdout: true, script: 'jq -r .$common.vaultFile properties.json').trim()
+    scmUrl = sh(returnStdout: true, script: 'jq -r .common.scmUrl properties.json').trim()
+    vaultFile = sh(returnStdout: true, script: 'jq -r .common.vaultFile properties.json').trim()
     
     // Job specific
     ansiblePlaybook = sh(returnStdout: true, script: 'jq -r .$jobname.playbook properties.json').trim()
