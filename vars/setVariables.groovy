@@ -39,10 +39,6 @@ def call(){
     values.put('ansiblePlaybook', ansiblePlaybook)
     values.put('serviceName', serviceName)
     values.put('deployExtraArgs', deployExtraArgs)
-    values.put('branch', private_repo_branch)
-    
-    println private_credentials
-    values.put('credentials', private_credentials)
     return values
   }
 }
