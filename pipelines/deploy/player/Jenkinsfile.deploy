@@ -7,12 +7,22 @@ def values = setVariables()
 agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
 org = sh(returnStdout: true, script: 'jq -r .org metadata.json').trim()
 name = sh(returnStdout: true, script: 'jq -r .name metadata.json').trim()
-version= sh(returnStdout: true, script: 'jq -r .version metadata.json').trim()                
+version = sh(returnStdout: true, script: 'jq -r .version metadata.json').trim()    
+hubuser = sh(returnStdout: true, script: 'jq -r .hubuser metadata.json').trim()
+commitHash = sh(returnStdout: true, script: 'jq -r .commitHash metadata.json').trim()
 
 values.put('agent', agent)
+values.put('org', org)
+values.put('name', name)
+values.put('version', version)
+values.put('hubuser', hubuser)
+values.put('commitHash', commitHash)
 values.put('artifactLabel', 'bronze')
-values.put('parentProject', parentProject)
-values.put('deployExtraArgs', 'deploy_player=True')
+
+ansibleExtraArgs = """--tags "stack-sunbird" --extra-vars "hub_org=$pipelineParams.org \
+image_name=$pipelineParams.name image_tag=$pipelineParams.version-$pipelineParams.artifactLabel \
+service_name=$pipelineParams.serviceName $pipelineParams.deployExtraArgs"""
+
 println pipelineParams    
 
 deployPlugin(values)
