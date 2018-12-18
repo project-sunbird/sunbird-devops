@@ -3,11 +3,17 @@
 node(){
 checkout scm
 def values = setVariables()
-values.put('agent', 'general-dev')
-values.put('serviceName', 'player-service')
+
+agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
+org = sh(returnStdout: true, script: 'jq -r .org metadata.json').trim()
+name = sh(returnStdout: true, script: 'jq -r .name metadata.json').trim()
+version= sh(returnStdout: true, script: 'jq -r .version metadata.json').trim()                
+
+values.put('agent', agent)
 values.put('artifactLabel', 'bronze')
-values.put('artifactName', 'metadata.json')
 values.put('parentProject', parentProject)
 values.put('deployExtraArgs', 'deploy_player=True')
+println pipelineParams    
+
 deployPlugin(values)
 }
