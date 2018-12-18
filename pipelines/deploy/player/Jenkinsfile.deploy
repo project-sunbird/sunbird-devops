@@ -5,25 +5,17 @@ checkout scm
 def values = setVariables()
 
 agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
-org = sh(returnStdout: true, script: 'jq -r .org metadata.json').trim()
-name = sh(returnStdout: true, script: 'jq -r .name metadata.json').trim()
-version = sh(returnStdout: true, script: 'jq -r .version metadata.json').trim()    
-hubuser = sh(returnStdout: true, script: 'jq -r .hubuser metadata.json').trim()
-commitHash = sh(returnStdout: true, script: 'jq -r .commitHash metadata.json').trim()
-
+imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').trim()
 values.put('agent', agent)
-values.put('org', org)
-values.put('name', name)
-values.put('version', version)
-values.put('hubuser', hubuser)
-values.put('commitHash', commitHash)
-values.put('artifactLabel', 'bronze')
+values.put('imageName', imageName)
 
-ansibleExtraArgs = """--tags "stack-sunbird" --extra-vars "hub_org=$pipelineParams.org \
-image_name=$pipelineParams.name image_tag=$pipelineParams.version-$pipelineParams.artifactLabel \
-service_name=$pipelineParams.serviceName $pipelineParams.deployExtraArgs"""
+image_tag = ($image_tag != "") ? $image_tag : 'latest'
+
+ansibleExtraArgs = """--tags "stack-sunbird" --extra-vars "hub_org=$hub_org \
+image_name=$pipelineParams.imageName image_tag=$image_tag service_name=$pipelineParams.serviceName \
+$pipelineParams.deployExtraArgs --vault-password-file $pipelineParams.vaultFile"""
 
 println pipelineParams    
 
-deployPlugin(values)
+ansiblePlugin(values)
 }
