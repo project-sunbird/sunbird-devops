@@ -1,23 +1,46 @@
 @Library('deploy-conf') _
 
-node(){
-checkout scm
-def values = setVariables()
-if (values.parentProject != null)
-    copyArtifacts filter: 'metadata.json', projectName: values.parentProject
-else {
-    copyArtifacts filter: 'metadata.json', projectName: params.parentProject
-    values.put('parentProject', params.parentProject)
- }
-archiveArtifacts 'metadata.json'
-agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
-imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').trim()
-values.put('agent', agent)
-values.put('imageName', imageName)
-image_tag = (params.image_tag != "") ? params.image_tag : 'latest'
-ansibleExtraArgs = """--tags "stack-sunbird" --extra-vars "hub_org=$hub_org \
-image_name=$values.imageName image_tag=$image_tag service_name=$values.serviceName \
-$values.deployExtraArgs --vault-password-file $values.vaultFile""".trim()
-values.put('ansibleExtraArgs', ansibleExtraArgs)
-ansiblePlugin(values)
+node() {
+    try {
+        stage('checkout public repo') {
+            checkout scm
+        }
+
+        stage('define variables') {
+            def values = setVariables()
+
+            if (values.parentProject == null && params.parentProject == "")
+                error 'Please specify project name to copy metedata.json file as a parameter to job or set it as a Jenkins environment variable'
+
+            if (hub_org == "")
+                error 'Please set a Jenkins environment variable named hub_org and value as sunbird'
+
+            if (values.parentProject != null)
+                copyArtifacts filter: 'metadata.json', projectName: values.parentProject
+            else {
+                copyArtifacts filter: 'metadata.json', projectName: params.parentProject
+                values.put('parentProject', params.parentProject)
+            }
+
+            agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
+            imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').trim()
+            values.put('agent', agent)
+            values.put('imageName', imageName)
+            
+            image_tag = (params.image_tag != "") ? params.image_tag : 'latest'
+            if (image_tag == "latest")
+                println "Image tag not specified, using the latest image"
+
+            ansibleExtraArgs = """--tags "stack-sunbird" --extra-vars "hub_org=$hub_org \
+            image_name=$values.imageName image_tag=$image_tag service_name=$values.serviceName \
+            $values.deployExtraArgs --vault-password-file $values.vaultFile""".trim()
+
+            values.put('ansibleExtraArgs', ansibleExtraArgs)
+            ansiblePlugin(values)
+            archiveArtifacts 'metadata.json'
+        }
+    }
+    catch (Exception e) {
+        println e.stackTrace()
+    }
 }
