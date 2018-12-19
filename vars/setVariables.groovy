@@ -18,7 +18,7 @@ def call(){
             env.jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
             values.put('env', parentDir)
 
-            def file = new File(properties.json)
+            def file = new File("$WORKSPACE/properties.json")
             if(!file.exists())
                 error 'properties.json file is missing in projects root directoy'
 
