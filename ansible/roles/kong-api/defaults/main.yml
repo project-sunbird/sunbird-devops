@@ -447,22 +447,6 @@ kong_apis:
       config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-  - name: createUserVersion3
-    request_path: "{{ user_service_prefix }}/v3/create"
-    upstream_url: "{{ learning_service_url }}/v3/user/create"
-    strip_request_path: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: userUpdate
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"  
   - name: updateUser
     request_path: "{{ user_service_prefix }}/v1/update"
@@ -2279,7 +2263,7 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: dataUpdate
+      config.whitelist: publicUser
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3477,7 +3461,7 @@ kong_apis:
      - {name: 'jwt'}
      - {name: 'cors'}
      - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
-     - {name: 'acl', config.whitelist: 'dataAdmin'}
+     - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "getConfigStatus"
