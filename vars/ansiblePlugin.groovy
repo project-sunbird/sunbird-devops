@@ -27,8 +27,8 @@ def call(Map pipelineParams) {
 //            """
             }
         }
-        catch (Exception e){
-            println e.stackTrace()
+        catch (err){
+            throw err
         }
     }
 }
