@@ -166,10 +166,10 @@ echo -e "\e[0;33m${bold}Validating the config file...${normal}"
 
 # An array of mandatory values
 declare -a arr=("env" "implementation_name" "ssh_ansible_user" "dns_name" "proto" "cert_path" "key_path" "keycloak_admin_password" \
-                "sso_password" "trampoline_secret" "backup_storage_key" "badger_admin_password" "badger_admin_email" "ekstep_api_base_url" \
+                "sso_password" "backup_storage_key" "badger_admin_password" "badger_admin_email" "ekstep_api_base_url" \
                 "ekstep_proxy_base_url" "ekstep_api_key" "sunbird_image_storage_url" "sunbird_azure_storage_key" "sunbird_azure_storage_account" \
                 "sunbird_custodian_tenant_name" "sunbird_custodian_tenant_description" "sunbird_custodian_tenant_channel" "sunbird_root_user_firstname" \
-                "sunbird_root_user_lastname" "sunbird_root_user_username" "sunbird_root_user_password" "sunbird_root_user_email" "sunbird_root_user_phone" \
+                "sunbird_root_user_username" "sunbird_root_user_password" "sunbird_root_user_email" "sunbird_root_user_phone" \
                 "sunbird_sso_publickey" "app_address_space" "application_host" "database_host" "sudo_passwd" \
                 "ansible_private_key_path" "elasticsearch_host" "cassandra_host" "postgres_master_host" "database_password" "postgres_keycloak_password" \
                 "postgres_app_password" "postgres_kong_password" "postgres_badger_password" "cassandra_password")
@@ -204,8 +204,8 @@ case $key in
        fi
        ;;
    ekstep_api_base_url)
-       if [[ ! "$value" =~ ^(https://api-qa.ekstep.in|https://api.ekstep.in)$ ]]; then
-          echo -e "\e[0;31m${bold}ERROR - Valid values for $key are https://api.ekstep.in or https://api-qa.ekstep.in${normal}"; fail=1
+       if [[ ! "$value" =~ ^(https://api-qa.ekstep.in|https://api.ekstep.in|https://qa.ekstep.in/api)$ ]]; then
+          echo -e "\e[0;31m${bold}ERROR - Valid values for $key are https://api.ekstep.in or https://api-qa.ekstep.in or https://qa.ekstep.in/api${normal}"; fail=1
        fi
        ;;
    ekstep_proxy_base_url)
@@ -274,7 +274,7 @@ case $key in
        if [[ $value != "" ]]; then
            check_ip $key $value
        elif [[ $value == "" &&  ${vals[database_host]} == "" ]]; then
-           echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value OR provide value for database_host which will be default DB${normal}"; fail=1
+           echo -e "\e[0;31m${bold}ERROR - Value for $key cannot be empty. Please fill this value OR provide value for database_host${normal}"; fail=1
        fi
        ;;
    database_password)
@@ -282,7 +282,7 @@ case $key in
        ;;
    postgres_keycloak_password|postgres_app_password|postgres_kong_password|postgres_badger_password|cassandra_password)
        if [[ ${vals[database_password]} == "" && $value == "" ]]; then
-          echo -e "\e[0;31m${bold}ERROR - Value for $key is empty. Please provide fill this value OR provide value for database_password which will be default password${normal}"; fail=1
+          echo -e "\e[0;31m${bold}ERROR - Value for $key is empty. Please fill this value OR provide value for database_password${normal}"; fail=1
        fi
        ;;
 
