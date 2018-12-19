@@ -13,6 +13,8 @@ def call(Map pipelineParams) {
                 else if (env.private_repo_branch) {
                     pipelineParams.put('privateBranch', private_repo_branch)
                     println "Branch not specified as a parameter, checking out branch specified as environment variable - $private_repo_branch"
+                else
+                    error 'Unable to determine private repo branch to checkout'
                 }
                 dir('sunbird-devops-private') {
                     git branch: pipelineParams.privateBranch, url: pipelineParams.scmUrl, credentialsId: private_repo_credentials
