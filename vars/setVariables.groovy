@@ -42,7 +42,7 @@ def call(){
             return values
         }
     }
-    catch (Exception e){
-        println e.stackTrace()
+    catch (err){
+        throw err
     }
 }
