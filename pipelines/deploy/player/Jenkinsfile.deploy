@@ -28,7 +28,8 @@ node() {
             image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
             image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
             values.put('agent', agent)
-            values.put('imageName', imageName)
+            values.put('image_name', image_name)
+            values.put('image_tag', image_tag)
             
 //            image_tag = (params.image_tag != "" && params.image_tag != null) ? params.image_tag : 'latest'
             if (image_tag == "latest")
@@ -36,7 +37,7 @@ node() {
 
             ansibleExtraArgs = """\
                                --tags "stack-sunbird" --extra-vars "hub_org=$hub_org
-                               image_name=$values.imageName image_tag=$image_tag service_name=$values.serviceName
+                               image_name=$values.image_name image_tag=$values.image_tag service_name=$values.serviceName
                                $values.deployExtraArgs" --vault-password-file $values.vaultFile
                                """.stripIndent().replace("\n"," ")
 
