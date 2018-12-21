@@ -17,11 +17,13 @@ node(){
             else 
                 error 'Unable to determine project path to copy metadata.json file'
             
-            imageName = sh(returnStdout: true, script: 'jq -r .imageName metadata.json').trim()
+            image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
+            image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
             agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
-            values.put('imageName', imageName)
+            values.put('image_name', image_name)
+            values.put('image_tag', image_tag)
             values.put('agent', agent)
-            ansibleExtraArgs = """--extra-vars "image_name=$values.imageName" --vault-password-file $values.vaultFile""".trim()
+            ansibleExtraArgs = """--extra-vars "image_name=$values.image_name image_tag=$values.image_tag" --vault-password-file $values.vaultFile""".trim()
             values.put('ansibleExtraArgs', ansibleExtraArgs)
             ansiblePlugin(values)
             archiveArtifacts 'metadata.json'
