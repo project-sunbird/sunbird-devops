@@ -24,17 +24,26 @@ node() {
             else
                error 'Unable to determine project path to copy metadata.json file'
 
+            if (params.image_name == "") {
+               println "Image name not specified, using the image name specified in metadata.json"
+               image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
+               println image_name
+            }
+            else
+               image_name = params.image_name
+            
+            if (params.image_tag == "") {
+               println "Image tag not specified, using the latest image"
+               image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
+            }
+            else
+               image_tag = params.image_tag
+            
             agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
-            image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
-            image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
             values.put('agent', agent)
             values.put('image_name', image_name)
             values.put('image_tag', image_tag)
             
-//            image_tag = (params.image_tag != "" && params.image_tag != null) ? params.image_tag : 'latest'
-            if (image_tag == "latest")
-                println "Image tag not specified, using the latest image"
-
             ansibleExtraArgs = """\
                                --tags "stack-sunbird" --extra-vars "hub_org=$hub_org
                                image_name=$values.image_name image_tag=$values.image_tag service_name=$values.serviceName
