@@ -14,9 +14,9 @@ def call(){
 
         stage('read properties') {
             // Get the parent dir of where the job resides. This will be used to obtain the inventory file
-            parentDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+            envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
             env.jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
-            values.put('env', parentDir)
+            values.put('env', envDir)
 
             def file = new File("$WORKSPACE/properties.json")
             if(!file.exists())
