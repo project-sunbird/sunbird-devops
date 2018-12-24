@@ -4,22 +4,18 @@
   vars_files:
     - ['{{inventory_dir}}/secrets.yml']
   become: yes
-#  environment:
-#   PYTHONPATH: /home/ops/.local/lib/python2.7/site-packages/
   tasks:
     - name: login to ACR
-      docker_login: 
+      docker_login:
         registry: "{{ vault_docker_registery_url }}"
         username: "{{ vault_docker_registery_user }}"
         password: "{{ vault_docker_registory }}"
-        reauth: yes
-    
-    - name: Push version image to registry
-      docker_image:
-        name: "{{ vault_docker_registery_url }}/{{ hub_org }}/{{ image_name }}:{{ image_tag }}"
-        push: yes
 
-    - name: Push latest image to registry
+    - name: Push image to registry
       docker_image:
-        name: "{{ vault_docker_registery_url }}/{{ hub_org }}/{{ image_name }}:{{ image_tag }}"
+        name: "{{ hub_org }}/{{ image_name }}:{{ item }}"
+        repository: "{{ vault_docker_registery_url }}"
         push: yes
+      with_items:
+       - "{{ image_tag }}"
+       - latest
