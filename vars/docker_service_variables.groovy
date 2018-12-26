@@ -4,14 +4,49 @@ def call(){
         // Check if the job was triggered by an upstream project
         // If yes, get the name of the upstream project else job was started manually
         stage('check upstream') {
-            if (!env.hub_org)
-                error 'Please set a Jenkins environment variable named hub_org and value as sunbird'
             values = [:]
             def upstream = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
             triggerCause = upstream?.shortDescription
             if (triggerCause != null)
                 triggerCause = triggerCause.split()[4].replaceAll('"', '')
-            values.put('parentProject', triggerCause)
+            values.put('parent_project', triggerCause)
+        }
+        
+        stage('parameter checks'){
+            // Set Jenkins environment variable hub_org to registry_hub/sunbirded
+            // If registry used is docker hub, registry_hub will be blank
+            // If using azure hub, set registry_hub to azure repo path
+            if (!env.hub_org)
+                error 'Please set a Jenkins environment variable named hub_org and value as registry_hub/sunbirded'
+
+            if (values.parent_project == null && (params.parent_project == "" || params.parent_project == null))
+                error 'Please specify project name to copy metedata.json file as a job parameter'
+
+            if (values.parent_project != null)
+                copyArtifacts filter: 'metadata.json', projectName: values.parent_project
+            else
+                copyArtifacts filter: 'metadata.json', projectName: params.parent_project
+            
+            if (params.image_name == "") {
+               println "Image name not specified, using the image name specified in metadata.json"
+               image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
+               println image_name
+            }
+            else
+               image_name = params.image_name
+            
+            if (params.image_tag == "") {
+               println "Image tag not specified, using the version specified in metadata.json"
+               image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
+            }
+            else
+               image_tag = params.image_tag
+            
+            agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
+            values.put('image_name', image_name)
+            values.put('image_tag', image_tag)
+            values.put('hub_org', hub_org)
+            values.put('agent', agent)
         }
 
         stage('read properties') {
