@@ -7,41 +7,7 @@ node() {
         }
 
         stage('define variables') {
-            def values = setVariables()
-
-            if (values.parentProject == null && (params.parentProject == "" || params.parentProject == null))
-                error 'Please specify project name to copy metedata.json file as a parameter to job or set it as a Jenkins environment variable'
-
-            if (values.parentProject != null)
-                copyArtifacts filter: 'metadata.json', projectName: values.parentProject
-            else if (params.parentProject != "" && params.parentProject != null) {
-                copyArtifacts filter: 'metadata.json', projectName: params.parentProject
-                values.put('parentProject', params.parentProject)
-            }
-            else
-               error 'Unable to determine project path to copy metadata.json file'
-
-            if (params.image_name == "") {
-               println "Image name not specified, using the image name specified in metadata.json"
-               image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
-               println image_name
-            }
-            else
-               image_name = params.image_name
-            
-            if (params.image_tag == "") {
-               println "Image tag not specified, using the version specified in metadata.json"
-               image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
-            }
-            else
-               image_tag = params.image_tag
-            
-            agent = sh(returnStdout: true, script: 'jq -r .nodeName metadata.json').trim()
-            values.put('agent', agent)
-            values.put('image_name', image_name)
-            values.put('image_tag', image_tag)
-            values.put('hub_org', hub_org)
-            
+            def values = docker_service_variables()
             ansibleExtraArgs = """\
                                --tags "stack-sunbird" --extra-vars "hub_org=$hub_org
                                image_name=$values.image_name image_tag=$values.image_tag service_name=$values.serviceName
