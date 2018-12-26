@@ -4,6 +4,8 @@ def call(){
         // Check if the job was triggered by an upstream project
         // If yes, get the name of the upstream project else job was started manually
         stage('check upstream') {
+            if (!env.hub_org)
+                error 'Please set a Jenkins environment variable named hub_org and value as sunbird'
             values = [:]
             def upstream = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
             triggerCause = upstream?.shortDescription
