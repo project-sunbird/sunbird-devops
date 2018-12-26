@@ -6,7 +6,7 @@ def call(Map pipelineParams) {
             stage('checkout private repo') {
 
                 if (!env.private_repo_branch && (params.private_repo_branch == "" || params.private_repo_branch == null))
-                    error 'Please specify private repo branch to checkout as a parameter to job or set it as a Jenkins environment variable'
+                    error 'Please specify parameter private_repo_branch in the job configuration or as a Jenkins environment variable'
 
                 if (params.private_repo_branch != "" && params.private_repo_branch != null)
                     pipelineParams.put('privateBranch', params.private_repo_branch)
