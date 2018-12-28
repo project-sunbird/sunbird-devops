@@ -3,11 +3,20 @@
 # Author: Rajesh Rajendran <rjshrjndrn@gmail.com>
 
 '''
-Create a snapshot and create tar ball in targetdirectory name
+Create cassandra snapshot with specified name,
+and create tar ball in targetdirectory name
+
+By default 
+
+Cassandra data directory : /var/lib/cassandra/data
+Snapshot name            : cassandra_backup-YYYY-MM-DD
+Backup name              : cassandra_backup-YYYY-MM-DD.tar.gz
 
 usage: script snapshot_name
 
 eg: ./cassandra_backup.py
+
+for help ./cassandra_backup.py -h
 '''
 
 from os import path, walk, sep, system, getcwd, makedirs
