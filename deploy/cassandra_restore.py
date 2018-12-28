@@ -10,7 +10,7 @@ To restore the cassandra database snapshot
 
 1. If it's an old cassandra instance, do the following else continue to step 2
    a. stop cassandra
-   b. delete the data
+   b. delete the data (usually sudo rm -rf /var/lib/cassandra/*)
    c. start cassandra
 
 2. Restore the schema
