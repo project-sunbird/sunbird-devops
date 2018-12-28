@@ -3,8 +3,22 @@
 # Author: Rajesh Rajendran <rjshrjndrn@gmail.com>.
 
 """
+
+This script will restore complete backup from the backup data folder.
+
 To restore the cassandra database snapshot
-usage: ./cassandra_restore.py --host <ip of the server> snapshot_directory_name
+
+1. If it's an old cassandra instance, do the following else continue to step 2
+   a. stop cassandra
+   b. delete the data
+   c. start cassandra
+
+2. Restore the schema
+   cqlsh -e "source 'backup_dir/db_schema.cql';" 
+
+3. Restore the data
+   usage: ./cassandra_restore.py --host <ip of the server> snapshot_directory_name
+
 """
 
 from os import walk, sep
