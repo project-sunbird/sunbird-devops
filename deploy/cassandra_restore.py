@@ -14,7 +14,7 @@ To restore the cassandra database snapshot
    c. start cassandra
 
 2. Restore the schema
-   cqlsh -e "source 'backup_dir/db_schema.cql';" 
+   cqlsh -e "source 'backup_dir/db_schema.cql';"
 
 3. Restore the data
    usage: ./cassandra_restore.py --host <ip of the server> snapshot_directory_name
@@ -23,8 +23,7 @@ To restore the cassandra database snapshot
 
 from os import walk, sep
 from subprocess import STDOUT, call
-from argparse import ArgumentParser, SUPPRESS
-from socket import gethostbyname, gethostname
+from argparse import ArgumentParser
 
 parser = ArgumentParser(description="Restore cassandra snapshot")
 parser.add_argument("--host", default="127.0.0.1", help="ip address of cassandra instance. \
@@ -34,6 +33,6 @@ args = parser.parse_args()
 
 root_levels = args.snapshotdir.count(sep)
 for root, dirs, files in walk(args.snapshotdir):
-   if root.count(sep) == root_levels + 2:
+    if root.count(sep) == root_levels + 2:
         print(root)
         call(["sstableloader", "-v", "-d", args.host, root], stderr=STDOUT)
