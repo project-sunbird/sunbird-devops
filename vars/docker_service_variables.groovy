@@ -68,8 +68,10 @@ def call(){
                 error 'Job name and hidden job parameter docker_service_name default value do not match.'
                 
             if (params.docker_service_version == "") {
-               println """Version for docker service - $params.docker_service_version not specified, 
-                        using the version specified in metadata.json"""
+               println """\
+                        Version for docker service - $params.docker_service_version not specified, 
+                        using the version specified in metadata.json.
+                        """.stripIndent().replace("\n"," ")
                docker_service_version = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
             }
             else
