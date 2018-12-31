@@ -15,7 +15,7 @@ def call(){
             referencedParameters: '', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, 
             script: ''], script: [classpath: [], sandbox: false, script: 'return [\'GitHub\', \'Local\']']]], 
             [$class: 'DynamicReferenceParameter', choiceType: 'ET_FORMATTED_HTML', description: '', 
-            name: 'git_info', omitValueField: false, randomName: 'choice-parameter-330141508543294', 
+            name: 'git_info', omitValueField: true, randomName: 'choice-parameter-330141508543294', 
             referencedParameters: 'inventory_source', 
            
             script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: 
