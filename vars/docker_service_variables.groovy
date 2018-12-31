@@ -23,14 +23,14 @@ def call(){
             if(inventory_source.equals(\'GitHub\')){
             return "<b>Git URL</b><input name=\\"value\\" value=\\"${gitUrl}\\" class=\\"setting-input\\" type=\\"text\\"/> <b>Branch</b><input name=\\"value\\" value=\\"${gitBranch}\\" class=\\"setting-input\\" type=\\"text\\"/>"}
             else
-            return "<b>Not Applicable</b>"'''], 
+            return "<b>Not Applicable</b><input name=\"value\" value=\"NA\" type=\"hidden\"/>"'''], 
                  
             script: [classpath: [], sandbox: false, script: 
             '''def gitUrl = "${private_repo_url}", gitBranch = "${private_repo_branch}"
             if(inventory_source.equals(\'GitHub\')){
             return "<b>Git URL</b><input name=\\"value\\" value=\\"${gitUrl}\\" class=\\"setting-input\\" type=\\"text\\"/> <b>Branch</b><input name=\\"value\\" value=\\"${gitBranch}\\"  class=\\"setting-input\\" type=\\"text\\"/>"}
             else
-            return "<b>Not Applicable</b>"''']]], 
+            return "<b>Not Applicable</b><input name=\"value\" value=\"NA\" type=\"hidden\"/>"''']]], 
             
             string(defaultValue: '', description: '', name: 'inventory_path', trim: false)])])
 
