@@ -7,7 +7,7 @@ def call(Map pipelineParams) {
                 
                 if(params.inventory_path == "")
                     error """\
-                           Please specify the absolute path to the inventory file directory for option Local
+                           Please specify the absolute path to the inventory file directory for option Local.
                            If option selected is GitHub, please specifiy inventory path as 
                            $WORKSPACE/private/path_to_inventory
                            """.stripIndent().replace("\n"," ")
