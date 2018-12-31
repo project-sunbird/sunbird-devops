@@ -1,58 +1,10 @@
 @Library('deploy-conf') _
 node(){
-    try {
-    
-// Testing module begin    
-        if (params.size() == 0){
-           env.jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
-           properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], 
-           parameters([[$class: 'WHideParameterDefinition', defaultValue: "$jobname", description: '', 
-           name: 'docker_service_name'], 
-           string(defaultValue: '', description: '', name: 'docker_service_version', trim: false), 
-           string(defaultValue: '', description: '', name: 'copy_metadata_from', trim: false), 
-           [$class: 'WHideParameterDefinition', defaultValue: 'sunbirded.azurecr.io/sunbirded', description: '', 
-           name: 'hub_org'], 
-           [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', description: '', 
-           filterLength: 1, filterable: false, name: 'inventory_source', randomName: 'choice-parameter-330141505859086', 
-           referencedParameters: '', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, 
-           script: ''], script: [classpath: [], sandbox: false, script: 'return [\'GitHub\', \'Local\']']]], 
-           [$class: 'DynamicReferenceParameter', choiceType: 'ET_FORMATTED_HTML', description: '', 
-           name: 'git_info', omitValueField: false, randomName: 'choice-parameter-330141508543294', 
-           referencedParameters: 'inventory_source', 
-           
-           script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: 
-           '''def gitUrl = "", gitBranch = ""
-           if(inventory_source.equals(\'GitHub\')){
-           return "<b>Git URL</b><input name=\\"value\\" value=\\"${gitUrl}\\" class=\\"setting-input\\" type=\\"text\\"/> <b>Branch</b><input name=\\"value\\" value=\\"${gitBranch}\\" class=\\"setting-input\\" type=\\"text\\"/>"}
-           else
-           return "<b>Not Applicable</b>"'''], 
-                
-           script: [classpath: [], sandbox: false, script: 
-           '''def gitUrl = "${private_repo_url}", gitBranch = "${private_repo_branch}"
-           if(inventory_source.equals(\'GitHub\')){
-           return "<b>Git URL</b><input name=\\"value\\" value=\\"${gitUrl}\\" class=\\"setting-input\\" type=\\"text\\"/> <b>Branch</b><input name=\\"value\\" value=\\"${gitBranch}\\"  class=\\"setting-input\\" type=\\"text\\"/>"}
-           else
-           return "<b>Not Applicable</b>"''']]], 
-            
-           string(defaultValue: '', description: '', name: 'inventory_path', trim: false)])])
-
-           ansiColor('xterm') {
-             println "First run of the job. Parameters created. Stopping the current build. Please trigger new build and provide parameters if required"
-           }
-           currentBuild.result = 'SUCCESS'
-           return
-        }
-        else
-             println "params OK"
-
-
-// Testing module end
-
-    
+    try {    
         stage('checkout public repo') {
             checkout scm
         }
-
+        
         stage('define variables') {
             def values = docker_service_variables()     
             ansibleExtraArgs = """\
