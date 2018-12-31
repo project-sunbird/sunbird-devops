@@ -61,8 +61,10 @@ def call(){
 
             if (values.copy_metadata_from != null)
                 copyArtifacts filter: 'metadata.json', projectName: values.copy_metadata_from
-            else
+            else {
                 copyArtifacts filter: 'metadata.json', projectName: params.copy_metadata_from
+                values.put('copy_metadata_from', params.copy_metadata_from)
+            }
             
             if (params.docker_service_name != jobname)
                 error 'Job name and hidden job parameter docker_service_name default value do not match.'
