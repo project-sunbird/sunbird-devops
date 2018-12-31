@@ -1,8 +1,8 @@
 def call(){
 
     try {
+        jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
         if (params.size() == 0){
-            jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], 
             parameters([[$class: 'WHideParameterDefinition', defaultValue: "$jobname", description: '', 
             name: 'docker_service_name'], 
