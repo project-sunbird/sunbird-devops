@@ -71,7 +71,7 @@ def call(){
                 
             if (params.docker_service_version == "") {
                println """\
-                        Version for docker service - $params.docker_service_version not specified, 
+                        Version for docker service - $params.docker_service_name not specified, 
                         using the version specified in metadata.json.
                         """.stripIndent().replace("\n"," ")
                docker_service_version = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
