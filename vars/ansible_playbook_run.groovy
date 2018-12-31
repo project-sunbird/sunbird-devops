@@ -4,29 +4,34 @@ def call(Map pipelineParams) {
         try {
             // cloning public sunbird-devops and private repo
             stage('checkout private repo') {
-
-                if (!env.private_repo_branch && (params.private_repo_branch == "" || params.private_repo_branch == null))
-                    error 'Please specify parameter private_repo_branch in the job configuration or as a Jenkins environment variable'
-
-                if (params.private_repo_branch != "" && params.private_repo_branch != null)
-                    pipelineParams.put('privateBranch', params.private_repo_branch)
-                else if (env.private_repo_branch) {
-                    pipelineParams.put('privateBranch', private_repo_branch)
-                    println "Branch not specified as a parameter, checking out branch specified as environment variable - $private_repo_branch"
+                
+                if(params.inventory_path == "")
+                    error '''Please specify the absolute path to the inventory file directory for option Local
+                    If option selected is GitHub, please specifiy inventory path as $WORKSPACE/private/path_to_inventory'''
+                    
+                if(params.inventory_source == 'GitHub'){
+                    paramsSize = params.git_info.split(',').size()
+                    if(paramsSize != 2)
+                      error '''GitHub option selected during build. Please specify the GitHub URL and Branch to checkout \
+                      You can also set these two values as environment variables with variable name as private_repo_url and
+                      private_repo_branch'''
                 }
-                else
-                    error 'Unable to determine private repo branch to checkout'
-                dir('sunbird-devops-private') {
-                    git branch: pipelineParams.privateBranch, url: pipelineParams.scmUrl, credentialsId: private_repo_credentials
+                    if(!env.private_repo_credentials)
+                       error '''Please create a Jenkins environment variable named private_repo_credentials with value being 
+                       the credential id'''
+                    scmUrl = params.git_info.split(',')[0]
+                    scmBranch = params.git_info.split(',')[1]
+                dir('private') {
+                    git branch: scmBranch, url: scmUrl, credentialsId: private_repo_credentials
                 }
             }
 
             stage('ansible-playbook') {
-                println pipelineParams
-            sh """
-            ansible-playbook -i $WORKSPACE/sunbird-devops-private/ansible/inventories/$pipelineParams.env \
-            $WORKSPACE/ansible/$pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
-            """
+               println pipelineParams
+//               sh """
+//               ansible-playbook -i $WORKSPACE/sunbird-devops-private/ansible/inventories/$pipelineParams.env \
+//               $WORKSPACE/ansible/$pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
+//               """
             }
         }
         catch (err){
