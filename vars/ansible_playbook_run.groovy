@@ -1,6 +1,6 @@
 // common plugin to general ansible tasks
 def call(Map pipelineParams) {
-    node(pipelineParams.agent){
+//    node(pipelineParams.agent){
         try {
             // cloning public sunbird-devops and private repo
             stage('checkout private repo') {
@@ -44,5 +44,5 @@ def call(Map pipelineParams) {
         catch (err){
             throw err
         }
-    }
+//    }
 }
