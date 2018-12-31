@@ -38,8 +38,7 @@ def call(){
               println '''First run of the job. Parameters created. Stopping the current build. 
                          Please trigger new build and provide parameters if required.'''
             }
-            currentBuild.result = 'SUCCESS'
-            return
+            return "first run"
         }
         
         
