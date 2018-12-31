@@ -35,8 +35,10 @@ def call(){
             string(defaultValue: '', description: '', name: 'inventory_path', trim: false)])])
 
             ansiColor('xterm') {
-              println '''First run of the job. Parameters created. Stopping the current build. 
-                         Please trigger new build and provide parameters if required.'''
+              println '''\
+                        First run of the job. Parameters created. Stopping the current build. 
+                        Please trigger new build and provide parameters if required.
+                        '''.stripIndent().replace("\n"," ")
             }
             return "first run"
         }
