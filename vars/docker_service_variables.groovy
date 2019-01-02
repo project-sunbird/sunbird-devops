@@ -32,7 +32,7 @@ def call(){
 
             ansiColor('xterm') {
               println '''\
-                        First run of the job. Parameters created. Stopping the current build. 
+                        First run of the job. Parameters created. Stopping the current build.
                         Please trigger new build and provide parameters if required.
                         '''.stripIndent().replace("\n"," ")
             }
