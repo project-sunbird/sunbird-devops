@@ -81,7 +81,7 @@ def call(){
             values.put('env', envDir)
             values.put('agent', agent)
             values.put('docker_service_name', params.docker_service_name)
-            values.put('docker_service_version', docker_service_name)
+            values.put('docker_service_name', docker_service_name)
             values.put('docker_service_version', docker_service_version)
             return values
         }
