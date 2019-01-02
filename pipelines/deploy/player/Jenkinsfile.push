@@ -11,10 +11,12 @@ node(){
                currentBuild.result = 'SUCCESS'
                return
              }
+            currentWs = sh(returnStdout: true, script: pwd).trim()
             ansibleExtraArgs = """\
                                --extra-vars "hub_org=$hub_org image_name=$params.docker_service_name 
                                image_tag=$params.docker_service_version" --vault-password-file /home/ops/vault
                                """.stripIndent().replace("\n"," ")
+            values.put('currentWs', currentWs)                   
             values.put('ansibleExtraArgs', ansibleExtraArgs)
             ansible_playbook_run(values)
             archiveArtifacts 'metadata.json'
