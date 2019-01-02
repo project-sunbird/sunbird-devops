@@ -56,7 +56,7 @@ def call(){
         
         stage('parameter checks'){
             if(!env.hub_org)
-               error 'Please create a Jenkins environment variabled named hub_org with value as registry/sunbirded.
+               error 'Please create a Jenkins environment variabled named hub_org with value as registry/sunbirded.'
             
             if (values.copy_metadata_from == null && params.copy_metadata_from == "")
                 error 'Please specify project name to copy metedata.json file.'
