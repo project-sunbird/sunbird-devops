@@ -5,9 +5,7 @@ def call(){
         envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
         if (params.size() == 0){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], 
-            parameters([[$class: 'WHideParameterDefinition', defaultValue: "$jobname", description: 'The name of the docker service. There is no need to change this value. Please understand the implication before changing.', 
-            name: 'docker_service_name'], 
-            string(defaultValue: '', description: '<b><font color=teal size=2>The metadata.json file of the last successful build will be copied from this job. Please specify the absolute path to the job.</font></b>', name: 'copy_metadata_from', trim: false),
+            parameters([string(defaultValue: '', description: '<b><font color=teal size=2>The metadata.json file of the last successful build will be copied from this job. Please specify the absolute path to the job.</font></b>', name: 'copy_metadata_from', trim: false),
             string(defaultValue: '', description: '<b><font color=teal size=2>Specify only version/tag, service name is configured within the job. If the value is blank, version will be picked from the metadata.json file.</font></b>', name: 'docker_service_version', trim: false),
             [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', description: '',
             filterLength: 1, filterable: false, name: 'inventory_source', randomName: 'choice-parameter-330141505859086',
@@ -65,8 +63,9 @@ def call(){
                 values.put('copy_metadata_from', params.copy_metadata_from)
             }
             
-            if (params.docker_service_name != jobname)
-                error 'Job name and hidden job parameter docker_service_name default value do not match.'
+//            if (params.docker_service_name != jobname)
+//                error 'Job name and hidden job parameter docker_service_name default value do not match.'
+            docker_service_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
                 
             if (params.docker_service_version == "") {
                println """\
@@ -82,6 +81,7 @@ def call(){
             values.put('env', envDir)
             values.put('agent', agent)
             values.put('docker_service_name', params.docker_service_name)
+            values.put('docker_service_version', docker_service_name)
             values.put('docker_service_version', docker_service_version)
             return values
         }
