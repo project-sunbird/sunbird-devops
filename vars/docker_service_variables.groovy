@@ -2,6 +2,7 @@ def call(){
 
     try {
         jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+        envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
         if (params.size() == 0){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], 
             parameters([[$class: 'WHideParameterDefinition', defaultValue: "$jobname", description: '', 
@@ -32,7 +33,7 @@ def call(){
             else
             return "<b>Not Applicable</b><input name=\\"value\\" value=\\"NA\\" type=\\"hidden\\"/>"''']]], 
             
-            string(defaultValue: '', description: '', name: 'inventory_path', trim: false)])])
+            string(defaultValue: "ansible/inventories/$envDir", description: '', name: 'inventory_path', trim: false)])])
 
             ansiColor('xterm') {
               println '''\
@@ -79,7 +80,6 @@ def call(){
             else
                docker_service_version = params.docker_service_version
             
-            envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
             agent = sh(returnStdout: true, script: 'jq -r .node_name metadata.json').trim()
             values.put('env', envDir)
             values.put('agent', agent)
