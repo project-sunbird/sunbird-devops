@@ -33,7 +33,7 @@ def call(){
             else
             return "<b>Not Applicable</b><input name=\\"value\\" value=\\"NA\\" type=\\"hidden\\"/>"''']]], 
             
-            string(defaultValue: "ansible/inventories/$envDir", description: '', name: 'inventory_path', trim: false)])])
+            string(defaultValue: "$WORKSPACE/private/ansible/inventories/$envDir", description: '', name: 'inventory_path', trim: false)])])
 
             ansiColor('xterm') {
               println '''\
