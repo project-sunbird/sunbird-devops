@@ -6,7 +6,7 @@ def call(){
         if (params.size() == 0){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], 
             parameters([string(defaultValue: '', description: '<b><font color=teal size=2>The metadata.json file of the last successful build will be copied from this job. Please specify the absolute path to the job.</font></b>', name: 'copy_metadata_from', trim: false),
-            string(defaultValue: '', description: '<b><font color=teal size=2>Specify only version/tag, service name is configured within the job. If the value is blank, version will be picked from the metadata.json file.</font></b>', name: 'docker_service_version', trim: false),
+            string(defaultValue: '', description: '<b><font color=teal size=2>Specify only version/tag, service name is picked from the metadata.json file. If the value is blank, version will be picked from the metadata.json file.</font></b>', name: 'docker_service_version', trim: false),
             [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', description: '',
             filterLength: 1, filterable: false, name: 'inventory_source', randomName: 'choice-parameter-330141505859086',
             referencedParameters: '', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false,
