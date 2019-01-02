@@ -35,7 +35,7 @@ def call(Map pipelineParams) {
             stage('ansible-playbook') {
                println pipelineParams
                sh """
-               ansible-playbook -i $params.inventory_path/$pipelineParams.env \
+               ansible-playbook -i $params.inventory_path \
                $pipelineParams.currentWs/ansible/$pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
                """
             }
