@@ -5,33 +5,30 @@ def call(){
         envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
         if (params.size() == 0){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], 
-            parameters([[$class: 'WHideParameterDefinition', defaultValue: "$jobname", description: '', 
+            parameters([[$class: 'WHideParameterDefinition', defaultValue: "$jobname", description: 'The name of the docker service.', 
             name: 'docker_service_name'], 
-            string(defaultValue: '', description: '', name: 'docker_service_version', trim: false), 
-            string(defaultValue: '', description: '', name: 'copy_metadata_from', trim: false),  
-            [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', description: '', 
-            filterLength: 1, filterable: false, name: 'inventory_source', randomName: 'choice-parameter-330141505859086', 
-            referencedParameters: '', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, 
-            script: ''], script: [classpath: [], sandbox: false, script: 'return [\'GitHub\', \'Local\']']]], 
-            [$class: 'DynamicReferenceParameter', choiceType: 'ET_FORMATTED_HTML', description: '', 
+            string(defaultValue: '', description: '<b><font size=2>The metadata.json file of the last successful build will be copied from this job. Please specify the absolute path to the job.</font></b>', name: 'copy_metadata_from', trim: false),
+            string(defaultValue: '', description: '<b><font size=2>The version or tag of the docker service that you would like to use. Specify only version, service name is configured within the job.</font></b>', name: 'docker_service_version', trim: false),
+            [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', description: '',
+            filterLength: 1, filterable: false, name: 'inventory_source', randomName: 'choice-parameter-330141505859086',
+            referencedParameters: '', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false,
+            script: ''], script: [classpath: [], sandbox: false, script: 'return [\'GitHub\', \'Local\']']]],
+            [$class: 'DynamicReferenceParameter', choiceType: 'ET_FORMATTED_HTML', description: '<b><font size=2>If your ansible inventory is stored on github, choose github. If your ansible inventory is stored locally, choose local.</font></b>',
             name: 'git_info', omitValueField: true, randomName: 'choice-parameter-330141508543294', 
-            referencedParameters: 'inventory_source', 
-           
+            referencedParameters: 'inventory_source',           
             script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: 
             '''def gitUrl = "", gitBranch = ""
             if(inventory_source.equals(\'GitHub\')){
             return "<b>Git URL</b><input name=\\"value\\" value=\\"${gitUrl}\\" class=\\"setting-input\\" type=\\"text\\"/> <b>Branch</b><input name=\\"value\\" value=\\"${gitBranch}\\" class=\\"setting-input\\" type=\\"text\\"/>"}
             else
-            return "<b>Not Applicable</b><input name=\\"value\\" value=\\"NA\\" type=\\"hidden\\"/>"'''], 
-                 
-            script: [classpath: [], sandbox: false, script: 
+            return "<b>Not Applicable</b><input name=\\"value\\" value=\\"NA\\" type=\\"hidden\\"/>"'''],
+            script: [classpath: [], sandbox: false, script:
             '''def gitUrl = "${private_repo_url}", gitBranch = "${private_repo_branch}"
             if(inventory_source.equals(\'GitHub\')){
             return "<b>Git URL</b><input name=\\"value\\" value=\\"${gitUrl}\\" class=\\"setting-input\\" type=\\"text\\"/> <b>Branch</b><input name=\\"value\\" value=\\"${gitBranch}\\"  class=\\"setting-input\\" type=\\"text\\"/>"}
             else
-            return "<b>Not Applicable</b><input name=\\"value\\" value=\\"NA\\" type=\\"hidden\\"/>"''']]], 
-            
-            string(defaultValue: "$WORKSPACE/private/ansible/inventories/$envDir", description: '', name: 'inventory_path', trim: false)])])
+            return "<b>Not Applicable</b><input name=\\"value\\" value=\\"NA\\" type=\\"hidden\\"/>"''']]],
+            string(defaultValue: "$WORKSPACE/private/ansible/inventories/$envDir", description: '<b><font size=2>Please sepecify the full path to the inventory directory. The default value is $WORKSPACE/private/ansible/{env}. Here env is the previous directory of the job.</font></b>', name: 'inventory_path', trim: false)])])
 
             ansiColor('xterm') {
               println '''\
