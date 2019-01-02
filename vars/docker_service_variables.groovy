@@ -8,9 +8,7 @@ def call(){
             parameters([[$class: 'WHideParameterDefinition', defaultValue: "$jobname", description: '', 
             name: 'docker_service_name'], 
             string(defaultValue: '', description: '', name: 'docker_service_version', trim: false), 
-            string(defaultValue: '', description: '', name: 'copy_metadata_from', trim: false), 
-            [$class: 'WHideParameterDefinition', defaultValue: 'sunbirded.azurecr.io/sunbirded', description: '', 
-            name: 'hub_org'], 
+            string(defaultValue: '', description: '', name: 'copy_metadata_from', trim: false),  
             [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', description: '', 
             filterLength: 1, filterable: false, name: 'inventory_source', randomName: 'choice-parameter-330141505859086', 
             referencedParameters: '', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, 
@@ -57,6 +55,9 @@ def call(){
         }
         
         stage('parameter checks'){
+            if(!env.hub_org)
+               error 'Please create a Jenkins environment variabled named hub_org with value as registry/sunbirded.
+            
             if (values.copy_metadata_from == null && params.copy_metadata_from == "")
                 error 'Please specify project name to copy metedata.json file.'
 
@@ -84,8 +85,7 @@ def call(){
             values.put('env', envDir)
             values.put('agent', agent)
             values.put('docker_service_name', params.docker_service_name)
-            values.put('docker_service_version', params.docker_service_version)
-            values.put('hub_org', params.hub_org)
+            values.put('docker_service_version', docker_service_version)
             return values
         }
     }
