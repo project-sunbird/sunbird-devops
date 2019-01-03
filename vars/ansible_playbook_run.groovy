@@ -13,6 +13,10 @@ def call(Map pipelineParams) {
                                    """.stripIndent().replace("\n"," ")
 
                     if(params.inventory_source == 'GitHub'){
+                        // Workaround for reactive parameter for downstream
+                        if(pipelineParams.triggerCause != null){
+                         params.git_info = "$private_repo_url, $private_repo_branch"
+                        }
                         paramsSize = params.git_info.split(',').size()
                         if(paramsSize != 2)
                             error '''\
