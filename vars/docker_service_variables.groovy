@@ -56,8 +56,10 @@ def call(){
             if (values.copy_metadata_from == null && params.copy_metadata_from == "")
                 error 'Please specify project name to copy metedata.json file.'
 
-            if (values.copy_metadata_from != null)
+            if (values.copy_metadata_from != null){
                 copyArtifacts filter: 'metadata.json', projectName: values.copy_metadata_from
+                params.copy_metadata_from = values.copy_metadata_from
+            }
             else {
                 copyArtifacts filter: 'metadata.json', projectName: params.copy_metadata_from
                 values.put('copy_metadata_from', params.copy_metadata_from)
