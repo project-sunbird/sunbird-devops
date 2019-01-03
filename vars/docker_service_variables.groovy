@@ -6,7 +6,7 @@ def call(){
         if (params.size() == 0){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], 
             parameters([string(defaultValue: '', description: '<font color=teal size=2>The metadata.json file of the last successful build will be copied from this job. Please specify the absolute path to the job.</font>', name: 'copy_metadata_from', trim: false),
-            string(defaultValue: '', description: '<font color=teal size=2>Specify only version/tag, service name is picked from the metadata.json file. If the value is blank, version will be picked from the metadata.json file.</font>', name: 'docker_service_version', trim: false),
+            string(defaultValue: '', description: '<font color=teal size=2>Specify only version/tag, image name will be picked from the metadata.json file. If the value is blank, version will be picked from the metadata.json file.</font>', name: 'image_tag', trim: false),
             [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', description: '',
             filterLength: 1, filterable: false, name: 'inventory_source', randomName: 'choice-parameter-330141505859086',
             referencedParameters: '', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false,
@@ -63,22 +63,20 @@ def call(){
                 values.put('copy_metadata_from', params.copy_metadata_from)
             }
             
-//            if (params.docker_service_name != jobname)
-//                error 'Job name and hidden job parameter docker_service_name default value do not match.'
-            docker_service_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
+            image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
                 
-            if (params.docker_service_version == "") {
-               println "docker_service_version not specified, using the image_tag specified in metadata.json."
-               docker_service_version = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
+            if (params.image_tag == "") {
+               println "image_tag not specified, using the image_tag specified in metadata.json."
+               image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
             }
             else
-               docker_service_version = params.docker_service_version
+               image_tag = params.image_tag
             
             agent = sh(returnStdout: true, script: 'jq -r .node_name metadata.json').trim()
             values.put('env', envDir)
             values.put('agent', agent)
-            values.put('docker_service_name', docker_service_name)
-            values.put('docker_service_version', docker_service_version)
+            values.put('image_name', image_name)
+            values.put('image_tag', image_tag)
             return values
         }
     }
