@@ -6,7 +6,7 @@ def call(Map pipelineParams) {
             stage('checkout private repo') {
                 dir("$pipelineParams.currentWs/private") {
                     if (params.inventory_source == "GitHub") {
-                        if (!env.private_repo_url || !env.private_repo_branch || !!env.private_repo_credentials)
+                        if (!env.private_repo_url || !env.private_repo_branch || !env.private_repo_credentials)
                             error '''\
                                Option seleted is GitHub. Please create Jenkins environment variables named 
                                private_repo_url, private_repo_branch, private_repo_credentials.
