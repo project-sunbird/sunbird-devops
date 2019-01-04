@@ -4,46 +4,35 @@ def call(Map pipelineParams) {
         try {
             // cloning public sunbird-devops and private repo
             stage('checkout private repo') {
-                dir("$pipelineParams.currentWs/private"){
-                    if(params.inventory_path == "")
+                dir("$pipelineParams.currentWs/private") {
+                    if (params.inventory_source == "GitHub") {
+                        if (!env.private_repo_url || !env.private_repo_branch || !!env.private_repo_credentials)
+                            error '''\
+                               Option seleted is GitHub. Please create Jenkins environment variables named 
+                               private_repo_url, private_repo_branch, private_repo_credentials.
+                               '''.stripIndent().replace("\n", " ")
+                        git branch: private_repo_branch, url: private_repo_url, credentialsId: private_repo_credentials
+                    } 
+                    else
+                        println "Option selected is Local. Using the local inventory specified in inventory_path"
+
+                    if (params.inventory_path == "")
                         error """\
                                    Please specify the absolute path to the inventory file directory.
-                                   If option selected is GitHub, please specifiy inventory path as 
+                                   If inventory is GitHub, please specifiy inventory path as 
                                    $WORKSPACE/private/path_to_inventory
-                                   """.stripIndent().replace("\n"," ")
-
-                    if(params.inventory_source == 'GitHub'){
-                        // Workaround for reactive parameter for downstream
-                        if(pipelineParams.triggerCause != null){
-                         params.git_info = "$private_repo_url, $private_repo_branch"
-                        }
-                        paramsSize = params.git_info.split(',').size()
-                        if(paramsSize != 2)
-                            error '''\
-                                  GitHub option selected during build. Please specify the GitHub URL and Branch to checkout
-                                  You can also set these two values as environment variables with variable name as
-                                  private_repo_url and private_repo_branch
-                                  '''.stripIndent().replace("\n"," ")
-                    }
-                    if(!env.private_repo_credentials)
-                        error '''\
-                               Please create a Jenkins environment variable named private_repo_credentials with
-                               value being the credential id.
-                               '''.stripIndent().replace("\n"," ")
-                    scmUrl = params.git_info.split(',')[0]
-                    scmBranch = params.git_info.split(',')[1]
-                    git branch: scmBranch, url: scmUrl, credentialsId: private_repo_credentials
+                                   """.stripIndent().replace("\n", " ")
                 }
             }
 
             stage('ansible-playbook') {
-               println pipelineParams
-               ansiColor('xterm') {
-               sh """
+                println pipelineParams
+                ansiColor('xterm') {
+                    sh """
                ansible-playbook -i $params.inventory_path \
                $pipelineParams.currentWs/ansible/$pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
                """
-               }
+                }
             }
         }
         catch (err){
