@@ -7,25 +7,7 @@ def call(){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], 
             parameters([string(defaultValue: '', description: '<font color=teal size=2>The metadata.json file of the last successful build will be copied from this job. Please specify the absolute path to the job.</font>', name: 'copy_metadata_from', trim: false),
             string(defaultValue: '', description: '<font color=teal size=2>Specify only version/tag, image name will be picked from the metadata.json file. If the value is blank, version will be picked from the metadata.json file.</font>', name: 'image_tag', trim: false),
-            [$class: 'CascadeChoiceParameter', choiceType: 'PT_SINGLE_SELECT', description: '',
-            filterLength: 1, filterable: false, name: 'inventory_source', randomName: 'choice-parameter-330141505859086',
-            referencedParameters: '', script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false,
-            script: ''], script: [classpath: [], sandbox: false, script: 'return [\'GitHub\', \'Local\']']]],
-            [$class: 'DynamicReferenceParameter', choiceType: 'ET_FORMATTED_HTML', description: '<font color=teal size=2>If your ansible inventory is stored on github, choose github. If your ansible inventory is stored locally, choose local.</font>',
-            name: 'git_info', omitValueField: true, randomName: 'choice-parameter-330141508543294', 
-            referencedParameters: 'inventory_source',           
-            script: [$class: 'GroovyScript', fallbackScript: [classpath: [], sandbox: false, script: 
-            '''def gitUrl = "", gitBranch = ""
-            if(inventory_source.equals(\'GitHub\')){
-            return "<b>Git URL</b><input name=\\"value\\" value=\\"${gitUrl}\\" class=\\"setting-input\\" type=\\"text\\"/> <b>Branch</b><input name=\\"value\\" value=\\"${gitBranch}\\" class=\\"setting-input\\" type=\\"text\\"/>"}
-            else
-            return "<b>Not Applicable</b><input name=\\"value\\" value=\\"NA\\" type=\\"hidden\\"/>"'''],
-            script: [classpath: [], sandbox: false, script:
-            '''def gitUrl = "${private_repo_url}", gitBranch = "${private_repo_branch}"
-            if(inventory_source.equals(\'GitHub\')){
-            return "<b>Git URL</b><input name=\\"value\\" value=\\"${gitUrl}\\" class=\\"setting-input\\" type=\\"text\\"/> <b>Branch</b><input name=\\"value\\" value=\\"${gitBranch}\\"  class=\\"setting-input\\" type=\\"text\\"/>"}
-            else
-            return "<b>Not Applicable</b><input name=\\"value\\" value=\\"NA\\" type=\\"hidden\\"/>"''']]],
+            choice(choices: ['GitHub', 'Local'], description: 'Choose the ansible inventory source', name: 'inventory_source')])
             string(defaultValue: "$WORKSPACE/private/ansible/inventories/$envDir", description: '<font color=teal size=2>Please sepecify the full path to the inventory directory. The default value is $WORKSPACE/private/ansible/env. Here env is the previous directory of the job.</font>', name: 'inventory_path', trim: false)])])
 
             ansiColor('xterm') {
@@ -51,14 +33,13 @@ def call(){
         
         stage('parameter checks'){
             if(!env.hub_org)
-               error 'Please create a Jenkins environment variabled named hub_org with value as registry/sunbirded.'
+               error 'Please create a Jenkins environment variable named hub_org with value as registry/sunbirded.'
             
             if (values.copy_metadata_from == null && params.copy_metadata_from == "")
                 error 'Please specify project name to copy metedata.json file.'
 
             if (values.copy_metadata_from != null){
                 copyArtifacts filter: 'metadata.json', projectName: values.copy_metadata_from
-                params.copy_metadata_from = values.copy_metadata_from
             }
             else {
                 copyArtifacts filter: 'metadata.json', projectName: params.copy_metadata_from
