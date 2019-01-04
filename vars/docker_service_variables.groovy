@@ -38,14 +38,20 @@ def call(){
         stage('parameter checks'){
             ansiColor('xterm') {
                 if(env.hub_org){
-                    println (ANSI_BOLD + ANSI_RED + "Uh oh! Please set a Jenkins environment variable named hub_org with value as registery/sunbidrded" + ANSI_NORMAL)
+                    println (ANSI_BOLD + ANSI_RED + '''\
+                    Uh oh! Please set a Jenkins environment variable named hub_org with value as registery/sunbidrded
+                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                     error 'Please resolve errors and rerun..'
                 }
                 else
-                    println (ANSI_BOLD + ANSI_GREEN + "Found environment variable named hub_org with value as: " + hub_org + ANSI_NORMAL)
+                    println (ANSI_BOLD + ANSI_GREEN + '''\
+                    Found environment variable named hub_org with value as:  
+                    '''.stripIndent().replace("\n", " ") + hub_org + ANSI_NORMAL)
 
                 if (values.copy_metadata_from == null && params.copy_metadata_from == ""){
-                    println (ANSI_BOLD + ANSI_RED + "Uh oh! Please specify the full path of the job from where the metedata.json file should be copied" + ANSI_NORMAL)
+                    println (ANSI_BOLD + ANSI_RED + '''\
+                    Uh oh! Please specify the full path of the job from where the metedata.json file should be copied
+                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                     error 'Please resolve errors and rerun..'
                 }
 
@@ -60,7 +66,9 @@ def call(){
                 image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
 
                 if (params.image_tag == "") {
-                    println (ANSI_BOLD + ANSI_YELLOW + "image_tag not specified, using the image_tag specified in metadata.json." + ANSI_NORMAL)
+                    println (ANSI_BOLD + ANSI_YELLOW + '''\
+                    image_tag not specified, using the image_tag specified in metadata.json.
+                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL) 
                     image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
                 }
                 else
