@@ -5,7 +5,7 @@ def call(){
         String ANSI_NORMAL = "\u001B[0m"
         String ANSI_BOLD = "\u001B[1m"
         String ANSI_RED = "\u001B[31m"
-        String YELLOW = "\u001B[33m"
+        String ANSI_YELLOW = "\u001B[33m"
         jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
         envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
         if (params.size() == 0){
