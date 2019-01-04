@@ -14,8 +14,8 @@ def call(Map pipelineParams) {
                         if (params.inventory_source == "GitHub") {
                             if (!env.private_repo_url || !env.private_repo_branch || !env.private_repo_credentials) {
                                 println(ANSI_BOLD + ANSI_RED + '''\
-                               Option seleted is GitHub. Please create Jenkins environment variables named
-                               private_repo_url, private_repo_branch, private_repo_credentials.
+                               Uh Oh! Option seleted is GitHub. Please create Jenkins environment variables named
+                               private_repo_url, private_repo_branch, private_repo_credentials
                                '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                                 error 'Please resolve errors and rerun..'
                             }
@@ -27,7 +27,7 @@ def call(Map pipelineParams) {
 
                         if (params.inventory_path == "") {
                             println(ANSI_BOLD + ANSI_RED + """\
-                                   Please specify the absolute path to the inventory file directory.
+                                   Uh Oh! Please specify the absolute path to the inventory file directory.
                                    If inventory is GitHub, please specifiy inventory path as 
                                    $WORKSPACE/private/path_to_inventory
                                    """.stripIndent().replace("\n", " ") + ANSI_NORMAL)
