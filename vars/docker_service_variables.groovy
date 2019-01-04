@@ -45,7 +45,7 @@ def call(){
                 }
                 else
                     println (ANSI_BOLD + ANSI_GREEN + '''\
-                    Found environment variable named hub_org with value as:  
+                    Found environment variable named hub_org with value as:
                     '''.stripIndent().replace("\n", " ") + hub_org + ANSI_NORMAL)
 
                 if (values.copy_metadata_from == null && params.copy_metadata_from == ""){
