@@ -14,7 +14,7 @@ def call(Map pipelineParams) {
                         if (params.inventory_source == "GitHub") {
                             if (!env.private_repo_url || !env.private_repo_branch || !env.private_repo_credentials) {
                                 println(ANSI_BOLD + ANSI_RED + '''\
-                               Option seleted is GitHub. Please create Jenkins environment variables named 
+                               Option seleted is GitHub. Please create Jenkins environment variables named
                                private_repo_url, private_repo_branch, private_repo_credentials.
                                '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                                 error 'Please resolve errors and rerun..'
