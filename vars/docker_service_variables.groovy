@@ -37,7 +37,7 @@ def call(){
 
         stage('parameter checks'){
             ansiColor('xterm') {
-                if(env.hub_org){
+                if(!env.hub_org){
                     println (ANSI_BOLD + ANSI_RED + '''\
                     Uh oh! Please set a Jenkins environment variable named hub_org with value as registery/sunbidrded
                     '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
