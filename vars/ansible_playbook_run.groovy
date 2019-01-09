@@ -19,7 +19,11 @@ def call(Map pipelineParams) {
                                '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                                 error 'Please resolve errors and rerun..'
                             }
-                            git branch: private_repo_branch, url: private_repo_url, credentialsId: private_repo_credentials
+                            def checkDir = new File('../private')
+                            if(!checkDir.exists())
+                               git branch: private_repo_branch, url: private_repo_url, credentialsId: private_repo_credentials
+                            else
+                               println(ANSI_BOLD + ANSI_YELLOW + 'Github repo already exists. Not cloning again' + ANSI_NORMAL)
                         } else
                             println(ANSI_BOLD + ANSI_YELLOW + '''\
                             Option selected is Local. Using the local inventory specified in inventory_path
