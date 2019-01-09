@@ -40,7 +40,7 @@ def call(Map pipelineParams) {
                     ansiColor('xterm') {
                         sh """
                ansible-playbook -i $params.inventory_path \
-               $pipelineParams.currentWs/ansible/$pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
+               $pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
                """
                     }
                 }
