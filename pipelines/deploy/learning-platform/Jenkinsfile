@@ -1,1 +1,24 @@
+@Library('deploy-conf') _
+node() {
+    try {
+        stage('checkout public repo') {
+            cleanWs()
+                checkout scm: [$class: 'GitSCM', branches: [[name: 'release-1.13']], userRemoteConfigs: [[url: 'https://github.com/project-sunbird/sunbird-devops.git']]]
+        }
 
+            currentWs = sh(returnStdout: true, script: 'pwd').trim()
+            ansiblePlaybook = "$currentWs/ansible/artifacts-upload.yml"
+            ansibleExtraArgs = """\
+                               --extra-vars "artifacts_container=lpcicdtest artifacts=TestFolder/Build/Sunbird_LP/lp_artifacts_newlpjenkins_bd615a3.zip"
+                               --vault-password-file /home/ops/vault
+                               """.stripIndent().replace("\n"," ")
+            values.put('currentWs', currentWs)
+            values.put('ansiblePlaybook', ansiblePlaybook)
+            values.put('ansibleExtraArgs', ansibleExtraArgs)
+            ansible_playbook_run(values)
+        }
+    }
+    catch (err) {
+        throw err
+    }
+}
