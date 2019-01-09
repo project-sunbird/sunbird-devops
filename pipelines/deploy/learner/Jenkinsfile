@@ -8,13 +8,13 @@ node() {
         }
 
         stage('define variables') {
-            def values = docker_service_variables()
+            def values = docker_params()
             if(values == "first run"){
                currentBuild.result = 'SUCCESS'
                return
              }
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
-            ansiblePlaybook = "deploy.yml"
+            ansiblePlaybook = "$currentWs/ansible/deploy.yml"
             ansibleExtraArgs = """\
                                --tags "stack-sunbird" --extra-vars "hub_org=$hub_org image_name=$values.image_name
                                image_tag=$values.image_tag service_name=learner-service
