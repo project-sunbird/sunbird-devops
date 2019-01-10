@@ -81,7 +81,6 @@ def call(){
                 values.put('agent', agent)
                 values.put('artifact_name', artifact_name)
                 values.put('artifact_version', artifact_version)
-                values.put('artifact_version', artifact_path)
             }
         }
     }
