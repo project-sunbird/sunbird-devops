@@ -16,7 +16,7 @@ def call(){
                     name: 'artifact_source'), string(defaultValue: '', description: '<font color=teal size=2>Specify only version, artifact name will be picked from the metadata.json file. If the value is blank, version will be picked from the metadata.json file.</font>',
                     name: 'artifact_version', trim: false), string(defaultValue: '', description: '<font color=teal size=2>Specify the azure blob container to push / pull the artifact from</font>', name: 'azure_container_name', trim: false),
                     choice(choices: ['GitHub', 'Local'], description: '<font color=teal size=2>Choose the ansible inventory source</font>',
-                    name: 'inventory_source'), string(defaultValue: ""$WORKSPACE/private/ansible/inventories/$envDir",
+                    name: 'inventory_source'), string(defaultValue: "$WORKSPACE/private/ansible/inventories/$envDir",
                     description: '<font color=teal size=2>Please sepecify the full path to the inventory directory. The default value is $WORKSPACE/private/ansible/env. Here env is the previous directory of the job.</font>',
                     name: 'inventory_path', trim: false)])])
             ansiColor('xterm') {
