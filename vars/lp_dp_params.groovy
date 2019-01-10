@@ -47,14 +47,7 @@ def call(){
                     error 'Please resolve errors and rerun..'
                 }
 
-                if(params.azure_container == "" && params.artifact_source == "Remote"){
-                    println (ANSI_BOLD + ANSI_RED + '''\
-                    Uh oh! Option selected is Remote. Please specify the azure container name
-                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
-                    error 'Please resolve errors and rerun..'
-                }
-
-                // Error handling for blob details needs to go here if required
+                // Error handling for az details needs to go here if required
 
                 if (values.copy_metadata_from != null){
                     copyArtifacts projectName: values.copy_metadata_from, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
