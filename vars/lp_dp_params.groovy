@@ -77,6 +77,8 @@ def call(){
                     artifact_version = params.artifact_version
 
                 agent = sh(returnStdout: true, script: 'jq -r .node_name metadata.json').trim()
+                sh 'cat metadata.json'
+                prinln artifact_name + artifact_version + envDir + agent
                 values.put('env', envDir)
                 values.put('agent', agent)
                 values.put('artifact_name', artifact_name)
