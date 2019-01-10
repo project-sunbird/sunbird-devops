@@ -13,10 +13,11 @@ node() {
             }
             println values
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
-            ansiblePlaybook = "$currentWs/ansible/artifacts-upload.yml"
+            artifact= values.artifact_name + ":" + values.artifact_version
+            ansiblePlaybook = "${currentWs}/ansible/artifacts-upload.yml"
             ansibleExtraArgs = """\
-                               --extra-vars "artifacts_container=${params.azure_container_name} artifacts=${values.artifact_name}:${values.artifact_version}"
-                               -e "@ ${params.inventory_path}/group_vars/dev.yml"
+                               --extra-vars "artifact=${artifact}
+                               artifact_path=${currentWs}/${artifact}"
                                --vault-password-file /home/ops/vault
                                """.stripIndent().replace("\n", " ")
             values.put('currentWs', currentWs)
