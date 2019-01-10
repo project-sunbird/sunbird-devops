@@ -8,7 +8,7 @@ def call(){
         jobname = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
         envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
         if (params.size() == 0){
-            properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], parameters([string(defaultValue: '', description: '<font color=teal size=2>The metadata.json file of the last successful build will be copied from this job. Please specify the absolute path to the job.</font>', name: 'copy_metadata_from', trim: false), choice(choices: ['Remote', 'Local'], description: '<font color=teal size=2>Choose the artifact source</font>', name: 'artifact_source'), string(defaultValue: '', description: '<font color=teal size=2>Specify only version, artifact name will be picked from the metadata.json file. If the value is blank, version will be picked from the metadata.json file.</font>', name: 'artifact_version', trim: false), choice(choices: ['GitHub', 'Local'], description: '<font color=teal size=2>Choose the ansible inventory source</font>', name: 'inventory_source'), string(defaultValue: '$WORKSPACE/private/ansible/inventories/$envDir', description: '<font color=teal size=2>Please sepecify the full path to the inventory directory. The default value is $WORKSPACE/private/ansible/env. Here env is the previous directory of the job.</font>', name: 'inventory_path', trim: false)])])
+            properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], parameters([string(defaultValue: '', description: '<font color=teal size=2>Please specify the absolute path to the job from which the metadata.json will be copied.</font>', name: 'copy_metadata_from', trim: false), string(defaultValue: 'lastSuccessfulBuild', description: '<font color=teal size=2>Specify the build number to copy the artifact from. Default is last successful build of the job</font>', name: 'build_number', trim: false), choice(choices: ['Remote', 'Local'], description: '<font color=teal size=2>Choose the artifact source</font>', name: 'artifact_source'), string(defaultValue: '', description: '<font color=teal size=2>Specify only version, artifact name will be picked from the metadata.json file. If the value is blank, version will be picked from the metadata.json file.</font>', name: 'artifact_version', trim: false), choice(choices: ['GitHub', 'Local'], description: '<font color=teal size=2>Choose the ansible inventory source</font>', name: 'inventory_source'), string(defaultValue: '$WORKSPACE/private/ansible/inventories/$envDir', description: '<font color=teal size=2>Please sepecify the full path to the inventory directory. The default value is $WORKSPACE/private/ansible/env. Here env is the previous directory of the job.</font>', name: 'inventory_path', trim: false)])])
             ansiColor('xterm') {
                 println (ANSI_BOLD + ANSI_GREEN + '''\
                         First run of the job. Parameters created. Stopping the current build.
@@ -42,10 +42,10 @@ def call(){
 
 
                 if (values.copy_metadata_from != null){
-                    copyArtifacts filter: 'metadata.json', projectName: values.copy_metadata_from
+                    copyArtifacts projectName: values.copy_metadata_from, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
                 }
                 else {
-                    copyArtifacts filter: 'metadata.json', projectName: params.copy_metadata_from
+                    copyArtifacts projectName: params.copy_metadata_from, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
                     values.put('copy_metadata_from', params.copy_metadata_from)
                 }
 
