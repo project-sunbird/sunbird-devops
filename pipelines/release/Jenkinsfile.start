@@ -31,9 +31,15 @@ node {
                     println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
                     error 'Release branch name not set'
                 }
-            return
             }
-            sh("git push origin HEAD:${params.releaseBranch}")
+            withCredentials([usernameColonPassword(credentialsId: '64bdfe13-cc30-4864-bd3c-4e89be89fc9d', variable: 'gitpass')]) {
+                // Getting commit short hash
+                remoteUrl = sh (
+                script: 'git config --get remote.upstream.url',
+                returnStdout: true
+                ).trim()
+                sh("git push origin HEAD:${params.releaseBranch} https://${gitpass}@${remoteUrl}")
+            }
         }
     }
     catch(Exception e){
