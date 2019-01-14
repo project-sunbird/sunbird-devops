@@ -2,11 +2,12 @@
 
 node {
 
+    String ANSI_GREEN = "\u001B[32m"
+    String ANSI_NORMAL = "\u001B[0m"
+    String ANSI_BOLD = "\u001B[1m"
+    String ANSI_RED = "\u001B[31m"
     try{
         // Checking first build and creating parameters
-        String ANSI_GREEN = "\u001B[32m"
-        String ANSI_NORMAL = "\u001B[0m"
-        String ANSI_BOLD = "\u001B[1m"
         if (params.size() == 0){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
                         parameters([string(defaultValue: '', description: '<font color=teal size=2>Release Branch name to create</font>',
@@ -24,14 +25,18 @@ node {
             cleanWs()
             checkout scm
         }
-        stage('Creating release branch'){
-            sh("git branch $params.releaseBranch")
-        }
         stage('pushing branch to upstream'){
-            sh("git push origin $params.releaseBranch")
+            if (params.releaseBranch == ''){
+                ansiColor('xterm'){
+                    println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
+                    error 'Release branch name not set'
+                }
+            return
+            }
+            sh("git push origin HEAD:${params.releaseBranch}")
         }
     }
     catch(Exception e){
-        error "Something went south.. Please check logs"
+        throw e
     }
 }
