@@ -25,13 +25,16 @@ node {
           //  cleanWs()
             checkout scm
         }
-        stage('pushing branch to upstream'){
+        stage('Creating branch'){
             if (params.releaseBranch == ''){
                 ansiColor('xterm'){
                     println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
                     error 'Release branch name not set'
                 }
             }
+            sh("git checkout -b ${params.releaseBranch}")
+        }
+        stage('pushing branch to upstream'){
             withCredentials([usernamePassword(credentialsId: '64bdfe13-cc30-4864-bd3c-4e89be89fc9d',
             passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
                 // Getting git remote url
@@ -40,7 +43,7 @@ node {
                 returnStdout: true
                 ).trim().split('https://')[1]
                 echo "Git Hash: ${gitRemoteUrl}"
-                sh("git push https://${gitUser}:${gitPassword}@${gitRemoteUrl} HEAD:refs/heads/${releaseBranch}")
+                sh("git push https://${gitUser}:${gitPassword}@${gitRemoteUrl} ${params.releaseBranch}")
             }
         }
     }
