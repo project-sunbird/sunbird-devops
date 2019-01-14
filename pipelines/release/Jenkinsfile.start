@@ -26,10 +26,14 @@ node {
             checkout scm
         }
         stage('Creating branch'){
-            if (params.releaseBranch == ''){
-                ansiColor('xterm'){
+            ansiColor('xterm'){
+                if (params.releaseBranch == ''){
                     println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
                     error 'Release branch name not set'
+                 // If remote branch exists
+                 } else if( sh("git ls-remote --exit-code --heads origin ${params.releaseBranch}") != 2) {
+                    println(ANSI_BOLD + ANSI_RED + "Upstream has branch with same name: ${params.releaseBranch}" + ANSI_NORMAL)
+                    error 'remote branch found with same name'
                 }
             }
             sh("git checkout -b ${params.releaseBranch}")
