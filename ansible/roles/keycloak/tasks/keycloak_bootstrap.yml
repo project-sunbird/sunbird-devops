@@ -3,24 +3,14 @@
     port: 8080
     delay: 5
 
-- name: install dependencies for keycloak to work
-  become: yes
-  apt: name=python-setuptools update_cache=yes
-
-- name: Copy setup file to tmp location
-  template: src="{{ role_path }}/files/python-keycloak-0.12.0/setup.py" dest="/tmp/setup.py" mode="0755" 
-
 - name: Initialize python library to run keycloak bootstrap script
-  shell: python /tmp/setup.py install
+  shell: cd {{ role_path }}/files/python-keycloak-0.12.0 && python setup.py install
 
 - name: Save keycalok vars to json
   template: src="keycloak-bootstrap.conf.j2" dest="/tmp/keycloak-bootstrap.conf.json" mode="0644"
 
 - name: Copy realm json file to tmp location
   template: src="keycloak-realm.j2" dest="/tmp/keycloak-realm.json" mode="0644" 
-
-- name: copy the keycloak_main module to server
-  copy: src="{{ role_path }}/files/python-keycloak-0.12.0/keycloak/keycloak_main.py" dest="/tmp/keycloak_main.py" mode="0755"
 
 - name: Copy user manager roles file to tmp location
   copy: src="files/python-keycloak-0.12.0/roles.json" dest="/tmp/roles.json" mode="0644" 
@@ -30,7 +20,7 @@
     seconds: 100
 
 - name: Run the keycloak bootstrap script
-  shell: python /tmp/keycloak_main.py /tmp/keycloak-bootstrap.conf.json
+  shell:  cd {{ role_path }}/files/python-keycloak-0.12.0/keycloak/ && python keycloak_main.py /tmp/keycloak-bootstrap.conf.json
   register: out
   until: '"404" not in out.stderr'
   retries: 2
