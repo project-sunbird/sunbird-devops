@@ -12,6 +12,9 @@
 - name: Copy realm json file to tmp location
   template: src="keycloak-realm.j2" dest="/tmp/keycloak-realm.json" mode="0644" 
 
+- name: copy the keycloak_main module to server
+  copy: src="{{ role_path }}/files/python-keycloak-0.12.0/keycloak/keycloak_main.py" dest="/tmp/keycloak_main.py" mode="0755"
+
 - name: Copy user manager roles file to tmp location
   copy: src="files/python-keycloak-0.12.0/roles.json" dest="/tmp/roles.json" mode="0644" 
 
@@ -20,7 +23,7 @@
     seconds: 100
 
 - name: Run the keycloak bootstrap script
-  shell:  cd {{ role_path }}/files/python-keycloak-0.12.0/keycloak/ && python keycloak_main.py /tmp/keycloak-bootstrap.conf.json
+  shell: python /tmp/keycloak_main.py /tmp/keycloak-bootstrap.conf.json
   register: out
   until: '"404" not in out.stderr'
   retries: 2
