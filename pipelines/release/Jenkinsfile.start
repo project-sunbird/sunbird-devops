@@ -22,7 +22,7 @@ node {
         }
         stage('Checking out branch'){
             // Cleaning workspace
-            cleanWs()
+          //  cleanWs()
             checkout scm
         }
         stage('pushing branch to upstream'){
@@ -32,13 +32,15 @@ node {
                     error 'Release branch name not set'
                 }
             }
-            withCredentials([usernameColonPassword(credentialsId: '64bdfe13-cc30-4864-bd3c-4e89be89fc9d', variable: 'gitpass')]) {
-                // Getting commit short hash
-                remoteUrl = sh (
-                script: 'git config --get remote.upstream.url',
+            withCredentials([usernamePassword(credentialsId: '64bdfe13-cc30-4864-bd3c-4e89be89fc9d',
+            passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
+                // Getting git remote url
+                gitRemoteUrl = sh (
+                script: 'git config --get remote.origin.url',
                 returnStdout: true
-                ).trim()
-                sh("git push origin HEAD:${params.releaseBranch} https://${gitpass}@${remoteUrl}")
+                ).trim().split('https://')[1]
+                echo "Git Hash: ${gitRemoteUrl}"
+                sh("git push https://${gitUser}:${gitPassword}@${gitRemoteUrl} HEAD:refs/heads/${releaseBranch}")
             }
         }
     }
