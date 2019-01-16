@@ -54,15 +54,16 @@ node {
                 // Checks whether remtoe branch is present
                 // Stdouts 1 if true
                 remoteBranch = sh(script: "git ls-remote --heads ${origin} ${params.releaseBranch} | wc -l ", returnStdout: true).trim()
-                echo "${remoteBranch}"
-                // If releaseBranch variable not set
-                if (params.releaseBranch == ''){
-                    println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
-                    error 'Release branch name not set'
-                 // If remote branch exists
-                 } else if( remoteBranch == "1") {
-                    println(ANSI_BOLD + ANSI_RED + "Upstream has branch with same name: ${params.releaseBranch}" + ANSI_NORMAL)
-                    error 'remote branch found with same name'
+                ansiColor('xterm'){
+                    // If releaseBranch variable not set
+                    if (params.releaseBranch == ''){
+                        println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
+                        error 'Release branch name not set'
+                     // If remote branch exists
+                     } else if( remoteBranch == "1") {
+                        println(ANSI_BOLD + ANSI_RED + "Upstream has branch with same name: ${params.releaseBranch}" + ANSI_NORMAL)
+                        error 'remote branch found with same name'
+                    }
                 }
                 sh("git push ${origin} HEAD:refs/heads/${params.releaseBranch}")
             }
