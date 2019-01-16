@@ -1,7 +1,20 @@
 #!/usr/bin/groovy
 
-node {
+/*
+*
+* This script will create a branch out of gitscm branch with name specified in `releaseBranch` parameter variable.
+* Checks for upstream branch with same name; then stops execution throwing an error.
+* Parameters:
+*   `gitCredentialId`: environment variable or jenkins parameter
+*       contains github username and password for the user to be used
+*   `releaseBranch`: jenkins parameter
+*       Name of the branch to create
+*
+* Author: Rajesh Rajendran<rjshrjndrn@gmail.com>
+*/
 
+node {
+    // Creating color code strings
     String ANSI_GREEN = "\u001B[32m"
     String ANSI_NORMAL = "\u001B[0m"
     String ANSI_BOLD = "\u001B[1m"
@@ -25,33 +38,37 @@ node {
             cleanWs()
             checkout scm
         }
-        stage('Creating branch'){
-            ansiColor('xterm'){
+        stage('pushing branch to upstream'){
+            // Using withCredentials as gitpublish plugin is not yet ported for pipelines
+            // Defining credentialsId for default value passed from Parameter or environment value.
+            def gitCredentialId = "${params.gitCredentialId}" ?: "${env.gitCredentialId}"
+            withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
+            passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
+
+                // Getting git remote url
+                origin = "https://${gitUser}:${gitPassword}@"+sh (
+                script: 'git config --get remote.origin.url',
+                returnStdout: true
+                ).trim().split('https://')[1]
+                echo "Git Hash: ${origin}"
+                remoteBranch = sh(script: "git ls-remote --heads ${origin} ${params.releaseBranch} | wc -l ", returnStdout: true).trim()
+                echo "${remoteBranch}"
+                // If releaseBranch variable not set
                 if (params.releaseBranch == ''){
                     println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
                     error 'Release branch name not set'
                  // If remote branch exists
-                 } else if( sh("git ls-remote --exit-code --heads origin ${params.releaseBranch}") != 2) {
+                 } else if( remoteBranch == 1) {
                     println(ANSI_BOLD + ANSI_RED + "Upstream has branch with same name: ${params.releaseBranch}" + ANSI_NORMAL)
                     error 'remote branch found with same name'
                 }
-            }
-            sh("git checkout -b ${params.releaseBranch}")
-        }
-        stage('pushing branch to upstream'){
-            withCredentials([usernamePassword(credentialsId: '64bdfe13-cc30-4864-bd3c-4e89be89fc9d',
-            passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
-                // Getting git remote url
-                gitRemoteUrl = sh (
-                script: 'git config --get remote.origin.url',
-                returnStdout: true
-                ).trim().split('https://')[1]
-                echo "Git Hash: ${gitRemoteUrl}"
-                sh("git push https://${gitUser}:${gitPassword}@${gitRemoteUrl} ${params.releaseBranch}")
+                sh("git push ${origin} HEAD:refs/heads/${params.releaseBranch}")
             }
         }
     }
     catch(Exception e){
-        throw e
+        ansiColor('xterm'){
+            throw e
+        }
     }
 }
