@@ -1,17 +1,17 @@
 @Library('deploy-conf') _
 node(){
-    try {    
+    try {
         stage('checkout public repo') {
             cleanWs()
             checkout scm
         }
-        
+
         stage('define params') {
             def values = docker_params()
             if(values == "first run"){
-               currentBuild.result = 'SUCCESS'
-               return
-             }
+                currentBuild.result = 'SUCCESS'
+                return
+            }
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
             ansiblePlaybook = "$currentWs/ansible/docker_image_push.yml"
             ansibleExtraArgs = """\
@@ -23,11 +23,13 @@ node(){
             values.put('ansibleExtraArgs', ansibleExtraArgs)
             ansible_playbook_run(values)
             archiveArtifacts 'metadata.json'
+            currentBuild.description = "${values.image_tag}"
         }
     }
 
-    catch (err)
-    {
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        currentBuild.description = "${values.image_tag}"
         throw err
     }
 }
