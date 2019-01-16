@@ -9,9 +9,9 @@ node() {
         stage('define params') {
             def values = docker_params()
             if(values == "first run"){
-               currentBuild.result = 'SUCCESS'
-               return
-             }
+                currentBuild.result = 'SUCCESS'
+                return
+            }
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
             ansiblePlaybook = "$currentWs/ansible/deploy.yml"
             ansibleExtraArgs = """\
@@ -24,9 +24,12 @@ node() {
             values.put('ansibleExtraArgs', ansibleExtraArgs)
             ansible_playbook_run(values)
             archiveArtifacts 'metadata.json'
+            currentBuild.description = "${values.image_tag}"
         }
     }
     catch (err) {
+        currentBuild.result = "FAILURE"
+        currentBuild.description = "${values.image_tag}"
         throw err
     }
 }
