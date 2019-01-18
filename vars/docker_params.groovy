@@ -55,10 +55,10 @@ def call(){
                 }
 
                 if (values.copy_metadata_from != null){
-                    copyArtifacts filter: 'metadata.json', projectName: values.copy_metadata_from
+                    copyArtifacts projectName: values.copy_metadata_from
                 }
                 else {
-                    copyArtifacts filter: 'metadata.json', projectName: params.copy_metadata_from
+                    copyArtifacts projectName: params.copy_metadata_from
                     values.put('copy_metadata_from', params.copy_metadata_from)
                 }
 
