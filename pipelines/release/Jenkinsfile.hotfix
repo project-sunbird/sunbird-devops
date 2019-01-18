@@ -1,0 +1,95 @@
+#!/usr/bin/groovy
+
+/*
+*
+* This script will create a hotfix branch out of `releaseBranch` parameter with name specified in `hotfixBranch` parameter variable.
+* Checks for upstream branch with same name; then stops execution with and exception if same branch found in upstream.
+* This Jenkinsfile only support git urls start from `https://`
+*
+* Parameters:
+*   Name:   gitCredentialId
+*      Type:   environment variable or jenkins parameter
+*      Description:    contains github username and password for the user to be used
+*   Name:   releaseBranch
+*      Type:   jenkins parameter
+*      Description:    Name of the branch to create
+*   Name:   hotfixBranch
+*      Type:   jenkins parameter
+*      Description:    Name of the branch to create
+*
+* Author: Rajesh Rajendran<rjshrjndrn@gmail.com>
+*
+*/
+
+node {
+    // Creating color code strings
+    String ANSI_GREEN = "\u001B[32m"
+    String ANSI_NORMAL = "\u001B[0m"
+    String ANSI_BOLD = "\u001B[1m"
+    String ANSI_RED = "\u001B[31m"
+    try{
+        // Checking first build and creating parameters
+        if (params.size() == 0){
+            properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
+                        parameters([string(defaultValue: '', description: '<font color=teal size=2>Release Branch name from which hotfix branch to be created</font>',
+                        name: 'releaseBranch', trim: true)],
+                        [string(defaultValue: '', description: '<font color=teal size=2>Hotfix Branch name to be created</font>',
+                        name: 'hotfixBranch', trim: true)])])
+            ansiColor('xterm') {
+                println (ANSI_BOLD + ANSI_GREEN + '''\
+                        First run of the job. Parameters created. Stopping the current build.
+                        Please trigger new build and provide parameters if required.
+                        '''.stripIndent().replace("\n"," ") + ANSI_NORMAL)
+            }
+        return
+        }
+        stage('Checking out branch'){
+            // Cleaning workspace
+            cleanWs()
+            ansiColor('xterm'){
+                // If releaseBranch variable not set
+                if (params.releaseBranch == ''){
+                    println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
+                    error 'Release branch name not set'
+                } else if(params.gitCredentialId == '' && env.gitCredentialId == ''){
+                    println(ANSI_BOLD + ANSI_RED + '''github credentialsId is not set. please set it as
+                    an environment variable or jenkins parameter. The variable is supposed to contain a jenkins
+                    credentialsId which has github username, github password''' + ANSI_NORMAL)
+                    error 'Github credential not found'
+                }
+            }
+            checkout scm
+        }
+        stage('pushing branch to upstream'){
+            // Using withCredentials as gitpublish plugin is not yet ported for pipelines
+            // Defining credentialsId for default value passed from Parameter or environment value.
+            def gitCredentialId = "${params.gitCredentialId}" ?: "${env.gitCredentialId}"
+            withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
+            passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
+
+                // Getting git remote url
+                origin = "https://${gitUser}:${gitPassword}@"+sh (
+                script: 'git config --get remote.origin.url',
+                returnStdout: true
+                ).trim().split('https://')[1]
+                echo "Git Hash: ${origin}"
+                // Checks whether remtoe branch is present
+                // Stdouts 1 if true
+                remoteBranch = sh(script: "git ls-remote --heads ${origin} ${params.hotfixBranch} | wc -l ", returnStdout: true).trim()
+                ansiColor('xterm'){
+                    // If remote branch exists
+                    if( remoteBranch == "1") {
+                        println(ANSI_BOLD + ANSI_RED + "Upstream has branch with same name: ${params.hotfixBranch}" + ANSI_NORMAL)
+                        error 'remote branch found with same name'
+                    }
+                }
+                sh("git push ${origin} remotes/origin/${params.releaseBranch}:refs/heads/${params.hotfixBranch}")
+            }
+        }
+    }
+    catch(Exception e){
+        ansiColor('xterm'){
+            throw e
+        }
+    }
+}
