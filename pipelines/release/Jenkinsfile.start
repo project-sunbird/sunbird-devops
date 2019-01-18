@@ -4,6 +4,7 @@
 *
 * This script will create a branch out of gitscm branch with name specified in `releaseBranch` parameter variable.
 * Checks for upstream branch with same name; then stops execution with and exception if same branch found in upstream.
+* This Jenkinsfile only support git urls start from `https://`
 *
 * Parameters:
 *   Name:   gitCredentialId
@@ -40,6 +41,18 @@ node {
         stage('Checking out branch'){
             // Cleaning workspace
             cleanWs()
+            ansiColor('xterm'){
+                // If releaseBranch variable not set
+                if (params.releaseBranch == ''){
+                    println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
+                    error 'Release branch name not set'
+                } else if(params.gitCredentialId == '' and env.gitCredentialId == ''){
+                    println(ANSI_BOLD + ANSI_RED + '''github credentialsId is not set. please set it as
+                    an environment variable or jenkins parameter. The variable is supposed to contain a jenkins
+                    credentialsId which has github username, github password''' + ANSI_NORMAL)
+                    error 'Github credential not found'
+                }
+            }
             checkout scm
         }
         stage('pushing branch to upstream'){
@@ -59,12 +72,8 @@ node {
                 // Stdouts 1 if true
                 remoteBranch = sh(script: "git ls-remote --heads ${origin} ${params.releaseBranch} | wc -l ", returnStdout: true).trim()
                 ansiColor('xterm'){
-                    // If releaseBranch variable not set
-                    if (params.releaseBranch == ''){
-                        println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
-                        error 'Release branch name not set'
-                     // If remote branch exists
-                     } else if( remoteBranch == "1") {
+                    // If remote branch exists
+                    if( remoteBranch == "1") {
                         println(ANSI_BOLD + ANSI_RED + "Upstream has branch with same name: ${params.releaseBranch}" + ANSI_NORMAL)
                         error 'remote branch found with same name'
                     }
