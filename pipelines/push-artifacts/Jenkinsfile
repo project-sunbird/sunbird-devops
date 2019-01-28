@@ -1,0 +1,40 @@
+@Library('deploy-conf') _
+node() {
+    try {
+        stage('checkout public repo') {
+            cleanWs()
+            checkout scm
+        }
+        stage('define params') {
+            def values = lp_dp_params()
+            if(values == "first run"){
+                // Override default parameters
+                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+                properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], parameters([
+                        string(defaultValue: '', description: '<font color=teal size=2>Please specify the absolute path to the job from which the metadata.json will be copied.</font>', name: 'copy_metadata_from', trim: false),
+                        string(defaultValue: 'lastSuccessfulBuild', description: '<font color=teal size=2>Specify the build number to copy the artifact from. Default is last successful build of the job</font>', name: 'build_number', trim: false),
+                        choice(choices: ['GitHub', 'Local'], description: '<font color=teal size=2>Choose the ansible inventory source</font>', name: 'inventory_source'),
+                        string(defaultValue: "$WORKSPACE/private/ansible/inventories/$envDir", description: '<font color=teal size=2>Please sepecify the full path to the inventory directory. The default value is $WORKSPACE/private/ansible/env. Here env is the previous directory of the job.</font>', name: 'inventory_path', trim: false)])])
+                currentBuild.result = 'SUCCESS'
+                return
+            }
+            artifact_version = sh(returnStdout: true, script: 'jq -r .artifact_version metadata.json').trim()
+            values.put('artifact_version', artifact_version)
+            currentWs = sh(returnStdout: true, script: 'pwd').trim()
+            artifact = values.artifact_name + ":" + values.artifact_version
+            ansiblePlaybook = "${currentWs}/devops/artifacts-upload.yml"
+            ansibleExtraArgs = "--extra-vars \"artifact=${artifact} artifact_path=${currentWs}/${artifact}\" --vault-password-file /home/ops/vault"
+            values.put('currentWs', currentWs)
+            values.put('ansiblePlaybook', ansiblePlaybook)
+            values.put('ansibleExtraArgs', ansibleExtraArgs)
+            ansible_playbook_run(values)
+            archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
+            archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
+            currentBuild.description = "${artifact_version}"
+        }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
