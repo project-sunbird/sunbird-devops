@@ -51,6 +51,7 @@ config_service_prefix: /config
 textbook_service_prefix: /textbook
 lock_service_prefix: /lock
 otp_service_prefix: /otp
+sso_service_prefix: /sso
 
 # Service URLs
 content_service_url: "http://content-service:5000"
@@ -3345,6 +3346,22 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: createSession
+    request_path: "{{ sso_service_prefix }}/v1/create/session"
+    upstream_url: "{{ player_service_url }}/v1/sso/create/session"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: publicUser
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
