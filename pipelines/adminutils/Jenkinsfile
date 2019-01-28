@@ -1,34 +1,29 @@
-
-// Importing deploy configuration
 @Library('deploy-conf') _
-
-// Defining env specific variables
-def getValues() {
-    if (environment == "dev") {
-        return [env: 'dev',
-                agent: 'general-dev']
+node() {
+    try {
+        stage('checkout public repo') {
+            cleanWs()
+            checkout scm
+        }
+        stage('define params') {
+            def values = docker_params()
+            if(values == "first run"){
+                currentBuild.result = 'SUCCESS'
+                return
+            }
+            currentWs = sh(returnStdout: true, script: 'pwd').trim()
+            ansiblePlaybook = "$currentWs/ansible/deploy.yml"
+            ansibleExtraArgs = "--tags \"stack-adminutil\" --extra-vars  \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag\" --vault-password-file /home/ops/vault"
+            values.put('currentWs', currentWs)
+            values.put('ansiblePlaybook', ansiblePlaybook)
+            values.put('ansibleExtraArgs', ansibleExtraArgs)
+            ansible_playbook_run(values)
+            archiveArtifacts 'metadata.json'
+            currentBuild.description = "${values.image_tag}"
+        }
     }
-    else {
-        return [env: 'staging',
-                agent: 'general-staging']
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
     }
-}
-
-// Getting env specific values
-def values = getValues()
-def publicBranch = gitBranch
-
-copyArtifacts filter: 'metadata.json', projectName: 'test/player_build'
-env.imagename = sh(returnStdout: true, script: 'cat metadata.json').trim()
-println imagename
-
-// Backing up cassandra
-ansiblePlugin{
-    agent = build-slave
-    branch = publicBranch
-    image_name = imagename
-    scmUrl = 'https =//github.com/project-sunbird/sunbird-devops.git'
-    env = values.env
-    playBook = 'docker_push.yml'
-    ansibleExtraArgs = ' agent, --vault-password-file /run/secrets/vault-pass, image_name'
 }
