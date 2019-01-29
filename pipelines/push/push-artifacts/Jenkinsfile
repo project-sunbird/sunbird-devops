@@ -5,19 +5,8 @@ node() {
             cleanWs()
             checkout scm
         }
-        stage('define params') {
+        stage('Artifact Upload') {
             def values = lp_dp_params()
-            if(values == "first run"){
-                // Override default parameters
-                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
-                properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], parameters([
-                        string(defaultValue: '', description: '<font color=teal size=2>Please specify the absolute path to the job from which the metadata.json will be copied.</font>', name: 'copy_metadata_from', trim: false),
-                        string(defaultValue: 'lastSuccessfulBuild', description: '<font color=teal size=2>Specify the build number to copy the artifact from. Default is last successful build of the job</font>', name: 'build_number', trim: false),
-                        choice(choices: ['GitHub', 'Local'], description: '<font color=teal size=2>Choose the ansible inventory source</font>', name: 'inventory_source'),
-                        string(defaultValue: "$WORKSPACE/private/ansible/inventories/$envDir", description: '<font color=teal size=2>Please sepecify the full path to the inventory directory. The default value is $WORKSPACE/private/ansible/env. Here env is the previous directory of the job.</font>', name: 'inventory_path', trim: false)])])
-                currentBuild.result = 'SUCCESS'
-                return
-            }
             artifact_version = sh(returnStdout: true, script: 'jq -r .artifact_version metadata.json').trim()
             values.put('artifact_version', artifact_version)
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
