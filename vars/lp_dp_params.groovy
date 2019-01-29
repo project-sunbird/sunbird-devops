@@ -7,25 +7,7 @@ def call(){
         String ANSI_YELLOW = "\u001B[33m"
 
         envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
-        if (params.size() == 0){
-            properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], parameters([string(defaultValue: '',
-                    description: '<font color=teal size=2>Please specify the absolute path to the job from which the metadata.json will be copied.</font>',
-                    name: 'copy_metadata_from', trim: false), string(defaultValue: 'lastSuccessfulBuild',
-                    description: '<font color=teal size=2>Specify the build number to copy the artifact from. Default is last successful build. The artifact from this build_number will be ignored if artifact source is Remote.</font>',
-                    name: 'build_number', trim: false), choice(choices: ['Remote', 'Local'], description: '<font color=teal size=2>Choose the artifact source. Remote will use artifact_version and Local will use build_number.</font>',
-                    name: 'artifact_source'), string(defaultValue: '', description: '<font color=teal size=2>This field is used only if artifact_source is Remote. If blank, artifact_version will be picked from metedata.json. If not blank, specified version will be downloaded from Remote.</font>',
-                    name: 'artifact_version', trim: false), choice(choices: ['GitHub', 'Local'], description: '<font color=teal size=2>Choose the ansible inventory source</font>',
-                    name: 'inventory_source'), string(defaultValue: "$WORKSPACE/private/ansible/inventories/$envDir",
-                    description: '<font color=teal size=2>Please sepecify the full path to the inventory directory. The default value is $WORKSPACE/private/ansible/env. Here env is the previous directory of the job.</font>',
-                    name: 'inventory_path', trim: false)])])
-            ansiColor('xterm') {
-                println (ANSI_BOLD + ANSI_GREEN + '''\
-                        First run of the job. Parameters created. Stopping the current build.
-                        Please trigger new build and provide parameters if required.
-                        '''.stripIndent().replace("\n"," ") + ANSI_NORMAL)
-            }
-            return "first run"
-        }
+        jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
 
         // Check if the job was triggered by an upstream project
         // If yes, get the name of the upstream project else job was started manually
@@ -70,6 +52,7 @@ def call(){
 
                 agent = sh(returnStdout: true, script: 'jq -r .node_name metadata.json').trim()
                 values.put('env', envDir)
+                values.put('jobName', jobName)
                 values.put('agent', agent)
                 values.put('artifact_name', artifact_name)
                 values.put('artifact_version', artifact_version)
