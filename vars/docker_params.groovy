@@ -7,7 +7,9 @@ def call(){
         String ANSI_YELLOW = "\u001B[33m"
 
         envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+        module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
         jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+
         // Check if the job was triggered by an upstream project
         // If yes, get the name of the upstream project else job was started manually
         stage('check upstream') {
@@ -60,6 +62,7 @@ def call(){
 
                 agent = sh(returnStdout: true, script: 'jq -r .node_name metadata.json').trim()
                 values.put('env', envDir)
+                values.put('module', module)
                 values.put('jobName', jobName)
                 values.put('agent', agent)
                 values.put('image_name', image_name)
