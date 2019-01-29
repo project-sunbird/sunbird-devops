@@ -11,20 +11,15 @@ node() {
             cleanWs()
             checkout scm
         }
-        stage('define params') {
-            def values = lp_dp_params()
-            if(values == "first run"){
-                currentBuild.result = 'SUCCESS'
-                return
-            }
             ansiColor('xterm') {
                 stage('get artifact') {
+                    def values = lp_dp_params()
                     currentWs = sh(returnStdout: true, script: 'pwd').trim()
                     artifact = values.artifact_name + ":" + values.artifact_version
                     values.put('currentWs', currentWs)
                     if (params.artifact_source == "Remote") {
                         println(ANSI_BOLD + ANSI_YELLOW + '''\
-                    Option chosen is Remote, ignoring any previously copied artifacts and new artifacts will be downloaded from remote source
+                    Option chosen is Artifact_Repository, ignoring any previously copied artifacts and new artifacts will be downloaded from artifact repository
                     '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                         ansiblePlaybook = "${currentWs}/ansible/artifacts-download.yml"
                         ansibleExtraArgs = """\
@@ -35,14 +30,13 @@ node() {
                         values.put('ansiblePlaybook', ansiblePlaybook)
                         values.put('ansibleExtraArgs', ansibleExtraArgs)
                         ansible_playbook_run(values)
-                    }
-                    else{
+                    } else {
                         println(ANSI_BOLD + ANSI_YELLOW + '''\
                     Option chosen is Local, using the artifacts copied 
                     '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                     }
                 }
-                stage('deploy artifact'){
+                stage('deploy artifact') {
                     sh """
                        unzip ${artifact}
                     """
@@ -58,7 +52,6 @@ node() {
                     currentBuild.description = "${values.artifact_version}"
                 }
             }
-        }
     }
     catch (err) {
         currentBuild.result = "FAILURE"
