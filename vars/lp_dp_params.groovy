@@ -6,7 +6,7 @@ def call(){
         String ANSI_RED = "\u001B[31m"
         String ANSI_YELLOW = "\u001B[33m"
 
-        envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+        envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
         jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
 
         // Check if the job was triggered by an upstream project
