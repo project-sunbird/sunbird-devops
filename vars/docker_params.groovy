@@ -7,22 +7,7 @@ def call(){
         String ANSI_YELLOW = "\u001B[33m"
 
         envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
-        if (params.size() == 0){
-            properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
-                        parameters([string(defaultValue: '', description: '<font color=teal size=2>The metadata.json file of the last successful build will be copied from this job. Please specify the absolute path to the job.</font>', name: 'copy_metadata_from', trim: false),
-                                    string(defaultValue: '', description: '<font color=teal size=2>Specify only version/tag, image name will be picked from the metadata.json file. If the value is blank, version will be picked from the metadata.json file.</font>', name: 'image_tag', trim: false),
-                                    choice(choices: ['GitHub', 'Local'], description: '<font color=teal size=2>Choose the ansible inventory source</font>', name: 'inventory_source'),
-                                    string(defaultValue: "$WORKSPACE/private/ansible/inventories/$envDir", description: '<font color=teal size=2>Please sepecify the full path to the inventory directory. The default value is $WORKSPACE/private/ansible/env. Here env is the previous directory of the job.</font>', name: 'inventory_path', trim: false)])])
-            ansiColor('xterm') {
-                println (ANSI_BOLD + ANSI_GREEN + '''\
-                        First run of the job. Parameters created. Stopping the current build.
-                        Please trigger new build and provide parameters if required.
-                        '''.stripIndent().replace("\n"," ") + ANSI_NORMAL)
-            }
-            return "first run"
-        }
-
-
+        jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
         // Check if the job was triggered by an upstream project
         // If yes, get the name of the upstream project else job was started manually
         stage('check upstream') {
@@ -75,6 +60,7 @@ def call(){
 
                 agent = sh(returnStdout: true, script: 'jq -r .node_name metadata.json').trim()
                 values.put('env', envDir)
+                values.put('jobName', jobName)
                 values.put('agent', agent)
                 values.put('image_name', image_name)
                 values.put('image_tag', image_tag)
