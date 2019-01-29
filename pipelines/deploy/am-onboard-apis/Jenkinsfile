@@ -15,13 +15,18 @@ node() {
         ansiColor('xterm') {
             stage('deploy'){
                 values = [:]
+                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                 currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                values.put('currentWs', currentWs)
                 ansiblePlaybook = "${currentWs}/ansible/api-manager.yml"
                 ansibleExtraArgs = "--tags kong-api --vault-password-file /run/secrets/vault-pass -v"
+                values.put('currentWs', currentWs)
+                values.put('env', envDir)
+                values.put('module', module)
+                values.put('jobName', jobName)
                 values.put('ansiblePlaybook', ansiblePlaybook)
-                values.put('ansibleExtraArgs', ansibleExtraArgs)
-                println values
+                values.put('ansibleExtraArgs', ansibleExtraArgs)                
 //                    ansible_playbook_run(values)
             }
         }
