@@ -18,12 +18,12 @@ def call(){
             triggerCause = upstream?.shortDescription
             if (triggerCause != null)
                 triggerCause = triggerCause.split()[4].replaceAll('"', '')
-            values.put('copy_metadata_from', triggerCause)
+            values.put('absolute_job_path', triggerCause)
         }
 
         stage('parameter checks') {
             ansiColor('xterm') {
-                if (values.copy_metadata_from == null && params.copy_metadata_from == ""){
+                if (values.absolute_job_path == null && params.absolute_job_path == ""){
                     println (ANSI_BOLD + ANSI_RED + '''\
                     Uh oh! Please specify the full path of the job from where the metedata.json file should be copied
                     '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
@@ -32,12 +32,12 @@ def call(){
 
                 // Error handling for az details needs to go here if required
 
-                if (values.copy_metadata_from != null){
-                    copyArtifacts projectName: values.copy_metadata_from, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
+                if (values.absolute_job_path != null){
+                    copyArtifacts projectName: values.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
                 }
                 else {
-                    copyArtifacts projectName: params.copy_metadata_from, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
-                    values.put('copy_metadata_from', params.copy_metadata_from)
+                    copyArtifacts projectName: params.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
+                    values.put('absolute_job_path', params.absolute_job_path)
                 }
 
                 artifact_name = sh(returnStdout: true, script: 'jq -r .artifact_name metadata.json').trim()
