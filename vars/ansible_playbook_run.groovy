@@ -32,7 +32,7 @@ def call(Map pipelineParams) {
                     println pipelineParams
                     ansiColor('xterm') {
                         sh """
-                            cp ${WORKSPACE}/private/ansible/inventory/${pipelineParams.env}/* ${WORKSPACE}/ansible/inventory/env
+                            cp ${WORKSPACE}/private/ansible/inventory/${pipelineParams.env}/${pipelineParams.module}/* ${WORKSPACE}/ansible/inventory/env
                         """
                         inventory_path = "${WORKSPACE}/ansible/inventory/env"
                         sh """
