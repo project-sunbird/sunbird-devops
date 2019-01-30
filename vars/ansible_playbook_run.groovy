@@ -31,7 +31,10 @@ def call(Map pipelineParams) {
                 stage('ansible-playbook') {
                     println pipelineParams
                     ansiColor('xterm') {
-                        inventory_path = "${WORKSPACE}/private/ansible/${pipelineParams.env}/${pipelineParams.module}"
+                        sh """
+                            cp "${WORKSPACE}/private/ansible/inventory/${pipelineParams.env}/* "${WORKSPACE}/ansible/inventory/env"
+                        """
+                        inventory_path = "${WORKSPACE}/ansible/inventory/env"
                         sh """
                                ansible-playbook -i ${inventory_path} \
                                $pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
