@@ -3664,4 +3664,37 @@ kong_apis:
       config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"             
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: "updateUserPrivate"
+    request_path: "{{ user_service_prefix }}/private/v1/update"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/update"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" } 
+  - name: "getUserByExternalId"
+    request_path: "{{ user_service_prefix }}/private/v1/read/"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/read/"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" } 
+  - name: "assignprivateRole"
+    request_path: "{{ user_service_prefix }}/private/v1/assign/role"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/assign/role"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }                  
