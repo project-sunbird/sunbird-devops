@@ -7,21 +7,6 @@ node() {
         String ANSI_RED = "\u001B[31m"
         String ANSI_YELLOW = "\u001B[33m"
 
-        if (params.size() == 0){
-            envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
-            properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false], parameters([
-                    choice(choices: ['GitHub', 'Local'], description: '<font color=teal size=2>Choose the ansible inventory source</font>', name: 'inventory_source'),
-                    string(defaultValue: "${WORKSPACE}/private/ansible/inventories/${envDir}", description: '<font color=teal size=2>Please sepecify the full path to the inventory directory. The default value is $WORKSPACE/private/ansible/env. Here env is the previous directory of the job.</font>', name: 'inventory_path', trim: false)])])
-            ansiColor('xterm') {
-                println (ANSI_BOLD + ANSI_GREEN + '''\
-                        First run of the job. Parameters created. Stopping the current build.
-                        Please trigger new build and provide parameters if required.
-                        '''.stripIndent().replace("\n"," ") + ANSI_NORMAL)
-            }
-            currentBuild.result = 'SUCCESS'
-            return "first run"
-        }
-
         triggers {
             cron('H 0 * * *')
         }
@@ -35,9 +20,15 @@ node() {
             stage('deploy'){
                 values = [:]
                 currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                values.put('currentWs', currentWs)
+                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                 ansiblePlaybook = "${currentWs}/ansible/keycloak.yml"
                 ansibleExtraArgs = "--tags provision --vault-password-file  /run/secrets/vault-pass"
+                values.put('currentWs', currentWs)
+                values.put('env', envDir)
+                values.put('module', module)
+                values.put('jobName', jobName)
                 values.put('ansiblePlaybook', ansiblePlaybook)
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 println values

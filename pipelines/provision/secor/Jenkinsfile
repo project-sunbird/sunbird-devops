@@ -10,29 +10,17 @@ node() {
         stage('checkout public repo') {
             cleanWs()
             checkout scm
-            sh """
-                rm -rf opensaber
-                git clone https://github.com/project-sunbird/open-saber.git opensaber                
-                cd opensaber
-                ./configure-dependencies.sh
-                cd java
-                mvn clean install
-                cd registry
-                mvn clean install
-                cp target/registry.jar ${WORKSPACE}/ansible
-                cd ${WORKSPACE}
-            """
         }
 
         ansiColor('xterm') {
             stage('deploy'){
                 values = [:]
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
                 envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
                 module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
                 jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
-                currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                ansiblePlaybook = "${currentWs}/ansible/registry.yml"
-                ansibleExtraArgs = "--vault-password-file /home/ops/vault"
+                ansiblePlaybook = "${currentWs}/ansible/provision-secor.yml"
+                ansibleExtraArgs = "--vault-password-file /run/secrets/vault-pass"
                 values.put('currentWs', currentWs)
                 values.put('env', envDir)
                 values.put('module', module)
