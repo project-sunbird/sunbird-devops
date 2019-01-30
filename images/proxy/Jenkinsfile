@@ -15,7 +15,7 @@ node('build-slave') {
                     println(ANSI_BOLD + ANSI_GREEN + "Found environment variable named hub_org with value as: " + hub_org + ANSI_NORMAL)
             }
             cleanWs()
-            if (params.tag == "") {
+            if (params.github_release_tag == "") {
                 checkout scm
                 commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                 branch_name = sh(script: 'git name-rev --name-only HEAD | rev | cut -d "/" -f1| rev', returnStdout: true).trim()
@@ -23,9 +23,9 @@ node('build-slave') {
                 println(ANSI_BOLD + ANSI_YELLOW + "Tag not specified, using the latest commit hash: " + commit_hash + ANSI_NORMAL)
             } else {
                 def scmVars = checkout scm
-                checkout scm: [$class: 'GitSCM', branches: [[name: "refs/tags/$params.tag"]], userRemoteConfigs: [[url: scmVars.GIT_URL]]]
-                build_tag = params.tag
-                println(ANSI_BOLD + ANSI_YELLOW + "Tag specified, building from tag: " + params.tag + ANSI_NORMAL)
+                checkout scm: [$class: 'GitSCM', branches: [[name: "refs/tags/$params.github_release_tag"]], userRemoteConfigs: [[url: scmVars.GIT_URL]]]
+                build_tag = params.github_release_tag
+                println(ANSI_BOLD + ANSI_YELLOW + "Tag specified, building from tag: " + params.github_release_tag + ANSI_NORMAL)
             }
             echo "build_tag: " + build_tag
 
