@@ -18,7 +18,7 @@ def call(){
             triggerCause = upstream?.shortDescription
             if (triggerCause != null)
                 triggerCause = triggerCause.split()[4].replaceAll('"', '')
-            values.put('copy_metadata_from', triggerCause)
+            values.put('absolute_job_path', triggerCause)
         }
 
         stage('parameter checks'){
@@ -34,19 +34,19 @@ def call(){
                     Found environment variable named hub_org with value as:
                     '''.stripIndent().replace("\n", " ") + hub_org + ANSI_NORMAL)
 
-                if (values.copy_metadata_from == null && params.copy_metadata_from == ""){
+                if (values.absolute_job_path == null && params.absolute_job_path == ""){
                     println (ANSI_BOLD + ANSI_RED + '''\
                     Uh oh! Please specify the full path of the job from where the metedata.json file should be copied
                     '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                     error 'Please resolve errors and rerun..'
                 }
 
-                if (values.copy_metadata_from != null){
-                    copyArtifacts projectName: values.copy_metadata_from, flatten: true
+                if (values.absolute_job_path != null){
+                    copyArtifacts projectName: values.absolute_job_path, flatten: true
                 }
                 else {
-                    copyArtifacts projectName: params.copy_metadata_from, flatten: true
-                    values.put('copy_metadata_from', params.copy_metadata_from)
+                    copyArtifacts projectName: params.absolute_job_path, flatten: true
+                    values.put('absolute_job_path', params.absolute_job_path)
                 }
 
                 image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
@@ -54,7 +54,7 @@ def call(){
                 if (params.image_tag == "") {
                     println (ANSI_BOLD + ANSI_YELLOW + '''\
                     image_tag not specified, using the image_tag specified in metadata.json.
-                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL) 
+                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                     image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
                 }
                 else
