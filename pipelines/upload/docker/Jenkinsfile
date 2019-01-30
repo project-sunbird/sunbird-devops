@@ -8,13 +8,15 @@ node(){
 
         stage('Artifact Upload') {
             def values = docker_params()
-            currentWs = sh(returnStdout: true, script: 'pwd').trim()
-            ansiblePlaybook = "$currentWs/ansible/docker_image_push.yml"
-            ansibleExtraArgs = "--extra-vars \"hub_org=${hub_org} image_name=${values.image_name} image_tag=${values.image_tag}\" --vault-password-file /home/ops/vault"
-            values.put('currentWs', currentWs)
-            values.put('ansiblePlaybook', ansiblePlaybook)
-            values.put('ansibleExtraArgs', ansibleExtraArgs)
-            ansible_playbook_run(values)
+            if(params.artifact_source == "ArtifactRepo") {
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                ansiblePlaybook = "$currentWs/ansible/docker_image_push.yml"
+                ansibleExtraArgs = "--extra-vars \"hub_org=${hub_org} image_name=${values.image_name} image_tag=${values.image_tag}\" --vault-password-file /home/ops/vault"
+                values.put('currentWs', currentWs)
+                values.put('ansiblePlaybook', ansiblePlaybook)
+                values.put('ansibleExtraArgs', ansibleExtraArgs)
+                ansible_playbook_run(values)
+            }
             archiveArtifacts 'metadata.json'
             currentBuild.description = "${values.image_tag}"
         }
