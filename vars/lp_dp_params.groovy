@@ -30,14 +30,13 @@ def call(){
                     error 'Please resolve errors and rerun..'
                 }
 
-                // Error handling for az details needs to go here if required
-
-                if (values.absolute_job_path != null){
-                    copyArtifacts projectName: values.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
-                }
-                else {
-                    copyArtifacts projectName: params.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
-                    values.put('absolute_job_path', params.absolute_job_path)
+                if(params.build_number != "") {
+                    if (values.absolute_job_path != null) {
+                        copyArtifacts projectName: values.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
+                    } else {
+                        copyArtifacts projectName: params.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
+                        values.put('absolute_job_path', params.absolute_job_path)
+                    }
                 }
 
                 artifact_name = sh(returnStdout: true, script: 'jq -r .artifact_name metadata.json').trim()
