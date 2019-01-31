@@ -1,8 +1,16 @@
 ---
 - name: Ensure azure blob storage container exists
   command: az storage container create --name {{ artifacts_container }}
+  ignore_errors: true
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{ artifacts_storage_account }}"
+    AZURE_STORAGE_KEY: "{{ artifact_storage_key }}"
+
 
 - name: Upload to azure blob storage
-  command: az storage blob upload -c {{ artifacts_container }} --name {{ artifact }} -f {{ artifact_path }}
+  command: az storage blob upload-batch -d {{ artifacts_container }} -s {{ artifacts }}
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{ artifacts_storage_account }}"
+    AZURE_STORAGE_KEY: "{{ artifacts_storage_key }}"
   async: 100
   poll: 10
