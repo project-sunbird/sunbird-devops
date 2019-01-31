@@ -1,3 +1,4 @@
+package Deploy
 @Library('deploy-conf') _
 node() {
     try {
@@ -6,10 +7,6 @@ node() {
         String ANSI_BOLD = "\u001B[1m"
         String ANSI_RED = "\u001B[31m"
         String ANSI_YELLOW = "\u001B[33m"
-
-        triggers {
-            cron('H 0 * * *')
-        }
 
         stage('checkout public repo') {
             cleanWs()
@@ -33,12 +30,6 @@ node() {
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 println values
 //                    ansible_playbook_run(values)
-            }
-        }
-
-        post {
-            failure {
-                slackSend channel: '#devops-team', color: 'danger', message: "Build Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
             }
         }
     }
