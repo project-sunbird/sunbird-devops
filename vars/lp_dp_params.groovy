@@ -36,6 +36,8 @@ def call(){
                     '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                     buildNumber = "lastSuccessfulBuild"
                 }
+                else
+                    buildNumber = params.build_number
 
                 if (values.absolute_job_path != null)
                     copyArtifacts projectName: values.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(buildNumber)
