@@ -30,17 +30,18 @@ def call(){
                     error 'Please resolve errors and rerun..'
                 }
 
-                if(params.artifact_source != "ArtifactRepo") {
-                    if (values.absolute_job_path != null) {
-                        copyArtifacts projectName: values.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
-                    } else {
-                        copyArtifacts projectName: params.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(params.build_number)
-                        values.put('absolute_job_path', params.absolute_job_path)
-                    }
+                if(params.build_number == "") {
+                    println (ANSI_BOLD + ANSI_YELLOW + '''\
+                    build_number not specified, setting build_number to lastSuccessfulBuild.
+                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
+                    buildNumber = "lastSuccessfulBuild"
                 }
-                else
-                {
-                    copyArtifacts projectName: params.absolute_job_path, fingerprintArtifacts: true, flatten: true, filter: 'metadata.json'
+
+                if (values.absolute_job_path != null)
+                    copyArtifacts projectName: values.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(buildNumber)
+                else {
+                    copyArtifacts projectName: params.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(buildNumber)
+                    values.put('absolute_job_path', params.absolute_job_path)
                 }
 
                 artifact_name = sh(returnStdout: true, script: 'jq -r .artifact_name metadata.json').trim()
