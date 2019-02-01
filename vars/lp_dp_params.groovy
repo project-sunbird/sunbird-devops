@@ -48,7 +48,7 @@ def call(){
 
                 artifact_name = sh(returnStdout: true, script: 'jq -r .artifact_name metadata.json').trim()
 
-                if (params.artifact_version == "") {
+                if (params.artifact_version == "" || params.artifact_version == null) {
                     println (ANSI_BOLD + ANSI_YELLOW + '''\
                     artifact_version not specified, using the artifact_version specified in metadata.json.
                     '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
