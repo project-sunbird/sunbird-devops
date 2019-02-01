@@ -7,10 +7,6 @@ node() {
         String ANSI_RED = "\u001B[31m"
         String ANSI_YELLOW = "\u001B[33m"
 
-        triggers {
-            cron('H 0 * * *')
-        }
-
         stage('checkout public repo') {
             cleanWs()
             checkout scm
@@ -19,12 +15,12 @@ node() {
         ansiColor('xterm') {
             stage('deploy'){
                 values = [:]
-                currentWs = sh(returnStdout: true, script: 'pwd').trim()
                 envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
                 module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
                 jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
-                ansiblePlaybook = "${currentWs}/ansible/cassandra-backup.yml"
-                ansibleExtraArgs = "--vault-password-file /run/secrets/vault-pass"
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                ansiblePlaybook = "${currentWs}/ansible/provision.yml"
+                ansibleExtraArgs = "--tags log-es --vault-password-file /run/secrets/vault-pass"
                 values.put('currentWs', currentWs)
                 values.put('env', envDir)
                 values.put('module', module)
@@ -35,15 +31,8 @@ node() {
                 ansible_playbook_run(values)
             }
         }
-
-        post {
-            failure {
-                slackSend channel: '#devops-team', color: 'danger', message: "Build Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
-            }
-        }
     }
     catch (err) {
         throw err
     }
 }
-
