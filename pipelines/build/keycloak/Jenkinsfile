@@ -10,7 +10,7 @@ node('build-slave') {
             stage('Checkout') {
                 cleanWs()
                 def scmVars = checkout scm
-                if (params.tag == "") {
+                if (params.github_release_tag == "") {
                     checkout scm
                     commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     branch_name = sh(script: 'git name-rev --name-only HEAD | rev | cut -d "/" -f1| rev', returnStdout: true).trim()
@@ -18,9 +18,9 @@ node('build-slave') {
                     println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag not specified, using the latest commit hash: " + commit_hash + ANSI_NORMAL)
                 }
                 else {
-                    checkout scm: [$class: 'GitSCM', branches: [[name: "refs/tags/$params.tag"]], userRemoteConfigs: [[url: scmVars.GIT_URL]]]
-                    artifact_version = params.tag
-                    println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag specified, building from: " + params.tag + ANSI_NORMAL)
+                    checkout scm: [$class: 'GitSCM', branches: [[name: "refs/tags/${params.github_release_tag}"]], userRemoteConfigs: [[url: scmVars.GIT_URL]]]
+                    artifact_version = params.github_release_tag
+                    println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag specified, building from: " + params.github_release_tag + ANSI_NORMAL)
                 }
                 echo "artifact_version: "+ artifact_version
             }
