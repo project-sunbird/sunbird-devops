@@ -7,12 +7,10 @@ node() {
         }
         stage('Artifact Upload') {
             def values = lp_dp_params()
+            currentWs = sh(returnStdout: true, script: 'pwd').trim()
+            artifact = values.artifact_name + ":" + values.artifact_version
             if(params.artifact_source == "ArtifactRepo")
             {
-                artifact_version = sh(returnStdout: true, script: 'jq -r .artifact_version metadata.json').trim()
-                values.put('artifact_version', artifact_version)
-                currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                artifact = values.artifact_name + ":" + values.artifact_version
                 ansiblePlaybook = "${currentWs}/ansible/artifacts-upload.yml"
                 ansibleExtraArgs = "--extra-vars \"artifact=${artifact} artifact_path=${currentWs}/${artifact}\" --vault-password-file /home/ops/vault"
                 values.put('currentWs', currentWs)
