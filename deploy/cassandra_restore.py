@@ -17,22 +17,23 @@ To restore the cassandra database snapshot
    cqlsh -e "source 'backup_dir/db_schema.cql';"
 
 3. Restore the data
-   usage: ./cassandra_restore.py --host <ip of the server> snapshot_directory_name
+   usage: python cassandra_restore.py
 
 """
 
 from os import walk, sep
 from subprocess import STDOUT, call
 from argparse import ArgumentParser
-
+import socket
 parser = ArgumentParser(description="Restore cassandra snapshot")
-parser.add_argument("--host", default="localhost", help="ip address of cassandra instance. \
-        Default: localhost")
-parser.add_argument("snapshotdir", metavar="snapshotdirectory", help="snapshot directory name or path")
+parser.add_argument("--host", default=socket.getfqdn(), metavar="< Default: "+socket.getfqdn()+" >", help="ip address of cassandra instance")
+parser.add_argument("--snapshotdir", default="cassandra_backup", metavar="< Default: cassandra_backup >", help="snapshot directory name or path")
 args = parser.parse_args()
 
-root_levels = args.snapshotdir.count(sep)
-for root, dirs, files in walk(args.snapshotdir):
+# Unix autocompletion for directory will append '/', which will break restore process
+snap_dir = args.snapshotdir.rstrip('/')
+root_levels = snap_dir.count(sep)
+for root, dirs, files in walk(snap_dir):
     if root.count(sep) == root_levels + 2:
         print(root)
         call(["sstableloader", "-v", "-d", args.host, root], stderr=STDOUT)
