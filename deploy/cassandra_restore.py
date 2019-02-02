@@ -27,7 +27,7 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser(description="Restore cassandra snapshot")
 parser.add_argument("--host", default="localhost", help="ip address of cassandra instance. \
-        Default: 127.0.0.1")
+        Default: localhost")
 parser.add_argument("snapshotdir", metavar="snapshotdirectory", help="snapshot directory name or path")
 args = parser.parse_args()
 
