@@ -23,8 +23,8 @@ node(){
                     sh """
                         mkdir -p ${JENKINS_HOME}/summary/${envDir}
                         touch -a ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                        sed -i "s/${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                        sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
+                        sed - i "s/${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
+                        sed - i "/^\\\$/d" ${JENKINS_HOME}/summary/$envDir}/summary.txt
                     """
 
                     if (module == "Core"){
@@ -42,14 +42,15 @@ node(){
                            echo "${jobName} : ${artifact_version}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                         """
                     }
-
-                  stage('Archive artifacts'){
-                         sh "cp ${JENKINS_HOME}/summary/${envDir}/summary.txt ."
-                         archiveArtifacts artifacts: 'summary.txt', fingerprint: true, onlyIfSuccessful: true
-                    }
                 }
                 else
                     println "This job can be only triggered from an upstream project"
 
             }
+
+    stage('Archive artifacts'){
+        sh "cp ${JENKINS_HOME}/summary/${envDir}/summary.txt ."
+        archiveArtifacts artifacts: 'summary.txt', fingerprint: true, onlyIfSuccessful: true
+    }
+
 }
