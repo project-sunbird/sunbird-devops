@@ -1,66 +1,56 @@
 node(){
-  cleanWs()
-    stage('check upstream')
-            {
-                pipelineParams = [:]
-                def upstream = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
-                triggerCause = upstream?.shortDescription
-                println triggerCause
-            }
+    cleanWs()
+    stage('check upstream') {
+        values = [:]
+        def upstream = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
+        triggerCause = upstream?.shortDescription
+        if (triggerCause != null)
+            triggerCause = triggerCause.split()[4].replaceAll('"', '')
+        values.put('absolute_job_path', triggerCause)
+    }
 
-    stage('Do stuff')
+    stage('Write data')
             {
-                if (triggerCause != null)
+                if (values.absolute_job_path != null)
                 {
-                    triggerCause = triggerCause.split()[4].replaceAll('"', '')
-                    pipelineParams.put('copy_metadata_from', triggerCause)
-                    println triggerCause
-                    println pipelineParams
-                    def envDir = triggerCause.split('/')[-3].toString().trim()
-                    def module = triggerCause.split('/')[-2].toString().trim()
-                    def jobName = triggerCause.split('/')[-1].toString().trim()
+                    def envDir = values.absolute_job_path.split('/')[-3].toString().trim()
+                    def module = values.absolute_job_path.split('/')[-2].toString().trim()
+                    def jobName = values.absolute_job_path.split('/')[-1].toString().trim()
                     println envDir + " " + module + " " + jobName
 
-                    copyArtifacts projectName: pipelineParams.copy_metadata_from, fingerprintArtifacts: true, flatten: true, filter: 'metadata.json'
+                    copyArtifacts projectName: values.absolute_job_path, fingerprintArtifacts: true, flatten: true, filter: 'metadata.json'
 
-                if (module.equals("Core")){
+                    sh """
+                        mkdir - p ${JENKINS_HOME}/summary/${envDir}
+                        touch - a ${JENKINS_HOME}/summary/${envDir}/summary.txt
+                        sed - i "s/${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
+                        sed - i "/^\\\$/d" ${JENKINS_HOME}/summary/$envDir}/summary.txt
+                    """
+
+                    if (module == "Core"){
                         image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
                         image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
                         println image_name + " " + image_tag
+                        sh """
+                          echo "${image_name} : ${image_tag}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
+                        """
                     }
-                else
-                    artifact_version = sh(returnStdout: true, script: 'jq -r .artifact_version metadata.json').trim()
-
-                if (pipelineParams.image_tag == null){
-                     sh """
-                       mkdir -p $JENKINS_HOME/summary/${envDir}
-                       touch -a $JENKINS_HOME/summary/${envDir}/summary.txt
-                       sed -i "s/${jobName}.*//g" $JENKINS_HOME/summary/${envDir}/summary.txt
-                       sed -i "/^\$/d" $JENKINS_HOME/summary/${envDir}/summary.txt
-                       echo "${jobName} : ${artifact_version}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
+                    else {
+                        artifact_version = sh(returnStdout: true, script: 'jq -r .artifact_version metadata.json').trim()
+                        println artifact_version
+                        sh """
+                           echo "${jobName} : ${artifact_version}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                         """
                     }
 
-                if (pipelineParams.image_tag != null){
-                     sh """
-                      mkdir -p $JENKINS_HOME/summary/${envDir}
-                      touch -a $JENKINS_HOME/summary/${envDir}/summary.txt
-                      sed -i "s/${image_name}.*//g" $JENKINS_HOME/summary/${envDir}/summary.txt
-                      sed -i "/^\$/d" $JENKINS_HOME/summary/${envDir}/summary.txt
-                      echo "${image_name} : ${image_tag}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
-                        """
+                  stage('Archive artifacts'){
+                         sh "cp ${JENKINS_HOME}/summary/${envDir}/summary.txt ."
+                         archiveArtifacts artifacts: 'summary.txt', fingerprint: true, onlyIfSuccessful: true
                     }
-
-/*       stage('Archive artifacts'){
-                 archiveArtifacts artifacts: "$JENKINS_HOME/summary/${envDir}/summary.txt", fingerprint: true, onlyIfSuccessful: true
-
-                 }*/
-
-
-           }
+                }
                 else
-                     println "This job can be only triggered from an upstream project"
+                    println "This job can be only triggered from an upstream project"
 
-       }
-  
+            }
+
 }
