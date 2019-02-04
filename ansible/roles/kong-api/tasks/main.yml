@@ -21,6 +21,13 @@
   #  retries: 60
   #  delay: 5
 
+- name: Extracting where the host in which api manager is running
+  command: bash -lc "docker service ps api-manager_kong | grep Runn | head -n1 | awk '{print $4}'"
+  register: kong_running_host
+
+- set_fact:
+    kong_admin_api_url: "{{kong_running_host.stdout}}"
+
 - name: waiting for 30 seconds for api manager to be fully functional
   pause:
     seconds: 30
