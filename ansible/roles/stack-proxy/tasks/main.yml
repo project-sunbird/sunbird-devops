@@ -73,16 +73,9 @@
 - name: Save proxy-default.conf as docker config
   shell: "docker config create proxy-default.conf /home/deployer/config/proxy-default.conf"
 
-- name: Login to docker
-  shell: "docker login {{ vault_docker_registery_url }} -u {{ vault_docker_registery_user }} -p {{ vault_docker_registery_password }}"
-  no_log: True
-  ignore_errors: yes
-
-- debug: msg="Image details= {{hub_org}}/{{image_name}}:{{image_tag}}"
-
-- debug: msg="server name= {{proxy_server_name}}"
-
 - name: Deploy stack
-  shell: "docker stack deploy -c proxy.yml proxy --with-registry-auth"
+  shell: |
+    docker login {{ vault_docker_registery_url }} -u {{ vault_docker_registery_user }} -p {{ vault_docker_registery_password }}
+    docker stack deploy -c proxy.yml proxy --with-registry-auth"
   args:
     chdir: /home/deployer/stack
