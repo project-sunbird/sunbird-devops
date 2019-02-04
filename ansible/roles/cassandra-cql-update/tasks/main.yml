@@ -2,12 +2,21 @@
   become: yes
   copy: src=files/{{item}} dest=/tmp/{{item}}
   with_items:
-             - cassandra.cql
              - pageMgmt.csv
              - pageSection.csv
+  tags: 
+       - always
+  run_once: true
+
+- name: Copy the templates
+  become: yes
+  template: src={{item}} dest=/tmp/{{item}}
+  with_items:
+             - cassandra.cql
              - content_service.cql
   tags: 
        - always
+  run_once: true
   
 - name: Run the cassandra.cql command
   become: yes
@@ -15,6 +24,7 @@
   ignore_errors: yes
   tags: 
        - cql
+  run_once: true
 
 - name: Run the pageMgmt.csv command
   become: yes
@@ -22,6 +32,7 @@
   ignore_errors: yes
   tags: 
        - pagemanagement
+  run_once: true
 
 - name: Run the pageSection.csv file
   become: yes
@@ -29,6 +40,7 @@
   ignore_errors: yes
   tags: 
        - pagesection
+  run_once: true
 
 - name: Run the content_service.cql file
   become: yes
@@ -36,12 +48,15 @@
   ignore_errors: yes
   tags: 
        - content_service
+  run_once: true
 
 - name: download 
   become: yes
-  command: wget https://github.com/project-sunbird/sunbird-utils/releases/download/release-1.11/cassandra-migration-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+  command: wget https://github.com/project-sunbird/sunbird-utils/releases/download/release-1.13.0/cassandra-migration-0.0.1-SNAPSHOT-jar-with-dependencies.jar
   args:
     chdir: /tmp
+  run_once: true
+
 - name: Run the application
   command: java -cp "cassandra-migration-0.0.1-SNAPSHOT-jar-with-dependencies.jar" com.contrastsecurity.cassandra.migration.utils.MigrationScriptEntryPoint
   args:
@@ -49,3 +64,4 @@
   environment:
     sunbird_cassandra_host: "{{ groups['cassandra'][0] }}"
     sunbird_cassandra_port: 9042
+  run_once: true

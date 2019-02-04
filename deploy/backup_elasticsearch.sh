@@ -1,6 +1,6 @@
 #!/bin/sh
 backup_path=/etc/elasticsearch/backup
-es_ip=$(hostname -I)
+es_ip=$(hostname -i)
 #es_ip=$(ip route get 8.8.8.8 | awk '{print $NF; exit}')
 
 #Creating backup folder

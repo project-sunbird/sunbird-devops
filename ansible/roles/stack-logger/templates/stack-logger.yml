@@ -2,7 +2,13 @@ version: '3.3'
 
 services:
   kibana:
-    image: kibana:4.6
+    image: {{ kibana_image }}
+    deploy:
+      resources:
+        reservations:
+          memory: "{{ logger_kibana_reservation_memory }}"
+        limits:
+          memory: "{{ logger_kibana_limit_memory }}"
     environment:
       - LOGSPOUT=ignore
     ports:
@@ -11,7 +17,7 @@ services:
       - source: kibana.yml
         target: /opt/kibana/config/kibana.yml
     networks:
-      - monitoring
+      - application_default
 
   logstash:
     image: sunbird/logstash:2.4.1
@@ -33,23 +39,34 @@ services:
       - '51415:51415'
       - '5044:5044'
     networks:
-      - monitoring
+      - application_default
 
   logspout:
     image: gliderlabs/logspout:v3.2.3
     command: syslog+tcp://logger_logstash:51415
     deploy:
       mode: global
+      resources:
+        reservations:
+          memory: "{{ logger_logspout_reservation_memory }}"
+        limits:
+          memory: "{{ logger_logspout_limit_memory }}"
     environment:
       - SYSLOG_FORMAT=rfc3164
       - INACTIVITY_TIMEOUT=1m
     volumes:
       - '/var/run/docker.sock:/tmp/docker.sock'
     networks:
-      - monitoring
+      - application_default
 
   oauth:
     image: rjshrjndrn/oauth2-proxy:2.2
+    deploy:
+      resources:
+        reservations:
+          memory: "{{ logger_oauth_reservation_memory }}"
+        limits:
+          memory: "{{ logger_oauth_limit_memory }}"
     command: |
       -cookie-secure=false
       -upstream=http://proxy_proxy/oauth2
@@ -67,7 +84,7 @@ services:
       - source: authenticated_email_kibana_oauth
         target: /authenticated_email.txt
     networks:
-      - monitoring
+      - application_default
 
 configs:
   authenticated_email_kibana_oauth:
@@ -78,6 +95,6 @@ configs:
     external: true
 
 networks:
-  monitoring:
+  application_default:
     external: true
 

@@ -14,23 +14,23 @@ services:
       - jenkins-pass
       - hub-pass
       - source: deployer-ssh-key
-        target: deployer-ssh-key
+        target: "{{deployer_name}}"
         mode: 0600
       - source: ops-private-key
-        target: ops-private-key
+        target: "{{ops_name}}"
         mode: 0600
       - source: vault-pass
         target: vault-pass
         mode: 0600
     deploy:
-      replicas: 2
+      replicas: {{ jenkins_replicas }}
       resources:
         reservations:
           memory: "{{ general_jenkins_slave_reservation_memory }}"
         limits:
           memory: "{{ general_jenkins_slave_limit_memory }}"
     networks:
-      - jenkins_default
+      - application_default
 
   api-manager-jenkins-slave:
     image: sunbird/api-manager-jenkins-swarm-agent
@@ -52,7 +52,6 @@ services:
         limits:
           memory: "{{ api_manager_jenkins_slave_limit_memory }}"
     networks:
-      - jenkins_default
       - application_default
 
 secrets:
@@ -70,7 +69,5 @@ secrets:
     external: true
 
 networks:
-  jenkins_default:
-    external: true
   application_default:
     external: true

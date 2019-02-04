@@ -1,11 +1,14 @@
-prometheus_reservation_memory: 2G
-prometheus_limit_memory: 4G
+prometheus_reservation_memory: 1G
+prometheus_limit_memory: 1G
+
+alertmanager_reservation_memory: 100M
+alertmanager_limit_memory: 100M
 
 node_exporter_reservation_memory: 16M
 node_exporter_limit_memory: 32M
 
-cadvisor_reservation_memory: 400M
-cadvisor_limit_memory: 400M
+cadvisor_reservation_memory: 100M
+cadvisor_limit_memory: 100M
 
 elasticsearch_exporter_reservation_memory: 8M
 elasticsearch_exporter_limit_memory: 24M
@@ -25,10 +28,15 @@ jsonpath_exporter_limit_memory: 64M
 azure_blob_exporter_reservation_memory: 16M
 azure_blob_exporter_limit_memory: 64M
 
+grafana_reservation_memory: 100M
+grafana_limit_memory: 100M
+
 monitor_logstash_replicas: 1
-monitor_logstash_heap_size: 512m
-monitor_logstash_reservation_memory: 1G
-monitor_logstash_limit_memory: 1G
+monitor_logstash_heap_size: 256m
+monitor_logstash_reservation_memory: 256M
+monitor_logstash_limit_memory: 350M
+monitor_logspout_reservation_memory: 150M
+monitor_logspout_limit_memory: 150M
 
 container_cpu_usage_percentage_theshold: 90
 container_memory_usage_percentage_theshold: 90
@@ -49,7 +57,7 @@ expected_data_backup_size_in_bytes: 1024
 enable_postgres_availability_check: true
 
 enable_scraping_docker_metrics: false
-docker_metrics_port: "2393"
+docker_metrics_port: "2377"
 
 kong_cluster_expected_number_of_nodes: "{{ kong_replicas | default(1) }}"
 
@@ -132,35 +140,30 @@ service_blackbox_checks:
     probe_module: http_2xx
     targets:
       - "{{sunbird_analytics_api_base_url}}/health"
-  # - service_name: 'logger_kibana'
-  #   probe_module: http_2xx
-  #   targets:
-  #     - http://logger_kibana:5601/
-  # - service_name: 'logger_grafana'
-  #   probe_module: http_2xx
-  #   targets:
-  #     - "https://{{api__host}}/grafana"
+  - service_name: 'learning-service'
+    probe_module: http_2xx
+    targets:
+      - "{{sunbird_content_repo_api_base_url}}/health"
+  - service_name: 'search-service'
+    probe_module: http_2xx
+    targets:
+      - "{{sunbird_search_service_api_base_url}}/health"
   - service_name: 'player_player'
     probe_module: http_2xx
     targets:
-      - "https://{{api__host}}"
       - "http://player_player:3000"
   - service_name: 'content-service'
     probe_module: http_2xx
     targets:
       - http://content-service:5000/health
-  # - service_name: 'learner-service'
-  #   probe_module: http_2xx
-  #   targets:
-  #     - http://learner-service:9000/health
   - service_name: 'monit'
     probe_module: http_2xx
     targets:
       - "http://{{ groups['swarm-bootstrap-manager'][0] }}:2812"
   - service_name: 'logger_oauth'
-    probe_module: http_4xx_auth
+    probe_module: http_2xx
     targets:
-      - "https://{{api__host}}/dashboard"
+            - "http://oauth:4111/robots.txt"
   - service_name: 'cassandra'
     probe_module: tcp_connect
     targets:
@@ -168,11 +171,11 @@ service_blackbox_checks:
   - service_name: 'composite_search'
     probe_module: composite_search
     targets:
-      - "https://{{api__host}}/api/composite/v1/search"
+      - "{{proto}}://{{proxy_server_name}}/api/composite/v1/search"
   - service_name: 'keycloak'
     probe_module: http_2xx
     targets:
-      - "https://{{api__host}}/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=foo&redirect_uri=https%3A%2F%2F{{api__host}}%2Fprivate%2Findex%3Fauth_callback%3D1&scope=openid&response_type=code"
+      - "{{proto}}://{{proxy_server_name}}/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=foo&redirect_uri=https%3A%2F%2F{{proxy_server_name}}%2Fprivate%2Findex%3Fauth_callback%3D1&scope=openid&response_type=code"
 
 prometheus_route_prefix: prometheus
 prometheus_web_external_url: "{{proto}}://{{api__host}}:9090/{{ prometheus_route_prefix }}"

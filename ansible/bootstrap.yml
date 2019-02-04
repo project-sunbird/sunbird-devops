@@ -1,12 +1,20 @@
-- hosts: "{{hosts}}"
+- hosts: 'all:!localhost'
   become: yes
+  gather_facts: no
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  vars:
+    ansible_ssh_user: "{{bootstrap_user}}"
+    ansible_ssh_private_key_file: "{{bootstrap_key_path}}"
   roles:
-    - role: bootstrap_any
+    - bootstrap_any
   tags:
     - bootstrap_any
 
 - hosts: "{{hosts}}"
   become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
   roles:
     - role: bootstrap_swarm
       when: swarm_master
@@ -15,7 +23,10 @@
 
 - hosts: "{{hosts}}"
   become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
   roles:
     - role: azure-cli
   tags:
     - azure_cli
+

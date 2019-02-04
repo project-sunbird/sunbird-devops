@@ -6,7 +6,7 @@ services:
         ports:
             - "9090:9090"
         networks:
-            - monitoring
+            - application_default
         volumes:
             - /mnt/dockerdata/prometheus/data/:/prometheus
         command: "-config.file=/etc/prometheus/prometheus.yml -alertmanager.url http://alertmanager:9093/alertmanager -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -storage.local.target-heap-size=15728640 -storage.local.retention={{prometheus_storage_retention_time}} -web.console.templates=/etc/prometheus/consoles -web.route-prefix={{prometheus_route_prefix}} -web.external-url={{prometheus_web_external_url}} -storage.local.max-chunks-to-persist=1572864 -storage.local.memory-chunks=3145728 -storage.local.checkpoint-dirty-series-limit=25000"
@@ -51,7 +51,7 @@ services:
         ports:
             - "9093:9093"
         networks:
-            - monitoring
+            - application_default
         volumes:
             - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
         command: "-config.file=/etc/alertmanager/alertmanagerconfig.yml -storage.path=/alertmanager/data -web.route-prefix={{prometheus_alertmanager_route_prefix}} -web.external-url={{prometheus_alertmanager_web_external_url}}"
@@ -63,6 +63,11 @@ services:
             placement:
                 constraints:
                     - "node.labels.alertmanager==1"
+            resources:
+              reservations:
+                memory: "{{ alertmanager_reservation_memory }}"
+              limits:
+                memory: "{{ alertmanager_limit_memory }}"
 
     blackbox-exporter:
         image: quay.io/prometheus/blackbox-exporter:v0.8.1
@@ -70,9 +75,7 @@ services:
             - "9115:9115"
         command: "--config.file=/etc/blackbox-exporter/blackboxconfig.yml"
         networks:
-            - monitoring
             - application_default
-            - jenkins_default
         configs:
             - source: blackboxconfig.yml
               target: /etc/blackbox-exporter/blackboxconfig.yml
@@ -88,7 +91,7 @@ services:
         ports:
             - "8081:8080"
         networks:
-            - monitoring
+            - application_default
         volumes:
             - /:/rootfs:ro
             - /var/run:/var/run:rw
@@ -107,7 +110,7 @@ services:
         ports:
             - "9100:9100"
         networks:
-            - monitoring
+            - application_default
         environment:
             - HOST_HOSTNAME=/etc/hostname
         volumes:
@@ -129,7 +132,7 @@ services:
         ports:
             - "9108:9108"
         networks:
-            - monitoring
+            - application_default
         command:
             - '-es.uri=http://{{ monitor_es_host }}:9200'
             - '-es.all=true'
@@ -147,7 +150,7 @@ services:
         ports:
             - "9109:9108"
         networks:
-            - monitoring
+            - application_default
         command:
             - '-es.uri=http://{{ groups['log-es'][0] }}:9200'
             - '-es.all=true'
@@ -166,7 +169,7 @@ services:
         ports:
             - 9187:9187
         networks:
-            - monitoring
+            - application_default
         command:
             - '-extend.query-path=/etc/postgres_exporter/postgresmasterqueries.yml'
         environment:
@@ -189,7 +192,7 @@ services:
         ports:
             - 9188:9187
         networks:
-            - monitoring
+            - application_default
         command:
             - '-extend.query-path=/etc/postgres_exporter/postgresslavequeries.yml'
         environment:
@@ -212,9 +215,7 @@ services:
             - 9125:9125
             - 9125:9125/udp
         networks:
-            - monitoring
             - application_default
-            - jenkins_default
         command:
             - '-statsd.mapping-config=/etc/statsd_exporter/statsd_mapping.yml'
         configs:
@@ -232,9 +233,7 @@ services:
         ports:
             - 9158:9158
         networks:
-            - monitoring
             - application_default
-            - jenkins_default
         command: /etc/kong_cluster_exporter/config.yml
         configs:
             - source: kong_cluster_exporter_config.yml
@@ -251,7 +250,7 @@ services:
         ports:
             - 9159:9158
         networks:
-            - monitoring
+            - application_default
         command: /etc/elasticsearch_snapshots_exporter/config.yml
         configs:
             - source: elasticsearch_snapshots_exporter_config.yml
@@ -268,7 +267,7 @@ services:
         ports:
             - 9358:9358
         networks:
-            - monitoring
+            - application_default
         command: /etc/data_backup_azure_blob_exporter/config.yml
         configs:
             - source: data_backup_azure_blob_exporter_config.yml
@@ -285,7 +284,7 @@ services:
         ports:
             - "3001:3000"
         networks:
-            - monitoring
+            - application_default
         volumes:
             - /var/dockerdata/grafana:/var/lib/grafana
         command: -e "PROMETHEUS_ENDPOINT=http://prometheus:9090/prometheus"
@@ -300,9 +299,20 @@ services:
             placement:
                 constraints:
                     - "node.labels.grafana==1"
+            resources:
+              reservations:
+                memory: "{{ grafana_reservation_memory }}"
+              limits:
+                memory: "{{ grafana_limit_memory }}"
 
     cassandra_jmx_exporter:
         image: sunbird/cassandra_jmx_exporter:0.11
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ jsonpath_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ jsonpath_exporter_limit_memory }}"
         ports:
             - "5556:5556"
         environment:
@@ -312,7 +322,7 @@ services:
             - source: jmx_httpserver.yml
               target: /opt/app/jmx_httpserver.yml
         networks:
-            - monitoring
+            - application_default
 
     logstash:
         image: sunbird/logstash:2.4.1
@@ -329,7 +339,7 @@ services:
             - '51416:51415'
             - '5045:5044'
         networks:
-            - monitoring
+            - application_default
         deploy:
             replicas: {{ monitor_logstash_replicas }}
             resources:
@@ -343,6 +353,11 @@ services:
         command: syslog+tcp://monitor_logstash:51415?filter.name=*_proxy.*
         deploy:
             mode: global
+            resources:
+                reservations:
+                    memory: "{{ monitor_logspout_reservation_memory }}"
+                limits:
+                    memory: "{{ monitor_logspout_limit_memory }}"
         environment:
             - SYSLOG_FORMAT=rfc3164
         depends_on:
@@ -350,7 +365,7 @@ services:
         volumes:
             - '/var/run/docker.sock:/tmp/docker.sock'
         networks:
-            - monitoring
+            - application_default
 
 configs:
   prometheus.yml:
@@ -406,9 +421,5 @@ configs:
 
   
 networks:
-    monitoring:
-        external: true
     application_default:
-        external: true
-    jenkins_default:
         external: true

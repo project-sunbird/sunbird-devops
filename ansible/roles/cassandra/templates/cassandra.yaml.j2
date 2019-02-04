@@ -40,7 +40,11 @@ seed_provider:
       parameters:
           # seeds is actually a comma-delimited list of addresses.
           # Ex: "<ip1>,<ip2>,<ip3>"
+{% if groups['cassandra-2'] is defined %}
+          - seeds: "{{groups['cassandra'][0]}},{{groups['cassandra'][1]}}"
+{% else %}
           - seeds: {{cassandra_seeds}}
+{% endif %}
 concurrent_reads: 32
 concurrent_writes: 32
 concurrent_counter_writes: 32
@@ -52,14 +56,20 @@ trickle_fsync: false
 trickle_fsync_interval_in_kb: 10240
 storage_port: 7000
 ssl_storage_port: 7001
+{% if groups['cassandra-2'] is defined %}
+listen_address: {{hostvars[inventory_hostname]['ansible_default_ipv4']['address']}}
+broadcast_address: {{hostvars[inventory_hostname]['ansible_default_ipv4']['address']}}
+broadcast_rpc_address: {{hostvars[inventory_hostname]['ansible_default_ipv4']['address']}}
+{% else %}
 listen_address: {{cassandra_listen_address}}
+broadcast_address: {{cassandra_broadcast_address}}
+broadcast_rpc_address: {{cassandra_broadcast_rpc_address}}
+{% endif %}
 listen_interface: {{cassandra_listen_interface}}
 start_native_transport: true
 native_transport_port: 9042
 start_rpc: false
 rpc_address: {{cassandra_rpc_address}}
-broadcast_rpc_address: {{cassandra_broadcast_rpc_address}}
-broadcast_address: {{cassandra_broadcast_address}}
 rpc_port: 9160
 rpc_keepalive: true
 rpc_server_type: sync
@@ -79,7 +89,11 @@ cas_contention_timeout_in_ms: 1000
 truncate_request_timeout_in_ms: 60000
 request_timeout_in_ms: 10000
 cross_node_timeout: false
+{% if groups['cassandra-2'] is defined %}
+endpoint_snitch: GossipingPropertyFileSnitch
+{% else %}
 endpoint_snitch: SimpleSnitch
+{% endif %}
 dynamic_snitch_update_interval_in_ms: 100
 dynamic_snitch_reset_interval_in_ms: 600000
 dynamic_snitch_badness_threshold: 0.1
