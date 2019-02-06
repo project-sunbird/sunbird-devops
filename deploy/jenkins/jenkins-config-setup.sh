@@ -7,11 +7,11 @@ read -p 'Jenkins URL without http://: ' server
 read -p 'Jenkins admin username: ' username
 read -sp 'Jenkins admin Password: ' password
 
-echo -e "\e[0;32m${bold}Copying config files to Jenkins ${normal}"
-cp -r jobs /var/lib/jenkins
+echo -e "\n\e[0;32m${bold}Copying config files to Jenkins ${normal}"
+rsync -r jobs /var/lib/jenkins/jobs
+chown -R jenkins:jenkins /var/lib/jenkins/jobs
 
-echo -e "\e[0;32m${bold}Installating plugins... ${normal}"
+echo -e "\n\e[0;32m${bold}Installating plugins... ${normal}"
 ./butler plugins i -s $server -u $username -p $password
 
-echo -e "\e[0;32m${bold}Go to manage jenkins -> Plugin manager -> Update center -> Check restart jenkins after installation${normal}"
-
+echo -e "\n\e[0;32m${bold}Go to manage jenkins -> Plugin manager -> Update center -> Check restart jenkins after installation${normal}"
