@@ -8,7 +8,7 @@ def call() {
 
         stage('check upstream') {
             values = [:]
-            upstream = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
+            def upstream = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
             triggerCause = upstream?.shortDescription
             if (triggerCause != null)
                 triggerCause = triggerCause.split()[4].replaceAll('"', '')
