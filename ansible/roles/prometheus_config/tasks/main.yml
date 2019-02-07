@@ -1,0 +1,19 @@
+---
+
+- name: Update node exporter ip
+  replace:
+    path: /opt/docker/stacks/monitor/config/prometheus.yml
+    regexp: ':9091]$'
+    replace: ":9091{% for ip in groups['all'] %}','{{ ip }}:9091{% endfor %}']"
+
+
+- name: Update process exporter ip
+  replace:
+    path: /opt/docker/stacks/monitor/config/prometheus.yml
+    regexp: ':1111]$'
+    replace: ":1111{% for ip in groups['process-exporter'] %}','{{ ip }}:1111{% endfor %}']"
+
+
+- name: Restart prometheus stack
+  shell: "docker service update monitor_prometheus"
+
