@@ -21,11 +21,11 @@
 - name: Extract {{keycloak_pkg_file}}
   shell: cd sunbird_auth_{{sunbird_auth_version}} && tar -xvf {{keycloak_pkg_file}} --strip 1
 
-#- name: Get the postgresql driver
-#  get_url: url={{postgresql_driver_src}} dest="sunbird_auth_{{sunbird_auth_version}}/modules/system/layers/keycloak/org/postgresql/main/" force=no
-
 - name: Get the postgresql driver
-  shell: cd sunbird_auth_{{sunbird_auth_version}}/modules/system/layers/keycloak/org/postgresql/main/ && wget {{postgresql_driver_src}}
+  get_url: url={{postgresql_driver_src}} dest="sunbird_auth_{{sunbird_auth_version}}/modules/system/layers/keycloak/org/postgresql/main/" force=no
+
+#~ - name: Get the postgresql driver
+  #~ shell: cd sunbird_auth_{{sunbird_auth_version}}/modules/system/layers/keycloak/org/postgresql/main/ && wget {{postgresql_driver_src}}
 
 - name: Build SMS provider package
   shell: cd  ../../sunbird-auth/keycloak/sms-provider && mvn package
@@ -41,18 +41,6 @@
 
 - name: Copy Sunbird email theme
   copy: src="../../ansible/artifacts/email/" dest="sunbird_auth_{{sunbird_auth_version}}/themes/sunbird/email/" force="yes"
-
-#~ - name: Keycloak configuration XML file
-  #~ template:
-    #~ src: "roles/sunbird-auth-build/templates/standalone-ha.xml"
-    #~ dest: "sunbird_auth_{{sunbird_auth_version}}/standalone/configuration/standalone-ha.xml"
-    #~ mode: 0750
-
-#~ - name: Copy module.xml
-  #~ template:
-    #~ src: roles/sunbird-auth-build/templates/module.xml.j2
-    #~ dest: "sunbird_auth_{{sunbird_auth_version}}/modules/system/layers/keycloak/org/postgresql/main/module.xml"
-    #~ mode: 0750
 
 - name: Remove the Keycloak zip
   become: yes
