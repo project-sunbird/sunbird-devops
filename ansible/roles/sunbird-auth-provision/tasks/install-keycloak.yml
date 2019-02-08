@@ -22,6 +22,7 @@
 - name: remove sunbird auth package
   become: yes
   file: path="{{keycloak_home}}" state=absent
+  ignore_errors=yes
 
 - name: change build script permissions
   become: yes
@@ -41,13 +42,6 @@
 - name: remove the sunbird_auth_{{sunbird_auth_version}}
   become: yes
   file: path=/opt/sunbird_auth_{{sunbird_auth_version}} state=absent
-
-- name: Create admin user
-  become_user: "{{ wildfly_user }}"
-  command: "{{ wildfly_dir }}/bin/add-user-keycloak.sh -r master -u {{ keycloak_management_user }} -p {{ keycloak_management_password }}"
-  when: keycloak_management_user is defined and
-        keycloak_management_password is defined
-  ignore_errors: yes
 
 - name: start service
   become: yes

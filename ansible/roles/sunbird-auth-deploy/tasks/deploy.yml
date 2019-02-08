@@ -21,7 +21,8 @@
     src: "roles/sunbird-auth-deploy/templates/Msg91Creds.json.j2"
     dest: "sunbird_auth_{{sunbird_auth_version}}.config/Msg91Creds.json"
     mode: 0755
-  when: "{{msg_91_required|default(false)}}"
+  when: "{{ msg_91_required|default(false) }}"
+  ignore_errors: yes
 
 - name: status service
   become: yes
@@ -61,6 +62,8 @@
     path: "{{keycloak_home}}/bin/sms-provider"
     state: directory
     mode: 0755
+  when: "{{ msg_91_required|default(false) }}"
+  ignore_errors: yes
 
 - name: SMS provider configuration file
   copy:
@@ -70,6 +73,8 @@
     group: "{{wildfly_group}}"
     mode: 0755
     remote_src: yes
+  when: "{{ msg_91_required|default(false) }}"
+  ignore_errors: yes
 
 - name: start service
   become: yes
