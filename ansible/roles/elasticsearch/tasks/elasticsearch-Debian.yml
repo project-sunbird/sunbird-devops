@@ -6,7 +6,7 @@
   when: es_allow_downgrades
 
 - name: Debian - Install apt-transport-https to support https APT downloads
-  apt: name=apt-transport-https state=present
+  apt: name=apt-transport-https state=present update_cache=yes
   when: es_use_repository
 
 - name: Debian - Add Elasticsearch repository key
@@ -14,7 +14,7 @@
   when: es_use_repository and es_apt_key
 
 - name: Debian - Add elasticsearch repository
-  apt_repository: repo={{ item.repo }} state={{ item.state}}
+  apt_repository: repo={{ item.repo }} state={{ item.state}} 
   with_items:
     - { repo: "{{ es_apt_url_old }}", state: "absent" }
     - { repo: "{{ es_apt_url }}", state: "present" }
@@ -25,7 +25,7 @@
   when: es_version_lock
 
 - name: Debian - Ensure elasticsearch is installed
-  apt: name=elasticsearch{% if es_version is defined and es_version != "" %}={{ es_version }}{% endif %} state=present force={{force_install}} allow_unauthenticated={{ 'no' if es_apt_key else 'yes' }} cache_valid_time=86400
+  apt: name=elasticsearch{% if es_version is defined and es_version != "" %}={{ es_version }}{% endif %} state=present force={{force_install}} allow_unauthenticated={{ 'no' if es_apt_key else 'yes' }} update_cache=yes
   when: es_use_repository
   register: debian_elasticsearch_install_from_repo
 
