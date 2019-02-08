@@ -1,6 +1,10 @@
 #!/bin/bash
 bold=$(tput bold)
 normal=$(tput sgr0)
+
+echo -e "\n\e[0;32m${bold}Updating the apt repo${normal}\n"
+apt-get update
+
 echo -e "\n\e[0;32m${bold}Installating JDK8${normal}\n"
 apt-get install -y openjdk-8-jdk-headless
 
