@@ -12,51 +12,27 @@ node() {
             checkout scm
         }
 
-            ansiColor('xterm') {
-                values = lp_dp_params()
-                stage('get artifact') {
-                    currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                    artifact = values.artifact_name + ":" + values.artifact_version
-                    values.put('currentWs', currentWs)
-                    if (params.artifact_source == "Remote") {
-                        println(ANSI_BOLD + ANSI_YELLOW + '''\
-                    Option chosen is Remote, ignoring any previously copied artifacts and new artifacts will be downloaded from remote source
-                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
-                        ansiblePlaybook = "${currentWs}/devops/artifacts-download.yml"
-                        ansibleExtraArgs = """\
-                               --extra-vars "artifact=${artifact}
-                               artifact_path=${currentWs}/${artifact}"
-                               --vault-password-file /run/secrets/vault-pass
-                               """.stripIndent().replace("\n", " ")
-                        values.put('ansiblePlaybook', ansiblePlaybook)
-                        values.put('ansibleExtraArgs', ansibleExtraArgs)
-                        ansible_playbook_run(values)
-                    } else {
-                        println(ANSI_BOLD + ANSI_YELLOW + '''\
-                    Option chosen is Local, using the artifacts copied 
-                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
-                    }
-                }
-                stage('deploy artifact') {
-                    sh """
-                       unzip ${artifact}
-                       tar zxvf keycloak_build.tar.gz -C ansible
-                    """
-                    ansiblePlaybook = "${currentWs}/ansible/keycloak.yml"
-                    ansibleExtraArgs = "--tags deploy --vault-password-file  /run/secrets/vault-pass"
-                    values.put('ansiblePlaybook', ansiblePlaybook)
-                    values.put('ansibleExtraArgs', ansibleExtraArgs)
-                    println values
-                    ansible_playbook_run(values)
-
-                    archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
-                    archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
-                    currentBuild.description = "${values.artifact_version}"
-                }
+        ansiColor('xterm') {
+            stage('deploy') {
+                values = [:]
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+                ansiblePlaybook = "${currentWs}/ansible/keycloak.yml"
+                ansibleExtraArgs = "--tags deploy --vault-password-file  /run/secrets/vault-pass"
+                values.put('currentWs', currentWs)
+                values.put('env', envDir)
+                values.put('module', module)
+                values.put('jobName', jobName)
+                values.put('ansiblePlaybook', ansiblePlaybook)
+                values.put('ansibleExtraArgs', ansibleExtraArgs)
+                println values
+                ansible_playbook_run(values)
             }
+        }
     }
     catch (err) {
-        currentBuild.result = "FAILURE"
         throw err
     }
 }
