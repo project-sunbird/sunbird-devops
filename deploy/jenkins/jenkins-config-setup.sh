@@ -8,7 +8,7 @@ read -p 'Jenkins admin username: ' username
 read -sp 'Jenkins admin Password: ' password
 
 echo -e "\n\e[0;32m${bold}Copying config files to Jenkins ${normal}"
-rsync -r jobs /var/lib/jenkins/jobs
+rsync -r jobs /var/lib/jenkins/
 chown -R jenkins:jenkins /var/lib/jenkins/jobs
 
 echo -e "\n\e[0;32m${bold}Installating plugins... ${normal}"
