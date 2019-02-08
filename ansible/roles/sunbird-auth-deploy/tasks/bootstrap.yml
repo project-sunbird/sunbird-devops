@@ -1,4 +1,11 @@
-- name: Waiting Until Keycloak is fully functional 
+- name: Create admin user
+  become_user: "{{ wildfly_user }}"
+  command: "{{ wildfly_dir }}/bin/add-user-keycloak.sh -r master -u {{ keycloak_management_user }} -p {{ keycloak_management_password }}"
+  when: keycloak_management_user is defined and
+        keycloak_management_password is defined
+  ignore_errors: yes
+
+- name: Waiting Until Keycloak is fully functional
   wait_for:
     host: "{{ inventory_hostname }}"
     port: 8080
@@ -12,7 +19,7 @@
     - python-pip
     - python-setuptools
 
-- name: Copying python libraries 
+- name: Copying python libraries
   copy: src={{ role_path }}/files/python-keycloak-0.12.0 dest=/tmp/
 
 - name: Initialize python library to run keycloak bootstrap script
@@ -22,12 +29,12 @@
   template: src="keycloak-bootstrap.conf.j2" dest="/tmp/keycloak-bootstrap.conf.json" mode="0644"
 
 - name: Copy realm json file to tmp location
-  template: src="keycloak-realm.j2" dest="/tmp/keycloak-realm.json" mode="0644" 
+  template: src="keycloak-realm.j2" dest="/tmp/keycloak-realm.json" mode="0644"
 
 - name: Copy user manager roles file to tmp location
-  copy: src="files/python-keycloak-0.12.0/roles.json" dest="/tmp/roles.json" mode="0644" 
+  copy: src="files/python-keycloak-0.12.0/roles.json" dest="/tmp/roles.json" mode="0644"
 
-- name: Pausing for 100 seconds sometime for keycloak to run completely 
+- name: Pausing for 100 seconds sometime for keycloak to run completely
   pause:
     seconds: 10
 
