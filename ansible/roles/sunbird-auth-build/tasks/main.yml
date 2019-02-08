@@ -1,0 +1,49 @@
+- name: ansible create required directories
+  file:
+   path: "{{ item.dest }}"
+   mode: "{{item.mode}}"
+   state: directory
+  with_items:
+  - { dest: 'sunbird_auth_{{sunbird_auth_version}}/providers', mode: '0755'}
+  - { dest: 'sunbird_auth_{{sunbird_auth_version}}/modules/system/layers/keycloak/org/postgresql/main', mode: '0755'}
+  - { dest: 'sunbird_auth_{{sunbird_auth_version}}/themes/sunbird/login/messages', mode: '0755'}
+  - { dest: 'sunbird_auth_{{sunbird_auth_version}}/themes/sunbird/login/resources/css/fonts/notosans', mode: '0755'}
+  - { dest: 'sunbird_auth_{{sunbird_auth_version}}/themes/sunbird/login/resources/css/themes/default/assets/fonts', mode: '0755'}
+  - { dest: 'sunbird_auth_{{sunbird_auth_version}}/themes/sunbird/login/resources/img', mode: '0755'}
+  - { dest: 'sunbird_auth_{{sunbird_auth_version}}/themes/sunbird/login/resources/js', mode: '0755'}
+  - { dest: 'sunbird_auth_{{sunbird_auth_version}}/themes/sunbird/email/html', mode: '0755'}
+  - { dest: 'sunbird_auth_{{sunbird_auth_version}}/themes/sunbird/email/messages', mode: '0755'}
+  - { dest: 'sunbird_auth_{{sunbird_auth_version}}/themes/sunbird//email/text', mode: '0755'}
+
+- name: get the keycloak tarball
+  get_url: url={{keycloak_pkg_src}} dest=sunbird_auth_{{sunbird_auth_version}}/ force=no
+
+- name: Extract {{keycloak_pkg_file}}
+  shell: cd sunbird_auth_{{sunbird_auth_version}} && tar -xvf {{keycloak_pkg_file}} --strip 1
+
+- name: Get the postgresql driver
+  get_url: url={{postgresql_driver_src}} dest="sunbird_auth_{{sunbird_auth_version}}/modules/system/layers/keycloak/org/postgresql/main/" force=no
+
+- name: Build SMS provider package
+  shell: cd  ../../sunbird-auth/keycloak/sms-provider && mvn package
+
+- name: Copy SMS OTP jar file to providers directory
+  copy: src="../../sunbird-auth/keycloak/sms-provider/target/{{keycloak_sms_provider_build}}" dest="sunbird_auth_{{sunbird_auth_version}}/providers/"
+
+- name: Copy Sunbird login theme
+  copy: src="../../sunbird-auth/keycloak/scripts/ansible/artifacts/sunbird/login/" dest="sunbird_auth_{{sunbird_auth_version}}/themes/sunbird/login/" force="yes"
+
+- name: Copy Custom Validation theme html to sunbird login theme
+  copy: src="../../sunbird-auth/keycloak/sms-provider/templates/" dest="sunbird_auth_{{sunbird_auth_version}}/themes/sunbird/login/" force="yes"
+
+- name: Copy Sunbird email theme
+  copy: src="../../sunbird-auth/keycloak/scripts/ansible/artifacts/sunbird/email/" dest="sunbird_auth_{{sunbird_auth_version}}/themes/sunbird/email/" force="yes"
+
+- name: Remove the Keycloak zip
+  become: yes
+  file: path="sunbird_auth_{{sunbird_auth_version}}/{{keycloak_pkg_file}}" state=absent
+
+- archive:
+    path: sunbird_auth_{{sunbird_auth_version}}
+    dest: "../../sunbird_auth_{{sunbird_auth_version}}.zip"
+    format: zip
