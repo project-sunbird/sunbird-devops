@@ -49,7 +49,7 @@ echo -e "\n\e[0;32m${bold}Installating Docker-py${normal}"
 pip install docker-py
 
 echo -e "\n\e[0;32m${bold}Adding jenkins user to docker group${normal}"
-usermod -G docker jenkins
+usermod -aG docker jenkins
 
 echo -e "\n\e[0;32m${bold}Creating bashrc for jenkins user ${normal}"
 cp /etc/skel/.bashrc /var/lib/jenkins
