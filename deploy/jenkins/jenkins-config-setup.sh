@@ -12,8 +12,8 @@ rsync -r jobs /var/lib/jenkins/
 chown -R jenkins:jenkins /var/lib/jenkins/jobs
 
 echo -e "\n\e[0;32m${bold}Downloading and copying m2 directory to Jenkins ${normal}"
-wget https://sunbirdpublic.blob.core.windows.net/installation/m2.zip
-unzip m2.zip
+wget https://sunbirdpublic.blob.core.windows.net/installation/m2_new.zip
+unzip m2_new.zip
 mv .m2 /var/lib/jenkins
 chown -R jenkins:jenkins /var/lib/jenkins/.m2
 
