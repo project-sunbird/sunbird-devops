@@ -9,10 +9,8 @@ echo -e "\n\e[0;32m${bold}Installating JDK8${normal}\n"
 apt-get install -y openjdk-8-jdk-headless
 
 echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
-wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
-echo "deb https://pkg.jenkins.io/debian binary/" >> /etc/apt/sources.list
-apt-get update
-apt-get install -y jenkins
+wget http://pkg.jenkins.io/debian/binary/jenkins_2.154_all.deb
+dpkg -i jenkins_2.154_all.deb
 
 echo -e "\n\e[0;32m${bold}Starting Jenkins service${normal}"
 service jenkins start
