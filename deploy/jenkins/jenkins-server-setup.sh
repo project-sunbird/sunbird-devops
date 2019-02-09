@@ -15,7 +15,7 @@ wget http://pkg.jenkins.io/debian/binary/jenkins_2.154_all.deb
 dpkg -i jenkins_2.154_all.deb
 
 echo -e "\n\e[0;32m${bold}Starting Jenkins service${normal}"
-service jenkins start
+service jenkins restart
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
