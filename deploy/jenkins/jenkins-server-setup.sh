@@ -9,6 +9,8 @@ echo -e "\n\e[0;32m${bold}Installating JDK8${normal}\n"
 apt-get install -y openjdk-8-jdk-headless
 
 echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
+apt install -y -f
+rm -rf jenkins_2.154_all.deb
 wget http://pkg.jenkins.io/debian/binary/jenkins_2.154_all.deb
 dpkg -i jenkins_2.154_all.deb
 
