@@ -1,84 +1,23 @@
-[kafka-1]
-18.0.0.13 kafka_id=1 
-
-[processing-cluster-kafka]
-18.0.0.13
-
-[telemetry-search-cluster]
-18.0.0.13
-
-[swarm-bootstrap-manager]
-18.0.0.15
-
-[kafka:children]
-kafka-1
-
-#[jenkins-master]
-#10.20.0.12
-
-[es-1] 
-18.0.0.9 es_instance_name=es-1 es_etc_node_master=true es_etc_node_data=true
-
-[es-backup:children]
-18.0.0.9 es-1
-
-[log-es-backup:children]
-log-es-1
-
-[es:children]
-18.0.0.9 es-1
-
-[cassandra-1] 
-18.0.0.9
-
-[cassandra:children]
-cassandra-1
-
-[postgresql-master-1] 
-18.0.0.9
-
-[postgresql-master:children]
-postgresql-master-1
-
-[postgresql-slave-1] 
-18.0.0.9
-
-[postgresql-slave:children]
-postgresql-slave-1
-
-[postgres:children]
-postgresql-slave
-postgresql-master
-
 [swarm-manager-1] 
-swarm_master=true
+18.0.0.15 swarm_master=true
 
 [swarm-manager:children]
 swarm-manager-1
 
-[swarm-worker-1] 
-18.0.0.15
-
-
-[swarm-worker:children]
-swarm-worker-1
-swarm-worker-2
-
-[keycloak-1] 
+[keycloak-1]  
 18.0.0.9
-
 
 [keycloak:children]
 keycloak-1
 
 [log-es-1] 
-18.0.0.9 node_name=refactor-log-es-1 es_etc_node_master=true es_etc_node_data=true 
+18.0.0.15 node_name=refactor-log-es-1 es_etc_node_master=true es_etc_node_data=true 
 
 [log-es:children]
 log-es-1
 
 [swarm-agent-for-prometheus-1] 
-18.0.0.15
+18.0.0.15 
 
 [swarm-agent-for-prometheus:children]
 swarm-agent-for-prometheus-1
@@ -92,6 +31,53 @@ swarm-agent-for-grafana-1
 [swarm-agent-for-alertmanager-1] 
 18.0.0.15
 
+
+[es-1] 
+18.0.0.9 es_instance_name=es-1 es_etc_node_master=true es_etc_node_data=true
+
+[es-backup:children]
+es-1
+
+[log-es-backup:children]
+log-es-1
+
+[es:children]
+es-1
+
+[cassandra-1] 
+18.0.0.9
+
+[cassandra:children]
+cassandra-1
+
+[postgresql-master-1] 
+18.0.0.9 
+
+[postgresql-master:children]
+postgresql-master-1
+
+[postgresql-slave-1] 
+18.0.0.9 
+
+[postgresql-slave:children]
+postgresql-slave-1
+
+[postgres:children]
+postgresql-slave
+postgresql-master
+
+[kafka-1]
+18.0.0.13 kafka_id=1 
+
+[processing-cluster-kafka]
+18.0.0.13
+
+[telemetry-search-cluster]
+18.0.0.13
+
+[kafka:children]
+kafka-1
+
 [local]
 localhost
 
@@ -99,42 +85,26 @@ localhost
 swarm-agent-for-alertmanager-1
 
 [kong-api]
-localhost 
+localhost
 
 [swarm-bootstrap-manager:children]
 swarm-manager
 
-[non-swarm-nodes:children]
-postgresql-master
-postgresql-slave
-es
-cassandra
-kong-api
-keycloak
-log-es
-
 [swarm-nodes:children]
 swarm-manager
-swarm-worker
 swarm-bootstrap-manager
 swarm-agent-for-prometheus
 swarm-agent-for-grafana
 swarm-agent-for-alertmanager
 
 [node-exporter:children]
-non-swarm-nodes
 swarm-manager
-
-[process-exporter:children]
-es-ps
-cassandra-ps
 
 [log-forwarder:children]
 swarm-manager
 
-[env:children]
+[core:children]
 es
-local
 log-es
 cassandra
 postgresql-master
@@ -143,17 +113,13 @@ swarm-nodes
 swarm-manager
 kafka
 keycloak
-swarm-bootstrap-manager
+
+[env:children]
+core
+local
 
 [log-forwarder:children]
 swarm-manager
-
-[cassandra-ps:children]
-cassandra
-
-[es-ps:children]
-es
-log-es
 
 [all:vars]
 ansible_ssh_user=deployer
