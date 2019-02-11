@@ -15,9 +15,6 @@ dpkg -i jenkins_2.154_all.deb
 apt install -y -f
 dpkg -i jenkins_2.154_all.deb
 
-echo -e "\n\e[0;32m${bold}Starting Jenkins service${normal}"
-service jenkins restart
-
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
 
@@ -54,5 +51,8 @@ usermod -aG docker jenkins
 
 echo -e "\n\e[0;32m${bold}Creating bashrc for jenkins user ${normal}"
 cp /etc/skel/.bashrc /var/lib/jenkins
+
+echo -e "\n\e[0;32m${bold}Restarting Jenkins service${normal}"
+service jenkins restart
 
 echo -e "\n\e[0;32m${bold}Installation complete. Please go to your jenkins URL and continue setup${normal}"
