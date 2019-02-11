@@ -47,6 +47,7 @@ learning-neo4j-node1
 15.0.3.10
 
 [yarn-slave]
+15.0.3.10     #yarn master
 15.0.3.13
 
 [yarn:children]
@@ -55,16 +56,17 @@ yarn-slave
 
 [processing-cluster-kafka]
 15.0.3.14
-#15.0.3.7
 
 [processing-cluster-zookeepers]
 15.0.3.14
-#15.0.3.7
+
+[zookeeper:children]
+processing-cluster-zookeepers
 
 [local]
 localhost
 
-[env:children]
+[lp:children]
 learningall
 searchall
 learning-neo4j-cluster
@@ -73,14 +75,16 @@ redisall
 yarn
 composite-search-cluster
 processing-cluster-kafka
-processing-cluster-zookeepers
+zookeeper
 local
+
+[env:children]
+lp
 swarm-bootstrap-manager
 
 [env:vars]
 ansible_ssh_user="deployer"
 ansible_ssh_private_key_file=/run/secrets/deployer_ssh_key
-ansible_sudo_pass=d3pl0y3r
 
 ####################### Monitoring ########################
 [logstash-ps]
@@ -96,7 +100,6 @@ cassandra-ps
 [process-exporter:vars]
 ansible_ssh_user="deployer"
 ansible_ssh_private_key_file=/run/secrets/deployer_ssh_key
-ansible_sudo_pass=d3pl0y3r
 
 [all:vars]
 ansible_ssh_user=deployer
