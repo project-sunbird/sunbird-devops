@@ -1,14 +1,6 @@
 <?xml version='1.1' encoding='UTF-8'?>
 <flow-definition plugin="workflow-job@2.31">
-  <actions>
-    <io.jenkins.blueocean.service.embedded.BlueOceanUrlAction_-DoNotShowPersistedBlueOceanUrlActions plugin="blueocean-rest-impl@1.10.2"/>
-    <org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction plugin="workflow-multibranch@2.20">
-      <jobPropertyDescriptors>
-        <string>hudson.model.ParametersDefinitionProperty</string>
-        <string>com.sonyericsson.rebuild.RebuildSettings</string>
-      </jobPropertyDescriptors>
-    </org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction>
-  </actions>
+  <actions/>
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
@@ -25,28 +17,23 @@
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
-    <hudson.model.ParametersDefinitionProperty>
-      <parameterDefinitions>
-        <hudson.model.StringParameterDefinition>
-          <name>absolute_job_path</name>
-          <description>&lt;font color=teal size=2&gt;The metadata.json file of the last successful build will be copied from this job. Please specify the absolute path to the job.&lt;/font&gt;</description>
-          <defaultValue>ArtifactUpload/dev/Core/Badger</defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>image_tag</name>
-          <description>&lt;font color=teal size=2&gt;Specify only tag. If the value is blank, tag will be picked from the metadata.json file.&lt;/font&gt;</description>
-          <defaultValue></defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-      </parameterDefinitions>
-    </hudson.model.ParametersDefinitionProperty>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-      <triggers/>
+      <triggers>
+        <jenkins.triggers.ReverseBuildTrigger>
+          <spec></spec>
+          <upstreamProjects>../Core/Monitoring,</upstreamProjects>
+          <threshold>
+            <name>FAILURE</name>
+            <ordinal>2</ordinal>
+            <color>RED</color>
+            <completeBuild>true</completeBuild>
+          </threshold>
+        </jenkins.triggers.ReverseBuildTrigger>
+      </triggers>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.63">
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.0.0-rc">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@3.9.3">
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
@@ -65,11 +52,12 @@
           <shallow>true</shallow>
           <noTags>false</noTags>
           <reference></reference>
+          <depth>0</depth>
           <honorRefspec>false</honorRefspec>
         </hudson.plugins.git.extensions.impl.CloneOption>
       </extensions>
     </scm>
-    <scriptPath>pipelines/deploy/badger/Jenkinsfile</scriptPath>
+    <scriptPath>pipelines/deploy/monitor/DataPipeline/Jenkinsfile</scriptPath>
     <lightweight>false</lightweight>
   </definition>
   <triggers/>
