@@ -2,6 +2,9 @@
 bold=$(tput bold)
 normal=$(tput sgr0)
 
+echo -e "\n\e[0;32m${bold}Starting Jenkins service${normal}"
+service jenkins restart
+
 echo -e "\e[0;32m${bold}Jenkins configuration setup...${normal}"
 read -p 'Jenkins URL without http://: ' server
 read -p 'Jenkins admin username: ' username
