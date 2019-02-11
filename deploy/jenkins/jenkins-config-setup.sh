@@ -2,7 +2,7 @@
 bold=$(tput bold)
 normal=$(tput sgr0)
 
-echo -e "\n\e[0;32m${bold}Starting Jenkins service${normal}"
+echo -e "\n\e[0;32m${bold}Restarting Jenkins service${normal}"
 service jenkins restart
 
 echo -e "\e[0;32m${bold}Jenkins configuration setup...${normal}"
