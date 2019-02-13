@@ -23,23 +23,26 @@ def keycloak_create_user(email, username, firstName, lastName, password):
 # Create the user and assign the role to access the user management API
 def update_user_roles(config):
     realm_json = json.load(open(config['keycloak_realm_json_file_path']))
-    clientId = "realm-management"
 
+    # Get the id of realm-management
     for client in realm_json['clients']:
-        if clientId == client['clientId']:
+        if config['clientId'] == client['clientId']:
             client_id = client["id"]
             break
 
     user = keycloak_admin.get_users({"username":config['keycloak_api_management_username']})
-    user_id = user[0]['id'];
+    user_id = user[0]['id']
 
     # Read the role from file
     with open(config['keycloak_user_manager_roles_json_file_path'], 'r') as data_file:
         json_data = data_file.read()
-
+    
     roles = json.loads(json_data)
-    keycloak_admin.assign_client_role(user_id, client_id, roles)
 
+    # Get only client roles
+    clientRoles = roles[config['clientId']]
+    
+    keycloak_admin.assign_client_role(user_id, client_id, clientRoles)
 
 if  __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Configure keycloak user apis')
@@ -71,6 +74,11 @@ if  __name__ == "__main__":
             password=config['keycloak_api_management_user_password'])
 
         # Update user roles for access user management API's
+        config['clientId'] = "realm-management"
+        update_user_roles(config)
+
+        # Update user roles for SSO
+        config['clientId'] = "admin-cli"
         update_user_roles(config)
 
     except urllib2.HTTPError as e:
