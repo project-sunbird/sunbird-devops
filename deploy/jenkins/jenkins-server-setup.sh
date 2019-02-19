@@ -6,14 +6,13 @@ echo -e "\n\e[0;32m${bold}Updating the apt repo${normal}\n"
 apt-get update
 
 echo -e "\n\e[0;32m${bold}Installating JDK8${normal}\n"
-apt-get install -y openjdk-8-jdk-headless
+apt-get install -y openjdk-8-jdk
 
 echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
-rm -rf jenkins_2.154_all.deb
-wget https://pkg.jenkins.io/debian/binary/jenkins_2.154_all.deb
-dpkg -i jenkins_2.154_all.deb
-apt install -y -f
-dpkg -i jenkins_2.154_all.deb
+wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+echo "deb https://pkg.jenkins.io/debian-stable binary/" >> /etc/apt/sources.list
+sudo apt-get update
+sudo apt-get install jenkins
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
@@ -51,8 +50,5 @@ usermod -aG docker jenkins
 
 echo -e "\n\e[0;32m${bold}Creating bashrc for jenkins user ${normal}"
 cp /etc/skel/.bashrc /var/lib/jenkins
-
-echo -e "\n\e[0;32m${bold}Restarting Jenkins service${normal}"
-service jenkins restart
 
 echo -e "\n\e[0;32m${bold}Installation complete. Please go to your jenkins URL and continue setup${normal}"
