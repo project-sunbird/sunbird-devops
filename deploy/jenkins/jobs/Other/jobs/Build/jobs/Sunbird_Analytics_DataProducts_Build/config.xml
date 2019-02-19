@@ -1,0 +1,117 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<maven2-moduleset plugin="maven-plugin@3.1.2">
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>-1</daysToKeep>
+        <numToKeep>5</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.9.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/project-sunbird/sunbird-analytics.git</url>
+        <credentialsId>f37ad21f-744a-4817-9f5e-02f8ec620b39</credentialsId>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/release-1.12</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions>
+      <hudson.plugins.git.extensions.impl.PathRestriction>
+        <includedRegions>platform-modules/.*
+platform-scripts/.*</includedRegions>
+        <excludedRegions>platform-api/.*
+platform-framework/.*</excludedRegions>
+      </hudson.plugins.git.extensions.impl.PathRestriction>
+      <hudson.plugins.git.extensions.impl.CleanBeforeCheckout/>
+    </extensions>
+  </scm>
+  <assignedNode>10.6.0.6-5358553b</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <rootModule>
+    <groupId>org.ekstep</groupId>
+    <artifactId>platform-modules</artifactId>
+  </rootModule>
+  <rootPOM>platform-modules/pom.xml</rootPOM>
+  <goals>clean install -DskipTests</goals>
+  <aggregatorStyleBuild>true</aggregatorStyleBuild>
+  <incrementalBuild>false</incrementalBuild>
+  <ignoreUpstremChanges>false</ignoreUpstremChanges>
+  <ignoreUnsuccessfulUpstreams>false</ignoreUnsuccessfulUpstreams>
+  <archivingDisabled>false</archivingDisabled>
+  <siteArchivingDisabled>false</siteArchivingDisabled>
+  <fingerprintingDisabled>false</fingerprintingDisabled>
+  <resolveDependencies>false</resolveDependencies>
+  <processPlugins>false</processPlugins>
+  <mavenValidationLevel>-1</mavenValidationLevel>
+  <runHeadless>false</runHeadless>
+  <disableTriggerDownstreamProjects>false</disableTriggerDownstreamProjects>
+  <blockTriggerWhenBuilding>true</blockTriggerWhenBuilding>
+  <settings class="jenkins.mvn.DefaultSettingsProvider"/>
+  <globalSettings class="jenkins.mvn.DefaultGlobalSettingsProvider"/>
+  <reporters/>
+  <publishers>
+    <hudson.tasks.BuildTrigger>
+      <childProjects>New_Build/Sunbird_LPA_API_Build</childProjects>
+      <threshold>
+        <name>SUCCESS</name>
+        <ordinal>0</ordinal>
+        <color>BLUE</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </hudson.tasks.BuildTrigger>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ansicolor.AnsiColorBuildWrapper plugin="ansicolor@0.5.2">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.AnsiColorBuildWrapper>
+  </buildWrappers>
+  <prebuilders>
+    <hudson.tasks.Shell>
+      <command>sed -i &quot;s/localhost:8086/10.42.6.174:8086/g&quot; platform-modules/batch-models/src/test/resources/application.conf
+# sed -i &quot;s/cassandra.service.embedded.enable=false/cassandra.service.embedded.enable=true/g&quot; platform-modules/batch-models/src/test/resources/application.conf
+sed -i &quot;s/spark.cassandra.connection.host=127.0.0.1/spark.cassandra.connection.host=10.10.4.4/g&quot; platform-modules/batch-models/src/test/resources/application.conf
+rm -rf /tmp/graph.db/
+rm -rf script
+mkdir script
+cp -r platform-scripts/python/main/BusinessMetrics script
+cp -r platform-scripts/python/main/vidyavaani script
+cp -r platform-scripts/VidyaVani/GenieSearch script
+cp -r platform-scripts/VidyaVani/VidyavaniCnQ script
+zip -r script.zip script</command>
+    </hudson.tasks.Shell>
+  </prebuilders>
+  <postbuilders>
+    <hudson.tasks.Shell>
+      <command>cd platform-modules/job-manager
+mvn clean package</command>
+    </hudson.tasks.Shell>
+    <hudson.tasks.Shell>
+      <command># cd platform-modules
+# mvn scoverage:report</command>
+    </hudson.tasks.Shell>
+  </postbuilders>
+  <runPostStepsIfResult>
+    <name>SUCCESS</name>
+    <ordinal>0</ordinal>
+    <color>BLUE</color>
+    <completeBuild>true</completeBuild>
+  </runPostStepsIfResult>
+</maven2-moduleset>

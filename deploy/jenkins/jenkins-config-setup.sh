@@ -2,9 +2,6 @@
 bold=$(tput bold)
 normal=$(tput sgr0)
 
-echo -e "\n\e[0;32m${bold}Restarting Jenkins service${normal}"
-service jenkins restart
-
 echo -e "\e[0;32m${bold}Jenkins configuration setup...${normal}"
 read -p 'Jenkins URL without http://: ' server
 read -p 'Jenkins admin username: ' username
@@ -22,9 +19,5 @@ chown -R jenkins:jenkins /var/lib/jenkins/.m2
 
 echo -e "\n\e[0;32m${bold}Installating plugins... ${normal}"
 ./butler plugins i -s $server -u $username -p $password
-wget https://sunbirdpublic.blob.core.windows.net/installation/hudson.plugins.ansicolor.AnsiColorBuildWrapper.xml
-rm /var/lib/jenkins/hudson.plugins.ansicolor.AnsiColorBuildWrapper.xml
-mv hudson.plugins.ansicolor.AnsiColorBuildWrapper.xml /var/lib/jenkins
-chown jenkins:jenkins /var/lib/jenkins/hudson.plugins.ansicolor.AnsiColorBuildWrapper.xml
 
 echo -e "\n\e[0;32m${bold}Go to manage jenkins -> Plugin manager -> Update center -> Check restart jenkins after installation${normal}"
