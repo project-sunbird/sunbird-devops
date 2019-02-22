@@ -39,6 +39,15 @@ add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(
 apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io
 
+echo -e "\n\e[0;32m${bold}Installating node, npm and grunt"
+wget https://nodejs.org/download/release/v6.1.0/node-v6.1.0-linux-x64.tar.gz
+tar -xvf node-v6.1.0-linux-x64.tar.gz
+mv node-v6.1.0-linux-x64 /usr/local/lib/
+ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/node /usr/bin/node
+ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/npm /usr/bin/npm
+npm install -g grunt-cli@1.2.0
+ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/grunt /usr/bin/grunt
+
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
 pip install ansible==2.5.0
 
