@@ -32,7 +32,7 @@ def call(){
 
                 if(params.build_number == "") {
                     println (ANSI_BOLD + ANSI_YELLOW + '''\
-                    build_number not specified, setting build_number to lastSuccessfulBuild.
+                   Setting build_number to lastSuccessfulBuild to copy metadata.json
                     '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                     buildNumber = "lastSuccessfulBuild"
                 }
