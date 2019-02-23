@@ -26,7 +26,7 @@ def call() {
                     sh """
                         mkdir -p ${JENKINS_HOME}/summary/${envDir}
                         touch -a ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                        sed -i "s/${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
+                        sed -i "s/${module}-${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                         sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                         """
 
