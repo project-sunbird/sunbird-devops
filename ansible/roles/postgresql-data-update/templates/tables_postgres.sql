@@ -1,14 +1,3 @@
-tables_postgres.sql
-9072cfb  7 days ago
- manzarul.haque issue #485 feat:quartz chnages
-0 contributors
-RawBlameHistory     
-188 lines (169 sloc)  6.54 KB
--- Thanks to Patrick Lightbody for submitting this...
---
--- In your Quartz properties file, you'll need to set 
--- org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
-
 drop table qrtz_fired_triggers;
 DROP TABLE QRTZ_PAUSED_TRIGGER_GRPS;
 DROP TABLE QRTZ_SCHEDULER_STATE;
