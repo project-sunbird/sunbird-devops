@@ -26,8 +26,6 @@ def call() {
                     sh """
                         mkdir -p ${JENKINS_HOME}/summary/${envDir}
                         touch -a ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                        sed -i "s/${module}-${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                        sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                         """
 
                     if (module == "Core") {
@@ -35,13 +33,17 @@ def call() {
                         image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
                         println image_name + " " + image_tag
                         sh """
-                          echo "${image_name} : ${image_tag}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
+                            sed -i "s/${image_name}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
+                            sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
+                            echo "${image_name} : ${image_tag}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                             """
                     } else {
                         artifact_version = sh(returnStdout: true, script: 'jq -r .artifact_version metadata.json').trim()
                         println artifact_version
                         sh """
-                           echo "${module}-${jobName} : ${artifact_version}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
+                            sed -i "s/${module}-${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
+                            sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
+                            echo "${module}-${jobName} : ${artifact_version}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                             """
                     }
                 } else
