@@ -54,6 +54,8 @@ def call() {
         stage('Archive artifacts') {
             sh "cp ${JENKINS_HOME}/summary/${envDir}/summary.txt ."
             archiveArtifacts artifacts: 'summary.txt', fingerprint: true, onlyIfSuccessful: true
+            currentBuild.description = "${module}-${jobname}"
+
         }
     }
     catch (err){
