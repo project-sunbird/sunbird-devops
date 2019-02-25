@@ -30,6 +30,7 @@ medium_request_size_limit: 10
 large_request_size_limit: 100
 
 # Default service prefixes
+private_content_prefix: /private/content
 content_service_prefix: /content
 course_service_prefix: /course
 user_service_prefix: /user
@@ -56,6 +57,7 @@ sso_service_prefix: /sso
 # Service URLs
 content_service_url: "http://content-service:5000"
 learning_service_url: "http://learner-service:9000"
+vm_learning_service_url: "http://{{learningservice_ip}}:8080/learning-service"
 telemetry_service_url: "http://telemetry-service:9001"
 player_service_url: "http://player_player:3000"
 echo_service_url: "http://api-manager_echo:9595"
@@ -90,6 +92,23 @@ premium_consumer_rate_limits:
 #    - {name: 'rate-limiting', config.hour: "{{ medium_rate_limit_per_hour }}"}
 #    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ medium_request_size_limit }}" }
 kong_apis:
+
+  - name: PrivateContentAPIs
+    request_path: "{{ private_content_prefix }}/v3"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: privateContentMgmt
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createContent
     request_path: "{{ content_service_prefix }}/v1/create"
     upstream_url: "{{ content_service_url }}/v1/content/create"
