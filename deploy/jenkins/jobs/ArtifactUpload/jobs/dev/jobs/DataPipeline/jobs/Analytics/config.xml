@@ -28,19 +28,20 @@
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>absolute_job_path</name>
-          <description>&lt;font color=teal size=2&gt;The metadata.json file of the last successful build will be copied from this job. Please specify the absolute path to the job.&lt;/font&gt;</description>
+          <description>&lt;font color=black size=2&gt;&lt;b&gt;Do not change this value! The metadata.json will be copied from this job.&lt;/b&gt;&lt;/font&gt;</description>
           <defaultValue>Build/DataPipeline/Analytics</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>build_number</name>
-          <description>&lt;font color=teal size=2&gt;Specify the build number to copy the artifact from. Default is last successful build of the job&lt;/font&gt;</description>
+          <description>&lt;font color=darkgreen size=2&gt;&lt;b&gt;OPTIONAL: Specify the build job number to upload / copy the artifact built in that job.&lt;/b&gt;&lt;/font&gt;</description>
           <defaultValue>lastSuccessfulBuild</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.ChoiceParameterDefinition>
           <name>artifact_source</name>
-          <description>&lt;font color=teal size=2&gt;Choose the artifact source&lt;/font&gt;</description>
+          <description>&lt;font color=black size=2&gt;&lt;b&gt;
+ArtifactRepo - Upload and keep a copy of the artifact in Jenkins, JenkinsJob - Just keep a copy of the artifact in Jenkins.&lt;/b&gt;&lt;/font&gt;</description>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
               <string>ArtifactRepo</string>
@@ -50,6 +51,15 @@
         </hudson.model.ChoiceParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
+      <throttleEnabled>false</throttleEnabled>
+      <throttleOption>project</throttleOption>
+      <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
+      <paramsToUseForLimit></paramsToUseForLimit>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers>
         <jenkins.triggers.ReverseBuildTrigger>
@@ -66,12 +76,11 @@
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.63">
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.0.0-rc">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@3.9.3">
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
           <url>https://github.com/project-sunbird/sunbird-data-pipeline.git</url>
-          <credentialsId>f37ad21f-744a-4817-9f5e-02f8ec620b39</credentialsId>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
       <branches>
@@ -86,6 +95,7 @@
           <shallow>true</shallow>
           <noTags>false</noTags>
           <reference></reference>
+          <depth>1</depth>
           <honorRefspec>false</honorRefspec>
         </hudson.plugins.git.extensions.impl.CloneOption>
       </extensions>
