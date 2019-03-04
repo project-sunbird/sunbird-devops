@@ -9,7 +9,7 @@ echo -e "\n\e[0;32m${bold}Installating JDK8${normal}\n"
 apt-get install -y openjdk-8-jdk
 
 echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
-wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
 echo "deb https://pkg.jenkins.io/debian-stable binary/" >> /etc/apt/sources.list
 sudo apt-get update
 sudo apt-get install jenkins -y
@@ -49,6 +49,8 @@ npm install -g grunt-cli@1.2.0
 ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/grunt /usr/bin/grunt
 npm install -g bower@1.8.0
 ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/bower /usr/bin/bower
+npm install -g gulp@3.9.1
+ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/gulp /usr/bin/gulp
 
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
 pip install ansible==2.5.0
