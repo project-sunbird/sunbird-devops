@@ -47,6 +47,8 @@ ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/node /usr/bin/node
 ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/npm /usr/bin/npm
 npm install -g grunt-cli@1.2.0
 ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/grunt /usr/bin/grunt
+npm install -g bower@1.8.0
+ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/bower /usr/bin/bower
 
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
 pip install ansible==2.5.0
