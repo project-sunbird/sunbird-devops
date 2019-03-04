@@ -62,17 +62,26 @@ node {
                 script: 'git config --get remote.origin.url',
                 returnStdout: true
                 ).trim().split('/')[-1].split('\\.')[0]+"/pulls"
-               if( sh (
-                    script: """curl -s -w "%{http_code}" -XPOST "${origin}" -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}' -o /dev/null""",
-                    returnStdout: true
-                ).trim() != '201' ){
-                    ansiColor('xterm'){
-                        println(ANSI_BOLD + ANSI_RED + 'Could not raise PR \nPossibly PR already exists\n'+ANSI_NORMAL+sh(
-                        script: 'git config --get remote.origin.url',
-                        returnStdout: true
-                        ).trim().split('\\.git')[0]+'/pulls')
+                def prRequest = sh (
+                   script: """curl -s -w "%{http_code}" -XPOST "${origin}" -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}' -o /dev/null""",
+                   returnStdout: true
+                ).trim()
+                // Cheking PR is success
+                if(prRequest != '201'){
+                    // If PR exists
+                    if(prRequest == '422') {
+                        ansiColor('xterm'){
+                            println(ANSI_BOLD + ANSI_GREEN + 
+                            'GitHub PR found'+ANSI_NORMAL+sh(
+                            script: 'git config --get remote.origin.url',
+                            returnStdout: true
+                            ).trim().split('\\.git')[0]+'/pulls')
+                        }
                     }
-                    error 'Could not raise the PR'
+                    // Unknown error
+                    else {
+                        error 'Could not raise the PR'
+                    }
                 }
             }
         }
@@ -83,7 +92,9 @@ node {
                 returnStatus: true
                 ) != 0){
                     ansiColor('xterm'){
-                        println(ANSI_BOLD + ANSI_RED + "Merge Conflict\nPR Raised\n"+ANSI_NORMAL+sh(
+                        println(ANSI_BOLD + ANSI_RED +
+                        "Merge Conflict\nPR Raised\nPlease fix the Conflicts and run the job again"
+                        +ANSI_NORMAL+sh(
                         script: 'git config --get remote.origin.url',
                         returnStdout: true
                         ).trim().split('\\.git')[0]+'/pulls')
