@@ -44,12 +44,7 @@ node {
                 if (params.releaseBranch == ''){
                     println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
                     error 'Release branch name not set'
-                } else if(params.gitCredentialId == '' && env.gitCredentialId == ''){
-                    println(ANSI_BOLD + ANSI_RED + '''github credentialsId is not set. please set it as
-                    an environment variable or jenkins parameter. The variable is supposed to contain a jenkins
-                    credentialsId which has github username, github password''' + ANSI_NORMAL)
-                    error 'Github credential not found'
-                }
+                } 
             }
             // Cleaning workspace
             cleanWs()
@@ -61,7 +56,8 @@ node {
         stage('pushing tag to upstream'){
             // Using withCredentials as gitpublish plugin is not yet ported for pipelines
             // Defining credentialsId for default value passed from Parameter or environment value.
-            def gitCredentialId = "${params.gitCredentialId}" ?: "${env.gitCredentialId}"
+            // gitCredentialId is username and password type
+            def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
             withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
             passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
 
@@ -86,9 +82,14 @@ node {
             }
         }
     }
-    catch(Exception e){
+    catch(org.jenkinsci.plugins.credentialsbinding.impl.CredentialNotFoundException e){
         ansiColor('xterm'){
-            throw e
+            println(ANSI_BOLD + ANSI_RED + '''\
+            either github credentialsId is not set or value is not correct. please set it as
+            an environment variable. Derfault credentialsId name will be "githubPassword". The variable is supposed to contain a jenkins
+            OcredentialsId which has github username, github password
+            '''.stripIndent() + ANSI_NORMAL) 
+        error 'either gitCredentialId is not set or wrong value'
         }
     }
 }
