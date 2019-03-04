@@ -63,9 +63,15 @@ node {
                 returnStdout: true
                 ).trim().tokenize('/')[-1].tokenize('.')[0]+"/pulls"
 
-                sh """
-                    curl -XPOST ${origin} -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}'
-                """
+               if( sh (
+                    script: """curl -s -XPOST "${origin}" -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}'""",
+                    returnStdout: true
+                ).trim() != 01 ){
+                    ansiColor('xterm'){
+                        println(ANSI_BOLD + ANSI_RED + 'Could not raise PR \nPossibly PR already exists' + ANSI_NORMAL)
+                    }
+                    error 'Could not raise the PR'
+                }
             }
         }
         stage("Merging master with ${params.releaseBranch}"){
