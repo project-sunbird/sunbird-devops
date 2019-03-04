@@ -24,6 +24,9 @@ node {
     String ANSI_NORMAL = "\u001B[0m"
     String ANSI_BOLD = "\u001B[1m"
     String ANSI_RED = "\u001B[31m"
+    // Defining credentialsId for default value passed from Parameter or environment value.
+    // gitCredentialId is username and password type
+    def gitCredentialId = "${env.gitCredentialId}" ?: "githubPassword"
     try{
         // Checking first build and creating parameters
         if (params.size() == 0){
@@ -57,9 +60,6 @@ node {
         }
         stage('pushing branch to upstream'){
             // Using withCredentials as gitpublish plugin is not yet ported for pipelines
-            // Defining credentialsId for default value passed from Parameter or environment value.
-            // gitCredentialId is username and password type
-            def gitCredentialId = "${env.gitCredentialId}" ?: "githubPassword"
             withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
             passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
 
