@@ -23,6 +23,7 @@ node {
     String ANSI_NORMAL = "\u001B[0m"
     String ANSI_BOLD = "\u001B[1m"
     String ANSI_RED = "\u001B[31m"
+    def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
     try{
         // Checking first build and creating parameters
         if (params.size() == 0){
@@ -50,6 +51,23 @@ node {
             cleanWs()
             checkout scm
         }
+        stage("Creating PR") {
+        // api.github.com/repos/rjshrjndrn/sunbird-devops/pulls' -d \
+        // '{"title": "Automatic PR from Sunbird Bot", "head": "release-test", "base": "master"}'
+
+            withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
+            passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
+                // Getting git remote url
+                origin = "https://${gitUser}:${gitPassword}@api.github.com/repos/"+gitUser+"/"+sh(
+                script: 'git config --get remote.origin.url',
+                returnStdout: true
+                ).trim().tokenize('/')[-1].tokenize('.')[0]+"/pulls"
+
+                sh """
+                    curl -XPOST ${origin} -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}'
+                """
+            }
+        }
         stage("Merging master with ${params.releaseBranch}"){
             sh ( " git checkout origin/master && git merge origin/${params.releaseBranch} " )
         }
@@ -57,7 +75,6 @@ node {
             // Using withCredentials as gitpublish plugin is not yet ported for pipelines
             // Defining credentialsId for default value passed from Parameter or environment value.
             // gitCredentialId is username and password type
-            def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
             withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
             passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
 
