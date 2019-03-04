@@ -65,13 +65,13 @@ node {
 
             withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
             passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
-                // Getting git remote url
+                // Getting git remote api url
                 origin = "https://${gitUser}:${gitPassword}@api.github.com/repos/"+gitUser+"/"+sh(
                 script: 'git config --get remote.origin.url',
                 returnStdout: true
                 ).trim().split('/')[-1].split('\\.')[0]+"/pulls"
                 def prRequest = sh (
-                   script: """curl -s -w "%{http_code}" -XPOST "${origin}" -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}' -o /tmp/output""",
+                   script: """curl -s -w %{http_code} -XPOST ${origin} -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}' -o /tmp/output""",
                    returnStdout: true
                 ).trim()
                 // Cheking PR is success
