@@ -24,9 +24,6 @@ node {
     String ANSI_NORMAL = "\u001B[0m"
     String ANSI_BOLD = "\u001B[1m"
     String ANSI_RED = "\u001B[31m"
-    // Defining credentialsId for default value passed from Parameter or environment value.
-    // gitCredentialId is username and password type
-    def gitCredentialId = "${env.gitCredentialId}" ?: "githubPassword"
     try{
         // Checking first build and creating parameters
         if (params.size() == 0){
@@ -49,17 +46,15 @@ node {
                 if (params.releaseBranch == ''){
                     println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
                     error 'Release branch name not set'
-                } else if( gitCredentialId = '' ){
-                    println(ANSI_BOLD + ANSI_RED + '''github credentialsId is not set. please set it as
-                    an environment variable or jenkins parameter. The variable is supposed to contain a jenkins
-                    credentialsId which has github username, github password''' + ANSI_NORMAL)
-                    error 'Github credential not found'
-                }
+                } 
             }
             checkout scm
         }
         stage('pushing branch to upstream'){
             // Using withCredentials as gitpublish plugin is not yet ported for pipelines
+            // Defining credentialsId for default value passed from Parameter or environment value.
+            // gitCredentialId is username and password type
+            def gitCredentialId = "${env.gitCredentialId}" ?: "githubPassword"
             withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
             passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
 
@@ -83,9 +78,13 @@ node {
             }
         }
     }
-    catch(Exception e){
+    catch(org.jenkinsci.plugins.credentialsbinding.impl.CredentialNotFoundException e){
         ansiColor('xterm'){
-            throw e
+            println(ANSI_BOLD + ANSI_RED + '''github credentialsId is not set. please set it as
+                an environment variable. Derfault credentialsId name will be "githubPassword". The variable is supposed to contain a jenkins
+                credentialsId which has github username, github password''' + ANSI_NORMAL) 
+        error 'gitCredentialId not set'
         }
     }
 }
+
