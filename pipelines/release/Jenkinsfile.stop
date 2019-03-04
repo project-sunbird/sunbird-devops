@@ -62,20 +62,34 @@ node {
                 script: 'git config --get remote.origin.url',
                 returnStdout: true
                 ).trim().tokenize('/')[-1].tokenize('.')[0]+"/pulls"
-
                if( sh (
-                    script: """curl -s -XPOST "${origin}" -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}'""",
+                    script: """curl -s -w "%{http_code}" -XPOST "${origin}" -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}' -o /dev/null""",
                     returnStdout: true
-                ).trim() != 01 ){
+                ).trim() != '201' ){
                     ansiColor('xterm'){
-                        println(ANSI_BOLD + ANSI_RED + 'Could not raise PR \nPossibly PR already exists' + ANSI_NORMAL)
+                        println(ANSI_BOLD + ANSI_RED + 'Could not raise PR \nPossibly PR already exists\n'+sh(
+                        script: 'git config --get remote.origin.url',
+                        returnStdout: true
+                        ).trim().split('\\.git')[0]+'/pulls'+ ANSI_NORMAL)
                     }
                     error 'Could not raise the PR'
                 }
             }
         }
         stage("Merging master with ${params.releaseBranch}"){
-            sh ( " git checkout origin/master && git merge origin/${params.releaseBranch} " )
+
+            if( sh (
+                script: " git checkout origin/master && git merge origin/${params.releaseBranch} ",
+                returnStatus: true
+                ) != 0){
+                    ansiColor('xterm'){
+                        println(ANSI_BOLD + ANSI_RED + "Merge Conflict\nPR Raised\n"+sh(
+                        script: 'git config --get remote.origin.url',
+                        returnStdout: true
+                        ).trim().split('\\.git')[0]+'/pulls'+ ANSI_NORMAL)
+                    }
+                    error 'Merge Conflict'
+            }
         }
         stage('pushing tag to upstream'){
             // Using withCredentials as gitpublish plugin is not yet ported for pipelines
