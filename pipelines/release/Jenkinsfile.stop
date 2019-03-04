@@ -15,6 +15,8 @@
 *
 * Author: Rajesh Rajendran<rjshrjndrn@gmail.com>
 *
+* This script uses curl and jq from the machine.
+*
 */
 
 node {
@@ -45,7 +47,13 @@ node {
                 if (params.releaseBranch == ''){
                     println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
                     error 'Release branch name not set'
-                } 
+                } else if( sh(
+                script:  "git ls-remote --exit-code --heads origin ${params.releaseBranch}",
+                returnStatus: true
+                ) != 0) {
+                    println(ANSI_BOLD + ANSI_RED + 'Release branch does not exist' + ANSI_NORMAL)
+                    error 'Branch not exist'
+                }
             }
             // Cleaning workspace
             cleanWs()
@@ -63,15 +71,18 @@ node {
                 returnStdout: true
                 ).trim().split('/')[-1].split('\\.')[0]+"/pulls"
                 def prRequest = sh (
-                   script: """curl -s -w "%{http_code}" -XPOST "${origin}" -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}' -o /dev/null""",
+                   script: """curl -s -w "%{http_code}" -XPOST "${origin}" -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}' -o /tmp/output""",
                    returnStdout: true
                 ).trim()
                 // Cheking PR is success
                 if(prRequest != '201'){
                     // If PR exists
-                    if(prRequest == '422') {
+                    if(prRequest == '422' && sh(
+                        script: "cat /tmp/output | jq '.errors[0].code",
+                        returnStdout: true
+                        ).trim() == "already_exists") {
                         ansiColor('xterm'){
-                            println(ANSI_BOLD + ANSI_GREEN + 
+                            println(ANSI_BOLD + ANSI_GREEN +
                             'GitHub PR found\nPR: '+ANSI_NORMAL+sh(
                             script: 'git config --get remote.origin.url',
                             returnStdout: true
@@ -138,7 +149,7 @@ node {
             either github credentialsId is not set or value is not correct. please set it as
             an environment variable. Derfault credentialsId name will be "githubPassword". The variable is supposed to contain a jenkins
             OcredentialsId which has github username, github password
-            '''.stripIndent() + ANSI_NORMAL) 
+            '''.stripIndent() + ANSI_NORMAL)
         error 'either gitCredentialId is not set or wrong value'
         }
     }
