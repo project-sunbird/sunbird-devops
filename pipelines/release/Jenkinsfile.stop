@@ -142,7 +142,11 @@ node {
                 ansiColor('xterm'){
                     // If remote tag exists
                     if( sh(script: "git ls-remote --tags ${origin} ${params.releaseBranch}", returnStatus: true) == 0 ) {
-                        println(ANSI_BOLD + ANSI_RED + "Upstream has tag with same name: ${params.releaseBranch}" + ANSI_NORMAL)
+                        println(ANSI_BOLD + ANSI_RED + "Upstream has tag with same name: ${params.releaseBranch}\nPR: "
+                        +ANSI_NORMAL+sh(
+                            script: 'git config --get remote.origin.url',
+                            returnStdout: true
+                        ).trim().split('\\.git')[0]+'/pulls')
                         error 'remote tag found with same name'
                     }
                 }
