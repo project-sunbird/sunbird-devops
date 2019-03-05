@@ -26,6 +26,7 @@ node {
     String ANSI_NORMAL = "\u001B[0m"
     String ANSI_BOLD = "\u001B[1m"
     String ANSI_RED = "\u001B[31m"
+    // Defining variables
     def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
     def releaseBranch = params.releaseBranch ?: public_repo_branch
     try{
@@ -33,8 +34,8 @@ node {
         // Checking first build and creating parameters
         if (params.size() == 0){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
-                        parameters([string(defaultValue: '',
-                        description: '<font color=teal size=2>Release Branch name to STOP</font>',
+                        parameters([string(defaultValue: "${releaseBranch}",
+                        description: '<font color=teal size=2>Release Branch create tag from</font>',
                         name: 'releaseBranch', trim: true)])])
             ansiColor('xterm') {
                 println (ANSI_BOLD + ANSI_GREEN + '''\
@@ -63,43 +64,6 @@ node {
                 ) != 0) {
                     println(ANSI_BOLD + ANSI_RED + 'Release branch does not exist' + ANSI_NORMAL)
                     error 'Branch not exist'
-                }
-            }
-        }
-        stage("Creating PR") {
-        // api.github.com/repos/rjshrjndrn/sunbird-devops/pulls' -d \
-        // '{"title": "Automatic PR from Sunbird Bot", "head": "release-test", "base": "master"}'
-
-            withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
-            passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
-                // Getting git remote api url
-                origin = "https://${gitUser}:${gitPassword}@api.github.com/repos/"+gitUser+"/"+sh(
-                script: 'git config --get remote.origin.url',
-                returnStdout: true
-                ).trim().split('/')[-1].split('\\.')[0]+"/pulls"
-                def prRequest = sh (
-                   script: """curl -s -w %{http_code} -XPOST ${origin} -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}' -o /tmp/output""",
-                   returnStdout: true
-                ).trim()
-                // Cheking PR is success
-                if(prRequest != '201'){
-                    // If PR exists
-                    if(prRequest == '422' && sh(
-                        script: "cat /tmp/output | jq '.errors[0].code'",
-                        returnStdout: true
-                        ).trim() == "already_exists") {
-                        ansiColor('xterm'){
-                            println(ANSI_BOLD + ANSI_GREEN +
-                            'GitHub PR found\nPR: '+ANSI_NORMAL+sh(
-                            script: 'git config --get remote.origin.url',
-                            returnStdout: true
-                            ).trim().split('\\.git')[0]+'/pulls')
-                        }
-                    }
-                    // Unknown error
-                    else {
-                        error 'Could not raise the PR'
-                    }
                 }
             }
         }
