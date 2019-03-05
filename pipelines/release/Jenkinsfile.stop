@@ -83,11 +83,15 @@ node {
                 if(prRequest != '201'){
                     // Checking error message
                     def errorMessage = sh(
+                        script: "cat /tmp/output | jq -r '.errors[0].message'",
+                        returnStdout: true
+                    ).trim()
+                    def errorCode = sh(
                         script: "cat /tmp/output | jq -r '.errors[0].code'",
                         returnStdout: true
                     ).trim()
                     // If PR exists
-                    if(prRequest == '422' && errorMessage == "already_exists") {
+                    if(prRequest == '422' && errorCode == "custom" && errorMessage.contains('pull request already exists')) {
                         ansiColor('xterm'){
                             println(ANSI_BOLD + ANSI_GREEN +
                             'GitHub PR found\nPR: '+ANSI_NORMAL+sh(
