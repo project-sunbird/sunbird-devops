@@ -10,9 +10,9 @@ apt-get install -y openjdk-8-jdk
 
 echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
-echo "deb https://pkg.jenkins.io/debian-stable binary/" >> /etc/apt/sources.list
+sudo apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
 sudo apt-get update
-sudo apt-get install jenkins -y
+sudo apt-get install -y jenkins=2.150.3
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
@@ -39,7 +39,7 @@ add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(
 apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io
 
-echo -e "\n\e[0;32m${bold}Installating node, npm and grunt"
+echo -e "\n\e[0;32m${bold}Installating node and npm modules"
 wget https://nodejs.org/download/release/v6.1.0/node-v6.1.0-linux-x64.tar.gz
 tar -xvf node-v6.1.0-linux-x64.tar.gz
 mv node-v6.1.0-linux-x64 /usr/local/lib/
@@ -64,4 +64,4 @@ usermod -aG docker jenkins
 echo -e "\n\e[0;32m${bold}Creating bashrc for jenkins user ${normal}"
 cp /etc/skel/.bashrc /var/lib/jenkins
 
-echo -e "\n\e[0;32m${bold}Installation complete. Please go to your jenkins URL and continue setup${normal}"
+echo -e "\n\e[0;32m${bold}Installation complete. Please go to your jenkins URL and continue setup if this first run..${normal}"
