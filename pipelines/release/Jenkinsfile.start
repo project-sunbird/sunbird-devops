@@ -68,12 +68,11 @@ node {
                 returnStdout: true
                 ).trim().split('https://')[1]
                 echo "Git Hash: ${origin}"
-                // Checks whether remtoe branch is present
-                // Stdouts 1 if true
-                remoteBranch = sh(script: "git ls-remote --heads ${origin} ${params.releaseBranch} | wc -l ", returnStdout: true).trim()
+                // Checks whether remote branch is present
+                remoteBranch = 
                 ansiColor('xterm'){
                     // If remote branch exists
-                    if( remoteBranch == "1") {
+                    if( sh(script: "git ls-remote --heads ${origin} ${params.releaseBranch} > /dev/null ", returnStatus: true) == 0 ) {
                         println(ANSI_BOLD + ANSI_RED + "Upstream has branch with same name: ${params.releaseBranch}" + ANSI_NORMAL)
                         error 'remote branch found with same name'
                     }
