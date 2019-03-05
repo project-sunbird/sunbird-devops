@@ -81,11 +81,13 @@ node {
                 ).trim()
                 // Cheking PR is success
                 if(prRequest != '201'){
-                    // If PR exists
-                    if(prRequest == '422' && sh(
+                    // Checking error message
+                    def errorMessage = sh(
                         script: "cat /tmp/output | jq '.errors[0].code'",
                         returnStdout: true
-                        ).trim() == "already_exists") {
+                    ).trim()
+                    // If PR exists
+                    if(prRequest == '422' && errorMessage == "already_exists") {
                         ansiColor('xterm'){
                             println(ANSI_BOLD + ANSI_GREEN +
                             'GitHub PR found\nPR: '+ANSI_NORMAL+sh(
@@ -96,7 +98,7 @@ node {
                     }
                     // Unknown error
                     else {
-                        error 'Could not raise the PR'
+                        error "Could not raise the PR\nMessage: $errorMessage"
                     }
                 }
             }
