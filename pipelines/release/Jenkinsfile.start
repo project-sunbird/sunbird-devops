@@ -16,6 +16,7 @@
 *
 * Author: Rajesh Rajendran<rjshrjndrn@gmail.com>
 *
+*
 */
 
 node {
@@ -24,11 +25,14 @@ node {
     String ANSI_NORMAL = "\u001B[0m"
     String ANSI_BOLD = "\u001B[1m"
     String ANSI_RED = "\u001B[31m"
+    def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
     try{
+
         // Checking first build and creating parameters
         if (params.size() == 0){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
-                        parameters([string(defaultValue: '', description: '<font color=teal size=2>Release Branch name to create</font>',
+                        parameters([string(defaultValue: '',
+                        description: '<font color=teal size=2>Release Branch name to create</font>',
                         name: 'releaseBranch', trim: true)])])
             ansiColor('xterm') {
                 println (ANSI_BOLD + ANSI_GREEN + '''\
@@ -38,23 +42,33 @@ node {
             }
         return
         }
+
+        // Make sure prerequisites are met
+        // If releaseBranch variable not set
+        if (params.releaseBranch == ''){
+            println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
+            error 'Release branch name not set'
+        }
+        // Checking out public repo from where the branch should be created
         stage('Checking out branch'){
             // Cleaning workspace
             cleanWs()
-            ansiColor('xterm'){
-                // If releaseBranch variable not set
-                if (params.releaseBranch == ''){
-                    println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
-                    error 'Release branch name not set'
-                } 
-            }
             checkout scm
+            ansiColor('xterm'){
+                if( sh(
+                script:  "git ls-remote --exit-code --heads origin ${params.releaseBranch}",
+                returnStatus: true
+                ) != 0) {
+                    println(ANSI_BOLD + ANSI_RED + 'Release branch does not exist' + ANSI_NORMAL)
+                    error 'Branch not exist'
+                }
+            }
+            }
         }
         stage('pushing branch to upstream'){
             // Using withCredentials as gitpublish plugin is not yet ported for pipelines
             // Defining credentialsId for default value passed from Parameter or environment value.
             // gitCredentialId is username and password type
-            def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
             withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
             passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
 
@@ -84,9 +98,8 @@ node {
             either github credentialsId is not set or value is not correct. please set it as
             an environment variable. Derfault credentialsId name will be "githubPassword". The variable is supposed to contain a jenkins
             OcredentialsId which has github username, github password
-            '''.stripIndent() + ANSI_NORMAL) 
+            '''.stripIndent() + ANSI_NORMAL)
         error 'either gitCredentialId is not set or wrong value'
         }
     }
 }
-
