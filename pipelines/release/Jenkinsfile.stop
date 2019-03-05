@@ -27,6 +27,7 @@ node {
     String ANSI_RED = "\u001B[31m"
     def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
     try{
+
         // Checking first build and creating parameters
         if (params.size() == 0){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
@@ -41,13 +42,20 @@ node {
             }
         return
         }
+
+        // Make sure prerequisites are met
+        // If releaseBranch variable not set
+        if (params.releaseBranch == ''){
+            println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
+            error 'Release branch name not set'
+        } 
+        // Checking out public repo from where the branch should be created
         stage('Checking out branch'){
+            // Cleaning workspace
+            cleanWs()
+            checkout scm
             ansiColor('xterm'){
-                // If releaseBranch variable not set
-                if (params.releaseBranch == ''){
-                    println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
-                    error 'Release branch name not set'
-                } else if( sh(
+                if( sh(
                 script:  "git ls-remote --exit-code --heads origin ${params.releaseBranch}",
                 returnStatus: true
                 ) != 0) {
@@ -55,9 +63,6 @@ node {
                     error 'Branch not exist'
                 }
             }
-            // Cleaning workspace
-            cleanWs()
-            checkout scm
         }
         stage("Creating PR") {
         // api.github.com/repos/rjshrjndrn/sunbird-devops/pulls' -d \
