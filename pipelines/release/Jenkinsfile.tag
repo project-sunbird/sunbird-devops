@@ -2,15 +2,16 @@
 
 /*
 *
-* This script will create a tag out of master branch with name specified in `releaseBranch` parameter variable.
+* This script will create a tag out of releaseBranch branch with name
+* `<releaseBranch_RC{number}> specified in `releaseBranch` parameter variable.
 * Checks for upstream branch with same name; then stops execution with and exception if same branch found in upstream.
 *
 * Parameters:
 *   Name:   gitCredentialId
-*      Type:   environment variable or jenkins parameter
+*      Type:   jenkins parameter; default value is githubPassword
 *      Description:    contains github username and password for the user to be used
 *   Name:   releaseBranch
-*      Type:   jenkins parameter
+*      Type:   jenkins parameter; default `public_repo_branch` variable
 *      Description:    Name of the branch to create
 *
 * Author: Rajesh Rajendran<rjshrjndrn@gmail.com>
@@ -26,6 +27,7 @@ node {
     String ANSI_BOLD = "\u001B[1m"
     String ANSI_RED = "\u001B[31m"
     def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
+    def releaseBranch = params.releaseBranch ?: public_repo_branch
     try{
 
         // Checking first build and creating parameters
@@ -48,7 +50,7 @@ node {
         if (params.releaseBranch == ''){
             println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
             error 'Release branch name not set'
-        } 
+        }
         // Checking out public repo from where the branch should be created
         stage('Checking out branch'){
             // Cleaning workspace
@@ -132,8 +134,6 @@ node {
                 ).trim().split('https://')[1]
                 echo "Git Hash: ${origin}"
                 // Checks whether remtoe branch is present
-                // Stdouts 1 if true
-                remoteBranch = 
                 ansiColor('xterm'){
                     // If remote tag exists
                     if( sh(script: "git ls-remote --tags ${origin} ${params.releaseBranch}", returnStatus: true) == 0 ) {
