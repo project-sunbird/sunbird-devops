@@ -54,16 +54,6 @@ node {
             // Cleaning workspace
             cleanWs()
             checkout scm
-            ansiColor('xterm'){
-                if( sh(
-                script:  "git ls-remote --exit-code --heads origin ${params.releaseBranch}",
-                returnStatus: true
-                ) != 0) {
-                    println(ANSI_BOLD + ANSI_RED + 'Release branch does not exist' + ANSI_NORMAL)
-                    error 'Branch not exist'
-                }
-            }
-            }
         }
         stage('pushing branch to upstream'){
             // Using withCredentials as gitpublish plugin is not yet ported for pipelines
@@ -88,7 +78,7 @@ node {
                         error 'remote branch found with same name'
                     }
                 }
-                sh("git push ${origin} HEAD:refs/heads/${params.releaseBranch}")
+                sh("git push ${origin} heads/master:refs/heads/${params.releaseBranch}")
             }
         }
     }
