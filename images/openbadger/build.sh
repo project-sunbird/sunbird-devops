@@ -1,6 +1,6 @@
 #!/bin/bash
 # Build script
-set -o pipefail
+set -eo pipefail
 build_tag=$1
 name=badger
 node=$2
