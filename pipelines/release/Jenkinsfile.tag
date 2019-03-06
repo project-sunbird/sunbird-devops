@@ -107,7 +107,7 @@ node {
                 }
 
                 // Pushing tag
-                sh("git push ${origin} heads/$releaseBranch:tags/${tagName}")
+                sh("git push ${origin} refs/remotes/origin/$releaseBranch:refs/tags/${tagName}")
             }
         }
     }
