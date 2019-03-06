@@ -100,7 +100,7 @@ node {
                 // Checks whether remtoe branch is present
                 ansiColor('xterm'){
                     // If remote tag exists
-                    if( sh(script: "git ls-remote --tags ${origin} ${params.releaseBranch}", returnStatus: true) == 0 ) {
+                    if( sh(script: "git ls-remote --exit-code --tags ${origin} ${tagName}", returnStatus: true) == 0 ) {
                         println(ANSI_BOLD + ANSI_RED + "Upstream has tag with same name: ${tagName}" + ANSI_NORMAL)
                         error 'remote tag found with same name'
                     }
