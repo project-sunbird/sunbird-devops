@@ -94,13 +94,14 @@ node {
                     returnStdout: true
                 ).trim()
                 if (tagRefBranch != ''){
-                    
+                    tagName = releaseBranch+'_RC1'
+                } else {
+                    refCount = tagRefBranch.split('_RC')[-1].toInteger() + 1
+                    tagName = releaseBranch + '_RC' + refCount
                 }
 
                 // Pushing tag
-                sh("git push ${origin} heads/$releaseBranch:tags/${params.releaseBranch}")
-                // Deleting branch
-                sh("git push ${origin} :heads/${params.releaseBranch}")
+                sh("git push ${origin} heads/$releaseBranch:tags/${tagName}")
             }
         }
     }
