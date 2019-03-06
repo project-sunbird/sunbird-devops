@@ -82,6 +82,21 @@ node {
                         error 'remote tag found with same name'
                     }
                 }
+
+                /*
+                 * Creating tagname
+                 * Each tag should be of the naming convention `release<version>_RC<count>
+                 * Count will increment as RC0 - for the first time, then RC1..n
+                 */
+
+                tagRefBranch = sh(
+                    script: "git ls-remote --tags --sort='v:refname' origin | grep -o 'release-.*' | tail -n1",
+                    returnStdout: true
+                ).trim()
+                if (tagRefBranch != ''){
+                    
+                }
+
                 // Pushing tag
                 sh("git push ${origin} heads/$releaseBranch:tags/${params.releaseBranch}")
                 // Deleting branch
