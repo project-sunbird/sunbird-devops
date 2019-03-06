@@ -88,10 +88,10 @@ node {
                  */
 
                 tagRefBranch = sh(
-                    script: "git ls-remote --tags origin ${releaseBranch} | grep -o 'release-.*' | tail -n1",
+                    script: "git ls-remote --tags origin ${releaseBranch}* | grep -o 'release-.*' | tail -n1",
                     returnStdout: true
                 ).trim()
-                if (tagRefBranch != ''){
+                if (tagRefBranch == ''){
                     tagName = releaseBranch+'_RC1'
                 } else {
                     refCount = tagRefBranch.split('_RC')[-1].toInteger() + 1
