@@ -32,7 +32,7 @@ node {
     try{
         // Making sure prerequisites are met
         // All release branch name should be release-*
-        if ( releaseBranch.contains('release-') ){
+        if ( ! releaseBranch.contains('release-') ){
             println(ANSI_BOLD + ANSI_RED + 'Release branch name is not proper\nName should be `release-*`' + ANSI_NORMAL)
             error 'release branch name format error'
         }
