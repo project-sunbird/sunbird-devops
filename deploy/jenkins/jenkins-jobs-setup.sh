@@ -1,7 +1,6 @@
 #!/bin/bash
 bold=$(tput bold)
 normal=$(tput sgr0)
-flag=0
 today=$(date +%Y-%m-%d-%H-%M-%S)
 JENKINS_TMP=/tmp/$today
 envOrder="/dev/null"
@@ -99,7 +98,6 @@ if [[ ! -f /var/lib/jenkins/envOrder.txt ]]; then
       firstRun
    fi
 else
-   flag=1
    echo -e "\e[0;33m${bold}Checking for updates...${normal}"
    updateRun
 fi
