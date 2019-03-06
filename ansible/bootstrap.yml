@@ -1,6 +1,9 @@
-- hosts: 'all:!localhost'
+- hosts: 'all'
   become: yes
   gather_facts: no
+  pre_tasks:
+    - name: Python predependency
+      raw: sudo apt update && sudo apt install -y  python python-pkg-resources python-pip
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
   vars:
@@ -12,6 +15,7 @@
     - bootstrap_any
 
 - hosts: "{{hosts}}"
+  gather_facts: no
   become: yes
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
@@ -22,6 +26,7 @@
     - bootstrap_swarm
 
 - hosts: "{{hosts}}"
+  gather_facts: no
   become: yes
   vars_files:
     - "{{inventory_dir}}/secrets.yml"

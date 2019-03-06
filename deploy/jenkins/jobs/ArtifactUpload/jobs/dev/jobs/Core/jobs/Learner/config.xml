@@ -1,7 +1,6 @@
 <?xml version='1.1' encoding='UTF-8'?>
 <flow-definition plugin="workflow-job@2.31">
   <actions>
-    <io.jenkins.blueocean.service.embedded.BlueOceanUrlAction_-DoNotShowPersistedBlueOceanUrlActions plugin="blueocean-rest-impl@1.10.2"/>
     <org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction plugin="workflow-multibranch@2.20">
       <jobPropertyDescriptors>
         <string>hudson.model.ParametersDefinitionProperty</string>
@@ -29,28 +28,38 @@
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>absolute_job_path</name>
-          <description>&lt;font color=teal size=2&gt;The metadata.json file of the last successful build will be copied from this job. Please specify the absolute path to the job.&lt;/font&gt;</description>
+          <description>&lt;font color=black size=2&gt;&lt;b&gt;Do not change this value! The metadata.json will be copied from this job.&lt;/b&gt;&lt;/font&gt;</description>
           <defaultValue>Build/Core/Learner</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>image_tag</name>
-          <description>&lt;font color=teal size=2&gt;Specify only tag. If the value is blank, version will be picked from the metadata.json file.&lt;/font&gt;</description>
+          <description>&lt;font color=darkgreen size=2&gt;&lt;b&gt;OPTIONAL: Specify the tag to upload a specific image version to the container registry.&lt;/b&gt;&lt;/font&gt;</description>
           <defaultValue></defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.ChoiceParameterDefinition>
           <name>artifact_source</name>
-          <description>&lt;font color=teal size=2&gt;Choose the artifact source&lt;/font&gt;</description>
+          <description>&lt;font color=black size=2&gt;&lt;b&gt;
+ArtifactRepo - Push the docker image to container registry.
+&lt;/b&gt;&lt;/font&gt;</description>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
               <string>ArtifactRepo</string>
-              <string>JenkinsJob</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
+      <throttleEnabled>false</throttleEnabled>
+      <throttleOption>project</throttleOption>
+      <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
+      <paramsToUseForLimit></paramsToUseForLimit>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers>
         <jenkins.triggers.ReverseBuildTrigger>
@@ -67,7 +76,7 @@
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.63">
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.0.0-rc">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@3.9.3">
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
@@ -86,6 +95,7 @@
           <shallow>true</shallow>
           <noTags>false</noTags>
           <reference></reference>
+          <depth>0</depth>
           <honorRefspec>false</honorRefspec>
         </hudson.plugins.git.extensions.impl.CloneOption>
       </extensions>
