@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 # Build script
-# set -o errexit
+set -o pipefail
 build_tag=$1
 name=badger
 node=$2
