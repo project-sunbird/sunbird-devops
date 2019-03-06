@@ -74,14 +74,6 @@ node {
                 returnStdout: true
                 ).trim().split('https://')[1]
                 echo "Git Hash: ${origin}"
-                // Checks whether remtoe branch is present
-                ansiColor('xterm'){
-                    // If remote tag exists
-                    if( sh(script: "git ls-remote --tags ${origin} ${params.releaseBranch}", returnStatus: true) == 0 ) {
-                        println(ANSI_BOLD + ANSI_RED + "Upstream has tag with same name: ${params.releaseBranch}" + ANSI_NORMAL)
-                        error 'remote tag found with same name'
-                    }
-                }
 
                 /*
                  * Creating tagname
@@ -98,6 +90,14 @@ node {
                 } else {
                     refCount = tagRefBranch.split('_RC')[-1].toInteger() + 1
                     tagName = releaseBranch + '_RC' + refCount
+                }
+                // Checks whether remtoe branch is present
+                ansiColor('xterm'){
+                    // If remote tag exists
+                    if( sh(script: "git ls-remote --tags ${origin} ${params.releaseBranch}", returnStatus: true) == 0 ) {
+                        println(ANSI_BOLD + ANSI_RED + "Upstream has tag with same name: ${tagName}" + ANSI_NORMAL)
+                        error 'remote tag found with same name'
+                    }
                 }
 
                 // Pushing tag
