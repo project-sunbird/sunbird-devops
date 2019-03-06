@@ -46,12 +46,6 @@ node {
         return
         }
 
-        // Make sure prerequisites are met
-        // If releaseBranch variable not set
-        if (params.releaseBranch == ''){
-            println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
-            error 'Release branch name not set'
-        }
         // Checking out public repo from where the branch should be created
         stage('Checking out branch'){
             // Cleaning workspace
@@ -65,23 +59,6 @@ node {
                     println(ANSI_BOLD + ANSI_RED + 'Release branch does not exist' + ANSI_NORMAL)
                     error 'Branch not exist'
                 }
-            }
-        }
-        stage("Merging master with ${params.releaseBranch}"){
-
-            if( sh (
-                script: " git checkout origin/master && git merge origin/${params.releaseBranch} ",
-                returnStatus: true
-                ) != 0){
-                    ansiColor('xterm'){
-                        println(ANSI_BOLD + ANSI_RED +
-                        "Merge Conflict\nPR Raised\nPlease fix the Conflicts and run the job again\nPR: "
-                        +ANSI_NORMAL+sh(
-                        script: 'git config --get remote.origin.url',
-                        returnStdout: true
-                        ).trim().split('\\.git')[0]+'/pulls')
-                    }
-                    error 'Merge Conflict'
             }
         }
         stage('pushing tag to upstream'){
@@ -106,7 +83,7 @@ node {
                     }
                 }
                 // Pushing tag
-                sh("git push ${origin} HEAD:tags/${params.releaseBranch}")
+                sh("git push ${origin} heads/$releaseBranch:tags/${params.releaseBranch}")
                 // Deleting branch
                 sh("git push ${origin} :heads/${params.releaseBranch}")
             }
