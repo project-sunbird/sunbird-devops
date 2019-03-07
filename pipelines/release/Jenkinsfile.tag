@@ -94,6 +94,11 @@ node {
                 if (tagRefBranch == ''){
                     tagName = releaseBranch+'_RC1'
                 } else {
+                    // Checking whether there is any changes in the branch
+                    if ( sh(
+                    script: "git diff --exit-code refs/remotes/origin/$releaseBranch tags/$tagRefBranch",
+                    returnStatus: true
+                    ) == 0 ){error 'No changes found from last tag'}
                     refCount = tagRefBranch.split('_RC')[-1].toInteger() + 1
                     tagName = releaseBranch + '_RC' + refCount
                 }
