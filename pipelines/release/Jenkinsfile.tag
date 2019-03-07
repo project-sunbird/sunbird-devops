@@ -33,7 +33,7 @@ def errorMessage(message){
 node {
 
     // Defining variables
-    def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
+    def gitCredentialId = params.gitCredentialId ?: env.githubPassword
     def releaseBranch = params.releaseBranch ?: public_repo_branch
     try{
         // Making sure prerequisites are met
