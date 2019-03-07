@@ -47,7 +47,7 @@ node {
         if (params.size() == 0){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
                     parameters([string(defaultValue: "${releaseBranch}",
-                    description: '<font color=teal size=2>Release Branch create tag from</font>',
+                    description: '<font color=black size=2><b>Release Branch create tag from</b></font>',
                     name: 'releaseBranch', trim: true)])])
             ansiColor('xterm') {
                 errorMessage('''First run of the job.
