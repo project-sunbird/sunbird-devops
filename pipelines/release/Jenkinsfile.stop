@@ -22,13 +22,19 @@
 *
 */
 
-node {
+// Error message formatting
+def errorMessage(message){
     // Creating color code strings
     String ANSI_GREEN = "\u001B[32m"
     String ANSI_NORMAL = "\u001B[0m"
     String ANSI_BOLD = "\u001B[1m"
     String ANSI_RED = "\u001B[31m"
-    def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
+    println (ANSI_BOLD + ANSI_RED + message.stripIndent())
+}
+
+node {
+
+    def gitCredentialId = params.gitCredentialId ?: env.githubPassword
     try{
 
         // Checking first build and creating parameters
@@ -38,10 +44,10 @@ node {
                         description: '<font color=teal size=2>Release Branch name to STOP</font>',
                         name: 'releaseBranch', trim: true)])])
             ansiColor('xterm') {
-                println (ANSI_BOLD + ANSI_GREEN + '''\
+                errorMessage('''
                         First run of the job. Parameters created. Stopping the current build.
                         Please trigger new build and provide parameters if required.
-                        '''.stripIndent().replace("\n"," ") + ANSI_NORMAL)
+                        ''')
             }
         return
         }
@@ -49,7 +55,7 @@ node {
         // Make sure prerequisites are met
         // If releaseBranch variable not set
         if (params.releaseBranch == ''){
-            println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
+            errorMessage'Release branch name not set'
             error 'Release branch name not set'
         }
         // Checking out public repo from where the branch should be created
@@ -62,7 +68,7 @@ node {
                 script:  "git ls-remote --exit-code --heads origin ${params.releaseBranch}",
                 returnStatus: true
                 ) != 0) {
-                    println(ANSI_BOLD + ANSI_RED + 'Release branch does not exist' + ANSI_NORMAL)
+                    errorMessage'Release branch does not exist'
                     error 'Branch not exist'
                 }
             }
@@ -96,8 +102,7 @@ node {
                     // If PR exists
                     if(prRequest == '422' && errorCode == "custom" && errorMessage.contains('pull request already exists')) {
                         ansiColor('xterm'){
-                            println(ANSI_BOLD + ANSI_GREEN +
-                            'GitHub PR found\nPR: '+ANSI_NORMAL+sh(
+                            println(errorMessage('GitHub PR found\nPR: ')+ANSI_NORMAL+sh(
                             script: 'git config --get remote.origin.url',
                             returnStdout: true
                             ).trim().split('\\.git')[0]+'/pulls')
@@ -120,8 +125,7 @@ node {
                 returnStatus: true
                 ) != 0){
                     ansiColor('xterm'){
-                        println(ANSI_BOLD + ANSI_RED +
-                        "Merge Conflict\nPR Raised\nPlease fix the Conflicts and run the job again\nPR: "
+                        println(errorMessage( "Merge Conflict\nPR Raised\nPlease fix the Conflicts and run the job again\nPR: ")
                         +ANSI_NORMAL+sh(
                         script: 'git config --get remote.origin.url',
                         returnStdout: true
@@ -149,7 +153,7 @@ node {
                 ansiColor('xterm'){
                     // If remote tag exists
                     if( sh(script: "git ls-remote --tags --exit-code ${origin} ${params.releaseBranch}", returnStatus: true) == 0 ) {
-                        println(ANSI_BOLD + ANSI_RED + "Upstream has tag with same name: ${params.releaseBranch}\nPR: "
+                        println(errorMessage("Upstream has tag with same name: ${params.releaseBranch}\nPR: ")
                         +ANSI_NORMAL+sh(
                             script: 'git config --get remote.origin.url',
                             returnStdout: true
@@ -166,12 +170,12 @@ node {
     }
     catch(org.jenkinsci.plugins.credentialsbinding.impl.CredentialNotFoundException e){
         ansiColor('xterm'){
-            println(ANSI_BOLD + ANSI_RED + '''\
+        errorMessage '''
             either github credentialsId is not set or value is not correct. please set it as
             an environment variable. Derfault credentialsId name will be "githubPassword". The variable is supposed to contain a jenkins
             OcredentialsId which has github username, github password
-            '''.stripIndent() + ANSI_NORMAL)
-        error 'either gitCredentialId is not set or wrong value'
+            '''
         }
+        error 'either gitCredentialId is not set or wrong value'
     }
 }
