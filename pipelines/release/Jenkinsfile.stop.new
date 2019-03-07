@@ -1,0 +1,212 @@
+#!/usr/bin/groovy
+
+/*
+*
+* This script does following:
+* 1. will create a tag out of master branch with name specified in `releaseBranch` parameter variable.
+* 2. Checks for upstream branch/tag with same name; then stops execution with and exception if same branch/tag found in upstream.
+* 3. Raise a PR in GitHub
+* 4. If Merge Conflicts found, error out, and user have to fix the conflicts and rerun the job.
+*
+* Parameters:
+*   Name:   gitCredentialId
+*      Type:   jenkins parameter; default id is githubPassword
+*      Description:    contains github username and password for the user to be used
+*   Name:   releaseBranch
+*      Type:   jenkins parameter
+*      Description:    Name of the branch to create
+*
+* Author: Rajesh Rajendran<rjshrjndrn@gmail.com>
+*
+* This script uses curl and jq from the machine.
+*
+*/
+
+// Error message formatting
+def errorMessage(message){
+    // Creating color code strings
+    String ANSI_GREEN = "\u001B[32m"
+    String ANSI_NORMAL = "\u001B[0m"
+    String ANSI_BOLD = "\u001B[1m"
+    String ANSI_RED = "\u001B[31m"
+    println (ANSI_BOLD + ANSI_RED + message.stripIndent())
+}
+
+repos = [
+'rjshrjndrn/Sunbird-portal',
+'rjshrjndrn/Sunbird-lms-mw',
+'Sunbird-Ed/SunbirdEd-portal',
+'Sunbird-Ed/SunbirdEd-mobile',
+'Sunbird-Ed/SunbirdEd-portal',
+'Sunbird-Ed/SunbirdEd-mobile',
+'project-sunbird/sunbird-lms-service',
+'project-sunbird/sunbird-data-pipeline',
+'project-sunbird/sunbird-content-player',
+'project-sunbird/sunbird-auth',
+'project-sunbird/sunbird-learning-platform',
+'project-sunbird/sunbird-content-plugins',
+'project-sunbird/sunbird-lms-mw',
+'project-sunbird/sunbird-ml-workbench'
+]
+
+// getting Repos to which we've to stop release
+upstreamRepos = params.repos
+releaseBranch = params.releaseBranch
+node {
+
+    def gitCredentialId = params.gitCredentialId ?: env.githubPassword
+    try{
+
+        // Checking first build and creating parameters
+        if (params.size() == 0){
+            // Creating active choice compatible choices list
+            localRepoList = "['"+repos.join("','")+"']"
+            properties([parameters([[$class: 'ChoiceParameter',
+                choiceType: 'PT_CHECKBOX', description: '<font color=teal size=2>Repos to start release</font>',
+                filterLength: 1, filterable: true, name: 'repos', randomName: 'choice-parameter-115616285976692',
+                script: [$class: 'GroovyScript',
+                    fallbackScript: [classpath: [], sandbox: false,
+                    script: ''],
+                script: [classpath: [], sandbox: false, script: """return $localRepoList """]]],
+                string(defaultValue: '', description: '<font color=teal size=2>Release Branch name to create</font>',
+                name: 'releaseBranch', trim: false)])])
+
+            ansiColor('xterm') {
+                errorMessage '''
+                        First run of the job. Parameters created. Stopping the current build.
+                        Please trigger new build and provide parameters if required.
+                        '''
+            }
+        return
+        }
+
+        // Make sure prerequisites are met
+        // If releaseBranch variable not set
+        if (releaseBranch == ''){
+            errorMessage 'Release branch name not set'
+            error 'Release branch name not set'
+        } else if (upstreamRepos == ''){
+            errorMessage 'No Repos Selected'
+            error 'no repos selected'
+        }
+        // Checking out public repo from where the branch should be created
+        stage('Ending Release'){
+            upstreamRepos.split(',').each { repo ->
+            // Cleaning workspace
+            cleanWs()
+            checkout scm
+            ansiColor('xterm'){
+                if( sh(
+                script:  "git ls-remote --exit-code --heads origin ${params.releaseBranch}",
+                returnStatus: true
+                ) != 0) {
+                    errorMessage'Release branch does not exist'
+                    error 'Branch not exist'
+                }
+            }
+            stage("Creating PR") {
+            // api.github.com/repos/rjshrjndrn/sunbird-devops/pulls' -d \
+            // '{"title": "Automatic PR from Sunbird Bot", "head": "release-test", "base": "master"}'
+
+                withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
+                passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
+                    // Getting git remote api url
+                    origin = "https://${gitUser}:${gitPassword}@api.github.com/repos/"+gitUser+"/"+sh(
+                    script: 'git config --get remote.origin.url',
+                    returnStdout: true
+                    ).trim().split('/')[-1].split('\\.')[0]+"/pulls"
+                    def prRequest = sh (
+                       script: """curl -s -w %{http_code} -XPOST ${origin} -d '{"title": "Automatic PR From Sunbird Bot", "head": "${params.releaseBranch}", "base":"master"}' -o /tmp/output""",
+                       returnStdout: true
+                    ).trim()
+                    // Cheking PR is success
+                    if(prRequest != '201'){
+                        // Checking error message
+                        def errorMessage = sh(
+                            script: "cat /tmp/output | jq -r '.errors[0].message'",
+                            returnStdout: true
+                        ).trim()
+                        def errorCode = sh(
+                            script: "cat /tmp/output | jq -r '.errors[0].code'",
+                            returnStdout: true
+                        ).trim()
+                        // If PR exists
+                        if(prRequest == '422' && errorCode == "custom" && errorMessage.contains('pull request already exists')) {
+                            ansiColor('xterm'){
+                                println(errorMessage('GitHub PR found\nPR: ')+ANSI_NORMAL+sh(
+                                script: 'git config --get remote.origin.url',
+                                returnStdout: true
+                                ).trim().split('\\.git')[0]+'/pulls')
+                            }
+                        }
+                        // Unknown error
+                        else {
+                            error "Could not raise the PR\n"+sh(
+                            script: 'cat /tmp/output',
+                            returnStdout: true
+                            ).trim()
+                        }
+                    }
+                }
+        }
+        stage("Merging master with ${params.releaseBranch}"){
+
+            if( sh (
+                script: " git checkout origin/master && git merge origin/${params.releaseBranch} ",
+                returnStatus: true
+                ) != 0){
+                    ansiColor('xterm'){
+                        println(errorMessage( "Merge Conflict\nPR Raised\nPlease fix the Conflicts and run the job again\nPR: ")
+                        +ANSI_NORMAL+sh(
+                        script: 'git config --get remote.origin.url',
+                        returnStdout: true
+                        ).trim().split('\\.git')[0]+'/pulls')
+                    }
+                    error 'Merge Conflict'
+            }
+        }
+        stage('pushing tag to upstream'){
+            // Using withCredentials as gitpublish plugin is not yet ported for pipelines
+            // Defining credentialsId for default value passed from Parameter or environment value.
+            // gitCredentialId is username and password type
+            withCredentials([usernamePassword(credentialsId: "${gitCredentialId}",
+            passwordVariable: 'gitPassword', usernameVariable: 'gitUser')]) {
+
+                // Getting git remote url
+                origin = "https://${gitUser}:${gitPassword}@"+sh (
+                script: 'git config --get remote.origin.url',
+                returnStdout: true
+                ).trim().split('https://')[1]
+                echo "Git Hash: ${origin}"
+                // Checks whether remtoe branch is present
+                // Stdouts 1 if true
+                remoteBranch =
+                ansiColor('xterm'){
+                    // If remote tag exists
+                    if( sh(script: "git ls-remote --tags --exit-code ${origin} ${params.releaseBranch}", returnStatus: true) == 0 ) {
+                        println(errorMessage("Upstream has tag with same name: ${params.releaseBranch}\nPR: ")
+                        +ANSI_NORMAL+sh(
+                            script: 'git config --get remote.origin.url',
+                            returnStdout: true
+                        ).trim().split('\\.git')[0]+'/pulls')
+                        error 'remote tag found with same name'
+                    }
+                }
+                // Pushing tag
+                sh("git push ${origin} HEAD:tags/${params.releaseBranch}")
+                // Deleting branch
+                sh("git push ${origin} :heads/${params.releaseBranch}")
+            }
+        }
+        }
+    }
+    catch(org.jenkinsci.plugins.credentialsbinding.impl.CredentialNotFoundException e){
+        ansiColor('xterm'){
+            errorMessage '''
+            Create environment variable `githubPassword` and store the `credential id`.
+            '''
+        }
+        error 'either gitCredentialId is not set or wrong value'
+    }
+}
+}
