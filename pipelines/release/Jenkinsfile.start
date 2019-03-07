@@ -19,13 +19,18 @@
 *
 */
 
-node {
+// Error message formatting
+def errorMessage(message){
     // Creating color code strings
     String ANSI_GREEN = "\u001B[32m"
     String ANSI_NORMAL = "\u001B[0m"
     String ANSI_BOLD = "\u001B[1m"
     String ANSI_RED = "\u001B[31m"
-    def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
+    println (ANSI_BOLD + ANSI_RED + message.stripIndent())
+}
+
+node {
+    def gitCredentialId = params.gitCredentialId ?: env.githubPassword
     try{
 
         // Checking first build and creating parameters
@@ -35,10 +40,10 @@ node {
                         description: '<font color=teal size=2>Release Branch name to create</font>',
                         name: 'releaseBranch', trim: true)])])
             ansiColor('xterm') {
-                println (ANSI_BOLD + ANSI_GREEN + '''\
+                errorMessage '''
                         First run of the job. Parameters created. Stopping the current build.
                         Please trigger new build and provide parameters if required.
-                        '''.stripIndent().replace("\n"," ") + ANSI_NORMAL)
+                        '''
             }
         return
         }
@@ -46,7 +51,7 @@ node {
         // Make sure prerequisites are met
         // If releaseBranch variable not set
         if (params.releaseBranch == ''){
-            println(ANSI_BOLD + ANSI_RED + 'Release branch name not set' + ANSI_NORMAL)
+            errorMessage 'Release branch name not set'
             error 'Release branch name not set'
         }
         // Checking out public repo from where the branch should be created
@@ -69,11 +74,11 @@ node {
                 ).trim().split('https://')[1]
                 echo "Git Hash: ${origin}"
                 // Checks whether remote branch is present
-                remoteBranch = 
+                remoteBranch =
                 ansiColor('xterm'){
                     // If remote branch exists
                     if( sh(script: "git ls-remote --heads ${origin} ${params.releaseBranch} > /dev/null ", returnStatus: true) == 0 ) {
-                        println(ANSI_BOLD + ANSI_RED + "Upstream has branch with same name: ${params.releaseBranch}" + ANSI_NORMAL)
+                        errorMessage "Upstream has branch with same name: ${params.releaseBranch}"
                         error 'remote branch found with same name'
                     }
                 }
@@ -83,11 +88,11 @@ node {
     }
     catch(org.jenkinsci.plugins.credentialsbinding.impl.CredentialNotFoundException e){
         ansiColor('xterm'){
-            println(ANSI_BOLD + ANSI_RED + '''\
+            errorMessage '''
             either github credentialsId is not set or value is not correct. please set it as
             an environment variable. Derfault credentialsId name will be "githubPassword". The variable is supposed to contain a jenkins
             OcredentialsId which has github username, github password
-            '''.stripIndent() + ANSI_NORMAL)
+            '''
         error 'either gitCredentialId is not set or wrong value'
         }
     }
