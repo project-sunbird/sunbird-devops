@@ -20,12 +20,18 @@
 *
 */
 
-node {
+// Error message formatting
+def errorMessage(message){
     // Creating color code strings
     String ANSI_GREEN = "\u001B[32m"
     String ANSI_NORMAL = "\u001B[0m"
     String ANSI_BOLD = "\u001B[1m"
     String ANSI_RED = "\u001B[31m"
+    println (ANSI_BOLD + ANSI_RED + message.stripIndent())
+}
+
+node {
+
     // Defining variables
     def gitCredentialId = params.gitCredentialId ?: 'githubPassword'
     def releaseBranch = params.releaseBranch ?: public_repo_branch
@@ -33,21 +39,20 @@ node {
         // Making sure prerequisites are met
         // All release branch name should be release-*
         if ( ! releaseBranch.contains('release-') ){
-            println(ANSI_BOLD + ANSI_RED + 'Release branch name is not proper\nName should be `release-*`' + ANSI_NORMAL)
+            errorMessage 'Release branch name is not proper\nName should be `release-*`'
             error 'release branch name format error'
         }
 
         // Checking first build and creating parameters
         if (params.size() == 0){
             properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
-                        parameters([string(defaultValue: "${releaseBranch}",
-                        description: '<font color=teal size=2>Release Branch create tag from</font>',
-                        name: 'releaseBranch', trim: true)])])
+                    parameters([string(defaultValue: "${releaseBranch}",
+                    description: '<font color=teal size=2>Release Branch create tag from</font>',
+                    name: 'releaseBranch', trim: true)])])
             ansiColor('xterm') {
-                println (ANSI_BOLD + ANSI_GREEN + '''\
-                        First run of the job. Parameters created. Stopping the current build.
-                        Please trigger new build and provide parameters if required.
-                        '''.stripIndent().replace("\n"," ") + ANSI_NORMAL)
+                errorMessage('''First run of the job.
+                Parameters created. Stopping the current build.
+                Please trigger new build and provide parameters if required.''')
             }
         return
         }
@@ -62,7 +67,7 @@ node {
                 script:  "git ls-remote --exit-code --heads origin ${params.releaseBranch}",
                 returnStatus: true
                 ) != 0) {
-                    println(ANSI_BOLD + ANSI_RED + 'Release branch does not exist' + ANSI_NORMAL)
+                    errorMessage('Release branch does not exist')
                     error 'Branch not exist'
                 }
             }
@@ -96,9 +101,13 @@ node {
                 } else {
                     // Checking whether there is any changes in the branch
                     if ( sh(
-                    script: "git diff --exit-code refs/remotes/origin/$releaseBranch tags/$tagRefBranch > /dev/null",
+                    script: "git diff --exit-code refs/remotes/origin/$releaseBranch tags/$tagRefBranch",
                     returnStatus: true
-                    ) == 0 ){error 'No changes found from last tag'}
+                    ) == 0 ){
+                        errorMessage('''
+                        Same as previous branch
+                        pleaseCheck''')
+                        error 'No changes found from last tag'}
                     refCount = tagRefBranch.split('_RC')[-1].toInteger() + 1
                     tagName = releaseBranch + '_RC' + refCount
                 }
@@ -106,7 +115,7 @@ node {
                 ansiColor('xterm'){
                     // If remote tag exists
                     if( sh(script: "git ls-remote --exit-code --tags ${origin} ${tagName}", returnStatus: true) == 0 ) {
-                        println(ANSI_BOLD + ANSI_RED + "Upstream has tag with same name: ${tagName}" + ANSI_NORMAL)
+                        errorMessage("Upstream has tag with same name: ${tagName}")
                         error 'remote tag found with same name'
                     }
                 }
@@ -118,12 +127,12 @@ node {
     }
     catch(org.jenkinsci.plugins.credentialsbinding.impl.CredentialNotFoundException e){
         ansiColor('xterm'){
-            println(ANSI_BOLD + ANSI_RED + '''\
+            errorMessage('''
             either github credentialsId is not set or value is not correct. please set it as
             an environment variable. Derfault credentialsId name will be "githubPassword". The variable is supposed to contain a jenkins
             OcredentialsId which has github username, github password
-            '''.stripIndent() + ANSI_NORMAL)
-        error 'either gitCredentialId is not set or wrong value'
+            ''')
         }
+        error 'either gitCredentialId is not set or wrong value'
     }
 }
