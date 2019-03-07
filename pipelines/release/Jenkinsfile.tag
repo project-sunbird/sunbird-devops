@@ -101,7 +101,7 @@ node {
                 } else {
                     // Checking whether there is any changes in the branch
                     if ( sh(
-                    script: "git diff --exit-code refs/remotes/origin/$releaseBranch tags/$tagRefBranch",
+                    script: "git diff --exit-code refs/remotes/origin/$releaseBranch tags/$tagRefBranch > /dev/null",
                     returnStatus: true
                     ) == 0 ){
                         errorMessage('''
