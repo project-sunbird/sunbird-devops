@@ -30,17 +30,25 @@ def errorMessage(message){
 }
 
 repos = [
-"Sunbird-Ed/SunbirdEd-portal",
-"Sunbird-Ed/SunbirdEd-mobile",
-"project-sunbird/sunbird-lms-service",
-"project-sunbird/sunbird-data-pipeline",
-"project-sunbird/sunbird-content-player",
-"project-sunbird/sunbird-auth",
-"project-sunbird/sunbird-learning-platform",
-"project-sunbird/sunbird-content-plugins",
-"project-sunbird/sunbird-lms-mw",
-"project-sunbird/sunbird-ml-workbench"
+'rjshrjndrn/Sunbird-portal',
+'rjshrjndrn/Sunbird-lms-mw',
+'Sunbird-Ed/SunbirdEd-portal',
+'Sunbird-Ed/SunbirdEd-mobile',
+'Sunbird-Ed/SunbirdEd-portal',
+'Sunbird-Ed/SunbirdEd-mobile',
+'project-sunbird/sunbird-lms-service',
+'project-sunbird/sunbird-data-pipeline',
+'project-sunbird/sunbird-content-player',
+'project-sunbird/sunbird-auth',
+'project-sunbird/sunbird-learning-platform',
+'project-sunbird/sunbird-content-plugins',
+'project-sunbird/sunbird-lms-mw',
+'project-sunbird/sunbird-ml-workbench'
 ]
+
+// getting Repos to which we've to start release
+upstreamRepos = params.repos
+releaseBranch = params.releaseBranch
 
 node {
     def gitCredentialId = params.gitCredentialId ?: env.githubPassword
@@ -48,10 +56,18 @@ node {
 
         // Checking first build and creating parameters
         if (params.size() == 0){
-            properties([[$class: 'RebuildSettings', autoRebuild: false, rebuildDisabled: false],
-                        parameters([string(defaultValue: '',
-                        description: '<font color=teal size=2>Release Branch name to create</font>',
-                        name: 'releaseBranch', trim: true)])])
+            // Creating active choice compatible choices list
+            localRepoList = "['"+repos.join("','")+"']"
+            properties([parameters([[$class: 'ChoiceParameter',
+                choiceType: 'PT_CHECKBOX', description: '<font color=teal size=2>Repos to start release</font>',
+                filterLength: 1, filterable: true, name: 'repos', randomName: 'choice-parameter-115616285976692',
+                script: [$class: 'GroovyScript',
+                    fallbackScript: [classpath: [], sandbox: false,
+                    script: ''],
+                script: [classpath: [], sandbox: false, script: """return $localRepoList """]]],
+                string(defaultValue: '', description: '<font color=teal size=2>Release Branch name to create</font>',
+                name: 'releaseBranch', trim: false)])])
+
             ansiColor('xterm') {
                 errorMessage '''
                         First run of the job. Parameters created. Stopping the current build.
@@ -63,17 +79,20 @@ node {
 
         // Make sure prerequisites are met
         // If releaseBranch variable not set
-        if (params.releaseBranch == ''){
+        if (releaseBranch == ''){
             errorMessage 'Release branch name not set'
             error 'Release branch name not set'
+        } else if (upstreamRepos == ''){
+            errorMessage 'No Repos Selected'
+            error 'no repos selected'
         }
+
         // Checking out public repo from where the branch should be created
-        stage('Checking out branch'){
+        stage('Start New Release'){
             // Cleaning workspace
+            upstreamRepos.split(',').each { repo ->
             cleanWs()
-            checkout scm
-        }
-        stage("pushing ${params.releaseBranch} to upstream"){
+            checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', noTags: true, reference: '', shallow: true]], submoduleCfg: [], userRemoteConfigs: [[url: "https://github.com/$repo"]]]
             // Using withCredentials as gitpublish plugin is not yet ported for pipelines
             // Defining credentialsId for default value passed from Parameter or environment value.
             // gitCredentialId is username and password type
@@ -90,12 +109,13 @@ node {
                 remoteBranch =
                 ansiColor('xterm'){
                     // If remote branch exists
-                    if( sh(script: "git ls-remote --heads ${origin} ${params.releaseBranch} > /dev/null ", returnStatus: true) == 0 ) {
-                        errorMessage "Upstream has branch with same name: ${params.releaseBranch}"
+                    if( sh(script: "git ls-remote --exit-code --heads ${origin} ${releaseBranch} > /dev/null ", returnStatus: true) == 0 ) {
+                        errorMessage "Upstream has branch with same name: ${releaseBranch}"
                         error 'remote branch found with same name'
                     }
                 }
-                sh("git push ${origin} refs/remotes/origin/master:refs/heads/${params.releaseBranch}")
+                sh("git push ${origin} refs/remotes/origin/master:refs/heads/${releaseBranch}")
+            }
             }
         }
     }
