@@ -1,9 +1,37 @@
+- name: start service
+  become: yes
+  command: /etc/init.d/keycloak start
+  poll: 5
+  async: 5
+  ignore_errors: yes
+
 - name: Create admin user
   become_user: "{{ wildfly_user }}"
   command: "{{ wildfly_dir }}/bin/add-user-keycloak.sh -r master -u {{ keycloak_management_user }} -p {{ keycloak_management_password }}"
   when: keycloak_management_user is defined and
         keycloak_management_password is defined
   ignore_errors: yes
+
+- name: status service
+  become: yes
+  command: /etc/init.d/keycloak status
+  register: keycloak
+  poll: 5
+  async: 10
+
+- name: stop service
+  become: yes
+  command: /etc/init.d/keycloak stop && Pkill keycloak
+  when: "keycloak.stdout.find('running') != -1"
+  poll: 5
+  async: 10
+  ignore_errors: yes
+
+- name: start service
+  become: yes
+  command: /etc/init.d/keycloak start
+  poll: 5
+  async: 5
 
 - name: Waiting Until Keycloak is fully functional
   wait_for:
