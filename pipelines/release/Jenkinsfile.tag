@@ -127,11 +127,9 @@ node {
     }
     catch(org.jenkinsci.plugins.credentialsbinding.impl.CredentialNotFoundException e){
         ansiColor('xterm'){
-            errorMessage('''
-            either github credentialsId is not set or value is not correct. please set it as
-            an environment variable. Derfault credentialsId name will be "githubPassword". The variable is supposed to contain a jenkins
-            OcredentialsId which has github username, github password
-            ''')
+            errorMessage '''
+            Create environment variable `githubPassword` and store the `credential id`.
+            '''
         }
         error 'either gitCredentialId is not set or wrong value'
     }
