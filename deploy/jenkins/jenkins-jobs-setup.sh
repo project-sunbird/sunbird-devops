@@ -36,12 +36,12 @@ setupJobs(){
       find $JENKINS_TMP/Deploy/jobs/${arr[$key]}/jobs/Summary/jobs/DeployedVersions -type f -name config.xml -exec sed -i "s#Deploy/${arr[0]}/#Deploy/${arr[$key]}/#g" {} \;
       echo -e "\e[0;33m${bold}Jobs created for ${arr[$key]}${normal}"
    done
-   diffs=$(diff --color -r --suppress-common-lines --no-dereference -x 'nextBuildNumber' -x 'builds' /var/lib/jenkins/jobs $JENKINS_TMP | wc -l)
+   diffs=$(colordiff -r --suppress-common-lines --no-dereference -x 'nextBuildNumber' -x 'builds' -x 'last*' /var/lib/jenkins/jobs $JENKINS_TMP | wc -l)
    if [[ $diffs -eq 0 ]]; then
       echo -e "\e[0;33m${bold}No changes detected. Exiting...${normal}"
       exit
    fi
-   diff --color -r --suppress-common-lines --no-dereference -x 'nextBuildNumber' -x 'builds' /var/lib/jenkins/jobs $JENKINS_TMP
+   colordiff -r --suppress-common-lines --no-dereference -x 'nextBuildNumber' -x 'builds' -x 'last*' /var/lib/jenkins/jobs $JENKINS_TMP
    echo -e "\e[0;33m${bold}Please review the changes shown. Proceed with overwriting the changes?${normal}"
 }
 
