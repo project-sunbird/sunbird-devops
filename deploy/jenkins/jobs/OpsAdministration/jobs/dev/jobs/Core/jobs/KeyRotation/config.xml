@@ -9,7 +9,7 @@
         <daysToKeep>-1</daysToKeep>
         <numToKeep>-1</numToKeep>
         <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>-1</artifactNumToKeep>
+        <artifactNumToKeep>5</artifactNumToKeep>
       </strategy>
     </jenkins.model.BuildDiscarderProperty>
     <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
@@ -20,28 +20,35 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>absolute_job_path</name>
-          <description>&lt;font color=black size=2&gt;&lt;b&gt;Do not change this value! The metadata.json will be copied from this job.&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue>Build/Plugins/GenericEditor</defaultValue>
+          <name>bootstrap_user</name>
+          <description>deployer user</description>
+          <defaultValue>deployer</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>build_number</name>
-          <description>&lt;font color=darkgreen size=2&gt;&lt;b&gt;OPTIONAL: Specify the build job number to upload / copy the artifact built in that job.&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue>lastSuccessfulBuild</defaultValue>
+          <name>bootstrap_user_public_key</name>
+          <description>Deployer user public key keep in single quotes</description>
+          <defaultValue></defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.ChoiceParameterDefinition>
-          <name>artifact_source</name>
-          <description>&lt;font color=black size=2&gt;&lt;b&gt;
-ArtifactRepo - Upload and keep a copy of the artifact in Jenkins, JenkinsJob - Just keep a copy of the artifact in Jenkins.&lt;/b&gt;&lt;/font&gt;</description>
-          <choices class="java.util.Arrays$ArrayList">
-            <a class="string-array">
-              <string>ArtifactRepo</string>
-              <string>JenkinsJob</string>
-            </a>
-          </choices>
-        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ssh_user</name>
+          <description>ops user</description>
+          <defaultValue>ops</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ssh_private_file</name>
+          <description>location of ssh key for ops user from &apos;/&apos;</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ssh_public_key</name>
+          <description>ops public key</description>
+          <defaultValue></defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
@@ -53,20 +60,6 @@ ArtifactRepo - Upload and keep a copy of the artifact in Jenkins, JenkinsJob - J
       <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
       <paramsToUseForLimit></paramsToUseForLimit>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
-    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-      <triggers>
-        <jenkins.triggers.ReverseBuildTrigger>
-          <spec></spec>
-          <upstreamProjects>Build/Plugins/GenericEditor</upstreamProjects>
-          <threshold>
-            <name>SUCCESS</name>
-            <ordinal>0</ordinal>
-            <color>BLUE</color>
-            <completeBuild>true</completeBuild>
-          </threshold>
-        </jenkins.triggers.ReverseBuildTrigger>
-      </triggers>
-    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.63">
     <scm class="hudson.plugins.git.GitSCM" plugin="git@3.9.3">
@@ -78,14 +71,22 @@ ArtifactRepo - Upload and keep a copy of the artifact in Jenkins, JenkinsJob - J
       </userRemoteConfigs>
       <branches>
         <hudson.plugins.git.BranchSpec>
-          <name>refactored-dev-deploy</name>
+          <name>${public_repo_branch}</name>
         </hudson.plugins.git.BranchSpec>
       </branches>
       <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
       <submoduleCfg class="list"/>
-      <extensions/>
+      <extensions>
+        <hudson.plugins.git.extensions.impl.CloneOption>
+          <shallow>true</shallow>
+          <noTags>false</noTags>
+          <reference></reference>
+          <depth>0</depth>
+          <honorRefspec>false</honorRefspec>
+        </hudson.plugins.git.extensions.impl.CloneOption>
+      </extensions>
     </scm>
-    <scriptPath>pipelines/upload/plugins/Jenkinsfile</scriptPath>
+    <scriptPath>pipelines/bootstrap/Jenkinsfile.rotatekey</scriptPath>
     <lightweight>false</lightweight>
   </definition>
   <triggers/>
