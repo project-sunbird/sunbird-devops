@@ -1,0 +1,109 @@
+- name: Create required directories
+  file:
+   path: "{{ item.dest }}"
+   mode: "{{item.mode}}"
+   state: directory
+  with_items:
+  - { dest: '{{keycloak_home}}/providers', mode: '0755'}
+  - { dest: '{{keycloak_home}}/modules/system/layers/keycloak/org/postgresql/main', mode: '0755'}
+  - { dest: '{{keycloak_home}}/themes/{{tenant_name}}/login/messages', mode: '0755'}
+  - { dest: '{{keycloak_home}}/themes/{{tenant_name}}/login/resources/css/fonts/notosans', mode: '0755'}
+  - { dest: '{{keycloak_home}}/themes/{{tenant_name}}/login/resources/css/themes/default/assets/fonts', mode: '0755'}
+  - { dest: '{{keycloak_home}}/themes/{{tenant_name}}/login/resources/img', mode: '0755'}
+  - { dest: '{{keycloak_home}}/themes/{{tenant_name}}/login/resources/js', mode: '0755'}
+  - { dest: '{{keycloak_home}}/themes/{{tenant_name}}/email/html', mode: '0755'}
+  - { dest: '{{keycloak_home}}/themes/{{tenant_name}}/email/messages', mode: '0755'}
+  - { dest: '{{keycloak_home}}/themes/{{tenant_name}}/email/text', mode: '0755'}
+
+- name: Copy login theme
+  copy: src="{{login_theme}}/" dest="{{keycloak_home}}/themes/{{tenant_name}}/login/" force="yes"
+
+- name: Copy Custom Validation theme html to login theme
+  copy: src="../../../sunbird-auth/keycloak/sms-provider/templates/" dest="{{keycloak_home}}/themes/{{tenant_name}}/login/" force="yes"
+
+- name: Copy email theme
+  copy: src="{{email_theme}}/" dest="{{keycloak_home}}/themes/{{tenant_name}}/email/" force="yes"
+
+- name: Create directory for sunbird auth package config
+  file:
+    path: sunbird_auth_{{sunbird_auth_version}}.config
+    state: directory
+    mode: 0755
+
+- name: Keycloak configuration XML file
+  template:
+    src: "roles/sunbird-auth-deploy/templates/standalone-ha.xml"
+    dest: "sunbird_auth_{{sunbird_auth_version}}.config/standalone-ha.xml"
+    mode: 0750
+
+- name: Postgresql Configuration- module.xml
+  template:
+    src: "roles/sunbird-auth-deploy/templates/module.xml.j2"
+    dest: "sunbird_auth_{{sunbird_auth_version}}.config/module.xml"
+    mode: 0750
+
+- name: SMS provider configuration file
+  template:
+    src: "roles/sunbird-auth-deploy/templates/Msg91Creds.json.j2"
+    dest: "sunbird_auth_{{sunbird_auth_version}}.config/Msg91Creds.json"
+    mode: 0755
+  when: "{{ msg_91_required|default(false) }}"
+  ignore_errors: yes
+
+- name: status service
+  become: yes
+  command: /etc/init.d/keycloak status
+  register: keycloak
+  poll: 5
+  async: 10
+
+- name: stop service
+  become: yes
+  command: /etc/init.d/keycloak stop && Pkill keycloak
+  when: "keycloak.stdout.find('running') != -1"
+  poll: 5
+  async: 10
+  ignore_errors: yes
+
+- name: Keycloak configuration XML file
+  copy:
+    src: "sunbird_auth_{{sunbird_auth_version}}.config/standalone-ha.xml"
+    dest: "{{keycloak_home}}/standalone/configuration/standalone-ha.xml"
+    mode: 0750
+    owner: "{{wildfly_user}}"
+    group: "{{wildfly_group}}"
+    remote_src: yes
+
+- name: Postgresql Configuration- module.xml
+  copy:
+    src: "sunbird_auth_{{sunbird_auth_version}}.config/module.xml"
+    dest: "{{keycloak_home}}/modules/system/layers/keycloak/org/postgresql/main/module.xml"
+    mode: 0750
+    owner: "{{wildfly_user}}"
+    group: "{{wildfly_group}}"
+    remote_src: yes
+
+- name: Create a directory for SMS provider configuration
+  file:
+    path: "{{keycloak_home}}/bin/sms-provider"
+    state: directory
+    mode: 0755
+  when: "{{ msg_91_required|default(false) }}"
+  ignore_errors: yes
+
+- name: SMS provider configuration file
+  copy:
+    src: "sunbird_auth_{{sunbird_auth_version}}.config/Msg91Creds.json"
+    dest: "{{keycloak_home}}/bin/sms-provider/Msg91Creds.json"
+    owner: "{{wildfly_user}}"
+    group: "{{wildfly_group}}"
+    mode: 0755
+    remote_src: yes
+  when: "{{ msg_91_required|default(false) }}"
+  ignore_errors: yes
+
+- name: start service
+  become: yes
+  command: /etc/init.d/keycloak start
+  poll: 5
+  async: 5

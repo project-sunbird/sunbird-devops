@@ -1,0 +1,30 @@
+@Library('deploy-conf') _
+node() {
+    try {
+        stage('checkout public repo') {
+            cleanWs()
+            checkout scm
+        }
+        stage('Artifact Upload') {
+            values = lp_dp_params()
+            currentWs = sh(returnStdout: true, script: 'pwd').trim()
+            artifact = values.artifact_name + ":" + values.artifact_version
+            if(params.artifact_source == "ArtifactRepo")
+            {
+                ansiblePlaybook = "${currentWs}/ansible/artifacts-upload.yml"
+                ansibleExtraArgs = "--extra-vars \"artifact=${artifact} artifact_path=${currentWs}/${artifact}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                values.put('currentWs', currentWs)
+                values.put('ansiblePlaybook', ansiblePlaybook)
+                values.put('ansibleExtraArgs', ansibleExtraArgs)
+                ansible_playbook_run(values)
+            }
+            archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
+            archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
+            currentBuild.description = "${values.artifact_version}"
+        }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}

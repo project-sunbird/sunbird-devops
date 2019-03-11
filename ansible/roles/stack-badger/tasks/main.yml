@@ -1,4 +1,10 @@
 ---
+- name: Login to docker
+  shell: "docker login {{ vault_docker_registry_url }} -u {{ vault_docker_registry_user }} -p {{ vault_docker_registry_password }}"
+  become: yes
+  #  no_log: True
+  ignore_errors: yes
+
 - name: Remove badger service
   become: yes
   shell: "docker service rm badger-service"
@@ -22,7 +28,7 @@
 
 - name: Deploy badger service
   become: yes
-  shell: "docker service create --replicas {{ badger_replicas }} -p 8004:8004 --name badger-service --hostname badger-service --reserve-memory {{ badger_reservation_memory }} --limit-memory {{ badger_limit_memory }}  --network application_default --config source=settings_local.py,target=/badger/code/apps/mainsite/settings_local.py,mode=0644 {{hub_org}}/{{image_name}}:{{image_tag}}" 
+  shell: "docker service create --with-registry-auth --replicas {{ badger_replicas }} -p 8004:8004 --name badger-service --hostname badger-service --reserve-memory {{ badger_reservation_memory }} --limit-memory {{ badger_limit_memory }}  --network application_default --config source=settings_local.py,target=/badger/code/apps/mainsite/settings_local.py,mode=0644 {{hub_org}}/{{image_name}}:{{image_tag}}"
   args:
     chdir: /home/deployer/stack
 
@@ -40,7 +46,7 @@
 
 - name: Including task
   run_once: true
-  include_tasks: user.yml
+  include: user.yml
   delegate_to: "{{server.stdout}}"
 
 - name: Copy admin auth token to desktop
