@@ -52,15 +52,9 @@
   - shell: "docker swarm join --token {{hostvars[groups['swarm-manager-1'][0]].managertoken}} {{hostvars[groups['swarm-manager-1'][0]].swarmmaster}}:2377"
     when: "docker_info.stdout.find('Swarm: active') == -1"
 
-- name: Drain Swarm Managers if not same node for manager and worker
-  hosts: swarm-manager
+- name: Create network on manager
+  hosts: swarm-nodes:swarm-manager
   become: yes
   gather_facts: yes
-  tasks:
-  - shell: docker node update --availability active $(hostname)
-    when: 
-      - groups['swarm-nodes']|length==1
-      - groups['swarm-manager']==groups['swarm-nodes']
-    register: result
-  - shell: docker node update --availability drain $(hostname)
-    when: result is skipped
+  roles: 
+    - bootstrap_swarm

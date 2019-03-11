@@ -1,13 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 # Build script
-# set -o errexit
-e () {
-    echo $( echo ${1} | jq ".${2}" | sed 's/\"//g')
-}
-m=$(./images/proxy/metadata.sh)
+set -eo pipefail
+build_tag=$1
+name=proxy
+node=$2
+org=$3
 
-org=$(e "${m}" "org")
-name=$(e "${m}" "name")
-version=$(e "${m}" "version")
-
-docker build -f ./images/proxy/Dockerfile -t ${org}/${name}:${version}-bronze .
+docker build -f ./images/proxy/Dockerfile -t ${org}/${name}:${build_tag} .
+echo {\"image_name\" : \"${name}\", \"image_tag\" : \"${build_tag}\", \"node_name\" : \"$node\"} > metadata.json
