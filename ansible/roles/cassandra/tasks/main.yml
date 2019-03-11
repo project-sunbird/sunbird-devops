@@ -5,6 +5,16 @@
   tags:
        - provision
 
+- name: getting the server hostname
+  command: hostname
+  register: hostnameOfCql
+
+- name: add entry in hosts file
+  become: yes
+  lineinfile:
+    line: "127.0.0.1 {{hostnameOfCql.stdout}}"   
+    path: /etc/hosts
+
 - name: debian | Adding Cassandra Debian Repo Key
   apt_key:
     url: "{{ cassandra_repo_key }}"
@@ -37,3 +47,15 @@
     group: "root"
     mode: 0644
   notify: "restart cassandra"
+
+- name: wait for cassandra to gossip with seed nodes
+  pause:
+    seconds: 10
+
+- name: Restart Cassandra now
+  service: 
+    name: cassandra 
+    state: restarted
+
+- name: wait for cassandra to be up and running
+  wait_for: host={{inventory_hostname}} port=9042 delay=30
