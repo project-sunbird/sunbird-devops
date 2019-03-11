@@ -1,0 +1,24 @@
+- name: Create group "{{bootstrap_user}}"
+  group: name="{{bootstrap_user}}" state=present
+
+- name: Create user "{{bootstrap_user}}"
+  user: 
+    name: "{{bootstrap_user}}" 
+    comment: "{{bootstrap_user}}" 
+    group: "{{bootstrap_user}}" 
+    groups: sudo 
+    shell: /bin/bash
+
+- name: Giving access to sudo without password
+  lineinfile:
+    path: /etc/sudoers
+    line: '{{bootstrap_user}} ALL=(ALL) NOPASSWD:ALL'
+    state: present
+
+- name: Remove existing authorized_keys from the "{{bootstrap_user}}" file and add a single key to its authorized_keys
+  become: yes
+  command: bash -lc "echo \"{{bootstrap_user_public_key}}\" > /home/{{bootstrap_user}}/.ssh/authorized_keys"
+
+- name: Remove existing authorized_keys from the "{{ssh_user}}" file and add a single key to its authorized_keys
+  become: yes
+  command: bash -lc "echo \"{{ssh_public_key}}\" > /home/{{ssh_user}}/.ssh/authorized_keys"

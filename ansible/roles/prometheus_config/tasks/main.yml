@@ -1,0 +1,32 @@
+---
+
+- name: Update node exporter ip
+  replace:
+    path: "{{ prometheus_file_path }}"
+    regexp: ":9101']$"
+    replace: ":9101{% for ip in groups['all'] %}','{{ ip }}:9101{% endfor %}']"
+
+
+- name: Update process exporter ip
+  replace:
+    path: "{{ prometheus_file_path }}"
+    regexp: ":1111']$"
+    replace: ":1111{% for ip in groups['process-exporter'] %}','{{ ip }}:1111{% endfor %}']"
+
+
+- name: Remove monitoring stack
+  shell: "docker stack rm monitor"
+
+- name: Remove docker config
+  shell: "docker config rm prometheus.yml"
+  ignore_errors: yes
+
+- name: Create docker config
+  command: "docker config create prometheus.yml prometheus.yml"
+  args:
+    chdir: /opt/docker/stacks/monitor/config/
+    
+- name: Deploy monitoring
+  command: "docker stack deploy -c monitor.yml monitor"
+  args:
+    chdir: /opt/docker/stacks/monitor/stack/
