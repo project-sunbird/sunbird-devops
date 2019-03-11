@@ -1,0 +1,18 @@
+pipeline {
+    agent {
+        label 'master'
+    }
+    triggers {
+        cron('@midnight')
+    }
+    stages {
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd ansible
+                ansible-playbook -i inventory/admin jenkins-backup.yml --vault-password-file /run/secrets/vault-pass
+                '''
+            }
+        }
+    }
+}
