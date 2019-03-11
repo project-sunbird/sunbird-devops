@@ -31,20 +31,23 @@ def errorMessage(message){
 }
 
 repos = [
-'rjshrjndrn/Sunbird-portal',
-'rjshrjndrn/Sunbird-lms-mw',
 'Sunbird-Ed/SunbirdEd-portal',
 'Sunbird-Ed/SunbirdEd-mobile',
 'Sunbird-Ed/SunbirdEd-portal',
 'Sunbird-Ed/SunbirdEd-mobile',
 'project-sunbird/sunbird-lms-service',
 'project-sunbird/sunbird-data-pipeline',
-'project-sunbird/sunbird-content-player',
+'project-sunbird/sunbird-content-service',
 'project-sunbird/sunbird-auth',
 'project-sunbird/sunbird-learning-platform',
 'project-sunbird/sunbird-content-plugins',
 'project-sunbird/sunbird-lms-mw',
-'project-sunbird/sunbird-ml-workbench'
+'project-sunbird/sunbird-ml-workbench',
+'project-sunbird/sunbird-utils',
+'project-sunbird/sunbird-analytics',
+'project-sunbird/sunbird-telemetry-service',
+'project-sunbird/secor',
+'project-sunbird/sunbird-devops'
 ]
 
 // getting Repos to which we've to stop release
@@ -61,7 +64,7 @@ node {
             // Creating active choice compatible choices list
             localRepoList = "['"+repos.join("','")+"']"
             properties([parameters([[$class: 'ChoiceParameter',
-                choiceType: 'PT_CHECKBOX', description: '<font color=teal size=2>Repos to start release</font>',
+                choiceType: 'PT_CHECKBOX', description: '<font color=black size=2><b>Choose the repo to create tag</b></font>',
                 filterLength: 1, filterable: true, name: 'repos', randomName: 'choice-parameter-115616285976692',
                 script: [$class: 'GroovyScript',
                     fallbackScript: [classpath: [], sandbox: false,
