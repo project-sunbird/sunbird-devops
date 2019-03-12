@@ -70,7 +70,7 @@ node {
                     fallbackScript: [classpath: [], sandbox: false,
                     script: ''],
                 script: [classpath: [], sandbox: false, script: """return $localRepoList """]]],
-                string(defaultValue: '', description: '<font color=teal size=2>Release Branch name to End</font>',
+                string(defaultValue: '', description: '<font color=black size=2><b>Enter the branch name from which tag will be created</b></font>',
                 name: 'releaseBranch', trim: false)])])
 
             ansiColor('xterm') {
