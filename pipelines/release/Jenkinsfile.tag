@@ -57,7 +57,7 @@ releaseBranch = params.releaseBranch
 node {
 
     // Defining variables
-    def gitCredentialId = params.gitCredentialId ?: env.githubPassword
+    def gitCredentialId = env.githubPassword
     try{
         // Checking first build and creating parameters
         if (params.size() == 0){
