@@ -150,6 +150,8 @@ cassandra_backup_azure_storage_access_key: "{{backup_storage_key}}"
 cassandra_backup_dir: /data/cassandra/backup
 
 
+
+
 keycloak_realm: sunbird
 sunbird_content_player_url: "http://api-manager_kong:8000/"
 sunbird_learner_player_url: "http://api-manager_kong:8000/"
@@ -429,7 +431,6 @@ prometheus_storage_retention_time: 72h0m0s
 sunbird_cloud_storage_urls: 'https://s3.ap-south-1.amazonaws.com/ekstep-public-{{ekstep_s3_env}}/,https://ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com/,https://{{azure_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}/'
 sunbird_email_max_recipients_limit: 100
 sunbird_cassandra_consistency_level: one
-sunbird_cassandra_replication_strategy: '{"class":"SimpleStrategy","replication_factor":"1"}'
 medium_rate_limit_per_hour: 5000
 sunbird_lock_expiry_time: 3600
 app_es_heap_size: 1500m
@@ -544,3 +545,15 @@ app_snapshot_base_path: applicationelasticsearch
 #log es backup
 log_es_snapshot_host: "{{ groups['log-es'][0] }}"
 log_snapshot_base_path: loggerelasticsearch
+
+## Cassandra Cluster changes
+
+sunbird_cassandra_replication_strategy: "{{sunbird_cassandra_replication_strategy}}"
+
+{% if groups['cassandra-2'] is defined %}
+sunbird_cassandra_port: "9042,9042,9042" # comman separated port values if cluster 9042,9042,9042 
+sunbird_cassandra_consistency_level: "quorum" # quorum for cassandra cluster
+{% else %}
+sunbird_cassandra_port: "9042" # cassandra port if not cluster 
+sunbird_cassandra_consistency_level: "one" # one for single cassandra
+{% endif %}
