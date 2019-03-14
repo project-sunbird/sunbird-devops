@@ -20,9 +20,6 @@ apt-get install -y unzip zip
 echo -e "\n\e[0;32m${bold}Installating JQ${normal}"
 apt-get install -y jq
 
-echo -e "\n\e[0;32m${bold}Installating Simplejson${normal}"
-apt-get install -y python-simplejson
-
 echo -e "\n\e[0;32m${bold}Installating node and npm modules"
 wget https://nodejs.org/download/release/v6.1.0/node-v6.1.0-linux-x64.tar.gz
 tar -xvf node-v6.1.0-linux-x64.tar.gz
