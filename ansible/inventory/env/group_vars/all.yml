@@ -76,8 +76,6 @@ kong_postgres_user: "{{core_vault_postgres_username}}"
 kong_postgres_password: "{{core_vault_postgres_password}}"
 enc_postgres_user: "{{core_vault_postgres_username}}"
 badger_postgres_user: "{{core_vault_postgres_username}}"
-backup_storage_account: "{{azure_account_name}}"
-backup_storage_key: "{{core_vault_sunbird_azure_storage_key}}"
 sunbird_account_name: "{{azure_account_name}}"
 sunbird_account_key: "{{core_vault_sunbird_azure_storage_key}}"
 ansible_vault_password: "{{ core_vault_ansible_vault_password }}"
@@ -104,7 +102,7 @@ kong_host: api-manager_kong
 application_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 keycloak_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 kong_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
-sunbird_cassandra_host: "{{groups['cassandra']|join(',')}}"  #Private IP of Cassandra server
+sunbird_cassandra_host: "{{groups['cassandra'][0]}}"  #Private IP of Cassandra server
 sunbird_es_host: "{{groups['es']| join(',')}}"
 
 ## Application server configurations
@@ -169,7 +167,7 @@ sunbird_pg_port: 5432
 sunbird_pg_password: "{{ core_vault_postgres_password }}"
 sunbird_sunbird_quartz_mode: cluster
 sunbird_encryption_mode: local
-sunbird_cassandra_urls: "{{ groups['cassandra']|join(':9042,')}}:9042"
+sunbird_cassandra_urls: "{{ cassandra_server_private_ip }}:{{ cassandra_port }}"
 sunbird_session_store_type: cassandra
 sunbird_keycloak_client_id: 'portal'
 sunbird_keycloak_public: true
@@ -542,7 +540,8 @@ config_service_enabled: false
 config_cache_ttl: 600
 
 #### backup storage secret
-backup_azure_storage_access_key: "{{core_vault_azure_storage_secret}}"
+backup_azure_storage_access_key: "{{core_vault_sunbird_azure_storage_key}}"
+backup_azure_storage_account_name: "{{azure_account_name}}"
 
 #es-backup
 app_es_snapshot_host: "{{ groups['es'][0] }}"
