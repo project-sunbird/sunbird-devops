@@ -11,49 +11,28 @@ node() {
             cleanWs()
             checkout scm
         }
-            ansiColor('xterm') {
-                stage('get artifact') {
-                    values = lp_dp_params()
-                    currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                    artifact = values.artifact_name + ":" + values.artifact_version
-                    values.put('currentWs', currentWs)
-                    if (params.artifact_source == "ArtifactRepo") {
-                        println(ANSI_BOLD + ANSI_YELLOW + '''\
-                    Option chosen is ArtifactRepo, ignoring any previously copied artifacts and new artifacts will be downloaded from remote source
-                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
-                        ansiblePlaybook = "${currentWs}/ansible/artifacts-download.yml"
-                        ansibleExtraArgs = """\
-                               --extra-vars "artifact=${artifact}
-                               artifact_path=${currentWs}/${artifact}"
-                               --vault-password-file /var/lib/jenkins/secrets/vault-pass
-                               """.stripIndent().replace("\n", " ")
-                        values.put('ansiblePlaybook', ansiblePlaybook)
-                        values.put('ansibleExtraArgs', ansibleExtraArgs)
-                        ansible_playbook_run(values)
-                    } else {
-                        println(ANSI_BOLD + ANSI_YELLOW + '''\
-                    Option chosen is JenkinsJob, using the artifacts copied
-                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
-                    }
-                }
-                    stage('deploy artifact') {
-                    sh """
-                       cp ${artifact} sunbird_auth_1.0v.zip
-                    """
-                    ansiblePlaybook = "${currentWs}/ansible/sunbird-auth-provision.yml"
-                    ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass"
-                    values.put('ansiblePlaybook', ansiblePlaybook)
-                    values.put('ansibleExtraArgs', ansibleExtraArgs)
-                    println values
-                    ansible_playbook_run(values)
-                    archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
-                    archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
-                    currentBuild.description = "${values.artifact_version}"
-                }
+
+        ansiColor('xterm') {
+            stage('deploy'){
+                values = [:]
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+                ansiblePlaybook = "${currentWs}/ansible/keycloak.yml"
+                ansibleExtraArgs = "--tags provision --vault-password-file  /var/lib/jenkins/secrets/vault-pass"
+                values.put('currentWs', currentWs)
+                values.put('env', envDir)
+                values.put('module', module)
+                values.put('jobName', jobName)
+                values.put('ansiblePlaybook', ansiblePlaybook)
+                values.put('ansibleExtraArgs', ansibleExtraArgs)
+                println values
+                ansible_playbook_run(values)
             }
+        }
     }
     catch (err) {
-        currentBuild.result = "FAILURE"
         throw err
     }
 }
