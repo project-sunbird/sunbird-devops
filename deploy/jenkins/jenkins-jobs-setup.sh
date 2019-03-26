@@ -22,6 +22,7 @@ setupJobs(){
       find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type f -name config.xml -exec sed -i "s#ArtifactUpload/dev/#ArtifactUpload/${arr[0]}/#g" {} \;
       find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type f -name config.xml -exec sed -i "s#Deploy/dev/#Deploy/${arr[0]}/#g" {} \;
    fi
+   find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type d -path "*Summary*" -prune -o -name config.xml -exec sed -i 's/<upstreamProjects>.*//g' {} \;
    echo -e "\e[0;33m${bold}Jobs created for ${arr[0]}${normal}"
 
    for key in "${!arr[@]}"; do
@@ -32,7 +33,7 @@ setupJobs(){
       cp -r $JENKINS_TMP/OpsAdministration/jobs/${arr[0]} $JENKINS_TMP/OpsAdministration/jobs/${arr[$key]}
       cp -r $JENKINS_TMP/Deploy/jobs/${arr[0]} $JENKINS_TMP/Deploy/jobs/${arr[$key]}
       find $JENKINS_TMP/Deploy/jobs/${arr[$key]} -type f -name config.xml -exec bash -c 'configPath=$0; jobPath=$(dirname $configPath); jobName=$(basename $jobPath); modulePath=${jobPath%/*/*}; moduleName=$(basename $modulePath); sed -i "s#ArtifactUpload/$1/$moduleName/.*<#Deploy/$2/$moduleName/$jobName<#g" $0' {} ${arr[0]} ${arr[$(($key - 1))]} \;
-      find $JENKINS_TMP/Deploy/jobs/${arr[$key]} -type d -path "*Summary*" -prune -o -type f -name config.xml -exec sed -i "/<triggers>/,/<\/triggers>/d" {} \;
+      find $JENKINS_TMP/Deploy/jobs/${arr[$key]} -type d -path "*Summary*" -prune -o -name config.xml -exec sed -i 's/<upstreamProjects>.*//g' {} \;
       find $JENKINS_TMP/Deploy/jobs/${arr[$key]}/jobs/Summary/jobs/DeployedVersions -type f -name config.xml -exec sed -i "s#Deploy/${arr[0]}/#Deploy/${arr[$key]}/#g" {} \;
       echo -e "\e[0;33m${bold}Jobs created for ${arr[$key]}${normal}"
    done
