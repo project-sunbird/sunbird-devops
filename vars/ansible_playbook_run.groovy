@@ -22,7 +22,7 @@ def call(Map pipelineParams) {
                             def checkDir = new File('../private')
                             if(!checkDir.exists())
                                 checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: 
-                                [[name: 'private_repo_branch']], doGenerateSubmoduleConfigurations: false, extensions: 
+                                [[name: private_repo_branch]], doGenerateSubmoduleConfigurations: false, extensions: 
                                 [[$class: 'CloneOption', noTags: false, reference: '', shallow: true]], submoduleCfg: [], 
                                  userRemoteConfigs: [[credentialsId: private_repo_credentials, url: private_repo_url]]]                            else
                                 println(ANSI_BOLD + ANSI_YELLOW + 'Github repo already exists. Not cloning again' + ANSI_NORMAL)
