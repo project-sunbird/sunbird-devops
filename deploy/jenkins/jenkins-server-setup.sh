@@ -72,6 +72,10 @@ pip install docker-py
 echo -e "\n\e[0;32m${bold}Installating colordiff${normal}"
 sudo apt-get install -y colordiff
 
+echo -e "\n\e[0;32m${bold}Installating git lfs${normal}"
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+apt-get install git-lfs
+
 echo -e "\n\e[0;32m${bold}Adding jenkins user to docker group${normal}"
 usermod -aG docker jenkins
 
