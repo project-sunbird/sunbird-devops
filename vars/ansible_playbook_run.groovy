@@ -20,6 +20,8 @@ def call(Map pipelineParams) {
                                 error 'Please resolve errors and rerun..'
                             }
                             def checkDir = new File('../private')
+                            if(params.private_branch != null || params.private_branch != "")
+                               env.private_repo_branch = params.private_branch
                             if(!checkDir.exists())
                                 checkout scm: [$class: 'GitSCM', branches: [[name: private_repo_branch]], extensions: [[$class: 'GitLFSPull'], [$class: 'CloneOption', depth: 1, noTags: true, reference: '', shallow: true]], userRemoteConfigs: [[credentialsId: private_repo_credentials, url: private_repo_url]]]
                             else
