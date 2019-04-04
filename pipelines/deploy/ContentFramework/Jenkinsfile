@@ -18,6 +18,7 @@ node() {
                 stage('get artifact') {
                     currentWs = sh(returnStdout: true, script: 'pwd').trim()
                     artifact = values.artifact_name + ":" + values.artifact_version
+                    commit_hash = values.artifact_version.split('_')[1]
                     values.put('currentWs', currentWs)
                     if (params.artifact_source == "ArtifactRepo") {
                         println(ANSI_BOLD + ANSI_YELLOW + '''\
@@ -45,6 +46,7 @@ node() {
                       unzip ${artifact}
                       unzip -o content-editor.zip -d content-editor
                       export editor_version_number=${values.artifact_version}
+                      export build_number=${commit_hash}
                       sed -i -e 's/dispatcher:\"console\"/dispatcher:\"piwik\"/g' content-editor/scripts/*
                       sed -i 's:/api:/action:g' content-editor/scripts/base-editor.min.*.js
                       sed -i 's/useProxyForURL:true/useProxyForURL:false/g' content-editor/scripts/base-editor.min.*.js
