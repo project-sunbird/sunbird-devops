@@ -1,0 +1,46 @@
+---
+# tasks file for logstash
+- name: add permissions
+  become: yes
+  file: path={{learner_user_home}} mode=0755 recurse=yes owner={{learner_user}} group={{learner_user}}
+
+- name: Download the zip
+  become: yes
+  become_user: "{{learner_user}}"
+  get_url: url=https://artifacts.elastic.co/downloads/logstash/logstash-{{logstash_version}}.tar.gz dest={{learner_user_home}}  timeout=1000 force=yes
+  
+- name: unzip
+  become: yes
+  become_user: "{{learner_user}}"
+  unarchive: src={{learner_user_home}}/logstash-{{logstash_version}}.tar.gz dest={{learner_user_home}} copy=no group={{learner_user}} owner={{learner_user}} creates={{learner_user_home}}/logstash-{{logstash_version}}
+  
+- name: set permissions
+  become: yes
+  file: path={{learner_user_home}}/logstash-{{logstash_version}} owner={{learner_user}} group={{learner_user}} mode=0755 recurse=yes
+
+- name: Delete the logstash zip file
+  become: yes
+  become_user: "{{ learner_user }}"
+  file: path={{learner_user_home}}/logstash-{{logstash_version}}.tar.gz state=absent
+
+- name: Detect if this is a systemd based system
+  command: cat /proc/1/comm
+  register: init
+- set_fact: use_systemd=True
+  when: init.stdout == 'systemd'
+- set_fact: use_systemd=False
+  when: init.stdout != 'systemd'
+
+- name: Copy template for logstash service
+  become: yes
+  template: src=logstash.j2 dest=/etc/init.d/logstash mode=755
+  when: init.stdout != 'systemd'
+
+- name: create systemd config
+  become: yes
+  template: src=logstash.service.j2 dest={{logstash_systemd_service}} owner=root group=root mode=644 
+  when: use_systemd
+
+- command: systemctl daemon-reload
+  become: yes
+  when: use_systemd
