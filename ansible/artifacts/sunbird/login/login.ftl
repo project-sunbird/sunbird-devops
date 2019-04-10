@@ -71,18 +71,18 @@
                                     </#list>
                                 </div-->
                             </#if>
-                            <button type="button" class="ui fluid blue basic button googleButton" onclick="redirect('/google/auth')">
+                            <button type="button" class="ui fluid blue basic button googleButton" onclick="handleGoogleAuthEvent('/google/auth')">
                             <img class="signInWithGoogle" src="${url.resourcesPath}/img/google.png">
                             ${msg("doSignIn")} ${msg("doSignWithGoogle")}
                             </button>
-							<button type="button" id="stateButton" class="ui fluid blue basic button googleButton stateButton hide" onclick="handleSsoEvent()">
+							<button type="button" id="stateButton" class="ui fluid blue basic button googleButton stateButton hide" onclick="redirectToPortal('/sign-in/sso/select-org')">
 								${msg("doSignWithState")}
 							</button>
                         </div>
                         <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??>
                             <div id="kc-registration" class="field">
                                 <div class="ui content signUpMsg">
-                                    ${msg("noAccount")} <span id="signup" tabindex="0" class="registerLink" onclick="redirect('/signup')">${msg("doRegister")}</span> to access relevant learning material and enroll for courses.
+                                    ${msg("noAccount")} <span id="signup" tabindex="0" class="registerLink" onclick="redirectToPortal('/signup')">${msg("doRegister")}</span> to access relevant learning material and enroll for courses.
                                 </div>
                             </div>
                         </#if>

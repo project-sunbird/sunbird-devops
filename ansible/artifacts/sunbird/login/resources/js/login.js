@@ -80,44 +80,78 @@ function addClass(element,classname)
     	element.className += " " + classname;
 	}
 }
-const redirect  = (redirectUrlPath) => {
-	const curUrlObj = window.location;
-	var redirect_uri = (new URLSearchParams(curUrlObj.search)).get('redirect_uri');
-	var client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
-	const sessionUrl = sessionStorage.getItem('url');
-	if (redirect_uri) {
-		const updatedQuery = curUrlObj.search + '&error_callback=' + curUrlObj.href.split('?')[0];
-		const redirect_uriLocation = new URL(redirect_uri);
-		sessionStorage.setItem('url', window.location.href);
-		
-		if(client_id === 'android'){
-            window.location.href = curUrlObj.protocol + '//' + curUrlObj.host + redirectUrlPath + updatedQuery;
-		}
-		else
-		{
-			window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + redirectUrlPath + updatedQuery;
-		}
-	} else if (sessionUrl) {
-		const sessionUrlObj = new URL(sessionUrl);
-		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
-		redirect_uri = (new URLSearchParams(sessionUrlObj.search)).get('redirect_uri');
-		client_id = (new URLSearchParams(sessionUrlObj.search)).get('client_id');
+const handleGoogleAuthEvent = () => { 
+  const googleAuthUrl = '/google/auth';
+  const curUrlObj = window.location;
+  let redirect_uri = (new URLSearchParams(curUrlObj.search)).get('redirect_uri');
+  let client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
+  const updatedQuery = curUrlObj.search + '&error_callback=' + curUrlObj.href.split('?')[0];
+  const sessionUrl = sessionStorage.getItem('url');
+  if (redirect_uri) {
+    const redirect_uriLocation = new URL(redirect_uri);
+    sessionStorage.setItem('url', window.location.href);
+    if (client_id === 'android') {
+      const googleRedirectUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + googleAuthUrl;
+      window.location.href = redirect_uri + '?googleRedirectUrl=' + googleRedirectUrl  + updatedQuery;
+    } else {
+      window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + googleAuthUrl + updatedQuery;
+    }
+  } else if (sessionUrl) {
+    const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
+    const sessionUrlObj = new URL(sessionUrl);
+    redirect_uri = (new URLSearchParams(sessionUrlObj.search)).get('redirect_uri');
+    client_id = (new URLSearchParams(sessionUrlObj.search)).get('client_id');
+    if (redirect_uri) {
+      const redirect_uriLocation = new URL(redirect_uri);
+      if (client_id === 'android') {
+        const googleRedirectUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + googleAuthUrl;
+        window.location.href = redirect_uri + '?googleRedirectUrl=' + googleRedirectUrl + updatedQuery;
+      } else {
+        window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + googleAuthUrl + updatedQuery;
+      }
+    } else {
+      redirectToLib();
+    }
+  } else {
+    redirectToLib();
+  }
+};
+const redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and self signUp
+  const curUrlObj = window.location;
+  var redirect_uri = (new URLSearchParams(curUrlObj.search)).get('redirect_uri');
+  var client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
+  const sessionUrl = sessionStorage.getItem('url');
+  if (redirect_uri) {
+    const updatedQuery = curUrlObj.search + '&error_callback=' + curUrlObj.href.split('?')[0];
+    const redirect_uriLocation = new URL(redirect_uri);
+    sessionStorage.setItem('url', window.location.href);
 
-		if (redirect_uri) {
-			const redirect_uriLocation = new URL(redirect_uri);
-			if(client_id === 'android'){
-				window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
-			}
-			else{
-				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
-				redirectUrlPath + updatedQuery;
-			}
-		} else {
-			redirectToLib();
-		}
-	} else {
-		redirectToLib();
-	}
+    if (client_id === 'android') {
+      window.location.href = curUrlObj.protocol + '//' + curUrlObj.host + redirectUrlPath + updatedQuery;
+    } else {
+      window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + redirectUrlPath + updatedQuery;
+    }
+  } else if (sessionUrl) {
+    const sessionUrlObj = new URL(sessionUrl);
+    const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
+    redirect_uri = (new URLSearchParams(sessionUrlObj.search)).get('redirect_uri');
+    client_id = (new URLSearchParams(sessionUrlObj.search)).get('client_id');
+
+    if (redirect_uri) {
+      const redirect_uriLocation = new URL(redirect_uri);
+      if (client_id === 'android') {
+        window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
+      }
+      else {
+        window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
+          redirectUrlPath + updatedQuery;
+      }
+    } else {
+      redirectToLib();
+    }
+  } else {
+    redirectToLib();
+  }
 };
 const redirectToLib = () => {
 	window.location.href = window.location.protocol + '//' + window.location.host + '/resource';
@@ -135,37 +169,4 @@ const viewPassword = function(previewButton){
 		previewButton.className = previewButton.className.replace("slash","");
   	}
 }
-const handleSsoEvent  = () => {
-  const ssoPath = '/sign-in/sso/select-org';
-  const curUrlObj = window.location;
-  let redirect_uri = (new URLSearchParams(curUrlObj.search)).get('redirect_uri');
-  let client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
-  const sessionUrl = sessionStorage.getItem('url');
-  if (redirect_uri) {
-    const redirect_uriLocation = new URL(redirect_uri);
-    sessionStorage.setItem('url', window.location.href);
-    if (client_id === 'android') {
-      const ssoUrl = curUrlObj.protocol + '//' + curUrlObj.host + ssoPath;
-      window.location.href = redirect_uri + '?ssoUrl=' + ssoUrl;
-    } else {
-      window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + ssoPath;
-    }
-  } else if (sessionUrl) {
-    const sessionUrlObj = new URL(sessionUrl);
-    redirect_uri = (new URLSearchParams(sessionUrlObj.search)).get('redirect_uri');
-    client_id = (new URLSearchParams(sessionUrlObj.search)).get('client_id');
-    if (redirect_uri) {
-      const redirect_uriLocation = new URL(redirect_uri);
-      if (client_id === 'android') {
-        const ssoUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + ssoPath;
-        window.location.href = redirect_uri + '?ssoUrl=' + ssoUrl;
-      } else {
-        window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + ssoPath;
-      }
-    } else {
-      redirectToLib();
-    }
-  } else {
-    redirectToLib();
-  }
-};
+
