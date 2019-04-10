@@ -24,8 +24,17 @@ node() {
         cdnEnable = env.cdnEnable ?: false
         if (cdnEnable) {
             stage ('Deploying CDN') {
-                // check jenkins parameter cdnUrl
-                if ( ! params.cdnUrl ){
+                // scrapping cdn url
+                def filePath = "$WORKSPACE/private/ansible/inventory/${values.envDir}/${values.module}/common.yml"
+                url = sh(
+                script: "grep cdn $filePath | grep -v \"^#\" $filePath ",
+                returnStdout: true
+                )
+                if ( url == '' ) {
+                    print " cdnEnable env variable is true, But no sunbird_portal_cdn_url in $filePath "
+                    error 'sunbird_portal_cdn_url is not set'
+                } else {
+                    cdnUrl = url.split(' ')[2]
                     error 'cdn url is not defined'
                     stage('Build-CDN') {
                         sh ("docker run --rm -v `pwd`:/work -w /work node:8.11.2-alpine sh ./build-cdn.sh ${params.cdnUrl} ${commit_hash} ${artifact_version}")
