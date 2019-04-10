@@ -26,15 +26,16 @@ node() {
             stage ('Building CDN Artifacts') {
                 // scrapping cdn url
                 def filePath = "$WORKSPACE/ansible/inventory/env/common.yml"
-                url = sh(
-                script: " grep sunbird_portal_cdn_url $filePath | grep -v '^#' || true ",
+                cdnUrl = sh(
+                script: """
+                grep sunbird_portal_cdn_url $filePath | grep -v '^#' | grep --only-matching --perl-regexp 'http(s?):\\/\\/[^ \"\\(\\)\\<\\>]*' || true
+                """,
                 returnStdout: true
                 ).trim()
-                if ( url == '' ) {
+                if ( cdnUrl == '' ) {
                     print " cdnEnable env variable is true, But no sunbird_portal_cdn_url in $filePath "
                     error 'sunbird_portal_cdn_url is not set'
                 } else {
-                    cdnUrl = url.split(' ')[2]
                     println cdnUrl
                     stage('Deploy CDN') {
                         // Deriving commit_hash
