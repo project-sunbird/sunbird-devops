@@ -1,17 +1,43 @@
 @Library('deploy-conf') _
 node() {
     try {
-        stage('checkout public repo') {
+        // This stage will clone both public and private repo
+        stage('Initialize repos') {
             cleanWs()
+            // Checking out public repo
             checkout scm
-        }
-        stage('deploy') {
+            // Below block is required to clone the private repo
+            // as it's mandatory to deploy cdn before player
+            // if cdn is enabled.
             values = docker_params()
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
             ansiblePlaybook = "$currentWs/ansible/deploy.yml"
-            ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+            ansibleExtraArgs = "--syntax-check"
             values.put('currentWs', currentWs)
             values.put('ansiblePlaybook', ansiblePlaybook)
+            values.put('ansibleExtraArgs', ansibleExtraArgs)
+            ansible_playbook_run(values)
+            archiveArtifacts 'metadata.json'
+            currentBuild.description = "${values.image_tag}"
+        }
+
+        cdnEnable = env.cdnEnable ?: false
+        if (cdnEnable) {
+            stage ('Deploying CDN') {
+                // check jenkins parameter cdnUrl
+                if ( ! params.cdnUrl ){
+                    error 'cdn url is not defined'
+                    stage('Build-CDN') {
+                        sh ("docker run --rm -v `pwd`:/work -w /work node:8.11.2-alpine sh ./build-cdn.sh ${params.cdnUrl} ${commit_hash} ${artifact_version}")
+                        archiveArtifacts 'src/app/player_artifacts.zip*'
+                        // Appending artifact info into metadata
+                        sh (" sed -i 's/}/,\"artifact_name\" : \"player_artifacts.zip\", \"artifact_version\":\"${artifact_version}\"}/g' metadata.json")
+                    }
+                }
+            }
+        }
+        stage('deploy') {
+            ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
             values.put('ansibleExtraArgs', ansibleExtraArgs)
             ansible_playbook_run(values)
             archiveArtifacts 'metadata.json'
