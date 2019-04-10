@@ -23,7 +23,7 @@ node() {
 
         cdnEnable = env.cdnEnable ?: false
         if (cdnEnable) {
-            stage ('Deploying CDN') {
+            stage ('Building CDN Artifacts') {
                 // scrapping cdn url
                 def filePath = "$WORKSPACE/ansible/inventory/env/common.yml"
                 url = sh(
@@ -36,13 +36,19 @@ node() {
                 } else {
                     cdnUrl = url.split(' ')[2]
                     println cdnUrl
-                    stage('Build-CDN') {
+                    stage('Deploy CDN') {
                         // Deriving commit_hash
                         commitHash = sh("jq -r '.commit_hash' metadata.json", returnStdout: true).trim()
-                        sh ("docker run --rm -v `pwd`:/work -w /work node:8.11.2-alpine sh ./build-cdn.sh ${cdnUrl} ${commitHash} ")
-                        archiveArtifacts 'src/app/player_artifacts.zip*'
-                        // Appending artifact info into metadata
-                        sh (" sed -i 's/}/,\"artifact_name\" : \"player_artifacts.zip\", \"artifact_version\":\"${artifact_version}\"}/g' metadata.json")
+                        // Cloning sunbird portal
+                        dir(sunbird-portal){
+                            // For custom urls, create jenkins parameter as portalGitUrl
+                            def subirdPortalUrl = params.portalGitUrl ?: 'https://github.com/Sunbird-Ed/SunbirdEd-portal.git'
+                            checkout([$class: 'GitSCM', branches: [[name: "$commitHash"]], userRemoteConfigs: [[url: "$sunbirdPortalUrl"]]])
+                            sh ("docker run --rm -v `pwd`:/work -w /work node:8.11.2-alpine sh ./build-cdn.sh ${cdnUrl} ${commitHash} ")
+                            archiveArtifacts 'src/app/player_artifacts.zip*'
+                            // Appending artifact info into metadata
+                            sh (" sed -i 's/}/,\"artifact_name\" : \"player_artifacts.zip\", \"artifact_version\":\"${artifact_version}\"}/g' metadata.json")
+                        }
                     }
                 }
             }
