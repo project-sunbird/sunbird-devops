@@ -50,12 +50,19 @@ node() {
                             // Appending artifact info into metadata
                             sh (" sed -i 's/}/,\"artifact_name\" : \"player_artifacts.zip\", \"artifact_version\":\"${artifact_version}\"}/g' metadata.json")
                         }
+                        // Uploading cdn assets to blob
+                        ansiblePlaybook = "$currentWs/ansible/deploy.yml"
+                        ansibleExtraArgs = "--extra-vars assets=$currentWs/sunbird-portal/src/app/dist"
+                        values.put('ansiblePlaybook', ansiblePlaybook)
+                        ansible_playbook_run(values)
                     }
                 }
             }
         }
         stage('deploy') {
+            ansiblePlaybook = "$currentWs/ansible/deploy.yml"
             ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+            values.put('ansiblePlaybook', ansiblePlaybook)
             values.put('ansibleExtraArgs', ansibleExtraArgs)
             ansible_playbook_run(values)
             archiveArtifacts 'metadata.json'
