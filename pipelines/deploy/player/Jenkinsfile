@@ -23,7 +23,7 @@ node() {
 
         cdnEnable = env.cdnEnable ?: false
         if (cdnEnable) {
-            stage ('Building CDN Artifacts') {
+            stage('Deploy CDN') {
                 // scrapping cdn url
                 def filePath = "$WORKSPACE/ansible/inventory/env/common.yml"
                 cdnUrl = sh(
@@ -35,24 +35,23 @@ node() {
                 if ( cdnUrl == '' ) {
                     print " cdnEnable env variable is true, But no sunbird_portal_cdn_url in $filePath "
                     error 'sunbird_portal_cdn_url is not set'
-                } else {
-                    println cdnUrl
-                    stage('Deploy CDN') {
-                        // Deriving commit_hash
-                        commitHash = sh(script:"jq -r '.commit_hash' metadata.json", returnStdout: true).trim()
-                        // Cloning sunbird portal
-                        dir('sunbird-portal'){
-                            // For custom urls, create jenkins parameter as portalGitUrl
-                            def sunbirdPortalUrl = params.portalGitUrl ?: 'https://github.com/Sunbird-Ed/SunbirdEd-portal.git'
-                            checkout([$class: 'GitSCM', branches: [[name: "$commitHash"]], userRemoteConfigs: [[url: "$sunbirdPortalUrl"]]])
-                            sh ("docker run --rm -v `pwd`:/work -w /work node:8.11.2-alpine sh ./build-cdn.sh ${cdnUrl} ${commitHash} ")
-                        }
-                        // Uploading cdn assets to blob
-                        ansiblePlaybook = "$currentWs/ansible/deploy.yml"
-                        ansibleExtraArgs = "--extra-vars assets=$currentWs/sunbird-portal/src/app/dist"
-                        values.put('ansiblePlaybook', ansiblePlaybook)
-                        ansible_playbook_run(values)
+                }
+                else {
+                println cdnUrl
+                    // Deriving commit_hash
+                    commitHash = sh(script:"jq -r '.commit_hash' metadata.json", returnStdout: true).trim()
+                    // Cloning sunbird portal
+                    dir('sunbird-portal'){
+                        // For custom urls, create jenkins parameter as portalGitUrl
+                        def sunbirdPortalUrl = params.portalGitUrl ?: 'https://github.com/Sunbird-Ed/SunbirdEd-portal.git'
+                        checkout([$class: 'GitSCM', branches: [[name: "$commitHash"]], userRemoteConfigs: [[url: "$sunbirdPortalUrl"]]])
+                        sh ("docker run --rm -v `pwd`:/work -w /work node:8.11.2-alpine sh ./build-cdn.sh ${cdnUrl} ${commitHash} ")
                     }
+                    // Uploading cdn assets to blob
+                    ansiblePlaybook = "$currentWs/ansible/deploy.yml"
+                    ansibleExtraArgs = "--extra-vars assets=$currentWs/sunbird-portal/src/app/dist"
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    ansible_playbook_run(values)
                 }
             }
         }
