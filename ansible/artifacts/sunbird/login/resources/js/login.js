@@ -202,7 +202,7 @@ var handleGoogleAuthEvent = () => {
     const redirect_uriLocation = new URL(redirect_uri);
     sessionStorage.setItem('url', window.location.href);
     if (client_id === 'android') {
-      const googleRedirectUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + googleAuthUrl;
+      const googleRedirectUrl = curUrlObj.protocol + '//' + curUrlObj.host + googleAuthUrl;
       window.location.href = redirect_uri + '?googleRedirectUrl=' + googleRedirectUrl  + updatedQuery;
     } else {
       window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + googleAuthUrl + updatedQuery;
