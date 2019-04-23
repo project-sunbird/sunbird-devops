@@ -1,0 +1,130 @@
+{
+  "index_patterns": "vocabularyterm",
+  "settings": {
+    "index": {
+      "analysis": {
+        "filter": {
+          "mynGram": {
+            "token_chars": [
+              "letter",
+              "digit",
+              "whitespace",
+              "punctuation",
+              "symbol"
+            ],
+            "min_gram": "1",
+            "type": "edge_ngram",
+            "max_gram": "20"
+          }
+        },
+        "analyzer": {
+          "keylower": {
+            "filter": "lowercase",
+            "tokenizer": "keyword"
+          },
+          "vt_index_analyzer": {
+            "filter": [
+              "lowercase",
+              "mynGram"
+            ],
+            "type": "custom",
+            "tokenizer": "standard"
+          },
+          "vt_search_analyzer": {
+            "filter": [
+              "standard",
+              "lowercase"
+            ],
+            "type": "custom",
+            "tokenizer": "standard"
+          }
+        }
+      }
+    },
+    "number_of_shards": 5
+  },
+  "mappings": {
+    "vt": {
+      "dynamic_templates": [
+        {
+          "longs": {
+            "mapping": {
+              "type": "long",
+              "fields": {
+                "raw": {
+                  "type": "long"
+                }
+              }
+            },
+            "match_mapping_type": "long"
+          }
+        },
+        {
+          "booleans": {
+            "mapping": {
+              "type": "boolean",
+              "fields": {
+                "raw": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "match_mapping_type": "boolean"
+          }
+        },
+        {
+          "doubles": {
+            "mapping": {
+              "type": "double",
+              "fields": {
+                "raw": {
+                  "type": "double"
+                }
+              }
+            },
+            "match_mapping_type": "double"
+          }
+        },
+        {
+          "dates": {
+            "mapping": {
+              "type": "date",
+              "fields": {
+                "raw": {
+                  "type": "date"
+                }
+              }
+            },
+            "match_mapping_type": "date"
+          }
+        },
+        {
+          "strings": {
+            "mapping": {
+              "type": "text",
+              "copy_to": "all_fields",
+              "analyzer": "vt_index_analyzer",
+              "search_analyzer": "vt_search_analyzer",
+              "fields": {
+              "raw": {
+                "type": "text",
+                "fielddata": true,
+                "analyzer": "keylower"
+                }
+              }
+            },
+            "match_mapping_type": "string"
+          }
+        }
+      ],
+      "properties": {
+        "all_fields": {
+          "type": "text",
+          "fielddata": true,
+          "analyzer": "vt_index_analyzer",
+          "search_analyzer": "vt_search_analyzer"
+        }
+      }
+    }
+  }
+}
