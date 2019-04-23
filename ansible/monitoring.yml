@@ -43,20 +43,19 @@
     - alertmanager
 
 - hosts: swarm-bootstrap-manager
-  gather_facts: false
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   tasks:
     - name: Add label for prometheus node
-      shell: "docker node update --label-add prometheus=1 {{ inventory_hostname }}"
+      shell: "docker node update --label-add prometheus=1 {{ ansible_hostname }}"
     # - name: Add label for grafana node
-    #   command: "docker node update --label-add grafana=1 {{ inventory_hostname }}"
+    #   command: "docker node update --label-add grafana=1 {{ ansible_hostname }}"
     - name: Remove old style label for alertmanager node
-      shell: "docker node update --label-rm monitor {{ inventory_hostname }}"
+      shell: "docker node update --label-rm monitor {{ ansible_hostname }}"
       ignore_errors: true
     - name: Add label for alertmanager node
-      shell: "docker node update --label-add alertmanager=1 {{ inventory_hostname }}"
+      shell: "docker node update --label-add alertmanager=1 {{ ansible_hostname }}"
   tags:
     - monitor-labels
 
