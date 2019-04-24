@@ -3,7 +3,7 @@
 # set -o errexit
 set -x
 
-apk add --no-cache git python make g++ jq zip
+apt update && apt install git python make g++ jq zip
 su jenkins
 cd src/app
 version=$(jq '.version' package.json | sed 's/\"//g')
