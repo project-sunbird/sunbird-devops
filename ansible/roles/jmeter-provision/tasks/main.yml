@@ -29,24 +29,20 @@
 - name: Create directories for Jmeter setup
   become: yes
   file: path={{ item }} owner={{ user }} group={{ user }} state=directory  owner={{ user }} group={{ user }}
-  with_items: "{{ jmeter.paths }}"
+  with_items: "{{ jmeter_home }}"
   
-- name: Download Jmeter 5.11 binaries
+- name: Download Jmeter 5.1.1 binaries
   become: yes
-  become_user: "{{ user }}"
-  get_url: url=https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.1.1.tgz dest={{ jmeter.home }}/apache-jmeter-5.11.tgz force=no owner={{ user }} group={{ user }}
+  get_url: url=https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.1.1.tgz dest={{ jmeter_home }}/apache-jmeter-5.1.1.tgz force=no owner={{ user }} group={{ user }}
   
-- name: Unarchive Jmeter 5.11 binaries
+- name: Unarchive Jmeter 5.1.1 binaries
   become: yes
-  become_user: "{{ user }}"
-  unarchive: src={{ jmeter.home }}/apache-jmeter-5.11.tgz dest={{ jmeter.home }}/ copy=no owner={{ user }} group={{ user }} creates={{ jmeter.home }}/apache-jmeter-5.11
+  unarchive: src={{ jmeter_home }}/apache-jmeter-5.1.1.tgz dest={{ jmeter_home }}/ copy=no owner={{ user }} group={{ user }} creates={{ jmeter_home }}/apache-jmeter-5.1.1
   
-- name: Delete Jmeter 5.11 binaries
+- name: Delete Jmeter 5.1.1 binaries
   become: yes
-  become_user: "{{ user }}"
-  file: path={{ jmeter.home }}/apache-jmeter-5.11.tgz owner={{ user }} group={{ user }} state=absent
+  file: path={{ jmeter_home }}/apache-jmeter-5.1.1.tgz owner={{ user }} group={{ user }} state=absent
 
 - name: Update Jmeter default config
   become: yes
-  become_user: "{{ user }}"
-  template: src=jmeter.properties.j2 dest={{ jmeter.home }}/apache-jmeter-5.11/bin/jmeter.properties mode=755 owner={{ user }} group={{ user }}
+  template: src=jmeter.properties.j2 dest={{ jmeter_home }}/apache-jmeter-5.1.1/bin/jmeter.properties mode=755 owner={{ user }} group={{ user }}
