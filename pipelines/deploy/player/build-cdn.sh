@@ -3,7 +3,8 @@
 # set -o errexit
 set -x
 
-apk add --no-cache git python make g++ jq zip
+sed -i '/jessie-updates/d' /etc/apt/sources.list
+apt update && apt install git python make g++ jq zip -y
 su jenkins
 cd src/app
 version=$(jq '.version' package.json | sed 's/\"//g')
