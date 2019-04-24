@@ -4,7 +4,7 @@
 set -x
 
 apk add --no-cache git python make g++ jq zip
-adduser -D jenkins
+su jenkins
 cd src/app
 version=$(jq '.version' package.json | sed 's/\"//g')
 cdnUrl=$1
