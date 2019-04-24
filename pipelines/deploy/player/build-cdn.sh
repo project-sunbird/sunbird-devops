@@ -3,6 +3,7 @@
 # set -o errexit
 set -x
 
+sed -i '/jessie-updates/d' /etc/apt/sources.list
 apt update && apt install git python make g++ jq zip
 su jenkins
 cd src/app
