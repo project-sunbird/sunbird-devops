@@ -1,0 +1,34 @@
+- name: Install Ansible Prereqs
+  hosts: monitoring-visualization
+  become: yes
+  gather_facts: no
+  tasks:
+    - raw: bash -c "test -e /usr/bin/python" || (apt install python-minimal -y)
+
+- name: Install Docker
+  hosts: monitoring-visualization
+  become: yes
+  roles:
+    - docker-ce
+
+- hosts: monitoring-visualization
+  gather_facts: false
+  become: yes
+  tasks:
+    - name: registering docker info
+      shell: docker info
+      changed_when: False
+      register: docker_info
+    - name: Initializing swarm
+      shell: "docker swarm init"
+      when: "docker_info.stdout.find('Swarm: active') == -1"
+    - name: Add label for grafana node
+      command: "docker node update --label-add grafana=1 {{ hostvars[groups['swarm-agent-for-grafana'][0]]['ansible_hostname'] }}"
+
+- name: Creating networks
+  hosts: monitoring-visualization
+  gather_facts: false
+  become: yes
+  roles:
+    - bootstrap_swarm
+
