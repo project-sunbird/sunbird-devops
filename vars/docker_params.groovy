@@ -12,6 +12,15 @@ def call(){
 
         // Check if the job was triggered by an upstream project
         // If yes, get the name of the upstream project else job was started manually
+        stage('check upstream') {
+            values = [:]
+            def upstream = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
+            triggerCause = upstream?.shortDescription
+            if (triggerCause != null)
+                triggerCause = triggerCause.split()[4].replaceAll('"', '')
+            values.put('absolute_job_path', triggerCause)
+        }
+
         stage('parameter checks'){
             ansiColor('xterm') {
                 if(!env.hub_org){
@@ -32,8 +41,14 @@ def call(){
                     error 'Please resolve errors and rerun..'
                 }
 
-                copyArtifacts projectName: params.absolute_job_path, flatten: true
-                values.put('absolute_job_path', params.absolute_job_path)
+                if (values.absolute_job_path != null){
+                    copyArtifacts projectName: values.absolute_job_path, flatten: true
+                }
+                else {
+                    copyArtifacts projectName: params.absolute_job_path, flatten: true
+                    values.put('absolute_job_path', params.absolute_job_path)
+                }
+
                 image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
 
                 if (params.image_tag == "") {
