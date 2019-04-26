@@ -1,3 +1,37 @@
+- name: status service
+  become: yes
+  command: /etc/init.d/keycloak status
+  register: keycloak
+  poll: 5
+  async: 10
+
+- name: stop service
+  become: yes
+  command: /etc/init.d/keycloak stop && Pkill keycloak
+  when: "keycloak.stdout.find('running') != -1"
+  poll: 5
+  async: 10
+  ignore_errors: yes
+
+- name: remove keycloak
+  become: yes
+  file: path="{{keycloak_home}}" state=absent owner={{wildfly_user}} group={{wildfly_group}} force=yes
+
+- name: Paste keycloak package on server
+  copy: src="keycloak_artifacts.zip:{{artifact_version}}" dest="/opt/" force=no owner={{wildfly_user}} group={{wildfly_group}}
+
+- name: extarct the folder
+  unarchive: src="opt/keycloak_artifacts.zip:{{artifact_version}}" dest=/opt/ copy=no owner={{wildfly_user}} group={{wildfly_group}}
+
+- name: move the folder name
+  command: mv sunbird_auth_{{sunbird_auth_version}} keycloak
+  args:
+       chdir: /opt
+
+- name: remove the {{keycloak_home}}/keycloak_artifacts.zip:{{artifact_version}}
+  become: yes
+  file: path={{keycloak_home}}/keycloak_artifacts.zip:{{artifact_version}} state=absent
+
 - name: Create required directories
   file:
    path: "{{ item.dest }}"
@@ -48,21 +82,6 @@
     dest: "sunbird_auth_{{sunbird_auth_version}}.config/Msg91Creds.json"
     mode: 0755
   when: "{{ msg_91_required|default(false) }}"
-  ignore_errors: yes
-
-- name: status service
-  become: yes
-  command: /etc/init.d/keycloak status
-  register: keycloak
-  poll: 5
-  async: 10
-
-- name: stop service
-  become: yes
-  command: /etc/init.d/keycloak stop && Pkill keycloak
-  when: "keycloak.stdout.find('running') != -1"
-  poll: 5
-  async: 10
   ignore_errors: yes
 
 - name: Keycloak configuration XML file
