@@ -1,0 +1,28 @@
+---
+- hosts: "{{ hosts }}"
+  become: true
+  tasks:
+  - name: Copy file
+    template:
+      src: "static-files/jmeter-stop.sh"
+      dest: "/tmp/jmeter-stop.sh"
+      owner: root
+      group: root
+      mode: 0644   
+
+  - name: kill jemeter process
+    command: bash -x /tmp/jmeter-stop.sh
+  tags:
+    - stop-cluster 
+
+- hosts: "{{ hosts }}"
+  become: true
+  tasks:
+  - name: start jmeter
+    command: nohup ./bin/jmeter-server &
+    args:
+        chdir: /mnt/data/benchmark/apache-jmeter-4.0
+  tags:
+    - start-jmeter
+
+
