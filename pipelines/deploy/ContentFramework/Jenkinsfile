@@ -51,10 +51,19 @@ node() {
                       sed -i 's:/api:/action:g' content-editor/scripts/base-editor.min.js
                       sed -i 's/useProxyForURL:true/useProxyForURL:false/g' content-editor/scripts/base-editor.min.js
                       sed -i -e 's/dispatcher:\"local\"/dispatcher:\"piwik\"/g' content-editor/scripts/*
-                      az storage blob delete-batch -s ${params.container_name} --pattern content-editor/\\* --account-name $azure_account_name --account-key $azure_account_key
-                      az storage blob upload-batch --destination ${params.container_name}/content-editor --source content-editor --account-name $azure_account_name --account-key $azure_account_key
-                      zip -r content-editor-artifact.zip content-editor
-                      cd content-editor
+                      mv content-editor ansible
+                    """
+                      
+                      ansiblePlaybook = "${currentWs}/ansible/az.yml"
+                      ansibleExtraArgs = "--tags content-editor --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                      values.put('ansiblePlaybook', ansiblePlaybook)
+                      values.put('ansibleExtraArgs', ansibleExtraArgs)
+                      println values
+                      ansible_playbook_run(values)
+                        
+                    sh """                                                   
+                      zip -r content-editor-artifact.zip ansible/content-editor
+                      cd ansible/content-editor
                       npm install
                       npm install promise
                       gulp minifyJs
@@ -62,12 +71,27 @@ node() {
                       gulp clean
                       gulp injectrenamedfiles
                       gulp package
-                      az storage blob upload-batch --destination ${params.container_name}/artefacts/editor --source dist/editor --account-name $azure_account_name --account-key $azure_account_key
-                      az storage blob upload-batch --destination ${params.container_name}/artefacts/coreplugins --source dist/coreplugins --account-name $azure_account_name --account-key $azure_account_key
+                    """
+                        
+                      ansiblePlaybook = "${currentWs}/ansible/az.yml"
+                      ansibleExtraArgs = "--tags editor --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                      values.put('ansiblePlaybook', ansiblePlaybook)
+                      values.put('ansibleExtraArgs', ansibleExtraArgs)
+                      println values
+                      ansible_playbook_run(values)  
+                      
+                      ansiblePlaybook = "${currentWs}/ansible/az.yml"
+                      ansibleExtraArgs = "--tags core-plugins --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                      values.put('ansiblePlaybook', ansiblePlaybook)
+                      values.put('ansibleExtraArgs', ansibleExtraArgs)
+                      println values
+                      ansible_playbook_run(values)
+                        
+                    sh """  
                       rm -rf node_modules
                       cd ..
                       zip -r content-editor.zip content-editor
-                   """
+                    """
                    }
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
