@@ -18,10 +18,10 @@
   file: path="{{keycloak_home}}" state=absent owner={{wildfly_user}} group={{wildfly_group}} force=yes
 
 - name: Paste keycloak package on server
-  copy: src="{{artifact_path}}" dest="/opt/" force=no owner={{wildfly_user}} group={{wildfly_group}}
+  copy: src="{{artifact_path}}" dest="/opt/" force=no owner={{wildfly_user}} group={{wildfly_group}} force=yes
 
 - name: extarct the folder
-  unarchive: src="opt/{{artifact}}" dest=/opt/ copy=no owner={{wildfly_user}} group={{wildfly_group}}
+  unarchive: src="/opt/{{artifact}}" dest=/opt/ copy=no owner={{wildfly_user}} group={{wildfly_group}}
 
 - name: move the folder name
   command: mv sunbird_auth_{{sunbird_auth_version}} keycloak
@@ -30,7 +30,7 @@
 
 - name: remove the {{keycloak_home}}/{{artifact}}
   become: yes
-  file: path={{keycloak_home}}/{{artifact}} state=absent
+  file: path={{keycloak_home}}/{{artifact}} state=absent force=yes
 
 - name: Create required directories
   file:
@@ -63,6 +63,7 @@
     path: sunbird_auth_{{sunbird_auth_version}}.config
     state: directory
     mode: 0755
+    force: yes
 
 - name: Keycloak configuration XML file
   template:
