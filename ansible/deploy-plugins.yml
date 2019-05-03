@@ -1,0 +1,151 @@
+---
+- hosts: local
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  tasks:
+    - name: content-editor delete batch
+      command: "az storage blob delete-batch -s {{ plugin_container_name }} --pattern content-editor/*"
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10
+
+    - name: content-editor upload batch
+      command: "az storage blob upload-batch --destination {{ plugin_container_name }}/content-editor --source content-editor"
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10
+  tags:
+    - content-editor 
+
+---
+- hosts: local
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  tasks:
+    - name: collection-editor delete batch
+      command: "az storage blob delete-batch -s {{ plugin_container_name }} --pattern collection-editor/*"
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10
+
+    - name: collection-editor upload batch
+      command: "az storage blob upload-batch --destination {{ plugin_container_name }}/collection-editor --source collection-editor"
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10
+  tags:
+    - collection-editor
+
+---
+- hosts: local
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  tasks:
+    - name: generic-editor delete batch
+      command: "az storage blob delete-batch -s {{ plugin_container_name }} --pattern generic-editor/*"
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10
+
+    - name: generic-editor upload batch
+      command: "az storage blob upload-batch --destination {{ plugin_container_name }}/generic-editor --source generic-editor"
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10
+  tags:
+    - generic-editor 
+
+---
+- hosts: local
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  tasks:
+    - name: delete batch preview
+      command: az storage blob delete-batch -s {{ plugin_container_name }} --pattern v3/preview/*
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10
+
+    - name: batch upload preview
+      command: "az storage blob upload-batch --destination {{ plugin_container_name }}/v3/preview --source preview"
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10
+
+    - name: upload file
+      command: az storage blob upload --container-name {{ plugin_container_name }} --file content-player-{{ player_version_number }}.zip --name artefacts/content-player/content-player-{{ player_version_number }}.zip"
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10  
+  tags:
+    - preview
+
+---
+- hosts: local
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  tasks:
+    - name:  editor upload
+      command: "az storage blob upload-batch --destination {{ plugin_container_name }}/artefacts/editor --source dist/editor"
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10
+  tags:
+    - editor
+
+---
+- hosts: local
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  tasks:
+    - name:  upload core plugins
+      command: az storage blob upload-batch --destination {{ plugin_container_name }}/artefacts/coreplugins --source dist/coreplugins"
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10
+  tags:
+    - core-plugins
+
+---
+- hosts: local
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  tasks:
+    - name:  run az_copy.sh
+      command: "bash -x content-plugins/az_copy.sh {{ plugin_container_name }}"
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      async: 36000
+      poll: 10
+  tags:
+    - plugins
