@@ -25,7 +25,7 @@ def call() {
                     sh """
                         mkdir -p ${JENKINS_HOME}/summary/${envDir}
                         touch -a ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                """
+                    """
 
                     if (module == "Core") {
                         image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
@@ -34,14 +34,14 @@ def call() {
                             sed -i "s/${module}-${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             echo "${module}-${jobName} : ${image_tag}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
-                     """
+                        """
                     } else {
                         artifact_version = sh(returnStdout: true, script: 'jq -r .artifact_version metadata.json').trim()
                         sh """
                             sed -i "s/${module}-${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             echo "${module}-${jobName} : ${artifact_version}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
-                    """
+                        """
                     }
                 } else
                     println(ANSI_BOLD + ANSI_GREEN + "This job can be only triggered from an upstream project." + ANSI_NORMAL)
@@ -49,7 +49,7 @@ def call() {
 
             stage('Archive artifacts') {
                 sh "cp ${JENKINS_HOME}/summary/${envDir}/summary.txt ."
-                sh "cat summary.txt"
+                sh "sort summary.txt -o summary.txt && cat summary.txt"
                 archiveArtifacts artifacts: 'summary.txt', fingerprint: true, onlyIfSuccessful: true
                 currentBuild.description = "${module}-${jobName}"
 
