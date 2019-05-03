@@ -13,44 +13,39 @@ def call() {
             values.put('absolute_job_path', triggerCause)
         }
 
-        stage('Write data'){
-            ansiColor('xterm') {
-                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-                if (values.absolute_job_path != null) {
-                    module = values.absolute_job_path.split('/')[-2].toString().trim()
-                    jobName = values.absolute_job_path.split('/')[-1].toString().trim()
-                    println envDir + " " + module + " " + jobName
+        stage('Write data') {
+            envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+            if (values.absolute_job_path != null) {
+                module = values.absolute_job_path.split('/')[-2].toString().trim()
+                jobName = values.absolute_job_path.split('/')[-1].toString().trim()
+                println envDir + " " + module + " " + jobName
 
-                    copyArtifacts projectName: values.absolute_job_path, fingerprintArtifacts: true, flatten: true, filter: 'metadata.json'
-
-                    sh """
+                copyArtifacts projectName: values.absolute_job_path, fingerprintArtifacts: true, flatten: true, filter: 'metadata.json'
+                sh """
                         mkdir -p ${JENKINS_HOME}/summary/${envDir}
                         touch -a ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                        """
+                """
 
-                    if (module == "Core") {
-                        image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
-                        image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
-                        println image_name + " " + image_tag
-                        sh """
+                if (module == "Core") {
+                    image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
+                    image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
+                    sh """
                             sed -i "s/${image_name}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                            echo "${image_name} : ${image_tag}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
-                            """
-                    } else {
-                        artifact_version = sh(returnStdout: true, script: 'jq -r .artifact_version metadata.json').trim()
-                        println artifact_version
-                        sh """
+                            echo "${module}-${jobName} : ${image_tag}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
+                     """
+                } else {
+                    artifact_version = sh(returnStdout: true, script: 'jq -r .artifact_version metadata.json').trim()
+                    sh """
                             sed -i "s/${module}-${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             echo "${module}-${jobName} : ${artifact_version}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
-                            """
-                    }
-                } else
-                    println(ANSI_BOLD + ANSI_GREEN + "This job can be only triggered from an upstream project." + ANSI_NORMAL)
-            }
-
+                    """
+                }
+            } else
+                println(ANSI_BOLD + ANSI_GREEN + "This job can be only triggered from an upstream project." + ANSI_NORMAL)
         }
+        
         stage('Archive artifacts') {
             sh "cp ${JENKINS_HOME}/summary/${envDir}/summary.txt ."
             sh "cat summary.txt"
