@@ -31,7 +31,7 @@ def call() {
                         image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
                         image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
                         sh """
-                            sed -i "s/${image_name}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
+                            sed -i "s/${module}-${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             echo "${module}-${jobName} : ${image_tag}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                      """
