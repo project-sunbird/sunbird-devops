@@ -10,17 +10,6 @@ def call(){
         module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
         jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
 
-        // Check if the job was triggered by an upstream project
-        // If yes, get the name of the upstream project else job was started manually
-        stage('check upstream') {
-            values = [:]
-            def upstream = currentBuild.rawBuild.getCause(hudson.model.Cause$UpstreamCause)
-            triggerCause = upstream?.shortDescription
-            if (triggerCause != null)
-                triggerCause = triggerCause.split()[4].replaceAll('"', '')
-            values.put('absolute_job_path', triggerCause)
-        }
-
         stage('parameter checks'){
             ansiColor('xterm') {
                 if(!env.hub_org){
@@ -34,22 +23,16 @@ def call(){
                     Found environment variable named hub_org with value as:
                     '''.stripIndent().replace("\n", " ") + hub_org + ANSI_NORMAL)
 
-                if (values.absolute_job_path == null && params.absolute_job_path == ""){
+                if (params.absolute_job_path == ""){
                     println (ANSI_BOLD + ANSI_RED + '''\
                     Uh oh! Please specify the full path of the job from where the metedata.json file should be copied
                     '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
                     error 'Please resolve errors and rerun..'
                 }
-
-                if (values.absolute_job_path != null){
-                    copyArtifacts projectName: values.absolute_job_path, flatten: true
-                }
-                else {
-                    copyArtifacts projectName: params.absolute_job_path, flatten: true
-                    values.put('absolute_job_path', params.absolute_job_path)
-                }
-
+                values = [:]
+                copyArtifacts projectName: params.absolute_job_path, flatten: true
                 image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
+                agent = sh(returnStdout: true, script: 'jq -r .node_name metadata.json').trim()
 
                 if (params.image_tag == "") {
                     println (ANSI_BOLD + ANSI_YELLOW + '''\
@@ -59,11 +42,11 @@ def call(){
                 }
                 else
                     image_tag = params.image_tag
-
-                agent = sh(returnStdout: true, script: 'jq -r .node_name metadata.json').trim()
+                
                 values.put('env', envDir)
                 values.put('module', module)
                 values.put('jobName', jobName)
+                values.put('absolute_job_path', params.absolute_job_path)
                 values.put('agent', agent)
                 values.put('image_name', image_name)
                 values.put('image_tag', image_tag)
