@@ -2,20 +2,38 @@ global:
   scrape_interval: 1m
   scrape_timeout: 10s
   evaluation_interval: 1m
+  {% if cluster_name and cluster_name | length  %}
+  # Clustername is defined for multi swarm cluster
+  # can name first cluster as DS1 and 2nd as DS2 ... DSn
+  # all metrics will have label as cluster: < value >
+  # This value won't be accessible from GUI but for external tools like
+  # federation or alertmanager
+  external_labels:
+    cluster: {{cluster_name}}
+  {% endif %}
 
 rule_files:
-  - '/etc/prometheus-rules/alertrules.nodes'
-  - '/etc/prometheus-rules/alertrules.process'
-  - '/etc/prometheus-rules/alertrules.task'
-  - '/etc/prometheus-rules/alertrules.es'
-  - '/etc/prometheus-rules/alertrules.logs'
-  - '/etc/prometheus-rules/alertrules.backups'
+  - '/etc/prometheus-rules/alertrules.nodes.yml'
+  - '/etc/prometheus-rules/alertrules.process.yml'
+  - '/etc/prometheus-rules/alertrules.task.yml'
+  - '/etc/prometheus-rules/alertrules.es.yml'
+  - '/etc/prometheus-rules/alertrules.logs.yml'
+  - '/etc/prometheus-rules/alertrules.backups.yml'
 {% if groups['postgresql-master'] is defined %}
-  - '/etc/prometheus-rules/alertrules.postgresql'
+  - '/etc/prometheus-rules/alertrules.postgresql.yml'
 {% endif %}
-  - '/etc/prometheus-rules/alertrules.kong'
-  - '/etc/prometheus-rules/alertrules.services'
-  - '/etc/prometheus-rules/alertrules.docker'
+  - '/etc/prometheus-rules/alertrules.kong.yml'
+  - '/etc/prometheus-rules/alertrules.services.yml'
+  - '/etc/prometheus-rules/alertrules.docker.yml'
+
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets: [ '{{groups['alertmanager']|join(':9093\', \'')}}:9093' ]
+  {% if prometheus_alertmanager_route_prefix and prometheus_alertmanager_route_prefix | length  %}
+  # this empty line will make sure the indentation is proper
+    path_prefix: {{ prometheus_alertmanager_route_prefix }}
+  {% endif %}
 
 scrape_configs:
   - job_name: 'cadvisor'
