@@ -40,13 +40,21 @@ node() {
                     }
                 }
                 stage('deploy artifact'){
-                    withCredentials([usernamePassword(credentialsId: 'az-blob-credentials', passwordVariable: 'azure_account_key', usernameVariable: 'azure_account_name')]) {
                     sh """
                        unzip ${artifact}
                        unzip -o collection-editor.zip -d collection-editor
-                       az storage blob delete-batch -s ${params.container_name} --pattern collection-editor/\\* --account-name $azure_account_name --account-key $azure_account_key
-                       az storage blob upload-batch --destination ${params.container_name}/collection-editor --source collection-editor --account-name $azure_account_name --account-key $azure_account_key
-                       cd collection-editor
+                       mv collection-editor ansible
+                    """
+                    
+                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                      ansibleExtraArgs = "--tags collection-editor --extra-vars \"source_name=${currentWs}/ansible/collection-editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                      values.put('ansiblePlaybook', ansiblePlaybook)
+                      values.put('ansibleExtraArgs', ansibleExtraArgs)
+                      println values
+                      ansible_playbook_run(values)
+
+                    sh """
+                       cd ansible/collection-editor
                        npm config set strict-ssl false
                        npm install
                        npm install promise
@@ -55,10 +63,21 @@ node() {
                        gulp clean
                        gulp injectrenamedfiles  # Inject the minified files to index.html
                        gulp package # Package the build
-                       az storage blob upload-batch --destination ${params.container_name}/artefacts/editor --source dist/editor --account-name $azure_account_name --account-key $azure_account_key
-                       az storage blob upload-batch --destination ${params.container_name}/artefacts/coreplugins --source dist/coreplugins --account-name $azure_account_name --account-key $azure_account_key
-                    """
-                   }
+                    """  
+                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                      ansibleExtraArgs = "--tags editor --extra-vars \"source_name=${currentWs}/ansible/content-editor/dist/editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                      values.put('ansiblePlaybook', ansiblePlaybook)
+                      values.put('ansibleExtraArgs', ansibleExtraArgs)
+                      println values
+                      ansible_playbook_run(values)  
+                      
+                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                      ansibleExtraArgs = "--tags core-plugins --extra-vars \"source_name=${currentWs}/ansible/content-editor/dist/coreplugins\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                      values.put('ansiblePlaybook', ansiblePlaybook)
+                      values.put('ansibleExtraArgs', ansibleExtraArgs)
+                      println values
+                      ansible_playbook_run(values) 
+                    
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "${values.artifact_version}"
