@@ -1,0 +1,176 @@
+prometheus_reservation_memory: 1G
+prometheus_limit_memory: 1G
+prometheus_storage_retention_time: 72h0m0s
+
+alertmanager_reservation_memory: 100M
+alertmanager_limit_memory: 100M
+
+node_exporter_reservation_memory: 16M
+node_exporter_limit_memory: 32M
+
+cadvisor_reservation_memory: 100M
+cadvisor_limit_memory: 100M
+
+elasticsearch_exporter_reservation_memory: 8M
+elasticsearch_exporter_limit_memory: 24M
+
+postgres_exporter_reservation_memory: 16M
+postgres_exporter_limit_memory: 32M
+
+statsd_exporter_reservation_memory: 8M
+statsd_exporter_limit_memory: 16M
+
+blackbox_exporter_reservation_memory: 16M
+blackbox_exporter_limit_memory: 32M
+
+jsonpath_exporter_reservation_memory: 32M
+jsonpath_exporter_limit_memory: 64M
+
+azure_blob_exporter_reservation_memory: 16M
+azure_blob_exporter_limit_memory: 64M
+
+grafana_reservation_memory: 100M
+grafana_limit_memory: 100M
+
+monitor_logstash_replicas: 1
+monitor_logstash_heap_size: 256m
+monitor_logstash_reservation_memory: 256M
+monitor_logstash_limit_memory: 350M
+monitor_logspout_reservation_memory: 150M
+monitor_logspout_limit_memory: 150M
+
+container_cpu_usage_percentage_theshold: 90
+container_memory_usage_percentage_theshold: 90
+
+# Override this at environment level
+expected_minimum_logs_per_minute: 0
+server_side_http_errors_threshold_percentage: 1
+
+# Defaults to 1 day (24 hours) with 1 hour extra for backup process to complete
+expected_data_backup_interval_in_minutes: "{{ 25 * 60 }}"
+
+# Defaults to 1 day (24 hours) with 1 hour extra for snapshot process to complete
+expected_elasticsearch_snapshot_interval_in_minutes: "{{ 25 * 60 }}"
+
+# Defaults to 1KB. Good enough to catch errors mentioned in https://about.gitlab.com/2017/02/01/gitlab-dot-com-database-incident/
+expected_data_backup_size_in_bytes: 1024
+
+enable_postgres_availability_check: true
+
+enable_scraping_docker_metrics: false
+docker_metrics_port: "2377"
+
+kong_cluster_expected_number_of_nodes: "{{ kong_replicas | default(1) }}"
+
+monitor_config_files_dest_dir: /opt/docker/stacks/monitor/config
+
+docker_service_replicas_exporter_version: v0.0.3
+docker_service_replicas_exporter_name: docker-service-replicas-exporter
+
+monitor_config_templates:
+  - prometheus.yml
+  - alertmanagerconfig.yml
+  - blackboxconfig.yml
+  - statsd_mapping.yml
+  - elasticsearch_snapshots_exporter_config.yml
+  - data_backup_azure_blob_exporter_config.yml
+  - alertrules.nodes
+  - alertrules.task
+  - alertrules.es
+  - alertrules.logs
+  - alertrules.backups
+  - alertrules.services
+  - alertrules.docker
+  - alertrules.postgresql
+  - alertrules.process
+  - monitor_logstash.conf
+  - monitor_logstash_grok_patterns
+  - jmx_httpserver.yml
+
+monitor_config_templates_postgres:
+  - postgresmasterqueries.yml
+  - postgresslavequeries.yml
+
+devops_alerts_mailing_list: "{{ alerts_mailing_list }}"
+
+service_teams:
+  - team: devops_team
+    alerts_mailing_list: "{{ devops_alerts_mailing_list }}"
+    services:
+      - monitor_.*
+      - monit
+      - logger_.*
+      - proxy_.*
+  - team: app_team
+    alerts_mailing_list: "{{ app_alerts_mailing_list | default(devops_alerts_mailing_list) }}"
+    services:
+      - actor-service
+      - learner-service
+      - content-service
+      - player_player
+      - cassandra
+      - composite_search
+      - analytics-api
+  - team: keycloak_team
+    alerts_mailing_list: "{{ keycloak_alerts_mailing_list | default(devops_alerts_mailing_list)}}"
+    services:
+      - keycloak
+  - team: api_manager_team
+    alerts_mailing_list: "{{ api_manager_alerts_mailing_list | default(devops_alerts_mailing_list)}}"
+    services:
+      - api-manager_.*
+      - adminutil_.*
+  - team: site_team
+    alerts_mailing_list: "{{ site_alerts_mailing_list | default(devops_alerts_mailing_list)}}"
+    services:
+      - sunbird_static_site
+  - team: druid
+    alerts_mailing_list: "{{ druid_alerts_mailing_list | default(devops_alerts_mailing_list)}}"
+    services:
+      - druidzookeeper
+      - druidpostgres
+      - overlord
+      - coordinator
+      - historical
+      - broker
+      - middlemanager
+
+service_blackbox_checks:
+  - service_name: 'analytics-api'
+    probe_module: http_2xx
+    targets:
+      - "{{sunbird_analytics_api_base_url}}/health"
+  - service_name: 'search-service'
+    probe_module: http_2xx
+    targets:
+      - "{{sunbird_search_service_api_base_url}}/health"
+  - service_name: 'monit'
+    probe_module: http_2xx
+    targets:
+      - "http://{{ groups['swarm-bootstrap-manager'][0] }}:2812"
+  - service_name: 'cassandra'
+    probe_module: tcp_connect
+    targets:
+      - "{{ sunbird_cassandra_host }}:{{ cassandra_port }}"
+  - service_name: 'composite_search'
+    probe_module: composite_search
+    targets:
+      - "{{proto}}://{{proxy_server_name}}/api/composite/v1/search"
+  - service_name: 'keycloak'
+    probe_module: http_2xx
+    targets:
+      - "{{proto}}://{{proxy_server_name}}/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=foo&redirect_uri=https%3A%2F%2F{{proxy_server_name}}%2Fprivate%2Findex%3Fauth_callback%3D1&scope=openid&response_type=code"
+
+prometheus_route_prefix: prometheus
+prometheus_web_external_url: "{{proto}}://{{api__host}}:9090/{{ prometheus_route_prefix }}"
+
+prometheus_alertmanager_route_prefix: alertmanager
+prometheus_alertmanager_web_external_url: "{{proto}}://{{api__host}}:9093/{{ prometheus_alertmanager_route_prefix }}"
+
+postgres_exporter_password:
+postgres_exporter_postgres_port: 5432
+postgres_exporter_user: postgres_exporter
+
+root_group: root
+root_owner: root
+backup_storage_name: prometheus_backup
