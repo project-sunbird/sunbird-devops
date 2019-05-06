@@ -185,26 +185,6 @@ services:
                     memory: "{{ postgres_exporter_limit_memory }}"
     {% endif %}
 
-    statsd_exporter:
-        image: quay.io/prometheus/statsd-exporter:v0.9.0
-        ports:
-            - 9102:9102
-            - 9125:9125
-            - 9125:9125/udp
-        networks:
-            - application_default
-        command:
-            - '--statsd.mapping-config=/etc/statsd_exporter/statsd_mapping.yml'
-        configs:
-            - source: statsd_mapping.yml
-              target: /etc/statsd_exporter/statsd_mapping.yml
-        deploy:
-            resources:
-                reservations:
-                    memory: "{{ statsd_exporter_reservation_memory }}"
-                limits:
-                    memory: "{{ statsd_exporter_limit_memory }}"
-
     elasticsearch_snapshots_exporter:
         image: sunbird/prometheus-jsonpath-exporter:v0.0.1
         ports:
@@ -238,32 +218,6 @@ services:
                     memory: "{{ azure_blob_exporter_reservation_memory }}"
                 limits:
                     memory: "{{ azure_blob_exporter_limit_memory }}"
-
-    grafana:
-        image: grafana/grafana:4.5.0
-        ports:
-            - "3001:3000"
-        networks:
-            - application_default
-        volumes:
-            - /var/dockerdata/grafana:/var/lib/grafana
-        command: -e "PROMETHEUS_ENDPOINT=http://prometheus:9090/prometheus"
-        environment:
-            - GF_SERVER_ROOT_URL=http://grafana.local.com/grafana
-            - GF_SECURITY_ADMIN_PASSWORD={{grafana_admin_password}}
-        labels:
-            com.docker.stack.namespace: "monitoring"
-            com.docker.service.name: "grafana"
-        deploy:
-            replicas: 1
-            placement:
-                constraints:
-                    - "node.labels.grafana==1"
-            resources:
-              reservations:
-                memory: "{{ grafana_reservation_memory }}"
-              limits:
-                memory: "{{ grafana_limit_memory }}"
 
     cassandra_jmx_exporter:
         image: sunbird/cassandra_jmx_exporter:0.11
@@ -360,8 +314,6 @@ configs:
   postgresslavequeries.yml:
     external: true
 {% endif %}
-  statsd_mapping.yml:
-    external: true
   jmx_httpserver.yml:
     external: true
   elasticsearch_snapshots_exporter_config.yml:
