@@ -51,13 +51,16 @@
   tags:
     - monitor-labels
 
-- hosts: swarm-dashboard
+- name: labelling grafana and stateful prom
+  hosts: swarm-dashboard
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   tasks:
     - name: Add label for grafana node
       command: "docker node update --label-add grafana=1 {{ hostvars[groups['swarm-agent-dashboard'][0]]['ansible_hostname'] }}"
+    - name: Adding label for stateful prometheus
+      shell: "docker node update --label-add prometheus_stateful=1 {{ hostvars[groups['swarm-agent-for-prometheus-stateful'][0]]['ansible_hostname'] }}"
   tags:
     - grafana-label
 
