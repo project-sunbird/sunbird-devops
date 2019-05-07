@@ -3,20 +3,20 @@
   gather_facts: no
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
+  environment:
+        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
   tasks:
     - name: content-editor delete batch
       command: "az storage blob delete-batch -s {{ plugin_container_name }} --pattern content-editor/*"
-      environment:
-        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
-        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
       async: 3600
       poll: 10
 
     - name: content-editor upload batch
       command: "az storage blob upload-batch --destination {{ plugin_container_name }}/content-editor --source {{ source_name }}"
-      environment:
-        AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
-        AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
+      #environment:
+        #AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
+        #AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
       async: 3600
       poll: 10
   tags:
