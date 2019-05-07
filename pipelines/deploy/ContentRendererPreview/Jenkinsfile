@@ -41,18 +41,22 @@ node() {
                 }
                 stage('deploy artifact'){
                     player_version_number = values.artifact_version
-                    withCredentials([usernamePassword(credentialsId: 'az-blob-credentials', passwordVariable: 'azure_account_key', usernameVariable: 'azure_account_name')]) {
                     sh """
                        unzip ${artifact}
                        #cd player
                        unzip -o preview.zip -d preview
                        mv preview.zip content-player-${player_version_number}.zip
-                       az storage blob delete-batch -s ${params.container_name} --pattern v3/preview/\\* --account-name $azure_account_name --account-key $azure_account_key
-                       az storage blob upload-batch --destination ${params.container_name}/v3/preview --source preview --account-name $azure_account_name --account-key $azure_account_key
-                       az storage blob upload --container-name ${params.container_name} --file content-player-${player_version_number}.zip --name artefacts/content-player/content-player-${player_version_number}.zip  --account-name $azure_account_name --account-key $azure_account_key
+                       mv preview ansible
+                       mv content-player-${player_version_number}.zip ansible
+                    """   
 
-                    """
-                   }
+                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                      ansibleExtraArgs = "--tags preview --extra-vars \"folder_name=v3\/preview source_file_name=${currentWs}/ansible/content-player-${player_version_number}.zip player_version_number=${player_version_number} source_name=${currentWs}/ansible/preview\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                      values.put('ansiblePlaybook', ansiblePlaybook)
+                      values.put('ansibleExtraArgs', ansibleExtraArgs)
+                      println values
+                      ansible_playbook_run(values)  
+                   
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "${values.artifact_version}"
