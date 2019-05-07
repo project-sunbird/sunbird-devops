@@ -28,9 +28,9 @@
   args:
        chdir: /opt
 
-- name: Remove the {{keycloak_home}}/{{artifact}}
+- name: Remove the opt/{{artifact}}
   become: yes
-  file: path={{keycloak_home}}/{{artifact}} state=absent force=yes
+  file: path=/opt/{{artifact}} state=absent force=yes
 
 - name: Create required directories
   file:
@@ -82,7 +82,7 @@
     src: "roles/sunbird-auth-deploy/templates/Msg91Creds.json.j2"
     dest: "sunbird_auth_{{sunbird_auth_version}}.config/Msg91Creds.json"
     mode: 0755
-  when: "{{ msg_91_required|default(false) }}"
+  when: "{{ msg_91_required|default(true) }}"
   ignore_errors: yes
 
 - name: Keycloak configuration XML file
@@ -108,7 +108,7 @@
     path: "{{keycloak_home}}/bin/sms-provider"
     state: directory
     mode: 0755
-  when: "{{ msg_91_required|default(false) }}"
+  when: "{{ msg_91_required|default(true) }}"
   ignore_errors: yes
 
 - name: SMS provider configuration file
@@ -119,8 +119,12 @@
     group: "{{wildfly_group}}"
     mode: 0755
     remote_src: yes
-  when: "{{ msg_91_required|default(false) }}"
+  when: "{{ msg_91_required|default(true) }}"
   ignore_errors: yes
+
+- name: Remove the sunbird_auth_{{sunbird_auth_version}}.config
+  become: yes
+  file: path=./sunbird_auth_{{sunbird_auth_version}}.config state=absent force=yes
 
 - name: Start service
   become: yes
