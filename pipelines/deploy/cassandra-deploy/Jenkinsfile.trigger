@@ -38,8 +38,9 @@ node() {
                 }
                 stage('deploy artifact') {
                     sh """
-                       unzip ${artifact}
-                    """
+                       mv cassandra-trigger-*.jar ansible/static-files/ 
+
+                       """
                     ansiblePlaybook = "${currentWs}/ansible/cassandra-trigger-deploy.yml"
                     ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
                     values.put('ansiblePlaybook', ansiblePlaybook)
