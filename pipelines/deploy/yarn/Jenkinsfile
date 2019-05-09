@@ -1,0 +1,67 @@
+@Library('deploy-conf') _
+node() {
+    try {
+        String ANSI_GREEN = "\u001B[32m"
+        String ANSI_NORMAL = "\u001B[0m"
+        String ANSI_BOLD = "\u001B[1m"
+        String ANSI_RED = "\u001B[31m"
+        String ANSI_YELLOW = "\u001B[33m"
+
+        stage('checkout public repo') {
+            cleanWs()
+            checkout scm
+        }
+        
+            ansiColor('xterm') {
+                 values = lp_dp_params()
+                stage('get artifact') {
+                    currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                    artifact = values.artifact_name + ":" + values.artifact_version
+                    values.put('currentWs', currentWs)
+                    if (params.artifact_source == "ArtifactRepo") {
+                        println(ANSI_BOLD + ANSI_YELLOW + '''\
+                    Option chosen is ArtifactRepo, ignoring any previously copied artifacts and new artifacts will be downloaded from remote source
+                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
+                        ansiblePlaybook = "${currentWs}/ansible/artifacts-download.yml"
+                        ansibleExtraArgs = """\
+                               --extra-vars "artifact=${artifact}
+                               artifact_path=${currentWs}/${artifact}"
+                               --vault-password-file /var/lib/jenkins/secrets/vault-pass
+                               """.stripIndent().replace("\n", " ")
+                        values.put('ansiblePlaybook', ansiblePlaybook)
+                        values.put('ansibleExtraArgs', ansibleExtraArgs)
+                        ansible_playbook_run(values)
+                    }
+                    else{
+                        println(ANSI_BOLD + ANSI_YELLOW + '''\
+                    Option chosen is JenkinsJob, using the artifacts copied 
+                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
+                    }
+                }
+                stage('deploy artifact'){
+                    sh """
+                       unzip ${artifact}
+                       mv distribution-* ansible
+                       rm -rf ansible/roles/samza-jobs/files/jobs
+                       mkdir  ansible/roles/samza-jobs/files/jobs
+                       tar -xvf ansible/distribution-* -C ansible/roles/samza-jobs/files/jobs/
+
+                    """
+                    ansiblePlaybook = "${currentWs}/ansible/samza_deploy.yml"
+                    ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+
+                    archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
+                    currentBuild.description = "${values.artifact_version}"
+                }
+            }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
