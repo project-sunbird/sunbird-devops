@@ -41,7 +41,8 @@ services:
             - application_default
         volumes:
             - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
-        command: "--config.file=/etc/alertmanager/alertmanagerconfig.yml --storage.path=/alertmanager/data --web.route-prefix={{prometheus_alertmanager_route_prefix}} --web.external-url={{prometheus_alertmanager_web_external_url}} {% if groups['alertmanager'] | length > 1%} --cluster.peer {{ groups['alertmanager'] | difference(ansible_host) | join(':9094 --cluster.peer ')}}:9094 {% endif %}"
+        # Clustering swarm alert managers and stateful alertmanagers
+        command: "--config.file=/etc/alertmanager/alertmanagerconfig.yml --storage.path=/alertmanager/data --web.route-prefix={{prometheus_alertmanager_route_prefix}} --web.external-url={{prometheus_alertmanager_web_external_url}} {% if groups['alertmanager'] | length > 1%} --cluster.peer {{ groups['alertmanager'] | difference(ansible_host) | join(':9094 --cluster.peer ')}}:9094 {% endif %} {% if groups['alertmanager_stateful'] %} --cluster.peer {{ groups['alertmanager_stateful'] | difference(ansible_host) | join(':19094 --cluster.peer ')}}:19094 {% endif %}"
         configs:
             - source: alertmanagerconfig.yml
               target: /etc/alertmanager/alertmanagerconfig.yml
