@@ -38,7 +38,7 @@ scrape_configs:
   - job_name: 'cadvisor'
     dns_sd_configs:
     - names:
-      - 'tasks.monitor_cadvisor'
+      - 'tasks.monitor_stateful_cadvisor'
       type: 'A'
       port: 8080
     metric_relabel_configs:
@@ -50,7 +50,7 @@ scrape_configs:
     metrics_path: /alertmanager/metrics
     dns_sd_configs:
     - names:
-      - 'tasks.monitor_alertmanager'
+      - 'tasks.monitor_stateful_alertmanager'
       type: 'A'
       port: 9093
 
@@ -67,29 +67,29 @@ scrape_configs:
 
   - job_name: 'elasticsearch-exporter'
     static_configs:
-      - targets: ['monitor_elasticsearch_exporter:9108']
+      - targets: ['monitor_stateful_elasticsearch_exporter:9108']
 
   - job_name: 'log-elasticsearch-exporter'
     static_configs:
-      - targets: ['monitor_log_elasticsearch_exporter:9108']
+      - targets: ['monitor_stateful_log_elasticsearch_exporter:9108']
 
 {% if groups['postgresql-master'] is defined %}
   - job_name: 'master-postgres-exporter'
     static_configs:
-      - targets: ['monitor_master_postgres_exporter:9187']
+      - targets: ['monitor_stateful_master_postgres_exporter:9187']
 {% endif %}
 
   {% if groups['postgresql-slave'] is defined %}
   # This empty line ensures indentation is correct after ansible jinja2 template is materialized
   - job_name: 'slave-postgres-exporter'
     static_configs:
-      - targets: ['monitor_slave_postgres_exporter:9187']
+      - targets: ['monitor_stateful_slave_postgres_exporter:9187']
   {% endif %}
 
 
   - job_name: 'elasticsearch-snapshots-exporter'
     static_configs:
-      - targets: ['monitor_elasticsearch_snapshots_exporter:9158']
+      - targets: ['monitor_stateful_elasticsearch_snapshots_exporter:9158']
 
   - job_name: 'docker-service-replicas-exporter'
     static_configs:
@@ -97,7 +97,7 @@ scrape_configs:
 
   - job_name: 'data-backup-azure-blob-exporter'
     static_configs:
-      - targets: ['monitor_data_backup_azure_blob_exporter:9358']
+      - targets: ['monitor_stateful_data_backup_azure_blob_exporter:9358']
 
   - job_name: 'prometheus'
     metrics_path: /prometheus/metrics
@@ -107,7 +107,7 @@ scrape_configs:
   - job_name: 'cassandra-exporter'
     metrics_path: /metrics
     static_configs:
-      - targets: ['monitor_cassandra_jmx_exporter:5556']
+      - targets: ['monitor_stateful_cassandra_jmx_exporter:5556']
 
   - job_name: 'vm-node-exporter'
     static_configs:
@@ -134,7 +134,7 @@ scrape_configs:
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: monitor_blackbox-exporter:9115
+        replacement: monitor_stateful_blackbox-exporter:9115
   {% endfor %}
 
   {% if static_site_url is defined %}
@@ -154,5 +154,5 @@ scrape_configs:
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: monitor_blackbox-exporter:9115
+        replacement: monitor_stateful_blackbox-exporter:9115
   {% endif %}
