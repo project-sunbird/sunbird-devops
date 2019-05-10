@@ -1,0 +1,54 @@
+groups:
+{% if enable_postgres_availability_check %}
+- name: alertrules.postgresql
+  rules:
+  - alert: postgres_unavailable
+    expr: pg_exporter_last_scrape_error == 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: 'PostgreSQL unavailable as per job: {% raw %}{{$labels.job}}{% endraw %}'
+      summary: PostgreSQL unavailable
+{% endif %}
+  - alert: postgres_high_number_of_connections
+    expr: sum(pg_stat_database_numbackends) > 90
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: 'Number of connections is above the high water mark: {% raw %}{{$value}}{% endraw %}'
+      summary: PostgreSQL high number of connections
+  - alert: postgres_master_in_recovery
+    expr: pg_server_standby_status_in_recovery{job="master-postgres-exporter"} == 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: 'PostgreSQL master is in recovery. pg_server_standby_status_in_recovery: {% raw %}{{$value}}{% endraw %}'
+      summary: PostgreSQL master is in recovery
+  - alert: postgres_slave_not_in_recovery
+    expr: pg_server_standby_status_in_recovery{job="slave-postgres-exporter"} == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: 'PostgreSQL slave is not in recovery. pg_server_standby_status_in_recovery: {% raw %}{{$value}}{% endraw %}'
+      summary: PostgreSQL slave is not in recovery
+  - alert: postgres_high_peplication_byte_lag
+    expr: pg_stat_replication_byte_lag > 1e+06
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: 'The replication byte lag for salve: {% raw %}{{$labels.slave_addr}}{% endraw %} is above the high water mark: {% raw %}{{$value}}{% endraw %}'
+      summary: PostgreSQL replication byte lag is high
+  - alert: postgres_high_replication_lag_seconds
+    expr: pg_replication_lag > 60
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: 'The replication lag between the master and slave is above the
+        high water mark: {% raw %}{{$value}}{% endraw %}'
+      summary: PostgreSQL replication lag time is high

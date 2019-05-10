@@ -1,0 +1,11 @@
+groups:
+- name: alertrules.logs
+  rules:
+  - alert: logs_ingestion_slow
+    expr: increase(elasticsearch_indices_docs{job="log-elasticsearch-exporter"}[5m]) / 5 < {{ expected_minimum_logs_per_minute }}
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: '{% raw %}{{ $labels.job }}{% endraw %}: Logs per minute is {% raw %}{{ $value }}{% endraw %}. It is below the threshold: {{ expected_minimum_logs_per_minute }}'
+      summary: Logs are not flowing as expected

@@ -1,4 +1,12 @@
 ---
+- name: Create prometheus data dir
+  file:
+    path: "{{ prometheus_storage_location }}"
+    state: directory
+    mode: 0755
+    owner: 'nobody'
+    group: 'nogroup'
+
 - name: Ensure stack directory exists
   file:
     path: /opt/docker/stacks/monitor/stack
@@ -21,14 +29,14 @@
 
 - name: Save prometheus config {{ item }}
   template:
-    src: "{{ item }}"
-    dest: "{{ monitor_config_files_dest_dir }}/{{ item }}"
-    mode: 0644
-  with_items:
+    src="{{ item }}"
+    dest="{{ monitor_config_files_dest_dir }}/{{ item }}" 
+    mode=0644
+  with_items: 
     - "{{ monitor_config_templates }}"
 
 - name: Remove monitor stack
-  shell: "docker stack rm monitor"
+  shell: "docker stack rm prometheus"
   ignore_errors: yes
 
 - name: Remove old docker config {{ item }}
@@ -41,8 +49,6 @@
   with_items: "{{ monitor_config_templates }}"
 
 - name: Deploy stack
-  shell: "docker stack deploy -c monitor.yml monitor"
+  shell: "docker stack deploy -c monitor.yml prometheus"
   args:
     chdir: /opt/docker/stacks/monitor/stack
-
-- include: docker-service-replicas-exporter.yml

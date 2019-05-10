@@ -1,0 +1,36 @@
+groups:
+- name: alertrules.nodes
+  rules:
+  - alert: high_cpu_usage_on_node
+    expr: sum by(nodename) (rate(process_cpu_seconds_total[5m]) * on(instance) group_left(nodename) node_uname_info * 100) > 80
+    for: 5m
+    annotations:
+      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of CPU. CPU usage is {% raw %}{{ humanize $value}}{% endraw %}%.'
+      summary: HIGH CPU USAGE WARNING ON '{% raw %}{{ $labels.nodename }}{% endraw %}'
+  - alert: high_memory_usage_on_node
+    expr: sum by(nodename) (((node_memory_MemTotal - node_memory_MemAvailable) / node_memory_MemTotal)
+      * on(instance) group_left(nodename) node_uname_info * 100) > 90
+    for: 5m
+    annotations:
+      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}%.'
+      summary: HIGH MEMORY USAGE WARNING TASK ON '{% raw %}{{ $labels.nodename }}{% endraw %}'
+  - alert: high_load_on_node
+    expr: sum by(nodename) ((node_load1 / count without(cpu, mode) (node_cpu{mode="system"}))
+      * on(instance) group_left(nodename) node_uname_info * 100) > 100
+    for: 5m
+    annotations:
+      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.'
+      summary: HIGH LOAD AVERAGE WARNING ON '{% raw %}{{ $labels.nodename }}{% endraw %}'
+  - alert: monitoring_service_down
+    expr: up == 0
+    for: 5m
+    annotations:
+      description: The monitoring service '{% raw %}{{ $labels.job }}{% endraw %}' is down.
+      summary: 'MONITORING SERVICE DOWN WARNING: NODE ''{% raw %}{{ $labels.host }}{% endraw %}'''
+  - alert: node_running_out_of_disk_space
+    expr: sum by(nodename) ((node_filesystem_size{mountpoint="/"} - node_filesystem_free{mountpoint="/"})
+      * 100 / node_filesystem_size{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) > 80
+    for: 5m
+    annotations:
+      description: More than 80% of disk used. Disk usage is {% raw %}{{ humanize $value }}{% endraw %}%
+      summary: 'LOW DISK SPACE WARING: NODE ''{% raw %}{{ $labels.nodename }}{% endraw %}'' '
