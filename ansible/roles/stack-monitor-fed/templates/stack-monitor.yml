@@ -2,25 +2,39 @@ version: "3.3"
 
 services:
     prometheus:
-        image: quay.io/prometheus/prometheus:v2.8.1
+        image: quay.io/prometheus/prometheus:v1.7.1
         ports:
             - "9090:9090"
         networks:
             - application_default
         volumes:
-            - "{{ prometheus_mount_point }}:/prometheus"
-        command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/etc/prometheus/console_libraries  --storage.tsdb.retention.time={{prometheus_storage_retention_time}} --web.console.templates=/etc/prometheus/consoles --web.route-prefix={{prometheus_route_prefix}} --web.external-url={{prometheus_web_external_url}} --web.enable-admin-api"
+            - /mnt/dockerdata/prometheus/data/:/prometheus
+        command: "-config.file=/etc/prometheus/prometheus.yml -alertmanager.url http://alertmanager:9093/alertmanager -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -storage.local.target-heap-size=15728640 -storage.local.retention={{prometheus_storage_retention_time}} -web.console.templates=/etc/prometheus/consoles -web.route-prefix={{prometheus_route_prefix}} -web.external-url={{prometheus_web_external_url}} -storage.local.max-chunks-to-persist=1572864 -storage.local.memory-chunks=3145728 -storage.local.checkpoint-dirty-series-limit=25000"
         configs:
             - source: prometheus.yml
               target: /etc/prometheus/prometheus.yml
-            - source: alertrules.nodes.yml
-              target: /etc/prometheus-rules/alertrules.nodes.yml
-            - source: alertrules.task.yml
-              target: /etc/prometheus-rules/alertrules.task.yml
-            - source: alertrules.kong.yml
-              target: /etc/prometheus-rules/alertrules.kong.yml
-            - source: alertrules.docker.yml
-              target: /etc/prometheus-rules/alertrules.docker.yml
+            - source: alertrules.nodes
+              target: /etc/prometheus-rules/alertrules.nodes
+            - source: alertrules.task
+              target: /etc/prometheus-rules/alertrules.task
+            - source: alertrules.process
+              target: /etc/prometheus-rules/alertrules.process
+            - source: alertrules.es
+              target: /etc/prometheus-rules/alertrules.es
+            - source: alertrules.logs
+              target: /etc/prometheus-rules/alertrules.logs
+            - source: alertrules.backups
+              target: /etc/prometheus-rules/alertrules.backups
+{% if groups['postgresql-master'] is defined %}
+            - source: alertrules.postgresql
+              target: /etc/prometheus-rules/alertrules.postgresql
+{% endif %}
+            - source: alertrules.services
+              target: /etc/prometheus-rules/alertrules.services
+            - source: alertrules.kong
+              target: /etc/prometheus-rules/alertrules.kong
+            - source: alertrules.docker
+              target: /etc/prometheus-rules/alertrules.docker
         deploy:
             replicas: 1
             placement:
@@ -33,16 +47,14 @@ services:
                 memory: "{{ prometheus_limit_memory }}"
 
     alertmanager:
-        image: prom/alertmanager:v0.16.2
+        image: prom/alertmanager:v0.8.0
         ports:
             - "9093:9093"
-            - "9094:9094"
         networks:
             - application_default
         volumes:
             - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
-        # Clustering swarm alert managers and stateful alertmanagers
-        command: "--config.file=/etc/alertmanager/alertmanagerconfig.yml --storage.path=/alertmanager/data --web.route-prefix={{prometheus_alertmanager_route_prefix}} --web.external-url={{prometheus_alertmanager_web_external_url}} {% if groups['alertmanager'] | length > 1%} --cluster.peer {{ groups['alertmanager'] | difference(ansible_host) | join(':9094 --cluster.peer ')}}:9094 {% endif %} {% if groups['alertmanager_stateful'] %} --cluster.peer {{ groups['alertmanager_stateful'] | difference(ansible_host) | join(':19094 --cluster.peer ')}}:19094 {% endif %}"
+        command: "-config.file=/etc/alertmanager/alertmanagerconfig.yml -storage.path=/alertmanager/data -web.route-prefix={{prometheus_alertmanager_route_prefix}} -web.external-url={{prometheus_alertmanager_web_external_url}}"
         configs:
             - source: alertmanagerconfig.yml
               target: /etc/alertmanager/alertmanagerconfig.yml
@@ -58,7 +70,7 @@ services:
                 memory: "{{ alertmanager_limit_memory }}"
 
     blackbox-exporter:
-        image: quay.io/prometheus/blackbox-exporter:v0.14.0
+        image: quay.io/prometheus/blackbox-exporter:v0.8.1
         ports:
             - "9115:9115"
         command: "--config.file=/etc/blackbox-exporter/blackboxconfig.yml"
@@ -75,7 +87,7 @@ services:
                     memory: "{{ blackbox_exporter_limit_memory }}"
 
     cadvisor:
-        image: google/cadvisor:v0.33.0
+        image: google/cadvisor:v0.25.0
         ports:
             - "8081:8080"
         networks:
@@ -94,7 +106,7 @@ services:
                     memory: "{{ cadvisor_limit_memory }}"
 
     statsd_exporter:
-        image: quay.io/prometheus/statsd-exporter:v0.9.0
+        image: prom/statsd-exporter:v0.5.0
         ports:
             - 9102:9102
             - 9125:9125
@@ -102,7 +114,7 @@ services:
         networks:
             - application_default
         command:
-            - '--statsd.mapping-config=/etc/statsd_exporter/statsd_mapping.yml'
+            - '-statsd.mapping-config=/etc/statsd_exporter/statsd_mapping.yml'
         configs:
             - source: statsd_mapping.yml
               target: /etc/statsd_exporter/statsd_mapping.yml
@@ -176,13 +188,21 @@ services:
 configs:
   prometheus.yml:
     external: true
-  alertrules.nodes.yml:
+  alertrules.nodes:
     external: true
-  alertrules.task.yml:
+  alertrules.task:
     external: true
-  alertrules.kong.yml:
+  alertrules.es:
     external: true
-  alertrules.docker.yml:
+  alertrules.logs:
+    external: true
+  alertrules.backups:
+    external: true
+  alertrules.kong:
+    external: true
+  alertrules.services:
+    external: true
+  alertrules.docker:
     external: true
   alertmanagerconfig.yml:
     external: true
@@ -196,8 +216,10 @@ configs:
     external: true
   monitor_logstash_grok_patterns:
     external: true
+  alertrules.process:
+    external: true
 
+  
 networks:
     application_default:
         external: true
-
