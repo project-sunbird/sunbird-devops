@@ -9,7 +9,7 @@ ALERT service_down
       description = "{% raw %}{{ $labels.job }}{% endraw %}: The service is down.",
   }
 
-ALERT service_flapping
+ALERT service_flapping_WARNING
   IF changes(probe_success[10m]) >= 2 AND changes(probe_success[10m]) <= 3
   FOR 5m
   LABELS {
@@ -19,6 +19,7 @@ ALERT service_flapping
       summary = "Service flapping",
       description = "The service status has changed {% raw %}{{$value}}{% endraw %} times in last 5 minutes. Threshold is : 3",
   }
+ALERT service_flapping_CRITICAL
   IF changes(probe_success[10m]) > 4
   FOR 5m
   LABELS {
@@ -29,7 +30,7 @@ ALERT service_flapping
       description = "The service status has changed {% raw %}{{$value}}{% endraw %} times in last 5 minutes. Threshold is : 4",
   }
 
-ALERT service_replication_failure
+ALERT service_replication_failure_WARNING
   IF ((docker_service_replicas_running / docker_service_replicas_expected) * 100) < 10
   FOR 5m
   LABELS {
@@ -39,6 +40,7 @@ ALERT service_replication_failure
       summary = "Service replication failed",
       description = "Service replication is {% raw %}{{$value}}{% endraw %}% for {% raw %}{{ $labels.service_name }}{% endraw %}",
   }
+ALERT service_replication_failure_CRITICAL
   IF ((docker_service_replicas_running / docker_service_replicas_expected) * 100) < 50
   FOR 5m
   LABELS {
@@ -48,6 +50,7 @@ ALERT service_replication_failure
       summary = "Service replication failed",
       description = "Service replication is {% raw %}{{$value}}{% endraw %}% for {% raw %}{{ $labels.service_name }}{% endraw %}",
   }
+ALERT service_replication_failure_FATAL
   IF ((docker_service_replicas_running / docker_service_replicas_expected) * 100) < 70
   FOR 5m
   LABELS {
@@ -58,7 +61,7 @@ ALERT service_replication_failure
       description = "Service replication is {% raw %}{{$value}}{% endraw %}% for {% raw %}{{ $labels.service_name }}{% endraw %}",
   }
 
-ALERT too_many_server_side_http_errors
+ALERT too_many_server_side_http_errors_WARNING
   IF (sum(increase(nginx_request_status_count{status_code=~"5.."}[5m])) / sum(increase(nginx_request_status_count[5m]))) * 100 >= 0.075
   FOR 15m
   LABELS {
@@ -68,6 +71,7 @@ ALERT too_many_server_side_http_errors
       summary = "Too many server side http errors",
       description = "Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 0.075%",
   }
+ALERT too_many_server_side_http_errors_CRITICAL
   IF (sum(increase(nginx_request_status_count{status_code=~"5.."}[5m])) / sum(increase(nginx_request_status_count[5m]))) * 100 >= 0.1
   FOR 15m
   LABELS {
@@ -77,6 +81,7 @@ ALERT too_many_server_side_http_errors
       summary = "Too many server side http errors",
       description = "Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 0.1%",
   }
+ALERT too_many_server_side_http_errors_FATAL
   IF (sum(increase(nginx_request_status_count{status_code=~"5.."}[5m])) / sum(increase(nginx_request_status_count[5m]))) * 100 >= 0.5
   FOR 15m
   LABELS {
