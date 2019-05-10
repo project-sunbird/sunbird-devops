@@ -1,0 +1,66 @@
+---
+- name: Ensure stack directory exists
+  file:
+    path: "{{ monitor_stack_files_dest_dir }}"
+    state: directory
+    owner: '{{ root_owner }}'
+    group: '{{ root_group }}'
+
+- name: Ensure config directory exists
+  file:
+    path: "{{ monitor_config_files_dest_dir }}"
+    state: directory
+    owner: '{{ root_owner }}'
+    group: '{{ root_group }}'
+
+- name: Save stack file
+  template:
+    src: stack-monitor.yml
+    dest: "{{ monitor_stack_files_dest_dir }}/monitor_stateful.yml"
+    mode: 0644
+
+- name: Save prometheus config {{ item }}
+  template:
+    src: "{{ item }}"
+    dest: "{{ monitor_config_files_dest_dir }}/{{ item }}"
+    mode: 0644
+  with_items:
+    - "{{ monitor_config_templates }}"
+
+- name: Save Postgres config {{ item }}
+  template:
+    src: "{{ item }}"
+    dest: "{{ monitor_config_files_dest_dir }}/{{ item }}"
+    mode: 0644
+  with_items:
+    - "{{ monitor_config_templates_postgres }}"
+  when: groups['postgresql-master'] is defined
+
+- name: Remove monitor stack
+  shell: "docker stack rm monitor_stateful"
+  ignore_errors: yes
+
+- name: Remove old docker config stateful_{{ item }}
+  shell: "docker config rm stateful_{{ item }}"
+  with_items: "{{ monitor_config_templates }}"
+  ignore_errors: yes
+
+- name: Remove old docker config for postgres stateful_{{ item }}
+  shell: "docker config rm stateful_{{ item }}"
+  with_items: "{{ monitor_config_templates_postgres }}"
+  ignore_errors: yes
+  when: groups['postgresql-master'] is defined
+
+- name: Save docker config stateful_{{ item }}
+  shell: "docker config create stateful_{{ item }} {{ monitor_config_files_dest_dir }}/{{ item }}"
+  with_items: "{{ monitor_config_templates }}"
+
+- name: Save docker config for postgres stateful_{{ item }}
+  shell: "docker config create stateful_{{ item }} {{ monitor_config_files_dest_dir }}/{{ item }}"
+  with_items: "{{ monitor_config_templates_postgres }}"
+  when: groups['postgresql-master'] is defined
+
+- name: Deploy stack
+  shell: "docker stack deploy -c monitor_stateful.yml monitor_stateful"
+  args:
+    chdir: "{{ monitor_stack_files_dest_dir }}"

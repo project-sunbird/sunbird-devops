@@ -1,0 +1,33 @@
+pg_server_standby_status:
+  query: "select CASE WHEN pg_is_in_recovery() = 't' THEN 1 ELSE 0 END AS in_recovery"
+  metrics:
+    - in_recovery:
+        usage: "GAUGE"
+        description: "Server is in recovery"
+
+pg_database:
+  query: "SELECT pg_database.datname, pg_database_size(pg_database.datname) as size FROM pg_database"
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of the database"
+    - size:
+        usage: "GAUGE"
+        description: "Disk space used by the database"
+
+pg_stat_replication:
+  query:    |
+            SELECT client_hostname AS slave_hostname
+            , client_addr AS slave_addr
+            , pg_xlog_location_diff(pg_stat_replication.sent_location, pg_stat_replication.replay_location) AS byte_lag
+            FROM pg_stat_replication;
+  metrics:
+    - slave_hostname:
+        usage: "LABEL"
+        description: "Host name of slave"
+    - slave_addr:
+        usage: "LABEL"
+        description: "Address of slave"
+    - byte_lag:
+        usage: "GAUGE"
+        description: "Number of bytes slave lagging behind master"

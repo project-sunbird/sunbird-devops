@@ -1,0 +1,37 @@
+modules:
+  http_2xx:
+      prober: http
+      timeout: 5s
+      http:
+        valid_http_versions: ["HTTP/1.0", "HTTP/1.1", "HTTP/2"]
+        valid_status_codes: []  # Defaults to 2xx
+        method: GET
+  http_4xx_auth:
+      prober: http
+      timeout: 5s
+      http:
+        valid_http_versions: ["HTTP/1.0", "HTTP/1.1", "HTTP/2"]
+        valid_status_codes: [401, 403]
+        method: GET
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+  composite_search:
+      prober: http
+      timeout: 5s
+      http:
+        method: POST
+        headers:
+          Content-Type: application/json
+          Authorization: Bearer {{ kong__test_jwt }}
+        body: '{
+          "request": {
+            "filters":{
+              "contentType": "Course",
+              "objectType": ["Content"],
+              "status": ["Live"]
+            },
+            "limit": 1,
+            "fields": ["name", "contentType"]
+            }
+          }'

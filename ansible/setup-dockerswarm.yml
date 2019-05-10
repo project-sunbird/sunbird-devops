@@ -1,12 +1,12 @@
 - name: Install Ansible Prereqs
-  hosts: swarm-nodes:swarm-manager:swarm-worker
+  hosts: swarm-nodes:swarm-manager:swarm-worker:swarm-dashboard
   become: yes
   gather_facts: no
   tasks:
     - raw: bash -c "test -e /usr/bin/python" || (apt install python-minimal -y)
 
 - name: Install Docker
-  hosts: swarm-nodes:swarm-manager:swarm-worker
+  hosts: swarm-nodes:swarm-manager:swarm-worker:swarm-dashboard
   become: yes
   roles:
     - docker-ce
@@ -38,7 +38,7 @@
   - shell: docker info
     changed_when: False
     register: docker_info
-  - shell: "docker swarm join --advertise-addr {{hostvars[groups['swarm-manager-1'][0]].swarmmaster}} --token {{hostvars[groups['swarm-manager-1'][0]].workertoken}} {{hostvars[groups['swarm-manager-1'][0]].swarmmaster}}:2377"
+  - shell: "docker swarm join --token {{hostvars[groups['swarm-manager-1'][0]].workertoken}} {{hostvars[groups['swarm-manager-1'][0]].swarmmaster}}:2377"
     when: "docker_info.stdout.find('Swarm: active') == -1"
 
 - name: Join Swarm Managers
@@ -52,8 +52,25 @@
   - shell: "docker swarm join --token {{hostvars[groups['swarm-manager-1'][0]].managertoken}} {{hostvars[groups['swarm-manager-1'][0]].swarmmaster}}:2377"
     when: "docker_info.stdout.find('Swarm: active') == -1"
 
+- name: Initialize Swarm Dashboard
+  hosts: swarm-dashboard
+  become: yes
+  tasks:
+    - shell: docker info
+      changed_when: False
+      register: docker_info
+    - shell: "docker swarm init --advertise-addr $(hostname -i)"
+      when: "docker_info.stdout.find('Swarm: active') == -1"
+
 - name: Create network on manager
   hosts: swarm-nodes:swarm-manager
+  become: yes
+  gather_facts: yes
+  roles: 
+    - bootstrap_swarm
+
+- name: Create network on manager
+  hosts: swarm-dashboard
   become: yes
   gather_facts: yes
   roles: 
