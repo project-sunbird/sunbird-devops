@@ -1,0 +1,18 @@
+---
+- name: Copy ulimit config file
+  template: src=limits.j2 dest=/etc/security/limits.conf
+
+- name: Copy common-session config file
+  template: src=common-session.j2 dest=/etc/pam.d/common-session
+
+- name: Copy sysctl config file
+  template: src=sysctl.conf.j2 dest=/etc/sysctl.conf
+
+- name: Run sysctl -p and verify new limits
+  shell: "{{ item }}"
+  with_items:
+  - "sysctl -p"
+  - "cat /proc/sys/fs/file-max"
+  - "ulimit -Hn"
+  - "ulimit -Sn"
+
