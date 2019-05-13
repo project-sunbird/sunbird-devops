@@ -16,7 +16,13 @@ rule_files:
   - '/etc/prometheus-rules/alertrules.nodes.yml'
   - '/etc/prometheus-rules/alertrules.process.yml'
   - '/etc/prometheus-rules/alertrules.task.yml'
-  - '/etc/prometheus-rules/alertrules.kong.yml'
+  - '/etc/prometheus-rules/alertrules.es.yml'
+  - '/etc/prometheus-rules/alertrules.logs.yml'
+  - '/etc/prometheus-rules/alertrules.backups.yml'
+{% if groups['postgresql-master'] is defined %}
+  - '/etc/prometheus-rules/alertrules.postgresql.yml'
+{% endif %}
+  - '/etc/prometheus-rules/alertrules.services.yml'
   - '/etc/prometheus-rules/alertrules.docker.yml'
 
 alerting:
@@ -32,7 +38,7 @@ scrape_configs:
   - job_name: 'cadvisor'
     dns_sd_configs:
     - names:
-      - 'tasks.monitor_cadvisor'
+      - 'tasks.monitor_stateful_cadvisor'
       type: 'A'
       port: 8080
     metric_relabel_configs:
@@ -44,7 +50,7 @@ scrape_configs:
     metrics_path: /alertmanager/metrics
     dns_sd_configs:
     - names:
-      - 'tasks.monitor_alertmanager'
+      - 'tasks.monitor_stateful_alertmanager'
       type: 'A'
       port: 9093
 
@@ -59,22 +65,58 @@ scrape_configs:
         action: drop
   {% endif %}
 
-  - job_name: 'statsd-exporter'
+  - job_name: 'elasticsearch-exporter'
     static_configs:
-      - targets: ['monitor_statsd_exporter:9102']
+      - targets: ['monitor_stateful_elasticsearch_exporter:9108']
 
-  - job_name: 'kong-cluster-exporter'
+  - job_name: 'log-elasticsearch-exporter'
     static_configs:
-      - targets: ['monitor_kong_cluster_exporter:9158']
+      - targets: ['monitor_stateful_log_elasticsearch_exporter:9108']
+
+{% if groups['postgresql-master'] is defined %}
+  - job_name: 'master-postgres-exporter'
+    static_configs:
+      - targets: ['monitor_stateful_master_postgres_exporter:9187']
+{% endif %}
+
+  {% if groups['postgresql-slave'] is defined %}
+  # This empty line ensures indentation is correct after ansible jinja2 template is materialized
+  - job_name: 'slave-postgres-exporter'
+    static_configs:
+      - targets: ['monitor_stateful_slave_postgres_exporter:9187']
+  {% endif %}
+
+
+  - job_name: 'elasticsearch-snapshots-exporter'
+    static_configs:
+      - targets: ['monitor_stateful_elasticsearch_snapshots_exporter:9158']
 
   - job_name: 'docker-service-replicas-exporter'
     static_configs:
       - targets: ['{{ groups['swarm-bootstrap-manager'][0] }}:9258']
 
+  - job_name: 'data-backup-azure-blob-exporter'
+    static_configs:
+      - targets: ['monitor_stateful_data_backup_azure_blob_exporter:9358']
+
   - job_name: 'prometheus'
     metrics_path: /prometheus/metrics
     static_configs:
       - targets: ['localhost:9090']
+
+  - job_name: 'cassandra-exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['monitor_stateful_cassandra_jmx_exporter:5556']
+
+  - job_name: 'vm-node-exporter'
+    static_configs:
+      - targets: {{ groups['all'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9100' ) | list | to_yaml }}
+
+  - job_name: 'process-exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets: {{ groups['process-exporter'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:1111' ) | list | to_yaml }} 
 
   {% for item in service_blackbox_checks %}
   # This empty line ensures indentation is correct after ansible jinja2 template is materialized
@@ -92,5 +134,25 @@ scrape_configs:
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: monitor_blackbox-exporter:9115
+        replacement: monitor_stateful_blackbox-exporter:9115
   {% endfor %}
+
+  {% if static_site_url is defined %}
+  # This empty line ensures indentation is correct after ansible jinja2 template is materialized
+  - job_name: 'availability_sunbird_static_site'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]  # Look for a HTTP 200 response.
+    static_configs:
+    - targets:
+      - {{ static_site_url }}
+      labels:
+        "service_name": "sunbird_static_site"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: monitor_stateful_blackbox-exporter:9115
+  {% endif %}

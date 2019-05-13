@@ -1,0 +1,15 @@
+groups:
+- name: alertrules.backups
+  rules:
+  - alert: backup_is_too_old
+    expr: time() - azure_blob_latest_file_timestamp{job="data-backup-azure-blob-exporter"} / 1000 > {{ expected_data_backup_interval_in_minutes|int * 60 }}
+    for: 5m
+    annotations:
+      description: '{% raw %}{{ $labels.container }}{% endraw %}: Latest backup file was created {% raw %}{{ humanizeDuration $value }}{% endraw %} ago. Threshold: {{ expected_data_backup_interval_in_minutes }} minutes'
+      summary: Backup is too old
+  - alert: backup_size_is_too_small
+    expr: azure_blob_latest_file_size{job="data-backup-azure-blob-exporter"} < {{ expected_data_backup_size_in_bytes }}
+    for: 5m
+    annotations:
+      description: '{% raw %}{{ $labels.container }}{% endraw %}: Latest backup file is {% raw %}{{ $value }}{% endraw %} bytes, smaller than the threshold {{ expected_data_backup_size_in_bytes }} bytes'
+      summary: Backup size is too small

@@ -1,6 +1,6 @@
 prometheus_reservation_memory: 1G
 prometheus_limit_memory: 1G
-prometheus_storage_retention_time: 3d
+prometheus_storage_retention_time: 72h0m0s
 
 alertmanager_reservation_memory: 100M
 alertmanager_limit_memory: 100M
@@ -28,6 +28,9 @@ jsonpath_exporter_limit_memory: 64M
 
 azure_blob_exporter_reservation_memory: 16M
 azure_blob_exporter_limit_memory: 64M
+
+grafana_reservation_memory: 100M
+grafana_limit_memory: 100M
 
 monitor_logstash_replicas: 1
 monitor_logstash_heap_size: 256m
@@ -59,7 +62,8 @@ docker_metrics_port: "2377"
 
 kong_cluster_expected_number_of_nodes: "{{ kong_replicas | default(1) }}"
 
-monitor_config_files_dest_dir: /opt/docker/stacks/monitor/config
+monitor_stack_files_dest_dir: /opt/docker/stacks/stateful_monitor/stack
+monitor_config_files_dest_dir: /opt/docker/stacks/stateful_monitor/config
 
 docker_service_replicas_exporter_version: v0.0.3
 docker_service_replicas_exporter_name: docker-service-replicas-exporter
@@ -69,13 +73,20 @@ monitor_config_templates:
   - alertmanagerconfig.yml
   - blackboxconfig.yml
   - statsd_mapping.yml
-  - kong_cluster_exporter_config.yml
+  - elasticsearch_snapshots_exporter_config.yml
+  - data_backup_azure_blob_exporter_config.yml
   - alertrules.nodes.yml
   - alertrules.task.yml
-  - alertrules.kong.yml
+  - alertrules.es.yml
+  - alertrules.logs.yml
+  - alertrules.backups.yml
+  - alertrules.services.yml
   - alertrules.docker.yml
+  - alertrules.postgresql.yml
+  - alertrules.process.yml
   - monitor_logstash.conf
   - monitor_logstash_grok_patterns
+  - jmx_httpserver.yml
 
 monitor_config_templates_postgres:
   - postgresmasterqueries.yml
@@ -126,42 +137,30 @@ service_teams:
       - middlemanager
 
 service_blackbox_checks:
-  - service_name: 'adminutil_adminutil'
-    probe_module: http_2xx
-    targets:
-      - http://adminutil_adminutil:4000/health
-  - service_name: 'api-manager_echo'
-    probe_module: http_2xx
-    targets:
-      - http://api-manager_echo:9595/hello
   - service_name: 'analytics-api'
     probe_module: http_2xx
     targets:
       - "{{sunbird_analytics_api_base_url}}/health"
-  - service_name: 'learning-service'
-    probe_module: http_2xx
-    targets:
-      - "{{sunbird_content_repo_api_base_url}}/health"
   - service_name: 'search-service'
     probe_module: http_2xx
     targets:
       - "{{sunbird_search_service_api_base_url}}/health"
-  - service_name: 'player_player'
-    probe_module: http_2xx
-    targets:
-      - "http://player_player:3000"
-  - service_name: 'content-service'
-    probe_module: http_2xx
-    targets:
-      - http://content-service:5000/health
   - service_name: 'monit'
     probe_module: http_2xx
     targets:
       - "http://{{ groups['swarm-bootstrap-manager'][0] }}:2812"
-  - service_name: 'logger_oauth'
+  - service_name: 'cassandra'
+    probe_module: tcp_connect
+    targets:
+      - "{{ groups['cassandra'] |  map('regex_replace', '^(.*)$', '\\1:'+cassandra_port|string ) | list | to_yaml }}"
+  - service_name: 'composite_search'
+    probe_module: composite_search
+    targets:
+      - "{{proto}}://{{proxy_server_name}}/api/composite/v1/search"
+  - service_name: 'keycloak'
     probe_module: http_2xx
     targets:
-            - "http://oauth:4111/robots.txt"
+      - "{{proto}}://{{proxy_server_name}}/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=foo&redirect_uri=https%3A%2F%2F{{proxy_server_name}}%2Fprivate%2Findex%3Fauth_callback%3D1&scope=openid&response_type=code"
 
 prometheus_route_prefix: prometheus
 prometheus_web_external_url: "{{proto}}://{{api__host}}:9090/{{ prometheus_route_prefix }}"
@@ -176,6 +175,4 @@ postgres_exporter_user: postgres_exporter
 root_group: root
 root_owner: root
 backup_storage_name: prometheus_backup
-
-docker_service_replicas_memory_limit: 256MB
-prometheus_mount_point: "/root/dockerdata/prometheus/data/"
+prometheus_stateful_mount_point: "/root/dockerdata/prometheus_stateful/data/"
