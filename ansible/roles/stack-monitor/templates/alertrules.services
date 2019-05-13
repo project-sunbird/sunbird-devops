@@ -61,33 +61,63 @@ ALERT service_replication_failure_FATAL
       description = "Service replication is {% raw %}{{$value}}{% endraw %}% for {% raw %}{{ $labels.service_name }}{% endraw %}",
   }
 
-ALERT too_many_server_side_http_errors_WARNING
-  IF (sum(increase(nginx_request_status_count{status_code=~"5.."}[5m])) / sum(increase(nginx_request_status_count[5m]))) * 100 >= 0.075
+ALERT too_many_server_side_http_errors_5xx_WARNING
+  IF (sum(increase(nginx_request_status_count{status_code=~"5.."}[1m])) / sum(increase(nginx_request_status_count[1m]))) * 100 >= 0.075
   FOR 15m
   LABELS {
     severity = "WARNING"
   }
   ANNOTATIONS {
-      summary = "Too many server side http errors",
+      summary = "Too many server side http errors_5xx",
       description = "Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 0.075%",
   }
-ALERT too_many_server_side_http_errors_CRITICAL
+ALERT too_many_server_side_http_errors_5xx_CRITICAL
+  IF (sum(increase(nginx_request_status_count{status_code=~"5.."}[2m])) / sum(increase(nginx_request_status_count[2m]))) * 100 >= 0.1
+  FOR 2m
+  LABELS {
+    severity = "CRITICAL"
+  }
+  ANNOTATIONS {
+      summary = "Too many server side http errors_5xx",
+      description = "Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 0.1%",
+  }
+ALERT too_many_server_side_http_errors_5xx_FATAL
   IF (sum(increase(nginx_request_status_count{status_code=~"5.."}[5m])) / sum(increase(nginx_request_status_count[5m]))) * 100 >= 0.1
+  FOR 5m
+  LABELS {
+    severity = "FATAL"
+  }
+  ANNOTATIONS {
+      summary = "Too many server side http errors_5xx",
+      description = "Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 0.1%",
+  }
+ALERT too_many_client_side_http_errors_4xx_WARNING
+  IF (sum(increase(nginx_request_status_count{status_code=~"4.."}[5m])) / sum(increase(nginx_request_status_count[5m]))) * 100 >= 1
+  FOR 15m
+  LABELS {
+    severity = "WARNING"
+  }
+  ANNOTATIONS {
+      summary = "Too many client side http errors_4xx",
+      description = "Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 1%",
+  }
+ALERT too_many_client_side_http_errors_4xx_CRITICAL
+  IF (sum(increase(nginx_request_status_count{status_code=~"4.."}[5m])) / sum(increase(nginx_request_status_count[5m]))) * 100 >= 2
   FOR 15m
   LABELS {
     severity = "CRITICAL"
   }
   ANNOTATIONS {
-      summary = "Too many server side http errors",
-      description = "Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 0.1%",
+      summary = "Too many client side http errors_4xx",
+      description = "Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 2%",
   }
-ALERT too_many_server_side_http_errors_FATAL
-  IF (sum(increase(nginx_request_status_count{status_code=~"5.."}[5m])) / sum(increase(nginx_request_status_count[5m]))) * 100 >= 0.5
+ALERT too_many_client_side_http_errors_4xx_FATAL
+  IF (sum(increase(nginx_request_status_count{status_code=~"4.."}[5m])) / sum(increase(nginx_request_status_count[5m]))) * 100 >= 3
   FOR 15m
   LABELS {
     severity = "FATAL"
   }
   ANNOTATIONS {
-      summary = "Too many server side http errors",
-      description = "Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 0.5%",
+      summary = "Too many client side http errors_4xx",
+      description = "Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 3%",
   }
