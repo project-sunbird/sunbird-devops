@@ -1,6 +1,6 @@
 prometheus_reservation_memory: 1G
 prometheus_limit_memory: 1G
-prometheus_storage_retention_time: 72h0m0s
+prometheus_storage_retention_time: 3d
 
 alertmanager_reservation_memory: 100M
 alertmanager_limit_memory: 100M
@@ -28,9 +28,6 @@ jsonpath_exporter_limit_memory: 64M
 
 azure_blob_exporter_reservation_memory: 16M
 azure_blob_exporter_limit_memory: 64M
-
-grafana_reservation_memory: 100M
-grafana_limit_memory: 100M
 
 monitor_logstash_replicas: 1
 monitor_logstash_heap_size: 256m
@@ -73,21 +70,12 @@ monitor_config_templates:
   - blackboxconfig.yml
   - statsd_mapping.yml
   - kong_cluster_exporter_config.yml
-  - elasticsearch_snapshots_exporter_config.yml
-  - data_backup_azure_blob_exporter_config.yml
-  - alertrules.nodes
-  - alertrules.task
-  - alertrules.es
-  - alertrules.logs
-  - alertrules.backups
-  - alertrules.kong
-  - alertrules.services
-  - alertrules.docker
-  - alertrules.postgresql
-  - alertrules.process
+  - alertrules.nodes.yml
+  - alertrules.task.yml
+  - alertrules.kong.yml
+  - alertrules.docker.yml
   - monitor_logstash.conf
   - monitor_logstash_grok_patterns
-  - jmx_httpserver.yml
 
 monitor_config_templates_postgres:
   - postgresmasterqueries.yml
@@ -174,18 +162,6 @@ service_blackbox_checks:
     probe_module: http_2xx
     targets:
             - "http://oauth:4111/robots.txt"
-  - service_name: 'cassandra'
-    probe_module: tcp_connect
-    targets:
-      - "{{ sunbird_cassandra_host }}:{{ cassandra_port }}"
-  - service_name: 'composite_search'
-    probe_module: composite_search
-    targets:
-      - "{{proto}}://{{proxy_server_name}}/api/composite/v1/search"
-  - service_name: 'keycloak'
-    probe_module: http_2xx
-    targets:
-      - "{{proto}}://{{proxy_server_name}}/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=foo&redirect_uri=https%3A%2F%2F{{proxy_server_name}}%2Fprivate%2Findex%3Fauth_callback%3D1&scope=openid&response_type=code"
 
 prometheus_route_prefix: prometheus
 prometheus_web_external_url: "{{proto}}://{{api__host}}:9090/{{ prometheus_route_prefix }}"

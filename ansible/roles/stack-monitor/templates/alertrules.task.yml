@@ -1,0 +1,18 @@
+groups:
+- name: alertrules.task
+  rules:
+  - alert: high_cpu_usage_on_container
+    expr: sum by(container_label_com_docker_swarm_service_name, container_label_com_docker_swarm_task_name,
+      instance) (rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_task_name=~".+"}[5m]))
+      * 100 > {{ container_cpu_usage_percentage_theshold }}
+    for: 5m
+    annotations:
+      description: '{% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %} is using {% raw %}{{ $value }}{% endraw %}% CPU. Threshold is : {{ container_cpu_usage_percentage_theshold }}%'
+      summary: 'HIGH CPU USAGE WARNING: TASK {% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %} on {% raw %}{{ $labels.instance }}{% endraw %}'
+
+  - alert: high_memory_usage_on_container
+    expr: (container_memory_usage_bytes{container_label_com_docker_swarm_task_name=~".+"} / container_spec_memory_limit_bytes) * 100 > {{ container_memory_usage_percentage_theshold }} < Inf
+    for: 5m
+    annotations:
+      description: '{% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %} is using {% raw %}{{ $value }}{% endraw %}% memory. Threshold is : {{ container_memory_usage_percentage_theshold }} %'
+      summary: 'HIGH MEMORY USAGE WARNING: TASK {% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %} on {% raw %}{{ $labels.instance }}{% endraw %}'
