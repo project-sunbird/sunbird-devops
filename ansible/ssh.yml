@@ -1,8 +1,30 @@
 ---
 - hosts: "{{ remote }}"
+  gather_facts: false
   become: yes
   roles:
     - add_user
+  tags:
+    - add-user
+
+- name: Adding user to docker group
+  hosts: "swarm-nodes"
+  gather_facts: false
+  become: yes
+  tasks:
+    - shell: "usermod -aG docker {{ user }}"
+      ignore_errors: true
+  tags:
+    - add-user
+
+- name: Creating custom commands
+  hosts: "{{remote}}"
+  gather_facts: false
+  become: yes
+  become_user: "{{ user }}"
+  tasks:
+    - shell: "{{ command }}"
+      ignore_errors: true
   tags:
     - add-user
 
