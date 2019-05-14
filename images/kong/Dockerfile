@@ -12,7 +12,7 @@
 
 FROM centos:7
 
-ENV KONG_VERSION 0.9.9
+ENV KONG_VERSION 0.10.3
 
 RUN yum install -y wget https://github.com/Mashape/kong/releases/download/$KONG_VERSION/kong-$KONG_VERSION.el7.noarch.rpm && \
     yum clean all
@@ -22,7 +22,7 @@ RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/
 
 RUN yum install -y net-tools
 
-COPY ./images/kong/docker-entrypoint.sh /docker-entrypoint.sh
+COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # ensure Kong logs go to the log pipe from our entrypoint and so to docker logging
