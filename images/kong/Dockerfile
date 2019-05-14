@@ -22,7 +22,7 @@ RUN wget -O /usr/local/bin/dumb-init https://github.com/Yelp/dumb-init/releases/
 
 RUN yum install -y net-tools
 
-COPY ./images/kong/docker-entrypoint.sh /docker-entrypoint.sh
+COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # ensure Kong logs go to the log pipe from our entrypoint and so to docker logging
