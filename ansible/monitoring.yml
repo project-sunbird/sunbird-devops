@@ -80,6 +80,23 @@
       shell: "docker node update --label-add alertmanager=1 {{ hostvars[groups['swarm-agent-for-alertmanager'][0]]['ansible_hostname'] }}"
   tags:
     - monitor-labels
+  run_once: true
+
+- name: labelling grafana and stateful prom
+  hosts: swarm-dashboard
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Add label for grafana node
+      command: "docker node update --label-add grafana=1 {{ hostvars[groups['swarm-agent-dashboard'][0]]['ansible_hostname'] }}"
+    - name: Adding label for stateful prometheus
+      shell: "docker node update --label-add prometheus_stateful=1 {{ hostvars[groups['swarm-agent-for-prometheus-stateful'][0]]['ansible_hostname'] }}"
+    - name: Adding label for stateful alertmanager
+      shell: "docker node update --label-add alertmanager_stateful=1 {{ hostvars[groups['alertmanager_stateful'][0]]['ansible_hostname'] }}"
+  tags:
+    - grafana-label
+  run_once: true
 
 - name: labelling grafana and stateful prom
   hosts: swarm-dashboard
@@ -106,6 +123,29 @@
     - {role: 'monit', monit_checks: ['alertmanager', 'prometheus']}
   tags:
     - stack-monitor
+  run_once: true
+
+- name: Deploying stateful monitoring
+  hosts: swarm-dashboard
+  gather_facts: false
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - stack-monitor-stateful
+  tags:
+    - stack-monitor-stateful
+  run_once: true
+
+- hosts: swarm-dashboard
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - stack-grafana
+  tags:
+    - stack-grafana
+  run_once: true
 
 - name: Deploying stateful monitoring
   hosts: swarm-dashboard
