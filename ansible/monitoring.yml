@@ -98,6 +98,21 @@
     - grafana-label
   run_once: true
 
+- name: labelling grafana and stateful prom
+  hosts: swarm-dashboard
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Add label for grafana node
+      command: "docker node update --label-add grafana=1 {{ hostvars[groups['swarm-agent-dashboard'][0]]['ansible_hostname'] }}"
+    - name: Adding label for stateful prometheus
+      shell: "docker node update --label-add prometheus_stateful=1 {{ hostvars[groups['swarm-agent-for-prometheus-stateful'][0]]['ansible_hostname'] }}"
+    - name: Adding label for stateful alertmanager
+      shell: "docker node update --label-add alertmanager_stateful=1 {{ hostvars[groups['alertmanager_stateful'][0]]['ansible_hostname'] }}"
+  tags:
+    - grafana-label
+
 - hosts: swarm-bootstrap-manager
   gather_facts: false
   become: yes
@@ -131,6 +146,26 @@
   tags:
     - stack-grafana
   run_once: true
+
+- name: Deploying stateful monitoring
+  hosts: swarm-dashboard
+  gather_facts: false
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - stack-monitor-stateful
+  tags:
+    - stack-monitor-stateful
+
+- hosts: swarm-dashboard
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - stack-grafana
+  tags:
+    - stack-grafana
 
 - hosts: all
   become: yes
