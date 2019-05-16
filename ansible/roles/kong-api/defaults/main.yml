@@ -54,6 +54,7 @@ textbook_service_prefix: /textbook
 lock_service_prefix: /lock
 otp_service_prefix: /otp
 sso_service_prefix: /sso
+headerecho_prefix: /headerecho
 
 # Service URLs
 content_service_url: "http://content-service:5000"
@@ -64,6 +65,7 @@ player_service_url: "http://player_player:3000"
 echo_service_url: "http://api-manager_echo:9595"
 am_util_url: http://adminutil_adminutil:4000
 config_service_url: "http://config-service:8080"
+headerecho_url: "http://headerecho:4000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -3770,5 +3772,13 @@ kong_apis:
      - {name: 'cors'}
      - "{{ statsd_pulgin }}"
      - {name: 'acl', config.whitelist: 'locationAdmin'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }   
+  - name: "headerecho"
+    request_path: "{{ headerecho_prefix }}"
+    upstream_url: "{{ headerecho_url }}"
+    strip_request_path: true
+    plugins:
+     - "{{ statsd_pulgin }}"
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }   
