@@ -1,8 +1,8 @@
 def writeBlock(File file, String module, String jobname, String tag){
-    file.append("                \"Building " + jobname + "\": {\n")
-    file.append("                    " + jobname + "Result =  build(job: '" + module + "/" + jobname + "', parameters: [string(name: 'github_release_tag', value: '" + tag + "')], propagate: false).result\n")
-    file.append("                    echo  \"" + jobname + " build status = \"+ " + jobname + "Result\n")
-    file.append("                    sh \"echo " + jobname + " job status = \$" + jobname + "Result >> out.txt\"\n")
+    file.append("                \"Building " + module + "-" + jobname + "\": {\n")
+    file.append("                    " + module + "-" + + jobname + "Result =  build(job: '" + module + "/" + jobname + "', parameters: [string(name: 'github_release_tag', value: '" + tag + "')], propagate: false).result\n")
+    file.append("                    echo  \"" + module + "-" + jobname + " build status = \"+ " + jobname + "Result\n")
+    file.append("                    sh \"echo " + module + "-" + jobname + " job status = \$" + jobname + "Result >> out.txt\"\n")
 }
 
 def continueBlock(File file){
@@ -30,6 +30,7 @@ node() {
         sh "rm -rf out.txt"
         repoList = params.repos
         repoList = repoList.replaceAll('\t', ' ')
+        repoList = repoList.replaceAll('\\s', ' ')
         repoList = repoList.replaceAll("(?m)^\\s*\$[\n\r]{1,}", "")
         File file = new File("/var/lib/jenkins/runJobs.groovy")
         repoListSorted = repoList.split('\n').sort()
