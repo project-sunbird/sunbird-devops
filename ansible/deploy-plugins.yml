@@ -7,6 +7,14 @@
         AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
         AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
   tasks:
+    - name: rename env_domain in prview.html
+      shell: |
+        domain_name=$(grep sunbird_portal_player_cdn_url inventory/env/common.yml | cut -d' ' -f2)
+        echo "$domain_name"
+        sed -i 's|"ENV_DOMAIN"|'$domain_name'|g' preview/preview.html
+      tags:
+        - preview
+
     - name: delete batch
       command: "az storage blob delete-batch -s {{ plugin_container_name }} --pattern {{ folder_name }}/*"
       async: 3600
