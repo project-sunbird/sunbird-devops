@@ -7,17 +7,6 @@
         AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
         AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
   tasks:
-    - name: rename env_domain in preview.html
-      shell: |
-        #domain_name=$(grep sunbird_portal_player_cdn_url "{{inventory_dir}}"/common.yml | cut -d' ' -f2 | tr -d "\"" | cut -d"/" -f3)
-        domain_name=$(grep domain_name "{{inventory_dir}}"/common.yml | cut -d' ' -f2)
-        echo "$domain_name"
-        sed -i 's|'//document.domain'|document.domain|g' "{{currentws}}"/ansible/preview/preview.html
-        sed -i 's|ENV_DOMAIN|'$domain_name'|g' "{{currentws}}"/ansible/preview/preview.html
-      when: sunbird_portal_player_cdn_url is defined  
-      tags:
-        - preview
-
     - name: delete batch
       command: "az storage blob delete-batch -s {{ plugin_container_name }} --pattern {{ folder_name }}/*"
       async: 3600
@@ -39,6 +28,33 @@
         - preview
         - editor
         - core-plugins
+  
+    - name: rename env_domain in preview.html for CDN
+      shell: |
+        #domain_name=$(grep sunbird_portal_player_cdn_url "{{inventory_dir}}"/common.yml | cut -d' ' -f2 | tr -d "\"" | cut -d"/" -f3)
+        domain_name=$(grep domain_name "{{inventory_dir}}"/common.yml | cut -d' ' -f2)
+        echo "$domain_name"
+        sed -i 's|'//document.domain'|document.domain|g' "{{currentws}}"/ansible/preview/preview.html
+        sed -i 's|ENV_DOMAIN|'$domain_name'|g' "{{currentws}}"/ansible/preview/preview.html
+      when: sunbird_portal_player_cdn_url is defined  
+      tags:
+        - preview
+        
+    - name: cdn delete batch
+      command: "az storage blob delete-batch -s {{ cdn_container_name }} --pattern {{ cdn_folder_name }}/*"
+      async: 3600
+      poll: 10
+      when: sunbird_portal_player_cdn_url is defined
+      tags:
+        - preview
+
+    - name: cdn upload batch
+      command: "az storage blob upload-batch --destination {{ cdn_container_name }}/{{ cdn_folder_name }} --source {{ source_name }}"
+      async: 3600
+      poll: 10
+      when: sunbird_portal_player_cdn_url is defined
+      tags:
+        - preview
 
     - name: upload file
       command: "az storage blob upload --container-name {{ plugin_container_name }} --file {{ source_file_name }} --name artefacts/content-player/content-player-{{ player_version_number }}.zip"
