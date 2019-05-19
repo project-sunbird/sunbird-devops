@@ -8,6 +8,7 @@
 
 - hosts: swarm-bootstrap-manager
   gather_facts: false
+  become: yes
   run_once: true
   vars_files:
     - ['{{ inventory_dir }}/secrets.yml']
@@ -25,9 +26,14 @@
     template:
       src: static-files/api-manager.env
       dest: /home/deployer/env/migration_api-manager.env
-
-  - name: Removing old api-manager to cut traffic
-    shell: docker service rm api-manager_kong
-
+  - name: checking for api-manager_kong
+    shell: docker service ps api-manager_kong
+    register: service_status 
+    changed_when: false
+    failed_when: false
+  - name: failing if api-manager running
+    fail:
+      msg: api manager is still running. Please remove the service and run again !!!
+    when: service_status.rc == 0
   - name: Creating  migration_api-manager with kong image version to .10.3
     shell: "docker service create --env-file /home/deployer/env/migration_api-manager.env --with-registry-auth --image {{ kong_image }} migration_api-manager"
