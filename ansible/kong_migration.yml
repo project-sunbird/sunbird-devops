@@ -1,0 +1,27 @@
+---
+
+# This script will migrate kong .9x to .10.3
+# you can pass the inventory from where all docker related args will get scraped
+# Image name, you'll have to pass it as extra args
+# eg:
+# ansible-playbook -i /path/to/inventory --vault-password-file /path/to/vault/password -e kong_image=sunbird.azure.io/kong:2.0.0 kong_migration.yml
+
+- hosts: swarm-bootstrap-manager
+  gather_facts: false
+  run_once: true
+  vars_files:
+    - ['{{ inventory_dir }}/secrets.yml']
+  tasks:
+  - name: Installing deps
+    pip:
+      name: docker-py
+      state: present
+  - name: login to registry
+    docker_login:
+      registry: "{{ vault_docker_registry_url }}"
+      username: "{{ vault_docker_registry_user }}"
+      password: "{{ vault_docker_registry_password }}"
+  - name: Making number of kong replicas to 1
+    shell: docker service scale api-manager_kong=1
+  - name: Updating kong image version to .10.3
+    shell: "docker service update  --with-registry-auth --image {{ kong_image }} api-manager_kong
