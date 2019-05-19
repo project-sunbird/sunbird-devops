@@ -21,7 +21,13 @@
       registry: "{{ vault_docker_registry_url }}"
       username: "{{ vault_docker_registry_user }}"
       password: "{{ vault_docker_registry_password }}"
-  - name: Making number of kong replicas to 1
-    shell: docker service scale api-manager_kong=1
-  - name: Updating kong image version to .10.3
-    shell: "docker service update  --with-registry-auth --image {{ kong_image }} api-manager_kong
+  - name: templating migration_api-manager env
+    template:
+      src: static-files/api-manager.env
+      dest: /home/deployer/env/migration_api-manager.env
+
+  - name: Removing old api-manager to cut traffic
+    shell: docker service rm api-manager_kong
+
+  - name: Creating  migration_api-manager with kong image version to .10.3
+    shell: "docker service create --env-file /home/deployer/env/migration_api-manager.env --with-registry-auth --image {{ kong_image }} migration_api-manager"
