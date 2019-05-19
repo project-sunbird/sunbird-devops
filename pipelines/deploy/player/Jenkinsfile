@@ -21,10 +21,8 @@ node() {
             currentBuild.description = "${values.image_tag}"
         }
 
-        cdnEnable = env.cdnEnable ?: false
-        if (cdnEnable) {
+        if (params.cdn_enable == "true") {
             stage('Deploy CDN') {
-                // scrapping cdn url
                 def filePath = "$WORKSPACE/ansible/inventory/env/common.yml"
                 cdnUrl = sh(
                 script: """
@@ -33,7 +31,7 @@ node() {
                 returnStdout: true
                 ).trim()
                 if ( cdnUrl == '' ) {
-                    print " cdnEnable env variable is true, But no sunbird_portal_cdn_url in $filePath "
+                    println "cdn_enable variable is true, But no sunbird_portal_cdn_url in $filePath "
                     error 'sunbird_portal_cdn_url is not set'
                 }
                 else {
