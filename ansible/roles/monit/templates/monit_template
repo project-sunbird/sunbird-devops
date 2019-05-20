@@ -1,0 +1,52 @@
+{# This is a custom monit script with logic for specific usecases #}
+{# Checking for the pid file, else using mathching #}
+{% if vars[item].pid_file is defined and vars[item].pid_file %}
+check process {{vars[item].app_name}} with pidfile {{vars[item].pid_file}}
+{% else %}
+check process {{vars[item].app_name}} matching {{vars[item].grep_string|default(vars[item].app_name)}}
+{% endif %}
+{# Checking for custom start command rather than a generic 'script_name start' #}
+{% if vars[item].custom_start is defined and vars[item].custom_start %}
+  start program = "{{vars[item].custom_start}}"
+{% else %}
+  start program = "{{vars[item].script_path | default("/etc/init.d/%s" % vars[item].app_name )}} start"
+{% endif %}
+{# checking for a specific user to run the script default is root #}
+{% if vars[item].user is defined and vars[item].user %}
+    as UID {{vars[item].user}} and GID {{vars[item].group|default(vars[item].user)}}
+{% endif %}
+{# Checking for timeout for checking whether the service is up or not #}
+{% if vars[item].timeout is defined and vars[item].timeout %}
+    with timeout {{vars[item].timeout}} seconds
+{% endif %}
+{# Checking for custom stop command rather than a generic 'script_name stop' #}
+{% if vars[item].custom_stop is defined and vars[item].custom_stop %}
+  stop program = "{{vars[item].custom_stop}}"
+{% else %}
+  stop program = "{{vars[item].script_path | default("/etc/init.d/%s" % vars[item].app_name )}} stop"
+{% endif %}
+{# checking for a specific user to run the script default is root #}
+{% if vars[item].user is defined and vars[item].user %}
+    as UID {{vars[item].user}} and GID {{vars[item].group|default(vars[item].user)}}
+{% endif %}
+{% if vars[item].timeout is defined and vars[item].timeout %}
+    with timeout {{vars[item].timeout}} seconds
+{% endif %}
+  if not exist
+    then exec /usr/local/bin/slack.sh danger
+  if changed pid
+    then exec /usr/local/bin/slack.sh warning
+{# Checking for any retry count for the service to bring up. default unlimited #}
+{% if vars[item].retry is defined and vars[item].retry %}
+  if {{vars[item].retry}} restarts within {{vars[item].retry}} cycles 
+    then exec /usr/local/bin/slack.sh warning
+  if {{vars[item].retry+1}} restarts within {{vars[item].retry+1}} cycles 
+    then stop
+{% endif %}
+{% if vars[item].retry is defined and vars[item].retry and vars[item].pid_file is defined %}
+  if {{vars[item].retry}} restarts within {{vars[item].retry}} cycles 
+    then exec /usr/local/bin/force_kill {{vars[item].pid_file}}
+{% endif %}
+  if not exist
+    then start
+  else if succeeded then exec /usr/local/bin/slack.sh good

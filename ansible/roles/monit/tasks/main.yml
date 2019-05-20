@@ -1,51 +1,46 @@
 ---
+- name: Make sure monit directory exists
+  become: yes
+  file:
+    path: /etc/monit/conf.d 
+    state: directory
 
-- debug:
-    msg="{{ groups['swarm-agent-for-alertmanager'][0] }}" 
-
-- debug:
-    msg="{{ groups['swarm-agent-for-prometheus'][0] }}"
-
-- debug:
-    msg="{{ alertmanager_host }}"
-
-- debug:
-    msg="{{ prometheus_host }}"
-
-
-- name: Install Monit
-  apt: 
-    name: monit={{monit_version}}
-    state: present
-    force: yes
-  notify: restart monit
-  ignore_errors: yes
-
-- name: Create monit folder
-  file: path={{ item }} state=directory
+- name: Copying Monit binary init and config
+  become: yes
+  copy:
+    src: "{{item.src}}"
+    dest: "{{item.dest}}"
+    mode: "{{item.mode}}" 
   with_items:
-    - /etc/monit.d/
-    - /etc/monit
-    - /var/lib/monit
-  notify: restart monit
+    - { src: 'files/monit_init', dest: '/etc/init.d/monit', mode: '0755' }
+    - { src: 'files/monitrc', dest: '/etc/monit/monitrc', mode: '0700' }
+    - { src: 'files/monit_bin', dest: '/usr/bin/monit', mode: '0755' }   
+    - { src: 'files/monit_default', dest: '/etc/default/monit', mode: '0644' } 
+    - { src: 'files/force_kill', dest: '/usr/local/bin', mode: '0755' } 
 
-- name: Copy monitrc file
-  template: src=monitrc dest=/etc/monit/monitrc
-  notify: restart monit
+- name: Softlinking montrc for monit
+  become: yes
+  file:
+    src: /etc/monit/monitrc
+    dest: /etc/monitrc
+    state: link
 
-- name: Copy monit init.d file
-  template: src=monit dest=/etc/init.d/monit mode=0754
-  notify: restart monit
+- name: starting monit at boot time
+  become: yes
+  command: update-rc.d monit defaults
 
-- name: Copy slack.sh
-  template: src=slack.sh dest=/etc/monit/slack.sh mode=755
+- name: Copy monit scripts to the destination
+  become: yes
+  template:
+    src: monit_template
+    dest: "/etc/monit/conf.d/{{vars[item].app_name}}.conf"
+  with_items:
+    - "{{service.split(',')}}"
 
-- name: Copy all monit config files
-  template: src="check_{{item}}" dest=/etc/monit/conf.d/
-  with_items: "{{ monit_checks}}"
-  notify: restart monit
+- name: Copying slack.sh
+  become: yes
+  template:
+    src: slack.sh
+    dest: /usr/local/bin
+    mode: 0755
 
-- meta: flush_handlers
-
-- name: ensure service monit is running and enabled
-  service: name=monit state=started enabled=true

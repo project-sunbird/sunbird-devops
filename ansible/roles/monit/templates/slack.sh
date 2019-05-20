@@ -1,17 +1,17 @@
 #!/bin/sh
 
+MONIT_GROUP="{{ group_names }}"
 MONIT_IP="{{ inventory_hostname }}"
-COLOR=${MONIT_COLOR:-$([[ $MONIT_DESCRIPTION == *"succeeded"* ]] && echo good || echo danger)}
-
+COLOR=$1
 /usr/bin/curl \
     -X POST \
     -s \
     --data-urlencode "payload={ \
-        \"channel\": \"#{{ monit_slack_channel }}\", \
-        \"username\": \"{{ monit_slack_user }}\", \
-        \"pretext\": \"$MONIT_IP | $MONIT_DATE\", \
+        \"channel\": \"#{{ slack_channel }}\", \
+        \"username\": \"{{ slack_user }}\", \
+        \"pretext\": \"$MONIT_IP | $MONIT_GROUP | $MONIT_DATE\", \
         \"color\": \"$COLOR\", \
         \"icon_emoji\": \":bangbang:\", \
         \"text\": \"$MONIT_SERVICE - $MONIT_DESCRIPTION\" \
     }" \
-    {{ monit_slack_webhook_url }}
+    {{ slack_web_hook }}
