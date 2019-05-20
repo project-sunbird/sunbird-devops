@@ -17,6 +17,7 @@
   lineinfile: 
     path: '/etc/environment'
     line: '{{item.var}}={{item.value}}'
+    regexp: "{{ item.var }}.*"
   with_items:
     - { var: 'sunbird_lms_base_url', value: '{{sunbird_lms_base_url}}' }
     - { var: 'sunbird_authorization', value: '{{sunbird_authorization}}' }
@@ -141,6 +142,14 @@
 - name: Remove the sunbird_auth_{{sunbird_auth_version}}.config
   become: yes
   file: path=./sunbird_auth_{{sunbird_auth_version}}.config state=absent force=yes
+
+- name: Overriding JAVA_HOME
+  become: yes
+  lineinfile:
+    regexp: 'SERVER_OPTS=""'
+    insertafter: 'SERVER_OPTS=""'
+    line: '^JAVA_HOME=""'
+    path: "{{ keycloak_home }}/bin/standalone.sh"
 
 - name: Start service
   become: yes
