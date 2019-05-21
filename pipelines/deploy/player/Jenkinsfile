@@ -43,7 +43,9 @@ node() {
                         // For custom urls, create jenkins parameter as portalGitUrl
                         def sunbirdPortalUrl = params.portalGitUrl ?: 'https://github.com/Sunbird-Ed/SunbirdEd-portal.git'
                         checkout([$class: 'GitSCM', branches: [[name: "$commitHash"]], userRemoteConfigs: [[url: "$sunbirdPortalUrl"]]])
-                        sh ("docker run --rm -v /etc/passwd:/etc/passwd:ro -v `pwd`:/var/lib/jenkins -w /var/lib/jenkins -uroot circleci/node:8.11.2-stretch sh ./build-cdn.sh ${cdnUrl} ${commitHash} ")
+                        timestamps {
+                            sh ("docker run -v /etc/passwd:/etc/passwd -u `id -u`:`id -g` -v `pwd`:/var/lib/jenkins -w /var/lib/jenkins circleci/node:8.11-stretch sh ./build-cdn.sh ${cdnUrl} ${commitHash} ")
+                        }
                     }
                     // Uploading cdn assets to blob
                     ansiblePlaybook = "$currentWs/ansible/assets-upload.yml"
