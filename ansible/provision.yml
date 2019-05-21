@@ -10,6 +10,7 @@
    - cassandra
 
 - hosts: es
+  gather_facts: true
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml']
@@ -17,6 +18,10 @@
     - name: Registering node name
       set_fact:
         es_instance_name: "{% for servername in play_hosts %}{% if inventory_hostname==servername %}es-{{ loop.index }}{% endif %}{% endfor %}"
+    - name: calculating the correct heap size
+      set_fact:
+        es_heap_size: "{% if ((ansible_memory_mb.real.total/(2*1024))|int) > 30000 %}26g{% else %}{{(ansible_memory_mb.real.total/(2*1024))|int}}g{% endif %}"
+      when: es_heap_size is not defined
   roles:
     - openjdk
     - { role: es6, 
@@ -29,7 +34,6 @@
           node.master: "{{ es_etc_node_master | default('true') }}",
           bootstrap.memory_lock: true,
         },
-        es_heap_size: "2g",
         es_etc_discovery_zen_ping_unicast_hosts: "{{ groups['es'] }}",
         es_etc_cluster_name: "{{ app_es_etc_cluster_name }}"
       }
@@ -38,9 +42,15 @@
     - es
 
 - hosts: log-es
+  gather_facts: true
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Get information on the RAM
+      set_fact:
+        es_default_es_heap_size: "{% if ((ansible_memory_mb.real.total/(2*1024))|int) > 30000 %}26g{% else %}{{(ansible_memory_mb.real.total/(2*1024))|int}}g{% endif %}"
+      when: es_default_es_heap_size is not defined
   roles:
     - openjdk
     - application_logger_elasticsearch
