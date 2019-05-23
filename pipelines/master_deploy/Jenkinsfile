@@ -1,6 +1,6 @@
-def writeBlock(File file, String module, String jobname, String tag){
+def writeBlock(File file, String module, String jobname, String private_branch,  String tag){
     file.append("                \"Building " + module + jobname + "\": {\n")
-    file.append("                    " + module + jobname + "Result =  build(job: '" + module + "/" + jobname + "', parameters: [string(name: 'branch_or_tag', value: '" + tag + "')], propagate: false).result\n")
+    file.append("                    " + module + jobname + "Result =  build(job: '" + module + "/" + jobname + "', parameters: [string(name: 'branch_or_tag', value: '" + tag + "'),  string(name: 'private_branch', value: '" + private_branch + "')], propagate: false).result\n")
     file.append("                    echo  \"" + module + jobname + " build status = \"+ " + module + jobname + "Result\n")
     file.append("                    sh \"echo " + module + jobname + " job status = \$" + module + jobname + "Result >> out.txt\"\n")
 }
@@ -50,17 +50,18 @@ node() {
             seq = line.split(' ')[0]
             module = line.split(' ')[1]
             jobname = line.split(' ')[2]
-            tag = line.split(' ')[3]
+            private_branch = line.split(' ')[3]
+            tag = line.split(' ')[4]
 
             if (seq == nextSeq) {
-                writeBlock(file, module, jobname, tag)
+                writeBlock(file, module, jobname, private_branch, tag)
                 continueBlock(file)
             } else if (seq != nextSeq && nextSeq != "EOF") {
-                writeBlock(file, module, jobname, tag)
+                writeBlock(file, module, jobname, private_branch, tag)
                 closeBlock(file)
                 newBlock(file)
             } else if (nextSeq == "EOF")
-                writeBlock(file, module, jobname, tag)
+                writeBlock(file, module, jobname, private_branch, tag)
         }
         file.append("                }\n")
         file.append("        )\n")
