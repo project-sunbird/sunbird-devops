@@ -1,16 +1,15 @@
-#- hosts: cassandra
-#  become: yes
-#  vars_files:
-#    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-#  roles:
-#   - jre-1.8.0_144
-#   - cassandra
-#   - cassandra-cql-update
-#  tags:
-#   - cassandra
-#
+- hosts: cassandra
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+   - jre-1.8.0_144
+   - cassandra
+   - cassandra-cql-update
+  tags:
+   - cassandra
+
 - hosts: es
-  gather_facts: true
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml']
@@ -23,7 +22,6 @@
     - { role: es6,
         es_config: {
           cluster.name: "{{ app_es_etc_cluster_name }}",
-          es_heap_size: "2g",
           discovery.zen.ping.unicast.hosts: "{{ groups['es'] }}",
           http.port: 9200,
           transport.tcp.port: 9300,
@@ -31,6 +29,7 @@
           node.master: "{{ es_etc_node_master | default('true') }}",
           bootstrap.memory_lock: true,
         },
+        es_heap_size: "2g",
         es_etc_discovery_zen_ping_unicast_hosts: "{{ groups['es'] }}",
         es_etc_cluster_name: "{{ app_es_etc_cluster_name }}"
       }
@@ -44,7 +43,7 @@
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   roles:
-#    - openjdk
+    - openjdk
     - application_logger_elasticsearch
   tags:
     - log-es
