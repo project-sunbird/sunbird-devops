@@ -8,7 +8,7 @@
     postgresql_backup_gzip_file_path: "{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}.zip"
 
 - name: Save backup
-  command: pg_dump -U {{ postgres_admin_user }} -h {{ postgres_hostname }} -p 5432 -P {{ }} {{ item }} > {{ item }}.sql
+  command: export PGPASSWORD="{{postgres-password}}; pg_dump -U {{ postgres_admin_user }} -h {{ postgres_hostname }} -p 5432 -P {{ }} {{ item }} > {{ item }}.sql
   become_user: "{{ postgresql_user }}"
   with_items: "{{ db_name.db }}"
   args:
@@ -20,7 +20,7 @@
   archive: path="{{ postgresql_backup_dir }}/" dest="{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}.zip" format=zip
 
 - name: Ensure azure blob storage container exists
-  command: export PGPASSWORD="{{postgres-password}}; az storage container create  --name {{ postgresql_backup_azure_container_name }}
+  command: az storage container create  --name {{ postgresql_backup_azure_container_name }}
   ignore_errors: true
   environment:
     AZURE_STORAGE_ACCOUNT: "{{ backup_azure_storage_account_name }}"
