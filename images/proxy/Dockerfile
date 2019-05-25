@@ -1,5 +1,6 @@
-FROM nginx:1.13.8-alpine
+FROM nginx:1.13.12-alpine
 
-RUN rm -rf /etc/nginx/conf.d
-
-RUN rm -rf /usr/share/nginx/html
+ADD prometheus.lua /etc/nginx/lua_modules/
+RUN apk add --no-cache nginx-mod-http-lua \
+    && rm -rf /etc/nginx/conf.d \
+    && rm -rf /usr/share/nginx/html
