@@ -1,0 +1,23 @@
+- name: permissions
+  become: yes
+  file: path={{ logstash_home }} mode=775 owner={{ learner_user }} group={{ learner_user }} recurse=yes
+
+- name: Copy logstash configuration files for platform
+  become: yes
+  become_user: "{{learner_user}}"
+  template: src={{item}}.j2  dest={{ logstash_home }}/{{item}}.conf
+  with_items: "{{ platform.logstash_config }}"
+ 
+- name: Stop logstash processes related to platform
+  become: yes
+  systemd: name=logstash state=stopped
+  ignore_errors: yes
+ 
+- name: create folder for logs
+  become: yes
+  become_user: "{{learner_user}}"
+  file: path={{logstash_home}}/logs state=directory mode=0755
+  
+- name: Start logstash processes related to platform
+  become: yes
+  systemd: name=logstash state=started 
