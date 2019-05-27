@@ -58,7 +58,13 @@ node() {
         }
         stage('deploy') {
             ansiblePlaybook = "$currentWs/ansible/deploy.yml"
-            ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+	    if ( cdnUrl == '' ) {
+		    ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                }
+                else {
+		    ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True cdn_file_path=$currentWs/sunbird-portal/src/app/dist/index_cdn.ejs\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+		}
+            ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True cdn_file_path=$currentWs/sunbird-portal/src/app/dist/index_cdn.ejs\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
             values.put('ansiblePlaybook', ansiblePlaybook)
             values.put('ansibleExtraArgs', ansibleExtraArgs)
             ansible_playbook_run(values)
