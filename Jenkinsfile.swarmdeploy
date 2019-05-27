@@ -77,19 +77,6 @@ node() {
             archiveArtifacts 'metadata.json'
             currentBuild.description = "${values.image_tag}"
         }
-       stage('Archive artifacts'){
-            cdnUrl = sh(
-                script: """
-                grep sunbird_portal_cdn_url $filePath | grep -v '^#' | grep --only-matching --perl-regexp 'http(s?):\\/\\/[^ \"\\(\\)\\<\\>]*' || true
-                """,
-                returnStdout: true
-                ).trim()
-                if ( cdnUrl != '' ) {
-		    archiveArtifacts artifacts: "$currentWs/sunbird-portal/src/app/dist/index_cdn.ejs", fingerprint: true, onlyIfSuccessful: true
-            sh """echo {\\"artifact_name\\" : \\"index_cdn.ejs\\", \\"node_name\\" : \\"${env.NODE_NAME}\\"} > cdn_file.json"""
-            archiveArtifacts artifacts: 'cdn_file', onlyIfSuccessful: true
-		    }
-        }
     }
     catch (err) {
         currentBuild.result = "FAILURE"
