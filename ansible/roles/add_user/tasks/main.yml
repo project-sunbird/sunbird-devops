@@ -1,0 +1,15 @@
+- name: Add group
+  group: name="{{ ssh_user }}" state=present
+  become: yes
+
+- name:  Create user
+  become: yes
+  user: state=present name="{{ ssh_user }}" group="{{ ssh_user }}" groups=sudo shell=/bin/bash createhome=yes password="{{ password }}" update_password=always
+
+- name: Add ssh public key
+  authorized_key: user="{{ ssh_user }}" key="{{ public_key }}"
+  become: yes
+
+- name: change permission
+  become: yes
+  command: chown -R "{{ ssh_user }}":"{{ ssh_user }}" /home/"{{ ssh_user }}"
