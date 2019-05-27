@@ -58,7 +58,14 @@ node() {
         }
         stage('deploy') {
             ansiblePlaybook = "$currentWs/ansible/deploy.yml"
-	    if ( cdnUrl == '' ) {
+	        def filePath = "$WORKSPACE/ansible/inventory/env/common.yml"
+                cdnUrl = sh(
+                script: """
+                grep sunbird_portal_cdn_url $filePath | grep -v '^#' | grep --only-matching --perl-regexp 'http(s?):\\/\\/[^ \"\\(\\)\\<\\>]*' || true
+                """,
+                returnStdout: true
+                ).trim()
+                if ( cdnUrl == '' ) {
 		    ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                 }
                 else {
