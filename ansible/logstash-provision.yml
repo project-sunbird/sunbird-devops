@@ -1,0 +1,24 @@
+- hosts: cassandra
+  vars:
+   learner_group: learner
+   learner_name: learner
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  pre_tasks:
+    - name: Create learner group
+      become: yes
+      group:
+        state: present
+        name: "{{ learner_group }}"
+        system: yes
+    - name: Create learner user
+      become: yes
+      user:
+        state: present
+        name: "{{ learner_user }}"
+        comment: learner user
+        system: yes
+        createhome: yes
+        group: "{{ learner_group }}"
+  roles:
+    - logstash

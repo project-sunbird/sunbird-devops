@@ -1,0 +1,32 @@
+---
+- name: ensure backup dir exists
+  file:
+    path: "{{ grafana_backup_dir }}"
+    state: directory
+
+
+- name: ensure backup dir is empty
+  shell: "rm -rf {{ grafana_backup_dir }}/*"
+
+- set_fact:
+    grafana_backup_gzip_file_name: "grafana_db_{{ lookup('pipe', 'date +%Z-%Y-%m-%d-%H-%M-%S') }}.tar.gz"
+
+- set_fact:
+    grafana_backup_gzip_file_path: "{{ grafana_backup_dir }}/{{ grafana_backup_gzip_file_name }}"
+
+- name: Save backup
+  shell: "tar -czf {{ grafana_backup_gzip_file_path }} {{ grafana_data_dir }}"
+  async: 3600
+  poll: 10
+
+- name: Ensure azure blob storage container exists
+  command: az storage container create  --name {{ grafana_backup_azure_container_name }}
+  ignore_errors: true
+
+- name: Upload to azure blob storage
+  command: az storage blob upload --name {{ grafana_backup_gzip_file_name }} --file {{ grafana_backup_gzip_file_path }} --container-name {{ grafana_backup_azure_container_name }}
+  async: 5000
+  poll: 10
+
+- name: clean up backup dir after upload
+  file: path="{{ grafana_backup_dir }}" state=absent
