@@ -20,22 +20,8 @@ node() {
             archiveArtifacts 'metadata.json'
             currentBuild.description = "${values.image_tag}"
         }
-
-        if (params.cdn_enable == "true") {
             stage('Deploy CDN') {
-                def filePath = "$WORKSPACE/ansible/inventory/env/common.yml"
-                cdnUrl = sh(
-                script: """
-                grep sunbird_portal_cdn_url $filePath | grep -v '^#' | grep --only-matching --perl-regexp 'http(s?):\\/\\/[^ \"\\(\\)\\<\\>]*' || true
-                """,
-                returnStdout: true
-                ).trim()
-                if ( cdnUrl == '' ) {
-                    println "cdn_enable variable is true, But no sunbird_portal_cdn_url in $filePath "
-                    error 'sunbird_portal_cdn_url is not set'
-                }
-                else {
-                println cdnUrl
+                if ( params.cdn_enable == "true" ) {
 		step([  $class: 'CopyArtifact',
 			filter: 'index_cdn.ejs',
 			fingerprintArtifacts: true,
@@ -43,18 +29,9 @@ node() {
 		])
                     }
                 }
-            }
-        }
         stage('deploy') {
             ansiblePlaybook = "$currentWs/ansible/deploy.yml"
-	        def filePath = "$WORKSPACE/ansible/inventory/env/common.yml"
-                cdnUrl = sh(
-                script: """
-                grep sunbird_portal_cdn_url $filePath | grep -v '^#' | grep --only-matching --perl-regexp 'http(s?):\\/\\/[^ \"\\(\\)\\<\\>]*' || true
-                """,
-                returnStdout: true
-                ).trim()
-                if ( cdnUrl == '' ) {
+                if ( params.cdn_enable != "true" ) {
 		    ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                 }
                 else {
