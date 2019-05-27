@@ -2,10 +2,40 @@
 - name: Save stack file
   template: src="stack_{{service_name}}.yml" dest="/home/deployer/stack/stack_{{service_name}}.yml" mode=0644
 
-- name: Remove stack
-  shell: "docker stack rm {{service_name}}"
+- name: Save config file
+  copy: src="{{inventory_dir}}/../../../sunbird-portal/src/app/dist/index_cdn.ejs" dest="/home/deployer/config/index_cdn.ejs" mode=0644
+  when: sunbird_portal_cdn_url is defined
+  register: copy_file
+  ignore_errors: yes
+
+- name: Remove the cdn file from  player if it's present
+  shell: docker service update --config-rm index.ejs player_player
+  when: copy_file.changed
+  ignore_errors: yes
+
+- name: Remove the existing config if it is present
+  shell: docker config rm index_cdn.ejs
+  when: copy_file.changed
+  ignore_errors: yes
+
+- name: Create the index_cdn.ejs file as a config
+  shell: "docker config create index_cdn.ejs /home/deployer/config/index_cdn.ejs"
+  when: sunbird_portal_cdn_url is defined and copy_file.changed
+  ignore_errors: yes
+
+- name: Create the index_cdn.ejs file as a config
+  shell: "docker config create index_cdn.ejs /home/deployer/config/index_cdn.ejs"
+  when: sunbird_portal_cdn_url is defined and copy_file.changed
+  ignore_errors: yes
+
+- name: Deploy Player with updated player config
+  shell: docker service update --config-add source=index.ejs,target=/home/sunbird/app_dist/dist/index_cdn.ejs
+  when: sunbird_portal_cdn_url is defined and copy_file.changed
+  register: update_player
 
 - name: Deploy stack
   shell: "docker stack deploy -c stack_{{service_name}}.yml {{service_name}} --with-registry-auth"
   args:
     chdir: /home/deployer/stack
+  when: not update_player.changed
+
