@@ -1,5 +1,9 @@
+- name: install psycopg2
+  package:
+    name: python-psycopg2
+    state: present
 - name: ensure backup dir exists
-  file: path="{{ postgresql_backup_dir }}" state=directory owner={{ postgresql_user }} group={{ postgresql_user }}
+  file: path="{{ postgresql_backup_dir }}" state=directory mode=0777
 
 - set_fact:
     postgresql_backup_gzip_file_name: "postgresql_backup_{{ lookup('pipe', 'date +%Z-%Y-%m-%d-%H-%M-%S') }}"
@@ -7,17 +11,19 @@
 - set_fact:
     postgresql_backup_gzip_file_path: "{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}.zip"
 
-- name: Save backup
-  command: export PGPASSWORD="{{postgres_password}}"; pg_dump -U {{ postgres_admin_user }} -h {{ postgres_hostname }} -p 5432 {{ item }} > {{ item }}.sql
-  become_user: "{{ postgresql_user }}"
-  with_items: "{{ db_name.db }}"
-  args:
-    chdir: "{{ postgresql_backup_dir }}"
-  async: 3600
-  poll: 10
 
 - name: Create archive of backup directory
   archive: path="{{ postgresql_backup_dir }}/" dest="{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}.zip" format=zip
+
+- name: Dump an existing database to a file
+  postgresql_db:
+    login_user: "{{ sunbird_pg_user }}"
+    login_password: "{{ postgres_password }}"
+    login_host: "{{ postgres_hostname }}"
+    name: "{{ item }}"
+    state: dump
+    target: "/tmp/postgres/{{ item }}.sql"
+  with_items: "{{ db_name.db }}"
 
 - name: Ensure azure blob storage container exists
   command: az storage container create  --name {{ postgresql_backup_azure_container_name }}
