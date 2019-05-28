@@ -1,15 +1,19 @@
 ---
 - name: Save stack file
   template: src="stack_{{service_name}}.yml" dest="/home/deployer/stack/stack_{{service_name}}.yml" mode=0644
+  register: stackChange
+
+- name: Save env file
+  template: src="sunbird_{{service_name}}.env" dest="/home/deployer/env/sunbird_{{service_name}}.env" mode=0644
+  register: envChange
 
 - name: Save config file
   copy: src="{{cdn_file_path}}" dest="/home/deployer/config/index_cdn.ejs" mode=0644
-  when: sunbird_portal_cdn_url is defined
-  register: copy_file
-  ignore_errors: yes
+  when: sunbird_portal_cdn_url is not none  # Checking if variable is empty or not
+  register: indexFileChange
 
 - debug:
-    msg: "{{copy_file}}"
+    msg: "{{indexFileChange}}"
 
 - name: check if player is running
   shell: docker service ps player_player
@@ -19,11 +23,11 @@
 
 - name: Remove the cdn file from  player if it's present
   shell: docker service update --config-rm index_cdn.ejs player_player
-  when: copy_file.changed and playerRunning.rc == 0 and sunbird_portal_cdn_url is defined
+  when: indexFileChange.changed and playerRunning.rc == 0 and sunbird_portal_cdn_url is not none
 
 - name: Remove the existing config if it is present
   shell: docker config rm index_cdn.ejs
-  when: copy_file.changed and playerRunning.rc == 0 and sunbird_portal_cdn_url is defined
+  when: indexFileChange.changed and playerRunning.rc == 0 and sunbird_portal_cdn_url is not none
   ignore_errors: yes
 
 - name: Create the index_cdn.ejs file as a config
@@ -32,7 +36,7 @@
 
 - name: Deploy Player with updated player config
   shell: docker service update --config-add source=index_cdn.ejs,target=/home/sunbird/app_dist/dist/index_cdn.ejs player_player
-  when: sunbird_portal_cdn_url is defined and copy_file.changed and playerRunning.rc == 0
+  when: sunbird_portal_cdn_url is not none and indexFileChange.changed and playerRunning.rc == 0
   ignore_errors: yes
 
 - name: Deploy stack
