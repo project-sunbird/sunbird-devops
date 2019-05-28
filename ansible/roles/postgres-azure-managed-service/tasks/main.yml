@@ -21,9 +21,13 @@
     state: dump
     target: "/tmp/postgres/{{ item }}.sql"
   with_items: "{{ db_name.db }}"
+  async: 3600
+  poll: 10
 
 - name: Create archive of backup directory
   archive: path="{{ postgresql_backup_dir }}/" dest="{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}.zip" format=zip
+  async: 500
+  poll: 10
 
 - name: Ensure azure blob storage container exists
   command: az storage container create  --name {{ postgresql_backup_azure_container_name }}
