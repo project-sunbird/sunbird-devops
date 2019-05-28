@@ -1,11 +1,10 @@
 ---
+- name: Remove stack file 
+  shell: rm -rf /home/deployer/stack/stack_{{service_name}}.yml
+  ignore_errors: yes
+
 - name: Save stack file
   template: src="stack_{{service_name}}.yml" dest="/home/deployer/stack/stack_{{service_name}}.yml" mode=0644
-  register: stackChange
-
-- name: Save env file
-  template: src="sunbird_{{service_name}}.env" dest="/home/deployer/env/sunbird_{{service_name}}.env" mode=0644
-  register: envChange
 
 - name: Save config file
   copy: src="{{cdn_file_path}}" dest="/home/deployer/config/index_cdn.ejs" mode=0644
@@ -14,6 +13,12 @@
 
 - debug:
     msg: "{{indexFileChange}}"
+
+- name: Deploy stack
+  shell: "docker stack deploy -c stack_{{service_name}}.yml {{service_name}} --with-registry-auth"
+  args:
+    chdir: /home/deployer/stack
+  register: stackDeployed
 
 - name: check if player is running
   shell: docker service ps player_player
