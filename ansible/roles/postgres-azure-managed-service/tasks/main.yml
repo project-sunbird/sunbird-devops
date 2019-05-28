@@ -12,9 +12,6 @@
     postgresql_backup_gzip_file_path: "{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}.zip"
 
 
-- name: Create archive of backup directory
-  archive: path="{{ postgresql_backup_dir }}/" dest="{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}.zip" format=zip
-
 - name: Dump an existing database to a file
   postgresql_db:
     login_user: "{{ sunbird_pg_user }}"
@@ -24,6 +21,9 @@
     state: dump
     target: "/tmp/postgres/{{ item }}.sql"
   with_items: "{{ db_name.db }}"
+
+- name: Create archive of backup directory
+  archive: path="{{ postgresql_backup_dir }}/" dest="{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}.zip" format=zip
 
 - name: Ensure azure blob storage container exists
   command: az storage container create  --name {{ postgresql_backup_azure_container_name }}
