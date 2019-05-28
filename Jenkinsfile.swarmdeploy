@@ -1,0 +1,85 @@
+@Library('deploy-conf') _
+node() {
+    try {
+        // This stage will clone both public and private repo
+        stage('Initialize repos') {
+            cleanWs()
+            // Checking out public repo
+            checkout scm
+            // Below block is required to clone the private repo
+            // as it's mandatory to deploy cdn before player
+            // if cdn is enabled.
+            values = docker_params()
+            currentWs = sh(returnStdout: true, script: 'pwd').trim()
+            ansiblePlaybook = "$currentWs/ansible/deploy.yml"
+            ansibleExtraArgs = "--syntax-check"
+            values.put('currentWs', currentWs)
+            values.put('ansiblePlaybook', ansiblePlaybook)
+            values.put('ansibleExtraArgs', ansibleExtraArgs)
+            ansible_playbook_run(values)
+            archiveArtifacts 'metadata.json'
+            currentBuild.description = "${values.image_tag}"
+        }
+
+        if (params.cdn_enable == "true") {
+            stage('Deploy CDN') {
+                def filePath = "$WORKSPACE/ansible/inventory/env/common.yml"
+                cdnUrl = sh(
+                script: """
+                grep sunbird_portal_cdn_url $filePath | grep -v '^#' | grep --only-matching --perl-regexp 'http(s?):\\/\\/[^ \"\\(\\)\\<\\>]*' || true
+                """,
+                returnStdout: true
+                ).trim()
+                if ( cdnUrl == '' ) {
+                    println "cdn_enable variable is true, But no sunbird_portal_cdn_url in $filePath "
+                    error 'sunbird_portal_cdn_url is not set'
+                }
+                else {
+                println cdnUrl
+                    // Deriving commit_hash
+                    commitHash = sh(script:"jq -r '.commit_hash' metadata.json", returnStdout: true).trim()
+                    // Cloning sunbird portal
+                    dir('sunbird-portal'){
+                        // For custom urls, create jenkins parameter as portalGitUrl
+                        def sunbirdPortalUrl = params.portalGitUrl ?: 'https://github.com/Sunbird-Ed/SunbirdEd-portal.git'
+                        checkout([$class: 'GitSCM', branches: [[name: "$commitHash"]], userRemoteConfigs: [[url: "$sunbirdPortalUrl"]]])
+                        timestamps {
+                            sh ("docker run -v /etc/passwd:/etc/passwd -u `id -u`:`id -g` -v `pwd`:/var/lib/jenkins -w /var/lib/jenkins circleci/node:8.11-stretch sh ./build-cdn.sh ${cdnUrl} ${commitHash} ")
+                        }
+                    }
+                    // Uploading cdn assets to blob
+                    ansiblePlaybook = "$currentWs/ansible/assets-upload.yml"
+                    ansibleExtraArgs = "--extra-vars assets=$currentWs/sunbird-portal/src/app/dist --extra-vars cdn_file_path=$currentWs/sunbird-portal/src/app/dist/index_cdn.ejs --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    ansible_playbook_run(values)
+                }
+            }
+        }
+        stage('deploy') {
+            ansiblePlaybook = "$currentWs/ansible/deploy.yml"
+	        def filePath = "$WORKSPACE/ansible/inventory/env/common.yml"
+                cdnUrl = sh(
+                script: """
+                grep sunbird_portal_cdn_url $filePath | grep -v '^#' | grep --only-matching --perl-regexp 'http(s?):\\/\\/[^ \"\\(\\)\\<\\>]*' || true
+                """,
+                returnStdout: true
+                ).trim()
+                if ( cdnUrl == '' ) {
+		    ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                }
+                else {
+		    ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True cdn_file_path=$currentWs/sunbird-portal/src/app/dist/index_cdn.ejs\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+		}
+            values.put('ansiblePlaybook', ansiblePlaybook)
+            values.put('ansibleExtraArgs', ansibleExtraArgs)
+            ansible_playbook_run(values)
+            archiveArtifacts 'metadata.json'
+            currentBuild.description = "${values.image_tag}"
+        }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
