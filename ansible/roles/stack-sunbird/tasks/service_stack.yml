@@ -1,20 +1,19 @@
 ---
 - name: Remove stack file 
-  shell: rm -rf /home/deployer/stack/stack_{{service_name}}.yml
-  ignore_errors: yes
+  file: path=/home/deployer/stack/stack_{{service_name}}.yml state=absent
 
 - name: Save stack file
   template: src="stack_{{service_name}}.yml" dest="/home/deployer/stack/stack_{{service_name}}.yml" mode=0644
+
+- name: Remove cdn config file
+  file: path=/home/deployer/config/index_cdn.ejs state=absent
+  when: cdn_file_path is none
 
 - name: Save cdn config file
   copy: src="{{cdn_file_path}}" dest="/home/deployer/config/index_cdn.ejs" mode=0644
   when: sunbird_portal_cdn_url is not none and cdn_file_path is not none
   register: indexFileChange
  
-- name: Check cdn config file exists
-  stat: path=/home/deployer/config/index_cdn.ejs
-  register: cdn_file_existence
-
 - debug:
     msg: "{{indexFileChange}}"
 
@@ -25,16 +24,16 @@
 
 - name: Remove the cdn file from  player if it's present
   shell: docker service update --config-rm index_cdn.ejs player_player
-  when: indexFileChange.changed and sunbird_portal_cdn_url is not none and cdn_file_existence.stat.exists == True
+  when: indexFileChange.changed and sunbird_portal_cdn_url is not none and cdn_file_path is not none
 
 - name: Remove the existing config if it is present
   shell: docker config rm index_cdn.ejs
-  when: indexFileChange.changed and sunbird_portal_cdn_url is not none and cdn_file_existence.stat.exists == True
+  when: indexFileChange.changed and sunbird_portal_cdn_url is not none and cdn_file_path is not none
 
 - name: Create the new index_cdn.ejs file as a config
   shell: "docker config create index_cdn.ejs /home/deployer/config/index_cdn.ejs"
-  when: indexFileChange.changed and sunbird_portal_cdn_url is not none and cdn_file_existence.stat.exists == True
+  when: indexFileChange.changed and sunbird_portal_cdn_url is not none and cdn_file_path is not none
 
 - name: Deploy Player with updated player config
   shell: docker service update --config-add source=index_cdn.ejs,target=/home/sunbird/app_dist/dist/index_cdn.ejs player_player
-  when: sunbird_portal_cdn_url is not none and cdn_file_existence.stat.exists == True
+  when: sunbird_portal_cdn_url is not none and cdn_file_path is not none
