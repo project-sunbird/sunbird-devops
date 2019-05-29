@@ -22,15 +22,15 @@
 - debug:
     msg: "{{indexFileChange}}"
 
-- name: Remove the cdn file from player if it's present
+- name: Remove the existing CDN config from Player before updating
   shell: docker service update --config-rm index_cdn.ejs player_player
   when: indexFileChange.changed and sunbird_portal_cdn_url is not none and cdn_file_path is not none
 
-- name: Remove the existing config if it is present
+- name: Remove the existing CDN config
   shell: docker config rm index_cdn.ejs
   when: indexFileChange.changed and sunbird_portal_cdn_url is not none and cdn_file_path is not none
 
-- name: Create the new index_cdn.ejs file as a config
+- name: Create the new index_cdn.ejs file as a CDN config
   shell: "docker config create index_cdn.ejs /home/deployer/config/index_cdn.ejs"
   when: indexFileChange.changed and sunbird_portal_cdn_url is not none and cdn_file_path is not none
 
