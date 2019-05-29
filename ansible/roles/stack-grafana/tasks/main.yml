@@ -1,0 +1,32 @@
+---
+- name: Ensure stack directory exists
+  file:
+    path: /home/deployer/stack
+    state: directory
+    owner: root
+    group: root
+
+- name: Ensure config directory exists
+  file:
+    path: /home/deployer/config
+    state: directory
+    owner: root
+    group: root
+
+- name: Create grafana data dir
+  file: path=/var/dockerdata/grafana state=directory mode=755
+
+- name: Change ownership
+  command: chown -R 472 /var/dockerdata/grafana
+
+- name: Save stack file
+  template: src=stack-grafana.yml dest=/home/deployer/stack/stack-grafana.yml mode=0644
+
+- name: Remove stack
+  shell: "docker stack rm grafana"
+  ignore_errors: yes
+
+- name: Deploy stack
+  shell: "docker stack deploy -c stack-grafana.yml grafana"
+  args:
+    chdir: /home/deployer/stack

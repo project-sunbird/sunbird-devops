@@ -1,0 +1,15 @@
+groups:
+- name: alertrules.services
+  rules:
+  - alert: service_down
+    expr: probe_success == 0
+    for: 5m
+    annotations:
+      description: '{% raw %}{{ $labels.job }}{% endraw %}: The service is down.'
+      summary: Service down
+  - alert: service_flapping
+    expr: changes(probe_success[10m]) > 3
+    for: 5m
+    annotations:
+      description: 'The service status has changed {% raw %}{{$value}}{% endraw %} times in last 5 minutes. Threshold is : 3'
+      summary: Service flapping

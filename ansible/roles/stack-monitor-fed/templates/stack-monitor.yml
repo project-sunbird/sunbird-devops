@@ -1,0 +1,225 @@
+version: "3.3"
+
+services:
+    prometheus:
+        image: quay.io/prometheus/prometheus:v1.7.1
+        ports:
+            - "9090:9090"
+        networks:
+            - application_default
+        volumes:
+            - /mnt/dockerdata/prometheus/data/:/prometheus
+        command: "-config.file=/etc/prometheus/prometheus.yml -alertmanager.url http://alertmanager:9093/alertmanager -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -storage.local.target-heap-size=15728640 -storage.local.retention={{prometheus_storage_retention_time}} -web.console.templates=/etc/prometheus/consoles -web.route-prefix={{prometheus_route_prefix}} -web.external-url={{prometheus_web_external_url}} -storage.local.max-chunks-to-persist=1572864 -storage.local.memory-chunks=3145728 -storage.local.checkpoint-dirty-series-limit=25000"
+        configs:
+            - source: prometheus.yml
+              target: /etc/prometheus/prometheus.yml
+            - source: alertrules.nodes
+              target: /etc/prometheus-rules/alertrules.nodes
+            - source: alertrules.task
+              target: /etc/prometheus-rules/alertrules.task
+            - source: alertrules.process
+              target: /etc/prometheus-rules/alertrules.process
+            - source: alertrules.es
+              target: /etc/prometheus-rules/alertrules.es
+            - source: alertrules.logs
+              target: /etc/prometheus-rules/alertrules.logs
+            - source: alertrules.backups
+              target: /etc/prometheus-rules/alertrules.backups
+{% if groups['postgresql-master'] is defined %}
+            - source: alertrules.postgresql
+              target: /etc/prometheus-rules/alertrules.postgresql
+{% endif %}
+            - source: alertrules.services
+              target: /etc/prometheus-rules/alertrules.services
+            - source: alertrules.kong
+              target: /etc/prometheus-rules/alertrules.kong
+            - source: alertrules.docker
+              target: /etc/prometheus-rules/alertrules.docker
+        deploy:
+            replicas: 1
+            placement:
+                constraints:
+                    - "node.labels.prometheus==1"
+            resources:
+              reservations:
+                memory: "{{ prometheus_reservation_memory }}"
+              limits:
+                memory: "{{ prometheus_limit_memory }}"
+
+    alertmanager:
+        image: prom/alertmanager:v0.8.0
+        ports:
+            - "9093:9093"
+        networks:
+            - application_default
+        volumes:
+            - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
+        command: "-config.file=/etc/alertmanager/alertmanagerconfig.yml -storage.path=/alertmanager/data -web.route-prefix={{prometheus_alertmanager_route_prefix}} -web.external-url={{prometheus_alertmanager_web_external_url}}"
+        configs:
+            - source: alertmanagerconfig.yml
+              target: /etc/alertmanager/alertmanagerconfig.yml
+        deploy:
+            replicas: 1
+            placement:
+                constraints:
+                    - "node.labels.alertmanager==1"
+            resources:
+              reservations:
+                memory: "{{ alertmanager_reservation_memory }}"
+              limits:
+                memory: "{{ alertmanager_limit_memory }}"
+
+    blackbox-exporter:
+        image: quay.io/prometheus/blackbox-exporter:v0.8.1
+        ports:
+            - "9115:9115"
+        command: "--config.file=/etc/blackbox-exporter/blackboxconfig.yml"
+        networks:
+            - application_default
+        configs:
+            - source: blackboxconfig.yml
+              target: /etc/blackbox-exporter/blackboxconfig.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ blackbox_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ blackbox_exporter_limit_memory }}"
+
+    cadvisor:
+        image: google/cadvisor:v0.25.0
+        ports:
+            - "8081:8080"
+        networks:
+            - application_default
+        volumes:
+            - /:/rootfs:ro
+            - /var/run:/var/run:rw
+            - /sys:/sys:ro
+            - /var/lib/docker/:/var/lib/docker:ro
+        deploy:
+            mode: global
+            resources:
+                reservations:
+                    memory: "{{ cadvisor_reservation_memory }}"
+                limits:
+                    memory: "{{ cadvisor_limit_memory }}"
+
+    statsd_exporter:
+        image: prom/statsd-exporter:v0.5.0
+        ports:
+            - 9102:9102
+            - 9125:9125
+            - 9125:9125/udp
+        networks:
+            - application_default
+        command:
+            - '-statsd.mapping-config=/etc/statsd_exporter/statsd_mapping.yml'
+        configs:
+            - source: statsd_mapping.yml
+              target: /etc/statsd_exporter/statsd_mapping.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ statsd_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ statsd_exporter_limit_memory }}"
+
+    kong_cluster_exporter:
+        image: sunbird/prometheus-jsonpath-exporter:v0.0.1
+        ports:
+            - 9158:9158
+        networks:
+            - application_default
+        command: /etc/kong_cluster_exporter/config.yml
+        configs:
+            - source: kong_cluster_exporter_config.yml
+              target: /etc/kong_cluster_exporter/config.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ jsonpath_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ jsonpath_exporter_limit_memory }}"
+
+    logstash:
+        image: sunbird/logstash:2.4.1
+        command: logstash -f /conf/logstash.conf
+        environment:
+            - LOGSPOUT=ignore
+            - LS_HEAP_SIZE={{ monitor_logstash_heap_size }}
+        configs:
+            - source: monitor_logstash.conf
+              target: /conf/logstash.conf
+            - source: monitor_logstash_grok_patterns
+              target: /conf/grok_patterns
+        ports:
+            - '51416:51415'
+            - '5045:5044'
+        networks:
+            - application_default
+        deploy:
+            replicas: {{ monitor_logstash_replicas }}
+            resources:
+                reservations:
+                    memory: "{{ monitor_logstash_reservation_memory }}"
+                limits:
+                    memory: "{{ monitor_logstash_limit_memory }}"
+
+    logspout:
+        image: gliderlabs/logspout:v3.2.3
+        command: syslog+tcp://monitor_logstash:51415?filter.name=*_proxy.*
+        deploy:
+            mode: global
+            resources:
+                reservations:
+                    memory: "{{ monitor_logspout_reservation_memory }}"
+                limits:
+                    memory: "{{ monitor_logspout_limit_memory }}"
+        environment:
+            - SYSLOG_FORMAT=rfc3164
+        depends_on:
+            - monitor_logstash
+        volumes:
+            - '/var/run/docker.sock:/tmp/docker.sock'
+        networks:
+            - application_default
+
+configs:
+  prometheus.yml:
+    external: true
+  alertrules.nodes:
+    external: true
+  alertrules.task:
+    external: true
+  alertrules.es:
+    external: true
+  alertrules.logs:
+    external: true
+  alertrules.backups:
+    external: true
+  alertrules.kong:
+    external: true
+  alertrules.services:
+    external: true
+  alertrules.docker:
+    external: true
+  alertmanagerconfig.yml:
+    external: true
+  blackboxconfig.yml:
+    external: true
+  statsd_mapping.yml:
+    external: true
+  kong_cluster_exporter_config.yml:
+    external: true
+  monitor_logstash.conf:
+    external: true
+  monitor_logstash_grok_patterns:
+    external: true
+  alertrules.process:
+    external: true
+
+  
+networks:
+    application_default:
+        external: true

@@ -1,3 +1,3 @@
 #!/bin/sh
 # return version
-echo '{"name":"kong","version":"1.5.0-gold","org":"sunbird","hubuser":"purplesunbird"}'
+echo '{"name":"kong","version":"0.10.3","org":"sunbird","hubuser":"purplesunbird"}'

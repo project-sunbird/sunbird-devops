@@ -1,0 +1,24 @@
+---
+- name: "Start Nodemanager on Slaves"
+  hosts: "yarn-slave"
+  vars:
+    hadoop_version: 2.7.2
+  become: yes
+  tasks:
+    - name: Ensure yarn nodemanager is running
+      become_user: hduser
+      shell: |
+         (ps aux | grep yarn-hduser-nodemanager | grep -v grep) || /usr/local/hadoop/sbin/yarn-daemon.sh --config /usr/local/hadoop-{{hadoop_version}}/conf/ start nodemanager || sleep 10
+
+    - name: install imagemagick
+      apt: name=imagemagick state=present update_cache=yes
+
+- name: "Deploy Samza jobs"
+  hosts: "yarn-master"
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  vars:
+    deploy_jobs: true
+  roles:
+    - samza-jobs
