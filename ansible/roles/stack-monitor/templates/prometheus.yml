@@ -39,6 +39,9 @@ scrape_configs:
       - source_labels: [name]
         regex: '^\s*$'
         action: drop
+  - job_name: 'vm-node-exporter'
+    static_configs:
+      - targets: ["{{ groups['swarm-nodes'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9100') | list | join("\", \"") }}"]
 
   - job_name: 'alertmanager'
     metrics_path: /alertmanager/metrics
