@@ -86,7 +86,7 @@
                         if(sessionTenant){
                             var imgSrc = "${url.resourcesPath}/img/tenants/"+sessionTenant+".png";
                         }else{
-                            var imgSrc = "${url.resourcesPath}/img/diksha_gov_logo.svg";
+                            var imgSrc = "${url.resourcesPath}/img/appLogo.png";
                         }
 
                         var logoImg =  document.querySelector(".ui.header img");
