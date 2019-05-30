@@ -1,12 +1,9 @@
----
 - name: Make sure monit directory exists
-  become: yes
   file:
     path: /etc/monit/conf.d 
     state: directory
 
 - name: Copying Monit binary init and config
-  become: yes
   copy:
     src: "{{item.src}}"
     dest: "{{item.dest}}"
@@ -19,18 +16,15 @@
     - { src: 'files/force_kill', dest: '/usr/local/bin', mode: '0755' } 
 
 - name: Softlinking montrc for monit
-  become: yes
   file:
     src: /etc/monit/monitrc
     dest: /etc/monitrc
     state: link
 
 - name: starting monit at boot time
-  become: yes
   command: update-rc.d monit defaults
 
 - name: Copy monit scripts to the destination
-  become: yes
   template:
     src: monit_template
     dest: "/etc/monit/conf.d/{{vars[item].app_name}}.conf"
@@ -38,7 +32,6 @@
     - "{{service.split(',')}}"
 
 #- name: Copying slack.sh
- # become: yes
  # template:
   #  src: slack.sh
    # dest: /usr/local/bin
