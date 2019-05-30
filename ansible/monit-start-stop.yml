@@ -2,7 +2,41 @@
 - hosts: "{{ host }}"
   become: yes
   tasks:
-    - service:
+    - name: monit start or stop 
+      service:
         name: monit
         state: "{{state}}"
       ignore_errors: yes 
+      tags:
+        - start-stop-monit
+
+    - name: check service status
+      command: service monit status
+      register: monit_service_status
+      tags:
+        - status
+    
+    - name: print status
+      debug: msg="monit is running"
+      when: monit_service_status.stdout.find("running") != -1
+      tags:
+        - status
+    
+    - name: print status
+      debug: msg="monit is not running"
+      when: monit_service_status.stdout.find("running") == -1
+      tags:
+        - status
+    
+    - name: monit status
+      command: monit status
+      register: monit_status
+      when: monit_service_status.stdout.find("running") != -1
+      tags:
+        - status
+    
+    - name: print monit status
+      debug: var=monit_status.stdout_lines
+      tags:
+        - status
+  serial: 1   
