@@ -20,9 +20,11 @@
       archive:
         path: "{{federation_prometheus_data_dir}}"
         dest: "{{prometheus_backup_gzip_file_path}}"
+      async: 3600
+      poll: 10
   always:
     - name: ensure prometheus is started after backup
-      shell: "docker service scale monitor_prometheus=1"
+      shell: "docker service scale {{prometheus_service_name}}=1"
       delegate_to: "{{swarm_dashboard}}"
 
 - name: Ensure azure blob storage container exists
