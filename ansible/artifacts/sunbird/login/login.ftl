@@ -6,6 +6,20 @@
     <#elseif section = "form">
     <#if realm.password>
     <div class="ui raised shadow container segment fullpage-background-image">
+        <#if realm.internationalizationEnabled>
+                <div id="kc-locale" class="${properties.kcLocaleClass!}">
+                    <div id="kc-locale-wrapper" class="${properties.kcLocaleWrapperClass!}">
+                        <div class="kc-dropdown" id="kc-locale-dropdown">
+                            <a href="#" id="kc-current-locale-link">${locale.current}</a>
+                            <ul>
+                                <#list locale.supported as l>
+                                    <li class="kc-dropdown-item"><a href="${l.url}">${l.label}</a></li>
+                                </#list>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </#if>
         <div class="ui three column grid stackable">
             <div class="ui column tablet only computer only"></div>
             <div class="ui column height-fix">
@@ -59,7 +73,7 @@
                     <#if realm.resetPasswordAllowed>
                         <a id="versionLink" class="ui right floated forgetPasswordLink" onclick="javascript:storeLocation(); javascript:makeDivUnclickable()" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
                     </#if>
-                    <div id="selfSingUp" class="hide">
+                    <div id="selfSingUp1">
                         <p class="or mb-30 mt-30 textCenter">OR</p>
                         <div class="field">
                             <#if realm.password && social.providers??>
@@ -73,7 +87,7 @@
                             </#if>
                             <button type="button" class="ui fluid blue basic button googleButton" onclick="redirect('/google/auth')">
                             <img class="signInWithGoogle" src="${url.resourcesPath}/img/google.png">
-                            ${msg("doSignIn")} ${msg("doSignWithGoogle")}
+                            ${msg("doSignWithGoogle")}
                             </button>
 							<button type="button" id="stateButton" class="ui fluid blue basic button googleButton stateButton hide" onclick="handleSsoEvent()">
 								${msg("doSignWithState")}
