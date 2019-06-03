@@ -1,20 +1,44 @@
-- hosts: swarm-agent-for-prometheus
+- name: Creating prometheus configuration folder
+  hosts: swarm-agent-for-prometheus
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   tasks:
     - name: Create prometheus data dir
-      file: path=/mnt/dockerdata/prometheus/data/ state=directory mode=755
+      file:
+        path: "{{ prometheus_mount_point }}"
+        state: directory
+        mode: 0755
+        owner: 'nobody'
+        group: 'nogroup'
   tags:
     - prometheus
 
-- hosts: swarm-agent-for-grafana
+- name: Creating prometheus-stateful configuration folder
+  hosts: swarm-agent-for-prometheus-stateful
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Create prometheus data dir
+      file:
+        path: "{{ prometheus_stateful_mount_point }}"
+        state: directory
+        mode: 0755
+        owner: 'nobody'
+        group: 'nogroup'
+  tags:
+    - prometheus
+
+- hosts: swarm-agent-dashboard
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   tasks:
     - name: Create grafana data dir
       file: path=/var/dockerdata/grafana state=directory mode=755
+    - name: Change ownership
+      command: chown -R 472 /var/dockerdata/grafana
   tags:
     - grafana
 
@@ -24,28 +48,73 @@
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   tasks:
     - name: Create alertmanager data dir
-      file: path=/var/dockerdata/alertmanager/data state=directory mode=755
+      file:
+        path: /var/dockerdata/alertmanager/data
+        state: directory
+        mode: 0755
+  tags:
+    - alertmanager
+
+- hosts: alertmanager_stateful
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Create alertmanager data dir
+      file:
+        path: /var/dockerdata/stateful_alertmanager/data
+        state: directory
+        mode: 0755
   tags:
     - alertmanager
 
 - hosts: swarm-bootstrap-manager
+  gather_facts: false
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   tasks:
     - name: Add label for prometheus node
-      command: "docker node update --label-add prometheus=1 {{ hostvars[groups['swarm-agent-for-prometheus'][0]]['ansible_hostname'] }}"
-    - name: Add label for grafana node
-      command: "docker node update --label-add grafana=1 {{ hostvars[groups['swarm-agent-for-grafana'][0]]['ansible_hostname'] }}"
-    - name: Remove old style label for alertmanager node
-      command: "docker node update --label-rm monitor {{ hostvars[groups['swarm-agent-for-alertmanager'][0]]['ansible_hostname'] }}"
-      ignore_errors: true
+      shell: "docker node update --label-add prometheus=1 {{ hostvars[groups['swarm-agent-for-prometheus'][0]]['ansible_hostname'] }}"
     - name: Add label for alertmanager node
-      command: "docker node update --label-add alertmanager=1 {{ hostvars[groups['swarm-agent-for-alertmanager'][0]]['ansible_hostname'] }}"
+      shell: "docker node update --label-add alertmanager=1 {{ hostvars[groups['swarm-agent-for-alertmanager'][0]]['ansible_hostname'] }}"
   tags:
     - monitor-labels
+  run_once: true
+
+- name: labelling grafana and stateful prom
+  hosts: swarm-dashboard
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Add label for grafana node
+      command: "docker node update --label-add grafana=1 {{ hostvars[groups['swarm-agent-dashboard'][0]]['ansible_hostname'] }}"
+    - name: Adding label for stateful prometheus
+      shell: "docker node update --label-add prometheus_stateful=1 {{ hostvars[groups['swarm-agent-for-prometheus-stateful'][0]]['ansible_hostname'] }}"
+    - name: Adding label for stateful alertmanager
+      shell: "docker node update --label-add alertmanager_stateful=1 {{ hostvars[groups['alertmanager_stateful'][0]]['ansible_hostname'] }}"
+  tags:
+    - grafana-label
+  run_once: true
+
+- name: labelling grafana and stateful prom
+  hosts: swarm-dashboard
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  tasks:
+    - name: Add label for grafana node
+      command: "docker node update --label-add grafana=1 {{ hostvars[groups['swarm-agent-dashboard'][0]]['ansible_hostname'] }}"
+    - name: Adding label for stateful prometheus
+      shell: "docker node update --label-add prometheus_stateful=1 {{ hostvars[groups['swarm-agent-for-prometheus-stateful'][0]]['ansible_hostname'] }}"
+    - name: Adding label for stateful alertmanager
+      shell: "docker node update --label-add alertmanager_stateful=1 {{ hostvars[groups['alertmanager_stateful'][0]]['ansible_hostname'] }}"
+  tags:
+    - grafana-label
 
 - hosts: swarm-bootstrap-manager
+  gather_facts: false
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
@@ -54,9 +123,53 @@
     - {role: 'monit', monit_checks: ['alertmanager', 'prometheus']}
   tags:
     - stack-monitor
+  run_once: true
+
+- name: Deploying stateful monitoring
+  hosts: swarm-dashboard
+  gather_facts: false
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - stack-monitor-stateful
+  tags:
+    - stack-monitor-stateful
+  run_once: true
+
+- hosts: swarm-dashboard
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - stack-grafana
+  tags:
+    - stack-grafana
+  run_once: true
+
+- name: Deploying stateful monitoring
+  hosts: swarm-dashboard
+  gather_facts: false
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - stack-monitor-stateful
+  tags:
+    - stack-monitor-stateful
+
+- hosts: swarm-dashboard
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - stack-grafana
+  tags:
+    - stack-grafana
 
 - hosts: all
   become: yes
+  gather_facts: false
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   roles:
@@ -73,7 +186,8 @@
   tags:
     - metrics-exporter
 
-- hosts: swarm-bootstrap-manager
+- hosts: swarm-dashboard
+  gather_facts: false
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml','secrets/{{env}}.yml']

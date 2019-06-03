@@ -1,3 +1,10 @@
+- name: Spray cluster name to nodes
+  hosts: swarm-nodes
+  become: yes
+  tasks:
+  - copy: dest=/home/deployer/cluster_name content="{{ cluster_name }}"
+    when: cluster_name is defined
+
 - hosts: swarm-bootstrap-manager
   become: yes
   vars_files:
@@ -6,6 +13,16 @@
     - stack-logger
   tags:
     - stack-logger
+  run_once: true
+
+- hosts: swarm-agent-dashboard
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - stack-kibana
+  tags:
+    - stack-kibana
 
 - hosts: log-forwarder
   become: yes
@@ -15,14 +32,3 @@
     - vm-agents-filebeat
   tags:
     - log-forwarder
-
-- hosts: log-es
-  become: yes
-  vars_files:
-    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-  roles:
-    - java8
-    - application_logger_elasticsearch
-  tags:
-    - log-es
-

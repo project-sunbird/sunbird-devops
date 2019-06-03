@@ -40,14 +40,20 @@ node() {
                     }
                 }
                 stage('deploy artifact'){
-                    withCredentials([usernamePassword(credentialsId: 'az-blob-credentials', passwordVariable: 'azure_account_key', usernameVariable: 'azure_account_name')]) {
                     sh """
                        unzip ${artifact}
                        unzip content-plugins.zip
                        chmod a+x content-plugins/az_copy.sh
-                       bash -x content-plugins/az_copy.sh ${params.container_name}
+                       mv content-plugins ansible
                     """
-                   }
+
+                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                      ansibleExtraArgs = "--tags plugins --extra-vars \" source_file=${currentWs}/ansible/content-plugins  az_file_path=${currentWs}/ansible/content-plugins/az_copy.sh\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                      values.put('ansiblePlaybook', ansiblePlaybook)
+                      values.put('ansibleExtraArgs', ansibleExtraArgs)
+                      println values
+                      ansible_playbook_run(values)
+
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "${values.artifact_version}"

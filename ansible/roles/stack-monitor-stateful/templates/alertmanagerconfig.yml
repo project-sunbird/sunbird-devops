@@ -1,0 +1,49 @@
+global:
+  resolve_timeout: 5m
+  smtp_from: "{{ monitor_alerts_mail_from_email }}"
+  smtp_smarthost: "{{ monitor_alerts_mail_server_host }}:{{ monitor_alerts_mail_server_port}}"
+  smtp_auth_username: "{{ monitor_alerts_mail_server_username }}"
+  smtp_auth_password: "{{ monitor_alerts_mail_server_password }}"
+  smtp_require_tls: true
+
+route:
+  receiver: 'devops_team'
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+  - receiver: slack
+    continue: true
+  {% for item in service_teams %}
+  # Dummy comment line to ensure yaml generated from ansible template has proper indentation
+  - match_re:
+      container_label_com_docker_swarm_service_name: "{{ item.services | join('|') }}"
+    receiver: "{{ item.team }}"
+  - match_re:
+      service_name: "{{ item.services | join('|') }}"
+    receiver: "{{ item.team }}"
+  {% endfor %}
+  # Dummy comment line to ensure yaml generated from ansible template has proper indentation
+  - match:
+      owner:
+    receiver: devops_team
+
+receivers:
+  - name: 'slack'
+    slack_configs:
+      - send_resolved: true
+        api_url: "{{ monitor_alerts_slack_url }}"
+        username: 'Monitor - Alerter'
+        channel: "{{ monitor_alerts_slack_channel }}"
+        text: "Instances: {% raw %}{{range .Alerts}}\n{{.Labels.nodename}} : {{.Annotations.description}}{{end}}{% endraw %}"
+        icon_emoji: ':dart:'
+  {% for item in service_teams %}
+  # Dummy comment line to ensure yaml generated from ansible template has proper indentation
+  - name: "{{ item.team }}"
+    email_configs:
+      - send_resolved: true
+        to: '{{ item.alerts_mailing_list }}'
+        html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+        headers:
+          subject: '[{{ env }}] {% raw %}{{ template "email.default.subject" . }}{% endraw %}'
+  {% endfor %}

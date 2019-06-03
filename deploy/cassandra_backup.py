@@ -46,7 +46,7 @@ def copy():
     '''
     Copying the data sanpshots to the target directory
     '''
-    root_levels = args.datadirectory.count(sep)
+    root_levels = args.datadirectory.rstrip('/').count(sep)
     ignore_list = compile(tmpdir+sep+"cassandra_backup"+sep+'(system|system|systemtauth|system_traces|system_schema|system_distributed)')
 
     try:

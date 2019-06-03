@@ -6,7 +6,7 @@ keycloak_auth_server_url: "{{proto}}://{{ proxy_server_name }}/auth"
 sunbird_echo_api_url: "{{proto}}://{{ proxy_server_name }}/api/echo/"
 sunbird_web_url: "{{proto}}://{{ proxy_server_name }}"
 sunbird_dataservice_url: "{{proto}}://{{ proxy_server_name }}/api/"
-api_proxy_name: "{{proto}}://api.{{proxy_server_name}}"    # Domain name on which device register and other api's will be accessed
+api_proxy_name: "api.{{proxy_server_name}}"    # Domain name on which device register and other api's will be accessed
 swarm_load_balancer: "{{proxy_server_name}}"
 proxy_site_key: "{{ core_vault_proxy_site_key }}"  #SSL certificate's site.key file contents. More details in this wiki: {{proto}}://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 proxy_site_crt: "{{ core_vault_proxy_site_crt }}"  #SSL certificate's site.crt file contents. More details in this wiki: {{proto}}://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
@@ -17,6 +17,15 @@ env_short_name: "{{env}}"
 sunbird_env: "{{env}}"                   #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
 sunbird_app_name: "{{env}}"
 azure_account_key: "{{core_vault_sunbird_azure_storage_key}}"
+
+#artifact upload
+artifact_azure_account_name: "{{core_artifact_azure_account_name}}"
+artifact_azure_account_key: "{{core_vault_artifact_azure_account_key}}"
+
+
+#plugins
+azure_plugin_storage_account_name: "{{azure_account_name}}"
+azure_plugin_storage_account_key: "{{core_vault_sunbird_azure_storage_key}}"
 
 # Keycloak
 keycloak_api_management_user_first_name: "admin"
@@ -36,14 +45,17 @@ sunbird_keycloak_required_action_link_expiration_seconds: 2592000
 sunbird_es_port: 9300
 mail_server_port: 587
 upstream_url: "{{azure_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}"
+
 ## Mailing list
 # !! Override for specific alert groups; Default will be alerts_mailing_list
-monitor_alerts_slack_channel:
-app_alerts_mailing_list: ""
-devops_alerts_mailing_list: ""
-site_alerts_mailing_list: ""
-keycloak_alerts_mailing_list: ""
-api_manager_alerts_mailing_list: ""
+# Enable below override below variables in common.yml for team specific alerts
+
+# monitor_alerts_slack_channel: ""
+# app_alerts_mailing_list: ""
+# devops_alerts_mailing_list: ""
+# site_alerts_mailing_list: ""
+# keycloak_alerts_mailing_list: ""
+# api_manager_alerts_mailing_list: ""
 
 # Learner
 sunbird_user_profile_field_default_visibility: private
@@ -100,7 +112,7 @@ kong_host: api-manager_kong
 application_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 keycloak_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 kong_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
-sunbird_cassandra_host: "{{groups['cassandra'][0]}}"  #Private IP of Cassandra server
+sunbird_cassandra_host: "{{groups['cassandra']|join(',')}}"  #Private IP of Cassandra server
 sunbird_es_host: "{{groups['es']| join(',')}}"
 
 ## Application server configurations
@@ -165,7 +177,7 @@ sunbird_pg_port: 5432
 sunbird_pg_password: "{{ core_vault_postgres_password }}"
 sunbird_sunbird_quartz_mode: cluster
 sunbird_encryption_mode: local
-sunbird_cassandra_urls: "{{ cassandra_server_private_ip }}:{{ cassandra_port }}"
+sunbird_cassandra_urls: "{{ groups['cassandra']|join(':9042,')}}:9042"
 sunbird_session_store_type: cassandra
 sunbird_keycloak_client_id: 'portal'
 sunbird_keycloak_public: true
@@ -255,7 +267,8 @@ proxy_prometheus: false
 enable_scraping_docker_metrics: false
 postgres_exporter_postgres_port: 5432
 postgres_exporter_user: postgres_exporter
-sunbird_cs_base_url: "{{proto}}://{{proxy_server_name}}/api"
+sunbird_cs_base_url: "http://{{groups['swarm-manager'][0]}}:5000"
+sunbird_user_service_base_url: "http://{{groups['swarm-manager'][0]}}:9000"
 kong_admin_api_url: http://localhost:8001
 
 postgresql_backup_azure_storage_account_name: "{{azure_account_name}}"
@@ -349,7 +362,7 @@ sunbird_device_register_api: "{{proto}}://{{api_proxy_name}}/v3/device/register/
 sunbird_course_batch_notification_signature: sunbird
 
 sunbird_authorization: "{{core_vault_sunbird_api_auth_token}}"
-sunbird_lms_base_url: "{{proto}}://{{proxy_server_name}}/api"
+sunbird_lms_base_url: "http://{{groups['swarm-manager'][0]}}:8000"
 sunbird_content_service_local_base_url: http://content-service:5000
 sunbird_kafka_host: "{{groups['kafka']|join(':9092,')}}:9092"
 sunbird_qrimage_topic: "{{env}}.qrimage.request"
@@ -428,7 +441,7 @@ content_service_blacklisted_resourcetype: ''
 content_service_whitelisted_resourcetype: ''
 content_service_whitelisted_mimetype: ''
 content_service_blacklisted_mimetype: ''
-prometheus_storage_retention_time: 72h0m0s
+prometheus_storage_retention_time: 3d
 sunbird_cloud_storage_urls: 'https://s3.ap-south-1.amazonaws.com/ekstep-public-{{ekstep_s3_env}}/,https://ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com/,https://{{azure_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}/'
 sunbird_email_max_recipients_limit: 100
 sunbird_cassandra_consistency_level: one
@@ -544,6 +557,28 @@ backup_azure_storage_access_key: "{{core_vault_azure_storage_secret}}"
 app_es_snapshot_host: "{{ groups['es'][0] }}"
 app_snapshot_base_path: applicationelasticsearch
 
+sunbird_es_host: "{{ groups['es'][0] }}"
+
 #log es backup
 log_es_snapshot_host: "{{ groups['log-es'][0] }}"
 log_snapshot_base_path: loggerelasticsearch
+sunbird_health_check_enable: 'true'
+
+## Release 1.15 ##
+sunbird_keycloak_user_federation_provider_id: "{{core_vault_sunbird_keycloak_user_federation_provider_id}}"
+# Learner-service
+sunbird_course_metrics_base_url: https://{{dp_azure_account_name}}.blob.core.windows.net/
+sunbird_gzip_size_threshold: 262144
+prometheus_mount_point: "/root/dockerdata/prometheus/data/"
+
+## Release 2.0 ##
+swarm_dashboard: "{{ groups['swarm-dashboard-1'][0] }}"
+prometheus_stateful_mount_point: /root/dockerdata/prometheus_stateful/data/
+
+sunbird_processing_kafka_host:  "{{groups['processing-cluster-kafka']|join(':9092,')}}:9092"
+sunbird_sso_kafka_topic: "{{env_name}}.lms.sso.events"
+__yarn_host__: "{{ groups['yarn-master'][0] }}"
+zookeepers: "{{groups['zookeeper']|join(':2181,')}}:2181"
+kafka_brokers: "{{groups['processing-cluster-kafka']|join(':9092,')}}:9092"
+__lms_host__: "http://{{ groups['swarm-manager'][0] }}:9000"
+sunbird_redis_host: "{{ groups['lp-redis'][0] }}"
