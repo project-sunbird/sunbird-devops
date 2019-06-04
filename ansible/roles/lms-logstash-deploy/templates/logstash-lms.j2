@@ -1,0 +1,26 @@
+input {
+  file {
+        start_position =>"beginning"
+        path => ["{{ lms_audit_log_file_path }}"]
+        sincedb_path => "{{ logstash_home }}/lms/event_state/.sincedb_{{lms_audit_log_file_name}}"
+    }
+}
+
+filter {
+  json {
+        source => "message"
+    }
+}
+
+output {
+  kafka {
+          bootstrap_servers => "{{lms_kafka_url}}"
+          codec => plain {
+                  format => "%{message}"
+          }
+          message_key => "%{identifier}"
+          topic_id => "{{lms_kafka_topic_id}}"
+          retries => 20
+          retry_backoff_ms => 180000
+      } 
+}
