@@ -1,37 +1,3 @@
-- name: Status service
-  become: yes
-  command: /etc/init.d/keycloak status
-  register: keycloak
-  poll: 5
-  async: 10
-
-- name: Stop service
-  become: yes
-  command: /etc/init.d/keycloak stop && Pkill keycloak
-  when: "keycloak.stdout.find('running') != -1"
-  poll: 5
-  async: 10
-  ignore_errors: yes
-
-- name: Remove keycloak
-  become: yes
-  file: path="{{keycloak_home}}" state=absent owner={{wildfly_user}} group={{wildfly_group}} force=yes
-
-- name: Paste keycloak package on server
-  copy: src="{{artifact_path}}" dest="/opt/" force=no owner={{wildfly_user}} group={{wildfly_group}} force=yes
-
-- name: Extarct the folder
-  unarchive: src="/opt/{{artifact}}" dest=/opt/ copy=no owner={{wildfly_user}} group={{wildfly_group}}
-
-- name: Move the folder name
-  command: mv sunbird_auth_{{sunbird_auth_version}} keycloak
-  args:
-       chdir: /opt
-
-- name: Remove the opt/{{artifact}}
-  become: yes
-  file: path=/opt/{{artifact}} state=absent force=yes
-
 - name: Create required directories
   file:
    path: "{{ item.dest }}"
@@ -63,7 +29,6 @@
     path: sunbird_auth_{{sunbird_auth_version}}.config
     state: directory
     mode: 0755
-    force: yes
 
 - name: Keycloak configuration XML file
   template:
@@ -83,6 +48,21 @@
     dest: "sunbird_auth_{{sunbird_auth_version}}.config/Msg91Creds.json"
     mode: 0755
   when: "{{ msg_91_required|default(false) }}"
+  ignore_errors: yes
+
+- name: status service
+  become: yes
+  command: /etc/init.d/keycloak status
+  register: keycloak
+  poll: 5
+  async: 10
+
+- name: stop service
+  become: yes
+  command: /etc/init.d/keycloak stop && Pkill keycloak
+  when: "keycloak.stdout.find('running') != -1"
+  poll: 5
+  async: 10
   ignore_errors: yes
 
 - name: Keycloak configuration XML file
@@ -122,11 +102,7 @@
   when: "{{ msg_91_required|default(false) }}"
   ignore_errors: yes
 
-- name: Remove the sunbird_auth_{{sunbird_auth_version}}.config
-  become: yes
-  file: path=./sunbird_auth_{{sunbird_auth_version}}.config state=absent force=yes
-
-- name: Start service
+- name: start service
   become: yes
   command: /etc/init.d/keycloak start
   poll: 5
