@@ -18,6 +18,7 @@ node() {
                 stage('get artifact') {
                     currentWs = sh(returnStdout: true, script: 'pwd').trim()
                     artifact = values.artifact_name + ":" + values.artifact_version
+                    commit_hash = values.artifact_version.split('_')[1]
                     values.put('currentWs', currentWs)
                     if (params.artifact_source == "ArtifactRepo") {
                         println(ANSI_BOLD + ANSI_YELLOW + '''\
@@ -40,18 +41,28 @@ node() {
                     }
                 }
                 stage('deploy artifact'){
-                    withCredentials([usernamePassword(credentialsId: 'az-blob-credentials', passwordVariable: 'azure_account_key', usernameVariable: 'azure_account_name')]) {
                     sh """
                       unzip ${artifact}
                       unzip -o content-editor.zip -d content-editor
                       export editor_version_number=${values.artifact_version}
+                      export build_number=${commit_hash}
                       sed -i -e 's/dispatcher:\"console\"/dispatcher:\"piwik\"/g' content-editor/scripts/*
-                      sed -i 's:/api:/action:g' content-editor/scripts/base-editor.min.*.js
-                      sed -i 's/useProxyForURL:true/useProxyForURL:false/g' content-editor/scripts/base-editor.min.*.js
+                      sed -i 's:/api:/action:g' content-editor/scripts/base-editor.min.js
+                      sed -i 's/useProxyForURL:true/useProxyForURL:false/g' content-editor/scripts/base-editor.min.js
                       sed -i -e 's/dispatcher:\"local\"/dispatcher:\"piwik\"/g' content-editor/scripts/*
-                      az storage blob upload-batch --destination ${params.container_name}/content-editor --source content-editor --account-name $azure_account_name --account-key $azure_account_key
-                      zip -r content-editor-artifact.zip content-editor
-                      cd content-editor
+                      mv content-editor ansible
+                    """
+                      
+                      ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                      ansibleExtraArgs = "--tags content-editor --extra-vars \"folder_name=content-editor source_name=${currentWs}/ansible/content-editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                      values.put('ansiblePlaybook', ansiblePlaybook)
+                      values.put('ansibleExtraArgs', ansibleExtraArgs)
+                      println values
+                      ansible_playbook_run(values)
+                        
+                    sh """                                                   
+                      zip -r content-editor-artifact.zip ansible/content-editor
+                      cd ansible/content-editor
                       npm install
                       npm install promise
                       gulp minifyJs
@@ -59,13 +70,28 @@ node() {
                       gulp clean
                       gulp injectrenamedfiles
                       gulp package
-                      az storage blob upload-batch --destination ${params.container_name}/artefacts/editor --source dist/editor --account-name $azure_account_name --account-key $azure_account_key
-                      az storage blob upload-batch --destination ${params.container_name}/artefacts/coreplugins --source dist/coreplugins --account-name $azure_account_name --account-key $azure_account_key
+                    """
+                        
+                      ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                      ansibleExtraArgs = "--tags editor --extra-vars \"folder_name=artefacts/editor source_name=${currentWs}/ansible/content-editor/dist/editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                      values.put('ansiblePlaybook', ansiblePlaybook)
+                      values.put('ansibleExtraArgs', ansibleExtraArgs)
+                      println values
+                      ansible_playbook_run(values)  
+                      
+                      ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                      ansibleExtraArgs = "--tags core-plugins --extra-vars \"folder_name=artefacts/coreplugins source_name=${currentWs}/ansible/content-editor/dist/coreplugins\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                      values.put('ansiblePlaybook', ansiblePlaybook)
+                      values.put('ansibleExtraArgs', ansibleExtraArgs)
+                      println values
+                      ansible_playbook_run(values)
+                        
+                    sh """  
                       rm -rf node_modules
                       cd ..
-                      zip -r content-editor.zip content-editor
-                   """
-                   }
+                      zip -r content-editor.zip ${currentWs}/ansible/content-editor
+                    """
+                        
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "${values.artifact_version}"

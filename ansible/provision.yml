@@ -12,15 +12,33 @@
 - hosts: es
   become: yes
   vars_files:
-    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+    - ['{{inventory_dir}}/secrets.yml']
+  tasks:
+    - name: Registering node name
+      set_fact:
+        es_instance_name: "{% for servername in play_hosts %}{% if inventory_hostname==servername %}es-{{ loop.index }}{% endif %}{% endfor %}"
   roles:
     - openjdk
-    - application_elasticsearch
+    - { role: es6,
+        es_config: {
+          cluster.name: "{{ app_es_etc_cluster_name }}",
+          discovery.zen.ping.unicast.hosts: "{{ groups['es'] }}",
+          http.port: 9200,
+          transport.tcp.port: 9300,
+          node.data: "{{ es_etc_node_data | default('true') }}",
+          node.master: "{{ es_etc_node_master | default('true') }}",
+          bootstrap.memory_lock: true,
+        },
+        es_heap_size: "7g",
+        es_etc_discovery_zen_ping_unicast_hosts: "{{ groups['es'] }}",
+        es_etc_cluster_name: "{{ app_es_etc_cluster_name }}"
+      }
     - curl_es_command
   tags:
     - es
 
 - hosts: log-es
+  gather_facts: true
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']

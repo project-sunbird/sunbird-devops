@@ -1,0 +1,17 @@
+---
+- hosts: es 
+  become: yes
+  run_once: true
+  tasks:
+    - name: copy the mapping script to temp dir
+      copy: 
+        src: static-files/elasticsearch_mapping.sh
+        dest: /tmp/elasticsearch_mapping.sh
+        mode: 0744
+
+    - name: running the script to create indices and mappings
+      command: /tmp/elasticsearch_mapping.sh
+      register: out
+ 
+    - debug: var=out.stdout_lines
+       
