@@ -1,0 +1,74 @@
+- name: status service
+  become: yes
+  command: /etc/init.d/keycloak status
+  register: keycloak
+  poll: 5
+  async: 10
+
+- name: stop service
+  become: yes
+  command: /etc/init.d/keycloak stop && Pkill keycloak
+  when: "keycloak.stdout.find('running') != -1"
+  poll: 5
+  async: 10
+  ignore_errors: yes
+  
+- name: Paste keycloak config package on server
+  copy: src="sunbird_auth_{{sunbird_auth_version}}.config.zip" dest="/tmp/" force=no owner={{wildfly_user}} group={{wildfly_group}}
+
+- name: extarct the folder
+  unarchive: src="/tmp/sunbird_auth_{{sunbird_auth_version}}.config.zip" dest=/tmp/ copy=no owner={{wildfly_user}} group={{wildfly_group}}
+
+- name: Keycloak configuration XML file
+  copy:
+    src: "/tmp/sunbird_auth_{{sunbird_auth_version}}.config/standalone-ha.xml"
+    dest: "{{keycloak_home}}/standalone/configuration/standalone-ha.xml"
+    mode: 0750
+    owner: "{{wildfly_user}}"
+    group: "{{wildfly_group}}"
+    remote_src: yes
+
+- name: Postgresql Configuration- module.xml
+  copy:
+    src: "/tmp/sunbird_auth_{{sunbird_auth_version}}.config/module.xml"
+    dest: "{{keycloak_home}}/modules/system/layers/keycloak/org/postgresql/main/module.xml"
+    mode: 0750
+    owner: "{{wildfly_user}}"
+    group: "{{wildfly_group}}"
+    remote_src: yes
+
+- name: Create a directory for SMS provider configuration
+  file:
+    path: "{{keycloak_home}}/bin/sms-provider"
+    state: directory
+    mode: 0755
+
+- name: SMS provider configuration file
+  copy:
+    src: "/tmp/sunbird_auth_{{sunbird_auth_version}}.config/Msg91Creds.json"
+    dest: "{{keycloak_home}}/bin/sms-provider/Msg91Creds.json"
+    owner: "{{wildfly_user}}"
+    group: "{{wildfly_group}}"
+    mode: 0755
+    remote_src: yes
+
+- name: Delete config directory
+  file:
+    path: "/tmp/sunbird_auth_{{sunbird_auth_version}}.config"
+    state: absent
+
+- name: Delete config directory zip
+  file:
+    path: "/tmp/sunbird_auth_{{sunbird_auth_version}}.config.zip"
+    state: absent
+
+- name: start service
+  become: yes
+  command: /etc/init.d/keycloak start
+  poll: 5
+  async: 5
+
+- name: Enabling service to run in boot-time
+  become: yes
+  shell: update-rc.d keycloak defaults
+
