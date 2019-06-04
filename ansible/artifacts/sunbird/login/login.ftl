@@ -47,6 +47,9 @@
                             <label id="passwordLabel" for="password" class="">
                                 ${msg("password")}
                             </label>
+                            <#if realm.resetPasswordAllowed>
+                                <a id="versionLink" class="ui right floated forgetPasswordLink" onclick="javascript:storeLocation(); javascript:makeDivUnclickable()" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
+                            </#if>
                             <label id="passwordLabelPlaceholder" for="password" class="activeLabelColor hide">
                                 ${msg("placeholderForPassword")}
                             </label>
@@ -56,9 +59,7 @@
                     <div class="field">
                         <button id="login" class="mt-36 ui fluid button">${msg("doSignIn")}</button>
                     </div>
-                    <#if realm.resetPasswordAllowed>
-                        <a id="versionLink" class="ui right floated forgetPasswordLink" onclick="javascript:storeLocation(); javascript:makeDivUnclickable()" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
-                    </#if>
+                    
                     <div id="selfSingUp" class="hide">
                         <p class="or mb-30 mt-30 textCenter">OR</p>
                         <div class="field">
