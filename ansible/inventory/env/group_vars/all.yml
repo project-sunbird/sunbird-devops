@@ -6,7 +6,7 @@ keycloak_auth_server_url: "{{proto}}://{{ proxy_server_name }}/auth"
 sunbird_echo_api_url: "{{proto}}://{{ proxy_server_name }}/api/echo/"
 sunbird_web_url: "{{proto}}://{{ proxy_server_name }}"
 sunbird_dataservice_url: "{{proto}}://{{ proxy_server_name }}/api/"
-api_proxy_name: "api.{{proxy_server_name}}"    # Domain name on which device register and other api's will be accessed
+api_proxy_name: "{{proto}}://api.{{proxy_server_name}}"    # Domain name on which device register and other api's will be accessed
 swarm_load_balancer: "{{proxy_server_name}}"
 proxy_site_key: "{{ core_vault_proxy_site_key }}"  #SSL certificate's site.key file contents. More details in this wiki: {{proto}}://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
 proxy_site_crt: "{{ core_vault_proxy_site_crt }}"  #SSL certificate's site.crt file contents. More details in this wiki: {{proto}}://github.com/project-sunbird/sunbird-commons/wiki/Updating-SSL-certificates-in-Sunbird-Proxy-service
@@ -19,13 +19,8 @@ sunbird_app_name: "{{env}}"
 azure_account_key: "{{core_vault_sunbird_azure_storage_key}}"
 
 #artifact upload
-artifact_azure_account_name: "{{core_artifact_azure_account_name}}"
-artifact_azure_account_key: "{{core_vault_artifact_azure_account_key}}"
-
-
-#plugins
-azure_plugin_storage_account_name: "{{azure_account_name}}"
-azure_plugin_storage_account_key: "{{core_vault_sunbird_azure_storage_key}}"
+artifact_azure_account_name: "{{azure_account_name}}"
+artifact_azure_account_key: "{{core_vault_sunbird_azure_storage_key}}"
 
 # Keycloak
 keycloak_api_management_user_first_name: "admin"
@@ -51,8 +46,8 @@ monitor_alerts_slack_channel:
 app_alerts_mailing_list: ""
 devops_alerts_mailing_list: ""
 site_alerts_mailing_list: ""
-keycloak_alerts_mailing_list: "{{devops_alerts_mailing_list}}"
-api_manager_alerts_mailing_list: "{{devops_alerts_mailing_list}}"
+keycloak_alerts_mailing_list: ""
+api_manager_alerts_mailing_list: ""
 
 # Learner
 sunbird_user_profile_field_default_visibility: private
@@ -107,7 +102,7 @@ kong_host: api-manager_kong
 application_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 keycloak_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 kong_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
-sunbird_cassandra_host: "{{groups['cassandra']|join(',')}}"  #Private IP of Cassandra server
+sunbird_cassandra_host: "{{groups['cassandra'][0]}}"  #Private IP of Cassandra server
 sunbird_es_host: "{{groups['es']| join(',')}}"
 
 ## Application server configurations
@@ -172,7 +167,7 @@ sunbird_pg_port: 5432
 sunbird_pg_password: "{{ core_vault_postgres_password }}"
 sunbird_sunbird_quartz_mode: cluster
 sunbird_encryption_mode: local
-sunbird_cassandra_urls: "{{ groups['cassandra']|join(':9042,')}}:9042"
+sunbird_cassandra_urls: "{{ cassandra_server_private_ip }}:{{ cassandra_port }}"
 sunbird_session_store_type: cassandra
 sunbird_keycloak_client_id: 'portal'
 sunbird_keycloak_public: true
@@ -552,16 +547,6 @@ backup_azure_storage_account_name: "{{azure_account_name}}"
 app_es_snapshot_host: "{{ groups['es'][0] }}"
 app_snapshot_base_path: applicationelasticsearch
 
-sunbird_es_host: "{{ groups['es'][0] }}"
-
 #log es backup
 log_es_snapshot_host: "{{ groups['log-es'][0] }}"
 log_snapshot_base_path: loggerelasticsearch
-sunbird_health_check_enable: 'true'
-
-## Release 1.15 ##
-sunbird_keycloak_user_federation_provider_id: "{{core_vault_sunbird_keycloak_user_federation_provider_id}}"
-# Learner-service
-sunbird_course_metrics_base_url: https://{{dp_azure_account_name}}.blob.core.windows.net/
-sunbird_gzip_size_threshold: 262144
-prometheus_mount_point: "/root/dockerdata/prometheus/data/"
