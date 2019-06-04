@@ -40,43 +40,20 @@ node() {
                     }
                 }
                 stage('deploy artifact'){
+                    withCredentials([usernamePassword(credentialsId: 'az-blob-credentials', passwordVariable: 'azure_account_key', usernameVariable: 'azure_account_name')]) {
                     sh """
                        unzip ${artifact}
                        unzip -o generic-editor.zip -d generic-editor
-                       mv generic-editor ansible
-                    """ 
-
-                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
-                      ansibleExtraArgs = "--tags generic-editor --extra-vars \"folder_name=generic-editor source_name=${currentWs}/ansible/generic-editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
-                      values.put('ansiblePlaybook', ansiblePlaybook)
-                      values.put('ansibleExtraArgs', ansibleExtraArgs)
-                      println values
-                      ansible_playbook_run(values)
-
-                    sh """   
-                       cd ansible/generic-editor
+                       az storage blob upload-batch --destination ${params.container_name}/generic-editor --source generic-editor --account-name $azure_account_name --account-key $azure_account_key
+                       cd generic-editor
                        npm config set strict-ssl false
                        npm install
                        npm install promise
                        gulp package
-                    """   
-
-                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
-                      ansibleExtraArgs = "--tags editor --extra-vars \"folder_name=artefacts/editor source_name=${currentWs}/ansible/generic-editor/dist/editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
-                      values.put('ansiblePlaybook', ansiblePlaybook)
-                      values.put('ansibleExtraArgs', ansibleExtraArgs)
-                      println values
-                      ansible_playbook_run(values)  
-                      
-                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
-                      ansibleExtraArgs = "--tags core-plugins --extra-vars \"folder_name=artefacts/coreplugins source_name=${currentWs}/ansible/generic-editor/dist/coreplugins\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
-
-                      values.put('ansiblePlaybook', ansiblePlaybook)
-                      values.put('ansibleExtraArgs', ansibleExtraArgs)
-                      println values
-                      ansible_playbook_run(values)
-                    
-                   
+                       az storage blob upload-batch --destination ${params.container_name}/artefacts/editor --source dist/editor --account-name $azure_account_name --account-key $azure_account_key
+                       az storage blob upload-batch --destination ${params.container_name}/artefacts/coreplugins --source dist/coreplugins --account-name $azure_account_name --account-key $azure_account_key
+                    """
+                   }
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "${values.artifact_version}"

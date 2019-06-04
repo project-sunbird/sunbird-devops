@@ -143,7 +143,7 @@ node {
                          */
 
                         tagRefBranch = sh(
-                            script: "git ls-remote --tags origin ${releaseBranch}* | grep -o 'release-.*' | sort -V | tail -n1",
+                            script: "git ls-remote --tags origin ${releaseBranch}* | grep -o 'release-.*' | tail -n1",
                             returnStdout: true
                         ).trim()
                         if (tagRefBranch == ''){
