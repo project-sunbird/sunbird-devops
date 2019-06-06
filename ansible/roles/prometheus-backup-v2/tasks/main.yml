@@ -1,0 +1,21 @@
+---
+# tasks file for ansible/roles/prometheus-backup-v2
+- name: taking snapshot
+  uri:
+    url: "{{ prometheus_url }}/api/v1/admin/tsdb/snapshot?skip_head=false"
+    method: POST
+  register: snapshot
+
+- name: registering snapshot name
+  set_fact:
+    snapshot_name: (snapshot | from_json).name
+
+- name: archiving snapshot
+  archive:
+    path: "{{ prometheus_data_dir }}/data/snapshots/{{ snapshot_name }}"
+    dest: "/tmp/{{ prometheus_backup_prefix }}_{{ snapshot_name }}"
+
+- name: Deleting snapshot
+  file:
+    path: "{{ prometheus_data_dir }}/data/snapshots/{{ snapshot_name }}"
+    state: absent
