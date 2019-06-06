@@ -1,10 +1,13 @@
 - hosts: swarm-agent-for-prometheus
   become: yes
   vars:
-    prometheus_data_dir: '/root/dockerdata/prometheus_stateful'
+    prometheus_data_dir: "{{prometheus_mount_point}}"
     prometheus_backup_prefix: 'prometheus_swarm'
   vars_files:
     - ['{{ inventory_dir }}/secrets.yml']
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{ backup_azure_storage_account_name }}"
+    AZURE_STORAGE_KEY: "{{ backup_azure_storage_access_key }}"
   roles:
     - prometheus-backup-v2
   tags:
@@ -12,19 +15,31 @@
 
 - hosts: swarm-agent-for-prometheus-stateful
   become: yes
+  vars:
+    prometheus_data_dir: "{{prometheus_fed_mount_point}}"
+    prometheus_backup_prefix: 'prometheus_fed'
   vars_files:
     - ['{{inventory_dir}}/secrets.yml']
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{ backup_azure_storage_account_name }}"
+    AZURE_STORAGE_KEY: "{{ backup_azure_storage_access_key }}"
   roles:
-    - { role: prometheus-fed-stateful-backup, prometheus_service_name: 'prometheus_fed_prometheus', federation_prometheus_data_dir: "{{prometheus_fed_mount_point}}", prometheus_backup_azure_container_name: 'federation-prometheus-backup' }
+    - prometheus-backup-v2
   tags:
     - federation-prometheus-backup
 
 
 - hosts: swarm-agent-for-prometheus-stateful
   become: yes
+  vars:
+    prometheus_data_dir: "{{prometheus_stateful_mount_point}}"
+    prometheus_backup_prefix: 'prometheus_stateful'
   vars_files:
     - ['{{inventory_dir}}/secrets.yml']
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{ backup_azure_storage_account_name }}"
+    AZURE_STORAGE_KEY: "{{ backup_azure_storage_access_key }}"
   roles:
-    - { role: prometheus-fed-stateful-backup, prometheus_service_name: 'monitor_stateful_prometheus', federation_prometheus_data_dir: '{{prometheus_stateful_mount_point}}', prometheus_backup_azure_container_name: 'statefull-prometheus-backup' }
+    - prometheus-backup-v2
   tags:
     - stateful-prometheus-backup
