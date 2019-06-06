@@ -56,14 +56,14 @@ otp_service_prefix: /otp
 sso_service_prefix: /sso
 
 # Service URLs
-content_service_url: "http://content-service:5000"
-learning_service_url: "http://learner-service:9000"
+content_service_url: "http://tasks.content-service:5000"
+learning_service_url: "http://tasks.learner-service:9000"
 vm_learning_service_url: "http://{{learningservice_ip}}:8080/learning-service"
-telemetry_service_url: "http://telemetry-service:9001"
-player_service_url: "http://player_player:3000"
-echo_service_url: "http://api-manager_echo:9595"
-am_util_url: http://adminutil_adminutil:4000
-config_service_url: "http://config-service:8080"
+telemetry_service_url: "http://tasks.telemetry-service:9001"
+player_service_url: "http://tasks.player_player:3000"
+echo_service_url: "http://tasks.api-manager_echo:9595"
+am_util_url: http://tasks.adminutil_adminutil:4000
+config_service_url: "http://tasks.config-service:8080"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -82,9 +82,9 @@ premium_consumer_rate_limits:
 # Example:
 # kong_apis:
 # - name: "readContent"
-#   request_path: "/v3/public/content/read"
+#   uris: "/v3/public/content/read"
 #   upstream_url: "{{ learning_service_url }}/v3/public/content/read"
-#   strip_request_path: true
+#   strip_uri: true
 #   plugins:
 #    - {name: 'jwt'}
 #    - {name: 'cors'}
@@ -95,9 +95,9 @@ premium_consumer_rate_limits:
 kong_apis:
 
   - name: PrivateContentAPIs
-    request_path: "{{ private_content_prefix }}/v3"
+    uris: "{{ private_content_prefix }}/v3"
     upstream_url: "{{ vm_learning_service_url }}/content/v3"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -111,9 +111,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createContent
-    request_path: "{{ content_service_prefix }}/v1/create"
+    uris: "{{ content_service_prefix }}/v1/create"
     upstream_url: "{{ content_service_url }}/v1/content/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -127,9 +127,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: searchContent
-    request_path: "{{ content_service_prefix }}/v1/search"
+    uris: "{{ content_service_prefix }}/v1/search"
     upstream_url: "{{ content_service_url }}/v1/content/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: cors
     - "{{ statsd_pulgin }}"
@@ -140,9 +140,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateContent
-    request_path: "{{ content_service_prefix }}/v1/update"
+    uris: "{{ content_service_prefix }}/v1/update"
     upstream_url: "{{ content_service_url }}/v1/content/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -156,9 +156,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readContent
-    request_path: "{{ content_service_prefix }}/v1/read"
+    uris: "{{ content_service_prefix }}/v1/read"
     upstream_url: "{{ content_service_url }}/v1/content/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: cors
     - "{{ statsd_pulgin }}"
@@ -169,9 +169,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: submitContentForReview
-    request_path: "{{ content_service_prefix }}/v1/review"
+    uris: "{{ content_service_prefix }}/v1/review"
     upstream_url: "{{ content_service_url }}/v1/content/review"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -185,9 +185,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: publishContent
-    request_path: "{{ content_service_prefix }}/v1/publish"
+    uris: "{{ content_service_prefix }}/v1/publish"
     upstream_url: "{{ content_service_url }}/v1/content/publish"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -201,9 +201,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: uploadContent
-    request_path: "{{ content_service_prefix }}/v1/upload"
+    uris: "{{ content_service_prefix }}/v1/upload"
     upstream_url: "{{ content_service_url }}/v1/content/upload"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -216,10 +216,11 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ large_request_size_limit }}"
+
   - name: retireContent
-    request_path: "{{ content_service_prefix }}/v1/retire"
+    uris: "{{ content_service_prefix }}/v1/retire"
     upstream_url: "{{ content_service_url }}/v1/content/retire"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -232,10 +233,11 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: createCourse
-    request_path: "{{ course_service_prefix }}/v1/create"
+    uris: "{{ course_service_prefix }}/v1/create"
     upstream_url: "{{ content_service_url }}/v1/course/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -249,9 +251,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: searchCourse
-    request_path: "{{ course_service_prefix }}/v1/search"
+    uris: "{{ course_service_prefix }}/v1/search"
     upstream_url: "{{ content_service_url }}/v1/course/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -265,9 +267,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateCourse
-    request_path: "{{ course_service_prefix }}/v1/update"
+    uris: "{{ course_service_prefix }}/v1/update"
     upstream_url: "{{ content_service_url }}/v1/course/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -281,9 +283,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readCourse
-    request_path: "{{ course_service_prefix }}/v1/read"
+    uris: "{{ course_service_prefix }}/v1/read"
     upstream_url: "{{ content_service_url }}/v1/course/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -297,9 +299,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: submitCourseForReview
-    request_path: "{{ course_service_prefix }}/v1/review"
+    uris: "{{ course_service_prefix }}/v1/review"
     upstream_url: "{{ content_service_url }}/v1/course/review"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -313,9 +315,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: publishCourse
-    request_path: "{{ course_service_prefix }}/v1/publish"
+    uris: "{{ course_service_prefix }}/v1/publish"
     upstream_url: "{{ content_service_url }}/v1/course/publish"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -329,9 +331,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: retireCourse
-    request_path: "{{ course_service_prefix }}/v1/retire"
+    uris: "{{ course_service_prefix }}/v1/retire"
     upstream_url: "{{ content_service_url }}/v1/course/retire"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -345,9 +347,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getCourseHierarchy
-    request_path: "{{ course_service_prefix }}/v1/hierarchy"
+    uris: "{{ course_service_prefix }}/v1/hierarchy"
     upstream_url: "{{ content_service_url }}/v1/course/hierarchy"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: cors
     - "{{ statsd_pulgin }}"
@@ -358,9 +360,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: courseEnrolment
-    request_path: "{{ course_service_prefix }}/v1/enrol"
+    uris: "{{ course_service_prefix }}/v1/enrol"
     upstream_url: "{{ learning_service_url }}/v1/course/enroll"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -374,9 +376,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: courseUnEnrolment
-    request_path: "{{ course_service_prefix }}/v1/unenrol"
+    uris: "{{ course_service_prefix }}/v1/unenrol"
     upstream_url: "{{ learning_service_url }}/v1/course/unenroll"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -390,9 +392,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listCourseEnrollments
-    request_path: "{{ course_service_prefix }}/v1/user/enrollment/list"
+    uris: "{{ course_service_prefix }}/v1/user/enrollment/list"
     upstream_url: "{{ learning_service_url }}/v1/user/courses/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -406,9 +408,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readContentState
-    request_path: "{{ course_service_prefix }}/v1/content/state/read"
+    uris: "{{ course_service_prefix }}/v1/content/state/read"
     upstream_url: "{{ learning_service_url }}/v1/content/state/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -422,9 +424,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateContentState
-    request_path: "{{ course_service_prefix }}/v1/content/state/update"
+    uris: "{{ course_service_prefix }}/v1/content/state/update"
     upstream_url: "{{ learning_service_url }}/v1/content/state/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -438,9 +440,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createUser
-    request_path: "{{ user_service_prefix }}/v1/create"
+    uris: "{{ user_service_prefix }}/v1/create"
     upstream_url: "{{ learning_service_url }}/v1/user/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -454,9 +456,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createUserVersion2
-    request_path: "{{ user_service_prefix }}/v2/create"
+    uris: "{{ user_service_prefix }}/v2/create"
     upstream_url: "{{ learning_service_url }}/v2/user/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -470,9 +472,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateUser
-    request_path: "{{ user_service_prefix }}/v1/update"
+    uris: "{{ user_service_prefix }}/v1/update"
     upstream_url: "{{ learning_service_url }}/v1/user/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -486,9 +488,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getUserProfile
-    request_path: "{{ user_service_prefix }}/v1/read"
+    uris: "{{ user_service_prefix }}/v1/read"
     upstream_url: "{{ learning_service_url }}/v1/user/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -502,9 +504,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getUserProfileV2
-    request_path: "{{ user_service_prefix }}/v2/read"
+    uris: "{{ user_service_prefix }}/v2/read"
     upstream_url: "{{ learning_service_url }}/v2/user/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -518,9 +520,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: searchUser
-    request_path: "{{ user_service_prefix }}/v1/search"
+    uris: "{{ user_service_prefix }}/v1/search"
     upstream_url: "{{ learning_service_url }}/v1/user/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -534,9 +536,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: retireUser
-    request_path: "{{ user_service_prefix }}/v1/retire"
+    uris: "{{ user_service_prefix }}/v1/retire"
     upstream_url: "{{ learning_service_url }}/v1/user/retire"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -550,9 +552,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createPage
-    request_path: "{{ data_service_prefix }}/v1/page/create"
+    uris: "{{ data_service_prefix }}/v1/page/create"
     upstream_url: "{{ learning_service_url }}/v1/page/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -566,9 +568,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updatePage
-    request_path: "{{ data_service_prefix }}/v1/page/update"
+    uris: "{{ data_service_prefix }}/v1/page/update"
     upstream_url: "{{ learning_service_url }}/v1/page/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -582,9 +584,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getPageSettings
-    request_path: "{{ data_service_prefix }}/v1/page/read"
+    uris: "{{ data_service_prefix }}/v1/page/read"
     upstream_url: "{{ learning_service_url }}/v1/page/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -598,9 +600,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: dialAssemble
-    request_path: "{{ data_service_prefix }}/v1/dial/assemble"
+    uris: "{{ data_service_prefix }}/v1/dial/assemble"
     upstream_url: "{{ learning_service_url }}/v1/page/assemble"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: cors
     - "{{ statsd_pulgin }}"
@@ -611,9 +613,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: assemblePage
-    request_path: "{{ data_service_prefix }}/v1/page/assemble"
+    uris: "{{ data_service_prefix }}/v1/page/assemble"
     upstream_url: "{{ learning_service_url }}/v1/page/assemble"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: cors
     - "{{ statsd_pulgin }}"
@@ -624,9 +626,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createNote
-    request_path: "{{ notes_service_prefix }}/v1/create"
+    uris: "{{ notes_service_prefix }}/v1/create"
     upstream_url: "{{ learning_service_url }}/v1/note/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -640,9 +642,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateNote
-    request_path: "{{ notes_service_prefix }}/v1/update"
+    uris: "{{ notes_service_prefix }}/v1/update"
     upstream_url: "{{ learning_service_url }}/v1/note/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -656,9 +658,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readNote
-    request_path: "{{ notes_service_prefix }}/v1/read"
+    uris: "{{ notes_service_prefix }}/v1/read"
     upstream_url: "{{ learning_service_url }}/v1/note/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -672,9 +674,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: searchNotes
-    request_path: "{{ notes_service_prefix }}/v1/search"
+    uris: "{{ notes_service_prefix }}/v1/search"
     upstream_url: "{{ learning_service_url }}/v1/note/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -688,9 +690,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createOrg
-    request_path: "{{ org_service_prefix }}/v1/create"
+    uris: "{{ org_service_prefix }}/v1/create"
     upstream_url: "{{ learning_service_url }}/v1/org/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -704,9 +706,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateOrg
-    request_path: "{{ org_service_prefix }}/v1/update"
+    uris: "{{ org_service_prefix }}/v1/update"
     upstream_url: "{{ learning_service_url }}/v1/org/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -720,9 +722,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readOrg
-    request_path: "{{ org_service_prefix }}/v1/read"
+    uris: "{{ org_service_prefix }}/v1/read"
     upstream_url: "{{ learning_service_url }}/v1/org/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -736,9 +738,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: searchOrg
-    request_path: "{{ org_service_prefix }}/v1/search"
+    uris: "{{ org_service_prefix }}/v1/search"
     upstream_url: "{{ learning_service_url }}/v1/org/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: cors
     - "{{ statsd_pulgin }}"
@@ -749,9 +751,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: addMember
-    request_path: "{{ org_service_prefix }}/v1/member/add"
+    uris: "{{ org_service_prefix }}/v1/member/add"
     upstream_url: "{{ learning_service_url }}/v1/org/member/add"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -765,9 +767,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: removeMember
-    request_path: "{{ org_service_prefix }}/v1/member/remove"
+    uris: "{{ org_service_prefix }}/v1/member/remove"
     upstream_url: "{{ learning_service_url }}/v1/org/member/remove"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -781,9 +783,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: suspendMember
-    request_path: "{{ org_service_prefix }}/v1/member/suspend"
+    uris: "{{ org_service_prefix }}/v1/member/suspend"
     upstream_url: "{{ learning_service_url }}/v1/org/member/suspend"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -797,9 +799,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateMembership
-    request_path: "{{ org_service_prefix }}/v1/member/update"
+    uris: "{{ org_service_prefix }}/v1/member/update"
     upstream_url: "{{ learning_service_url }}/v1/org/member/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -813,9 +815,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: echo
-    request_path: "{{ echo_service_prefix }}"
+    uris: "{{ echo_service_prefix }}"
     upstream_url: "{{ echo_service_url }}"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -829,9 +831,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createPageSection
-    request_path: "{{ data_service_prefix }}/v1/page/section/create"
+    uris: "{{ data_service_prefix }}/v1/page/section/create"
     upstream_url: "{{ learning_service_url }}/v1/page/section/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -845,9 +847,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updatePageSection
-    request_path: "{{ data_service_prefix }}/v1/page/section/update"
+    uris: "{{ data_service_prefix }}/v1/page/section/update"
     upstream_url: "{{ learning_service_url }}/v1/page/section/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -861,9 +863,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listPageSections
-    request_path: "{{ data_service_prefix }}/v1/page/section/list"
+    uris: "{{ data_service_prefix }}/v1/page/section/list"
     upstream_url: "{{ learning_service_url }}/v1/page/section/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -877,9 +879,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readPageSection
-    request_path: "{{ data_service_prefix }}/v1/page/section/read"
+    uris: "{{ data_service_prefix }}/v1/page/section/read"
     upstream_url: "{{ learning_service_url }}/v1/page/section/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -893,9 +895,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readRoleMapping
-    request_path: "{{ data_service_prefix }}/v1/role/read"
+    uris: "{{ data_service_prefix }}/v1/role/read"
     upstream_url: "{{ learning_service_url }}/v1/role/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -909,9 +911,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateAssessment
-    request_path: "{{ course_service_prefix }}/v1/assessment/update"
+    uris: "{{ course_service_prefix }}/v1/assessment/update"
     upstream_url: "{{ learning_service_url }}/v1/assessment/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -925,9 +927,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readAssessmentResult
-    request_path: "{{ course_service_prefix }}/v1/assessment/result/read"
+    uris: "{{ course_service_prefix }}/v1/assessment/result/read"
     upstream_url: "{{ learning_service_url }}/v1/assessment/result/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -941,9 +943,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateOrgStatus
-    request_path: "{{ org_service_prefix }}/v1/status/update"
+    uris: "{{ org_service_prefix }}/v1/status/update"
     upstream_url: "{{ learning_service_url }}/v1/org/status/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -957,9 +959,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readUserProfile
-    request_path: "{{ user_service_prefix }}/v1/profile/read"
+    uris: "{{ user_service_prefix }}/v1/profile/read"
     upstream_url: "{{ learning_service_url }}/v1/user/getuser"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -973,9 +975,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: registerMobileApp
-    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_app/credential/register"
+    uris: "{{ api_manager_perfix }}/v1/consumer/mobile_app/credential/register"
     upstream_url: "{{ am_util_url }}/v1/consumer/mobile_app/credential/register"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -989,9 +991,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: registerMobileDevice
-    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_device/credential/register"
+    uris: "{{ api_manager_perfix }}/v1/consumer/mobile_device/credential/register"
     upstream_url: "{{ am_util_url }}/v1/consumer/mobile_device/credential/register"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1006,9 +1008,9 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: registerMobileAppOpenRAP
-    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_app_openrap/credential/register"
+    uris: "{{ api_manager_perfix }}/v1/consumer/mobile_app_openrap/credential/register"
     upstream_url: "{{ am_util_url }}/v1/consumer/mobile_app_openrap/credential/register"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1023,9 +1025,9 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: registerMobileDeviceOpenRAP
-    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_device_openrap/credential/register"
+    uris: "{{ api_manager_perfix }}/v1/consumer/mobile_device_openrap/credential/register"
     upstream_url: "{{ am_util_url }}/v1/consumer/mobile_device_openrap/credential/register"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1040,9 +1042,9 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: compositeSearch
-    request_path: "{{ composite_service_prefix }}/v1/search"
+    uris: "{{ composite_service_prefix }}/v1/search"
     upstream_url: "{{ content_service_url }}/v1/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1056,9 +1058,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listTerms
-    request_path: "{{ meta_service_prefix }}/v1/terms/list"
+    uris: "{{ meta_service_prefix }}/v1/terms/list"
     upstream_url: "{{ content_service_url }}/v1/terms/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1072,9 +1074,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listResourceBundles
-    request_path: "{{ meta_service_prefix }}/v1/resourcebundles/list"
+    uris: "{{ meta_service_prefix }}/v1/resourcebundles/list"
     upstream_url: "{{ content_service_url }}/v1/resourcebundles/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1088,9 +1090,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listOrdinals
-    request_path: "{{ meta_service_prefix }}/v1/ordinals/list"
+    uris: "{{ meta_service_prefix }}/v1/ordinals/list"
     upstream_url: "{{ content_service_url }}/v1/ordinals/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1104,9 +1106,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: telemetry
-    request_path: "{{ data_service_prefix }}/v1/telemetry"
+    uris: "{{ data_service_prefix }}/v1/telemetry"
     upstream_url: "{{ telemetry_service_url }}/v1/telemetry"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1120,9 +1122,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: flagContent
-    request_path: "{{ content_service_prefix }}/v1/flag"
+    uris: "{{ content_service_prefix }}/v1/flag"
     upstream_url: "{{ content_service_url }}/v1/content/flag"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1136,9 +1138,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: acceptContentFlag
-    request_path: "{{ content_service_prefix }}/v1/flag/accept"
+    uris: "{{ content_service_prefix }}/v1/flag/accept"
     upstream_url: "{{ content_service_url }}/v1/content/flag/accept"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1152,9 +1154,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: rejectContentFlag
-    request_path: "{{ content_service_prefix }}/v1/flag/reject"
+    uris: "{{ content_service_prefix }}/v1/flag/reject"
     upstream_url: "{{ content_service_url }}/v1/content/flag/reject"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1168,9 +1170,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getOrgCreationDashboard
-    request_path: "{{ dashboard_service_prefix }}/v1/creation/org"
+    uris: "{{ dashboard_service_prefix }}/v1/creation/org"
     upstream_url: "{{ learning_service_url }}/v1/dashboard/creation/org"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1184,9 +1186,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getOrgConsumptionDashboard
-    request_path: "{{ dashboard_service_prefix }}/v1/consumption/org"
+    uris: "{{ dashboard_service_prefix }}/v1/consumption/org"
     upstream_url: "{{ learning_service_url }}/v1/dashboard/consumption/org"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1200,9 +1202,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getCourseProgressDashboard
-    request_path: "{{ dashboard_service_prefix }}/v1/progress/course"
+    uris: "{{ dashboard_service_prefix }}/v1/progress/course"
     upstream_url: "{{ learning_service_url }}/v1/dashboard/progress/course"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1216,9 +1218,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getCourseProgressDashboardV2
-    request_path: "{{ dashboard_service_prefix }}/v2/progress/course"
+    uris: "{{ dashboard_service_prefix }}/v2/progress/course"
     upstream_url: "{{ learning_service_url }}/v2/dashboard/progress/course"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1232,9 +1234,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getCourseConsumptionDashboard
-    request_path: "{{ dashboard_service_prefix }}/v1/consumption/course"
+    uris: "{{ dashboard_service_prefix }}/v1/consumption/course"
     upstream_url: "{{ learning_service_url }}/v1/dashboard/consumption/course"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1248,9 +1250,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getUserCreationDashboard
-    request_path: "{{ dashboard_service_prefix }}/v1/creation/user"
+    uris: "{{ dashboard_service_prefix }}/v1/creation/user"
     upstream_url: "{{ learning_service_url }}/v1/dashboard/creation/user"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1264,9 +1266,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getUserConsumptionDasbhoard
-    request_path: "{{ dashboard_service_prefix }}/v1/consumption/user"
+    uris: "{{ dashboard_service_prefix }}/v1/consumption/user"
     upstream_url: "{{ learning_service_url }}/v1/dashboard/consumption/user"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1280,9 +1282,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: userBulkUpload
-    request_path: "{{ user_service_prefix }}/v1/upload"
+    uris: "{{ user_service_prefix }}/v1/upload"
     upstream_url: "{{ learning_service_url }}/v1/user/upload"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1296,9 +1298,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: orgBulkUpload
-    request_path: "{{ org_service_prefix }}/v1/upload"
+    uris: "{{ org_service_prefix }}/v1/upload"
     upstream_url: "{{ learning_service_url }}/v1/org/upload"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1312,9 +1314,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: checkUploadJobStatus
-    request_path: "{{ data_service_prefix }}/v1/upload/status"
+    uris: "{{ data_service_prefix }}/v1/upload/status"
     upstream_url: "{{ learning_service_url }}/v1/upload/status"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1328,9 +1330,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getUploadJobStatusLink
-    request_path: "{{ data_service_prefix }}/v1/upload/statusDownloadLink"
+    uris: "{{ data_service_prefix }}/v1/upload/statusDownloadLink"
     upstream_url: "{{ learning_service_url }}/v1/upload/statusDownloadLink"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1344,9 +1346,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createBatch
-    request_path: "{{ course_service_prefix }}/v1/batch/create"
+    uris: "{{ course_service_prefix }}/v1/batch/create"
     upstream_url: "{{ learning_service_url }}/v1/course/batch/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1360,9 +1362,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateBatch
-    request_path: "{{ course_service_prefix }}/v1/batch/update"
+    uris: "{{ course_service_prefix }}/v1/batch/update"
     upstream_url: "{{ learning_service_url }}/v1/course/batch/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1376,9 +1378,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: addUserToBatch
-    request_path: "{{ course_service_prefix }}/v1/batch/user/add"
+    uris: "{{ course_service_prefix }}/v1/batch/user/add"
     upstream_url: "{{ learning_service_url }}/v1/course/batch/users/add"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1392,9 +1394,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getBatch
-    request_path: "{{ course_service_prefix }}/v1/batch/read"
+    uris: "{{ course_service_prefix }}/v1/batch/read"
     upstream_url: "{{ learning_service_url }}/v1/course/batch/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1408,9 +1410,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: assignRole
-    request_path: "{{ user_service_prefix }}/v1/role/assign"
+    uris: "{{ user_service_prefix }}/v1/role/assign"
     upstream_url: "{{ learning_service_url }}/v1/user/assign/role"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1424,9 +1426,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: indexSync
-    request_path: "{{ data_service_prefix }}/v1/index/sync"
+    uris: "{{ data_service_prefix }}/v1/index/sync"
     upstream_url: "{{ learning_service_url }}/v1/data/sync"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1440,9 +1442,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: blockUser
-    request_path: "{{ user_service_prefix }}/v1/block"
+    uris: "{{ user_service_prefix }}/v1/block"
     upstream_url: "{{ learning_service_url }}/v1/user/block"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1456,9 +1458,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: unblockUser
-    request_path: "{{ user_service_prefix }}/v1/unblock"
+    uris: "{{ user_service_prefix }}/v1/unblock"
     upstream_url: "{{ learning_service_url }}/v1/user/unblock"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1472,9 +1474,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: uploadMedia
-    request_path: "{{ content_service_prefix }}/v1/media/upload"
+    uris: "{{ content_service_prefix }}/v1/media/upload"
     upstream_url: "{{ learning_service_url }}/v1/file/upload"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1488,9 +1490,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: listCourseBatches
-    request_path: "{{ course_service_prefix }}/v1/batch/list"
+    uris: "{{ course_service_prefix }}/v1/batch/list"
     upstream_url: "{{ learning_service_url }}/v1/course/batch/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1504,9 +1506,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: batchBulkEnrolment
-    request_path: "{{ course_service_prefix }}/v1/batch/bulk/enrollment"
+    uris: "{{ course_service_prefix }}/v1/batch/bulk/enrollment"
     upstream_url: "{{ learning_service_url }}/v1/batch/bulk/enrollment"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1520,9 +1522,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getTenantInfo
-    request_path: "{{ org_service_prefix }}/v1/tenant/info"
+    uris: "{{ org_service_prefix }}/v1/tenant/info"
     upstream_url: "{{ player_service_url }}/v1/tenant/info"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1536,9 +1538,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getContentUploadUrl
-    request_path: "{{ content_service_prefix }}/v1/upload/url/read"
+    uris: "{{ content_service_prefix }}/v1/upload/url/read"
     upstream_url: "{{ content_service_url }}/v1/content/upload/url"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1552,9 +1554,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: rejectContent
-    request_path: "{{ content_service_prefix }}/v1/reject"
+    uris: "{{ content_service_prefix }}/v1/reject"
     upstream_url: "{{ content_service_url }}/v1/content/reject"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1568,9 +1570,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: deleteNote
-    request_path: "{{ notes_service_prefix }}/v1/delete"
+    uris: "{{ notes_service_prefix }}/v1/delete"
     upstream_url: "{{ learning_service_url }}/v1/note/delete"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1584,9 +1586,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: sendEmailNotification
-    request_path: "{{ user_service_prefix }}/v1/notification/email"
+    uris: "{{ user_service_prefix }}/v1/notification/email"
     upstream_url: "{{ learning_service_url }}/v1/notification/email"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1600,9 +1602,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: listAllBadges
-    request_path: "{{ org_service_prefix }}/v1/badges/list"
+    uris: "{{ org_service_prefix }}/v1/badges/list"
     upstream_url: "{{ learning_service_url }}/v1/badges/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1616,9 +1618,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: addBadgeToUser
-    request_path: "{{ user_service_prefix }}/v1/badges/add"
+    uris: "{{ user_service_prefix }}/v1/badges/add"
     upstream_url: "{{ learning_service_url }}/v1/user/badges/add"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1632,9 +1634,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: listOrgTypes
-    request_path: "{{ org_service_prefix }}/v1/type/list"
+    uris: "{{ org_service_prefix }}/v1/type/list"
     upstream_url: "{{ learning_service_url }}/v1/org/type/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1648,9 +1650,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: createOrgType
-    request_path: "{{ org_service_prefix }}/v1/type/create"
+    uris: "{{ org_service_prefix }}/v1/type/create"
     upstream_url: "{{ learning_service_url }}/v1/org/type/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1664,9 +1666,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: updateOrgType
-    request_path: "{{ org_service_prefix }}/v1/type/update"
+    uris: "{{ org_service_prefix }}/v1/type/update"
     upstream_url: "{{ learning_service_url }}/v1/org/type/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1680,9 +1682,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: updateUserloginTime
-    request_path: "{{ user_service_prefix }}/v1/update/logintime"
+    uris: "{{ user_service_prefix }}/v1/update/logintime"
     upstream_url: "{{ learning_service_url }}/v1/user/update/logintime"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1696,9 +1698,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getMediaTypes
-    request_path: "{{ user_service_prefix }}/v1/mediatype/list"
+    uris: "{{ user_service_prefix }}/v1/mediatype/list"
     upstream_url: "{{ learning_service_url }}/v1/user/mediatype/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1712,9 +1714,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: DecryptData
-    request_path: "{{ data_service_prefix }}/v1/user/decrypt"
+    uris: "{{ data_service_prefix }}/v1/user/decrypt"
     upstream_url: "{{ learning_service_url }}/v1/user/data/decrypt"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1728,9 +1730,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: encryptData
-    request_path: "{{ data_service_prefix }}/v1/user/encrypt"
+    uris: "{{ data_service_prefix }}/v1/user/encrypt"
     upstream_url: "{{ learning_service_url }}/v1/user/data/encrypt"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1744,9 +1746,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: searchAuditHistory
-    request_path: "{{ data_service_prefix }}/v1/audit/history"
+    uris: "{{ data_service_prefix }}/v1/audit/history"
     upstream_url: "{{ learning_service_url }}/v1/audit/history"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1760,9 +1762,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: addUserSkill
-    request_path: "{{ user_service_prefix }}/v1/skill/add"
+    uris: "{{ user_service_prefix }}/v1/skill/add"
     upstream_url: "{{ learning_service_url }}/v1/user/skill/add"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1776,9 +1778,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getUserSkill
-    request_path: "{{ user_service_prefix }}/v1/skill/read"
+    uris: "{{ user_service_prefix }}/v1/skill/read"
     upstream_url: "{{ learning_service_url }}/v1/user/skill/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1792,9 +1794,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getSkills
-    request_path: "{{ data_service_prefix }}/v1/skills"
+    uris: "{{ data_service_prefix }}/v1/skills"
     upstream_url: "{{ learning_service_url }}/v1/skills"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1808,9 +1810,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: updateUserSkill
-    request_path: "{{ user_service_prefix }}/v1/skill/update"
+    uris: "{{ user_service_prefix }}/v1/skill/update"
     upstream_url: "{{ learning_service_url }}/v1/user/skill/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1824,9 +1826,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: addUserSkillEndorsement
-    request_path: "{{ user_service_prefix }}/v1/skill/endorse/add"
+    uris: "{{ user_service_prefix }}/v1/skill/endorse/add"
     upstream_url: "{{ learning_service_url }}/v1/user/skill/endorse/add"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1840,9 +1842,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getAllData
-    request_path: "{{ data_service_prefix }}/v1/object/read/list"
+    uris: "{{ data_service_prefix }}/v1/object/read/list"
     upstream_url: "{{ learning_service_url }}/v1/object/read/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1856,9 +1858,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getData
-    request_path: "{{ data_service_prefix }}/v1/object/read"
+    uris: "{{ data_service_prefix }}/v1/object/read"
     upstream_url: "{{ learning_service_url }}/v1/object/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1872,9 +1874,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: createData
-    request_path: "{{ data_service_prefix }}/v1/object/create"
+    uris: "{{ data_service_prefix }}/v1/object/create"
     upstream_url: "{{ learning_service_url }}/v1/object/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1888,9 +1890,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ large_request_size_limit }}"
   - name: updateData
-    request_path: "{{ data_service_prefix }}/v1/object/update"
+    uris: "{{ data_service_prefix }}/v1/object/update"
     upstream_url: "{{ learning_service_url }}/v1/object/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1904,9 +1906,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: deleteData
-    request_path: "{{ data_service_prefix }}/v1/object/delete"
+    uris: "{{ data_service_prefix }}/v1/object/delete"
     upstream_url: "{{ learning_service_url }}/v1/object/delete"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1920,9 +1922,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: searchData
-    request_path: "{{ data_service_prefix }}/v1/object/search"
+    uris: "{{ data_service_prefix }}/v1/object/search"
     upstream_url: "{{ learning_service_url }}/v1/object/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1936,9 +1938,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getAnnouncementDefinitions
-    request_path: "{{announcement_service_prefix}}/v1/definitions"
+    uris: "{{announcement_service_prefix}}/v1/definitions"
     upstream_url: "{{ player_service_url }}/announcement/v1/definitions"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1952,9 +1954,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createAnnouncement
-    request_path: "{{announcement_service_prefix}}/v1/create"
+    uris: "{{announcement_service_prefix}}/v1/create"
     upstream_url: "{{ player_service_url }}/announcement/v1/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1968,9 +1970,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: cancelAnnouncement
-    request_path: "{{announcement_service_prefix}}/v1/cancel"
+    uris: "{{announcement_service_prefix}}/v1/cancel"
     upstream_url: "{{ player_service_url }}/announcement/v1/cancel"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -1984,9 +1986,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getAnnouncementInbox
-    request_path: "{{announcement_service_prefix}}/v1/user/inbox"
+    uris: "{{announcement_service_prefix}}/v1/user/inbox"
     upstream_url: "{{ player_service_url }}/announcement/v1/user/inbox"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2000,9 +2002,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getAnnouncementOutbox
-    request_path: "{{announcement_service_prefix}}/v1/user/outbox"
+    uris: "{{announcement_service_prefix}}/v1/user/outbox"
     upstream_url: "{{ player_service_url }}/announcement/v1/user/outbox"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2016,9 +2018,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getAnnouncement
-    request_path: "{{announcement_service_prefix}}/v1/get"
+    uris: "{{announcement_service_prefix}}/v1/get"
     upstream_url: "{{ player_service_url }}/announcement/v1/get"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2033,9 +2035,9 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: registerClient
-    request_path: "{{ data_service_prefix }}/v1/client/register"
+    uris: "{{ data_service_prefix }}/v1/client/register"
     upstream_url: "{{ learning_service_url }}/v1/client/register"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2049,9 +2051,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateClientKey
-    request_path: "{{ data_service_prefix }}/v1/client/key/update"
+    uris: "{{ data_service_prefix }}/v1/client/key/update"
     upstream_url: "{{ learning_service_url }}/v1/client/key/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2065,9 +2067,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getClientKey
-    request_path: "{{ data_service_prefix }}/v1/client/key/read"
+    uris: "{{ data_service_prefix }}/v1/client/key/read"
     upstream_url: "{{ learning_service_url }}/v1/client/key/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2081,9 +2083,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getTenantPreference
-    request_path: "{{ org_service_prefix }}/v1/tc/read"
+    uris: "{{ org_service_prefix }}/v1/tc/read"
     upstream_url: "{{ learning_service_url }}/v1/org/tc/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2097,9 +2099,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createTenantPreference
-    request_path: "{{ org_service_prefix }}/v1/tc/create"
+    uris: "{{ org_service_prefix }}/v1/tc/create"
     upstream_url: "{{ learning_service_url }}/v1/org/tc/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2113,9 +2115,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateTenantPreference
-    request_path: "{{ org_service_prefix }}/v1/tc/update"
+    uris: "{{ org_service_prefix }}/v1/tc/update"
     upstream_url: "{{ learning_service_url }}/v1/org/tc/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2129,9 +2131,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateUserTcStatus
-    request_path: "{{ user_service_prefix }}/v1/tc/update"
+    uris: "{{ user_service_prefix }}/v1/tc/update"
     upstream_url: "{{ learning_service_url }}/v1/user/tc/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2145,9 +2147,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createLocation
-    request_path: "{{ org_service_prefix }}/v1/location/create"
+    uris: "{{ org_service_prefix }}/v1/location/create"
     upstream_url: "{{ learning_service_url }}/v1/notification/location/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2161,9 +2163,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getLocation
-    request_path: "{{ org_service_prefix }}/v1/location/read"
+    uris: "{{ org_service_prefix }}/v1/location/read"
     upstream_url: "{{ learning_service_url }}/v1/notification/location/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2177,9 +2179,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: deleteLocation
-    request_path: "{{ org_service_prefix }}/v1/location/delete"
+    uris: "{{ org_service_prefix }}/v1/location/delete"
     upstream_url: "{{ learning_service_url }}/v1/notification/location/delete"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2193,9 +2195,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateLocation
-    request_path: "{{ org_service_prefix }}/v1/location/update"
+    uris: "{{ org_service_prefix }}/v1/location/update"
     upstream_url: "{{ learning_service_url }}/v1/notification/location/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2209,9 +2211,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: profileVisibility
-    request_path: "{{ user_service_prefix }}/v1/profile/visibility"
+    uris: "{{ user_service_prefix }}/v1/profile/visibility"
     upstream_url: "{{ learning_service_url }}/v1/user/profile/visibility"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2225,9 +2227,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: sendNotification
-    request_path: "{{ data_service_prefix }}/v1/notification/send"
+    uris: "{{ data_service_prefix }}/v1/notification/send"
     upstream_url: "{{ learning_service_url }}/v1/notification/send"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2241,9 +2243,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: announcementResend
-    request_path: "{{ announcement_service_prefix }}/v1/resend"
+    uris: "{{ announcement_service_prefix }}/v1/resend"
     upstream_url: "{{ player_service_url }}/announcement/v1/resend"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2257,9 +2259,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: announcementReceived
-    request_path: "{{ announcement_service_prefix }}/v1/received"
+    uris: "{{ announcement_service_prefix }}/v1/received"
     upstream_url: "{{ player_service_url }}/announcement/v1/received"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2273,9 +2275,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: announcementRead
-    request_path: "{{ announcement_service_prefix }}/v1/read"
+    uris: "{{ announcement_service_prefix }}/v1/read"
     upstream_url: "{{ player_service_url }}/announcement/v1/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2289,9 +2291,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: metricsSearchData
-    request_path: "{{ data_service_prefix }}/v1/object/metrics"
+    uris: "{{ data_service_prefix }}/v1/object/metrics"
     upstream_url: "{{ learning_service_url }}/v1/object/metrics"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2305,9 +2307,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateSystemSettings
-    request_path: "{{ data_service_prefix }}/v1/system/settings/list"
+    uris: "{{ data_service_prefix }}/v1/system/settings/list"
     upstream_url: "{{ learning_service_url }}/v1/system/settings/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2321,9 +2323,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getAudienceCount
-    request_path: "{{ data_service_prefix }}/v1/notification/audience"
+    uris: "{{ data_service_prefix }}/v1/notification/audience"
     upstream_url: "{{ learning_service_url }}/v1/notification/audience"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2337,9 +2339,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: generateDialcodes
-    request_path: "{{ dialcode_service_prefix }}/v1/generate"
+    uris: "{{ dialcode_service_prefix }}/v1/generate"
     upstream_url: "{{ content_service_url }}/v1/dialcode/generate"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2353,9 +2355,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readDialcode
-    request_path: "{{ dialcode_service_prefix }}/v1/read"
+    uris: "{{ dialcode_service_prefix }}/v1/read"
     upstream_url: "{{ content_service_url }}/v1/dialcode/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2369,9 +2371,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateDialcode
-    request_path: "{{ dialcode_service_prefix }}/v1/update"
+    uris: "{{ dialcode_service_prefix }}/v1/update"
     upstream_url: "{{ content_service_url }}/v1/dialcode/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2385,9 +2387,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listDialcodes
-    request_path: "{{ dialcode_service_prefix }}/v1/list"
+    uris: "{{ dialcode_service_prefix }}/v1/list"
     upstream_url: "{{ content_service_url }}/v1/dialcode/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2401,9 +2403,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: publishDialcode
-    request_path: "{{ dialcode_service_prefix }}/v1/publish"
+    uris: "{{ dialcode_service_prefix }}/v1/publish"
     upstream_url: "{{ content_service_url }}/v1/dialcode/publish"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2417,9 +2419,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: searchDialcodes
-    request_path: "{{ dialcode_service_prefix }}/v1/search"
+    uris: "{{ dialcode_service_prefix }}/v1/search"
     upstream_url: "{{ content_service_url }}/v1/dialcode/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2433,9 +2435,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: qrCodeBatchProcessStatus
-    request_path: "{{ dialcode_service_prefix }}/v1/process/status"
+    uris: "{{ dialcode_service_prefix }}/v1/process/status"
     upstream_url: "{{ content_service_url }}/v1/dialcode/process/status"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2449,9 +2451,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: qrCodeBatchProcessRetry
-    request_path: "{{ dialcode_service_prefix }}/v1/process/retry"
+    uris: "{{ dialcode_service_prefix }}/v1/process/retry"
     upstream_url: "{{ content_service_url }}/v1/dialcode/process/retry"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2465,9 +2467,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createPublisher
-    request_path: "{{ dialcode_service_prefix }}/v1/publisher/create"
+    uris: "{{ dialcode_service_prefix }}/v1/publisher/create"
     upstream_url: "{{ content_service_url }}/v1/dialcode/publisher/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2481,9 +2483,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updatePublisher
-    request_path: "{{ dialcode_service_prefix }}/v1/publisher/update"
+    uris: "{{ dialcode_service_prefix }}/v1/publisher/update"
     upstream_url: "{{ content_service_url }}/v1/dialcode/publisher/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2497,9 +2499,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readPublisher
-    request_path: "{{ dialcode_service_prefix }}/v1/publisher/read"
+    uris: "{{ dialcode_service_prefix }}/v1/publisher/read"
     upstream_url: "{{ content_service_url }}/v1/dialcode/publisher/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2513,9 +2515,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: linkDialcodeContent
-    request_path: "{{ dialcode_service_prefix }}/v1/content/link"
+    uris: "{{ dialcode_service_prefix }}/v1/content/link"
     upstream_url: "{{ content_service_url }}/v1/dialcode/content/link"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2529,9 +2531,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readChannel
-    request_path: "{{ channel_service_prefix }}/v1/read"
+    uris: "{{ channel_service_prefix }}/v1/read"
     upstream_url: "{{ content_service_url }}/v1/channel/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: cors
     - "{{ statsd_pulgin }}"
@@ -2542,9 +2544,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listChannel
-    request_path: "{{ channel_service_prefix }}/v1/list"
+    uris: "{{ channel_service_prefix }}/v1/list"
     upstream_url: "{{ content_service_url }}/v1/channel/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2558,9 +2560,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: searchChannel
-    request_path: "{{ channel_service_prefix }}/v1/search"
+    uris: "{{ channel_service_prefix }}/v1/search"
     upstream_url: "{{ content_service_url }}/v1/channel/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2574,9 +2576,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createChannel
-    request_path: "{{ channel_service_prefix }}/v1/create"
+    uris: "{{ channel_service_prefix }}/v1/create"
     upstream_url: "{{ content_service_url }}/v1/channel/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2590,9 +2592,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateChannel
-    request_path: "{{ channel_service_prefix }}/v1/update"
+    uris: "{{ channel_service_prefix }}/v1/update"
     upstream_url: "{{ content_service_url }}/v1/channel/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2606,9 +2608,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readFramework
-    request_path: "{{ framework_service_prefix }}/v1/read"
+    uris: "{{ framework_service_prefix }}/v1/read"
     upstream_url: "{{ content_service_url }}/v1/framework/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: cors
     - "{{ statsd_pulgin }}"
@@ -2619,9 +2621,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listFramework
-    request_path: "{{ framework_service_prefix }}/v1/list"
+    uris: "{{ framework_service_prefix }}/v1/list"
     upstream_url: "{{ content_service_url }}/v1/framework/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2635,9 +2637,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createFramework
-    request_path: "{{ framework_service_prefix }}/v1/create"
+    uris: "{{ framework_service_prefix }}/v1/create"
     upstream_url: "{{ content_service_url }}/v1/framework/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2651,9 +2653,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateFramework
-    request_path: "{{ framework_service_prefix }}/v1/update"
+    uris: "{{ framework_service_prefix }}/v1/update"
     upstream_url: "{{ content_service_url }}/v1/framework/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2667,9 +2669,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: copyFramework
-    request_path: "{{ framework_service_prefix }}/v1/copy"
+    uris: "{{ framework_service_prefix }}/v1/copy"
     upstream_url: "{{ content_service_url }}/v1/framework/copy"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2683,9 +2685,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readFrameworkTerm
-    request_path: "{{ framework_service_prefix }}/v1/term/read"
+    uris: "{{ framework_service_prefix }}/v1/term/read"
     upstream_url: "{{ content_service_url }}/v1/framework/term/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2699,9 +2701,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: searchFrameworkTerm
-    request_path: "{{ framework_service_prefix }}/v1/term/search"
+    uris: "{{ framework_service_prefix }}/v1/term/search"
     upstream_url: "{{ content_service_url }}/v1/framework/term/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2715,9 +2717,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createFrameworkTerm
-    request_path: "{{ framework_service_prefix }}/v1/term/create"
+    uris: "{{ framework_service_prefix }}/v1/term/create"
     upstream_url: "{{ content_service_url }}/v1/framework/term/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2731,9 +2733,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateFrameworkTerm
-    request_path: "{{ framework_service_prefix }}/v1/term/update"
+    uris: "{{ framework_service_prefix }}/v1/term/update"
     upstream_url: "{{ content_service_url }}/v1/framework/term/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2747,9 +2749,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readFrameworkCategory
-    request_path: "{{ framework_service_prefix }}/v1/category/read"
+    uris: "{{ framework_service_prefix }}/v1/category/read"
     upstream_url: "{{ content_service_url }}/v1/framework/category/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2763,9 +2765,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: searchFrameworkCategory
-    request_path: "{{ framework_service_prefix }}/v1/category/search"
+    uris: "{{ framework_service_prefix }}/v1/category/search"
     upstream_url: "{{ content_service_url }}/v1/framework/category/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2779,9 +2781,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createFrameworkCategory
-    request_path: "{{ framework_service_prefix }}/v1/category/create"
+    uris: "{{ framework_service_prefix }}/v1/category/create"
     upstream_url: "{{ content_service_url }}/v1/framework/category/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2795,9 +2797,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateFrameworkCategory
-    request_path: "{{ framework_service_prefix }}/v1/category/update"
+    uris: "{{ framework_service_prefix }}/v1/category/update"
     upstream_url: "{{ content_service_url }}/v1/framework/category/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2811,9 +2813,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateCourseHierarchy
-    request_path: '{{ course_service_prefix }}/v1/hierarchy/update'
+    uris: '{{ course_service_prefix }}/v1/hierarchy/update'
     upstream_url: '{{ content_service_url }}/v1/course/hierarchy/update'
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2827,9 +2829,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: '{{ small_request_size_limit }}'
   - name: submitDatasetRequest
-    request_path: "{{ data_service_prefix }}/v1/dataset/request/submit"
+    uris: "{{ data_service_prefix }}/v1/dataset/request/submit"
     upstream_url: "{{ content_service_url }}/v1/dataset/request/submit"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2843,9 +2845,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listDatasetRequest
-    request_path: "{{ data_service_prefix }}/v1/dataset/request/list"
+    uris: "{{ data_service_prefix }}/v1/dataset/request/list"
     upstream_url: "{{ content_service_url }}/v1/dataset/request/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2859,9 +2861,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readDatasetRequest
-    request_path: "{{ data_service_prefix }}/v1/dataset/request/read"
+    uris: "{{ data_service_prefix }}/v1/dataset/request/read"
     upstream_url: "{{ content_service_url }}/v1/dataset/request/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2875,9 +2877,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: channelDatasetRequest
-    request_path: "{{ data_service_prefix }}/v1/dataset/request"
+    uris: "{{ data_service_prefix }}/v1/dataset/request"
     upstream_url: "{{ content_service_url }}/v1/dataset/request"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2891,9 +2893,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createAssertion
-    request_path: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/create"
+    uris: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/create"
     upstream_url: "{{ learning_service_url }}/v1/issuer/badge/assertion/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2907,9 +2909,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getAssertion
-    request_path: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/read"
+    uris: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/read"
     upstream_url: "{{ learning_service_url }}/v1/issuer/badge/assertion/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2923,9 +2925,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getAssertionList
-    request_path: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/search"
+    uris: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/search"
     upstream_url: "{{ learning_service_url }}/v1/issuer/badge/assertion/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2939,9 +2941,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: revokeAssertion
-    request_path: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/delete"
+    uris: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/delete"
     upstream_url: "{{ learning_service_url }}/v1/issuer/badge/assertion/delete"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2955,9 +2957,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: createBadgeClass
-    request_path: "{{ badge_service_prefix }}/v1/issuer/badge/create"
+    uris: "{{ badge_service_prefix }}/v1/issuer/badge/create"
     upstream_url: "{{ learning_service_url }}/v1/issuer/badge/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2971,9 +2973,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getBadgeClass
-    request_path: "{{ badge_service_prefix }}/v1/issuer/badge/read"
+    uris: "{{ badge_service_prefix }}/v1/issuer/badge/read"
     upstream_url: "{{ learning_service_url }}/v1/issuer/badge/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -2987,9 +2989,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: searchBadgeClass
-    request_path: "{{ badge_service_prefix }}/v1/issuer/badge/search"
+    uris: "{{ badge_service_prefix }}/v1/issuer/badge/search"
     upstream_url: "{{ learning_service_url }}/v1/issuer/badge/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3003,9 +3005,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: deleteBadgeClass
-    request_path: "{{ badge_service_prefix }}/v1/issuer/badge/delete"
+    uris: "{{ badge_service_prefix }}/v1/issuer/badge/delete"
     upstream_url: "{{ learning_service_url }}/v1/issuer/badge/delete"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3019,9 +3021,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: createissuer
-    request_path: "{{ badge_service_prefix }}/v1/issuer/create"
+    uris: "{{ badge_service_prefix }}/v1/issuer/create"
     upstream_url: "{{ learning_service_url }}/v1/issuer/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3035,9 +3037,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getIssuerDetails
-    request_path: "{{ badge_service_prefix }}/v1/issuer/read"
+    uris: "{{ badge_service_prefix }}/v1/issuer/read"
     upstream_url: "{{ learning_service_url }}/v1/issuer/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3051,9 +3053,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: getAllIssuer
-    request_path: "{{ badge_service_prefix }}/v1/issuer/list"
+    uris: "{{ badge_service_prefix }}/v1/issuer/list"
     upstream_url: "{{ learning_service_url }}/v1/issuer/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3067,9 +3069,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: deleteIssuer
-    request_path: "{{ badge_service_prefix }}/v1/issuer/delete"
+    uris: "{{ badge_service_prefix }}/v1/issuer/delete"
     upstream_url: "{{ learning_service_url }}/v1/issuer/delete"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3083,9 +3085,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: createForm
-    request_path: "{{ data_service_prefix }}/v1/form/create"
+    uris: "{{ data_service_prefix }}/v1/form/create"
     upstream_url: "{{ player_service_url }}/plugin/v1/form/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3099,9 +3101,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: updateForm
-    request_path: "{{ data_service_prefix }}/v1/form/update"
+    uris: "{{ data_service_prefix }}/v1/form/update"
     upstream_url: "{{ player_service_url }}/plugin/v1/form/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3115,9 +3117,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: announcementtypeCreate
-    request_path: "{{ announcement_service_prefix }}/v1/manage/announcement-type/create"
+    uris: "{{ announcement_service_prefix }}/v1/manage/announcement-type/create"
     upstream_url: "{{ player_service_url }}/announcement/v1/manage/announcement-type/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3131,9 +3133,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: announcementtypeUpdate
-    request_path: "{{ announcement_service_prefix }}/v1/manage/announcement-type/update"
+    uris: "{{ announcement_service_prefix }}/v1/manage/announcement-type/update"
     upstream_url: "{{ player_service_url }}/announcement/v1/manage/announcement-type/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3147,9 +3149,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: announcementtypeList
-    request_path: "{{ announcement_service_prefix }}/v1/manage/announcement-type/list"
+    uris: "{{ announcement_service_prefix }}/v1/manage/announcement-type/list"
     upstream_url: "{{ player_service_url }}/announcement/v1/manage/announcement-type/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3163,9 +3165,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: readForm
-    request_path: "{{ data_service_prefix }}/v1/form/read"
+    uris: "{{ data_service_prefix }}/v1/form/read"
     upstream_url: "{{ player_service_url }}/plugin/v1/form/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: cors
     - "{{ statsd_pulgin }}"
@@ -3176,9 +3178,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: masterLocationCreate
-    request_path: "{{ data_service_prefix }}/v1/location/create"
+    uris: "{{ data_service_prefix }}/v1/location/create"
     upstream_url: "{{ learning_service_url }}/v1/location/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3192,9 +3194,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: masterLocationUpdate
-    request_path: "{{ data_service_prefix }}/v1/location/update"
+    uris: "{{ data_service_prefix }}/v1/location/update"
     upstream_url: "{{ learning_service_url }}/v1/location/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3208,9 +3210,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: masterLocationSearch
-    request_path: "{{ data_service_prefix }}/v1/location/search"
+    uris: "{{ data_service_prefix }}/v1/location/search"
     upstream_url: "{{ learning_service_url }}/v1/location/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3224,9 +3226,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: masterLocationUpload
-    request_path: "{{ data_service_prefix }}/v1/bulk/location/upload"
+    uris: "{{ data_service_prefix }}/v1/bulk/location/upload"
     upstream_url: "{{ learning_service_url }}/v1/bulk/location/upload"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3241,9 +3243,9 @@ kong_apis:
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: copyContent
-    request_path: "{{ content_service_prefix }}/v1/copy"
+    uris: "{{ content_service_prefix }}/v1/copy"
     upstream_url: "{{ content_service_url }}/v1/content/copy"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3258,9 +3260,9 @@ kong_apis:
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: fetchURLMetaInformation
-    request_path: "{{ content_service_prefix }}/v1/fetchmeta"
+    uris: "{{ content_service_prefix }}/v1/fetchmeta"
     upstream_url: "{{ content_service_url }}/v1/url/fetchmeta"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3274,9 +3276,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: publishFramework
-    request_path: "{{ framework_service_prefix }}/v1/publish"
+    uris: "{{ framework_service_prefix }}/v1/publish"
     upstream_url: "{{ content_service_url }}/v1/framework/publish"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3290,9 +3292,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: pluginSearch
-    request_path: "{{ plugin_service_prefix }}/v1/search"
+    uris: "{{ plugin_service_prefix }}/v1/search"
     upstream_url: "{{ content_service_url }}/v1/plugins/search"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3306,9 +3308,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: updateCollaborators
-    request_path: "{{ content_service_prefix }}/v1/collaborator/update"
+    uris: "{{ content_service_prefix }}/v1/collaborator/update"
     upstream_url: "{{ content_service_url }}/v1/content/collaborator/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3322,9 +3324,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: reserveDialcode
-    request_path: "{{ dialcode_service_prefix }}/v1/reserve"
+    uris: "{{ dialcode_service_prefix }}/v1/reserve"
     upstream_url: "{{ content_service_url }}/v1/dialcode/reserve"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3338,9 +3340,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: releaseDialcode
-    request_path: "{{ dialcode_service_prefix }}/v1/release"
+    uris: "{{ dialcode_service_prefix }}/v1/release"
     upstream_url: "{{ content_service_url }}/v1/dialcode/release"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3354,9 +3356,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createLock
-    request_path: "{{ lock_service_prefix }}/v1/create"
+    uris: "{{ lock_service_prefix }}/v1/create"
     upstream_url: "{{ content_service_url }}/v1/lock/create"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3370,9 +3372,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: refreshLock
-    request_path: "{{ lock_service_prefix }}/v1/refresh"
+    uris: "{{ lock_service_prefix }}/v1/refresh"
     upstream_url: "{{ content_service_url }}/v1/lock/refresh"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3386,9 +3388,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: retireLock
-    request_path: "{{ lock_service_prefix }}/v1/retire"
+    uris: "{{ lock_service_prefix }}/v1/retire"
     upstream_url: "{{ content_service_url }}/v1/lock/retire"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3402,9 +3404,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: listLock
-    request_path: "{{ lock_service_prefix }}/v1/list"
+    uris: "{{ lock_service_prefix }}/v1/list"
     upstream_url: "{{ content_service_url }}/v1/lock/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3418,9 +3420,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: createSession
-    request_path: "{{ sso_service_prefix }}/v1/create/session"
+    uris: "{{ sso_service_prefix }}/v1/create/session"
     upstream_url: "{{ player_service_url }}/v1/sso/create/session"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3436,9 +3438,9 @@ kong_apis:
 
   # Data pipeline
   - name: "datasetSubmitRequest"
-    request_path: "{{ data_service_prefix }}/v3/dataset/request/submit"
+    uris: "{{ data_service_prefix }}/v3/dataset/request/submit"
     upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/request/submit"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3447,9 +3449,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "datasetReadRequest"
-    request_path: "{{ data_service_prefix }}/v3/dataset/request/read"
+    uris: "{{ data_service_prefix }}/v3/dataset/request/read"
     upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/request/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3458,9 +3460,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "datasetListRequest"
-    request_path: "{{ data_service_prefix }}/v3/dataset/request/list"
+    uris: "{{ data_service_prefix }}/v3/dataset/request/list"
     upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/request/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3469,18 +3471,18 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "deviceRegister"
-    request_path: "/v3/device/register"
+    uris: "/v3/device/register"
     upstream_url: "{{ sunbird_analytics_api_base_url }}/v1/device/register"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'cors'}
      - "{{ statsd_pulgin }}"
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "channelSpecificTelemetryExhaust"
-    request_path: "{{ data_service_prefix }}/v3/dataset/get"
+    uris: "{{ data_service_prefix }}/v3/dataset/get"
     upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/get"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3490,9 +3492,9 @@ kong_apis:
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
 
   - name: "dataproductsCumulativeMetrics"
-    request_path: "{{ data_service_prefix }}/v3/metrics"
+    uris: "{{ data_service_prefix }}/v3/metrics"
     upstream_url: "{{ sunbird_analytics_api_base_url }}/metrics"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3502,9 +3504,9 @@ kong_apis:
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
 
   - name: "configRefresh"
-    request_path: "{{ config_service_prefix }}/v1/refresh"
+    uris: "{{ config_service_prefix }}/v1/refresh"
     upstream_url: "{{ config_service_url }}/config-service/v1/refresh"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3514,9 +3516,9 @@ kong_apis:
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
 
   - name: "getConfigByKey"
-    request_path: "{{ config_service_prefix }}/v1/read"
+    uris: "{{ config_service_prefix }}/v1/read"
     upstream_url: "{{ config_service_url }}/config-service/v1/read"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3525,9 +3527,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "addSystemSettings"
-    request_path: "{{ data_service_prefix }}/v1/system/settings/set"
+    uris: "{{ data_service_prefix }}/v1/system/settings/set"
     upstream_url: "{{ learning_service_url }}/v1/system/settings/set"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3536,9 +3538,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "getSystemSettings"
-    request_path: "{{ data_service_prefix }}/v1/system/settings/get"
+    uris: "{{ data_service_prefix }}/v1/system/settings/get"
     upstream_url: "{{ learning_service_url }}/v1/system/settings/get"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3547,9 +3549,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "getConfigStatus"
-    request_path: "{{ config_service_prefix }}/v1/status"
+    uris: "{{ config_service_prefix }}/v1/status"
     upstream_url: "{{ config_service_url }}/config-service/v1/status"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3558,9 +3560,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "getConfigHealth"
-    request_path: "{{ config_service_prefix }}/v1/health"
+    uris: "{{ config_service_prefix }}/v1/health"
     upstream_url: "{{ config_service_url }}/config-service/v1/health"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3569,9 +3571,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: onboardConsumer
-    request_path: "{{ api_manager_perfix }}/v1/consumer/create/jwt"
+    uris: "{{ api_manager_perfix }}/v1/consumer/create/jwt"
     upstream_url: "{{ am_util_url }}/v1/consumer/create/jwt"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3585,9 +3587,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: KongConsumerApi
-    request_path: "{{ api_manager_perfix }}/v1/consumer"
+    uris: "{{ api_manager_perfix }}/v1/consumer"
     upstream_url: "{{ am_util_url }}/v1/consumer"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3601,9 +3603,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: uploadTOC
-    request_path: "{{ textbook_service_prefix }}/v1/toc/upload"
+    uris: "{{ textbook_service_prefix }}/v1/toc/upload"
     upstream_url: "{{ learning_service_url }}/v1/textbook/toc/upload"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3617,9 +3619,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: downloadTOC
-    request_path: "{{ textbook_service_prefix }}/v1/toc/download"
+    uris: "{{ textbook_service_prefix }}/v1/toc/download"
     upstream_url: "{{ learning_service_url }}/v1/textbook/toc/download"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3633,9 +3635,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: acceptTermsAndCondition
-    request_path: "{{ user_service_prefix }}/v1/tnc/accept"
+    uris: "{{ user_service_prefix }}/v1/tnc/accept"
     upstream_url: "{{ learning_service_url }}/v1/user/tnc/accept"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3649,9 +3651,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: generateOtp
-    request_path: "{{ otp_service_prefix }}/v1/generate"
+    uris: "{{ otp_service_prefix }}/v1/generate"
     upstream_url: "{{ learning_service_url }}/v1/otp/generate"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3665,9 +3667,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: verifyOtp
-    request_path: "{{ otp_service_prefix }}/v1/verify"
+    uris: "{{ otp_service_prefix }}/v1/verify"
     upstream_url: "{{ learning_service_url }}/v1/otp/verify"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3681,9 +3683,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getUserByKey
-    request_path: "{{ user_service_prefix  }}/v1/get"
+    uris: "{{ user_service_prefix  }}/v1/get"
     upstream_url: "{{ learning_service_url }}/v1/user/get"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3698,9 +3700,9 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: registerMobileAppTeacherAid
-    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_app_teacheraid/credential/register"
+    uris: "{{ api_manager_perfix }}/v1/consumer/mobile_app_teacheraid/credential/register"
     upstream_url: "{{ am_util_url }}/v1/consumer/mobile_app_teacheraid/credential/register"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3715,9 +3717,9 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: registerMobileDeviceTeacherAid
-    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_device_teacheraid/credential/register"
+    uris: "{{ api_manager_perfix }}/v1/consumer/mobile_device_teacheraid/credential/register"
     upstream_url: "{{ am_util_url }}/v1/consumer/mobile_device_teacheraid/credential/register"
-    strip_request_path: true
+    strip_uri: true
     plugins:
     - name: jwt
     - name: cors
@@ -3731,9 +3733,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: "contentBadgeLink"
-    request_path: "{{ badge_service_prefix }}/v1/content/link"
+    uris: "{{ badge_service_prefix }}/v1/content/link"
     upstream_url: "{{ learning_service_url }}/v1/content/link"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3742,9 +3744,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" } 
   - name: "contentBadgeUnLink"
-    request_path: "{{ badge_service_prefix }}/v1/content/unlink"
+    uris: "{{ badge_service_prefix }}/v1/content/unlink"
     upstream_url: "{{ learning_service_url }}/v1/content/unlink"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3753,9 +3755,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" } 
   - name: "privateUserUpdate"
-    request_path: "{{ user_service_prefix }}/private/v1/update"
+    uris: "{{ user_service_prefix }}/private/v1/update"
     upstream_url: "{{ learning_service_url }}/private/user/v1/update"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3764,9 +3766,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }   
   - name: "getUserType"
-    request_path: "{{ user_service_prefix }}/v1/type/list"
+    uris: "{{ user_service_prefix }}/v1/type/list"
     upstream_url: "{{ learning_service_url }}/v1/user/type/list"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3775,9 +3777,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "masterLocationDelete"
-    request_path: "{{data_service_prefix }}/v1/location/delete"
+    uris: "{{data_service_prefix }}/v1/location/delete"
     upstream_url: "{{ learning_service_url }}/v1/location/delete"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
@@ -3786,9 +3788,9 @@ kong_apis:
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "migrateUser"
-    request_path: "{{ user_service_prefix }}/v1/migrate"
+    uris: "{{ user_service_prefix }}/v1/migrate"
     upstream_url: "{{ learning_service_url }}/private/user/v1/migrate"
-    strip_request_path: true
+    strip_uri: true
     plugins:
      - {name: 'jwt'}
      - {name: 'cors'}
