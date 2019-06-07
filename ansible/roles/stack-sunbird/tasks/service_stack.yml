@@ -46,8 +46,10 @@
 
 - name: Create the new index_cdn.ejs file as a config
   shell: "docker config create index_cdn.ejs /home/deployer/config/index_cdn.ejs"
-  when: indexFileChange.changed and sunbird_portal_cdn_url is not none 
+  when: cdn_file_path is not none
+  register: newIndexFile
+  ignore_errors: yes
 
 - name: Deploy Player with updated player config
   shell: docker service update --config-add source=index_cdn.ejs,target=/home/sunbird/app_dist/dist/index_cdn.ejs player_player
-  when: sunbird_portal_cdn_url is not none and  cdn_file_path is not none 
+  when: sunbird_portal_cdn_url is not none and cdn_file_path is not none or newIndexFile.rc == 0
