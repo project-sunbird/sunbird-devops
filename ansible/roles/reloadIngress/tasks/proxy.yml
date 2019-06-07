@@ -1,0 +1,10 @@
+---
+- name: Getting the list of proxy services host details
+  shell: "getent hosts $(docker service ps proxy_proxy | grep Runn | awk '{print $4}') | cut -d \" \" -f1"
+  register: proxy_details
+
+- name: reload proxy containers configurations
+  shell: "docker ps | grep proxy_proxy | awk '{print $1}' | xargs -I % docker exec % nginx -s reload;"
+  delegate_to: "{{item}}"
+  with_items: "{{(proxy_details.stdout_lines)|list}}"
+  register: proxy_out
