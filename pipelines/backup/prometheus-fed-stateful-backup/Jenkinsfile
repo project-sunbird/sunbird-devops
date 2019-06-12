@@ -19,8 +19,9 @@ node() {
                 module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
                 jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                 currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                
                 ansiblePlaybook = "${currentWs}/ansible/prometheus-backup.yml"
-                ansibleExtraArgs = "--tags prometheus-backup --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                ansibleExtraArgs = "--skip-tags prometheus-backup --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                 values.put('currentWs', currentWs)
                 values.put('env', envDir)
                 values.put('module', module)
@@ -29,6 +30,7 @@ node() {
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 println values
                 ansible_playbook_run(values)
+
             }
         }
         currentBuild.result = 'SUCCESS'
