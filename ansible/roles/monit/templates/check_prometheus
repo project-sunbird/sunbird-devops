@@ -1,0 +1,10 @@
+# Monit by default makes HTTP HEAD request. Having content in the check will force HTTP GET
+# Alert by mail is sent by default. Exec will additionally send slack alert
+check host prometheus with address {{ groups['swarm-agent-for-prometheus'][0] }}
+    if failed
+        port {{ prometheus_port }} protocol http
+        request /prometheus/graph
+        content = "Prometheus"
+        for 5 cycles
+    then exec /etc/monit/slack.sh
+    else if succeeded then exec /etc/monit/slack.sh

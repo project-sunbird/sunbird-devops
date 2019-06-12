@@ -1,0 +1,43 @@
+# Start Monit in the background (run as a daemon):
+  set daemon 60            # check services at 1-minute intervals
+  set logfile /var/log/monit.log
+  set idfile /var/lib/monit/id
+  set statefile /var/lib/monit/state
+
+  set mailserver {{ monitor_alerts_mail_server_host }} port {{ monitor_alerts_mail_server_port }}
+    username "{{ monitor_alerts_mail_server_username }}"
+    password "{{ monitor_alerts_mail_server_password }}"
+    using TLSV1
+    with timeout 30 seconds
+
+  set httpd
+    port 2812
+    allow 0.0.0.0/0
+
+## By default Monit will drop alert events if no mail servers are available.
+## If you want to keep the alerts for later delivery retry, you can use the
+## EVENTQUEUE statement.
+  set eventqueue
+      basedir /var/lib/monit/events # set the base directory where events will be stored
+      slots 100                     # optionally limit the queue size
+
+  set mail-format {
+    from: {{ monitor_alerts_mail_from_email }}
+    subject: [{{ env }}] monit alert --  $EVENT $SERVICE
+    message: $EVENT Service $SERVICE
+                  Date:        $DATE
+                  Action:      $ACTION
+                  Host:        $HOST
+                  Description: $DESCRIPTION
+
+             Your faithful employee,
+             Monit
+  }
+
+{% for mail_id in alerts_mailing_list.split(',') %}
+  set alert {{ mail_id }} not on { instance, pid, ppid }
+{% endfor %}
+
+## It is possible to include additional configuration parts from other files or
+## directories.
+   include /etc/monit/conf.d/*

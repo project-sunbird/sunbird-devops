@@ -1,0 +1,10 @@
+# Monit by default makes HTTP HEAD request. Having content in the check will force HTTP GET
+# Alert by mail is sent by default. Exec will additionally send slack alert
+check host alertmanager with address {{ groups['swarm-agent-for-alertmanager'][0] }}
+    if failed
+        port {{ alertmanager_port }} protocol http
+        request /alertmanager/
+        content = "Alertmanager"
+        for 5 cycles
+    then exec /etc/monit/slack.sh
+    else if succeeded then exec /etc/monit/slack.sh
