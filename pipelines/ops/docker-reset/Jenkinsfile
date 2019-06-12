@@ -1,4 +1,3 @@
-
 @Library('deploy-conf') _
 node() {
     try {
@@ -9,7 +8,6 @@ node() {
         String ANSI_YELLOW = "\u001B[33m"
 
         stage('checkout public repo') {
-           // cleanWs()
             checkout scm
         }
 
@@ -20,8 +18,8 @@ node() {
                 module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
                 jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                 currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                ansiblePlaybook = "${currentWs}/ansible/jmeter-restart.yml"
-                ansibleExtraArgs = "--extra-vars \"hosts=${params.hosts}\" --tags ${params.tag}  --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                ansiblePlaybook = "${currentWs}/ansible/docker-swarm-reset.yml"
+                ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
                 values.put('currentWs', currentWs)
                 values.put('env', envDir)
                 values.put('module', module)
