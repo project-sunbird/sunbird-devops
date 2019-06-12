@@ -130,49 +130,6 @@ services:
                 limits:
                     memory: "{{ jsonpath_exporter_limit_memory }}"
 
-    logstash:
-        image: sunbird/logstash:2.4.1
-        command: logstash -f /conf/logstash.conf
-        environment:
-            - LOGSPOUT=ignore
-            - LS_HEAP_SIZE={{ monitor_logstash_heap_size }}
-        configs:
-            - source: monitor_logstash.conf
-              target: /conf/logstash.conf
-            - source: monitor_logstash_grok_patterns
-              target: /conf/grok_patterns
-        ports:
-            - '51416:51415'
-            - '5045:5044'
-        networks:
-            - application_default
-        deploy:
-            replicas: {{ monitor_logstash_replicas }}
-            resources:
-                reservations:
-                    memory: "{{ monitor_logstash_reservation_memory }}"
-                limits:
-                    memory: "{{ monitor_logstash_limit_memory }}"
-
-    logspout:
-        image: gliderlabs/logspout:v3.2.3
-        command: syslog+tcp://monitor_logstash:51415?filter.name=*_proxy.*
-        deploy:
-            mode: global
-            resources:
-                reservations:
-                    memory: "{{ monitor_logspout_reservation_memory }}"
-                limits:
-                    memory: "{{ monitor_logspout_limit_memory }}"
-        environment:
-            - SYSLOG_FORMAT=rfc3164
-        depends_on:
-            - monitor_logstash
-        volumes:
-            - '/var/run/docker.sock:/tmp/docker.sock'
-        networks:
-            - application_default
-
 configs:
   prometheus.yml:
     external: true
@@ -191,8 +148,6 @@ configs:
   statsd_mapping.yml:
     external: true
   kong_cluster_exporter_config.yml:
-    external: true
-  monitor_logstash.conf:
     external: true
   monitor_logstash_grok_patterns:
     external: true
