@@ -1,6 +1,25 @@
-- hosts: "{{hosts}}"
+- hosts: keycloak
   become: yes
-  vars_files:
-    - ['{{inventory_dir}}/secrets.yml']
+  name: Installing and configuring monit
   roles:
-    - monit-deploy
+    - { role: monit-deploy, service: 'monit_keycloak' }
+  tags: keycloak
+
+- hosts: es
+  become: yes
+  pre_tasks:
+    - name: Registering node name
+      set_fact:
+        es_instance_name: "{% for servername in play_hosts %}{% if inventory_hostname==servername %}es-{{ loop.index }}{% endif %}{% endfor %}"
+  roles:
+    - { role: monit, service: 'monit_{{ es_instance_name }}_elasticsearch' }
+  tags: application-es
+
+- hosts: log-es
+  become: yes
+  name: Installing and configuring monit
+  roles:
+    - { role: monit-deploy, service: 'monit_log-es' }
+  tags: log-es
+
+
