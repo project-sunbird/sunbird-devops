@@ -3,10 +3,32 @@ groups:
   rules:
   - record: elasticsearch_filesystem_data_used_percent
     expr: 100 * (elasticsearch_filesystem_data_size_bytes - elasticsearch_filesystem_data_free_bytes) / elasticsearch_filesystem_data_size_bytes
-  - record: elasticsearch_filesystem_data_free_percent
-    expr: 100 - elasticsearch_filesystem_data_used_percent
+  - alert: elasticsearch_filesystem_data_free_percent_WARNING
+    expr: 100 - elasticsearch_filesystem_data_used_percent >= 30 
+    for: 5m
+    labels:
+      severity: WARNING
+    annotations:
+      description: Elasticsearch Free space on Disk  {% raw %}{{$value}}{% endraw %} 
+      summary: Elasticsearch has less free disk space
+  - alert: elasticsearch_filesystem_data_free_percent_CRITICAL
+    expr: 100 - elasticsearch_filesystem_data_used_percent >= 20
+    for: 5m
+    labels:
+      severity: CRITICAL
+    annotations:
+      description: Elasticsearch Free space on Disk  {% raw %}{{$value}}{% endraw %}
+      summary: Elasticsearch has less free disk space
+  - alert: elasticsearch_filesystem_data_free_percent_FATAL
+    expr: 100 - elasticsearch_filesystem_data_used_percent >= 10
+    for: 5m
+    labels:
+      severity: FATAL
+    annotations:
+      description: Elasticsearch Free space on Disk  {% raw %}{{$value}}{% endraw %}
+      summary: Elasticsearch has less free disk space
   - alert: elasticsearch_too_few_nodes_running
-    expr: elasticsearch_cluster_health_number_of_node < 3
+    expr: elasticsearch_cluster_health_number_of_nodes < 3
     for: 5m
     labels:
       severity: CRITICAL
