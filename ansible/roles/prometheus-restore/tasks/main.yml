@@ -1,0 +1,32 @@
+- name: ensure backup dir exists
+  file: path="{{ prometheus_backup_dir }}" state=directory
+
+- name: Download backup from azure
+  command: az storage blob download -c {{ prometheus_backup_azure_container_name }} --name {{ prometheus_backup_filename }} -f {{ prometheus_backup_filepath }}
+  args:
+    chdir: "{{ prometheus_backup_dir }}"
+  async: 100
+  poll: 10
+
+- name: ensure prometheus is stopped
+  shell: "docker service scale {{prometheus_service_name}}=0 && sleep 10"
+  delegate_to: "{{manager_host}}"  #variable is passed as extra vars from jenkins
+
+
+- name: Unarchive backup
+  become: yes
+  unarchive: 
+    src: "{{ prometheus_backup_dir }}/{{ prometheus_backup_filename }}"
+    dest: "{{prometheus_data_dir}}/"
+    extra_opts: [--strip-components=1]
+    copy: no 
+    owner: nobody 
+    group: nogroup
+
+- name: ensure prometheus is started after backup
+  shell: "docker service scale {{prometheus_service_name}}=1"
+  delegate_to: "{{manager_host}}"
+
+- name: clean up backup dir 
+  file: path="{{ prometheus_backup_dir }}" state=absent
+    
