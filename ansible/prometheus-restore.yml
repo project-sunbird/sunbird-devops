@@ -1,48 +1,47 @@
-- hosts: swarm-agent-for-prometheus
+- hosts: "{{prometheus_hosts}}"
   become: yes
+  gather_facts: no
   vars:
     prometheus_data_dir: "{{prometheus_mount_point}}"
-    prometheus_backup_prefix: "prometheus_swarm_{{cluster_name|d('swarm_1')}}"
-    prometheus_url: "http://localhost:9090/prometheus"
+    prometheus_service_name: "monitor_prometheus"
   vars_files:
     - ['{{ inventory_dir }}/secrets.yml']
   environment:
     AZURE_STORAGE_ACCOUNT: "{{ backup_azure_storage_account_name }}"
     AZURE_STORAGE_KEY: "{{ backup_azure_storage_access_key }}"
   roles:
-    - prometheus-backup-v2
+    - prometheus-restore
   tags:
-    - prometheus-backup
+    - swarm-prometheus-restore
 
-- hosts: swarm-agent-for-prometheus-stateful
+- hosts: "{{prometheus_hosts}}"
   become: yes
+  gather_facts: no
   vars:
     prometheus_data_dir: "{{prometheus_fed_mount_point}}"
-    prometheus_backup_prefix: 'prometheus_fed'
-    prometheus_url: "http://localhost:29090/prometheus"
+    prometheus_service_name: "prometheus_fed_prometheus"
   vars_files:
-    - ['{{inventory_dir}}/secrets.yml']
+    - ['{{ inventory_dir }}/secrets.yml']
   environment:
     AZURE_STORAGE_ACCOUNT: "{{ backup_azure_storage_account_name }}"
     AZURE_STORAGE_KEY: "{{ backup_azure_storage_access_key }}"
   roles:
-    - prometheus-backup-v2
+    - prometheus-restore
   tags:
-    - federation-prometheus-backup
+    - federation-prometheus-restore
 
-
-- hosts: swarm-agent-for-prometheus-stateful
+- hosts: "{{prometheus_hosts}}"
   become: yes
+  gather_facts: no
   vars:
     prometheus_data_dir: "{{prometheus_stateful_mount_point}}"
-    prometheus_backup_prefix: 'prometheus_stateful'
-    prometheus_url: "http://localhost:19090/prometheus"
+    prometheus_service_name: "monitor_stateful_prometheus"
   vars_files:
-    - ['{{inventory_dir}}/secrets.yml']
+    - ['{{ inventory_dir }}/secrets.yml']
   environment:
     AZURE_STORAGE_ACCOUNT: "{{ backup_azure_storage_account_name }}"
     AZURE_STORAGE_KEY: "{{ backup_azure_storage_access_key }}"
   roles:
-    - prometheus-backup-v2
+    - prometheus-restore
   tags:
-    - stateful-prometheus-backup
+    - statefull-prometheus-restore
