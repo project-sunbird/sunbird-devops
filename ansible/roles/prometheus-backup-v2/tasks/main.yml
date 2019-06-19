@@ -1,5 +1,12 @@
 ---
 # tasks file for ansible/roles/prometheus-backup-v2
+# Issue: https://github.com/prometheus/prometheus/issues/5686
+- name: preparing snapshot
+  uri:
+    url: "{{ prometheus_url }}/api/v1/admin/tsdb/snapshot"
+    method: POST
+  register: temp_snap
+
 - name: taking snapshot
   uri:
     url: "{{ prometheus_url }}/api/v1/admin/tsdb/snapshot?skip_head=false"
@@ -25,8 +32,11 @@
 
 - name: Deleting snapshot
   file:
-    path: "{{ prometheus_data_dir }}/snapshots/{{ snapshot_name }}"
+    path: "{{ prometheus_data_dir }}/snapshots/{{ item }}"
     state: absent
+  with_items:
+    - "{{ snapshot_name }}"
+    - "{{ temp_snap.json.data.name }}"
 
 - name: Deleting archive snapshot
   file:
