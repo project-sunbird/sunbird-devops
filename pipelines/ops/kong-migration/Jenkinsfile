@@ -1,0 +1,47 @@
+@Library('deploy-conf') _
+node() {
+    try {
+
+        String ANSI_NORMAL = "\u001B[0m"
+        String ANSI_BOLD = "\u001B[1m"
+        String ANSI_RED = "\u001B[31m"
+
+        stage('checkout public repo') {
+            cleanWs()
+            checkout scm
+        }
+
+        ansiColor('xterm') {
+            stage('deploy') {
+                println (ANSI_BOLD + ANSI_RED + '''
+                    Prerequisites:
+                    1. take backup of current api-manager DB
+                         `pg_dump --host=<host> --port=5432 --username=<username> -F p <db_name> > api-manager.sql`
+                    2. make sure you downscaled api-manager_kong to 0
+                    3. disable healthcheck of api-manager_kong, if any
+
+                    If both of the above are not done. Please cancel the
+                    job and proceed after that been done.
+
+                    Waiting for 30s
+                ''' + ANSI_NORMAL )
+                sleep 30
+                values = docker_params()
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                ansiblePlaybook = "$currentWs/ansible/kong_migration.yml"
+                ansibleExtraArgs = " --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag\"  --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                values.put('currentWs', currentWs)
+                values.put('ansiblePlaybook', ansiblePlaybook)
+                values.put('ansibleExtraArgs', ansibleExtraArgs)
+                ansible_playbook_run(values)
+                archiveArtifacts 'metadata.json'
+                currentBuild.description = "${values.image_tag}"
+            }
+        }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
+
