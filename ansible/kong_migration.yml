@@ -4,10 +4,11 @@
 #
 # Prerequisites
 #
-# 1. remove api-manager_kong `docker service rm api-manager_kong`
-# 2. Create api_manager backup `pg_dump --host=<host> --port=5432 --username=<username> -F p <db_name> > api-manager.sql`
-# 3. Create new database out of the backup
-# 4. Add new database to kong_postgres_database variable in common.yml
+# 1. remove health_check if present
+# 2. remove api-manager_kong `docker service rm api-manager_kong`
+# 3. Create api_manager backup `pg_dump --host=<host> --port=5432 --username=<username> -F p <db_name> > api-manager.sql`
+# 4. Create new database out of the backup
+# 5. Add new database to kong_postgres_database variable in common.yml
 #
 # you can pass the inventory from where all docker related args will get scraped
 # Image name, you'll have to pass it as extra args
@@ -15,7 +16,6 @@
 # ansible-playbook -i /path/to/inventory --vault-password-file /path/to/vault/password -e kong_image=sunbird.azure.io/kong:2.0.0 kong_migration.yml
 
 - hosts: swarm-bootstrap-manager
-  gather_facts: false
   become: yes
   run_once: true
   vars_files:
@@ -36,12 +36,40 @@
       dest: /home/deployer/env/migration_api-manager.env
   - name: checking for api-manager_kong
     shell: docker service ps api-manager_kong
-    register: service_status 
+    register: service_status
     changed_when: false
     failed_when: false
   - name: failing if api-manager running
     fail:
       msg: api manager is still running. Please remove the service and run again !!!
     when: service_status.rc == 0
-  - name: Creating  migration_api-manager with kong image version to .10.3
-    shell: "docker service create --env-file /home/deployer/env/migration_api-manager.env --with-registry-auth  --name migration_api-manager {{ kong_image }} kong migrations up"
+
+  - name: installing postgres deps
+    pip:
+      name: psycopg2-binary
+      state: present
+
+  - name: registering name for backup
+    set_fact:
+      postgres_backup_name: "{{kong_postgres_database}}_{{ansible_date_time.iso8601_basic}}.sql"
+
+  - name: taking kong_backup
+    postgresql_db:
+      name: "{{ kong_postgres_database }}"
+      login_host: "{{ kong_postgres_host }}"
+      login_user: "{{ kong_postgres_user }}"
+      login_password: "{{kong_postgres_password}}"
+      state: dump
+      target: "{{postgres_backup_name}}"
+
+  - name: debugging 
+    debug:
+      msg: "Postgres backed up at {{postgres_backup_name}}"
+
+  - name:  Migrating api-manager to .10.3
+    shell: "docker run --env-file /home/deployer/env/migration_api-manager.env  --name migration_api-manager_{{ansible_date_time.iso8601_basic}} {{hub_org}}/{{image_name}}:{{image_tag}} kong migrations up -vvv"
+    register: migration_data
+
+  - name: Migration data
+    debug:
+      var: migration_data
