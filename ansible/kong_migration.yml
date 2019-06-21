@@ -41,10 +41,10 @@
     changed_when: false
     failed_when: false
 
-  # - name: failing if api-manager running
-  #   fail:
-  #     msg: api manager is still running. Please remove the service and run again !!!
-  #   when: service_status.rc == 0
+  - name: failing if api-manager running
+    fail:
+      msg: api manager is still running. Please remove the service and run again !!!
+    when: service_status.rc == 0
 
   - name: taking kong_backup
     shell: "docker run --rm -v $(pwd):/work -w /work --env PGPASSWORD={{ kong_postgres_password }} postgres:9.6-alpine pg_dump --host={{ kong_postgres_host }} --port=5432 --username={{ kong_postgres_user }} -F p {{ kong_postgres_database }} > {{ postgres_backup_name }}"
@@ -53,10 +53,10 @@
     debug:
       msg: "Postgres backed up at /home/deployer/{{postgres_backup_name}}"
 
-  # - name:  Migrating api-manager to .10.3
-  #   shell: "docker run --env-file /home/deployer/env/migration_api-manager.env  --name migration_api-manager_{{ansible_date_time.iso8601_basic}} {{hub_org}}/{{image_name}}:{{image_tag}} kong migrations up -vvv"
-  #   register: migration_data
+  - name:  Migrating api-manager to .10.3
+    shell: "docker run --env-file /home/deployer/env/migration_api-manager.env  --name migration_api-manager_{{ansible_date_time.iso8601_basic}} {{hub_org}}/{{image_name}}:{{image_tag}} kong migrations up -vvv"
+    register: migration_data
 
-  # - name: Migration data
-  #   debug:
-  #     var: migration_data
+  - name: Migration data
+    debug:
+      var: migration_data
