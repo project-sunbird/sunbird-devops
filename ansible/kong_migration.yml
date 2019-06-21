@@ -15,56 +15,43 @@
 # eg:
 # ansible-playbook -i /path/to/inventory --vault-password-file /path/to/vault/password -e kong_image=sunbird.azure.io/kong:2.0.0 kong_migration.yml
 
-- hosts: local
+- hosts: swarm-bootstrap-manager
   become: yes
   vars_files:
     - ['{{ inventory_dir }}/secrets.yml']
   tasks:
   - name: registering name for backup
     set_fact:
-      postgres_backup_name: "/root/{{kong_postgres_database}}_{{ansible_date_time.iso8601_basic}}.sql"
+      postgres_backup_name: "{{kong_postgres_database}}_{{ansible_date_time.iso8601_basic}}.sql"
 
-  - name: taking kong_backup
-    postgresql_db:
-      name: "{{ kong_postgres_database }}"
-      login_host: "{{ kong_postgres_host }}"
-      login_user: "{{ kong_postgres_user }}"
-      login_password: "{{kong_postgres_password}}"
-      state: dump
-      target: "{{postgres_backup_name}}"
-
-  - name: debugging 
-    debug:
-      msg: "Postgres backed up at {{postgres_backup_name}}"
-
-- hosts: swarm-bootstrap-manager
-  become: yes
-  run_once: true
-  vars_files:
-    - ['{{ inventory_dir }}/secrets.yml']
-  tasks:
-  - name: Installing deps
-    pip:
-      name: docker-py
-      state: present
   - name: login to registry
     docker_login:
       registry: "{{ vault_docker_registry_url }}"
       username: "{{ vault_docker_registry_user }}"
       password: "{{ vault_docker_registry_password }}"
+
   - name: templating migration_api-manager env
     template:
       src: static-files/api-manager.env
       dest: /home/deployer/env/migration_api-manager.env
+
   - name: checking for api-manager_kong
     shell: docker service ps api-manager_kong
     register: service_status
     changed_when: false
     failed_when: false
+
   - name: failing if api-manager running
     fail:
       msg: api manager is still running. Please remove the service and run again !!!
     when: service_status.rc == 0
+
+  - name: taking kong_backup
+    shell: "docker run --rm -v $(pwd):/work -w /work --env PGPASSWORD={{kong_postgres_password}} postgres:9.6-alpine pg_dump --host={{kong_postgres_password}} --port=5432 --username={{kong_postgres_user}} -F p {{kong_postgres_database}} > {{ postgres_backup_name }}"
+
+  - name: debugging 
+    debug:
+      msg: "Postgres backed up at {{ansible_user_dir}}/{{postgres_backup_name}}"
 
   - name:  Migrating api-manager to .10.3
     shell: "docker run --env-file /home/deployer/env/migration_api-manager.env  --name migration_api-manager_{{ansible_date_time.iso8601_basic}} {{hub_org}}/{{image_name}}:{{image_tag}} kong migrations up -vvv"
