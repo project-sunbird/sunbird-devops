@@ -6,6 +6,20 @@
     <#elseif section = "form">
     <#if realm.password>
     <div class="ui raised shadow container segment fullpage-background-image">
+    <#if realm.internationalizationEnabled>
+                <div id="kc-locale" class="${properties.kcLocaleClass!}">
+                    <div id="kc-locale-wrapper" class="${properties.kcLocaleWrapperClass!}">
+                        <div class="kc-dropdown" id="kc-locale-dropdown">
+                            <a href="#" id="kc-current-locale-link">${locale.current}</a>
+                            <ul>
+                                <#list locale.supported as l>
+                                    <li class="kc-dropdown-item"><a href="${l.url}">${l.label}</a></li>
+                                </#list>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </#if>
         <div class="ui three column grid stackable">
             <div class="ui column tablet only computer only"></div>
             <div class="ui column height-fix">
