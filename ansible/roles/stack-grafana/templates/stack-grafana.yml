@@ -1,0 +1,33 @@
+version: '3.3'
+
+services:
+  grafana:
+    image: grafana/grafana:6.1.4
+    ports:
+      - "3001:3000"
+    networks:
+      - application_default
+    volumes:
+      - /var/dockerdata/grafana:/var/lib/grafana
+    environment:
+      - GF_SERVER_ROOT_URL=http://grafana.local.com/grafana
+      - GF_SECURITY_ADMIN_PASSWORD={{ grafana_admin_password }}
+      - PROMETHEUS_ENDPOINT=http://prometheus:9090/prometheus
+      - GF_USERS_VIEWERS_CAN_EDIT=true
+    labels:
+      com.docker.stack.namespace: "grafana"
+      com.docker.service.name: "grafana"
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - "node.labels.grafana==1"
+      resources:
+          reservations:
+             memory: "100M"
+          limits:
+             memory: "100M"
+
+networks:
+  application_default:
+    external: true

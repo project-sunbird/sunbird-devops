@@ -1,10 +1,19 @@
-# This is a sample file which depicts how to update the ip for ansible provisioning
-# All ips are for refernce purpose
-# Its mandatory to update ip addresses
-# Don't change the group_names as it's referrenced in playbooks and variable files
+# Alert manager nodes which should be clustered
+# This values should be one of any manager node, if you've multinode cluster
+[alert-manager:children]
+# By default this value can be swarm-manager-1 or 2 or n; but for a single 
+# cluster it should be one value.
+# If you have multiple cluster you can list all ips below one by one
+swarm-manager-1
 
-[swarm-manager-1]
+[swarm-manager-1] 
 18.0.0.15 swarm_master=true
+
+# This host will make sure prometheus for all stateful services 
+# will run on a single node, as it has storage dependancy
+# By default this host is same as docker swarm prometheus
+[swarm-agent-for-prometheus-stateful:children]
+swarm-agent-for-prometheus
 
 [swarm-manager:children]
 swarm-manager-1
@@ -127,5 +136,10 @@ local
 swarm-manager
 
 [all:vars]
+# If you want to tag your prometheus data with unique cluster ids
+# useful in case of prometheus federation
+#
+# cluster_name=DC1
+#
 ansible_ssh_user=deployer
-ansible_ssh_private_key_file=/var/lib/jenkins/secrets/deployer_ssh_key
+ansible_ssh_private_key_file=/run/secrets/deployer_ssh_key

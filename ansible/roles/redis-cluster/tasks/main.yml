@@ -1,0 +1,80 @@
+---
+
+- name: Install dependency packages
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+    state: present
+  with_items:
+    - unzip
+    - build-essential
+    - tcl
+
+- name: download redis tar file
+  get_url:
+    url: "http://download.redis.io/releases/redis-{{version}}.tar.gz"
+    dest: "{{home_dir}}/redis-{{version}}.tar.gz"
+
+- name: unarchive redis
+  unarchive:
+    src: "{{home_dir}}/redis-{{version}}.tar.gz"
+    dest: "{{home_dir}}/"
+    remote_src: yes
+
+- name: change to redis dir and make
+  shell: make
+  args:
+    chdir: "{{home_dir}}/redis-{{version}}"
+
+- name: change to redis dir and make
+  shell: make install
+  args:
+    chdir: "{{home_dir}}/redis-{{version}}"
+
+- name: create required directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ config_dir }}"
+    - "{{ pid_dir }}"
+    - "{{ log_dir }}"
+    - "{{ data_dir }}"
+
+- name: copy redis config to master
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  delegate_to: "{{ groups['redis-master'][0] }}"
+  with_items:
+    - {src: 'templates/redis.conf.j2',dest: '{{ config_dir }}/redis.conf'}
+    - {src: 'templates/sentinel.conf.j2',dest: '{{ config_dir }}/sentinel.conf'}
+
+- name: copy redis config to slaves
+  template:
+    src: templates/redis-slave.conf.j2
+    dest: "{{ config_dir }}/redis.conf"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['redis-slaves'] }}"
+
+- name: copy sentinel config to slaves
+  template:
+    src: templates/sentinel-slave.conf.j2
+    dest: "{{ config_dir }}/sentinel.conf"
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['redis-slaves'] }}"
+
+- name: copy redis init scripts
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0777
+  with_items:
+    - {src: 'templates/redis_start_stop.sh.j2',dest: '/etc/init.d/redis'}
+    - {src: 'templates/sentinel_start_stop.sh.j2',dest: '/etc/init.d/sentinel'}
+
+- name: start redis
+  shell: "/etc/init.d/redis start"
+
+- name: start sentinel
+  shell: "/etc/init.d/sentinel start"
