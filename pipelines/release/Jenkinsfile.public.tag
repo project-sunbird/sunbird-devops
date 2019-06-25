@@ -7,8 +7,8 @@ node {
                         'project-sunbird/sunbird-lms-jobs',
                         'project-sunbird/sunbird-lms-service',
                         'project-sunbird/sunbird-data-pipeline',
-                        'project-sunbird/sunbird-content-service'
-                        ,'project-sunbird/sunbird-auth',
+                        'project-sunbird/sunbird-content-service',
+                        'project-sunbird/sunbird-auth',
                         'project-sunbird/sunbird-learning-platform',
                         'project-sunbird/sunbird-content-plugins',
                         'project-sunbird/sunbird-lms-mw',
@@ -30,7 +30,7 @@ node {
             String ANSI_BOLD = "\u001B[1m"
             String ANSI_RED = "\u001B[31m"
             String ANSI_YELLOW = "\u001B[33m"
-
+            String ANSI_CYAN = "\u001b[36m"
 
             if (params.size() == 0) {
                 repoList = "['" + repositories.join("','") + "']"
@@ -67,7 +67,10 @@ node {
                         sh "git clone --depth 1 --no-single-branch https://github.com/$repo $repo_name"
                         dir("$repo_name") {
                             latestBranch = sh(returnStdout: true, script: "git ls-remote --exit-code --heads origin $releaseBranch* | awk -F \"/\" '{print \$3}' | sort -V -r | head -1").trim()
-                            println latestBranch
+                            branchHash = sh(returnStdout: true, script: "git ls-remote --exit-code --heads origin $latestBranch | sort -V -r | head -1 | awk '{print substr(\$1,0,8)}'").trim()
+                            println("-------------------------------------------------------------------")
+                            println(ANSI_BOLD + ANSI_CYAN + "Current latest branch: " + latestBranch + " and commit hash: " + branchHash + ANSI_NORMAL)
+                            println("-------------------------------------------------------------------")
 
                             if (latestBranch == '') {
                                 println(ANSI_BOLD + ANSI_RED + params.release_branch + " branch and its patterns do not exists" + ANSI_NORMAL)
@@ -78,42 +81,66 @@ node {
                                 origin = "https://${gituser}:${gitpass}@" + sh(script: 'git config --get remote.origin.url', returnStdout: true).trim().split('https://')[1]
                                 echo "Git Hash: ${origin}"
                                 latestTag = sh(script: "git ls-remote --tags origin \"$releaseBranch*\" | grep -v \"RC\" | awk -F \"/\" '{print \$3}' | sort -V -r | grep ^release.*[0-9]\$ | head -1", returnStdout: true).trim()
-                                println latestTag
+                                tagHash = sh(script: "git ls-remote --tags origin \"$latestTag\" | grep -v \"RC\" | sort -V -r | head -1 | awk '{print substr(\$1,0,8)}'", returnStdout: true).trim()
+                                println("-------------------------------------------------------------------")
+                                println(ANSI_BOLD + ANSI_CYAN + "Current latest tag: " + latestTag + " and commit hash: " + tagHash + ANSI_NORMAL)
+                                println("-------------------------------------------------------------------")
 
                                 if (latestTag == '') {
                                     branchLength = latestBranch.split('-')[1].split('\\.').length
                                     if (branchLength == 2) {
-                                        println ANSI_BOLD + ANSI_YELLOW + "Branch is not in major.minor.patch format. Appending patch.." + ANSI_NORMAL
+                                        println(ANSI_BOLD + ANSI_YELLOW + "Branch is not in major.minor.patch format. Appending patch.." + ANSI_NORMAL)
                                         latestAppendBranch = latestBranch + ".0"
                                         println latestAppendBranch
                                     }
-                                    sh("git push ${origin} refs/remotes/origin/$latestBranch:refs/tags/$latestAppendBranch")
+                                    else
+                                        latestAppendBranch = latestBranch
+                                    releaseVar = latestAppendBranch.split('-')[0]
+                                    majorVar = latestAppendBranch.split('-')[1].split('\\.')[0]
+                                    minorVar = latestAppendBranch.split('-')[1].split('\\.')[1]
+                                    patchVar = "0"
+                                    tagToPush = releaseVar + "-" + majorVar + "." + minorVar + "." + patchVar
+                                    sh("git push ${origin} refs/remotes/origin/$latestBranch:refs/tags/$tagToPush")
                                 }
                                 else {
+                                    if (tagHash == branchHash)
+                                    {
+                                        println(ANSI_BOLD + ANSI_YELLOW + "No changes found between latest branch and latest tag. Skipping tag creatiion!" + ANSI_NORMAL)
+                                        tagToPush = latestTag
+                                    }
+                                    else
+                                    {
                                     println(ANSI_BOLD + ANSI_GREEN + "Remote has same tag name. Incrementing and creating tag!" + ANSI_NORMAL)
-
+                                    latestAppendBranch = latestBranch
                                     tagLength = latestTag.split('-')[1].split('\\.').length
                                     if (tagLength == 2) {
-                                        println ANSI_BOLD + ANSI_YELLOW + "Tag is not in major.minor.patch format. Appending patch.." + ANSI_NORMAL
-                                        latestTag = latestTag + ".0"
-                                        println latestTag
+                                        println(ANSI_BOLD + ANSI_YELLOW + "Tag is not in major.minor.patch format. Appending patch.." + ANSI_NORMAL)
+                                        latestAppendTag = latestTag + ".0"
+                                        println latestAppendTag
                                     }
+                                    else
+                                        latestAppendTag = latestTag
 
-                                    releaseVar = latestTag.split('-')[0]
-                                    majorVar = latestTag.split('-')[1].split('\\.')[0]
-                                    minorVar = latestTag.split('-')[1].split('\\.')[1]
-                                    patchVar = latestTag.split('-')[1].split('\\.')[2]
+                                    releaseVar = latestAppendTag.split('-')[0]
+                                    majorVar = latestAppendTag.split('-')[1].split('\\.')[0]
+                                    minorVar = latestAppendTag.split('-')[1].split('\\.')[1]
+                                    patchVar = latestAppendTag.split('-')[1].split('\\.')[2]
                                     patchVar = patchVar.toInteger() + 1
                                     tagToPush = releaseVar + "-" + majorVar + "." + minorVar + "." + patchVar
                                     println tagToPush
                                     sh("git push ${origin} refs/remotes/origin/$latestBranch:refs/tags/$tagToPush")
-                                    latestTag = tagToPush
+                                }
                                 }
                             }
+                                    latestTagHash = sh(script: "git ls-remote --tags origin \"$tagToPush\" | grep -v \"RC\" | sort -V -r | head -1 | awk '{print substr(\$1,0,8)}'", returnStdout: true).trim()
+                                    println("-------------------------------------------------------------------")
+                                    println(ANSI_BOLD + ANSI_CYAN + "New latest tag: " + tagToPush + " and commit hash: " + latestTagHash + ANSI_NORMAL)
+                                    println("-------------------------------------------------------------------")
+
                             sh """
                                       sed -i "s/${repo_name}.*//g" ${JENKINS_HOME}/public_release_tags/public_release_tags.txt
                                       sed -i "/^\\\$/d" ${JENKINS_HOME}/public_release_tags/public_release_tags.txt
-                                      echo "$repo_name : $latestTag" >> ${JENKINS_HOME}/public_release_tags/public_release_tags.txt
+                                      echo "$repo_name : $tagToPush, TagHash: $latestTagHash" >> ${JENKINS_HOME}/public_release_tags/public_release_tags.txt
                                  """
                         }
                     }
