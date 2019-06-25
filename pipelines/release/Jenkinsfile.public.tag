@@ -110,32 +110,32 @@ node {
                                     }
                                     else
                                     {
-                                    println(ANSI_BOLD + ANSI_GREEN + "Remote has same tag name. Incrementing and creating tag!" + ANSI_NORMAL)
-                                    latestAppendBranch = latestBranch
-                                    tagLength = latestTag.split('-')[1].split('\\.').length
-                                    if (tagLength == 2) {
-                                        println(ANSI_BOLD + ANSI_YELLOW + "Tag is not in major.minor.patch format. Appending patch.." + ANSI_NORMAL)
-                                        latestAppendTag = latestTag + ".0"
-                                        println latestAppendTag
-                                    }
-                                    else
-                                        latestAppendTag = latestTag
+                                        println(ANSI_BOLD + ANSI_GREEN + "Remote has same tag name. Incrementing and creating tag!" + ANSI_NORMAL)
+                                        latestAppendBranch = latestBranch
+                                        tagLength = latestTag.split('-')[1].split('\\.').length
+                                        if (tagLength == 2) {
+                                            println(ANSI_BOLD + ANSI_YELLOW + "Tag is not in major.minor.patch format. Appending patch.." + ANSI_NORMAL)
+                                            latestAppendTag = latestTag + ".0"
+                                            println latestAppendTag
+                                        }
+                                        else
+                                            latestAppendTag = latestTag
 
-                                    releaseVar = latestAppendTag.split('-')[0]
-                                    majorVar = latestAppendTag.split('-')[1].split('\\.')[0]
-                                    minorVar = latestAppendTag.split('-')[1].split('\\.')[1]
-                                    patchVar = latestAppendTag.split('-')[1].split('\\.')[2]
-                                    patchVar = patchVar.toInteger() + 1
-                                    tagToPush = releaseVar + "-" + majorVar + "." + minorVar + "." + patchVar
-                                    println tagToPush
-                                    sh("git push ${origin} refs/remotes/origin/$latestBranch:refs/tags/$tagToPush")
-                                }
+                                        releaseVar = latestAppendTag.split('-')[0]
+                                        majorVar = latestAppendTag.split('-')[1].split('\\.')[0]
+                                        minorVar = latestAppendTag.split('-')[1].split('\\.')[1]
+                                        patchVar = latestAppendTag.split('-')[1].split('\\.')[2]
+                                        patchVar = patchVar.toInteger() + 1
+                                        tagToPush = releaseVar + "-" + majorVar + "." + minorVar + "." + patchVar
+                                        println tagToPush
+                                        sh("git push ${origin} refs/remotes/origin/$latestBranch:refs/tags/$tagToPush")
+                                    }
                                 }
                             }
-                                    latestTagHash = sh(script: "git ls-remote --tags origin \"$tagToPush\" | grep -v \"RC\" | sort -V -r | head -1 | awk '{print substr(\$1,0,8)}'", returnStdout: true).trim()
-                                    println("-------------------------------------------------------------------")
-                                    println(ANSI_BOLD + ANSI_CYAN + "New latest tag: " + tagToPush + " and commit hash: " + latestTagHash + ANSI_NORMAL)
-                                    println("-------------------------------------------------------------------")
+                            latestTagHash = sh(script: "git ls-remote --tags origin \"$tagToPush\" | grep -v \"RC\" | sort -V -r | head -1 | awk '{print substr(\$1,0,8)}'", returnStdout: true).trim()
+                            println("-------------------------------------------------------------------")
+                            println(ANSI_BOLD + ANSI_CYAN + "New latest tag: " + tagToPush + " and commit hash: " + latestTagHash + ANSI_NORMAL)
+                            println("-------------------------------------------------------------------")
 
                             sh """
                                       sed -i "s/${repo_name}.*//g" ${JENKINS_HOME}/public_release_tags/public_release_tags.txt
