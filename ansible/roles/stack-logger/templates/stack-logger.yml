@@ -1,24 +1,6 @@
 version: '3.3'
 
 services:
-  kibana:
-    image: {{ kibana_image }}
-    deploy:
-      resources:
-        reservations:
-          memory: "{{ logger_kibana_reservation_memory }}"
-        limits:
-          memory: "{{ logger_kibana_limit_memory }}"
-    environment:
-      - LOGSPOUT=ignore
-    ports:
-      - '5601:5601'
-    configs:
-      - source: kibana.yml
-        target: /opt/kibana/config/kibana.yml
-    networks:
-      - application_default
-
   logstash:
     image: sunbird/logstash:2.4.1
     command: logstash -f /conf/logstash.conf
@@ -42,7 +24,7 @@ services:
       - application_default
 
   logspout:
-    image: gliderlabs/logspout:v3.2.3
+    image: gliderlabs/logspout:v3.2.6
     command: syslog+tcp://logger_logstash:51415
     deploy:
       mode: global
@@ -56,6 +38,7 @@ services:
       - INACTIVITY_TIMEOUT=1m
     volumes:
       - '/var/run/docker.sock:/tmp/docker.sock'
+      - '/home/deployer/cluster_name:/etc/host_hostname'
     networks:
       - application_default
 
@@ -88,8 +71,6 @@ services:
 
 configs:
   authenticated_email_kibana_oauth:
-    external: true
-  kibana.yml:
     external: true
   logstash.conf:
     external: true

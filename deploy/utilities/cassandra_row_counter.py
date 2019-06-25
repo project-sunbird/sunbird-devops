@@ -17,7 +17,11 @@ with open(log_file,'a') as cf:
             for j in os.listdir(i):
                 ks = i+'.'+str(j.split('-')[0])
                 val = 'cqlsh -e "select count(*) from {};"'.format(ks)
-                out = check_output(["/bin/bash","-c",val], stderr=STDOUT)
+                try:
+                    out = check_output(["/bin/bash","-c",val], stderr=STDOUT)
+                except Exception as e:
+                    print(e)
+                    pass
                 tmp = ks+' : '+match(r'.+\s(\d+).+', str(out), DOTALL).group(1)
                 cf.write(tmp+'\n')
                 print(tmp)

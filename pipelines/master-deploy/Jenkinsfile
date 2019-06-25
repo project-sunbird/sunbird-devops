@@ -1,0 +1,84 @@
+def writeBlock(File file, String module, String jobname, String private_branch,  String tag){
+    file.append("                \"Building " + module + jobname + "\": {\n")
+    file.append("                    " + module + jobname + "Result =  build(job: '" + module + "/" + jobname + "', parameters: [string(name: 'branch_or_tag', value: '" + tag + "'),  string(name: 'private_branch', value: '" + private_branch + "')], propagate: false).result\n")
+    file.append("                    echo  \"" + module + jobname + " build status = \"+ " + module + jobname + "Result\n")
+    file.append("                    sh \"echo " + module + jobname + " job status = \$" + module + jobname + "Result >> out.txt\"\n")
+}
+
+def continueBlock(File file){
+    file.append("                },\n")
+}
+
+def closeBlock(File file){
+    file.append("                }\n")
+}
+
+def newBlock(File file){
+    file.append("        )\n")
+    file.append("        parallel(\n")
+}
+
+node() {
+    ansiColor('xtrem') {
+        String ANSI_GREEN = "\u001B[32m"
+        String ANSI_NORMAL = "\u001B[0m"
+        String ANSI_BOLD = "\u001B[1m"
+        String ANSI_RED = "\u001B[31m"
+        String ANSI_YELLOW = "\u001B[33m"
+
+        println(ANSI_BOLD + ANSI_GREEN + "Generating deploy script using the input provided..." + ANSI_NORMAL)
+        sh "rm -rf out.txt"
+        repoList = params.repos
+        repoList = repoList.replaceAll('\t', ' ')
+        repoList = repoList.trim().replaceAll(' +', ' ')
+        repoList = repoList.replaceAll("(?m)^\\s*\$[\n\r]{1,}", "")
+        File file = new File("/var/lib/jenkins/runJobs.groovy")
+        repoListSorted = repoList.split('\n').sort()
+        file.write("def runJobs() {\n    stage('Building generated Jenkinsfile') {\n" + "        parallel(\n")
+        listLength = repoListSorted.length - 1
+        storedSeq = 0
+        next = nextSeq = null
+
+        for (i = 0; i < listLength; i++) {
+            line = repoListSorted[i]
+            if (i + 1 < listLength) {
+                next = repoListSorted[i + 1]
+                nextSeq = next.split(' ')[0]
+            } else
+                next = nextSeq = "EOF"
+
+            seq = line.split(' ')[0]
+            module = line.split(' ')[1]
+            jobname = line.split(' ')[2]
+            private_branch = line.split(' ')[3]
+            tag = line.split(' ')[4]
+
+            if (seq == nextSeq) {
+                writeBlock(file, module, jobname, private_branch, tag)
+                continueBlock(file)
+            } else if (seq != nextSeq && nextSeq != "EOF") {
+                writeBlock(file, module, jobname, private_branch, tag)
+                closeBlock(file)
+                newBlock(file)
+            } else if (nextSeq == "EOF")
+                writeBlock(file, module, jobname, private_branch, tag)
+        }
+        file.append("                }\n")
+        file.append("        )\n")
+        file.append("    sh \"echo ============================================\"\n    sh \"cat out.txt\"\n    sh \"echo ============================================\"\n")
+
+        file.append("    }\n}\n")
+        file.append("return this")
+        println(ANSI_BOLD + ANSI_GREEN + "Deploy script generated. Initiating the runs..." + ANSI_NORMAL)
+        def runList = load '/var/lib/jenkins/runJobs.groovy'
+        runList.runJobs()
+        file = new File("$WORKSPACE/out.txt")
+        if (file.text.contains('FAILURE') || file.text.contains('ABORTED')) {
+            println(ANSI_BOLD + ANSI_RED + "Few jobs failed. Please investigate. Marking build UNSTABLE!" + ANSI_NORMAL)
+            currentBuild.result = 'UNSTABLE'
+        } else {
+            println(ANSI_BOLD + ANSI_GREEN + "All jobs succeeded. Marking build SUCCESS!" + ANSI_NORMAL)
+            currentBuild.result = 'SUCCESS'
+        }
+    }
+}

@@ -7,6 +7,14 @@
         AZURE_STORAGE_ACCOUNT: "{{ azure_plugin_storage_account_name }}"
         AZURE_STORAGE_KEY: "{{ azure_plugin_storage_account_key }}"
   tasks:
+    - name: rename env_domain in preview_cdn.html for CDN
+      shell: |
+        echo "{{sunbird_portal_preview_cdn_url}}"
+        sed -i 's|cdn_url|{{sunbird_portal_preview_cdn_url}}|g' "{{currentws}}"/ansible/preview/preview_cdn.html
+      when: sunbird_portal_preview_cdn_url is defined
+      tags:
+        - preview
+
     - name: delete batch
       command: "az storage blob delete-batch -s {{ plugin_container_name }} --pattern {{ folder_name }}/*"
       async: 3600
@@ -28,6 +36,7 @@
         - preview
         - editor
         - core-plugins
+  
 
     - name: upload file
       command: "az storage blob upload --container-name {{ plugin_container_name }} --file {{ source_file_name }} --name artefacts/content-player/content-player-{{ player_version_number }}.zip"
@@ -42,3 +51,24 @@
       poll: 10
       tags:
         - plugins
+
+- hosts: preview-vm
+  gather_facts: false
+  become: yes
+  tasks:
+    - name: removing dir
+      file:
+        path: /var/www/html/preview
+        state: absent
+    - name: creating dir
+      file:
+        path: /var/www/html/preview
+        state: directory
+
+    - name: copy zip to remote
+      copy:
+        src: preview/
+        dest: /var/www/html/preview/
+ # tags:
+  #  - preview
+   # - testupload

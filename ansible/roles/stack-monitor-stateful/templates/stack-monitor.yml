@@ -1,0 +1,334 @@
+version: "3.3"
+
+services:
+    prometheus:
+        image: quay.io/prometheus/prometheus:v2.8.1
+        ports:
+            - "19090:9090"
+        networks:
+            - application_default
+        volumes:
+            - "{{ prometheus_stateful_mount_point }}:/prometheus"
+        command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/etc/prometheus/console_libraries  --storage.tsdb.retention.time={{prometheus_storage_retention_time}} --web.console.templates=/etc/prometheus/consoles --web.route-prefix={{prometheus_route_prefix}} --web.external-url={{prometheus_web_external_url}} --web.enable-admin-api"
+        configs:
+            - source: stateful_prometheus.yml
+              target: /etc/prometheus/prometheus.yml
+            - source: stateful_alertrules.nodes.yml
+              target: /etc/prometheus-rules/alertrules.nodes.yml
+            - source: stateful_alertrules.task.yml
+              target: /etc/prometheus-rules/alertrules.task.yml
+            - source: stateful_alertrules.process.yml
+              target: /etc/prometheus-rules/alertrules.process.yml
+            - source: stateful_alertrules.es.yml
+              target: /etc/prometheus-rules/alertrules.es.yml
+            - source: stateful_alertrules.logs.yml
+              target: /etc/prometheus-rules/alertrules.logs.yml
+            - source: stateful_alertrules.backups.yml
+              target: /etc/prometheus-rules/alertrules.backups.yml
+{% if groups['postgresql-master'] is defined %}
+            - source: stateful_alertrules.postgresql.yml
+              target: /etc/prometheus-rules/alertrules.postgresql.yml
+{% endif %}
+            - source: stateful_alertrules.services.yml
+              target: /etc/prometheus-rules/alertrules.services.yml
+            - source: stateful_alertrules.docker.yml
+              target: /etc/prometheus-rules/alertrules.docker.yml
+        deploy:
+            replicas: 1
+            placement:
+                constraints:
+                    - "node.labels.prometheus_stateful==1"
+            resources:
+              reservations:
+                memory: "1G"
+              limits:
+                memory: "{{ prometheus_limit_memory }}"
+
+    alertmanager:
+        image: prom/alertmanager:v0.16.2
+        ports:
+            - "19093:9093"
+            - "19094:9094"
+        networks:
+            - application_default
+        volumes:
+            - /var/dockerdata/stateful_alertmanager/data:/etc/alertmanager/data
+        # Clustering swarm alert managers and stateful alertmanagers
+        command: "--config.file=/etc/alertmanager/alertmanagerconfig.yml --storage.path=/alertmanager/data --web.route-prefix={{prometheus_alertmanager_route_prefix}} --web.external-url={{prometheus_alertmanager_web_external_url}} {% if groups['alertmanager'] %} --cluster.peer {{ groups['alertmanager'] | difference(ansible_host) | join(':9094 --cluster.peer ')}}:9094 {% endif %} {% if groups['alertmanager_stateful'] | length > 1%} --cluster.peer {{ groups['alertmanager_stateful'] | difference(ansible_host) | join(':19094 --cluster.peer ')}}:19094 {% endif %}"
+        configs:
+            - source: stateful_alertmanagerconfig.yml
+              target: /etc/alertmanager/alertmanagerconfig.yml
+        deploy:
+            replicas: 1
+            placement:
+                constraints:
+                    - "node.labels.alertmanager_stateful==1"
+            resources:
+              reservations:
+                memory: "{{ alertmanager_reservation_memory }}"
+              limits:
+                memory: "{{ alertmanager_limit_memory }}"
+
+    blackbox-exporter:
+        image: quay.io/prometheus/blackbox-exporter:v0.14.0
+        ports:
+            - "19115:9115"
+        command: "--config.file=/etc/blackbox-exporter/blackboxconfig.yml"
+        networks:
+            - application_default
+        configs:
+            - source: stateful_blackboxconfig.yml
+              target: /etc/blackbox-exporter/blackboxconfig.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ blackbox_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ blackbox_exporter_limit_memory }}"
+
+    cadvisor:
+        image: google/cadvisor:v0.33.0
+        ports:
+            - "18081:8080"
+        networks:
+            - application_default
+        volumes:
+            - /:/rootfs:ro
+            - /var/run:/var/run:rw
+            - /sys:/sys:ro
+            - /var/lib/docker/:/var/lib/docker:ro
+        deploy:
+            mode: global
+            resources:
+                reservations:
+                    memory: "{{ cadvisor_reservation_memory }}"
+                limits:
+                    memory: "{{ cadvisor_limit_memory }}"
+
+    elasticsearch_exporter:
+        image: justwatch/elasticsearch_exporter:1.0.1
+        ports:
+            - "9108:9108"
+        networks:
+            - application_default
+        command:
+            - '-es.uri=http://{{ monitor_es_host }}:9200'
+            - '-es.all=true'
+        deploy:
+            replicas: 1
+            resources:
+                reservations:
+                    memory: "{{ elasticsearch_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ elasticsearch_exporter_limit_memory }}"
+
+{% if groups['log-es'] %}
+    log_elasticsearch_exporter:
+        image: justwatch/elasticsearch_exporter:1.0.1
+        ports:
+            - "9109:9108"
+        networks:
+            - application_default
+        command:
+            - '-es.uri=http://{{ groups['log-es'][0] }}:9200'
+            - '-es.all=true'
+        deploy:
+            replicas: 1
+            resources:
+                reservations:
+                    memory: "{{ elasticsearch_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ elasticsearch_exporter_limit_memory }}"
+{% endif %}
+
+{% if groups['postgresql-master'] is defined %}
+    master_postgres_exporter:
+        image: wrouesnel/postgres_exporter:v0.2.2
+        ports:
+            - 9187:9187
+        networks:
+            - application_default
+        command:
+            - '-extend.query-path=/etc/postgres_exporter/postgresmasterqueries.yml'
+        environment:
+            - DATA_SOURCE_NAME=postgresql://{{ postgres_exporter_user }}:{{ postgres_exporter_password }}@{{ groups['postgresql-master'][0]}}:{{ postgres_exporter_postgres_port }}/postgres?sslmode=disable
+        configs:
+            - source: stateful_postgresmasterqueries.yml
+              target: /etc/postgres_exporter/postgresmasterqueries.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ postgres_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ postgres_exporter_limit_memory }}"
+{% endif %}
+
+    {% if groups['postgresql-slave'] is defined %}
+    # This empty line ensures indentation is correct after ansible jinja2 template is materialized
+    slave_postgres_exporter:
+        image: wrouesnel/postgres_exporter:v0.2.2
+        ports:
+            - 9188:9187
+        networks:
+            - application_default
+        command:
+            - '-extend.query-path=/etc/postgres_exporter/postgresslavequeries.yml'
+        environment:
+            - DATA_SOURCE_NAME=postgresql://{{ postgres_exporter_user }}:{{ postgres_exporter_password }}@{{ groups['postgresql-slave'][0]}}:{{ postgres_exporter_postgres_port }}/postgres?sslmode=disable
+        configs:
+            - source: stateful_postgresslavequeries.yml
+              target: /etc/postgres_exporter/postgresslavequeries.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ postgres_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ postgres_exporter_limit_memory }}"
+    {% endif %}
+
+    elasticsearch_snapshots_exporter:
+        image: sunbird/prometheus-jsonpath-exporter:v0.0.1
+        ports:
+            - 9159:9158
+        networks:
+            - application_default
+        command: /etc/elasticsearch_snapshots_exporter/config.yml
+        configs:
+            - source: stateful_elasticsearch_snapshots_exporter_config.yml
+              target: /etc/elasticsearch_snapshots_exporter/config.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ jsonpath_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ jsonpath_exporter_limit_memory }}"
+
+    data_backup_azure_blob_exporter:
+        image: sunbird/prometheus-azure-blob-exporter:v0.0.2
+        ports:
+            - 9358:9358
+        networks:
+            - application_default
+        command: /etc/data_backup_azure_blob_exporter/config.yml
+        configs:
+            - source: stateful_data_backup_azure_blob_exporter_config.yml
+              target: /etc/data_backup_azure_blob_exporter/config.yml
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ azure_blob_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ azure_blob_exporter_limit_memory }}"
+
+    cassandra_jmx_exporter:
+        image: sunbird/cassandra_jmx_exporter:0.11
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ jsonpath_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ jsonpath_exporter_limit_memory }}"
+        ports:
+            - "5556:5556"
+        environment:
+            - JAVA_OPTS=-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=5555
+                -Djava.util.logging.config.file=/opt/app/logging.properties
+        configs:
+            - source: stateful_jmx_httpserver.yml
+              target: /opt/app/jmx_httpserver.yml
+        networks:
+            - application_default
+
+    logstash:
+        image: sunbird/logstash:2.4.1
+        command: logstash -f /conf/logstash.conf
+        environment:
+            - LOGSPOUT=ignore
+            - LS_HEAP_SIZE={{ monitor_logstash_heap_size }}
+        configs:
+            - source: stateful_monitor_logstash.conf
+              target: /conf/logstash.conf
+            - source: stateful_monitor_logstash_grok_patterns
+              target: /conf/grok_patterns
+        ports:
+            - '11416:51415'
+            - '15045:5044'
+        networks:
+            - application_default
+        deploy:
+            replicas: {{ monitor_logstash_replicas }}
+            resources:
+                reservations:
+                    memory: "{{ monitor_logstash_reservation_memory }}"
+                limits:
+                    memory: "{{ monitor_logstash_limit_memory }}"
+
+    logspout:
+        image: gliderlabs/logspout:v3.2.3
+        command: syslog+tcp://monitor_stateful_logstash:51415?filter.name=*_proxy.*
+        deploy:
+            mode: global
+            resources:
+                reservations:
+                    memory: "{{ monitor_logspout_reservation_memory }}"
+                limits:
+                    memory: "{{ monitor_logspout_limit_memory }}"
+        environment:
+            - SYSLOG_FORMAT=rfc3164
+        depends_on:
+            - monitor_stateful_logstash
+        volumes:
+            - '/var/run/docker.sock:/tmp/docker.sock'
+        networks:
+            - application_default
+
+configs:
+  stateful_prometheus.yml:
+    external: true
+  stateful_alertrules.nodes.yml:
+    external: true
+  stateful_alertrules.task.yml:
+    external: true
+  stateful_alertrules.es.yml:
+    external: true
+  stateful_alertrules.logs.yml:
+    external: true
+  stateful_alertrules.backups.yml:
+    external: true
+{% if groups['postgresql-master'] is defined %}
+  stateful_alertrules.postgresql.yml:
+    external: true
+{% endif %}
+  stateful_alertrules.services.yml:
+    external: true
+  stateful_alertrules.docker.yml:
+    external: true
+  stateful_alertmanagerconfig.yml:
+    external: true
+  stateful_blackboxconfig.yml:
+    external: true
+{% if groups['postgresql-master'] is defined %}
+  stateful_postgresmasterqueries.yml:
+    external: true
+{% endif %}
+{% if groups['postgresql-slave'] is defined %}
+  stateful_postgresslavequeries.yml:
+    external: true
+{% endif %}
+  stateful_jmx_httpserver.yml:
+    external: true
+  stateful_elasticsearch_snapshots_exporter_config.yml:
+    external: true
+  stateful_data_backup_azure_blob_exporter_config.yml:
+    external: true
+  stateful_monitor_logstash.conf:
+    external: true
+  stateful_monitor_logstash_grok_patterns:
+    external: true
+  stateful_alertrules.process.yml:
+    external: true
+
+  
+networks:
+    application_default:
+        external: true
