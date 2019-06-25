@@ -12,7 +12,7 @@ echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
 sudo apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
 sudo apt-get update
-sudo apt-get install -y jenkins=2.164.2
+sudo apt-get install -y jenkins=2.150.3
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
@@ -55,26 +55,11 @@ ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/gulp /usr/bin/gulp
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
 pip install ansible==2.5.0
 
-echo -e "\n\e[0;32m${bold}Installating azure cli${normal}"
-apt-get install curl apt-transport-https lsb-release gpg
-curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
-    gpg --dearmor | \
-    sudo tee /etc/apt/trusted.gpg.d/microsoft.asc.gpg > /dev/null
-AZ_REPO=$(lsb_release -cs)
-echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | \
-    sudo tee /etc/apt/sources.list.d/azure-cli.list
-sudo apt-get update
-sudo apt-get install azure-cli
-
 echo -e "\n\e[0;32m${bold}Installating Docker-py${normal}"
 pip install docker-py
 
 echo -e "\n\e[0;32m${bold}Installating colordiff${normal}"
 sudo apt-get install -y colordiff
-
-echo -e "\n\e[0;32m${bold}Installating git lfs${normal}"
-curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-apt-get install git-lfs
 
 echo -e "\n\e[0;32m${bold}Adding jenkins user to docker group${normal}"
 usermod -aG docker jenkins
