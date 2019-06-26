@@ -1,4 +1,4 @@
-FROM nginx:1.16
+FROM nginx:1.16.0
 
 RUN apt update && apt install nginx-extras -y \
     && apt autoremove -y \
