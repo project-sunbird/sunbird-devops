@@ -133,6 +133,10 @@ service_blackbox_checks:
     probe_module: http_2xx
     targets:
       - "{{sunbird_analytics_api_base_url}}/health"
+  - service_name: 'learning-service'
+    probe_module: http_2xx
+    targets:
+      - "{{sunbird_content_repo_api_base_url}}/health"
   - service_name: 'search-service'
     probe_module: http_2xx
     targets:
@@ -143,11 +147,8 @@ service_blackbox_checks:
       - "http://{{ groups['swarm-bootstrap-manager'][0] }}:2812"
   - service_name: 'cassandra'
     probe_module: tcp_connect
-    targets: "{{ groups['cassandra']|map('regex_replace', '^(.*)$', '\\1:' + cassandra_port | string ) | list }}"
-  - service_name: 'composite_search'
-    probe_module: composite_search
     targets:
-      - "{{proto}}://{{proxy_server_name}}/api/composite/v1/search"
+      - "{{ groups['cassandra'] |  map('regex_replace', '^(.*)$', '\\1:'+cassandra_port|string ) | list | to_yaml }}"
   - service_name: 'keycloak'
     probe_module: http_2xx
     targets:
