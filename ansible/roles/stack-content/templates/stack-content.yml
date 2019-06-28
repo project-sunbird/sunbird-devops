@@ -1,0 +1,30 @@
+version: '3.1'
+
+services:
+  service:
+    image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
+    env_file:
+       /home/deployer/env/sunbird_content-service.env
+    ports:
+      - 5000:5000
+    networks:
+      - application_default
+    deploy:
+      replicas: {{ content_replicas }}
+      resources:
+        reseverations:
+          memory: "{{ content_reservation_memory }}"
+        limits:
+          memory: "{{ content_limit_memory }}"
+        update_config:
+          parallelism: 1
+          deplay: 30s
+     healthcheck:
+        test: wget -q -s http://localhost:5000/service/health || exit 1   
+        interval: 5s
+        timeout: 3s
+        retries: 3
+
+networks:
+  application_default:
+    external: true

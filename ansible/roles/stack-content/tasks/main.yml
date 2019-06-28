@@ -1,0 +1,25 @@
+---
+- name: Ensure env directort exists
+  file:
+    path: /home/deployer/env
+    state:  directory
+    owner: root
+    group: root
+
+- name: Ensure stack directory exists
+  file:
+    path: /home/deployer/stack
+    state: directory
+    owner: root
+    group: root
+
+- name: Save configuration into an env file
+  template: src=sunbird_content-service.env dest=/home/deployer/env/sunbird_content-service.env mode=0644
+
+- name: Save stack file
+  template: src=stack-content.yml dest=/home/deployer/stack/content-service.yml mode=0644
+
+- name: Deploy stack
+  shell: "docker stack deploy --with-registry-auth -c content-service.yml content"
+  args:
+    chdir: /home/deployer/stack
