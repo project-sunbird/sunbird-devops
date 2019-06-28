@@ -116,6 +116,11 @@
 - hosts: swarm-bootstrap-manager
   gather_facts: false
   become: yes
+  vars:
+    - alertmanager_host: "{{ groups['swarm-agent-for-alertmanager'][0] }}"
+    - prometheus_host: "{{ group['swarm-agent-for-prometheus'][0] }}"
+    - prometheus_port: "{{ prometheus_port_for_swarm }}"
+    - alertmanager_port: "{{ alertmanager_port_for_swarm }}"
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   roles:
@@ -123,18 +128,6 @@
     - {role: 'monit', monit_checks: ['alertmanager', 'prometheus']}
   tags:
     - stack-monitor
-  run_once: true
-
-- name: Deploying stateful monitoring
-  hosts: swarm-dashboard
-  gather_facts: false
-  become: yes
-  vars_files:
-    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-  roles:
-    - stack-monitor-stateful
-  tags:
-    - stack-monitor-stateful
   run_once: true
 
 - hosts: swarm-dashboard
@@ -151,10 +144,16 @@
   hosts: swarm-dashboard
   gather_facts: false
   become: yes
+  vars:
+    - alertmanager_host: "{{ groups['swarm-dashboard'][0] }}"
+    - prometheus_host: "{{ groups['swarm-dashboard'][0] }}"
+    - prometheus_port: "{{ prometheus_port_for_stateful }}"
+    - alertmanager_port: "{{ alertmanager_port_for_stateful }}"
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   roles:
     - stack-monitor-stateful
+    - {role: 'monit', monit_checks: ['alertmanager', 'prometheus']}
   tags:
     - stack-monitor-stateful
 
