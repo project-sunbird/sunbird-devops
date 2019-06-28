@@ -3,13 +3,35 @@ groups:
   rules:
   - record: elasticsearch_filesystem_data_used_percent
     expr: 100 * (elasticsearch_filesystem_data_size_bytes - elasticsearch_filesystem_data_free_bytes) / elasticsearch_filesystem_data_size_bytes
-  - record: elasticsearch_filesystem_data_free_percent
-    expr: 100 - elasticsearch_filesystem_data_used_percent
+  - alert: elasticsearch_filesystem_data_free_percent_WARNING
+    expr: 100 - elasticsearch_filesystem_data_used_percent >= {{ elasticsearch_filesystem_data_remaining_theshold_Warning }}
+    for: 1m
+    labels:
+      severity: WARNING
+    annotations:
+      description: Elasticsearch Free space on Disk {% raw %}{{$value}}{% endraw %}
+      summary: Elasticsearch has less free disk space {% raw %}{{$value}}{% endraw %}
+  - alert: elasticsearch_filesystem_data_free_percent_CRITICAL
+    expr: 100 - elasticsearch_filesystem_data_used_percent >= {{ elasticsearch_filesystem_data_remaining_theshold_Critical }}
+    for: 1m
+    labels:
+      severity: CRITICAL
+    annotations:
+      description: Elasticsearch Free space on Disk {% raw %}{{$value}}{% endraw %}
+      summary: Elasticsearch has less free disk space {% raw %}{{$value}}{% endraw %}
+  - alert: elasticsearch_filesystem_data_free_percent_FATAL
+    expr: 100 - elasticsearch_filesystem_data_used_percent >= {{ elasticsearch_filesystem_data_remaining_theshold_Fatal }}
+    for: 1m
+    labels:
+      severity: FATAL
+    annotations:
+      description: Elasticsearch Free space on Disk {% raw %}{{$value}}{% endraw %}
+      summary: Elasticsearch has less free disk space {% raw %}{{$value}}{% endraw %}
   - alert: elasticsearch_too_few_nodes_running
     expr: elasticsearch_cluster_health_number_of_nodes{job="elasticsearch-exporter"} < {{ groups['es'] | length }}
     for: 1m
     labels:
-      severity: critical
+      severity: CRITICAL
     annotations:
       description: There are only {% raw %}{{$value}}{% endraw %} < {{ groups['es'] | length }} ElasticSearch nodes running
       summary: ElasticSearch running on less than {{ groups['es'] | length }} nodes
@@ -18,7 +40,7 @@ groups:
     expr: elasticsearch_cluster_health_number_of_nodes{job="log-elasticsearch-exporter"} < {{ groups['log-es'] | length }}
     for: 1m
     labels:
-      severity: critical
+      severity: CRITICAL
     annotations:
       description: There are only {% raw %}{{$value}}{% endraw %} < {{ groups['log-es'] | length }} ElasticSearch nodes running
       summary: ElasticSearch running on less than {{ groups['log-es'] | length }} nodes
@@ -27,7 +49,7 @@ groups:
     expr: elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"} > 0.9
     for: 1m
     labels:
-      severity: critical
+      severity: CRITICAL
     annotations:
       description: The heap usage is over 90% for 15m
       summary: ElasticSearch node {% raw %}{{$labels.node}}{% endraw %} heap usage is high
@@ -35,7 +57,7 @@ groups:
     expr: time() - elasticsearch_snapshots_latest_successful_snapshot_timestamp{job="elasticsearch-snapshots-exporter"} / 1000 > {{ expected_elasticsearch_snapshot_interval_in_minutes|int * 60 }}
     for: 1m
     labels:
-      severity: critical
+      severity: CRITICAL
     annotations:
       description: Elasticsearch snapshot is too old
       summary: Latest elasticSearch snapshot was taken {% raw %}{{ humanizeDuration $value }}{% endraw %} ago. Threshold is {{ expected_elasticsearch_snapshot_interval_in_minutes }} minutes
