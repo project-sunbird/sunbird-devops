@@ -2,7 +2,7 @@ groups:
 - name: alertrules.nodes
   rules:
   - alert: high_cpu_usage_on_node_WARNING
-    expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode="idle"}[5m])) * 100) >= 70 and (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode="idle"}[5m])) * 100) < 85
+    expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode="idle"}[5m])) * 100) >= {{ node_cpu_usage_percentage_theshold_Warning }} and (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode="idle"}[5m])) * 100) < {{ node_cpu_usage_percentage_theshold_Critical }}
     for: 1m
     labels:
       severity: WARNING
@@ -10,7 +10,7 @@ groups:
       description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of CPU. CPU usage is {% raw %}{{ humanize $value}}{% endraw %}%.'
       summary: 'HIGH CPU USAGE WARNING ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_cpu_usage_on_node_CRITICAL
-    expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode="idle"}[5m])) * 100) >= 85 and (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode="idle"}[5m])) * 100) < 95
+    expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode="idle"}[5m])) * 100) >= {{ node_cpu_usage_percentage_theshold_Critical }} and (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode="idle"}[5m])) * 100) < {{ node_cpu_usage_percentage_theshold_Fatal }}
     for: 1m
     labels:
       severity: CRITICAL
@@ -18,7 +18,7 @@ groups:
       description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of CPU. CPU usage is {% raw %}{{ humanize $value}}{% endraw %}%.'
       summary: 'HIGH CPU USAGE WARNING ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_cpu_usage_on_node_FATAL
-    expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode="idle"}[5m])) * 100) >= 95
+    expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode="idle"}[5m])) * 100) >= {{ node_cpu_usage_percentage_theshold_Fatal }}
     for: 1m
     labels:
       severity: FATAL
@@ -26,7 +26,7 @@ groups:
       description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of CPU. CPU usage is {% raw %}{{ humanize $value}}{% endraw %}%.'
       summary: 'HIGH CPU USAGE WARNING ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_memory_usage_on_node_WARNING
-    expr: sum by(nodename) ((((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) >= 70 and (((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) < 85 )
+    expr: sum by(nodename) ((((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) >= {{ node_memory_usage_percentage_theshold_Warning }} and (((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) < {{ node_memory_usage_percentage_theshold_Critical }} )
     for: 1m
     labels:
       severity: WARNING
@@ -34,7 +34,7 @@ groups:
       description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}.'
       summary: 'HIGH MEMORY USAGE WARNING TASK ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_memory_usage_on_node_CRITICAL
-    expr: sum by(nodename) ((((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) >= 85 and (((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) < 95 )
+    expr: sum by(nodename) ((((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) >= {{ node_memory_usage_percentage_theshold_Critical }} and (((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) < {{ node_memory_usage_percentage_theshold_Fatal }} )
     for: 1m
     labels:
       severity: CRITICAL
@@ -42,7 +42,7 @@ groups:
       description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}.'
       summary: 'HIGH MEMORY USAGE WARNING TASK ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_memory_usage_on_node_FATAL
-    expr: sum by(nodename) (((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) >= 95
+    expr: sum by(nodename) (((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) >= {{ node_memory_usage_percentage_theshold_Fatal }}
     for: 1m
     labels:
       severity: FATAL
@@ -50,7 +50,7 @@ groups:
       description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}.'
       summary: 'HIGH MEMORY USAGE WARNING TASK ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_load_on_node_WARNING
-    expr: sum by(nodename) (((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) >= 85 and ((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) < 95 )
+    expr: sum by(nodename) (((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) >= {{ node_load_avg_theshold_Warning }} and ((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) < {{ node_load_avg_theshold_Critial }} )
     for: 5m
     labels:
       severity: WARNING
@@ -58,7 +58,7 @@ groups:
       description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.'
       summary: 'HIGH LOAD AVERAGE WARNING ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_load_on_node_CRITICAL
-    expr: sum by(nodename) (((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) >= 95 and ((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) < 120 )
+    expr: sum by(nodename) (((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) >= {{ node_load_avg_theshold_Critial }} and ((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) < {{ node_load_avg_theshold_Fatal }} )
     for: 5m
     labels:
       severity: CRITICAL
@@ -66,7 +66,7 @@ groups:
       description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.'
       summary: 'HIGH LOAD AVERAGE WARNING ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_load_on_node_FATAL
-    expr: sum by(nodename) ((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) > 120
+    expr: sum by(nodename) ((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) > {{ node_load_avg_theshold_Fatal }}
     for: 5m
     labels:
       severity: FATAL
@@ -82,7 +82,7 @@ groups:
       description: 'The monitoring service {% raw %}{{ $labels.job }}{% endraw %} is down.'
       summary: 'MONITORING SERVICE DOWN WARNING: NODE {% raw %}{{ $labels.host }}{% endraw %}'
   - alert: node_running_out_of_disk_space_WARNING
-    expr: sum by(nodename) (((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) >= 70 and ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) < 85 )
+    expr: sum by(nodename) (((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) >= {{ node_disk_usage_percentage_theshold_Warning }} and ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) < {{ node_disk_usage_percentage_theshold_Critial }} )
     for: 1m
     labels:
       severity: WARNING
@@ -90,7 +90,7 @@ groups:
       description: 'More than 80% of disk used. Disk usage is {% raw %}{{ humanize $value }}{% endraw %}%'
       summary: 'LOW DISK SPACE WARING: NODE {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: node_running_out_of_disk_space_WARNING
-    expr: sum by(nodename) (((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) >= 85 and ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) < 95 )
+    expr: sum by(nodename) (((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) >= {{ node_disk_usage_percentage_theshold_Critial }} and ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) < {{ node_disk_usage_percentage_theshold_Fatal }} )
     for: 1m
     labels:
       severity: CRITICAL
@@ -98,7 +98,7 @@ groups:
       description: 'More than 80% of disk used. Disk usage is {% raw %}{{ humanize $value }}{% endraw %}%'
       summary: 'LOW DISK SPACE WARING: NODE {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: node_running_out_of_disk_space_FATAL
-    expr: sum by(nodename) ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) >= 95
+    expr: sum by(nodename) ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) >= {{ node_disk_usage_percentage_theshold_Fatal }}
     for: 1m
     labels:
       severity: FATAL
