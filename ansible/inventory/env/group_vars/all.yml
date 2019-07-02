@@ -295,7 +295,7 @@ badger_container: badgr
 sunbird_http_orgin: "{{proto}}://{{proxy_server_name}}/badging"
 
 #enc-service
-enc_postgres_database: encryption
+enc_postgres_database: "{{env}}-keys"
 
 #kafka vars
 zk_hosts: "127.0.0.1:2181"
@@ -388,7 +388,7 @@ grafana_dashboards_git_repo_url_with_credentails: "{{core_vault_grafana_dashboar
 monitor_alerts_slack_url: "{{core_vault_monitor_alerts_slack_url}}"
 kong__test_jwt: "{{core_vault_kong__test_jwt}}"
 
-# postgresql_users should only be created in master and replicated to slave
+############# Postgres users and databases ###############
 postgresql_users:
   - name: "{{kong_postgres_user}}"
     login_host: "{{kong_postgres_host}}"
@@ -419,11 +419,18 @@ postgresql_users:
     db: "{{badger_postgres_database}}"
     priv: "ALL"
   - name: "{{user_org_service_postgres_user}}"
-    login_host: "{{enc_postgres_host}}"
-    login_password: "{{enc_postgres_password}}"
+    login_host: "{{user_org_service_postgres_host}}"
+    login_password: "{{user_org_service_postgres_password}}"
     password: "{{user_org_service_postgres_password}}"
     db: "{{user_org_service_postgres_database}}"
     login_user: "{{user_org_service_postgres_user}}"
+    priv: "ALL"
+  - name: "{{enc_postgres_user}}"
+    login_host: "{{enc_postgres_host}}"
+    login_password: "{{enc_postgres_password}}"
+    password: "{{enc_postgres_password}}"
+    db: "{{enc_postgres_database}}"
+    login_user: "{{enc_postgres_user}}"
     priv: "ALL"
 
 
@@ -459,7 +466,10 @@ postgresql_databases:
     owner: "{{enc_postgres_user}}"
     login_user: "{{enc_postgres_user}}"
 
-#######App ES
+##########################################################
+
+####### App ES ########
+
 
 app_es_etc_cluster_name: "{{env}}"
 app_es_etc_discovery_zen_minimum_master_nodes: "{{groups['es']| length | int}}"
