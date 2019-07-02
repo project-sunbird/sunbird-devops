@@ -10,7 +10,7 @@ node() {
         stage('checkout public repo') {
             cleanWs()
             checkout scm
-              sh "git clone https://github.com/project-sunbird/sunbird-auth.git -b ${sunbird_auth_branch_or_tag}"
+              sh "git clone https://github.com/project-sunbird/sunbird-auth.git -b release-2.0.0"
         }
             ansiColor('xterm') {
                 stage('get artifact') {
@@ -40,9 +40,8 @@ node() {
                     stage('deploy artifact') {
                     ansiblePlaybook = "${currentWs}/ansible/sunbird-auth-deploy.yml"
                     ansibleExtraArgs = """\
-                            --limit keycloak
                             --tags deploy
-			    --extra-vars "host=keycloak"
+                            --extra-vars "host={{groups['user-keycloak']}}"
                             --extra-vars "artifact=${artifact}
                             artifact_path=${currentWs}/${artifact}"
                             --vault-password-file /var/lib/jenkins/secrets/vault-pass
