@@ -8,7 +8,7 @@
 
 
 
-FROM nginx:1.16.0
+FROM nginx:1.16-alpine
 
 RUN rm -rf /etc/nginx/conf.d
 
