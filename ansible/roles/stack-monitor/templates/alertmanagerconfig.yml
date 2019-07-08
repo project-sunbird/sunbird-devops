@@ -8,6 +8,7 @@ global:
 
 route:
   receiver: 'devops_team'
+  group_by: ['alertname']
   group_wait: 30s
   group_interval: 1m
   repeat_interval: 4h
@@ -15,7 +16,7 @@ route:
   - receiver: slack
     continue: true
   {% for item in service_teams %}
-  # Dummy comment line to ensure yaml generated from ansible template has proper indentation
+  # comment line to ensure yaml generated from ansible template has proper indentation
   - match_re:
       container_label_com_docker_swarm_service_name: "{{ item.services | join('|') }}"
     receiver: "{{ item.team }}"
@@ -23,7 +24,7 @@ route:
       service_name: "{{ item.services | join('|') }}"
     receiver: "{{ item.team }}"
   {% endfor %}
-  # Dummy comment line to ensure yaml generated from ansible template has proper indentation
+  # comment line to ensure yaml generated from ansible template has proper indentation
   - match:
       owner:
     receiver: devops_team
@@ -35,15 +36,15 @@ receivers:
         api_url: "{{ monitor_alerts_slack_url }}"
         username: 'Monitor - Alerter'
         channel: "{{ monitor_alerts_slack_channel }}"
-        text: "Instances: {% raw %}{{range .Alerts}}\n{{.Labels.nodename}} : {{.Annotations.description}}{{end}}{% endraw %}"
+        text: "[{{ env }}-{{cluster_name}}]: {% raw %}{{range .Alerts}} : {{.Annotations.description}}{{end}}{% endraw %}"
         icon_emoji: ':dart:'
   {% for item in service_teams %}
-  # Dummy comment line to ensure yaml generated from ansible template has proper indentation
+  # comment line to ensure yaml generated from ansible template has proper indentation
   - name: "{{ item.team }}"
     email_configs:
       - send_resolved: true
         to: '{{ item.alerts_mailing_list }}'
         html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
         headers:
-          subject: '[{{ env }}-{{cluster_name}}] {% raw %}{{ template "email.default.subject" . }}{% endraw %}'
+          subject: '[{{ env }}-{{cluster_name}}] {{range .Alerts}} : {{.Annotations.summary}}{{end}}'
   {% endfor %}
