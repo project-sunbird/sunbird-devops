@@ -1,0 +1,70 @@
+- name: install psycopg2
+  package:
+    name: python-psycopg2
+    state: present
+   
+- name: ensure restore dir exists
+  file: path="{{ postgresql_restore_dir }}" state=directory mode=0777
+
+- set_fact:
+    postgres_backup_filepath: "{{ postgresql_restore_dir }}/{{ postgres_backup_filename }}"
+
+- name: Download backup from azure
+  command: az storage blob download -c {{ postgres_backup_azure_container_name }} --name {{ postgres_backup_filename }} -f {{ postgres_backup_filepath }}
+  args:
+    chdir: "{{ postgres_restore_dir }}"
+  async: 100
+  poll: 10
+
+- name: unarchive artifact
+  unarchive: src={{ postgresql_restore_dir }}/{{ postgres_backup_filename }} dest={{ postgresql_restore_dir }}/ copy=no
+
+- name: Create db's
+  postgresql_db:
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    login_host: "{{ postgres_hostname }}"
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ db.name }}"
+  async: 1000
+  poll: 10
+
+- name: Create role and grant access to db's
+  postgresql_user:
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    login_host: "{{ postgres_hostname }}"
+    db: "{{ item[0] }}"
+    name: "{{ item[1] }}"
+    priv: ALL
+    state: present
+    role_attr_flags: CREATEROLE
+  with_nested:
+    - "{{ db.name }}"
+    - "{{ db.role }}"
+  async: 1000
+  poll: 10
+
+- name: create user
+  postgresql_user:
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    login_host: "{{ postgres_hostname }}"
+    name: "{{ item }}"
+  with_items: "{{ db.user }}"
+  async: 1000
+  poll: 10
+
+- name: Restore db's
+  postgresql_db:
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    login_host: "{{ postgres_hostname }}"
+    name: "{{ item }}"
+    state: restore
+    target: "{{ item }}.sql"
+  args:
+    chdir: "{{ postgres_restore_dir }}"
+  with_items: "{{ db.name }}"
+
