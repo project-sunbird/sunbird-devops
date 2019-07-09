@@ -9,12 +9,6 @@
   tags:
       - always
 
-# - name: include java.yml
-#   include: java.yml
-#   when: es_java_install
-#   tags:
-#       - java
-
 - name: include elasticsearch.yml
   include: elasticsearch.yml
   tags:
@@ -75,10 +69,13 @@
   include: ./xpack/security/elasticsearch-security-native.yml
   when: manage_native_realm
 
-#Templates done after restart - handled by flushing the handlers. e.g. suppose user removes security on a running node and doesn't specify es_api_basic_auth_username and es_api_basic_auth_password.  The templates will subsequently not be removed if we don't wait for the node to restart.
 #We also do after the native realm to ensure any changes are applied here first and its denf up.
 - name: include elasticsearch-template.yml
   include: elasticsearch-template.yml
   when: es_templates
   tags:
       - templates
+
+# Install Elasticsearch plugin for backups
+- name: include elasticsearch plugin install
+  include: azure-plugin.yml
