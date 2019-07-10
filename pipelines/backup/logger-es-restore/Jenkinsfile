@@ -1,15 +1,11 @@
 @Library('deploy-conf') _
 node() {
-    try {
+      try {  
         String ANSI_GREEN = "\u001B[32m"
         String ANSI_NORMAL = "\u001B[0m"
         String ANSI_BOLD = "\u001B[1m"
         String ANSI_RED = "\u001B[31m"
         String ANSI_YELLOW = "\u001B[33m"
-
-        triggers {
-            cron('H 0 * * *')
-        }
 
         stage('checkout public repo') {
             cleanWs()
@@ -19,12 +15,12 @@ node() {
         ansiColor('xterm') {
             stage('deploy'){
                 values = [:]
-                currentWs = sh(returnStdout: true, script: 'pwd').trim()
                 envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
                 module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
                 jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
                 ansiblePlaybook = "${currentWs}/ansible/es.yml"
-                ansibleExtraArgs = "--tags \"log_es_restore\" --extra-vars \"snapshot_number=${snapshot_number}\" -v --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                ansibleExtraArgs = " --tags \"log_es_restore\" --extra-vars \"snapshot_number=${params.snapshot_number}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                 values.put('currentWs', currentWs)
                 values.put('env', envDir)
                 values.put('module', module)
@@ -35,8 +31,9 @@ node() {
                 ansible_playbook_run(values)
             }
         }
-    }
-    catch (err) {
+      }           
+        catch (err) {
+        currentBuild.result = "FAILURE"
         throw err
     }
 }
