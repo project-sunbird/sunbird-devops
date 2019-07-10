@@ -1,5 +1,5 @@
 global:
-  resolve_timeout: 1m
+  resolve_timeout: 5m
   smtp_from: "{{ monitor_alerts_mail_from_email }}"
   smtp_smarthost: "{{ monitor_alerts_mail_server_host }}:{{ monitor_alerts_mail_server_port}}"
   smtp_auth_username: "{{ monitor_alerts_mail_server_username }}"
@@ -8,6 +8,7 @@ global:
 
 route:
   receiver: 'devops_team'
+  group_by: ['alertname']
   group_wait: 30s
   group_interval: 1m
   repeat_interval: 4h
@@ -19,9 +20,31 @@ route:
   - match_re:
       container_label_com_docker_swarm_service_name: "{{ item.services | join('|') }}"
     receiver: "{{ item.team }}"
+    {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
+    # Dummy line
+    routes:
+    {% for filter in item.severity_mailing_filter %}
+    # Dummy line
+    - match:
+        severity: "{{ filter.severity }}"
+      receiver: "{{ item.team }}_{{ filter.severity }}"
+    {% endfor %}
+    {% endif %}
+    # Dummy line
   - match_re:
       service_name: "{{ item.services | join('|') }}"
     receiver: "{{ item.team }}"
+    {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
+    # Dummy line
+    routes:
+    {% for filter in item.severity_mailing_filter %}
+    # Dummy line
+    - match:
+        severity: "{{ filter.severity }}"
+      receiver: "{{ item.team }}_{{ filter.severity }}"
+    {% endfor %}
+    {% endif %}
+    # Dummy line
   {% endfor %}
   # Dummy comment line to ensure yaml generated from ansible template has proper indentation
   - match:
@@ -38,7 +61,7 @@ receivers:
         text: "[{{ env }}-{{cluster_name}}]: {% raw %}{{range .Alerts}} {{.Annotations.description}}{{end}}{% endraw %}"
         icon_emoji: ':dart:'
   {% for item in service_teams %}
-  # comment line to ensure yaml generated from ansible template has proper indentation
+  # Dummy comment line to ensure yaml generated from ansible template has proper indentation
   - name: "{{ item.team }}"
     email_configs:
       - send_resolved: true
@@ -46,4 +69,16 @@ receivers:
         html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
         headers:
           subject: '[{{ env }}-{{cluster_name}}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+  {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
+  {% for filter in item.severity_mailing_filter %}
+  # Dummy line
+  - name: "{{ item.team }}_{{ filter.severity }}"
+    email_configs:
+      - send_resolved: true
+        to: '{{ filter.alerts_mailing_list }}'
+        html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+        headers:
+          subject: '[{{ env }}-{{cluster_name}}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+  {% endfor %}
+  {% endif %}
   {% endfor %}
