@@ -69,4 +69,16 @@ receivers:
         html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
         headers:
           subject: '[{{ env }}-STATEFUL] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+  {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
+  {% for filter in item.severity_mailing_filter %}
+  # Dummy line
+  - name: "{{ item.team }}_{{ filter.severity }}"
+    email_configs:
+      - send_resolved: true
+        to: '{{ filter.alerts_mailing_list }}'
+        html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+        headers:
+          subject: '[{{ env }}-STATEFUL] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+  {% endfor %}
+  {% endif %}
   {% endfor %}
