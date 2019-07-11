@@ -17,3 +17,22 @@
   template:
     src: limits.conf.j2
     dest: "{{ ulimit_config_location }}"
+    
+- name: system-wide BASH runtime config file
+  lineinfile:
+    path: /etc/bash.bashrc
+    insertafter: EOF
+    line: "export PROMPT_COMMAND='RETRN_VAL=$?;logger -p local6.debug \"$(whoami) [$$]: $(history 1 | sed \"s/^[ ]*[0-9]\\+[ ]*//\" ) [$RETRN_VAL]\"'"
+
+- name: system-wide BASH runtime config file                                                                                                  
+  lineinfile:                                                                                                                                 
+    path: /etc/rsyslog.d/bash.conf                                                                                                            
+    insertafter: EOF                                                                                                                          
+    state: present                                                                                                                            
+    create: yes                                                                                                                               
+    line: "local6.*    /var/log/commands.log"
+
+- name: Restart service rsyslog
+  service:
+    name: rsyslog
+    state: restarted    

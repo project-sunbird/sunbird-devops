@@ -1,6 +1,7 @@
 @Library('deploy-conf') _
 node() {
     try {
+     timestamps {
         ansiColor('xterm') {
             String ANSI_GREEN = "\u001B[32m"
             String ANSI_NORMAL = "\u001B[0m"
@@ -10,7 +11,7 @@ node() {
 
             if (params.cdn_enable == "true") {
                 stage('Initialize repos') {
-                    cleanWs()
+//                    cleanWs()
                     checkout scm
                     values = docker_params()
                     currentWs = sh(returnStdout: true, script: 'pwd').trim()
@@ -34,10 +35,8 @@ node() {
                         commitHash = sh(script: "jq -r '.commit_hash' metadata.json", returnStdout: true).trim()
                         dir('sunbird-portal') {
                             sunbirdPortalUrl = 'https://github.com/Sunbird-Ed/SunbirdEd-portal.git'
-                            checkout([$class: 'GitSCM', branches: [[name: "$commitHash"]], userRemoteConfigs: [[url: "$sunbirdPortalUrl"]]])
-                            timestamps {
-                                sh("docker run -v /etc/passwd:/etc/passwd -u `id -u`:`id -g` -v `pwd`:/var/lib/jenkins -w /var/lib/jenkins circleci/node:8.11-stretch sh ./build-cdn.sh ${cdnUrl} ${commitHash} ")
-                            }
+                            checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: "$commitHash"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', depth: 0, noTags: true, reference: '', shallow: true]], submoduleCfg: [], userRemoteConfigs: [[url: "$sunbirdPortalUrl"]]]
+                            sh "./build-cdn.sh ${cdnUrl} ${commitHash}"
                         }
                         ansibleExtraArgs = "--extra-vars assets=$currentWs/sunbird-portal/src/app/dist --extra-vars cdn_file_path=$currentWs/sunbird-portal/src/app/dist/index_cdn.ejs --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                         values.put('ansibleExtraArgs', ansibleExtraArgs)
@@ -55,6 +54,7 @@ node() {
             }
         }
     }
+}
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err

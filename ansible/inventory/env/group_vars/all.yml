@@ -84,6 +84,7 @@ kong_postgres_user: "{{core_vault_postgres_username}}"
 kong_postgres_password: "{{core_vault_postgres_password}}"
 enc_postgres_user: "{{core_vault_postgres_username}}"
 badger_postgres_user: "{{core_vault_postgres_username}}"
+user_org_service_postgres_user: "{{core_vault_postgres_username}}"
 sunbird_account_name: "{{azure_account_name}}"
 sunbird_account_key: "{{core_vault_sunbird_azure_storage_key}}"
 ansible_vault_password: "{{ core_vault_ansible_vault_password }}"
@@ -108,6 +109,9 @@ kong_host: api-manager_kong
 
 ## DB address
 application_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
+enc_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
+user_org_service_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
+badger_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 keycloak_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 kong_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 sunbird_cassandra_host: "{{groups['cassandra']|join(',')}}"  #Private IP of Cassandra server
@@ -190,6 +194,7 @@ sunbird_msg_91_auth: "{{core_vault_msg_91_auth_key}}"
 sunbird_telemetry_pdata_id: "{{env}}.sunbird.learning.service"
 sunbird_encryption_key: "{{ core_vault_sunbird_encryption_key }}"
 #player_tenant_dir:
+user_org_service_postgres_database: userorg
 application_postgres_database: quartz
 keycloak_postgres_database: keycloak
 keyclaok_deployer_sudo_pass: "{{core_vault_keyclaok_deployer_sudo_pass}}"
@@ -201,7 +206,7 @@ sunbird_content_repo_api_key: "{{ core_vault_sunbird_ekstep_api_key }}"
 sunbird_search_service_api_key: "{{ core_vault_sunbird_ekstep_api_key }}"
 sunbird_dial_repo_api_base_url: "{{sunbird_ekstep_api_base_url}}"
 sunbird_dial_repo_api_key: "{{ core_vault_sunbird_ekstep_api_key }}"
-sunbird_plugin_repo_api_base_url: "{{sunbird_ekstep_api_base_url}}"
+sunbird_plugin_repo_api_base_url: "http://{{searchservice_ip}}:9000" 
 sunbird_data_service_api_base_url: "{{sunbird_ekstep_api_base_url}}"
 sunbird_data_service_api_key: "{{ core_vault_sunbird_ekstep_api_key }}"
 
@@ -290,7 +295,7 @@ badger_container: badgr
 sunbird_http_orgin: "{{proto}}://{{proxy_server_name}}/badging"
 
 #enc-service
-enc_postgres_database: encryption
+enc_postgres_database: "{{env}}-keys"
 
 #kafka vars
 zk_hosts: "127.0.0.1:2181"
@@ -335,7 +340,8 @@ sunbird_open_saber_bridge_enable: 'false'
 sunbird_content_service_enable_logging: 'true'
 sunbird_language_service_api_key: "{{core_vault_sunbird_ekstep_api_key}}"
 sunbird_installation_display_name: "{{sunbird_app_name}} {{env}}"
-sunbird_ekstep_api_base_url: "https://{{ekstep_s3_env}}.ekstep.in/api"   #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
+sunbird_ekstep_proxy_base_url: "https://{{ekstep_s3_env}}.ekstep.in"  #Base URL of the Ekstep environment. Use `https://qa.ekstep.in/` for non-prod deployments, and `https://community.ekstep.in/` for prod deployment.
+sunbird_ekstep_api_base_url: "{{sunbird_ekstep_proxy_base_url}}/api"   #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
 sunbird_language_service_api_base_url: '{{sunbird_ekstep_api_base_url}}/language'
 
 kong_version: 1.5.0-gold
@@ -346,14 +352,6 @@ ep_es_host: "{{ groups['telemetry-search-cluster'][0] }}"     #For kibana pipeli
 
 
 #encryption Service
-encryption_service_user: encryption
-encryption_db_name: encryption
-encryption_db_dialect: postgres
-encryption_reservation_memory: 750MB
-encryption_replicas: 1
-encryption_limit_memory: 750MB
-encryption_limit_cpu: 1
-encryption_reservation_cpu: 1
 sunbird_allowed_login:
 sunbird_course_batch_notification_enabled: 'true'
 sunbird_device_register_api: "{{proto}}://{{api_proxy_name}}/v3/device/register/"
@@ -383,34 +381,88 @@ grafana_dashboards_git_repo_url_with_credentails: "{{core_vault_grafana_dashboar
 monitor_alerts_slack_url: "{{core_vault_monitor_alerts_slack_url}}"
 kong__test_jwt: "{{core_vault_kong__test_jwt}}"
 
-# postgresql_users should only be created in master and replicated to slave
+############# Postgres users and databases ###############
 postgresql_users:
   - name: "{{kong_postgres_user}}"
+    login_host: "{{kong_postgres_host}}"
+    login_password: "{{kong_postgres_password}}"
     password: "{{postgres_password}}"
     db: "{{kong_postgres_database}}"
+    login_user: "{{kong_postgres_user}}"
     priv: "ALL"
   - name: "{{keycloak_postgres_user}}"
+    login_host: "{{keycloak_postgres_host}}"
+    login_password: "{{keycloak_postgres_password}}"
     password: "{{postgres_password}}"
     db: "{{keycloak_postgres_database}}"
+    login_user: "{{keycloak_postgres_user}}"
     priv: "ALL"
   - name: "{{application_postgres_user}}"
+    login_host: "{{application_postgres_host}}"
+    login_password: "{{application_postgres_password}}"
     password: "{{postgres_password}}"
     db: "{{application_postgres_database}}"
+    login_user: "{{application_postgres_user}}"
     priv: "ALL"
   - name: "{{badger_postgres_user}}"
+    login_host: "{{badger_postgres_host}}"
+    login_password: "{{badger_postgres_password}}"
     password: "{{postgres_password}}"
+    login_user: "{{badger_postgres_user}}"
     db: "{{badger_postgres_database}}"
+    priv: "ALL"
+  - name: "{{user_org_service_postgres_user}}"
+    login_host: "{{user_org_service_postgres_host}}"
+    login_password: "{{user_org_service_postgres_password}}"
+    password: "{{user_org_service_postgres_password}}"
+    db: "{{user_org_service_postgres_database}}"
+    login_user: "{{user_org_service_postgres_user}}"
+    priv: "ALL"
+  - name: "{{enc_postgres_user}}"
+    login_host: "{{enc_postgres_host}}"
+    login_password: "{{enc_postgres_password}}"
+    password: "{{enc_postgres_password}}"
+    db: "{{enc_postgres_database}}"
+    login_user: "{{enc_postgres_user}}"
     priv: "ALL"
 
 
 postgresql_databases:
   - name: "{{kong_postgres_database}}"
+    login_host: "{{kong_postgres_host}}"
+    login_password: "{{kong_postgres_password}}"
+    owner: "{{kong_postgres_user}}"
+    login_user: "{{kong_postgres_user}}"
   - name: "{{keycloak_postgres_database}}"
+    login_host: "{{keycloak_postgres_host}}"
+    login_password: "{{keycloak_postgres_password}}"
+    owner: "{{keycloak_postgres_user}}"
+    login_user: "{{keycloak_postgres_user}}"
   - name: "{{application_postgres_database}}"
+    login_host: "{{application_postgres_host}}"
+    login_password: "{{application_postgres_password}}"
+    owner: "{{application_postgres_user}}"
+    login_user: "{{application_postgres_user}}"
   - name: "{{badger_postgres_database}}"
+    login_host: "{{badger_postgres_host}}"
+    login_password: "{{badger_postgres_password}}"
+    owner: "{{badger_postgres_user}}"
+    login_user: "{{badger_postgres_user}}"
+  - name: "{{user_org_service_postgres_database}}"
+    login_host: "{{user_org_service_postgres_host}}"
+    login_password: "{{user_org_service_postgres_password}}"
+    owner: "{{user_org_service_postgres_user}}"
+    login_user: "{{user_org_service_postgres_user}}"
   - name: "{{enc_postgres_database}}"
+    login_host: "{{enc_postgres_host}}"
+    login_password: "{{enc_postgres_password}}"
+    owner: "{{enc_postgres_user}}"
+    login_user: "{{enc_postgres_user}}"
 
-#######App ES
+##########################################################
+
+####### App ES ########
+
 
 app_es_etc_cluster_name: "{{env}}"
 app_es_etc_discovery_zen_minimum_master_nodes: "{{groups['es']| length | int}}"
@@ -423,7 +475,6 @@ app_es_snapshot_base_path: application
 log_es_etc_cluster_name: "{{env}}-log"
 log_es_snapshot_host: "{{ groups['log-es'][0] }}"
 log_es_restore_host: "{{ groups['log-es'][0] }}"
-log_snapshot_base_path: logger
 log_es_host: "{{ groups['log-es'][0] }}"
 
 ####### Advanced Config ##########
@@ -537,11 +588,8 @@ trampoline_secret: "{{core_vault_trampoline_secret}}"
 es_api_host: "{{inventory_hostname}}"
 sunbird_linked_content_base_url: "{{proto}}://{{proxy_server_name}}/play/content/"
 enc_postgres_password: "{{core_vault_postgres_password}}"
-
-# Depricated value ??
+user_org_service_postgres_password: "{{core_vault_postgres_password}}"
 postgres_replication_user_password:  "{{core_vault_postgres_password}}"
-# Content service is calling ekstep ??
-# Config service variables, not required
 sunbird_config_service_url:
 config_refresh_interval: 10
 config_service_enabled: false
@@ -556,6 +604,8 @@ app_es_snapshot_host: "{{ groups['es'][0] }}"
 app_snapshot_base_path: applicationelasticsearch
 
 sunbird_es_host: "{{ groups['es'][0] }}"
+user_org_sunbird_es_host: "{{ sunbird_es_host }}"
+user_org_sunbird_es_port: "{{ sunbird_es_port }}"
 
 #log es backup
 log_es_snapshot_host: "{{ groups['log-es'][0] }}"
@@ -581,3 +631,19 @@ zookeepers: "{{groups['zookeeper']|join(':2181,')}}:2181"
 kafka_brokers: "{{groups['processing-cluster-kafka']|join(':9092,')}}:9092"
 __lms_host__: "http://{{ groups['swarm-manager'][0] }}:9000"
 sunbird_redis_host: "{{ groups['lp-redis'][0] }}"
+
+
+### Release 2.1.0 ###
+sunbird_portal_offline_tenant: ""
+sunbird_portal_offline_supported_languages: "English"
+sunbird_portal_offline_app_release_date: ""
+sunbird_portal_offline_app_version: "1.0.0"
+sunbird_portal_offline_app_download_url: ""
+sunbird_portal_log_level: "debug"
+
+### Release 2.2.0 ###
+sunbird_google_android_keycloak_client_id: ''
+sunbird_google_android_keycloak_secret: ''
+sunbird_trampoline_android_keycloak_client_id: ''
+sunbird_trampoline_android_keycloak_secret: ''
+sunbird_android_keycloak_client_id: ''
