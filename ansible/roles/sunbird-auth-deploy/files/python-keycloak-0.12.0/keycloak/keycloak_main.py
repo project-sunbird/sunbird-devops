@@ -80,8 +80,11 @@ if  __name__ == "__main__":
         # Update user roles for SSO
         config['clientId'] = "admin-cli"
         update_user_roles(config)
-
-    except urllib2.HTTPError as e:
-        error_message = e.read()
-        print error_message
+    # If keycloak is returning the error realm does exists
+    except Exception as e:
+        if "409" in str(e):
+            print "Skipping error: " + str(e)
+            pass
+    except Exception as e:
         raise
+
