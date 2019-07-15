@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Build script
+set -eo pipefail
+
 # Downloading deps
 wget https://codeload.github.com/simplresty/ngx_devel_kit/tar.gz/v0.3.0 -O ngx_devel_kit_0_3_0.tar.gz
 wget https://codeload.github.com/openresty/luajit2/tar.gz/v2.1-20190626 -O luajit_2_1.tar.gz
