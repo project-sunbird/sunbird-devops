@@ -3,11 +3,18 @@ version: '3.3'
 services:
   proxy:
     image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
+    # This is a workaround for remote ip address is not visible nginx
     ports:
-      - "443:443"
-      - "80:80"
+      - mode: host
+        target: 80
+        published: 80
+        protocol: TCP
+      - mode: host
+        target: 443
+        published: 443
+        protocol: TCP
     deploy:
-      replicas: {{ proxy_replicas }}
+      mode: global
       resources:
         reservations:
           memory: "{{ proxy_reservation_memory }}"
