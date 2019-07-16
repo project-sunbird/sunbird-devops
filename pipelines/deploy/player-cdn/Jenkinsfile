@@ -34,8 +34,7 @@ node() {
                         println cdnUrl
                         commitHash = sh(script: "jq -r '.commit_hash' metadata.json", returnStdout: true).trim()
                         dir('sunbird-portal') {
-                            sunbirdPortalUrl = 'https://github.com/Sunbird-Ed/SunbirdEd-portal.git'
-                            checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: "$commitHash"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', depth: 0, noTags: true, reference: '', shallow: true]], submoduleCfg: [], userRemoteConfigs: [[url: "$sunbirdPortalUrl"]]]
+                            checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: commitHash]], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/Sunbird-Ed/SunbirdEd-portal.git']]]
                             sh "./build-cdn.sh ${cdnUrl} ${commitHash}"
                         }
                         ansibleExtraArgs = "--extra-vars assets=$currentWs/sunbird-portal/src/app/dist --extra-vars cdn_file_path=$currentWs/sunbird-portal/src/app/dist/index_cdn.ejs --vault-password-file /var/lib/jenkins/secrets/vault-pass"
