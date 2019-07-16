@@ -1393,9 +1393,41 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: removeUserFromBatch
+    uris: "{{ course_service_prefix }}/v1/batch/user/remove"
+    upstream_url: "{{ lms_service_url }}/v1/course/batch/users/remove"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: courseUpdate
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getBatch
     uris: "{{ course_service_prefix }}/v1/batch/read"
     upstream_url: "{{ lms_service_url }}/v1/course/batch/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: getParticipants
+    uris: "{{ course_service_prefix }}/v1/batch/participants/list"
+    upstream_url: "{{ lms_service_url }}/v1/batch/participants/list"
     strip_uri: true
     plugins:
     - name: jwt
@@ -1508,6 +1540,22 @@ kong_apis:
   - name: batchBulkEnrolment
     uris: "{{ course_service_prefix }}/v1/batch/bulk/enrollment"
     upstream_url: "{{ lms_service_url }}/v1/batch/bulk/enrollment"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: orgAdmin
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: batchBulkUnEnrolment
+    uris: "{{ course_service_prefix }}/v1/batch/bulk/unenrollment"
+    upstream_url: "{{ lms_service_url }}/v1/batch/bulk/unenrollment"
     strip_uri: true
     plugins:
     - name: jwt
