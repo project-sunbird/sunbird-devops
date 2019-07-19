@@ -1,0 +1,57 @@
+#!/bin/bash
+read -p "Enter the username: " user
+read -sp "Enter the password:" pass
+echo " "
+read -p "Enter the repo name:" repo_name
+read -p "Enter the branch name:" branch_name
+echo -e "status check: \n 1. codacy \n 2. circleci \n 3. both"
+read -p "enter number:" check
+check=${check:-3}
+statusChecks=0
+read -p "enter username for merge access:" users
+Users=\"$users\"
+githubUsers=$(echo $Users | sed 's/,/\",\"/g')
+
+if [[ $check == "1" ]]; then
+        statusChecks='"Codacy/PR Quality Review"'
+elif [[ $check == "2" ]]; then
+	statusChecks='"ci/circleci: build"'
+elif [[ $check == "3" ]]; then
+	statusChecks='"Codacy/PR Quality Review",
+                      "ci/circleci: build"'
+else
+	echo "Select correct option!"
+fi
+echo $statusChecks
+echo $githubUsers
+
+curl -u $user:$pass -XPUT \
+     -H 'Accept: application/vnd.github.luke-cage-preview+json' \
+     -d '{
+      "protection": {
+        "enabled": true
+      },
+
+      "enforce_admins": true,
+      "required_pull_request_reviews": {
+          "dismiss_stale_reviews": true,
+          "require_code_owner_reviews": false,
+          "required_approving_review_count": 1
+      },
+
+      "required_status_checks": {
+          "strict": true,
+            "contexts": [
+              '"$statusChecks"'
+            ]
+      },
+      
+      "restrictions": {
+          "users": [
+            '"$githubUsers"'
+          ],
+          "teams": [
+            "null"
+          ]
+      }
+    }' "https://api.github.com/repos/project-sunbird/$repo_name/branches/$branch_name/protection"
