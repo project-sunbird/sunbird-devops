@@ -1,0 +1,45 @@
+global:
+  scrape_interval: 1m
+  scrape_timeout: 10s
+  evaluation_interval: 1m
+  # Clustername is defined for multi swarm cluster
+  # can name first cluster as DS1 and 2nd as DS2 ... DSn
+  # all metrics will have label as cluster: < value >
+  # This value won't be accessible from GUI but for external tools like
+  # federation or alertmanager
+  external_labels:
+    federation: fed1
+
+
+scrape_configs:
+
+  {% if enable_scraping_docker_metrics %}
+  # This empty line ensures indentation is correct after ansible jinja2 template is materialized
+  - job_name: 'docker'
+    static_configs:
+      - targets: {{ groups['swarm-manager'] | map('regex_replace', '^(.*)$', '\\1:' + docker_metrics_port ) | list | to_yaml }}
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'grpc_.*'
+        action: drop
+  {% endif %}
+
+
+  - job_name: 'federate'
+    metrics_path: /prometheus/federate
+    honor_labels: true
+    params:
+      match[]:
+        - '{__name__=~"nginx_.*"}'
+        - '{__name__=~"kong_.*"}'
+        - '{__name__=~"node_.*"}'
+    static_configs:
+      {# groups[alertmanager] and prometheus are same machines #}
+      {# and alertmanagers will be unique per swarm #}
+      # This empty line make sure the indentation is correct
+      - targets: [ '{{groups['alertmanager']|join(':9090\', \'')}}:9090', '{{groups['alertmanager_stateful']|join(':19090\', \'')}}:19090' ]
+
+  - job_name: 'vm-node-exporter'
+    static_configs:
+      - targets: ["{{ansible_host}}:9100"]
+
