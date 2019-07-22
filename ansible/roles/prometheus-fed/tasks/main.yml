@@ -1,0 +1,54 @@
+---
+- name: Create prometheus data dir
+  file:
+    path: "{{ prometheus_storage_location }}"
+    state: directory
+    mode: 0755
+    owner: 'nobody'
+    group: 'nogroup'
+
+- name: Ensure stack directory exists
+  file:
+    path: "{{ monitor_stack_files_dest_dir }}"
+    state: directory
+    owner: '{{ root_owner }}'
+    group: '{{ root_group }}'
+
+- name: Ensure config directory exists
+  file:
+    path: "{{ monitor_config_files_dest_dir }}"
+    state: directory
+    owner: '{{ root_owner }}'
+    group: '{{ root_group }}'
+
+- name: Save stack file
+  template:
+    src: stack-monitor.yml
+    dest: "{{ monitor_stack_files_dest_dir }}/monitor.yml"
+    mode: 0644
+
+- name: Save prometheus config fed_{{ item }}
+  template:
+    src="{{ item }}"
+    dest="{{ monitor_config_files_dest_dir }}/{{ item }}" 
+    mode=0644
+  with_items: 
+    - "{{ monitor_config_templates }}"
+
+- name: Remove monitor stack
+  shell: "docker stack rm prometheus_fed"
+  ignore_errors: yes
+
+- name: Remove old docker config fed_{{ item }}
+  shell: "docker config rm fed_{{ item }}"
+  with_items: "{{ monitor_config_templates }}"
+  ignore_errors: yes
+
+- name: Save docker config fed_{{ item }}
+  shell: "docker config create fed_{{ item }} {{ monitor_config_files_dest_dir }}/{{ item }}"
+  with_items: "{{ monitor_config_templates }}"
+
+- name: Deploy stack
+  shell: "docker stack deploy -c monitor.yml prometheus_fed"
+  args:
+    chdir: "{{ monitor_stack_files_dest_dir }}"

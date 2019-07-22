@@ -1,0 +1,31 @@
+version: "3.3"
+
+services:
+    prometheus:
+        image: quay.io/prometheus/prometheus:v2.8.1
+        ports:
+            - "29090:9090"
+        networks:
+            - application_default
+        volumes:
+            - {{prometheus_storage_location}}:/prometheus
+        command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/etc/prometheus/console_libraries  --storage.tsdb.retention.time={{prometheus_storage_retention_time}} --web.console.templates=/etc/prometheus/consoles --web.route-prefix={{prometheus_route_prefix}} --web.external-url={{prometheus_web_external_url}} --web.enable-admin-api"
+        configs:
+            - source: fed_prometheus.yml
+              target: /etc/prometheus/prometheus.yml
+        deploy:
+            replicas: 1
+            resources:
+              reservations:
+                memory: "{{ prometheus_reservation_memory }}"
+              limits:
+                memory: "{{ prometheus_limit_memory }}"
+
+configs:
+  fed_prometheus.yml:
+    external: true
+
+networks:
+    application_default:
+        external: true
+
