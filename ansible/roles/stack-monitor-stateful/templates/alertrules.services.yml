@@ -16,4 +16,52 @@ groups:
       severity: CRITICAL
     annotations:
       description: 'The service status has changed {% raw %}{{$value}}{% endraw %} times in last 2 minutes. Threshold is : 2'
-      summary: Health check is failing 
+      summary: Health check is failing
+  - alert: too_many_server_side_http_errors_5xx_WARNING
+    expr: (sum(increase(nginx_http_requests_total{status=~"5.."}[1m])) / sum(increase(nginx_http_requests_total[1m]))) * 100 >= 0.075
+    for: 15m
+    labels:
+      severity: WARNING
+    annotations:
+      description: 'Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 0.075%'
+      summary: Too many server side http errors_5xx_WARNING
+  - alert: too_many_server_side_http_errors_5xx_CRITICAL
+    expr: (sum(increase(nginx_http_requests_total{status=~"5.."}[2m])) / sum(increase(nginx_http_requests_total[2m]))) * 100 >= 0.1
+    for: 2m
+    labels:
+      severity: CRITICAL
+    annotations:
+      description: 'Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 0.1%'
+      summary: Too many server side http errors_5xx_CRITICAL
+  - alert: too_many_server_side_http_errors_5xx_FATAL
+    expr: (sum(increase(nginx_http_requests_total{status=~"5.."}[5m])) / sum(increase(nginx_http_requests_total[5m]))) * 100 >= 0.1
+    for: 5m
+    labels:
+      severity: FATAL
+    annotations:
+      description: 'Server side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 0.1%'
+      summary: Too many server side http errors_5xx_FATAL
+  - alert: too_many_client_side_http_errors_4xx_WARNING
+    expr: (sum(increase(nginx_http_requests_total{status=~"4.."}[5m])) / sum(increase(nginx_http_requests_total[5m]))) * 100 >= 1
+    for: 15m
+    labels:
+      severity: WARNING
+    annotations:
+      description: 'Client side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 1%'
+      summary: Too many client side http errors_4xx_WARNING
+  - alert: too_many_client_side_http_errors_4xx_CRITICAL
+    expr: (sum(increase(nginx_http_requests_total{status=~"4.."}[5m])) / sum(increase(nginx_http_requests_total[5m]))) * 100 >= 2
+    for: 15m
+    labels:
+      severity: CRITICAL
+    annotations:
+      description: 'Client side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 2%'
+      summary: Too many client side http errors_4xx_CRITICAL
+  - alert: too_many_client_side_http_errors_4xx_FATAL
+    expr: (sum(increase(nginx_http_requests_total{status=~"4.."}[5m])) / sum(increase(nginx_http_requests_total[5m]))) * 100 >= 3
+    for: 15m
+    labels:
+      severity: FATAL
+    annotations:
+      description: 'Client side http errors: {% raw %}{{$value}}{% endraw %}% has exceeded threshold of 3%'
+      summary: Too many client side http errors_4xx_FATAL
