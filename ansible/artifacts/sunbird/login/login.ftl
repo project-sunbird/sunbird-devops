@@ -22,7 +22,7 @@
                     <div id="success-msg" class="ui text success hide">suceess</div>
                     <div id="error-msg" class="ui text error hide">error</div>
                 </div>
-                <form id="kc-form-login" class="ui form" method="POST" action="${url.loginAction}">
+                <form id="kc-form-login" onsubmit="login.disabled = true; return true;" class="ui form" method="POST" action="${url.loginAction}">
                     <div class="field">
                         <label id="usernameLabel" for="username" class="">
                             <#if !realm.loginWithEmailAllowed>${msg("username")}
@@ -59,7 +59,7 @@
                     <div class="field">
                         <button id="login" class="mt-36 ui fluid button">${msg("doSignIn")}</button>
                     </div>
-                    
+
                     <div id="selfSingUp" class="hide">
                         <p class="or mb-30 mt-30 textCenter">OR</p>
                         <div class="field">
