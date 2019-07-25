@@ -36,12 +36,12 @@ def update_user_roles(config):
     # Read the role from file
     with open(config['keycloak_user_manager_roles_json_file_path'], 'r') as data_file:
         json_data = data_file.read()
-    
+
     roles = json.loads(json_data)
 
     # Get only client roles
     clientRoles = roles[config['clientId']]
-    
+
     keycloak_admin.assign_client_role(user_id, client_id, clientRoles)
 
 if  __name__ == "__main__":
