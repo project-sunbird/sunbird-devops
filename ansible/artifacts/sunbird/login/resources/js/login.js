@@ -19,10 +19,6 @@ window.onload = function(){
 	}
 }
 
-var storeLocation = function(){
-	sessionStorage.setItem('url', window.location.href);
-}
-
 var addVersionToURL = function (){
 	var version = getQueryStringValue("version");
 	
