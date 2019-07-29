@@ -48,7 +48,7 @@
                                 ${msg("password")}
                             </label>
                             <#if realm.resetPasswordAllowed>
-                                <a id="versionLink" class="ui right floated forgetPasswordLink" tabindex="1" onclick="javascript:redirect('/account/recovery');javascript:makeDivUnclickable()">${msg("doForgotPassword")}</a>
+                                <a id="versionLink" class="ui right floated forgetPasswordLink" tabindex="1" onclick="javascript:redirect('/recovery/identify/account');javascript:makeDivUnclickable()">${msg("doForgotPassword")}</a>
                             </#if>
                             <label id="passwordLabelPlaceholder" for="password" class="activeLabelColor hide">
                                 ${msg("placeholderForPassword")}
