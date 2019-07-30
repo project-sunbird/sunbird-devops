@@ -33,7 +33,7 @@ def call(Map pipelineParams) {
 
                 inventory_path = "${pipelineParams.currentWs}/ansible/inventory/env"
                 sh """
-                        cp -r --preserve=links ${pipelineParams.currentWs}/private/ansible/inventory/${pipelineParams.env}/${
+                        cp --preserve=links ${pipelineParams.currentWs}/private/ansible/inventory/${pipelineParams.env}/${
                     pipelineParams.module
                 }/* ${pipelineParams.currentWs}/ansible/inventory/env/
                         ansible-playbook -i ${
