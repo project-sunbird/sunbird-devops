@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #### Cloning and Changing the directory:
+rm -rf sunbird-utils
 git clone https://github.com/project-sunbird/sunbird-utils.git -b $1
 rm sunbird-utils/sunbird-es-utils/src/main/resources/indices/cbatchstats.json
 rm sunbird-utils/sunbird-es-utils/src/main/resources/mappings/cbatchstats-mapping.json 
