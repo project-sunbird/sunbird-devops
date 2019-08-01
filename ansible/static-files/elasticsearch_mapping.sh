@@ -1,8 +1,11 @@
 #!/bin/bash
 
 #### Cloning and Changing the directory:
-git clone https://github.com/project-sunbird/sunbird-utils.git -b release-1.15
-cd sunbird-utils/elasticsearch-util/src/main/resources/indices
+rm -rf sunbird-utils
+git clone https://github.com/project-sunbird/sunbird-utils.git -b $1
+rm sunbird-utils/sunbird-es-utils/src/main/resources/indices/cbatchstats.json
+rm sunbird-utils/sunbird-es-utils/src/main/resources/mappings/cbatchstats-mapping.json 
+cd sunbird-utils/sunbird-es-utils/src/main/resources/indices
 
 #### Creating the new indices:
 
@@ -17,7 +20,8 @@ done
 echo "#################################################"
 
 cd ../mappings
-mapping_files=$(ls -l | awk 'NR>1{print $9}' | awk -F"-" '{print $1}' | tr "\n" " ")
+#mapping_files=$(ls -l | awk 'NR>1{print $9}' | awk -F"-" '{print $1}' | tr "\n" " ")
+mapping_files=$(ls -l | awk 'NR>1{print $9}' | awk -F"." '{print $1}' | tr "\n" " " | sed 's/-mapping//g')
 
 for file in ${mapping_files[@]}
 do
