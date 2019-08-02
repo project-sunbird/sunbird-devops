@@ -64,6 +64,7 @@ player_service_url: "http://player_player:3000"
 echo_service_url: "http://api-manager_echo:9595"
 am_util_url: http://adminutil_adminutil:4000
 config_service_url: "http://config-service:8080"
+dial_service_url: "http://{{learningservice_ip}}:9001"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -3818,3 +3819,52 @@ kong_apis:
      - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: "createPtm"
+    request_path: "/ptm/v3/create"
+    upstream_url: "{{ dial_service_url }}/ptm/v3/create"
+    strip_request_path: true
+    plugins:
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ medium_request_size_limit }}" }
+
+  - name: "readPtm"
+    request_path: "/ptm/v3/read"
+    upstream_url: "{{ dial_service_url }}/ptm/v3/read"
+    strip_request_path: true
+    plugins:
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ medium_request_size_limit }}" }
+
+  - name: "getPeriod"
+    request_path: "/dialcode/v3/period/read"
+    upstream_url: "{{ dial_service_url }}/v3/dialcode/period/read"
+    strip_request_path: true
+    plugins:
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ medium_request_size_limit }}" }
+
+  - name: "getSchedule"
+    request_path: "/dialcode/v3/schedule/read"
+    upstream_url: "{{ dial_service_url }}/v3/dialcode/schedule/read"
+    strip_request_path: true
+    plugins:
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ medium_request_size_limit }}" }
+
+  - name: "getQuestion"
+    request_path: "/dialcode/v3/question/read"
+    upstream_url: "{{ dial_service_url }}/v3/dialcode/question/read"
+    strip_request_path: true
+    plugins:
+     - {name: 'cors'}
+     - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ medium_request_size_limit }}" } 
