@@ -20,11 +20,21 @@
 - name: Save authenticated email file
   template: src=authenticated_email.txt dest=/home/deployer/config/authenticated_email.txt mode=0644
 
+- name: Remove old style logger_oauth service
+  shell: "docker service rm logger_oauth"
+  delegate_to: "{{groups['swarm-bootstrap-manager'][0]}}"
+  ignore_errors: yes
+  
+- name: Remove old authenticated email docker config
+  shell: "docker config rm authenticated_email_kibana_oauth"
+  delegate_to: "{{groups['swarm-bootstrap-manager'][0]}}"
+  ignore_errors: yes
+
 - name: Remove stack
   shell: "docker stack rm oauth"
   ignore_errors: yes
 
-- name: Remove old authenticated email docker config
+- name: Remove authenticated email docker config
   shell: "docker config rm authenticated_email_kibana_oauth"
   ignore_errors: yes
 
