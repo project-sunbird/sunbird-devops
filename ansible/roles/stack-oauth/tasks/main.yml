@@ -1,0 +1,47 @@
+---
+
+- name: Ensure stack directory exists
+  file:
+    path: /home/deployer/stack
+    state: directory
+    owner: root
+    group: root
+
+- name: Ensure config directory exists
+  file:
+    path: /home/deployer/config
+    state: directory
+    owner: root
+    group: root
+
+- name: Save stack file
+  template: src=stack-oauth.yml dest=/home/deployer/stack/oauth.yml mode=0644
+
+- name: Save authenticated email file
+  template: src=authenticated_email.txt dest=/home/deployer/config/authenticated_email.txt mode=0644
+
+- name: Remove old style logger_oauth service
+  shell: "docker service rm logger_oauth"
+  delegate_to: "{{groups['swarm-bootstrap-manager'][0]}}"
+  ignore_errors: yes
+  
+- name: Remove old authenticated email docker config
+  shell: "docker config rm authenticated_email_kibana_oauth"
+  delegate_to: "{{groups['swarm-bootstrap-manager'][0]}}"
+  ignore_errors: yes
+
+- name: Remove stack
+  shell: "docker stack rm oauth"
+  ignore_errors: yes
+
+- name: Remove authenticated email docker config
+  shell: "docker config rm authenticated_email_kibana_oauth"
+  ignore_errors: yes
+
+- name: Save authenticated emails as docker config
+  shell: "docker config create authenticated_email_kibana_oauth /home/deployer/config/authenticated_email.txt"
+
+- name: Deploy stack
+  shell: "docker stack deploy -c oauth.yml oauth"
+  args:
+    chdir: /home/deployer/stack
