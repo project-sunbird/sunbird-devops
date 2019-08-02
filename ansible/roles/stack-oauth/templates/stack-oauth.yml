@@ -4,7 +4,7 @@ services:
   oauth:
     image: rjshrjndrn/oauth2-proxy:2.2
     ports:
-        - "4112:4112"
+        - "4111:4111"
     deploy:
       resources:
         reservations:
@@ -15,23 +15,23 @@ services:
       -cookie-secure=false
       -upstream=http://{{swarm_agent_for_proxy}}/oauth2
       -redirect-url={{kibana_oauth_redirect_url}}
-      -http-address=0.0.0.0:4112
+      -http-address=0.0.0.0:4111
       {% for email_domain in kibana_oauth_authenticated_email_domains %}
       -email-domain={{email_domain}}
       {% endfor %}
-      -authenticated-emails-file=/authenticated_email_new.txt
+      -authenticated-emails-file=/authenticated_email.txt
     environment:
       - OAUTH2_PROXY_CLIENT_ID={{google_client_id}}
       - OAUTH2_PROXY_CLIENT_SECRET={{google_client_secret}}
       - OAUTH2_PROXY_COOKIE_SECRET={{cookie_secret}}
     configs:
-      - source: authenticated_email_kibana_oauth_new
-        target: /authenticated_email_new.txt
+      - source: authenticated_email_kibana_oauth
+        target: /authenticated_email.txt
     networks:
       - application_default
 
 configs:
-  authenticated_email_kibana_oauth_new:
+  authenticated_email_kibana_oauth:
     external: true
 
 networks:
