@@ -63,14 +63,23 @@ curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
 AZ_REPO=$(lsb_release -cs)
 echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | \
     sudo tee /etc/apt/sources.list.d/azure-cli.list
-sudo apt-get update
-sudo apt-get install azure-cli
+
+apt-get update
+apt-get install azure-cli
+
+# Install azcopy
+apt update
+wget https://aka.ms/downloadazcopy-v10-linux
+tar -xvf downloadazcopy-v10-linux
+cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
+rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
+###
 
 echo -e "\n\e[0;32m${bold}Installating Docker-py${normal}"
 pip install docker-py
 
 echo -e "\n\e[0;32m${bold}Installating colordiff${normal}"
-sudo apt-get install -y colordiff
+apt-get install -y colordiff
 
 echo -e "\n\e[0;32m${bold}Installating git lfs${normal}"
 curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
