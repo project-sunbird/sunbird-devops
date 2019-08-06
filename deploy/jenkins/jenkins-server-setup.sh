@@ -10,9 +10,9 @@ apt-get install -y openjdk-8-jdk
 
 echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
-sudo apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
-sudo apt-get update
-sudo apt-get install -y jenkins=2.164.3
+apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
+apt-get update
+apt-get install -y jenkins=2.164.3
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
@@ -68,6 +68,7 @@ apt-get update
 apt-get install azure-cli
 
 # Install azcopy
+echo -e "\n\e[0;32m${bold}Installating AzCopy${normal}"
 apt update
 wget https://aka.ms/downloadazcopy-v10-linux
 tar -xvf downloadazcopy-v10-linux
