@@ -152,9 +152,16 @@ node {
                 archiveArtifacts artifacts: 'public_release_tags.txt', fingerprint: true
             }
         }
+        currentBuild.result = 'SUCCESS'
     }
 
     catch (err) {
+        currentBuild.result = 'FAILURE'
+        slackSend (
+            channel: "${env.NOTIFY_SLACK_CHANNEL}",
+            color: 'danger',
+            message: "Build Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+        )
         throw err
     }
 }
