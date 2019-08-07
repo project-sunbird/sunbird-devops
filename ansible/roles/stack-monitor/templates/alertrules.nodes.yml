@@ -31,7 +31,7 @@ groups:
     labels:
       severity: WARNING
     annotations:
-      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}.'
+      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.instance }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}.'
       summary: 'HIGH MEMORY USAGE WARNING TASK ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_memory_usage_on_node_CRITICAL
     expr: sum by(nodename) ((((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) >= {{ node_memory_usage_percentage_threshold_Critical }} and (((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) < {{ node_memory_usage_percentage_threshold_Fatal }} )
@@ -39,7 +39,7 @@ groups:
     labels:
       severity: CRITICAL
     annotations:
-      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}.'
+      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.instance }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}.'
       summary: 'HIGH MEMORY USAGE WARNING TASK ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_memory_usage_on_node_FATAL
     expr: sum by(nodename) (((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) >= {{ node_memory_usage_percentage_threshold_Fatal }}
@@ -47,7 +47,7 @@ groups:
     labels:
       severity: FATAL
     annotations:
-      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}.'
+      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.instance }}{% endraw %}) is using a LOT of MEMORY. MEMORY usage is over {% raw %}{{ humanize $value}}{% endraw %}.'
       summary: 'HIGH MEMORY USAGE WARNING TASK ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_load_on_node_WARNING
     expr: sum by(nodename) (((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) >= {{ node_load_avg_threshold_Warning }} and ((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) < {{ node_load_avg_threshold_Critical }} )
@@ -55,7 +55,7 @@ groups:
     labels:
       severity: WARNING
     annotations:
-      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.'
+      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.instance }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.'
       summary: 'HIGH LOAD AVERAGE WARNING ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_load_on_node_CRITICAL
     expr: sum by(nodename) (((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) >= {{ node_load_avg_threshold_Critical }} and ((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) < {{ node_load_avg_threshold_Fatal }} )
@@ -63,7 +63,7 @@ groups:
     labels:
       severity: CRITICAL
     annotations:
-      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.'
+      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.instance }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.'
       summary: 'HIGH LOAD AVERAGE WARNING ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: high_load_on_node_FATAL
     expr: sum by(nodename) ((node_load1 / count without(cpu, mode) (node_cpu_seconds_total{mode="system"}))* on(instance) group_left(nodename) node_uname_info * 100) > {{ node_load_avg_threshold_Fatal }}
@@ -71,7 +71,7 @@ groups:
     labels:
       severity: FATAL
     annotations:
-      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.'
+      description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.instance }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.'
       summary: 'HIGH LOAD AVERAGE WARNING ON {% raw %}{{ $labels.nodename }}{% endraw %}'
   - alert: monitoring_service_down_FATAL
     expr: up == 0
@@ -80,7 +80,7 @@ groups:
       severity: FATAL
     annotations:
       description: 'The monitoring service {% raw %}{{ $labels.job }}{% endraw %} is down.'
-      summary: 'MONITORING SERVICE DOWN WARNING: NODE {% raw %}{{ $labels.host }}{% endraw %}'
+      summary: 'MONITORING SERVICE DOWN WARNING: NODE {% raw %}{{ $labels.instance }}{% endraw %}'
   - alert: node_running_out_of_disk_space_WARNING
     expr: sum by(nodename) (((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) >= {{ node_disk_usage_percentage_threshold_Warning }} and ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) < {{ node_disk_usage_percentage_threshold_Critical }} )
     for: 1m
