@@ -37,8 +37,16 @@ receivers:
         username: 'Monitor - Alerter'
         channel: "{{ monitor_alerts_slack_channel }}"
         title: '[{{ env }}-{{ cluster_name }}]{% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
-        text: "{% raw %}{{range .Alerts}} {{.Annotations.description}}{{end}}{% endraw %}"
         icon_emoji: ':dart:'
+        text: |-
+          {{ range .Alerts }}
+            *Alert:* {{ .Annotations.description }} - `{{ .Labels.severity }}`
+            *Description:* {{ .Annotations.description }}
+            *Details:*
+            {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+            {{ end }}
+          {{ end }}
+
   {% for item in service_teams %}
   # comment line to ensure yaml generated from ansible template has proper indentation
   - name: "{{ item.team }}"
