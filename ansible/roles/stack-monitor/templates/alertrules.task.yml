@@ -1,5 +1,6 @@
 groups:
-
+- name: alertrules.task
+  rules:
   - alert: high_cpu_usage_on_container_FATAL
     expr: sum by(container_label_com_docker_swarm_service_name, container_label_com_docker_swarm_task_name, instance) (rate(container_cpu_usage_seconds_total{container_label_com_docker_swarm_task_name=~".+"}[5m])) * 100 >= {{ container_cpu_usage_percentage_threshold_Fatal }}
     for: 1m
@@ -19,7 +20,7 @@ groups:
       summary: 'HIGH MEMORY USAGE WARNING: TASK {% raw %}{{ $labels.container_label_com_docker_swarm_task_name }}{% endraw %} on {% raw %}{{ $labels.instance }}{% endraw %}'
 
   - alert: replicas_uneven_FATAL
-    expr: sum by (service_name) (docker_service_replicas_expected != docker_service_replicas_running) 
+    expr: sum by (service_name) (docker_service_replicas_expected != docker_service_replicas_running)
     for: 1m
     labels:
       severity: FATAL
