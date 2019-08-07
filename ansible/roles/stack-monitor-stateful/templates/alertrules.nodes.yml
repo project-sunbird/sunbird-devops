@@ -73,16 +73,14 @@ groups:
     annotations:
       description: '{% raw %}{{ $labels.nodename }}{% endraw %} ({% raw %}{{ $labels.host }}{% endraw %}) has a high load average. Load average is {% raw %}{{ $value }}{% endraw %}%.'
       summary: 'HIGH LOAD AVERAGE WARNING ON {% raw %}{{ $labels.nodename }}{% endraw %}'
-
-  - alert: '{% raw %}{{ $labels.job }}{% endraw %}_CRITICAL'
+  - alert: node_exporter_down_CRITICAL
     expr: up == 0
     for: 1m
     labels:
       severity: CRITICAL
     annotations:
-      description: The '{% raw %}{{ $labels.job }}{% endraw %}' is down.
-      summary: 'CRITICAL: instance ''{% raw %}{{ $labels.host }}{% endraw %}'''
-
+      description: The node exporter '{% raw %}{{ $labels.job }}{% endraw %}' is down.
+      summary: 'NODE EXPORTER SERVICE CRITICAL: NODE ''{% raw %}{{ $labels.host }}{% endraw %}'''
   - alert: node_running_out_of_disk_space_WARNING
     expr: sum by(nodename) (((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) >= {{ node_disk_usage_percentage_threshold_Warning }} and ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) < {{ node_disk_usage_percentage_threshold_Critical }} )
     for: 1m
