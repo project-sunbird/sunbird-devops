@@ -48,21 +48,20 @@ filebeat_repo_url_v1: https://packages.elastic.co/beats/yum/el/$basearch
 filebeat_repo_url_v5: https://artifacts.elastic.co/packages/5.x/yum
 filebeat_repo_url: "{{ filebeat_version|version_compare('5', '<')|ternary(filebeat_repo_url_v1, filebeat_repo_url_v5) }}"
 
-filebeath_log_path: "{{ filebeath_log_path }}"
-filebeat_logstash_port: 5044
-filebeat_logstash_host: "{{groups['swarm-manager'][0]}}"
+filebeat_logtsash_port: 5044
+filebeat_logtsash_host: localhost
 filebeat:
   base_path: /etc/filebeat
   config:
     filebeat:
       prospectors:
         - paths:
-            - "{{ filebeat_log_path }}" 
+            - /var/log/syslog
           input_type: log
     output:
       logstash:
         hosts:
-          - "{{ filebeat_logstash_host }}:{{ filebeat_logstash_port }}"
+          - "{{ filebeat_logtsash_host }}:{{ filebeat_logtsash_port }}"
         timeout: 15
     logging:
         level: debug
