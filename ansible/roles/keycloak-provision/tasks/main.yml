@@ -1,0 +1,29 @@
+---
+- name: Add group
+  group:
+    name: "{{ wildfly_group }}"
+    state: present
+  become: true
+
+- name: Create user
+  user:
+    name: "{{ wildfly_user }}"
+    group: "{{ wildfly_group }}"
+    shell: /bin/bash
+    createhome: true
+    update_password: always
+  become: true
+
+- name: Copy service file to init.d
+  template:
+    src: keycloak-service.j2
+    dest: /etc/init.d/keycloak
+    mode: 0755
+
+- name: Install zip and unzip
+  apt:
+    pkg: "{{ item }}"
+    state: present
+  with_items:
+    - zip
+    - unzip
