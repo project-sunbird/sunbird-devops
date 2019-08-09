@@ -1,7 +1,7 @@
 version: '3.3'
 
 services:
-  kibana:
+  kibana_old:
     image: kibana:4.6
     deploy:
       resources:
@@ -19,8 +19,28 @@ services:
     networks:
       - application_default
 
+  kibana:
+    image: sunbird/kibana:6.2.3
+    deploy:
+      resources:
+        reservations:
+          memory: "750M"
+        limits:
+          memory: "750M"
+    environment:
+      - LOGSPOUT=ignore
+    ports:
+      - '5602:5602'
+    configs:
+      - source: kibana-623.yml
+        target: /opt/kibana/config/kibana.yml
+    networks:
+      - application_default
+
 configs:
   kibana.yml:
+    external: true
+  kibana-623.yml:
     external: true
 
 networks:
