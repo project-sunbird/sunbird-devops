@@ -407,6 +407,22 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: readCourseEnrollment
+    uris: "{{ course_service_prefix }}/v1/user/enrollment/read"
+    upstream_url: "{{ lms_service_url }}/v1/user/courses/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"    
   - name: readContentState
     uris: "{{ course_service_prefix }}/v1/content/state/read"
     upstream_url: "{{ lms_service_url }}/v1/content/state/read"
@@ -1203,7 +1219,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getCourseProgressDashboard
     uris: "{{ dashboard_service_prefix }}/v1/progress/course"
-    upstream_url: "{{ learning_service_url }}/v1/dashboard/progress/course"
+    upstream_url: "{{ lms_service_url }}/v1/dashboard/progress/course"
     strip_uri: true
     plugins:
     - name: jwt
@@ -1219,7 +1235,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getCourseProgressDashboardV2
     uris: "{{ dashboard_service_prefix }}/v2/progress/course"
-    upstream_url: "{{ learning_service_url }}/v2/dashboard/progress/course"
+    upstream_url: "{{ lms_service_url }}/v2/dashboard/progress/course"
     strip_uri: true
     plugins:
     - name: jwt
@@ -1235,7 +1251,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getCourseConsumptionDashboard
     uris: "{{ dashboard_service_prefix }}/v1/consumption/course"
-    upstream_url: "{{ learning_service_url }}/v1/dashboard/consumption/course"
+    upstream_url: "{{ lms_service_url }}/v1/dashboard/consumption/course"
     strip_uri: true
     plugins:
     - name: jwt
@@ -4354,4 +4370,37 @@ kong_apis:
     - {name: 'cors'}
     - "{{ statsd_pulgin }}"
     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
-    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }  
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: "identifierFreeUp"
+    uris: "{{ user_service_prefix }}/v1/identifier/freeup"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/identifier/freeup"
+    strip_uri: true
+    plugins:
+    - {name: 'jwt'}
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'acl', config.whitelist: 'publicUser'}
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: "resetPassword"
+    uris: "{{ user_service_prefix }}/v1/password/reset"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/password/reset"
+    strip_uri: true
+    plugins:
+    - {name: 'jwt'}
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'acl', config.whitelist: 'publicUser'}
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: "mergeUserAccounts"
+    uris: "{{ user_service_prefix }}/v1/account/merge"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/account/merge"
+    strip_uri: true
+    plugins:
+    - {name: 'jwt'}
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'acl', config.whitelist: 'publicUser'}
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
