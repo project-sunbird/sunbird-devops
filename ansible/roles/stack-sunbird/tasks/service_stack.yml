@@ -8,47 +8,29 @@
 - name: Remove cdn config file
   file: path=/home/deployer/config/index_cdn.ejs state=absent
   when: cdn_file_path is none
+  ignore_errors: true
 
-- name: Deploy stack
-  shell: "docker stack deploy -c stack_{{service_name}}.yml {{service_name}} --with-registry-auth"
-  args:
-    chdir: /home/deployer/stack
+- name: remove player stack
+  shell: "docker stack rm player"
+  become: yes
+
+- name: Remove the existing CDN config
+  shell: docker config rm index_cdn.ejs
+  ignore_errors: true
 
 - name: Save cdn config file
   copy: src="{{cdn_file_path}}" dest="/home/deployer/config/index_cdn.ejs" mode=0644
   when: sunbird_portal_cdn_url is not none and cdn_file_path is not none
-  register: indexFileChange
-
-- debug:
-    msg: "{{indexFileChange}}"
-
-- name: check for index_cdn config
-  shell: "docker config ls | grep index_cdn.ejs"
-  register: configPresent
-  ignore_errors: yes
-
-- name: check the status
-  debug:
-    msg: "{{configPresent}}"
 
 - name: Deploy stack
   shell: "docker stack deploy -c stack_{{service_name}}.yml {{service_name}} --with-registry-auth"
   args:
     chdir: /home/deployer/stack
 
-- name: Remove the existing CDN config from Player before updating
-  shell: docker service update --config-rm index_cdn.ejs player_player
-  when: indexFileChange.changed and sunbird_portal_cdn_url is not none and configPresent.rc == 0
-
-- name: Remove the existing CDN config
-  shell: docker config rm index_cdn.ejs
-  when: indexFileChange.changed and sunbird_portal_cdn_url is not none and configPresent.rc == 0
-
 - name: Create the new index_cdn.ejs file as a config
   shell: "docker config create index_cdn.ejs /home/deployer/config/index_cdn.ejs"
-  register: newIndexFile
-  ignore_errors: yes
+  when: sunbird_portal_cdn_url is not none and cdn_file_path is not none
 
 - name: Deploy Player with updated player config
   shell: docker service update --config-add source=index_cdn.ejs,target=/home/sunbird/app_dist/dist/index_cdn.ejs player_player
-  when: sunbird_portal_cdn_url is not none and cdn_file_path is not none or newIndexFile.rc == 0
+  when: sunbird_portal_cdn_url is not none and cdn_file_path is not none 

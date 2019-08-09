@@ -1,2 +1,13 @@
-# {{ ansible_managed }}
-{{ filebeat.config|to_yaml }}
+filebeat:
+  prospectors:
+  - input_type: log
+    paths: [{{ filebeat_log_path }}]
+logging:
+  files: {keepfiles: 7, name: filebeat.log, path: /tmp/filebeat}
+  level: debug
+  to_files: true
+  to_syslog: false
+output:
+  logstash:
+    hosts: ['{{ filebeat_logstash_host }}:{{ filebeat_logstash_port }}']
+    timeout: 15
