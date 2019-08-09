@@ -66,6 +66,7 @@ am_util_url: http://adminutil_adminutil:4000
 config_service_url: "http://config-service:8080"
 user_org_service_url: "http://user-org-service:9000"
 lms_service_url: "http://lms-service:9000"
+cert_service_url: "http://cert-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -4371,6 +4372,22 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: generateCertificate
+    uris: "{{ cert_service_prefix }}/v1/certs/generate"
+    upstream_url: "{{ cert_service_url }}/v1/certs/generate"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: orgUpdate
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: "certValidation"
     uris: "{{ user_service_prefix }}/v1/certs/validate"
     upstream_url: "{{ learning_service_url }}/private/user/v1/certs/validate"
