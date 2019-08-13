@@ -19,6 +19,10 @@
 - name: Save kibana config
   template: src=kibana.yml dest=/home/deployer/config/kibana.yml mode=0644
 
+- name: Save kibana config
+  template: src=kibana-623.yml dest=/home/deployer/config/kibana-623.yml mode=0644
+  when: "'log-es-2' is defined"  
+
 - name: Remove stack
   shell: "docker stack rm kibana"
   ignore_errors: yes
@@ -30,6 +34,15 @@
 - name: Save kibana config as docker config
   shell: "docker config create kibana.yml /home/deployer/config/kibana.yml"
 
+- name: Remove old kibana docker config
+  shell: "docker config rm kibana-623.yml"
+  ignore_errors: yes
+  when: "'log-es-2' is defined"
+    
+- name: Save kibana config as docker config
+  shell: "docker config create kibana-623.yml /home/deployer/config/kibana-623.yml"
+  when: "'log-es-2' is defined"
+    
 - name: Deploy stack
   shell: "docker stack deploy -c stack-kibana.yml kibana"
   args:
