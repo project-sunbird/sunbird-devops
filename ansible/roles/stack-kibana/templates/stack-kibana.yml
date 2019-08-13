@@ -1,8 +1,31 @@
 version: '3.3'
 
 services:
-  kibana:
+  kibana_old:
     image: kibana:4.6
+    deploy:
+      resources:
+        reservations:
+          memory: "750M"
+        limits:
+          memory: "750M"
+    environment:
+      - LOGSPOUT=ignore
+{% if groups['log-es-2'] is defined %}        
+    ports:
+      - '5602:5602'
+{% else %}
+    ports:
+      - '5601:5601'
+{% endif %}
+    configs:
+      - source: kibana.yml
+        target: /opt/kibana/config/kibana.yml
+    networks:
+      - application_default
+{% if groups['log-es-2'] is defined %}        
+  kibana:
+    image: sunbird/kibana:6.2.3
     deploy:
       resources:
         reservations:
@@ -14,15 +37,18 @@ services:
     ports:
       - '5601:5601'
     configs:
-      - source: kibana.yml
+      - source: kibana-623.yml
         target: /opt/kibana/config/kibana.yml
     networks:
       - application_default
-
+{% endif %}
 configs:
   kibana.yml:
     external: true
-
+{% if groups['log-es-2'] is defined %}     
+  kibana-623.yml:
+    external: true
+{% endif %}
 networks:
   application_default:
     external: true
