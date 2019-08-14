@@ -1,9 +1,29 @@
 ---
 - name: copy the ansible template file with updated vars
   template:
-    src: setVars.sh.j2
-    dest: /etc/file.conf
-    owner: bin
-    group: wheel
-    mode: '0644'
+    src: "{{item}}.j2"
+    dest: "{{cert_location}}/cert-templates/{{item}}"
+    mode: '0755'
+  with_items:
+    - setVars.sh
+    - generateVars.sh
 
+- name: Execute npm module and initializing of vars for initial setup
+  command: bash -lc "bash generateVars.sh"
+  args:
+    chdir: "{{cert_location}}/cert-templates/"
+
+- name: create badge
+  command: bash -lc "node createBadge.js"
+  tags:
+    - createBadge
+
+- name: create Issuer
+  command: bash -lc "node createIssuer.js"
+  tags:
+    - createIssuer
+
+- name: create PublicKey
+  command: bash -lc "node createPublicKey.js"
+  tags:
+    - createPublicKey
