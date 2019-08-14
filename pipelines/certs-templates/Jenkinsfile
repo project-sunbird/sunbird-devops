@@ -1,0 +1,34 @@
+@Library('deploy-conf') _
+node() {
+    try {
+        String ANSI_GREEN = "\u001B[32m"
+        String ANSI_NORMAL = "\u001B[0m"
+        String ANSI_BOLD = "\u001B[1m"
+        String ANSI_RED = "\u001B[31m"
+        String ANSI_YELLOW = "\u001B[33m"
+
+        stage('checkout utils repo') {
+            cleanWs()
+            checkout scm
+              sh "git clone https://github.com/project-sunbird/sunbird-util.git -b ${sunbird_util_branch_or_tag} cert-templates"
+        }
+            ansiColor('xterm') {
+		    currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                    stage('inject vars') {
+                    ansiblePlaybook = "${currentWs}/ansible/cert-templates.yml"
+                    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" "
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+                    archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
+                    currentBuild.description = "${values.artifact_version}"
+                }
+            }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
