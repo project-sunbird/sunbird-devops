@@ -10,20 +10,22 @@ node() {
         stage('checkout utils repo') {
             cleanWs()
             checkout scm
-              sh "git clone https://github.com/project-sunbird/sunbird-util.git -b ${sunbird_util_branch_or_tag} cert-templates"
+              sh """
+		git clone https://github.com/project-sunbird/sunbird-util.git -b ${sunbird_util_branch_or_tag} cert-templates
+	      """
         }
             ansiColor('xterm') {
 		    currentWs = sh(returnStdout: true, script: 'pwd').trim()
                     stage('inject vars') {
                     	ansiblePlaybook = "${currentWs}/ansible/cert-templates.yml"
 		    	if (params.badgeType == "createBadge") {
-		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" --tags createBadge"
+		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" --tags createBadge -c local"
                     	} else if (params.badgeType == "createIssuer") {
-		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" --tags createIssuer "
+		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" --tags createIssuer -c local"
                     	}else if (params.badgeType == "createPublicKey") {
-		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" --tags createPublicKey "
+		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" --tags createPublicKey -c local"
 		    	}else {
-		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" "
+		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" -c local"
 		    	}
                     	values.put('ansiblePlaybook', ansiblePlaybook)
                     	values.put('ansibleExtraArgs', ansibleExtraArgs)
