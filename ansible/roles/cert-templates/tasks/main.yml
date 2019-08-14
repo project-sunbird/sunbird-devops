@@ -27,3 +27,22 @@
   command: bash -lc "node createPublicKey.js"
   tags:
     - createPublicKey
+
+- name: Ensure azure blob storage container exists
+  command: az storage container create  --name {{cert_service_container_name}} --public-access off
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_azure_storage_account}}"
+    AZURE_STORAGE_KEY: "{{sunbird_azure_storage_key}}"
+  ignore_errors: true
+
+# Upload the assets created by the job to azure
+- name: Upload to azure blob storage
+  command: az storage blob upload-batch --destination {{cert_service_container_name}} --source "out"
+  args:
+    chdir: "{{cert_location}}/cert-templates/"
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_azure_storage_account}}"
+    AZURE_STORAGE_KEY: "{{sunbird_azure_storage_key}}"
+  async: 60
+  poll: 10
+
