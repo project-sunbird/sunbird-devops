@@ -15,15 +15,21 @@ node() {
             ansiColor('xterm') {
 		    currentWs = sh(returnStdout: true, script: 'pwd').trim()
                     stage('inject vars') {
-                    ansiblePlaybook = "${currentWs}/ansible/cert-templates.yml"
-                    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" "
-                    values.put('ansiblePlaybook', ansiblePlaybook)
-                    values.put('ansibleExtraArgs', ansibleExtraArgs)
-                    println values
-                    ansible_playbook_run(values)
-                    archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
-                    archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
-                    currentBuild.description = "${values.artifact_version}"
+                    	ansiblePlaybook = "${currentWs}/ansible/cert-templates.yml"
+		    	if (params.badgeType == "createBadge") {
+		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" --tags createBadge"
+                    	} else if (params.badgeType == "createIssuer") {
+		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" --tags createIssuer "
+                    	}else if (params.badgeType == "createPublicKey") {
+		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" --tags createPublicKey "
+		    	}else {
+		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" "
+		    	}
+                    	values.put('ansiblePlaybook', ansiblePlaybook)
+                    	values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    	println values
+                    	ansible_playbook_run(values)
+                    	archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                 }
             }
     }
