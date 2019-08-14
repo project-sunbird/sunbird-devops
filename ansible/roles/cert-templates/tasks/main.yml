@@ -7,30 +7,23 @@
   with_items:
     - setVars.sh
     - generateVars.sh
-  tags:
-    - all
 
 - name: Execute npm module and initializing of vars for initial setup
   command: bash -lc "bash generateVars.sh"
   args:
     chdir: "{{cert_location}}/cert-templates/"
-  tags:
-    - all
 
 - name: create badge
   command: bash -lc "node createBadge.js"
-  tags:
-    - createBadge
+  when: createBadge is defined
 
 - name: create Issuer
   command: bash -lc "node createIssuer.js"
-  tags:
-    - createIssuer
+  when: createIssuer is defined
 
 - name: create PublicKey
   command: bash -lc "node createPublicKey.js"
-  tags:
-    - createPublicKey
+  when: createPublicKey is defined
 
 - name: Ensure azure blob storage container exists
   command: az storage container create  --name {{cert_service_container_name}} --public-access off
