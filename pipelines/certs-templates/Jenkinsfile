@@ -15,9 +15,13 @@ node() {
 	      """
         }
             ansiColor('xterm') {
-		    currentWs = sh(returnStdout: true, script: 'pwd').trim()
                     stage('inject vars') {
 			values = [:]
+	                currentWs = sh(returnStdout: true, script: 'pwd').trim()
+	                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+	                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+	                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+	
                     	ansiblePlaybook = "${currentWs}/ansible/cert-templates.yml"
 		    	if (params.badgeType == "createBadge") {
 		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" --tags createBadge -c local"
@@ -28,6 +32,11 @@ node() {
 		    	}else {
 		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\" -c local"
 		    	}
+
+		        values.put('currentWs', currentWs)
+		        values.put('env', envDir)
+                	values.put('module', module)
+                	values.put('jobName', jobName)
                     	values.put('ansiblePlaybook', ansiblePlaybook)
                     	values.put('ansibleExtraArgs', ansibleExtraArgs)
                     	println values
