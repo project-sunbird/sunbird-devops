@@ -12,7 +12,7 @@ echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
 apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
 apt-get update
-apt-get install -y jenkins=2.164.3
+apt-get install -y jenkins=2.176.2
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
@@ -31,6 +31,9 @@ apt-get install -y jq
 
 echo -e "\n\e[0;32m${bold}Installating Simplejson${normal}"
 apt-get install -y python-simplejson
+
+echo -e "\n\e[0;32m${bold}Installating tree${normal}"
+apt install tree -y
 
 echo -e "\n\e[0;32m${bold}Installating Docker${normal}"
 apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
