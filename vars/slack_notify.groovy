@@ -1,6 +1,5 @@
 def call() {
        try {
-              
                 stage('slack_notify') {
                      mainDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-4].trim()
                      slack_channel = mainDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
