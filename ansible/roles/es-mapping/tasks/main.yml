@@ -1,0 +1,31 @@
+- name: ensure indices and mapping dir exists
+  file: path="{{ item }}" state=directory
+  with_items:
+    - "{{ indices_dir }}"
+    - "{{ mapping_dir }}"
+
+- name: Copy indices file
+  copy: src="files/indices/{{ item }}.json" dest="{{ indices_dir }}"
+  with_items: "{{ indices_name.split(',')|list }}"
+
+- name: Copy mapping file
+  copy: src="files/mappings/{{ item }}-mapping.json" dest="{{ mapping_dir }}"
+  with_items: "{{ indices_name.split(',')|list }}"
+
+- name: copy es-mapping script
+  template:
+    src: elasticsearch_mapping.j2
+    dest: /tmp/elasticsearch_mapping.sh
+    mode: 0744
+
+- name: running the script to create indices and mappings
+  command: /tmp/elasticsearch_mapping.sh
+  register: out
+ 
+- debug: var=out.stdout_lines
+
+- name: remove indices and mapping dir 
+  file: path="{{ item }}" state=absent
+  with_items:
+    - "{{ indices_dir }}"
+    - "{{ mapping_dir }}"
