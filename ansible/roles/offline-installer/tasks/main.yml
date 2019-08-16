@@ -1,0 +1,43 @@
+---
+- name: copy the env.json file to the repo
+  template:
+    src: "{{item}}.j2"
+    dest: "{{offline_repo_location}}/offline-installer-repo/src/{{item}}"
+    mode: '0755'
+  with_items:
+    - env.json
+
+- name: copy the Dockerfile file to the repo
+  template:
+    src: "{{item}}.j2"
+    dest: "{{offline_repo_location}}/offline-installer-repo/{{item}}"
+    mode: '0755'
+  with_items:
+    - Dockerfile
+
+- name: create a directory to store artifacts
+  file:
+    path: "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/{{build_number}}"
+    state: directory
+    recurse: yes
+
+- name: build the dockerfile to get the artifacts
+  command: bash -lc "bash -x build.sh"
+  args:
+    chdir: "{{offline_repo_location}}/offline-installer-repo/"
+
+- name: Ensure azure blob storage container exists
+  command: az storage container create  --name {{offline_installer_container_name}} --public-access off
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_azure_storage_account}}"
+    AZURE_STORAGE_KEY: "{{sunbird_azure_storage_key}}"
+
+- name: Upload to azure blob storage
+  command: az storage blob upload-batch --destination {{offline_installer_container_name}} --source "offline_artifacts"
+  args:
+    chdir: "{{offline_repo_location}}/offline-installer-repo/src/dist/"
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_azure_storage_account}}"
+    AZURE_STORAGE_KEY: "{{sunbird_azure_storage_key}}"
+  async: 60
+  poll: 10
