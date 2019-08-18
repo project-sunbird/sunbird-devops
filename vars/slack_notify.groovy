@@ -12,6 +12,7 @@ def call() {
                 println mainDir
                 slack_channel = mainDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
                 println slack_channel
+                println env.slack_channel
                 if (env.slack_channel != null)
                     slackSend(
                             channel: slack_channel,
