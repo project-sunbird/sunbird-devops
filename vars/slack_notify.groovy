@@ -1,5 +1,10 @@
 def call() {
     try {
+        String ANSI_GREEN = "\u001B[32m"
+        String ANSI_NORMAL = "\u001B[0m"
+        String ANSI_BOLD = "\u001B[1m"
+        String ANSI_RED = "\u001B[31m"
+        String ANSI_YELLOW = "\u001B[33m"
         println "In slack"
         stage('slack_notify') {
             mainDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-4].trim()
