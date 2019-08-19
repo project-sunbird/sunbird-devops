@@ -7,7 +7,7 @@ window.onload = function(){
 	addVersionToURL();
 	var error_message = (new URLSearchParams(window.location.search)).get('error_message');
 	var success_message = (new URLSearchParams(window.location.search)).get('success_message');
-
+	var version = (new URLSearchParams(window.location.search)).get('version');
 	if(error_message){
 		var error_msg = document.getElementById('error-msg');
 		error_msg.className = error_msg.className.replace("hide","");
@@ -17,12 +17,22 @@ window.onload = function(){
 		success_msg.className = success_msg.className.replace("hide","");
 		success_msg.innerHTML = success_message;
 	}
+	if (version >= 4) {
+		var forgotElement = document.getElementById("fgtPortalFlow");
+		forgotElement.className = forgotElement.className.replace("hide","");
+	} else {
+		var forgotElement = document.getElementById("fgtKeycloakFlow");
+		forgotElement.className = forgotElement.className.replace("hide","");
+		forgotElement.href = forgotElement.href + '&version=' + version ;
+	}
 }
-
+var storeLocation = function(){	
+	sessionStorage.setItem('url', window.location.href);	
+}
 var addVersionToURL = function (){
 	var version = getQueryStringValue("version");
 	
-	if (version == 1 || version == 2 || version == 3){
+	if (version >= 1){
 		
 		var selfSingUp = document.getElementById("selfSingUp");
 		
@@ -32,14 +42,8 @@ var addVersionToURL = function (){
 		
 		var stateButton = document.getElementById("stateButton");
 
-		if ((version == 2 || version == 3) && stateButton) {
+		if ((version >= 2) && stateButton) {
 			stateButton.className = stateButton.className.replace(/\bhide\b/g, "");
-		}
-
-		var versionLink = document.getElementById("versionLink");
-		
-		if(versionLink){
-			versionLink.href = versionLink.href + '&version=' + version ;
 		}
 	}
 }
@@ -105,7 +109,7 @@ var navigate = function(type) {
 		} else if(type == 'state') {
 			handleSsoEvent()
 		}
-	} else if (version == '3') {
+	} else if (version >= '3') {
 		if(type == 'google') {
 			handleGoogleAuthEvent()
 		} else if(type == 'state' || type == 'self') {
