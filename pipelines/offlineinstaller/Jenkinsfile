@@ -11,18 +11,19 @@ node() {
             cleanWs()
             checkout scm
               sh """
-		git clone https://github.com/Sunbird-Ed/sunbird-desktop-app.git -b ${sunbirded_installer_branch_or_tag} offline-installer-repo
+		#git clone https://github.com/Sunbird-Ed/sunbird-desktop-app.git -b ${sunbirded_installer_branch_or_tag} offline-installer-repo
+		git clone https://github.com/MasterAlt/sunbird-desktop-app.git -b ${sunbirded_installer_branch_or_tag} offline-installer-repo
 	      """
         }
             ansiColor('xterm') {
-                    stage('inject vars') {
+                    envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                    module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+                    jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+		    currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                    stage('Pre requisites for installer') {
 			values = [:]
-	                currentWs = sh(returnStdout: true, script: 'pwd').trim()
-	                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-	                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
-	                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                     	ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
-		    	ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs build_number=$BUILD_NUMBER\" -vvv"
+		    	ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs build_number=$BUILD_NUMBER\" -vv"
 		        values.put('currentWs', currentWs)
 		        values.put('env', envDir)
                 	values.put('module', module)
@@ -32,6 +33,22 @@ node() {
                     	println values
                     	ansible_playbook_run(values)
                 }
+		     stage('Build and create installer') {
+			dir('offline-installer-repo') {
+				bash -x build.sh
+			}
+			values = [:]
+                        ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
+                        ansibleExtraArgs = " --tags upload"
+                        values.put('currentWs', currentWs)
+                        values.put('env', envDir)
+                        values.put('module', module)
+                        values.put('jobName', jobName)
+                        values.put('ansiblePlaybook', ansiblePlaybook)
+                        values.put('ansibleExtraArgs', ansibleExtraArgs)
+                        println values
+                        ansible_playbook_run(values)
+		}
             }
     }
     catch (err) {
