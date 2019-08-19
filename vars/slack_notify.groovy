@@ -32,7 +32,7 @@ def call(String status) {
                        )
                         else
                          println ANSI_YELLOW + ANSI_BOLD + "Could not find slack environment variable. Skipping slack notification.." + ANSI_NORMAL
-      
+               }
             }
          }
       catch (err){
