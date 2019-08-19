@@ -5,18 +5,7 @@ echo "Offline Installer for Sunbird"
 # Build script
 set -eo pipefail
 
-build_tag=offline
-name=sunbird_offile_installer
-node=master
-org=sunbird
-
-docker build -f ./Dockerfile --label commitHash=$(git rev-parse --short HEAD) -t ${org}/${name}:${build_tag} .
-
-echo {\"image_name\" : \"${name}\", \"image_tag\" : \"${build_tag}\", \"node_name\" : \"$node\"} > metadata.json
-
-docker run --name=sunbirdoffline{{build_number}} ${org}/${name}:${build_tag}
-containerid=$(docker ps -aqf "name=sunbirdoffline{{build_number}}")
-docker cp $containerid:/private/src/dist/DIKSHA\ Setup\ 1.0.0.exe offline_artifacts/{{build_number}}
-docker cp $containerid:/private/src/dist/DIKSHA_1.0.0_amd64.deb offline_artifacts/{{build_number}}
+chmod +x setupOfflineInstaller.sh
+docker run --rm -ti  --env-file envfile  --env ELECTRON_CACHE="/root/.cache/electron"  --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder"  -v ${PWD}:/project electronuserland/builder:wine bash setupOfflineInstaller.sh
 
 echo "Archieved 64 bit DIKSHA\ Setup\ 1.0.0.exe and DIKSHA_1.0.0_amd64.deb"
