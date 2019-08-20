@@ -9,7 +9,8 @@ def call(String status) {
                
                stage('slack_notify') {
                    mainDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-4].trim()
-                   slack_channel = mainDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
+                   channel_env_name = mainDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
+                   slack_channel = evaluate "$channel_env_name"
                    if(status == "FAILURE"){
                      slack_status = 'danger'
                      build_status = "Failed"
