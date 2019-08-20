@@ -16,7 +16,7 @@ def call(String status) {
                      build_status = "Failed"
                   }
                    else {
-                     slack_status = 'green'
+                     slack_status = 'good'
                      build_status = "Succeded"
                   }
                    if (slack_channel != null)
