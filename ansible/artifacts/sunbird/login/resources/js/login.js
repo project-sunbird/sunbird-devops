@@ -8,6 +8,7 @@ window.onload = function(){
 	var error_message = (new URLSearchParams(window.location.search)).get('error_message');
 	var success_message = (new URLSearchParams(window.location.search)).get('success_message');
 	var version = (new URLSearchParams(window.location.search)).get('version');
+	var mergeaccountprocess = (new URLSearchParams(window.location.search)).get('mergeaccountprocess');
 	if(error_message){
 		var error_msg = document.getElementById('error-msg');
 		error_msg.className = error_msg.className.replace("hide","");
@@ -25,21 +26,26 @@ window.onload = function(){
 		forgotElement.className = forgotElement.className.replace("hide","");
 		forgotElement.href = forgotElement.href + '&version=' + version ;
 	}
+	if (mergeaccountprocess === '1') {
+		hideElement("kc-registration");
+		hideElement("stateButton");
+	}
+
 }
-var storeLocation = function(){	
-	sessionStorage.setItem('url', window.location.href);	
+var storeLocation = function(){
+	sessionStorage.setItem('url', window.location.href);
 }
 var addVersionToURL = function (){
 	var version = getQueryStringValue("version");
-	
+
 	if (version >= 1){
-		
+
 		var selfSingUp = document.getElementById("selfSingUp");
-		
+
 		if(selfSingUp) {
 			selfSingUp.className = selfSingUp.className.replace(/\bhide\b/g, "");
 		}
-		
+
 		var stateButton = document.getElementById("stateButton");
 
 		if ((version >= 2) && stateButton) {
@@ -70,6 +76,13 @@ var inputBoxFocusOut = function(currentElement){
 		addClass(placeholderElement,"hide");
 	}
 };
+
+function hideElement(elementId) {
+	var elementToHide = document.getElementById(elementId);
+	if (elementToHide) {
+		addClass(elementToHide, "hide");
+	}
+}
 
 function addClass(element,classname)
 {
@@ -127,7 +140,7 @@ var redirect  = (redirectUrlPath) => {
 		const updatedQuery = curUrlObj.search + '&error_callback=' + curUrlObj.href.split('?')[0];
 		const redirect_uriLocation = new URL(redirect_uri);
 		sessionStorage.setItem('url', window.location.href);
-		
+
 		if(client_id === 'android'){
             window.location.href = curUrlObj.protocol + '//' + curUrlObj.host + redirectUrlPath + updatedQuery;
 		}
@@ -191,7 +204,7 @@ var handleSsoEvent  = () => {
     redirectToLib();
   }
 };
-var handleGoogleAuthEvent = () => { 
+var handleGoogleAuthEvent = () => {
   const googleAuthUrl = '/google/auth';
   const curUrlObj = window.location;
   let redirect_uri = (new URLSearchParams(curUrlObj.search)).get('redirect_uri');
