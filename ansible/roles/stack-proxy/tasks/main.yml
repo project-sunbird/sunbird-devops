@@ -32,6 +32,10 @@
 - name: Save proxy-default.conf
   template: src=proxy-default.conf dest=/home/deployer/config/proxy-default.conf mode=0644
 
+- name: Save keycloak.conf
+  template: src=keycloak.conf dest=/home/deployer/config/keycloak.conf mode=0644
+  when: merge_proxy_server_name is not none
+
 - name: Remove old style proxy stack
   shell: "docker stack rm {{image_name}}-{{env}}"
   ignore_errors: yes
@@ -47,6 +51,20 @@
   ignore_errors: true
 
   # Ignoring ssl certs while proto=https mode
+- name: Remove docker secrets for merge {{ item.name }}
+  shell: "docker secret rm {{ item.name }}"
+  with_items: "{{ merge_proxy_secrets }}"
+  when: merge_proxy_server_name is not none
+  ignore_errors: true
+  no_log: true
+
+- name: Create docker secrets for merge {{ item.name }}
+  shell: "echo '{{item.value}}' | docker secret create {{item.name}} -"
+  with_items: "{{ merge_proxy_secrets }}"
+  when: merge_proxy_server_name is not none
+  ignore_errors: true
+  no_log: true
+
 - name: Remove docker secrets {{ item.name }}
   shell: "docker secret rm {{ item.name }}"
   with_items: "{{ proxy_secrets }}"
@@ -67,11 +85,19 @@
   shell: "docker config rm proxy-default.conf"
   ignore_errors: yes
 
+- name: Remove old keycloak.conf docker config
+  shell: "docker config rm keycloak.conf"
+  ignore_errors: yes
+
 - name: Save nginx.conf as docker config
   shell: "docker config create nginx.conf /home/deployer/config/nginx.conf"
 
 - name: Save proxy-default.conf as docker config
   shell: "docker config create proxy-default.conf /home/deployer/config/proxy-default.conf"
+
+- name: Save keycloak.conf as docker config
+  shell: "docker config create keycloak.conf /home/deployer/config/keycloak.conf"
+  when: merge_proxy_server_name is not none
 
 - name: Login to docker
   shell: "docker login {{ vault_docker_registry_url }} -u {{ vault_docker_registry_user }} -p {{ vault_docker_registry_password }}"

@@ -28,9 +28,17 @@ services:
 {% if proto=='https' %}
       - site.key
       - site.crt
+{% if merge_proxy_server_name is not none %}
+      - sitemerge.key
+      - sitemerge.crt
+{% endif %}
 {% endif %}
       - prom_admin_creds
     configs:
+{% if merge_proxy_server_name is not none %}
+      - source: keycloak.conf
+        target: /etc/nginx/conf.d/keycloak.conf
+{% endif %}
       - source: nginx.conf
         target: /etc/nginx/nginx.conf
       - source: proxy-default.conf
@@ -45,11 +53,21 @@ secrets:
     external: true
   site.crt:
     external: true
+{% if merge_proxy_server_name is not none %}
+  sitemerge.key:
+    external: true
+  sitemerge.crt:
+    external: true
+{% endif %}
 {% endif %}
   prom_admin_creds:
     external: true
 
 configs:
+{% if merge_proxy_server_name is not none %}
+  keycloak.conf:
+    external: true
+{% endif %}
   nginx.conf:
     external: true
   proxy-default.conf:
