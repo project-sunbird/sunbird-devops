@@ -10,9 +10,9 @@ apt-get install -y openjdk-8-jdk
 
 echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
-sudo apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
-sudo apt-get update
-sudo apt-get install -y jenkins=2.164.3
+apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
+apt-get update
+apt-get install -y jenkins=2.176.2
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
@@ -31,6 +31,9 @@ apt-get install -y jq
 
 echo -e "\n\e[0;32m${bold}Installating Simplejson${normal}"
 apt-get install -y python-simplejson
+
+echo -e "\n\e[0;32m${bold}Installating tree${normal}"
+apt install tree -y
 
 echo -e "\n\e[0;32m${bold}Installating Docker${normal}"
 apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
@@ -63,14 +66,24 @@ curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
 AZ_REPO=$(lsb_release -cs)
 echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | \
     sudo tee /etc/apt/sources.list.d/azure-cli.list
-sudo apt-get update
-sudo apt-get install azure-cli
+
+apt-get update
+apt-get install azure-cli
+
+# Install azcopy
+echo -e "\n\e[0;32m${bold}Installating AzCopy${normal}"
+apt update
+wget https://aka.ms/downloadazcopy-v10-linux
+tar -xvf downloadazcopy-v10-linux
+cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
+rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
+###
 
 echo -e "\n\e[0;32m${bold}Installating Docker-py${normal}"
 pip install docker-py
 
 echo -e "\n\e[0;32m${bold}Installating colordiff${normal}"
-sudo apt-get install -y colordiff
+apt-get install -y colordiff
 
 echo -e "\n\e[0;32m${bold}Installating git lfs${normal}"
 curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash

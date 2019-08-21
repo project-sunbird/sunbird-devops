@@ -2,6 +2,28 @@ version: '3.3'
 
 services:
   logstash:
+{% if groups['log-es-2'] is defined %}
+    image: sunbird/logstash:6.2.3
+    command: /usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/logstash.conf
+    deploy:
+      replicas: {{ logger_logstash_replicas }}
+      resources:
+        reservations:
+          memory: "{{ logger_logstash_reservation_memory }}"
+        limits:
+          memory: "{{ logger_logstash_limit_memory }}"
+    environment:
+      - LOGSPOUT=ignore
+      - LS_HEAP_SIZE={{ logger_logstash_heap_size }}
+    configs:
+      - source: logstash.conf
+        target: /etc/logstash/conf.d/logstash.conf
+    ports:
+      - '51415:51415'
+      - '5044:5044'
+    networks:
+      - application_default  
+{% else %}
     image: sunbird/logstash:2.4.1
     command: logstash -f /conf/logstash.conf
     deploy:
@@ -21,7 +43,8 @@ services:
       - '51415:51415'
       - '5044:5044'
     networks:
-      - application_default
+      - application_default  
+{% endif %}      
 
   logspout:
     image: gliderlabs/logspout:v3.2.6
@@ -42,36 +65,7 @@ services:
     networks:
       - application_default
 
-  oauth:
-    image: rjshrjndrn/oauth2-proxy:2.2
-    deploy:
-      resources:
-        reservations:
-          memory: "{{ logger_oauth_reservation_memory }}"
-        limits:
-          memory: "{{ logger_oauth_limit_memory }}"
-    command: |
-      -cookie-secure=false
-      -upstream=http://proxy_proxy/oauth2
-      -redirect-url={{kibana_oauth_redirect_url}}
-      -http-address=0.0.0.0:4111
-      {% for email_domain in kibana_oauth_authenticated_email_domains %}
-      -email-domain={{email_domain}}
-      {% endfor %}
-      -authenticated-emails-file=/authenticated_email.txt
-    environment:
-      - OAUTH2_PROXY_CLIENT_ID={{google_client_id}}
-      - OAUTH2_PROXY_CLIENT_SECRET={{google_client_secret}}
-      - OAUTH2_PROXY_COOKIE_SECRET={{cookie_secret}}
-    configs:
-      - source: authenticated_email_kibana_oauth
-        target: /authenticated_email.txt
-    networks:
-      - application_default
-
 configs:
-  authenticated_email_kibana_oauth:
-    external: true
   logstash.conf:
     external: true
 

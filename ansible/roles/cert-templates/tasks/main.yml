@@ -1,0 +1,49 @@
+---
+- name: copy the ansible template file with updated vars
+  template:
+    src: "{{item}}.j2"
+    dest: "{{cert_location}}/cert-templates/certUtilScripts/{{item}}"
+    mode: '0755'
+  with_items:
+    - setVars.sh
+    - generateVars.sh
+
+- name: Execute npm module and initializing of vars for initial setup
+  command: bash -lc "bash generateVars.sh"
+  args:
+    chdir: "{{cert_location}}/cert-templates/certUtilScripts/"
+
+- name: create badge
+  command: bash -lc "node createBadge.js"
+  args:
+    chdir: "{{cert_location}}/cert-templates/certUtilScripts/"
+  when: createBadge is defined
+
+- name: create Issuer
+  command: bash -lc "node createIssuer.js"
+  args:
+    chdir: "{{cert_location}}/cert-templates/certUtilScripts/"
+  when: createIssuer is defined
+
+- name: create PublicKey
+  command: bash -lc "node createPublicKey.js"
+  args:
+    chdir: "{{cert_location}}/cert-templates/certUtilScripts/"
+  when: createPublicKey is defined
+
+- name: Ensure azure blob storage container exists
+  command: az storage container create  --name {{cert_service_container_name}} --public-access off
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_azure_storage_account}}"
+    AZURE_STORAGE_KEY: "{{sunbird_azure_storage_key}}"
+
+- name: Upload to azure blob storage
+  command: az storage blob upload-batch --destination {{cert_service_container_name}} --source "out"
+  args:
+    chdir: "{{cert_location}}/cert-templates/certUtilScripts/"
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_azure_storage_account}}"
+    AZURE_STORAGE_KEY: "{{sunbird_azure_storage_key}}"
+  async: 60
+  poll: 10
+
