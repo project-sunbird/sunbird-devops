@@ -29,6 +29,7 @@ window.onload = function(){
 	if (mergeaccountprocess === '1') {
 		hideElement("kc-registration");
 		hideElement("stateButton");
+		hideElement("fgtKeycloakFlow");
 	}
 
 }
