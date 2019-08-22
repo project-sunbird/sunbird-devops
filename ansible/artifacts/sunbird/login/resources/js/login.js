@@ -30,8 +30,21 @@ window.onload = function(){
 		hideElement("kc-registration");
 		hideElement("stateButton");
 		hideElement("fgtKeycloakFlow");
+		var signIn = document.getElementById("signIn");
+		var goBackElement = document.getElementById("goBack");
+		if (signIn) {
+			signIn.innerText = 'Merge Account';
+			signIn.classList.add('fs-22');
+		}
+		if (goBackElement) {
+			goBackElement.className = goBackElement.className.replace("hide", "");
+			goBackElement.href = (new URLSearchParams(window.location.search)).get('goBackUrl');
+		}
+		var mergeAccountMessage = document.getElementById("mergeAccountMessage");
+		if (mergeAccountMessage) {
+			mergeAccountMessage.className = mergeAccountMessage.className.replace("hide", "");
+		}
 	}
-
 }
 var storeLocation = function(){
 	sessionStorage.setItem('url', window.location.href);
