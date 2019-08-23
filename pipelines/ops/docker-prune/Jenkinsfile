@@ -28,10 +28,15 @@ node() {
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 println values
                 ansible_playbook_run(values)
+                currentBuild.result = 'SUCCESS'
             }
         }
     }
     catch (err) {
+        currentBuild.result = 'FAILURE'
         throw err
+    }
+    finally {
+    slack_notify(currentBuild.result)
     }
 }

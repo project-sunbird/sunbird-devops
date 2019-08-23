@@ -50,6 +50,7 @@ node() {
                 archiveArtifacts 'metadata.json'
                 image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
                 currentBuild.description = "${image_tag}"
+                currentBuild.result = 'SUCCESS'
             }
         }
     }
@@ -58,4 +59,7 @@ node() {
         currentBuild.result = "FAILURE"
         throw err
     }
+     finally {
+    slack_notify(currentBuild.result)
+   }
 }
