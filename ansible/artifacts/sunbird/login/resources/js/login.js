@@ -63,14 +63,14 @@ window.onload = function(){
 			goBackElement.href = localStorage.getItem('redirectUrl');
 		} else {
 			goBackElement.href = (new URLSearchParams(window.location.search)).get('goBackUrl');
+			localStorage.setItem('mergeaccountprocess', mergeaccountprocess);
+			localStorage.setItem('version', version);
+			localStorage.setItem('redirectUrl', (new URLSearchParams(window.location.search)).get('goBackUrl'));
 		}
 		var mergeAccountMessage = document.getElementById("mergeAccountMessage");
 		if (mergeAccountMessage && renderingType === 'queryParams') {
 			mergeAccountMessage.className = mergeAccountMessage.className.replace("hide", "");
 		}
-		localStorage.setItem('mergeaccountprocess', mergeaccountprocess);
-		localStorage.setItem('version', version);
-		localStorage.setItem('redirectUrl', (new URLSearchParams(window.location.search)).get('goBackUrl'));
 	}
 }
 var storeLocation = function(){
