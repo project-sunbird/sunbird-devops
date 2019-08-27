@@ -16,7 +16,7 @@
                 <p id="mergeAccountMessage" class="hide mb-0 textCenter">${msg("mergeAccountMessage")}</p>
                 <div class="formMsg mb-28 textCenter">
                 <#if message?has_content>
-                    <div class="ui text ${message.type}">
+                    <div id="error-summary" class="ui text ${message.type}">
                         ${message.summary}
                     </div>
                     </#if>
