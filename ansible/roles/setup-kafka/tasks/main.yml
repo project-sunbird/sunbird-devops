@@ -1,0 +1,14 @@
+- name: create topics
+  command: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic {{env}}.{{item.name}} --partitions {{ item.num_of_partitions }} --replication-factor {{ item.replication_factor }}
+  with_items: "{{processing_kafka_topics}}"
+  ignore_errors: true
+  when: kafka_id=="1"
+  tags:
+    - processing-kafka
+
+- name: override retention time
+  command: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --alter --topic {{env}}.{{item.name}} --config retention.ms={{ item.retention_time }}
+  with_items: "{{processing_kafka_overriden_topics}}"
+  when: kafka_id=="1" and item.retention_time is defined  
+  tags:
+    - processing-kafka
