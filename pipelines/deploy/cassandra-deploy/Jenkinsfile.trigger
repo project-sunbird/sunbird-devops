@@ -50,6 +50,7 @@ node() {
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "${values.artifact_version}"
+                    currentBuild.result = "SUCCESS"
                 }
             }
     }
@@ -57,4 +58,7 @@ node() {
         currentBuild.result = "FAILURE"
         throw err
     }
+    finally {
+    slack_notify(currentBuild.result)
+   }
 }

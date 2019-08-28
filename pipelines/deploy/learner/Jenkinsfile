@@ -17,10 +17,14 @@ node() {
             ansible_playbook_run(values)
             archiveArtifacts 'metadata.json'
             currentBuild.description = "${values.image_tag}"
+            currentBuild.result = "SUCCESS"
         }
     }
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
     }
+    finally {
+    slack_notify(currentBuild.result)
+   }
 }
