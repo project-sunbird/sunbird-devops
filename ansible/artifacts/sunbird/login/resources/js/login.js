@@ -8,15 +8,17 @@ window.onload = function(){
 	var renderingType = 'queryParams';
 	if (!mergeaccountprocess) {
 		mergeaccountprocess = localStorage.getItem('mergeaccountprocess');
-		if (!version) {
-			version = localStorage.getItem('version');
-		}
-		hideElement("mergeAccountMessage");
-		renderingType = 'local-storage';
-		var error_summary = document.getElementById('error-summary');
-		if (error_summary) {
-			var errorMessage = error_summary.innerHTML.valueOf();
-			error_summary.innerHTML = errorMessage + 'to merge';
+		if (mergeaccountprocess === '1') {
+			if (!version) {
+				version = localStorage.getItem('version');
+			}
+			hideElement("mergeAccountMessage");
+			renderingType = 'local-storage';
+			var error_summary = document.getElementById('error-summary');
+			if (error_summary) {
+				var errorMessage = error_summary.innerHTML.valueOf();
+				error_summary.innerHTML = errorMessage + 'to merge';
+			}
 		}
 	} else {
 		localStorage.clear()
