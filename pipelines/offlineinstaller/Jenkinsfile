@@ -23,7 +23,7 @@ node() {
                     stage('Pre requisites for installer') {
 			values = [:]
                     	ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
-		    	ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs build_number=$BUILD_NUMBER\" -vv"
+		    	ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs build_number=$BUILD_NUMBER offline_installer_type=${offline_installer_type}\" -vv"
 		        values.put('currentWs', currentWs)
 		        values.put('env', envDir)
                 	values.put('module', module)
@@ -34,7 +34,7 @@ node() {
                     	ansible_playbook_run(values)
                 }
 		try {
-		     stage('Build, create and upload installer to azure') {
+		     stage('Build Installer, create and upload it to azure') {
 			dir('offline-installer-repo') {
 				sh """
 					bash -x build.sh
@@ -42,7 +42,7 @@ node() {
 			}
 			values = [:]
                         ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
-                        ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs build_number=$BUILD_NUMBER uploadInstaller=True \""
+                        ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs build_number=$BUILD_NUMBER uploadInstaller=True offline_installer_type=${offline_installer_type}\""
                         values.put('currentWs', currentWs)
                         values.put('env', envDir)
                         values.put('module', module)
@@ -56,7 +56,7 @@ node() {
 		catch (err) {
 			values = [:]
                         ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
-                        ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs removeOfflineInstallerFolder=True build_number=$BUILD_NUMBER\""
+                        ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs removeOfflineInstallerFolder=True build_number=$BUILD_NUMBER offline_installer_type=${offline_installer_type}\""
                         values.put('currentWs', currentWs)
                         values.put('env', envDir)
                         values.put('module', module)
