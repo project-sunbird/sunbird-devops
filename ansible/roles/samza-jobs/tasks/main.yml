@@ -1,9 +1,73 @@
----
-- include: deploy.yml
-  when: deploy_jobs | default(false)
+ - name: Create Directory for Jobs
+   file: path={{ item }} owner=hduser group=hadoop recurse=yes state=directory
+   with_items:
+     - "{{ samza_jobs_dir }}"
+     - "{{ samza_jobs_dir }}/extract"
 
-- include: stop_jobs.yml
-  when: stop_jobs | default(false)
+ - name: Get the application id to kill the app
+   shell: "{{ yarn_path }}/yarn application --list | grep -i {{ item }} | awk '{print $1}'"
+   with_items: "{{ job_names_to_kill.split(',')|list }}"
+   register: appid
 
-- include: start_jobs.yml
-  when: start_jobs | default(false)
+ - name: Kill the mentioned applications
+   shell: "{{ yarn_path }}/yarn application -kill {{ item.stdout }}"
+   with_items:
+     - "{{ appid['results'] }}"
+   when: item.stdout | length > 0
+
+ - name: find the existing file names to remove
+   find:
+     paths: "{{ samza_jobs_dir }}"
+     patterns: "{{ job_names['%s'|format(item)].job_file_name }}*"
+     recurse: yes
+   with_items: "{{ job_names_to_kill.split(',') }}"
+   register: existing_files
+
+ - name: remove the files under "{{ samza_jobs_dir }}" directory
+   command: rm -rf "{{ item.path | basename }}"
+   with_items: "{{ existing_files | json_query('results[].files[]') }}"
+   args:
+      chdir: "{{ samza_jobs_dir }}"
+
+ - name: remove the files under "{{ samza_jobs_dir }}/extract" directory
+   command: rm -rf "{{ item.path | basename }}"
+   with_items: "{{ existing_files | json_query('results[].files[]') }}"
+   args:
+      chdir: "{{ samza_jobs_dir }}/extract"
+
+ - name: copy new jobs tar ball
+   copy: src={{ item }} dest={{ samza_jobs_dir }}/ force=no owner=hduser group=hadoop
+   with_fileglob:
+     - ../defaults/jobs/*
+   register: new_jobs
+
+ - name: Create directory to extract new jobs
+   file: path="{{ samza_jobs_dir }}/extract/{{ item }}" owner=hduser group=hadoop recurse=yes state=directory
+   with_items:
+     - "{{ new_jobs | json_query('results[].invocation.module_args.original_basename') }}"
+
+ - name: extract new jobs
+   unarchive:
+         src: "{{ samza_jobs_dir }}/{{ item }}"
+         dest: "{{ samza_jobs_dir }}/extract/{{ item }}"
+         remote_src: yes
+   with_items:
+     - "{{ new_jobs | json_query('results[].invocation.module_args.original_basename') }}"
+
+ - name: Get all new jobs config
+   shell: "ls -d -1 {{ samza_jobs_dir }}/extract/{{ item }}/config/*.properties"
+   register: config_files
+   with_items:
+     - "{{ new_jobs | json_query('results[].invocation.module_args.original_basename') }}"
+
+ - name: update environment specific details in new job configs
+   replace: dest="{{ item[1].stdout }}" regexp="{{ item[0].key }}" replace="{{ item[0].value }}"
+   with_nested:
+     - [{key: "__yarn_host__", value: "{{__yarn_host__}}"}, {key: "__yarn_port__", value: "{{__yarn_port__}}"}, {key: "__env__", value: "{{env_name}}" }, {key: "__zookeepers__", value: "{{zookeepers}}"}, {key: "__kafka_brokers__", value: "{{kafka_brokers}}"}, {key: "__lms_host__", value: "{{__lms_host__}}"}, {key: "__lms_es_port__", value: "{{sunbird_es_port}}"}, {key: "__lms_es_host__", value: "{{sunbird_es_host}}"}]
+     - "{{ config_files | json_query('results[]') }}"
+
+ - name: Start the jobs
+   shell: "{{ samza_jobs_dir }}/extract/{{ item.0 }}/bin/run-job.sh --config-factory=org.apache.samza.config.factories.PropertiesConfigFactory --config-path={{ item.1.stdout }}"
+   with_together:
+     - "{{ new_jobs | json_query('results[].invocation.module_args.original_basename') }}"
+     - "{{ config_files | json_query('results[]') }}"
