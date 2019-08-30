@@ -30,7 +30,7 @@ groups:
       description: Elasticsearch Free space on Disk {% raw %}{{$value}}{% endraw %} .
       summary: Elasticsearch has less free disk space {% raw %}{{$value}}{% endraw %} .
 
-  - alert: elasticsearch_too_few_nodes_running
+  - alert: elasticsearch_too_few_nodes_running_CRITICAL
     expr: elasticsearch_cluster_health_number_of_nodes{job="elasticsearch-exporter"} < {{ groups['es'] | length }}
     for: 1m
     labels:
@@ -40,7 +40,7 @@ groups:
       summary: ElasticSearch running on less than {{ groups['es'] | length }} nodes
 
 {% if groups['log-es'] is defined %}
-  - alert: elasticsearch_too_few_nodes_running
+  - alert: elasticsearch_too_few_nodes_running_CRITICAL
     expr: elasticsearch_cluster_health_number_of_nodes{job="log-elasticsearch-exporter"} < {{ groups['log-es'] | length }}
     for: 1m
     labels:
@@ -49,7 +49,7 @@ groups:
       description: There are only {% raw %}{{$value}}{% endraw %} < {{ groups['log-es'] | length }} ElasticSearch nodes running
       summary: ElasticSearch running on less than {{ groups['log-es'] | length }} nodes
 {% endif %}
-  - alert: elasticsearch_heap_too_high
+  - alert: elasticsearch_heap_too_high_CRITICAL
     expr: elasticsearch_jvm_memory_used_bytes{area="heap"} / elasticsearch_jvm_memory_max_bytes{area="heap"} > 0.9
     for: 1m
     labels:
@@ -57,7 +57,7 @@ groups:
     annotations:
       description: The heap usage is over 90% for 15m
       summary: ElasticSearch node {% raw %}{{$labels.node}}{% endraw %} heap usage is high
-  - alert: elasticsearch_snapshot_is_too_old
+  - alert: elasticsearch_snapshot_is_too_old_CRITICAL
     expr: time() - elasticsearch_snapshots_latest_successful_snapshot_timestamp{job="elasticsearch-snapshots-exporter"} / 1000 > {{ expected_elasticsearch_snapshot_interval_in_minutes|int * 60 }}
     for: 1m
     labels:
