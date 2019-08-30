@@ -41,14 +41,15 @@ node() {
                 stage('deploy artifact'){
                     sh """
                        unzip ${artifact}
-                       mv distribution-* ansible
-                       rm -rf ansible/roles/samza-jobs/files/jobs
-                       mkdir  ansible/roles/samza-jobs/files/jobs
-                       tar -xvf ansible/distribution-* -C ansible/roles/samza-jobs/files/jobs/
+                       mv distribution-*.tar.gz ansible
+                       rm -rf ansible/roles/samza-jobs/defaults/jobs
+                       mkdir  ansible/roles/samza-jobs/defaults/jobs ansible/roles/samza-jobs/defaults/allfiles
+                       chmod 777 ansible/roles/samza-jobs/defaults/jobs
+                       tar -xvf ansible/distribution-*.tar.gz -C ansible/roles/samza-jobs/defaults/allfiles/
 
                     """
                     ansiblePlaybook = "${currentWs}/ansible/samza_deploy.yml"
-                    ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                    ansibleExtraArgs = "--extra-vars \"job_names_to_kill=${params.job_names_to_deploy} job_workspace=${WORKSPACE}/ansible\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                     values.put('ansiblePlaybook', ansiblePlaybook)
                     values.put('ansibleExtraArgs', ansibleExtraArgs)
                     println values
@@ -65,3 +66,4 @@ node() {
         throw err
     }
 }
+
