@@ -54,6 +54,7 @@ textbook_service_prefix: /textbook
 lock_service_prefix: /lock
 otp_service_prefix: /otp
 sso_service_prefix: /sso
+cert_service_prefix: /cert
 
 # Service URLs
 content_service_url: "http://content-service:5000"
@@ -66,6 +67,7 @@ am_util_url: http://adminutil_adminutil:4000
 config_service_url: "http://config-service:8080"
 user_org_service_url: "http://user-org-service:9000"
 lms_service_url: "http://lms-service:9000"
+cert_service_url: "http://cert-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -407,6 +409,22 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: readCourseEnrollment
+    uris: "{{ course_service_prefix }}/v1/user/enrollment/read"
+    upstream_url: "{{ lms_service_url }}/v1/user/courses/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"    
   - name: readContentState
     uris: "{{ course_service_prefix }}/v1/content/state/read"
     upstream_url: "{{ lms_service_url }}/v1/content/state/read"
@@ -1203,7 +1221,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getCourseProgressDashboard
     uris: "{{ dashboard_service_prefix }}/v1/progress/course"
-    upstream_url: "{{ learning_service_url }}/v1/dashboard/progress/course"
+    upstream_url: "{{ lms_service_url }}/v1/dashboard/progress/course"
     strip_uri: true
     plugins:
     - name: jwt
@@ -1219,7 +1237,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getCourseProgressDashboardV2
     uris: "{{ dashboard_service_prefix }}/v2/progress/course"
-    upstream_url: "{{ learning_service_url }}/v2/dashboard/progress/course"
+    upstream_url: "{{ lms_service_url }}/v2/dashboard/progress/course"
     strip_uri: true
     plugins:
     - name: jwt
@@ -1235,7 +1253,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: getCourseConsumptionDashboard
     uris: "{{ dashboard_service_prefix }}/v1/consumption/course"
-    upstream_url: "{{ learning_service_url }}/v1/dashboard/consumption/course"
+    upstream_url: "{{ lms_service_url }}/v1/dashboard/consumption/course"
     strip_uri: true
     plugins:
     - name: jwt
@@ -3550,7 +3568,31 @@ kong_apis:
      - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+     
+  - name: "experimentcreate"
+    uris: "{{ data_service_prefix }}/v1/experiement/create"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/experiment/create"
+    strip_uri: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }   
 
+  - name: "experimentread" 
+    uris: "{{ data_service_prefix }}/v1/experiement/get"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/experiment/get"
+    strip_uri: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl', config.whitelist: 'publicUser'}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+     
   - name: "configRefresh"
     uris: "{{ config_service_prefix }}/v1/refresh"
     upstream_url: "{{ config_service_url }}/config-service/v1/refresh"
@@ -3790,7 +3832,7 @@ kong_apis:
      - "{{ statsd_pulgin }}"
      - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
-     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" } 
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "contentBadgeUnLink"
     uris: "{{ badge_service_prefix }}/v1/content/unlink"
     upstream_url: "{{ lms_service_url }}/v1/content/unlink"
@@ -3801,7 +3843,7 @@ kong_apis:
      - "{{ statsd_pulgin }}"
      - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
-     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" } 
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "privateUserUpdate"
     uris: "{{ user_service_prefix }}/private/v1/update"
     upstream_url: "{{ learning_service_url }}/private/user/v1/update"
@@ -3812,7 +3854,7 @@ kong_apis:
      - "{{ statsd_pulgin }}"
      - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
-     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }   
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: "getUserType"
     uris: "{{ user_service_prefix }}/v1/type/list"
     upstream_url: "{{ learning_service_url }}/v1/user/type/list"
@@ -4124,7 +4166,7 @@ kong_apis:
      - "{{ statsd_pulgin }}"
      - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
-     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }   
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
   - name: updateUserloginTimeV3
     uris: "{{ user_service_prefix }}/v1.3/update/logintime"
     upstream_url: "{{ user_org_service_url }}/v1.3/user/update/logintime"
@@ -4354,4 +4396,101 @@ kong_apis:
     - {name: 'cors'}
     - "{{ statsd_pulgin }}"
     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
-    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }  
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: generateCertificate
+    uris: "{{ cert_service_prefix }}/v1/certs/generate"
+    upstream_url: "{{ cert_service_url }}/v1/certs/generate"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: orgUpdate
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: "certValidation"
+    uris: "{{ user_service_prefix }}/v1/certs/validate"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/certs/validate"
+    strip_uri: true
+    plugins:
+    - {name: 'jwt'}
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'acl', config.whitelist: 'userUpdate'}
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: "orgAssignKeys"
+    uris: "{{ org_service_prefix }}/v1/assign/key"
+    upstream_url: "{{ learning_service_url }}/v1/org/assign/key"
+    strip_uri: true
+    plugins:
+    - {name: 'jwt'}
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'acl', config.whitelist: 'orgAdmin'}
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: "mergeUserAccounts"
+    uris: "{{ user_service_prefix }}/v1/account/merge"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/account/merge"
+    strip_uri: true
+    plugins:
+    - {name: 'jwt'}
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'acl', config.whitelist: 'publicUser'}
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: qrCodeDownload
+    uris: "{{ course_service_prefix }}/v1/qrcode/download"
+    upstream_url: "{{ lms_service_url }}/v1/course/qrcode/download"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: courseUser
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ small_request_size_limit }}"  
+  - name: courseIssueCertificate
+    uris: "{{ course_service_prefix }}/batch/cert/v1/issue"
+    upstream_url: "{{ lms_service_url }}/v1/course/batch/cert/issue"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: downloadCertificate
+    uris: "{{ user_service_prefix }}/v1/certs/download"
+    upstream_url: "{{ learning_service_url }}/v1/user/certs/download"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: publicUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"

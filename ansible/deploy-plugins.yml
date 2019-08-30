@@ -16,7 +16,11 @@
         - preview
 
     - name: delete batch
-      command: "az storage blob delete-batch -s {{ plugin_container_name }} --pattern {{ folder_name }}/*"
+      shell: |
+        sas_expire_time=`date +'%Y-%m-%dT%H:%m:%SZ' -d '-4 hours'`
+        echo $sas_expire_time
+        sas_token=`az storage account generate-sas --account-name "{{ azure_plugin_storage_account_name }}" --account-key "{{ azure_plugin_storage_account_key }}" --expiry $sas_expire_time --https-only --permissions ld --resource-types sco --services bfqt | sed -E 's/^"|"$//g'`
+        azcopy rm "https://"{{ azure_plugin_storage_account_name }}".blob.core.windows.net/"{{ plugin_container_name }}"/"{{ folder_name }}"?$sas_token" --recursive=true
       async: 3600
       poll: 10
       tags:
@@ -51,24 +55,3 @@
       poll: 10
       tags:
         - plugins
-
-- hosts: preview-vm
-  gather_facts: false
-  become: yes
-  tasks:
-    - name: removing dir
-      file:
-        path: /var/www/html/preview
-        state: absent
-    - name: creating dir
-      file:
-        path: /var/www/html/preview
-        state: directory
-
-    - name: copy zip to remote
-      copy:
-        src: preview/
-        dest: /var/www/html/preview/
- # tags:
-  #  - preview
-   # - testupload

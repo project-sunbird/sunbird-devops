@@ -20,9 +20,6 @@
 - name: Save logstash config
   template: src=logstash.conf dest=/home/deployer/config/logstash.conf mode=0644
 
-- name: Save authenticated email file
-  template: src=authenticated_email.txt dest=/home/deployer/config/authenticated_email.txt mode=0644
-
 - name: Remove stack
   shell: "docker stack rm logger"
   ignore_errors: yes
@@ -31,15 +28,8 @@
   shell: "docker config rm logstash.conf"
   ignore_errors: yes
 
-- name: Remove old authenticated email docker config
-  shell: "docker config rm authenticated_email_kibana_oauth"
-  ignore_errors: yes
-
 - name: Save logstash config as docker config
   shell: "docker config create logstash.conf /home/deployer/config/logstash.conf"
-
-- name: Save authenticated emails as docker config
-  shell: "docker config create authenticated_email_kibana_oauth /home/deployer/config/authenticated_email.txt"
 
 - name: Deploy stack
   shell: "docker stack deploy -c logger.yml logger"

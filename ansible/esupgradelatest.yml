@@ -1,0 +1,24 @@
+- hosts: log-es-2
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml']
+  tasks:
+    - name: Registering node name
+      set_fact:
+        es_instance_name: "{% for servername in play_hosts %}{% if inventory_hostname==servername %}es-{{ loop.index }}{% endif %}{% endfor %}"
+  roles:
+    - openjdk
+    - { role: es6,
+        es_config: {
+          cluster.name: "{{ node_name }}",
+          discovery.zen.ping.unicast.hosts: "{{ groups['log-es-2'] }}",
+          http.port: 9200,
+          transport.tcp.port: 9300,
+          node.data: "{{ es_etc_node_data | default('true') }}",
+          node.master: "{{ es_etc_node_master | default('true') }}",
+          bootstrap.memory_lock: true,
+        },
+        es_heap_size: "2g",
+        es_etc_discovery_zen_ping_unicast_hosts: "{{ groups['log-es-2'] }}",
+        es_etc_cluster_name: "{{ node_name }}"
+      }

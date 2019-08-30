@@ -11,11 +11,12 @@
             <div class="ui column height-fix">
                 <div class="ui header centered">
                     <img onerror="" alt="">
-                    <div class="signInHead mt-27">${msg("doSignIn")}</div>
+                    <div id="signIn" class="signInHead mt-27">${msg("doSignIn")}</div>
                 </div>
+                <p id="mergeAccountMessage" class="hide mb-0 textCenter">${msg("mergeAccountMessage")}</p>
                 <div class="formMsg mb-28 textCenter">
                 <#if message?has_content>
-                    <div class="ui text ${message.type}">
+                    <div id="error-summary" class="ui text ${message.type}">
                         ${message.summary}
                     </div>
                     </#if>
@@ -48,7 +49,8 @@
                                 ${msg("password")}
                             </label>
                             <#if realm.resetPasswordAllowed>
-                                <a id="versionLink" class="ui right floated forgetPasswordLink" tabindex="1" onclick="javascript:storeLocation(); javascript:makeDivUnclickable()" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
+                                <a id="fgtKeycloakFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:storeLocation(); javascript:makeDivUnclickable()" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
+                                <div id="fgtPortalFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:redirect('/recover/identify/account');javascript:makeDivUnclickable()">${msg("doForgotPassword")}</div>
                             </#if>
                             <label id="passwordLabelPlaceholder" for="password" class="activeLabelColor hide">
                                 ${msg("placeholderForPassword")}
@@ -89,6 +91,7 @@
                         </#if>
                     </div>
                 </form>
+                 <a id="goBack" class="textCenter mt-16 hide cursor-pointer">${msg("goBack")}</a>
             </div>
             <div class="ui column tablet only computer only"></div>
         </div>
