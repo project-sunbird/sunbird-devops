@@ -9,8 +9,8 @@ def call(Map values) {
 
             if (params.artifact_source == "ArtifactRepo") {
                 println(ANSI_BOLD + ANSI_YELLOW + "Option chosen is ArtifactRepo - Downloading artifacts from remote source" + ANSI_NORMAL)
-                ansiblePlaybook = "${currentWs}/ansible/artifacts-download.yml"
-                ansibleExtraArgs = "--extra-vars \"artifact=${artifact} artifact_path=${currentWs}/${artifact}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                ansiblePlaybook = "${values.currentWs}/ansible/artifacts-download.yml"
+                ansibleExtraArgs = "--extra-vars \"artifact=${values.artifact} artifact_path=${values.currentWs}/${values.artifact}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                 values.put('ansiblePlaybook', ansiblePlaybook)
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 ansible_playbook_run(values)
