@@ -18,6 +18,7 @@ node() {
                     artifact = values.artifact_name + ":" + values.artifact_version
                     values.put('currentWs', currentWs)
                     values.put('artifact', artifact)
+                    artifact_download(values)
                 }
                 stage('deploy artifact') {
                     sh """
