@@ -1,4 +1,4 @@
-def call(String status) {
+def call(String buildStatus) {
     try {
         ansiColor('xterm') {
             String ANSI_GREEN = "\u001B[32m"
@@ -8,16 +8,8 @@ def call(String status) {
             String ANSI_YELLOW = "\u001B[33m"
 
             stage('slack_notify') {
-                sh "printenv"
-                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-                channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
-                try {
-                    slack_channel = evaluate "$channel_env_name"
-                }
-                catch (MissingPropertyException ex) {
-                    println ANSI_YELLOW + ANSI_BOLD + "Could not find env specific Slack channel.." + ANSI_NORMAL
-                }
-                if(status == "FAILURE"){
+
+                if(buildStatus == "FAILURE"){
                     slack_status = 'danger'
                     build_status = "Failed"
                 }
@@ -25,13 +17,22 @@ def call(String status) {
                     slack_status = 'good'
                     build_status = "Succeded"
                 }
-                if (slack_channel != null)
+                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
+                try {
+                    slack_channel = evaluate "$channel_env_name"
                     slackSend (
                             channel: slack_channel,
                             color: slack_status,
                             message: "Build ${build_status} - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
                     )
-                else if(env.GLOBAL_NOTIFY_SLACK_CHANNEL != null)
+                    return
+                }
+                catch (MissingPropertyException ex) {
+                    println ANSI_YELLOW + ANSI_BOLD + "Could not find env specific Slack channel. Check for global slack channel.." + ANSI_NORMAL
+                }
+
+                if(env.GLOBAL_NOTIFY_SLACK_CHANNEL != null)
                     slackSend (
                             channel: "${env.GLOBAL_NOTIFY_SLACK_CHANNEL}",
                             color: slack_status,
