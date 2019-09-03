@@ -21,7 +21,6 @@ node() {
                     values.put('ansiblePlaybook', ansiblePlaybook)
                     values.put('ansibleExtraArgs', ansibleExtraArgs)
                     ansible_playbook_run(values)
-                currentBuild.result = 'SUCCESS'
                 }
 
                 stage('Deploy CDN') {
@@ -41,7 +40,7 @@ node() {
                         ansibleExtraArgs = "--extra-vars assets=$currentWs/sunbird-portal/src/app/dist --extra-vars cdn_file_path=$currentWs/sunbird-portal/src/app/dist/index_cdn.ejs --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                         values.put('ansibleExtraArgs', ansibleExtraArgs)
                         ansible_playbook_run(values)
-                currentBuild.result = 'SUCCESS'
+                        currentBuild.result = 'SUCCESS'
                         archiveArtifacts 'metadata.json, sunbird-portal/src/app/dist/index_cdn.ejs'
                         currentBuild.description = "Image: " + values.image_tag + ", CDNHash: " + commitHash + "Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
                     }
