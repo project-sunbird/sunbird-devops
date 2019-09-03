@@ -9,8 +9,8 @@ def call(String status) {
 
             stage('slack_notify') {
                 sh "printenv"
-                env = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-                channel_env_name = env.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
+                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
                 try {
                     slack_channel = evaluate "$channel_env_name"
                 }
