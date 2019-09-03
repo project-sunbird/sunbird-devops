@@ -38,7 +38,7 @@ storage_key="$5"
 
 
 query(){
-curl -s -XPOST 'localhost:9200/logstash-*/_search?pretty' -d '{"query":{"filtered":{"query":{"query_string":{"analyze_wildcard":true,"query":"\"'$1'\""}},"filter":{"bool":{"must":[{"range":{"@timestamp":{"gte":"'"$prev_day"'","lte":"'"$today"'","format":"epoch_second"}}}],"must_not":[]}}}},"size":0,"aggs":{"2":{"date_histogram":{"field":"@timestamp","interval":"15m","time_zone":"Asia/Kolkata","min_doc_count":1,"extended_bounds":{"min": 0,"max": 500}}}}}' |  jq -r '.aggregations."2".buckets[]|.key_as_string+" "+ (.doc_count|tostring)' | column -t > $2
+    curl -H 'Content-Type:application/json' -s -XPOST 'localhost:9200/logstash-*/_search?pretty' -d '{"query":{"bool":{"must":{"query_string":{"analyze_wildcard":true,"query":"\"'$1'\""}},"filter":{"bool":{"must":[{"range":{"@timestamp":{"gte":"'"$prev_day"'","lte":"'"$today"'","format":"epoch_second"}}}],"must_not":[]}}}},"size":0,"aggs":{"2":{"date_histogram":{"field":"@timestamp","interval":"15m","time_zone":"Asia/Kolkata","min_doc_count":1,"extended_bounds":{"min": 0,"max": 500}}}}}' |  jq -r '.aggregations."2".buckets[]|.key_as_string+" "+ (.doc_count|tostring)' | column -t > $2
 }
 
 #Executing content search query
