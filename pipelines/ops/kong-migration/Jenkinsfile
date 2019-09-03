@@ -34,6 +34,7 @@ node() {
                 values.put('ansiblePlaybook', ansiblePlaybook)
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 ansible_playbook_run(values)
+                currentBuild.result = 'SUCCESS'
                 archiveArtifacts 'metadata.json'
                 currentBuild.description = "Image: ${values.image_tag}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
             }
@@ -42,6 +43,10 @@ node() {
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }
 
