@@ -1,7 +1,14 @@
 - hosts: log-es-2
   vars_files:
     - ['{{inventory_dir}}/secrets.yml']
+  become: yes    
+  roles:
+    - azure-cli
   tasks:
+    - name: install jq
+      apt:
+       name: apt
+       state: present
     - name: Copy the elasticsearch api query Shell script
       copy: 
        src: static-files/api_count_query.sh
@@ -11,4 +18,3 @@
       command: ./api_count_query.sh "{{ mail_server_username }}" "{{ core_vault_mail_server_password }}" "{{ analytics_report_container_name }}" "{{ analytics_report_azure_account_name }}" "{{ core_vault_analytics_report_azure_account_key }}"
       args:
         chdir: /tmp
-      become: yes
