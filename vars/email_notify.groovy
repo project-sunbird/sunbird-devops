@@ -1,4 +1,4 @@
-def call(String buildStatus) {
+def call() {
     try {
         ansiColor('xterm') {
             String ANSI_GREEN = "\u001B[32m"
@@ -8,15 +8,6 @@ def call(String buildStatus) {
             String ANSI_YELLOW = "\u001B[33m"
 
             stage('email_notify') {
-
-                if(buildStatus == "FAILURE"){
-                    slack_status = 'danger'
-                    build_status = "Failed"
-                }
-                else {
-                    slack_status = 'good'
-                    build_status = "Succeded"
-                }
                 envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
                 email_group_name = envDir.toUpperCase() + "_EMAIL_GROUP"
                 try {
