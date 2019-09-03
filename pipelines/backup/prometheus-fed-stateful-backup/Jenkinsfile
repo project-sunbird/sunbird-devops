@@ -30,23 +30,16 @@ node() {
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 println values
                 ansible_playbook_run(values)
-
+                currentBuild.result = 'SUCCESS'
             }
         }
-        currentBuild.result = 'SUCCESS'
     }
     catch (err) {
-        currentBuild.result = 'FAILURE'
-        slackSend (
-            channel: "${env.NOTIFY_SLACK_CHANNEL}",
-            color: 'danger',
-            message: "Build Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
-        )
+        currentBuild.result = "FAILURE"
         throw err
-    } finally {
-        step([$class: 'Mailer',
-            notifyEveryUnstableBuild: true,
-            recipients: "${env.NOTIFY_EMAIL_ADDRESS}",
-            sendToIndividuals: true])
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }
