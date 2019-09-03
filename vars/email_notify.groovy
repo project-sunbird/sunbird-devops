@@ -34,7 +34,7 @@ def call(String buildStatus) {
                 if(env.GLOBAL_EMAIL_GROUP != null)
                     step([$class: 'Mailer',
                           notifyEveryUnstableBuild: true,
-                          recipients: email_group,
+                          recipients: "${env.GLOBAL_EMAIL_GROUP}",
                           sendToIndividuals: true])
                 else
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find global email group variable. Skipping email notification.." + ANSI_NORMAL
