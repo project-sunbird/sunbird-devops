@@ -19,25 +19,8 @@ node() {
                     currentWs = sh(returnStdout: true, script: 'pwd').trim()
                     artifact = values.artifact_name + ":" + values.artifact_version
                     values.put('currentWs', currentWs)
-                    if (params.artifact_source == "ArtifactRepo") {
-                        println(ANSI_BOLD + ANSI_YELLOW + '''\
-                        Option chosen is ArtifactRepo, ignoring any previously copied artifacts and new artifacts will be downloaded from remote source
-                        '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
-                        ansiblePlaybook = "${currentWs}/ansible/artifacts-download.yml"
-                        ansibleExtraArgs = """\
-                               --extra-vars "artifact=${artifact}
-                               artifact_path=${currentWs}/${artifact}"
-                               --vault-password-file /var/lib/jenkins/secrets/vault-pass
-                               """.stripIndent().replace("\n", " ")
-                        values.put('ansiblePlaybook', ansiblePlaybook)
-                        values.put('ansibleExtraArgs', ansibleExtraArgs)
-                        ansible_playbook_run(values)
-                    }
-                    else{
-                        println(ANSI_BOLD + ANSI_YELLOW + '''\
-                    Option chosen is JenkinsJob, using the artifacts copied 
-                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
-                    }
+                    values.put('artifact', artifact)
+                    artifact_download(values)
                 }
                 stage('deploy artifact'){
                     player_version_number = values.artifact_version
@@ -51,13 +34,13 @@ node() {
                     """   
 
                     ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
-                      ansibleExtraArgs = "--tags preview --extra-vars \"cdn_folder_name=preview folder_name=v3/preview currentws=${currentWs} source_file_name=${currentWs}/ansible/content-player-${player_version_number}.zip player_version_number=${player_version_number} source_name=${currentWs}/ansible/preview\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                    ansibleExtraArgs = "--tags preview --extra-vars \"cdn_folder_name=preview folder_name=v3/preview currentws=${currentWs} source_file_name=${currentWs}/ansible/content-player-${player_version_number}.zip player_version_number=${player_version_number} source_name=${currentWs}/ansible/preview\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
 
-                      values.put('ansiblePlaybook', ansiblePlaybook)
-                      values.put('ansibleExtraArgs', ansibleExtraArgs)
-                      println values
-                      ansible_playbook_run(values)  
-                   
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+                    currentBuild.result = 'SUCCESS'
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "Artifact: ${values.artifact_version}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
@@ -65,6 +48,11 @@ node() {
             }
         }
     catch (err) {
+        currentBuild.result = 'FAILURE'
         throw err
+    }    
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }

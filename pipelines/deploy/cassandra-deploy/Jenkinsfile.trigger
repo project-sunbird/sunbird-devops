@@ -23,7 +23,6 @@ node() {
                 stage('deploy artifact') {
                     sh """
                        mv cassandra-trigger-*.jar ansible/static-files/ 
-
                        """
                     ansiblePlaybook = "${currentWs}/ansible/cassandra-trigger-deploy.yml"
                     ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
@@ -31,6 +30,7 @@ node() {
                     values.put('ansibleExtraArgs', ansibleExtraArgs)
                     println values
                     ansible_playbook_run(values)
+                    currentBuild.result = 'SUCCESS'
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "Artifact: ${values.artifact_version}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
@@ -40,5 +40,9 @@ node() {
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }

@@ -20,25 +20,8 @@ node() {
                     artifact = values.artifact_name + ":" + values.artifact_version
                     commit_hash = values.artifact_version.split('_')[1]
                     values.put('currentWs', currentWs)
-                    if (params.artifact_source == "ArtifactRepo") {
-                        println(ANSI_BOLD + ANSI_YELLOW + '''\
-                        Option chosen is ArtifactRepo, ignoring any previously copied artifacts and new artifacts will be downloaded from remote source
-                        '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
-                        ansiblePlaybook = "${currentWs}/ansible/artifacts-download.yml"
-                        ansibleExtraArgs = """\
-                               --extra-vars "artifact=${artifact}
-                               artifact_path=${currentWs}/${artifact}"
-                               --vault-password-file /var/lib/jenkins/secrets/vault-pass
-                               """.stripIndent().replace("\n", " ")
-                        values.put('ansiblePlaybook', ansiblePlaybook)
-                        values.put('ansibleExtraArgs', ansibleExtraArgs)
-                        ansible_playbook_run(values)
-                    }
-                    else{
-                        println(ANSI_BOLD + ANSI_YELLOW + '''\
-                    Option chosen is JenkinsJob, using the artifacts copied 
-                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
-                    }
+                    values.put('artifact', artifact)
+                    artifact_download(values)
                 }
                 stage('deploy artifact'){
                     sh """
@@ -52,14 +35,13 @@ node() {
                       sed -i -e 's/dispatcher:\"local\"/dispatcher:\"piwik\"/g' content-editor/scripts/*
                       mv content-editor ansible
                     """
-                      
-                      ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
-                      ansibleExtraArgs = "--tags content-editor --extra-vars \"folder_name=content-editor source_name=${currentWs}/ansible/content-editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
-                      values.put('ansiblePlaybook', ansiblePlaybook)
-                      values.put('ansibleExtraArgs', ansibleExtraArgs)
-                      println values
-                      ansible_playbook_run(values)
-                        
+                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                    ansibleExtraArgs = "--tags content-editor --extra-vars \"folder_name=content-editor source_name=${currentWs}/ansible/content-editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+
                     sh """                                                   
                       zip -r content-editor-artifact.zip ansible/content-editor
                       cd ansible/content-editor
@@ -71,27 +53,26 @@ node() {
                       gulp injectrenamedfiles
                       gulp package
                     """
-                        
-                      ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
-                      ansibleExtraArgs = "--tags editor --extra-vars \"folder_name=artefacts/editor source_name=${currentWs}/ansible/content-editor/dist/editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
-                      values.put('ansiblePlaybook', ansiblePlaybook)
-                      values.put('ansibleExtraArgs', ansibleExtraArgs)
-                      println values
-                      ansible_playbook_run(values)  
                       
-                      ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
-                      ansibleExtraArgs = "--tags core-plugins --extra-vars \"folder_name=artefacts/coreplugins source_name=${currentWs}/ansible/content-editor/dist/coreplugins\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
-                      values.put('ansiblePlaybook', ansiblePlaybook)
-                      values.put('ansibleExtraArgs', ansibleExtraArgs)
-                      println values
-                      ansible_playbook_run(values)
-                        
+                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                    ansibleExtraArgs = "--tags editor --extra-vars \"folder_name=artefacts/editor source_name=${currentWs}/ansible/content-editor/dist/editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+
+                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                    ansibleExtraArgs = "--tags core-plugins --extra-vars \"folder_name=artefacts/coreplugins source_name=${currentWs}/ansible/content-editor/dist/coreplugins\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+                    currentBuild.result = 'SUCCESS'
                     sh """  
                       rm -rf node_modules
                       cd ..
                       zip -r content-editor.zip ${currentWs}/ansible/content-editor
                     """
-                        
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "Artifact: ${values.artifact_version}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
@@ -99,6 +80,11 @@ node() {
             }
         }
     catch (err) {
+        currentBuild.result = 'FAILURE'
         throw err
+    }    
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }
