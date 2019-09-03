@@ -1,9 +1,14 @@
-- hosts: log-es-1
+- hosts: log-es-2
   vars_files:
     - ['{{inventory_dir}}/secrets.yml']
-  tasks: 
+  tasks:
+    - name: Copy the elasticsearch api query Shell script
+      copy: 
+       src: static-files/api_count_query.sh
+       dest: /tmp/
+       mode: 0775
     - name: Running the shell script to get the data from elasticsearch
       command: ./api_count.sh "{{ mail_server_username }}" "{{ core_vault_mail_server_password }}" "{{ analytics_report_container_name }}" "{{ analytics_report_azure_account_name }}" "{{ core_vault_analytics_report_azure_account_key }}"
       args:
-        chdir: /home/ops
+        chdir: /tmp
       become: yes
