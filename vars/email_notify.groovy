@@ -32,13 +32,12 @@ def call(String buildStatus) {
                 }
 
                 if(env.GLOBAL_EMAIL_GROUP != null)
-                    email_group = evaluate "$email_group_name"
-                step([$class: 'Mailer',
-                      notifyEveryUnstableBuild: true,
-                      recipients: email_group,
-                      sendToIndividuals: true])
+                    step([$class: 'Mailer',
+                          notifyEveryUnstableBuild: true,
+                          recipients: email_group,
+                          sendToIndividuals: true])
                 else
-                println ANSI_YELLOW + ANSI_BOLD + "Could not find golbal email group variable. Skipping email notification.." + ANSI_NORMAL
+                    println ANSI_YELLOW + ANSI_BOLD + "Could not find global email group variable. Skipping email notification.." + ANSI_NORMAL
             }
         }
     }
