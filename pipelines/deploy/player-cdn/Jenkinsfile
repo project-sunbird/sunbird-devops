@@ -40,8 +40,9 @@ node() {
                         ansibleExtraArgs = "--extra-vars assets=$currentWs/sunbird-portal/src/app/dist --extra-vars cdn_file_path=$currentWs/sunbird-portal/src/app/dist/index_cdn.ejs --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                         values.put('ansibleExtraArgs', ansibleExtraArgs)
                         ansible_playbook_run(values)
+                        currentBuild.result = 'SUCCESS'
                         archiveArtifacts 'metadata.json, sunbird-portal/src/app/dist/index_cdn.ejs'
-                        currentBuild.description = "Image tag: " + values.image_tag + ", CDN Hash: " + commitHash
+                        currentBuild.description = "Image: " + values.image_tag + ", CDNHash: " + commitHash + "Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
                     }
                 }
             }
@@ -49,7 +50,7 @@ node() {
                 copyArtifacts projectName: params.absolute_job_path, flatten: true
                 archiveArtifacts 'metadata.json'
                 image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
-                currentBuild.description = "${image_tag}"
+                currentBuild.description = "ImageTag: ${image_tag}, PrivateRepo: ${params.private_branch}, BranchOrTag: ${params.branch_or_tag}"
             }
         }
     }
@@ -57,5 +58,9 @@ node() {
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }
