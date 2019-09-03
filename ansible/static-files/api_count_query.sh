@@ -60,7 +60,7 @@ query $registermobile $mobiledevice_registerfilename
 #sending an email with an attachment
 
 curl https://api.sendgrid.com/api/mail.send.json \
- -F to=sanjay.kumar@tarento.com -F to=kaliraja.ramasamy@tarento.com -F toname=sanjay -F toname=kaliraja -F subject="Data for Diksha api calls" -F subject="Data for Diksha api calls" \
+ "{{ api_report_mailing_list }}" -F subject="Data for Diksha api calls" \
  -F text="Data" --form-string html="<strong>Hi Team, PFA.</strong>" \
  -F from=reports@diksha.in -F api_user="$sguser" -F api_key="$sgpass" \
  -F files\[contentsearch.txt\]=@contentsearch-$date.txt -F files\[contentread.txt\]=@contentread-$date.txt -F files\[telemetry.txt]=@telemetry-$date.txt -F files\[registermobile.txt]=@registermobile-$date.txt
