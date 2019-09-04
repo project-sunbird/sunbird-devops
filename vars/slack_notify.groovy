@@ -8,7 +8,6 @@ def call(String buildStatus) {
             String ANSI_YELLOW = "\u001B[33m"
 
             stage('slack_notify') {
-
                 if(buildStatus == "FAILURE"){
                     slack_status = 'danger'
                     build_status = "Failed"
