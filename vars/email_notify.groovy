@@ -34,7 +34,7 @@ def call() {
 //                          notifyEveryUnstableBuild: true,
 //                          recipients: "${env.GLOBAL_EMAIL_GROUP}",
 //                          sendToIndividuals: true])
-                      emailext to: env.GLOBAL_EMAIL_GROUP
+                       emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS: Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: env.GLOBAL_EMAIL_GROUP
                 else
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find global email group variable. Skipping email notification.." + ANSI_NORMAL
             }
