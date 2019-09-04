@@ -30,10 +30,11 @@ def call() {
                 }
 
                 if(env.GLOBAL_EMAIL_GROUP != null)
-                    step([$class: 'Mailer',
-                          notifyEveryUnstableBuild: true,
-                          recipients: "${env.GLOBAL_EMAIL_GROUP}",
-                          sendToIndividuals: true])
+//                    step([$class: 'Mailer',
+//                          notifyEveryUnstableBuild: true,
+//                          recipients: "${env.GLOBAL_EMAIL_GROUP}",
+//                          sendToIndividuals: true])
+                      emailext to: env.GLOBAL_EMAIL_GROUP
                 else
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find global email group variable. Skipping email notification.." + ANSI_NORMAL
             }
