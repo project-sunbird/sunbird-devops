@@ -19,10 +19,7 @@ def call() {
                 email_group_name = envDir.toUpperCase() + "_EMAIL_GROUP"
                 try {
                     email_group = evaluate "$email_group_name"
-                    step([$class: 'Mailer',
-                          notifyEveryUnstableBuild: true,
-                          recipients: email_group,
-                          sendToIndividuals: true])
+                    emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS: Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: email_group
                     return
                 }
                 catch (MissingPropertyException ex) {
@@ -30,10 +27,6 @@ def call() {
                 }
 
                 if(env.GLOBAL_EMAIL_GROUP != null)
-//                    step([$class: 'Mailer',
-//                          notifyEveryUnstableBuild: true,
-//                          recipients: "${env.GLOBAL_EMAIL_GROUP}",
-//                          sendToIndividuals: true])
                        emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS: Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: env.GLOBAL_EMAIL_GROUP
                 else
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find global email group variable. Skipping email notification.." + ANSI_NORMAL
