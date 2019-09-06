@@ -19,7 +19,7 @@ def call(String buildStatus) {
                 envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
                 channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
                 try {
-                    slack_channel = evaluate '$channel_env_name'
+                    slack_channel = evaluate """$channel_env_name"""
                     slackSend (
                             channel: slack_channel,
                             color: slack_status,
