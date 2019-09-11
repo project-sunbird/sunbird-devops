@@ -68,10 +68,10 @@
                         </div>
                     </div>
                     <script type="text/javascript">
-                        var sessionTenant = sessionStorage.getItem("rootTenantLogo");
+                        var sessionTenant = localStorage.getItem("tenant");
                         
                         if(sessionTenant){
-                            var imgSrc = "${url.resourcesPath}/img/tenants/"+sessionTenant+".png";
+                            var imgSrc = "${url.resourcesPath}/img/"+sessionTenant+".png";
                         }else{
                             var imgSrc = "${url.resourcesPath}/img/appLogo.png";
                         }
