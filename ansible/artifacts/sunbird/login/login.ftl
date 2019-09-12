@@ -5,7 +5,7 @@
     <#elseif section = "header">
     <#elseif section = "form">
     <#if realm.password>
-    <div class="ui raised shadow container segment fullpage-background-image">
+    <div class="ui raised shadow container segment fullpage-background-image" id="loginbox">
     <#if realm.internationalizationEnabled>
                 <div id="kc-locale" class="${properties.kcLocaleClass!}">
                     <div id="kc-locale-wrapper" class="${properties.kcLocaleWrapperClass!}">
