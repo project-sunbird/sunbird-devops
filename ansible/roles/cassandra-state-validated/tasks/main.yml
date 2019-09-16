@@ -1,0 +1,24 @@
+- name: list the number of rows in sunbird keyspace before migration
+  shell: SELECT COUNT(*) FROM sunbird.user
+  register: countBefore
+
+- debug:
+    var: countBefore
+
+- name: Copy the jar
+  become: yes
+  copy:
+    src: "{{cassandra_jar_path}}/statevalidator-util-1.0-SNAPSHOT-jar-with-dependencies.jar"
+    dest: "{{cassandra_deploy_path}}"
+  run_once: true
+
+- name: Run the application
+  shell: java -jar statevalidator-util-1.0-SNAPSHOT-jar-with-dependencies.jar
+  run_once: true
+
+- name: list the number of rows in sunbird keyspace after migration
+  shell: SELECT COUNT(*) FROM sunbird.user
+  register: countAfter
+
+- debug:
+    var: countAfter
