@@ -3,8 +3,27 @@ function getQueryStringValue (key) {
 }
 
 window.onload = function(){
-
-	addVersionToURL();
+	var mergeaccountprocess = (new URLSearchParams(window.location.search)).get('mergeaccountprocess');
+	var version = (new URLSearchParams(window.location.search)).get('version');
+	var renderingType = 'queryParams';
+	if (!mergeaccountprocess) {
+		mergeaccountprocess = localStorage.getItem('mergeaccountprocess');
+		if (mergeaccountprocess === '1') {
+			if (!version) {
+				version = localStorage.getItem('version');
+			}
+			hideElement("mergeAccountMessage");
+			renderingType = 'local-storage';
+			var error_summary = document.getElementById('error-summary');
+			if (error_summary) {
+				var errorMessage = error_summary.innerHTML.valueOf();
+				error_summary.innerHTML = errorMessage + 'to merge';
+			}
+		}
+	} else {
+		localStorage.clear()
+	}
+	addVersionToURL(version);
 	var error_message = (new URLSearchParams(window.location.search)).get('error_message');
 	var success_message = (new URLSearchParams(window.location.search)).get('success_message');
 	var version = (new URLSearchParams(window.location.search)).get('version');
@@ -25,21 +44,49 @@ window.onload = function(){
 		forgotElement.className = forgotElement.className.replace("hide","");
 		forgotElement.href = forgotElement.href + '&version=' + version ;
 	}
+
+	if (mergeaccountprocess === '1') {
+		hideElement("kc-registration");
+		hideElement("stateButton");
+		hideElement("fgtKeycloakFlow");
+		// change sign in label with merge label
+		var signIn = document.getElementById("signIn");
+		if (signIn) {
+			signIn.innerText = 'Merge Account';
+			signIn.classList.add('fs-22');
+		}
+		// adding link to go back url
+		var goBackElement = document.getElementById("goBack");
+		if (goBackElement) {
+			goBackElement.className = goBackElement.className.replace("hide", "");
+		}
+		// if rendering type is local-storage get redirect url from localstorage else from query param
+		if (renderingType === 'local-storage') {
+			goBackElement.href = localStorage.getItem('redirectUrl');
+		} else {
+			goBackElement.href = (new URLSearchParams(window.location.search)).get('goBackUrl');
+			localStorage.setItem('mergeaccountprocess', mergeaccountprocess);
+			localStorage.setItem('version', version);
+			localStorage.setItem('redirectUrl', (new URLSearchParams(window.location.search)).get('goBackUrl'));
+		}
+		var mergeAccountMessage = document.getElementById("mergeAccountMessage");
+		if (mergeAccountMessage && renderingType === 'queryParams') {
+			mergeAccountMessage.className = mergeAccountMessage.className.replace("hide", "");
+		}
+	}
 }
-var storeLocation = function(){	
-	sessionStorage.setItem('url', window.location.href);	
+var storeLocation = function(){
+	sessionStorage.setItem('url', window.location.href);
 }
-var addVersionToURL = function (){
-	var version = getQueryStringValue("version");
-	
+var addVersionToURL = function (version){
+
 	if (version >= 1){
-		
 		var selfSingUp = document.getElementById("selfSingUp");
-		
+
 		if(selfSingUp) {
 			selfSingUp.className = selfSingUp.className.replace(/\bhide\b/g, "");
 		}
-		
+
 		var stateButton = document.getElementById("stateButton");
 
 		if ((version >= 2) && stateButton) {
@@ -70,6 +117,13 @@ var inputBoxFocusOut = function(currentElement){
 		addClass(placeholderElement,"hide");
 	}
 };
+
+function hideElement(elementId) {
+	var elementToHide = document.getElementById(elementId);
+	if (elementToHide) {
+		addClass(elementToHide, "hide");
+	}
+}
 
 function addClass(element,classname)
 {
@@ -127,7 +181,7 @@ var redirect  = (redirectUrlPath) => {
 		const updatedQuery = curUrlObj.search + '&error_callback=' + curUrlObj.href.split('?')[0];
 		const redirect_uriLocation = new URL(redirect_uri);
 		sessionStorage.setItem('url', window.location.href);
-		
+
 		if(client_id === 'android'){
             window.location.href = curUrlObj.protocol + '//' + curUrlObj.host + redirectUrlPath + updatedQuery;
 		}
@@ -191,7 +245,7 @@ var handleSsoEvent  = () => {
     redirectToLib();
   }
 };
-var handleGoogleAuthEvent = () => { 
+var handleGoogleAuthEvent = () => {
   const googleAuthUrl = '/google/auth';
   const curUrlObj = window.location;
   let redirect_uri = (new URLSearchParams(curUrlObj.search)).get('redirect_uri');
