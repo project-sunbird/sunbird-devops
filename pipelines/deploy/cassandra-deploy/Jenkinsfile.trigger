@@ -17,29 +17,12 @@ node() {
                     currentWs = sh(returnStdout: true, script: 'pwd').trim()
                     artifact = values.artifact_name + ":" + values.artifact_version
                     values.put('currentWs', currentWs)
-                    if (params.artifact_source == "ArtifactRepo") {
-                        println(ANSI_BOLD + ANSI_YELLOW + '''\
-                    Option chosen is ArtifactRepo, ignoring any previously copied artifacts and new artifacts will be downloaded from remote source
-                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
-                        ansiblePlaybook = "${currentWs}/ansible/artifacts-download.yml"
-                        ansibleExtraArgs = """\
-                               --extra-vars "artifact=${artifact}
-                               artifact_path=${currentWs}/${artifact}"
-                               --vault-password-file /var/lib/jenkins/secrets/vault-pass
-                               """.stripIndent().replace("\n", " ")
-                        values.put('ansiblePlaybook', ansiblePlaybook)
-                        values.put('ansibleExtraArgs', ansibleExtraArgs)
-                        ansible_playbook_run(values)
-                    } else {
-                        println(ANSI_BOLD + ANSI_YELLOW + '''\
-                    Option chosen is JenkinsJob, using the artifacts copied
-                    '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
-                    }
+                    values.put('artifact', artifact)
+                    artifact_download(values)
                 }
                 stage('deploy artifact') {
                     sh """
                        mv cassandra-trigger-*.jar ansible/static-files/ 
-
                        """
                     ansiblePlaybook = "${currentWs}/ansible/cassandra-trigger-deploy.yml"
                     ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
@@ -47,14 +30,19 @@ node() {
                     values.put('ansibleExtraArgs', ansibleExtraArgs)
                     println values
                     ansible_playbook_run(values)
+                    currentBuild.result = 'SUCCESS'
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
-                    currentBuild.description = "${values.artifact_version}"
+                    currentBuild.description = "Artifact: ${values.artifact_version}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
                 }
             }
     }
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }

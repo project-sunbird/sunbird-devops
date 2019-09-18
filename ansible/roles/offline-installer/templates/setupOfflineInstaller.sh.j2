@@ -8,13 +8,20 @@ n 8.16
 cd src
 npm install
 npm run dist
-npm run dist-win64
-npm run dist-linux
-# npm run dist-win32  ## For win 32 bit installation
-# Copy the build artifacts to specific folder
-#cp src/dist/DIKSHA\ Setup\ 1.0.0.exe offline_artifacts/{{build_number}}/
-#cp src/dist/DIKSHA_1.0.0_amd64.deb offline_artifacts/{{build_number}}/
 
-cp 'dist/1.0.0/win/x64/DIKSHA Setup 1.0.0.exe' ../offline_artifacts/{{build_number}}/
-cp dist/1.0.0/linux/x64/DIKSHA_1.0.0_amd64.deb ../offline_artifacts/{{build_number}}/
-#cp 'src/dist/1.0.0/win/x32/DIKSHA Setup 1.0.0.exe' 'offline_artifacts/{{build_number}}//DIKSHA Setup 1.0.0.32.exe'
+if [ "{{offline_installer_type}}" == "windows32" ];
+then
+	npm run dist-win32
+        ls -lR
+	cp 'dist/1.0.0/win/ia32/DIKSHA Setup 1.0.0.exe' ../offline_artifacts/{{build_number}}/
+elif [ "{{offline_installer_type}}" == "windows64" ];
+then
+	npm run dist-win64
+        ls -lR
+        cp 'dist/1.0.0/win/x64/DIKSHA Setup 1.0.0.exe' ../offline_artifacts/{{build_number}}/
+elif [ "{{offline_installer_type}}" == "debian" ];
+then
+	npm run dist-linux
+        ls -lR
+        cp dist/1.0.0/linux/x64/DIKSHA_1.0.0_amd64.deb ../offline_artifacts/{{build_number}}/
+fi
