@@ -14,6 +14,7 @@
                     <div id="signIn" class="signInHead mt-27">${msg("doSignIn")}</div>
                 </div>
                 <p id="mergeAccountMessage" class="hide mb-0 textCenter">${msg("mergeAccountMessage")}</p>
+                <p id="migrateAccountMessage" class="hide mb-0 textCenter">${msg("migrateAccountMessage")}</p>
                 <div class="formMsg mb-28 textCenter">
                 <#if message?has_content>
                     <div id="error-summary" class="ui text ${message.type}">
@@ -57,6 +58,7 @@
                             </label>
                         </div>
                         <input class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="off" />
+                    <span class="ui text error hide" id="inCorrectPasswordError">${msg("inCorrectPasswordError")}</span>
                     </div>
                     <div class="field">
                         <button id="login" class="mt-36 ui fluid button">${msg("doSignIn")}</button>

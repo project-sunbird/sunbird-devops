@@ -49,6 +49,7 @@ window.onload = function(){
 		hideElement("kc-registration");
 		hideElement("stateButton");
 		hideElement("fgtKeycloakFlow");
+		hideElement("fgtPortalFlow");
 		// change sign in label with merge label
 		var signIn = document.getElementById("signIn");
 		if (signIn) {
@@ -74,7 +75,89 @@ window.onload = function(){
 			mergeAccountMessage.className = mergeAccountMessage.className.replace("hide", "");
 		}
 	}
-}
+
+	var response_type = (new URLSearchParams(window.location.search)).get('response_type');
+	if ((new URLSearchParams(window.location.search)).get('automerge') !== '1' && response_type === 'code') {
+		localStorage.clear();
+	}
+	var autoMerge = getValue('automerge');
+	if (autoMerge === '1') {
+		decoratePage('autoMerge');
+		storeValueForMigration();
+	}
+};
+
+var storeValueForMigration = function () {
+	// storing values in localstorage for future references
+	localStorage.setItem('automerge', getValue('automerge'));
+	localStorage.setItem('goBackUrl', getValue('goBackUrl'));
+	localStorage.setItem('identifierValue', getValue('identifierValue'));
+};
+
+var getValue = function (valueId) {
+	var value = (new URLSearchParams(window.location.search)).get(valueId);
+	if (value) {
+		localStorage.setItem('renderingType', 'queryParams');
+		return value
+	} else {
+		value = localStorage.getItem(valueId);
+		if (value) {
+			localStorage.setItem('renderingType', 'localStorage');
+		}
+		return value
+	}
+};
+
+
+var decoratePage = function (pageType) {
+	if (pageType === 'autoMerge') {
+		var identifierValue = getValue('identifierValue');
+		var goBackUrl = getValue('goBackUrl');
+		var signIn = document.getElementById("signIn");
+		if (signIn) {
+			signIn.innerText = 'Merge Account';
+			signIn.classList.add('fs-22');
+		}
+		setElementValue('username', identifierValue);
+
+		var elementsToHide = ['kc-registration', 'stateButton', 'fgtKeycloakFlow', 'fgtPortalFlow',
+			'usernameLabel', 'usernameLabelPlaceholder', 'username'];
+
+		unHideElement('migrateAccountMessage');
+		unHideElement('goBack');
+		var goBackElement = document.getElementById("goBack");
+		if (goBackElement) {
+			goBackElement.href = goBackUrl;
+		}
+		if (localStorage.getItem('renderingType') === 'localStorage') {
+			unHideElement('selfSingUp');
+			var errorElement = document.getElementById('error-summary');
+			if (errorElement) {
+				if (errorElement.innerText === 'Invalid email ID/Mobile number or password. Please try again with valid credentials') {
+					unHideElement('inCorrectPasswordError');
+				}
+				elementsToHide.push('error-summary');
+				//hideElement('error-summary');
+			}
+		}
+		for (var i = 0; i < elementsToHide.length; i++) {
+			hideElement(elementsToHide[i]);
+		}
+	}
+};
+var unHideElement = function (elementId) {
+	var elementToUnHide = document.getElementById(elementId);
+	if (elementToUnHide) {
+		elementToUnHide.className = elementToUnHide.className.replace("hide", "");
+	}
+};
+var setElementValue = function (elementId, elementValue) {
+	var element = document.getElementById(elementId);
+	if (element) {
+		element.value = elementValue;
+	}
+};
+
 var storeLocation = function(){
 	sessionStorage.setItem('url', window.location.href);
 }
@@ -102,6 +185,10 @@ var makeDivUnclickable = function() {
 };
 
 var inputBoxFocusIn = function(currentElement){
+	var autoMerge = getValue('automerge');
+	if (autoMerge === '1') {
+		return;
+	}
 	if(currentElement.id !== 'totp'){
 		var placeholderElement = document.querySelector("label[id='"+currentElement.id+"LabelPlaceholder']");
 		var labelElement = document.querySelector("label[id='"+currentElement.id+"Label']");
@@ -109,7 +196,11 @@ var inputBoxFocusIn = function(currentElement){
 		addClass(labelElement,"hide");
 	}
 };
-var inputBoxFocusOut = function(currentElement){
+var inputBoxFocusOut = function (currentElement) {
+	var autoMerge = getValue('automerge');
+	if (autoMerge === '1') {
+		return;
+	}
 	if(currentElement.id !== 'totp'){
 		var placeholderElement = document.querySelector("label[id='"+currentElement.id+"LabelPlaceholder']");
 		var labelElement = document.querySelector("label[id='"+currentElement.id+"Label']");
