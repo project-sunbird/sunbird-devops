@@ -26,7 +26,7 @@ window.onload = function(){
 	addVersionToURL(version);
 	var error_message = (new URLSearchParams(window.location.search)).get('error_message');
 	var success_message = (new URLSearchParams(window.location.search)).get('success_message');
-
+	var version = (new URLSearchParams(window.location.search)).get('version');
 	if(error_message){
 		var error_msg = document.getElementById('error-msg');
 		error_msg.className = error_msg.className.replace("hide","");
@@ -81,7 +81,6 @@ var storeLocation = function(){
 var addVersionToURL = function (version){
 
 	if (version >= 1){
-
 		var selfSingUp = document.getElementById("selfSingUp");
 
 		if(selfSingUp) {

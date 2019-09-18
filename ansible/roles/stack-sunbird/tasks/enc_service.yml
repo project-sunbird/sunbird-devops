@@ -4,4 +4,4 @@
   ignore_errors: yes
 
 - name: Deploy enc service
-  shell: "docker service create --with-registry-auth --replicas {{ enc_replicas }} -p 9010:8013  --name enc-service --hostname enc-service --reserve-memory {{ enc_reservation_memory }} --limit-memory {{ enc_limit_memory }} --limit-cpu {{ enc_limit_cpu }} --reserve-cpu {{ enc_reservation_cpu }} --network application_default --env-file /home/deployer/env/sunbird_enc-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"
+  shell: "docker service create --with-registry-auth --replicas {{ enc_replicas }} -p 9010:8013  --name enc-service --hostname enc-service --limit-memory {{ enc_limit_memory }} --limit-cpu {{ enc_limit_cpu }} --health-cmd 'wget -qO- enc-service:8013/service/health || exit 1' --health-timeout 3s --health-retries 3  --network application_default --env-file /home/deployer/env/sunbird_enc-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"
