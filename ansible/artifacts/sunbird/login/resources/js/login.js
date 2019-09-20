@@ -92,6 +92,8 @@ var storeValueForMigration = function () {
 	localStorage.setItem('automerge', getValue('automerge'));
 	localStorage.setItem('goBackUrl', getValue('goBackUrl'));
 	localStorage.setItem('identifierValue', getValue('identifierValue'));
+	localStorage.setItem('identifierType', getValue('identifierType'));
+	localStorage.setItem('userId', getValue('userId'));
 };
 
 var getValue = function (valueId) {
@@ -135,9 +137,9 @@ var decoratePage = function (pageType) {
 			if (errorElement) {
 				if (errorElement.innerText === 'Invalid email ID/Mobile number or password. Please try again with valid credentials') {
 					unHideElement('inCorrectPasswordError');
+					handlePasswordFailure();
 				}
 				elementsToHide.push('error-summary');
-				//hideElement('error-summary');
 			}
 		}
 		for (var i = 0; i < elementsToHide.length; i++) {
@@ -145,6 +147,18 @@ var decoratePage = function (pageType) {
 		}
 	}
 };
+
+var handlePasswordFailure = function () {
+	var passwordFailCount = Number(localStorage.getItem('passwordFailCount') || 0);
+	passwordFailCount = passwordFailCount + 1;
+	localStorage.setItem('passwordFailCount', passwordFailCount);
+	if (passwordFailCount >= 2) {
+		const url = '/sign-in/sso/auth?status=error' + '&identifierType=' + getValue('identifierType');
+		const query = '&userId=' + getValue('userId') + '&identifierValue=' + getValue('identifierValue');
+		window.location.href = window.location.protocol + '//' + window.location.host + url + query;
+	}
+};
+
 var unHideElement = function (elementId) {
 	var elementToUnHide = document.getElementById(elementId);
 	if (elementToUnHide) {
