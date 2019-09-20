@@ -4,30 +4,30 @@ groups:
   - record: elasticsearch_filesystem_data_used_percent
     expr: 100 * (elasticsearch_filesystem_data_size_bytes - elasticsearch_filesystem_data_free_bytes) / elasticsearch_filesystem_data_size_bytes
   - alert: elasticsearch_filesystem_data_free_percent_WARNING
-    expr: 100 - elasticsearch_filesystem_data_used_percent >= {{ elasticsearch_filesystem_data_remaining_threshold_Warning }}
+    expr: 100 - elasticsearch_filesystem_data_used_percent <= {{ elasticsearch_filesystem_data_remaining_threshold_Warning }} AND 100 - elasticsearch_filesystem_data_used_percent > {{ elasticsearch_filesystem_data_remaining_threshold_Critical }}
     for: 1m
     labels:
       severity: WARNING
     annotations:
-      description: Elasticsearch Disk consumption {% raw %}{{$value}}{% endraw %} .
+      description: Elasticsearch Free space on Disk {% raw %}{{$value}}{% endraw %} .
       summary: Elasticsearch has less free disk space. {% raw %}{{$value}}{% endraw %} of disk space is consumed.
 
   - alert: elasticsearch_filesystem_data_free_percent_CRITICAL
-    expr: 100 - elasticsearch_filesystem_data_used_percent >= {{ elasticsearch_filesystem_data_remaining_threshold_Critical }}
+    expr: 100 - elasticsearch_filesystem_data_used_percent <= {{ elasticsearch_filesystem_data_remaining_threshold_Critical }} AND     expr: 100 - elasticsearch_filesystem_data_used_percent <= {{ elasticsearch_filesystem_data_remaining_threshold_Warning }} AND 100 - elasticsearch_filesystem_data_used_percent > {{ elasticsearch_filesystem_data_remaining_threshold_Fatal }}
     for: 1m
     labels:
       severity: CRITICAL
     annotations:
-      description: Elasticsearch Disk consumption {% raw %}{{$value}}{% endraw %} .
+      description: Elasticsearch Free space on Disk {% raw %}{{$value}}{% endraw %} .
       summary: Elasticsearch has less free disk space. {% raw %}{{$value}}{% endraw %} of disk space is consumed.
 
   - alert: elasticsearch_filesystem_data_free_percent_FATAL
-    expr: 100 - elasticsearch_filesystem_data_used_percent >= {{ elasticsearch_filesystem_data_remaining_threshold_Fatal }}
+    expr: 100 - elasticsearch_filesystem_data_used_percent <= {{ elasticsearch_filesystem_data_remaining_threshold_Fatal }}
     for: 1m
     labels:
       severity: FATAL
     annotations:
-      description: Elasticsearch Disk consumption {% raw %}{{$value}}{% endraw %} .
+      description: Elasticsearch Free space on Disk {% raw %}{{$value}}{% endraw %} .
       summary: Elasticsearch has less free disk space. {% raw %}{{$value}}{% endraw %} of disk space is consumed.
 
   - alert: elasticsearch_too_few_nodes_running_CRITICAL
