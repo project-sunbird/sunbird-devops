@@ -60,7 +60,9 @@ window.onload = function(){
 	}
 	if(!version && showForgotPortal >= 4){
 		var forgotElement = document.getElementById("fgtPortalFlow");
-		forgotElement.className = forgotElement.className.replace("hide","");
+		if (forgotElement) {
+			forgotElement.className = forgotElement.className.replace("hide","");
+		}
 	}
 
 	if (mergeaccountprocess === '1') {
