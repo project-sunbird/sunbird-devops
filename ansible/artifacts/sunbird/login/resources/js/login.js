@@ -60,6 +60,7 @@ window.onload = function(){
 	}
 	if(!version && showForgotPortal >= 4){
 		var forgotElement = document.getElementById("fgtPortalFlow");
+		hideElement("fgtKeycloakFlow");
 		if (forgotElement) {
 			forgotElement.className = forgotElement.className.replace("hide","");
 		}
