@@ -1,10 +1,24 @@
 function getQueryStringValue (key) {
   return decodeURIComponent(window.location.search.replace(new RegExp("^(?:.*[&\\?]" + encodeURIComponent(key).replace(/[\.\+\*]/g, "\\$&") + "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
 }
-
+var getValueFromSession = function (valueId) {
+    var value = (new URLSearchParams(window.location.search)).get(valueId);
+    if (value) {
+        sessionStorage.setItem(valueId, value);
+        sessionStorage.setItem('renderingType', 'queryParams');
+        return value
+    } else {
+        value = sessionStorage.getItem(valueId);
+        if (value) {
+            sessionStorage.setItem('renderingType', 'sessionStorage');
+        }
+        return value
+    }
+};
 window.onload = function(){
 	var mergeaccountprocess = (new URLSearchParams(window.location.search)).get('mergeaccountprocess');
 	var version = (new URLSearchParams(window.location.search)).get('version');
+	var showForgotPortal = getValueFromSession(version);
 	var renderingType = 'queryParams';
 	if (!mergeaccountprocess) {
 		mergeaccountprocess = localStorage.getItem('mergeaccountprocess');
@@ -43,6 +57,13 @@ window.onload = function(){
 		var forgotElement = document.getElementById("fgtKeycloakFlow");
 		forgotElement.className = forgotElement.className.replace("hide","");
 		forgotElement.href = forgotElement.href + '&version=' + version ;
+	}
+	if(!version && showForgotPortal >= 4){
+		var forgotElement = document.getElementById("fgtPortalFlow");
+		hideElement("fgtKeycloakFlow");
+		if (forgotElement) {
+			forgotElement.className = forgotElement.className.replace("hide","");
+		}
 	}
 
 	if (mergeaccountprocess === '1') {
