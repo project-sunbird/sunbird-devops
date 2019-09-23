@@ -1,5 +1,5 @@
 ---
-- name: Remove stack file 
+- name: Remove stack file
   file: path=/home/deployer/stack/stack_{{service_name}}.yml state=absent
 
 - name: Save stack file
@@ -7,12 +7,11 @@
 
 - name: Remove cdn config file
   file: path=/home/deployer/config/index_cdn.ejs state=absent
-  when: cdn_file_path is none
   ignore_errors: true
 
-#  - name: remove player stack
-#  shell: "docker stack rm player"
-#  become: yes
+- name: remove player stack
+  shell: "docker stack rm player"
+  become: yes
 
 - name: Remove the existing CDN config
   shell: docker config rm index_cdn.ejs
@@ -33,4 +32,18 @@
 
 - name: Deploy Player with updated player config
   shell: docker service update --config-add source=index_cdn.ejs,target=/home/sunbird/app_dist/dist/index_cdn.ejs player_player
-  when: sunbird_portal_cdn_url is not none and cdn_file_path is not none 
+  when: sunbird_portal_cdn_url is not none and cdn_file_path is not none
+
+- name: sleep for 40 seconds for portal docker image to be up and running
+  pause:
+    seconds: 40
+
+- name: Getting the list of proxy services host details
+  shell: "getent hosts $(docker service ps proxy_proxy | grep Runn | awk '{print $4}') | cut -d \" \" -f1 | grep -v f "
+  register: proxy_details
+
+- name: reload proxy containers configurations
+  shell: "docker ps | grep proxy_proxy | awk '{print $1}' | xargs -I % docker exec % nginx -s reload;"
+  delegate_to: "{{item}}"
+  with_items: "{{(proxy_details.stdout_lines)|list}}"
+  register: proxy_out
