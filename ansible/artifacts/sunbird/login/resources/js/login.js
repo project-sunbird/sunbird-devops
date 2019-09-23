@@ -18,7 +18,7 @@ var getValueFromSession = function (valueId) {
 window.onload = function(){
 	var mergeaccountprocess = (new URLSearchParams(window.location.search)).get('mergeaccountprocess');
 	var version = (new URLSearchParams(window.location.search)).get('version');
-	var showForgotPortal = getValueFromSession(version);
+	var showForgotPortal = getValueFromSession("version");
 	var renderingType = 'queryParams';
 	if (!mergeaccountprocess) {
 		mergeaccountprocess = localStorage.getItem('mergeaccountprocess');
