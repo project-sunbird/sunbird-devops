@@ -1,14 +1,14 @@
-- name: Copy the jar
-  become: yes
-  copy:
-    src: "{{cassandra_jar_path}}/statevalidator-util-1.0-SNAPSHOT-jar-with-dependencies.jar"
-    dest: "{{cassandra_deploy_path}}"
-  run_once: true
-
-- name: Run the application
-  shell: java -jar statevalidator-util-1.0-SNAPSHOT-jar-with-dependencies.jar
-  run_once: true
-
+#- name: Copy the jar
+#  become: yes
+#  copy:
+#    src: "{{cassandra_jar_path}}/statevalidator-util-1.0-SNAPSHOT-jar-with-dependencies.jar"
+#    dest: "{{cassandra_deploy_path}}"
+#  run_once: true
+#
+#- name: Run the application
+#  shell: java -jar statevalidator-util-1.0-SNAPSHOT-jar-with-dependencies.jar
+#  run_once: true
+#
 - name: cloning the sunbird-utils repo
   git:
     repo: 'https://github.com/project-sunbird/sunbird-utils.git'
@@ -21,14 +21,6 @@
     src: /tmp/sunbird-utils/cassandra-migration-etl/common/UserSyncBin.zip
     dest: /tmp/sunbird-utils/cassandra-migration-etl/common/
     remote_src: yes
-
-#- name: change ownership
-#  file:
-#    path: /tmp/sunbird-utils
-#    owner: deployer
-#    group: deployer
-#    mode: '0644'
-#    recurse: yes
 
 - name: run the script to synch es data
   shell: bash UserSync_run.sh --context_param sunbird_cassandra_server="{{sunbird_cassandra_server}}" --context_param sunbird_cassandra_port="{{sunbird_cassandra_port}}" --context_param sunbird_cassandra_username="{{sunbird_cassandra_username}}" --context_param sunbird_cassandra_password="{{sunbird_cassandra_password}}" --context_param sunbird_sync_api_endpoint="{{sunbird_sync_api_endpoint}}" --context_param sunbird_sync_api_key="{{sunbird_sync_api_key}}" --context_param sunbird_sync_block_size="{{sunbird_sync_block_size}}" --context_param sunbird_sync_sleep_time="{{sunbird_sync_sleep_time}}" --context_param sunbird_cassandra_table="user" --context_param sunbird_sync_object_type="user"
