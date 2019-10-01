@@ -23,15 +23,17 @@ node() {
                 stage('deploy artifact') {
                     sh """
                        unzip ${artifact}
+                       mkdir -p ${currentWs}/artifactsForSync
                     """
                     ansiblePlaybook = "${currentWs}/ansible/cassandra-state-validated-util.yml"
-                    ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                    ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass -e artifactFolder=\"${currentWs}/artifactsForSync\" -v"
                     values.put('ansiblePlaybook', ansiblePlaybook)
                     values.put('ansibleExtraArgs', ansibleExtraArgs)
                     println values
                     ansible_playbook_run(values)
                     currentBuild.result = 'SUCCESS'
                     archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: "artifactsForSync/*", fingerprint: true, onlyIfSuccessful: true
                     archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
                     currentBuild.description = "Artifact: ${values.artifact_version}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
                 }
