@@ -23,9 +23,10 @@ node() {
                 stage('deploy artifact') {
                     sh """
                        unzip ${artifact}
+                       mkdir -p ${currentWs}/artifactsForSync
                     """
                     ansiblePlaybook = "${currentWs}/ansible/cassandra-state-validated-util.yml"
-                    ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                    ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass -e artifactFolder=\"${currentWs}/artifactsForSync\" -v"
                     values.put('ansiblePlaybook', ansiblePlaybook)
                     values.put('ansibleExtraArgs', ansibleExtraArgs)
                     println values
