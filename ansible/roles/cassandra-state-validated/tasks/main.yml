@@ -31,3 +31,30 @@
   shell: bash UserSync_run.sh --context_param sunbird_cassandra_server="{{sunbird_cassandra_server}}" --context_param sunbird_cassandra_port="{{sunbird_cassandra_port}}" --context_param sunbird_cassandra_username="{{sunbird_cassandra_username}}" --context_param sunbird_cassandra_password="{{sunbird_cassandra_password}}" --context_param sunbird_user_sync_api_endpoint="{{sunbird_sync_api_endpoint}}" --context_param sunbird_user_sync_api_key="{{sunbird_sync_api_key}}" --context_param sunbird_user_sync_block_size="{{sunbird_sync_block_size}}" --context_param sunbird_user_sync_sleep_time="{{sunbird_sync_sleep_time}}" --context_param sunbird_cassandra_table="user" --context_param sunbird_sync_object_type="user"
   args:
     chdir: /tmp/sunbird-utils/sunbird-cassandra-migration/cassandra-migration-etl/common/UserSync/
+
+- name: Fetching the cassandra jar files from server to jenkins
+  fetch:
+    src: "{{ item }}"
+    dest: "{{inventory_dir}}/"
+    flat: yes
+  with_items:
+    - /home/deployer/flagsdatavalue.log
+    - /home/deployer/preProcessedRecords.txt
+    - /tmp/sunbird-utils/sunbird-cassandra-migration/cassandra-migration-etl/common/UserSync/userIds.csv
+
+- name: Find the log files for the es sync job
+  find:
+    paths: "/tmp/sunbird-utils/sunbird-cassandra-migration/cassandra-migration-etl/common/UserSync/"
+    patterns: "{{item}}*.log"
+    recurse: yes
+  with_items:
+    - userSyncFailure
+    - userSyncSuccess
+  register: es_sync_log_files
+
+- name: Fetching the cassandra jar files from server to jenkins
+  fetch:
+    src: "{{ item  }}"
+    dest: "{{inventory_dir}}/"
+    flat: yes
+  with_items: "{{ es_sync_log_files | json_query('results[].files[].path')}}"
