@@ -60,14 +60,17 @@
     - name: Copying old files to new keycloak for migration
       become: yes
       become_user: keycloak
-      shell: "cp -rf {{ keycloak_dir }}_old/standalone/* {{ keycloak_dir }}_new/standalone/ "
-
-    - name: Running migration
-      become: yes
-      become_user: keycloak
-      shell: "bash {{ item }}"
+      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }}/* {{ keycloak_dir }}_new/{{ item }}/ "
       with_items:
-        - "bin/jboss-cli.sh --file=bin/migrate-standalone.cli"
-        - "bin/jboss-cli.sh --file=bin/migrate-standalone-ha.cli"
-      args:
-        chdir: "{{ keycloak_dir }}_new"
+        - standalone
+        - domain
+
+    # - name: Running migration
+    #   become: yes
+    #   become_user: keycloak
+    #   shell: "bash {{ item }}"
+    #   with_items:
+    #     - "bin/jboss-cli.sh --file=bin/migrate-standalone.cli"
+    #     - "bin/jboss-cli.sh --file=bin/migrate-standalone-ha.cli"
+    #   args:
+    #     chdir: "{{ keycloak_dir }}_new"
