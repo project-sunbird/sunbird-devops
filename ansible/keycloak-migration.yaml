@@ -29,14 +29,22 @@
         login_host: "{{ keycloak_postgres_host }}"
         port: 5432
 - hosts: keycloak
+  vars_files:
+    - "{{ inventory_dir }}/secrets.yml"
   tasks:
-    - name: Stopping keycloak
-      shell: /etc/init.d/keycloak stop || pkill keycloak
+    # - name: Stopping keycloak
+    #   shell: /etc/init.d/keycloak stop || pkill keycloak
     - name: Backing up old keycloak
       copy:
         dest: /opt/keycloak_bak
         src: /opt/keycloak
         force: yes
         remote_src: yes
-        follow: no
-        local_follow: yes
+    - name: downloading and unarchiving new keycloak 6.0.1
+      unarchive:
+        src: https://sunbirdpublic.blob.core.windows.net/installation/keycloak-6.0.1.tar.gz
+        dest: /opt/keycloak_new
+        copy: yes
+        creates: yes
+        owner: keycloak
+        group: keycloak
