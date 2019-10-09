@@ -34,19 +34,38 @@
   vars_files:
     - "{{ inventory_dir }}/secrets.yml"
   tasks:
-    - name: Stopping keycloak
-      shell: /etc/init.d/keycloak stop || pkill keycloak
+    # - name: Stopping keycloak
+    #   shell: /etc/init.d/keycloak stop || pkill keycloak
     - name: Backing up old keycloak
       copy:
-        dest: /opt/keycloak_bak
-        src: /opt/keycloak
+        dest: /opt/keycloak_old/
+        src: /opt/keycloak/
+        backup: no
         force: yes
+        directory_mode: yes
         remote_src: yes
+        follow: no
+        local_follow: yes
+        owner: keycloak
+        group: keycloak
+
     - name: downloading and unarchiving new keycloak 6.0.1
       unarchive:
         src: https://sunbirdpublic.blob.core.windows.net/installation/keycloak-6.0.1.tar.gz
         dest: /opt/keycloak_new
         copy: yes
         creates: yes
+        directory_mode: yes
         owner: keycloak
         group: keycloak
+    # - name: copying old modules to new keycloak
+    #   copy:
+    #     dest: "{{ item }}"
+    #     src: "{{ item }}"
+    #     force: yes
+    #     directory_mode: yes
+    #     remote_src: yes
+    #     follow: no
+    #     local_follow: yes
+    #     owner: keycloak
+    #     group: keycloak
