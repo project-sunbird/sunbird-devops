@@ -4,10 +4,11 @@
     - "{{ inventory_dir }}/secrets.yml"
   tasks:
     - name: taking backup of keycloak db
+      become: yes
       postgresql_db:
         name: "{{ keycloak_postgres_database }}"
         state: dump
-        target: keycloak.sql
+        target: /root/keycloak.sql
         login_user: "{{keycloak_postgres_user }}"
         login_password: "{{ keycloak_postgres_password }}"
         login_host: "{{ keycloak_postgres_host }}"
@@ -20,10 +21,11 @@
         login_password: "{{ keycloak_postgres_password }}"
         login_host: "{{ keycloak_postgres_host }}"
     - name: restoring keycloak old db to new db named  "{{ keycloak_postgres_database }}_601"
+      become: yes
       postgresql_db:
         name: "{{ keycloak_postgres_database }}_601"
         state: restore
-        target: keycloak.sql
+        target: /root/keycloak.sql
         login_user: "{{ keycloak_postgres_user }}"
         login_password: "{{ keycloak_postgres_password }}"
         login_host: "{{ keycloak_postgres_host }}"
@@ -32,8 +34,8 @@
   vars_files:
     - "{{ inventory_dir }}/secrets.yml"
   tasks:
-    # - name: Stopping keycloak
-    #   shell: /etc/init.d/keycloak stop || pkill keycloak
+    - name: Stopping keycloak
+      shell: /etc/init.d/keycloak stop || pkill keycloak
     - name: Backing up old keycloak
       copy:
         dest: /opt/keycloak_bak
