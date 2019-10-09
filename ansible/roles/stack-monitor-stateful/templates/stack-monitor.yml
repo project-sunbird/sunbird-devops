@@ -25,6 +25,8 @@ services:
               target: /etc/prometheus-rules/alertrules.logs.yml
             - source: stateful_alertrules.backups.yml
               target: /etc/prometheus-rules/alertrules.backups.yml
+            - source: stateful_alertrules.kafkalag.yml
+              target: /etc/prometheus-rules/alertrules.kafkalag.yml
 {% if groups['postgresql-master'] is defined %}
             - source: stateful_alertrules.postgresql.yml
               target: /etc/prometheus-rules/alertrules.postgresql.yml
@@ -236,6 +238,18 @@ services:
               target: /opt/app/jmx_httpserver.yml
         networks:
             - application_default
+    
+    kafka-lag-exporter:
+        image: danielqsj/kafka-exporter
+        command: "--kafka.server={{ groups['processing-cluster-kafka'] | join(':9092 --kafka.server=')}}:9092 --zookeeper.server={{ groups['processing-cluster-kafka'] | join(':2181 --zookeeper.server=')}}:2181 --use.consumelag.zookeeper"
+        networks:
+            - application_default
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ kafka_lag_exporter_reservation_memory |d('20M')}}"
+                limits:
+                    memory: "{{ kafka_lag_exporter_limit_memory |d('100M') }}"
 
 
 configs:
@@ -276,6 +290,8 @@ configs:
   stateful_data_backup_azure_blob_exporter_config.yml:
     external: true
   stateful_alertrules.process.yml:
+    external: true
+  stateful_alertrules.kafkalag.yml:
     external: true
 
   
