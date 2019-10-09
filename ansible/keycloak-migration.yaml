@@ -56,6 +56,18 @@
         remote_src: yes
         owner: keycloak
         group: keycloak
+        extra_opts: [--strip-components=1]
+    - name: Copying old files to new keycloak for migration
+      become: yes
+      become_user: keycloak
+      shell: "cp -rf {{ keycloak_dir }}_old/standalone/ {{ keycloak_dir }}_new/standalone/ "
+
+    - name: Running migration
+      becom: yes
+      become_user: keycloak
+      script: bin/jboss-cli.sh --file=bin/migrate-standalone.cli
+      chdir: "{{ keycloak_dir }}"
+
     # - name: copying old modules to new keycloak
     #   copy:
     #     dest: "{{ item }}"
