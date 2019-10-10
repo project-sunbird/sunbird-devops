@@ -57,6 +57,15 @@
         port: 8080
         state: stopped
         timeout: 30
+    - name: deleting keycloak new and old directory if present
+      become: yes
+      file:
+        path: "{{ item }}"
+        state: absent
+        force: yes
+      with_items:
+        - "{{ keycloak_dir }}_new"
+        - "{{ keycloak_dir }}_old"
     - name: Backing up old keycloak
       become: yes
       shell: "cp -rf {{ keycloak_dir }} {{ keycloak_dir }}_old && chown -R keycloak:keycloak {{ keycloak_dir }}_old"
