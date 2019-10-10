@@ -46,6 +46,11 @@
     - name: Stopping keycloak
       become: yes
       shell: /bin/bash -c "/etc/init.d/keycloak stop || pkill keycloak && true"
+    - name: Waiting for keycloak to exit
+      wait_for:
+        port: 8080
+        state: stopped
+        timeout: 30
     - name: Backing up old keycloak
       become: yes
       shell: "cp -rf {{ keycloak_dir }} {{ keycloak_dir }}_old && chown -R keycloak:keycloak {{ keycloak_dir }}_old"
