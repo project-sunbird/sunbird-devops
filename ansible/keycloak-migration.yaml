@@ -66,13 +66,16 @@
       become: yes
       unarchive:
         src: "{{keycloak_zip}}"
-        dest: "{{ keycloak_dir }}_new"
+        dest: "/opt/"
         owner: keycloak
         group: keycloak
+    - name: Renaming keycloak artifact
+      become: yes
+      shell: "mv /opt/sunbird_auth_1.0v {{ keycloak_dir }}_new ; chown -R keycloak:keycloak {{keycloak_dir}}_new"
     - name: Copying old files to new keycloak for migration
       become: yes
       become_user: keycloak
-      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }}/* {{ keycloak_dir }}_new/{{ item }}/ "
+      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }}/* {{ keycloak_dir }}_new/{{ item }}/"
       with_items:
         - standalone
         - domain
