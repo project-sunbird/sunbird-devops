@@ -39,33 +39,20 @@
     group: "{{ wildfly_group }}"
     force: true
 
-- name: Paste keycloak package on server
-  copy:
-    src: "{{ artifact_path }}"
-    dest: "/opt/"
+- name: Creating keycloak directory
+  become: true
+  file:
+    path: "{{ keycloak_home }}"
+    state: directory
     owner: "{{ wildfly_user }}"
     group: "{{ wildfly_group }}"
-    force: true
 
 - name: Extarct the folder
   unarchive:
-    src: "/opt/{{ artifact }}"
-    dest: /opt/
-    copy: false
+    src: "{{ artifact }}"
+    dest: "{{ keycloak_home }}"
     owner: "{{ wildfly_user }}"
     group: "{{ wildfly_group }}"
-
-- name: Move the folder name
-  command: mv sunbird_auth_{{ sunbird_auth_version }} keycloak
-  args:
-    chdir: /opt
-
-- name: Remove the opt/{{ artifact }}
-  become: true
-  file:
-    path: "/opt/{{ artifact }}"
-    state: absent
-    force: true
 
 - name: Create required directories
   file:
