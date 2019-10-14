@@ -55,7 +55,7 @@ lock_service_prefix: /lock
 otp_service_prefix: /otp
 sso_service_prefix: /sso
 cert_service_prefix: /cert
-cert_reg_service_prefix: /certreg
+cert_registry_service_prefix: /certreg
 
 # Service URLs
 content_service_url: "http://content-service:5000"
@@ -69,7 +69,7 @@ config_service_url: "http://config-service:8080"
 user_org_service_url: "http://user-org-service:9000"
 lms_service_url: "http://lms-service:9000"
 cert_service_url: "http://cert-service:9000"
-cert_reg_service_url: "http://cert-registry-service:9000"
+cert_registry_service_url: "http://cert-registry-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -4524,8 +4524,8 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: downloadRegCertificate
-    uris: "{{ cert_reg_service_prefix }}/v1/certs/download"
-    upstream_url: "{{ cert_reg_service_url }}/certs/v1/registry/download"
+    uris: "{{ cert_registry_service_prefix }}/v1/certs/download"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/download"
     strip_uri: true
     plugins:
     - name: jwt
@@ -4540,8 +4540,8 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: validateRegCertificate
-    uris: "{{ cert_reg_service_prefix }}/v1/certs/validate"
-    upstream_url: "{{ cert_reg_service_url }}/certs/v1/registry/validate"
+    uris: "{{ cert_registry_service_prefix }}/v1/certs/validate"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/validate"
     strip_uri: true
     plugins:
     - name: jwt
@@ -4556,24 +4556,8 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: addRegCertificate
-    uris: "{{ cert_reg_service_prefix }}/v1/certs/add"
-    upstream_url: "{{ cert_reg_service_url }}/certs/v1/registry/add"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: publicUser
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-  - name: generateRegCertificate
-    uris: "{{ cert_reg_service_prefix }}/v1/certs/generate"
-    upstream_url: "{{ cert_reg_service_url }}/certs/v1/registry/generate"
+    uris: "{{ cert_registry_service_prefix }}/v1/certs/add"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/add"
     strip_uri: true
     plugins:
     - name: jwt
