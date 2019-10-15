@@ -41,10 +41,17 @@ node() {
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 println values
                 ansible_playbook_run(values)
+                currentBuild.result = 'SUCCESS'
+                currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
             }
         }
     }
     catch (err) {
+        currentBuild.result = 'FAILURE'
         throw err
+    }    
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }

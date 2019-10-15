@@ -1,0 +1,63 @@
+- name: Copy the jar
+  become: yes
+  copy:
+    src: "{{cassandra_jar_path}}/statevalidator-util-1.0-SNAPSHOT-jar-with-dependencies.jar"
+    dest: "{{cassandra_deploy_path}}"
+  run_once: true
+
+- name: Run the application
+  shell: java -jar statevalidator-util-1.0-SNAPSHOT-jar-with-dependencies.jar
+  run_once: true
+
+- name: cloning the sunbird-utils repo
+  file:
+    state: absent
+    path: /tmp/sunbird-utils/
+
+- name: cloning the sunbird-utils repo
+  git:
+    repo: 'https://github.com/project-sunbird/sunbird-utils.git'
+    dest: /tmp/sunbird-utils
+    version: "master"
+    force: yes
+
+- name: Unarchive a file that is already on the remote machine
+  unarchive:
+    src: /tmp/sunbird-utils/sunbird-cassandra-migration/cassandra-migration-etl/common/UserSyncBin.zip
+    dest: /tmp/sunbird-utils/sunbird-cassandra-migration/cassandra-migration-etl/common/
+    remote_src: yes
+
+- name: run the script to synch es data
+  shell: bash UserSync_run.sh --context_param sunbird_cassandra_server="{{sunbird_cassandra_server}}" --context_param sunbird_cassandra_port="{{sunbird_cassandra_port}}" --context_param sunbird_cassandra_username="{{sunbird_cassandra_username}}" --context_param sunbird_cassandra_password="{{sunbird_cassandra_password}}" --context_param sunbird_user_sync_api_endpoint="{{sunbird_sync_api_endpoint}}" --context_param sunbird_user_sync_api_key="{{sunbird_sync_api_key}}" --context_param sunbird_user_sync_block_size="{{sunbird_sync_block_size}}" --context_param sunbird_user_sync_sleep_time="{{sunbird_sync_sleep_time}}" --context_param sunbird_cassandra_table="user" --context_param sunbird_sync_object_type="user"
+  args:
+    chdir: /tmp/sunbird-utils/sunbird-cassandra-migration/cassandra-migration-etl/common/UserSync/
+
+- name: Fetching the cassandra log files from server to jenkins
+  fetch:
+    src: "{{ item }}"
+    dest: "{{artifactFolder}}/"
+    flat: yes
+  with_items:
+    - /home/deployer/flagsdatavalue.log
+    - /home/deployer/preProcessedRecords.txt
+    - /tmp/sunbird-utils/sunbird-cassandra-migration/cassandra-migration-etl/common/UserSync/userIds.csv
+
+- name: Find the log files for the es sync job
+  find:
+    paths: "/tmp/sunbird-utils/sunbird-cassandra-migration/cassandra-migration-etl/common/UserSync/"
+    patterns: "{{item}}*.log"
+    recurse: yes
+  with_items:
+    - userSyncFailure
+    - userSyncSuccess
+  register: es_sync_log_files
+
+- debug:
+    var: es_sync_log_files
+
+- name: Fetching the es sync log files from server to jenkins
+  fetch:
+    src: "{{ item  }}"
+    dest: "{{artifactFolder}}/"
+    flat: yes
+  with_items: "{{ es_sync_log_files | json_query('results[].files[].path')}}"

@@ -20,7 +20,7 @@ node() {
                 jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                 currentWs = sh(returnStdout: true, script: 'pwd').trim()
                 ansiblePlaybook = "${currentWs}/ansible/reloadconfig.yml"
-		ansibleExtraArgs = " --tags ${params.service} --vault-password-file /var/lib/jenkins/secrets/vault-pass -vvv"
+                ansibleExtraArgs = " --tags ${params.service} --vault-password-file /var/lib/jenkins/secrets/vault-pass -vvv"
                 values.put('currentWs', currentWs)
                 values.put('env', envDir)
                 values.put('module', module)
@@ -29,10 +29,17 @@ node() {
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 println values
                 ansible_playbook_run(values)
+                currentBuild.result = 'SUCCESS'
+                currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
             }
         }
     }
     catch (err) {
+        currentBuild.result = 'FAILURE'
         throw err
+    }    
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }
