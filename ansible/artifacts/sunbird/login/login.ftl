@@ -11,11 +11,13 @@
             <div class="ui column height-fix">
                 <div class="ui header centered">
                     <img onerror="" alt="">
-                    <div class="signInHead mt-27">${msg("doSignIn")}</div>
+                    <div id="signIn" class="signInHead mt-27">${msg("doSignIn")}</div>
                 </div>
+                <p id="mergeAccountMessage" class="hide mb-0 textCenter">${msg("mergeAccountMessage")}</p>
+                <p id="migrateAccountMessage" class="hide mb-0 textCenter">${msg("migrateAccountMessage")}</p>
                 <div class="formMsg mb-28 textCenter">
                 <#if message?has_content>
-                    <div class="ui text ${message.type}">
+                    <div id="error-summary" class="ui text ${message.type}">
                         ${message.summary}
                     </div>
                     </#if>
@@ -56,6 +58,7 @@
                             </label>
                         </div>
                         <input class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="off" />
+                    <span class="ui text error hide" id="inCorrectPasswordError">${msg("inCorrectPasswordError")}</span>
                     </div>
                     <div class="field">
                         <button id="login" class="mt-36 ui fluid button">${msg("doSignIn")}</button>
@@ -90,6 +93,7 @@
                         </#if>
                     </div>
                 </form>
+                 <a id="goBack" class="textCenter mt-16 hide cursor-pointer">${msg("goBack")}</a>
             </div>
             <div class="ui column tablet only computer only"></div>
         </div>

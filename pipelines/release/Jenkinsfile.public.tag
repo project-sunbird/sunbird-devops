@@ -155,6 +155,11 @@ node {
     }
 
     catch (err) {
+        currentBuild.result = 'FAILURE'
         throw err
+    }    
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }

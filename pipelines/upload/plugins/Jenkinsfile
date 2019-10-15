@@ -18,14 +18,19 @@ node() {
                 values.put('ansiblePlaybook', ansiblePlaybook)
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 ansible_playbook_run(values)
+                currentBuild.result = 'SUCCESS'
             }
             archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
             archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
-            currentBuild.description = "${values.artifact_version}"
+            currentBuild.description = "Artifact: ${values.artifact_version}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
         }
     }
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }
