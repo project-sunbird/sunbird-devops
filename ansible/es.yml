@@ -1,5 +1,4 @@
 - hosts: es-backup
-  gather_facts: no
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
@@ -12,21 +11,7 @@
   tags:
     - es_backup
 
-- hosts: "{{remote}}"
-  gather_facts: no
-  become: yes
-  vars_files:
-    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-  vars:
-    - es_restore_host: "{{remote}}"
-    - snapshot_base_path: "{{app_snapshot_base_path}}"
-  roles:
-    - es-azure-restore
-  tags:
-    - es_restore
-
 - hosts: log-es-backup
-  gather_facts: no
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
@@ -35,25 +20,11 @@
     - snapshot_base_path: "{{log_snapshot_base_path}}"
   roles:
     - es-azure-snapshot
-    - es2-snapshot-purge
+    - es5-snapshot-purge
   tags:
     - log_es_backup
 
-- hosts: "{{remote}}"
-  gather_facts: no
-  become: yes
-  vars_files:
-    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-  vars:
-    - es_restore_host: "{{remote}}"
-    - snapshot_base_path: "{{log_snapshot_base_path}}"
-  roles:
-    - es-azure-restore
-  tags:
-    - log_es_restore
-
 - hosts: log-es
-  gather_facts: no
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
