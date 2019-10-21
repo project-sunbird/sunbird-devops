@@ -19,7 +19,7 @@ def call() {
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find env specific email group. Check for global email group.." + ANSI_NORMAL
                 }
                 catch (ArrayIndexOutOfBoundsException ex) {
-                    println ANSI_YELLOW + ANSI_BOLD + "Could not find env specific Slack channel. Check for global slack channel.." + ANSI_NORMAL
+                    println ANSI_YELLOW + ANSI_BOLD + "Could not find env specific email group. Check for global email group.." + ANSI_NORMAL
                 }
                 
                 if(env.GLOBAL_EMAIL_GROUP != null)
