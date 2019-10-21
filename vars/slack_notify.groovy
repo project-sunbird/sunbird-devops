@@ -30,6 +30,9 @@ def call(String buildStatus) {
                 catch (MissingPropertyException ex) {
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find env specific Slack channel. Check for global slack channel.." + ANSI_NORMAL
                 }
+                catch (ArrayIndexOutOfBoundsException ex) {
+                    println ANSI_YELLOW + ANSI_BOLD + "Could not find env specific Slack channel. Check for global slack channel.." + ANSI_NORMAL
+                }
 
                 if(env.GLOBAL_NOTIFY_SLACK_CHANNEL != null)
                     slackSend (
