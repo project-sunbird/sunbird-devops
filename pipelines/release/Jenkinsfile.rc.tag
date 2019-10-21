@@ -1,3 +1,4 @@
+@Library('deploy-conf') _
 node {
     try {
         repositories = ['Sunbird-Ed/SunbirdEd-portal',
