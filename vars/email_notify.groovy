@@ -8,9 +8,9 @@ def call() {
             String ANSI_YELLOW = "\u001B[33m"
             
             stage('email_notify') {
-                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-                email_group_name = envDir.toUpperCase() + "_EMAIL_GROUP"
                 try {
+                    envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                    email_group_name = envDir.toUpperCase() + "_EMAIL_GROUP"
                     email_group = evaluate "$email_group_name"
                     emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS: Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: email_group
                     return
@@ -18,7 +18,10 @@ def call() {
                 catch (MissingPropertyException ex) {
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find env specific email group. Check for global email group.." + ANSI_NORMAL
                 }
-
+                catch (ArrayIndexOutOfBoundsException ex) {
+                    println ANSI_YELLOW + ANSI_BOLD + "Could not find env specific Slack channel. Check for global slack channel.." + ANSI_NORMAL
+                }
+                
                 if(env.GLOBAL_EMAIL_GROUP != null)
                        emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS: Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: env.GLOBAL_EMAIL_GROUP
                 else
