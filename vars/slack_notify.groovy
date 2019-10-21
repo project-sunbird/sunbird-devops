@@ -16,9 +16,9 @@ def call(String buildStatus) {
                     slack_status = 'good'
                     build_status = "Succeded"
                 }
-                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-                channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
                 try {
+                    envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                    channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
                     slack_channel = evaluate "$channel_env_name".replace('-', '')
                     slackSend (
                             channel: slack_channel,
