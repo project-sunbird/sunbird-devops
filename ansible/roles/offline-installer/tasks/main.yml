@@ -1,4 +1,9 @@
 ---
+- name: get the date and time for the artifact
+  set_fact:
+    time: "{{ lookup('pipe', 'date +\"%Y-%b-%d-%H-%M-%S\"') }}-{{offline_installer_type}}"
+  when: uploadInstaller is not defined
+
 - name: copy the env.json file to the repo
   template:
     src: "{{item}}.j2"
@@ -17,11 +22,12 @@
     - setupOfflineInstaller.sh
     - build.sh
     - envfile
+    - 32-bit-prerequisite.sh
   when: uploadInstaller is not defined
 
 - name: create a directory to store artifacts
   file:
-    path: "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/{{build_number}}"
+    path: "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/{{time}}"
     state: directory
     recurse: yes
   when: uploadInstaller is not defined
