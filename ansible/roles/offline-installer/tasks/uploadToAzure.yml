@@ -21,6 +21,16 @@
 - debug:
     msg: "{{folderName.stdout}}"
 
+- name: Upload to azure blob storage
+  command: az storage blob upload-batch --destination "{{offline_installer_container_name}}/latest/{{offline_installer_type}}/" --source "{{folderName.stdout}}"
+  args:
+    chdir: "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/"
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_offline_azure_storage_account}}"
+    AZURE_STORAGE_KEY: "{{sunbird_offline_azure_storage_key}}"
+  async: 60
+  poll: 10
+
 - name: Create a zip of the folder to archieve the artifact
   archive:
     path:
