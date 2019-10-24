@@ -16,6 +16,18 @@
   set_fact:
     environment_name: "{{ env_name.stdout }}"
 
+- name: Get the version from the package.json file
+  shell: "cat {{offline_repo_location}}/offline-installer-repo/src/package.json | jq -r '.version'"
+  register: version
+
+- name: Display the version number of the installer
+  debug:
+    msg: "{{version.stdout}}"
+
+- name: Create a variable to inject version in the template
+  set_fact:
+    installer_version: "{{ version.stdout }}"
+
 - name: copy the installer artifacts to upload it to azure blob
   template:
     src: "{{item}}.j2"
