@@ -19,7 +19,6 @@
     dest: "{{offline_repo_location}}/offline-installer-repo/{{item}}"
     mode: '0755'
   with_items:
-    - setupOfflineInstaller.sh
     - build.sh
     - envfile
     - 32-bit-prerequisite.sh
@@ -32,6 +31,15 @@
     recurse: yes
   when: uploadInstaller is not defined
 
+- name: copy the installer script file and build script for building offline installer
+  template:
+    src: "{{item}}.j2"
+    dest: "{{offline_repo_location}}/offline-installer-repo/{{item}}"
+    mode: '0755'
+  with_items:
+    - setupOfflineInstaller.sh
+  when: uploadInstaller is not defined
+
 - name: upload to azure
   include: uploadToAzure.yml
   when: uploadInstaller is defined
@@ -39,3 +47,4 @@
 - name: Delete offline installer folder if any issue
   include: remove.yml
   when: removeOfflineInstallerFolder is defined
+
