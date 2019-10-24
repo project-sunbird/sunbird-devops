@@ -108,7 +108,23 @@
       with_items:
         - standalone
         - domain
+    - name: Copying old files to new keycloak for migration
+      become: yes
+      become_user: keycloak
+      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }} {{ keycloak_dir }}_new/{{ item }}"
+      with_items:
         - modules/system/layers/keycloak/org/postgresql
+    - name: Deleting unnecessary fields from standalone.xml file
+      become: yes
+      become_user: keycloak
+      lineinfile:
+        path: "{{keycloak_dir }}_new/standalone/configuration/standalone-ha.xml"
+        state: absent
+        regexp: "{{ item }}"
+      with_items:
+        - '<property name="port_range">.*'
+        - '<property name="timeout">.*'
+        - '<property name="num_initial_members">.*'
     - name: Running migration
       become: yes
       become_user: keycloak
@@ -118,3 +134,10 @@
         - "bin/jboss-cli.sh --file=bin/migrate-standalone-ha.cli"
       args:
         chdir: "{{ keycloak_dir }}_new"
+    - name: Starting keycloak to make sure migration completed
+      become: yes
+      become_user: keycloak
+      shell: ./bin/standalone.sh -b 0.0.0.0 -bprivate=$(hostname -i) --server-config standalone-ha.xml
+      args:
+        chdir: "{{ keycloak_dir }}_new"
+
