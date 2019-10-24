@@ -40,7 +40,7 @@
 - debug:
     msg: "{{folderName.stdout}}"
 
-- name: copy the installer artifacts to upload it to azure blob
+- name: copy the installer artifacts and metadata files to upload it to azure blob and generate latest.json file
   template:
     src: "{{item}}.j2"
     dest: "{{offline_repo_location}}/offline-installer-repo/{{item}}"
@@ -61,16 +61,6 @@
   command: az storage blob upload-batch --destination {{offline_installer_container_name}} --source "offline_artifacts"
   args:
     chdir: "{{offline_repo_location}}/offline-installer-repo/"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{sunbird_offline_azure_storage_account}}"
-    AZURE_STORAGE_KEY: "{{sunbird_offline_azure_storage_key}}"
-  async: 60
-  poll: 10
-
-- name: Upload to azure blob storage
-  command: az storage blob upload-batch --destination "{{offline_installer_container_name}}/latest" --source "{{folderName.stdout}}"
-  args:
-    chdir: "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/"
   environment:
     AZURE_STORAGE_ACCOUNT: "{{sunbird_offline_azure_storage_account}}"
     AZURE_STORAGE_KEY: "{{sunbird_offline_azure_storage_key}}"
