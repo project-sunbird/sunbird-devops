@@ -1,8 +1,3 @@
-- name: get the date and time for the artifact 
-  set_fact:
-    time: "{{ lookup('pipe', 'date +\"%Y-%b-%d-%H-%M-%S\"') }}-{{offline_installer_type}}"
-  when: uploadInstaller is not defined
-
 - name: Ensure azure blob storage container exists
   command: az storage container create  --name {{offline_installer_container_name}} --public-access off
   environment:
@@ -40,6 +35,10 @@
 - debug:
     msg: "{{folderName.stdout}}"
 
+- name: set the folder name to copy the artifacts
+  set_fact:
+    time: "{{folderName.stdout}}"
+
 - name: copy the installer artifacts and metadata files to upload it to azure blob and generate latest.json file
   template:
     src: "{{item}}.j2"
@@ -54,7 +53,7 @@
   args:
     chdir: "{{offline_repo_location}}/offline-installer-repo/"
   with_items:
-    - artifacts.sh 
+    - artifacts.sh
     - metadata.sh
 
 - name: Upload to azure blob storage
