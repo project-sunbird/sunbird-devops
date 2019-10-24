@@ -4,6 +4,35 @@
     AZURE_STORAGE_ACCOUNT: "{{sunbird_offline_azure_storage_account}}"
     AZURE_STORAGE_KEY: "{{sunbird_offline_azure_storage_key}}"
 
+- name: Get the environment name for the artifact name
+  shell: "cat {{offline_repo_location}}/offline-installer-repo/src/env.json | jq -r '.APP_NAME'"
+  register: env_name
+
+- name: Display the environment name of the installer
+  debug:
+    msg: "{{env_name.stdout}}"
+
+- name: Create a variable to inject environment name to upload to azure blob
+  set_fact:
+    environment_name: "{{ env_name.stdout }}"
+
+- name: copy the installer artifacts to upload it to azure blob
+  template:
+    src: "{{item}}.j2"
+    dest: "{{offline_repo_location}}/offline-installer-repo/{{item}}"
+    mode: '0755'
+  with_items:
+    - artifacts.sh
+    - metadata.sh
+
+- name: copy the artifacts and generate the metadata file
+  shell: "bash {{offline_repo_location}}/offline-installer-repo/{{item}}"
+  args:
+    chdir: "{{offline_repo_location}}/offline-installer-repo/"
+  with_items:
+    - artifacts.sh 
+    - metadata.sh
+
 - name: Upload to azure blob storage
   command: az storage blob upload-batch --destination {{offline_installer_container_name}} --source "offline_artifacts"
   args:
