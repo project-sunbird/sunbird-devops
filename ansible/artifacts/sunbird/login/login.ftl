@@ -1,5 +1,6 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayInfo=social.displayInfo; section>
+<#ftl autoesc=false>
 <#if section = "title">
     ${msg("loginTitle",(realm.displayName!''))}
     <#elseif section = "header">
@@ -38,6 +39,7 @@
                             <#else>${msg("email")}
                             </#if>
                         </label>
+                        <#ftl autoesc=false>
                         <#if usernameEditDisabled??>
                         <input placeholder="${msg('usernamePlaceholder')}" class="mt-8" id="username" name="username" value="${(login.username!'')?html}" type="text" disabled />
                         <#else>

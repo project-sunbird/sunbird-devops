@@ -1,4 +1,5 @@
 <#import "template.ftl" as layout>
+<#ftl autoesc=false>
 <@layout.registrationLayout displayMessage=false; section>
     <#if section = "title">
     ${message.summary}
