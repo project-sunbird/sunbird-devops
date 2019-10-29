@@ -4447,6 +4447,54 @@ kong_apis:
     - {name: 'acl', config.whitelist: 'userUpdate'}
     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+  - name: createCertTemplate
+    uris: "{{ cert_service_prefix }}/v1/template/create"
+    upstream_url: "{{ cert_service_url }}/cert/v1/template/create"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: orgUpdate
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: updateCertTemplate
+    uris: "{{ cert_service_prefix }}/v1/template/update"
+    upstream_url: "{{ cert_service_url }}/cert/v1/template/update"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: orgUpdate
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: readCertTemplate
+    uris: "{{ cert_service_prefix }}/v1/template/read"
+    upstream_url: "{{ cert_service_url }}/cert/v1/template/read"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: orgUpdate
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: "orgAssignKeys"
     uris: "{{ org_service_prefix }}/v1/assign/key"
     upstream_url: "{{ learning_service_url }}/v1/org/assign/key"
@@ -4488,6 +4536,38 @@ kong_apis:
   - name: courseIssueCertificate
     uris: "{{ course_service_prefix }}/batch/cert/v1/issue"
     upstream_url: "{{ lms_service_url }}/v1/course/batch/cert/issue"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: courseBatchAddCertificateTemplate
+    uris: "{{ course_service_prefix }}/batch/cert/v1/template/add"
+    upstream_url: "{{ lms_service_url }}/v1/course/batch/cert/template/add"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: courseUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: courseBatchRemoveCertificateTemplate
+    uris: "{{ course_service_prefix }}/batch/cert/v1/template/remove"
+    upstream_url: "{{ lms_service_url }}/v1/course/batch/cert/template/remove"
     strip_uri: true
     plugins:
     - name: jwt
