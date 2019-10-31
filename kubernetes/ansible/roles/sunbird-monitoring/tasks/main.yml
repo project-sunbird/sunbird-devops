@@ -1,0 +1,20 @@
+---
+# tasks file for sunbird-monitoring
+- name: tempating variables
+  template:
+    src: "{{ item }}.yaml"
+    dest: "/tmp/{{item}}.yaml"
+  with_items: "{{ monitoring_stack }}"
+
+- name: Creating prometheusOperator CRDs manually
+  # refer issue https://github.com/helm/helm/issues/6130#issuecomment-537814539
+  shell: |
+    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.32/example/prometheus-operator-crd/alertmanager.crd.yaml
+    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.32/example/prometheus-operator-crd/prometheus.crd.yaml
+    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.32/example/prometheus-operator-crd/prometheusrule.crd.yaml
+    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.32/example/prometheus-operator-crd/servicemonitor.crd.yaml
+    kubectl apply -f https://raw.githubusercontent.com/coreos/prometheus-operator/release-0.32/example/prometheus-operator-crd/podmonitor.crd.yaml
+
+- name: Creating sunbird monitoring stack
+  shell: "helm3 upgrade --install {{ item }} {{helm_dir}}/{{ item }} --namespace {{ namespace }} -f /tmp/{{ item }}.yaml"
+  with_items: "{{ monitoring_stack }}"
