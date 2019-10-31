@@ -1,0 +1,18 @@
+---
+# tasks file for istio
+- name: tempating variables
+  template:
+    src: "{{ item }}.yaml"
+    dest: "/tmp/{{item}}.yaml"
+  with_items:
+    - istio
+
+- name: initializing istio-crds
+  shell: helm upgrade --install istio-init {{ helm_dir }}/istio-init --namespace istio-system
+
+- name: waiting for crds to get completed
+  pause:
+    seconds: 20
+  
+- name: installing istio
+  shell: helm upgrade --install istio {{ helm_dir }}/istio --namespace istio-system -f /tmp/istio.yaml
