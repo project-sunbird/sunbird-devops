@@ -1,0 +1,35 @@
+---
+# defaults file for sunbird-monitoring
+monitoring_stack:
+  - prometheus-operator
+  - kafka-lag-exporter
+  - cassandra-jmx-exporter
+  - statsd-exporter
+  - elasticsearch-exporter
+  - blackbox-exporter
+  - additional-scrape-configs
+
+namespace: monitoring
+
+
+service_blackbox_checks:
+  - service_name: 'analytics-api'
+    probe_module: http_2xx
+    targets:
+      - "{{sunbird_analytics_api_base_url}}/health"
+  - service_name: 'learning-service'
+    probe_module: http_2xx
+    targets:
+      - "{{sunbird_content_repo_api_base_url}}/health"
+  - service_name: 'search-service'
+    probe_module: http_2xx
+    targets:
+      - "{{sunbird_search_service_api_base_url}}/health"
+  - service_name: 'monit'
+    probe_module: http_2xx
+    targets:
+      - "http://{{ groups['swarm-bootstrap-manager'][0] }}:2812"
+  - service_name: 'keycloak'
+    probe_module: http_2xx
+    targets:
+      - "{{proto}}://{{proxy_server_name}}/auth/realms/sunbird/protocol/openid-connect/auth?client_id=portal&state=foo&redirect_uri=https%3A%2F%2F{{proxy_server_name}}%2Fprivate%2Findex%3Fauth_callback%3D1&scope=openid&response_type=code"
