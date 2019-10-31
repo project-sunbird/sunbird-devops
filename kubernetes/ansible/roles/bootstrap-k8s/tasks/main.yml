@@ -1,0 +1,22 @@
+---
+# tasks file for bootstrap-k8s
+- name: templating yamls to /tmp
+  template:
+    src: "{{ item }}.yaml"
+    dest: "/tmp/{{ item }}.yaml"
+  with_items: "{{ bootstrap_items }}"
+
+- name: Creating namespace "{{ namespace }}" with istio-injection enabled
+  shell: kubectl apply -f /tmp/namespace.yaml
+
+# - name: Creating domain sssl
+#   shell: |
+#     cat {{ ssl_cert_file }} | kubectl apply -f
+#   no_log: true
+
+- name: "Creating {{item}}"
+  shell: "kubectl apply -f /tmp/{{ item }}.yaml"
+  with_items:
+    - gateway
+    - serviceentry
+    - virtualservice
