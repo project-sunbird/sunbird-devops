@@ -1,10 +1,21 @@
 ---
+# tasks file for bootstrap-k8s
+
 - hosts: local
-  gather_facts: no
+  gather_facts: false
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  roles:
-    - bootstrap-k8s
-  environment:
-    KUBECONFIG: "{{ kubeconfig_path }}"
-
+  tasks:
+    - name: Creating namespace
+      shell: "kubectl get namespace {{ item }} &> /dev/null || kubectl create namespace {{ item }} "
+      with_items:
+        - "{{ namespace }}"
+        - monitoring
+        - logging
+        - istio-system
+    - name: "Tagging {{ namespace }} to enable istio"
+      shell: "kubectl label namespaces {{ namespace }} istio-injection=enabled --overwrite"
+    - name: Creating docker secrets
+      shell: |
+        kubectl create secret docker-registry {{ imagepullsecrets }} --namespace {{ namespace }} --docker-server={{ vault_docker_registry_url }} --docker-username={{ vault_docker_registry_user }} --docker-password={{ vault_docker_registry_password }}
+      no_log: yes
