@@ -10,12 +10,13 @@
     - "{{inventory_dir}}/secrets.yml"
   pre_tasks:
     - name: Creating namespace
-      shell: "kubectl get namespace {{ item }} &> /dev/null || kubectl create namespace {{ item }} "
+      shell: "kubectl create namespace {{ item }} "
       with_items:
         - "{{ namespace }}"
         - monitoring
         - logging
         - istio-system
+      ignore_errors: yes
     - name: "Tagging {{ namespace }} to enable istio"
       shell: "kubectl label namespaces {{ namespace }} istio-injection=enabled --overwrite"
     - name: Creating docker secrets
