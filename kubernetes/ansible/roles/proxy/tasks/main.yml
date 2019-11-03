@@ -1,29 +1,13 @@
 ---
-# tasks file for bootstrap-k8s
-- name: Cretating tmp directory
-  tempfile:
-    state: directory
-    prefix: bootstrap
-  register: bootstrap_dir
-
-- name: templating yamls to tmpdir
-  template:
-    src: "{{ item }}.yaml"
-    dest: "{{ bootstrap_dir.path }}/{{ item }}.yaml"
-  with_items: "{{ bootstrap_items }}"
-
-- name: Creating namespace "{{ namespace }}" with istio-injection enabled
-  shell: kubectl apply -f {{bootstrap_dir.path}}/namespace.yaml
+# Proxy config
+- name: Deleting domain ssl if present
+  shell: kubectl get secrets ingress-cert -n istio-system && kubectl delete secrets ingress-cert -n istio-system
+  ignore_errors: true
 
 - name: Creating domain sssl
   shell: |
-    cat {{ ssl_cert_file }} | kubectl apply -f || echo 'SSL exist; exiting'
+    cat {{ ssl_cert_file }} | kubectl apply - '
   no_log: true
-
-- name: Creating docker secrets
-  shell: |
-    kubectl create secret docker-registry {{ imagepullsecrets }} --namespace {{ namespace }} --docker-server={{ vault_docker_registry_url }} --docker-username={{ vault_docker_registry_user }} --docker-password={{ vault_docker_registry_password }}
-  no_log: no
 
 - name: "Creating {{ item }}"
   shell: "kubectl apply -f {{ bootstrap_dir.path }}/{{ item }}.yaml"
