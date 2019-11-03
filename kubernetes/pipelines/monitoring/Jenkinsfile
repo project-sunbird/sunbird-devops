@@ -7,10 +7,11 @@ node() {
         }
 
         stage('deploy') {
+            values = docker_params()
             jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
-            ansiblePlaybook = "$currentWs/kubernetes/ansible/monitoring.yml"
-            ansibleExtraArgs = "--extra-vars \"chart_path=${currentWs}/kubernetes/helm_charts/monitoring release_name=$jobName \" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+            ansiblePlaybook = "$currentWs/kubernetes/ansible/monitoring.yaml"
+            ansibleExtraArgs = "--extra-vars \"chart_path=${currentWs}/kubernetes/helm_charts/$jobName release_name=$jobName image_tag=$values.image_tag\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
             values.put('currentWs', currentWs)
             values.put('ansiblePlaybook', ansiblePlaybook)
             values.put('ansibleExtraArgs', ansibleExtraArgs)
