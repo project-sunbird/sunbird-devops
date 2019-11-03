@@ -1,17 +1,41 @@
 ---
 # Proxy config
 - name: Deleting domain ssl if present
-  shell: kubectl get secrets ingress-cert -n istio-system && kubectl delete secrets ingress-cert -n istio-system
+  shell: "kubectl get secrets ingress-cert -n istio-system && kubectl delete secrets ingress-cert -n istio-system"
   ignore_errors: true
 
 - name: Creating domain sssl
-  shell: |
-    cat {{ ssl_cert_file }} | kubectl apply - '
-  no_log: true
+  shell: 
+    cmd: |
+      cat <<EOF | kubectl apply -f -
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ingress-cert
+        namespace: istio-system
+      type: kubernetes.io/tls
+      data:
+        ca.crt: ""
+        tls.crt: "{{ tls_crt }}"
+        tls.key: "{{ tls_key }}"
+      EOF
+
+- name: Creating tmp directory
+  tempfile:
+    state: directory
+    suffix: template
+  register: tempdir
+- name: templating manifests to "{{ tempdir.path }}"
+  template:
+    src: "{{ item }}.yaml"
+    dest: "{{ tempdir.path }}/{{ item }}.yaml"
+  with_items: "{{ bootstrap_items }}"
 
 - name: "Creating {{ item }}"
-  shell: "kubectl apply -f {{ bootstrap_dir.path }}/{{ item }}.yaml"
-  with_items:
-    - gateway
-    - serviceentry
-    - virtualservice
+  shell: "kubectl apply -f {{ tempdir.path }}/{{ item }}.yaml"
+  with_items: "{{ bootstrap_items }}"
+
+- name: Deleting template directory
+  file:
+    name: "{{ tempdir.path }}"
+    state: absent
