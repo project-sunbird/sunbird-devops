@@ -85,15 +85,20 @@ pip install docker-py
 echo -e "\n\e[0;32m${bold}Installating colordiff${normal}"
 apt-get install -y colordiff
 
-echo -e "\n\e[0;32m${bold}Installating git lfs${normal}"
-curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-apt-get install git-lfs
-
 echo -e "\n\e[0;32m${bold}Adding jenkins user to docker group${normal}"
 usermod -aG docker jenkins
 
 echo -e "\n\e[0;32m${bold}Creating bashrc for jenkins user ${normal}"
 cp /etc/skel/.bashrc /var/lib/jenkins
 chown jenkins:jenkins /var/lib/jenkins/.bashrc
+
+echo -e "\n\e[0;32m${bold}Setting timezone to IST ${normal}"
+timedatectl set-timezone Asia/Kolkata
+
+echo -e "\n\e[0;32m${bold}Installing nvm${normal}"
+su jenkins bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash"
+
+echo -e "\n\e[0;32m${bold}Installing jmespath${normal}"
+pip install jmespath
 
 echo -e "\n\e[0;32m${bold}Installation complete. Please go to your jenkins URL and continue setup if this first run..${normal}"
