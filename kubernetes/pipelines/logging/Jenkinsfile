@@ -7,7 +7,7 @@ node() {
         }
 
         stage('deploy') {
-            values = docker_params()
+            values = [:]
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
             envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
             module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
@@ -18,6 +18,8 @@ node() {
             values.put('env', envDir)
             values.put('module', module)
             values.put('jobName', jobName)
+            values.put('ansiblePlaybook', ansiblePlaybook)
+            values.put('ansibleExtraArgs', ansibleExtraArgs)
             ansible_playbook_run(values)
             currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
         }
