@@ -1,0 +1,38 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.prometheus_rule_selector_app }}
+    release: {{ .Values.prometheus_rule_selector_release }}
+  name: {{ .Values.fullnameOverride }}-logelasticsearch-rules
+  namespace: {{ .Values.namespace }}
+spec:
+  groups:
+  - name: alertrules.loges
+    rules:
+    - alert: elasticsearch_too_few_nodes_running_CRITICAL
+      annotations:
+        description: elasticsearch_cluster_health_number_of_nodes{job="log-elasticsearch-exporter"} < {{ .Values.log_es_server_count }}
+        summary: {{`"There are only {{$value}}`}} < {{ .Values.log_es_server_count }} {{` ElasticSearch nodes running"`}}
+      expr: elasticsearch_cluster_health_number_of_nodes{job="log-elasticsearch-exporter"} < {{ .Values.log_es_server_count }}
+      for: 1m
+      labels:
+        severity: critical
+    - alert: elasticsearch_too_few_nodes_running_WARNING
+      annotations:
+        description: elasticsearch_cluster_health_number_of_nodes{job="log-elasticsearch-exporter"} < {{ .Values.log_es_server_count }}
+        summary: {{`"There are only {{$value}}`}} < {{ .Values.log_es_server_count }} {{`ElasticSearch nodes running"`}}
+      expr: elasticsearch_cluster_health_number_of_nodes{job="log-elasticsearch-exporter"} < {{ .Values.log_es_server_count }}
+      for: 1m
+      labels:
+        severity: warning
+    - alert: logs_ingestion_slow_CRITICAL
+      annotations:
+        description: {{`"{{ $labels.job }}: Logs per minute is {{ $value }}. It is below the threshold: `}}{{ .Values.log_es_threshold }} {{`"`}}
+        summary: Logs are not flowing as expected
+      expr: increase(elasticsearch_indices_docs{job="log-elasticsearch-exporter"}[5m]) / 5 < {{ .Values.log_es_threshold }}
+      for: 1m
+      labels:
+        severity: CRITICAL
