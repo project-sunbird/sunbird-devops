@@ -9,11 +9,15 @@ node() {
         stage('deploy') {
             values = docker_params()
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
+            envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+            module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+            jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
             ansiblePlaybook = "$currentWs/kubernetes/ansible/deploy_core_service.yml"
             ansibleExtraArgs = "--extra-vars \"chart_path=${currentWs}/kubernetes/helm_charts/logging/${params.jobname} release_name=${params.jobname}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
             values.put('currentWs', currentWs)
-            values.put('ansiblePlaybook', ansiblePlaybook)
-            values.put('ansibleExtraArgs', ansibleExtraArgs)
+            values.put('env', envDir)
+            values.put('module', module)
+            values.put('jobName', jobName)
             ansible_playbook_run(values)
             currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
         }
