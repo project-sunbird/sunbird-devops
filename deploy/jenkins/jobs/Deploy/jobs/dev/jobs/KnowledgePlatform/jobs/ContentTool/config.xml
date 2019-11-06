@@ -20,7 +20,7 @@
       </strategy>
     </jenkins.model.BuildDiscarderProperty>
     <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.30">
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
@@ -29,19 +29,123 @@
         <hudson.model.StringParameterDefinition>
           <name>absolute_job_path</name>
           <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Do not change this value! The metadata.json will be copied from this job.&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue>ArtifactUpload/dev/KnowledgePlatform/KnowledgePlatform</defaultValue>
+          <defaultValue>ArtifactUpload/staging/KnowledgePlatform/KnowledgePlatform</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.1">
+          <name>artifact_source</name>
+          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;
+ArtifactRepo - Download the artifact from azure blob, JenkinsJob - Use the atrifact from Jenkins job.&lt;/b&gt;&lt;/font&gt;</description>
+          <randomName>choice-parameter-99966386763628</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.58">
+              <script>return[
+&apos;JenkinsJob&apos;,
+&apos;ArtifactRepo&apos;
+]</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.58">
+              <script></script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>ContentTool</projectName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters></referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.1">
+          <name>build_number</name>
+          <description></description>
+          <randomName>choice-parameter-99966388717441</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.58">
+              <script>if (artifact_source.equals(&quot;JenkinsJob&quot;)) {
+return &quot;&quot;&quot;&lt;input name=&quot;value&quot; value=&quot;lastSuccessfulBuild&quot; class=&quot;setting-input&quot;  type=&quot;text&quot;&gt;&lt;br&gt; &lt;font color=darkgreen size=2&gt;&lt;b&gt;OPTIONAL: Specify the build number of ArtifactUpload job from which the artifact will be copied and deployed.&lt;/b&gt;&lt;/font&gt;&quot;&quot;&quot;
+}
+else
+{ 
+return &quot;&lt;b&gt;Not Applicable&lt;/b&gt;&quot;
+}</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.58">
+              <script></script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>ContentTool</projectName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>artifact_source</referencedParameters>
+          <choiceType>ET_FORMATTED_HTML</choiceType>
+          <omitValueField>true</omitValueField>
+        </org.biouno.unochoice.DynamicReferenceParameter>
+        <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.1">
+          <name>artifact_version</name>
+          <description></description>
+          <randomName>choice-parameter-100228933788067</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.58">
+              <script>if (artifact_source.equals(&quot;ArtifactRepo&quot;)) {
+return &quot;&quot;&quot;&lt;input name=&quot;value&quot; value=&quot;&quot; class=&quot;setting-input&quot;  type=&quot;text&quot;&gt; &lt;br&gt; &lt;font color=red size=2&gt;&lt;b&gt;CAUTION: If the value is blank, artifact version will be taken from the latest metadata.json.&lt;/b&gt;&lt;/font&gt;&quot;&quot;&quot;
+} 
+else {
+return &quot;&lt;b&gt;Not Applicable&lt;/b&gt;&quot;
+}</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.58">
+              <script></script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>ContentTool</projectName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>artifact_source</referencedParameters>
+          <choiceType>ET_FORMATTED_HTML</choiceType>
+          <omitValueField>true</omitValueField>
+        </org.biouno.unochoice.DynamicReferenceParameter>
         <hudson.model.StringParameterDefinition>
-          <name>command</name>
-          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Enter the command.&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue>sync</defaultValue>
+          <name>host</name>
+          <description></description>
+          <defaultValue>staging-migration</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>command</name>
+          <description></description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>sync</string>
+              <string>owner-migration</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>ansible_tag</name>
+          <description></description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>run</string>
+              <string>provision</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>parameters</name>
-          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Enter the do id.&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue></defaultValue>
+          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Enter the do id&lt;br&gt;
+  examples:&lt;br&gt;
+--ids do_21260387549872947218&lt;br&gt;
+--ids do_21260387549872947218 --force # to force sync&lt;br&gt;
+--ids do_21260387549872947218 --dry-run # to do dry-run&lt;br&gt;
+  &lt;/b&gt;&lt;/font&gt;</description>
+          <defaultValue>&apos;--ids &lt;content_id&gt;&apos;</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.1">
@@ -120,7 +224,7 @@ return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quo
       </userRemoteConfigs>
       <branches>
         <hudson.plugins.git.BranchSpec>
-          <name>${branch_or_tag}</name>
+          <name>release-2.0.0</name>
         </hudson.plugins.git.BranchSpec>
       </branches>
       <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
@@ -135,7 +239,7 @@ return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quo
         </hudson.plugins.git.extensions.impl.CloneOption>
       </extensions>
     </scm>
-    <scriptPath>pipelines/deploy/content_tool/Jenkinsfile</scriptPath>
+    <scriptPath>pipelines/deploy/content-tool/Jenkinsfile</scriptPath>
     <lightweight>false</lightweight>
   </definition>
   <triggers/>
