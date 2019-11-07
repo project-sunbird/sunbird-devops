@@ -48,6 +48,7 @@ setupJobs(){
 
 syncJobs(){
 read -p 'YES/NO: ' changes
+echo -e "\e[0;33m${bold}This might take a while... Do not kill the process!${normal}"
    if [[ $changes == "YES" ]]; then
      rsync -r $JENKINS_TMP/* /var/lib/jenkins/jobs
      chown -R jenkins:jenkins /var/lib/jenkins/jobs
