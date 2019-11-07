@@ -2,6 +2,9 @@
 bold=$(tput bold)
 normal=$(tput sgr0)
 
+echo -e "\n\e[0;32m${bold}Clean up${normal}"
+rm -rf /etc/apt/sources.list.d/azure-cli.list /etc/apt/sources.list.d/packages_microsoft_com_repos_azure_cli.list*
+
 echo -e "\n\e[0;32m${bold}Updating the apt repo${normal}\n"
 apt-get update
 
@@ -12,7 +15,7 @@ echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
 apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
 apt-get update
-apt-get install -y jenkins=2.176.2
+apt-get install -y jenkins=2.190.2
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
@@ -44,7 +47,13 @@ apt-get install -y docker-ce docker-ce-cli containerd.io
 
 echo -e "\n\e[0;32m${bold}Installating node and npm modules"
 wget https://nodejs.org/download/release/v6.1.0/node-v6.1.0-linux-x64.tar.gz
-tar -xvf node-v6.1.0-linux-x64.tar.gz
+tar -xf node-v6.1.0-linux-x64.tar.gz
+rm -rf /usr/local/lib/node-v6.1.0-linux-x64
+rm -rf /usr/bin/node
+rm -rf /usr/bin/npm
+rm -rf /usr/bin/grunt
+rm -rf /usr/bin/bower
+rm -rf /usr/bin/gulp
 mv node-v6.1.0-linux-x64 /usr/local/lib/
 ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/node /usr/bin/node
 ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/npm /usr/bin/npm
@@ -54,27 +63,27 @@ npm install -g bower@1.8.0
 ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/bower /usr/bin/bower
 npm install -g gulp@3.9.1
 ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/gulp /usr/bin/gulp
+rm -rf node-v6.1.0-linux-x64*
 
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
 pip install ansible==2.5.0
 
 echo -e "\n\e[0;32m${bold}Installating azure cli${normal}"
-apt-get install curl apt-transport-https lsb-release gpg
-curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
-    gpg --dearmor | \
+apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
+curl -sL https://packages.microsoft.com/keys/microsoft.asc |
+    gpg --dearmor |
     sudo tee /etc/apt/trusted.gpg.d/microsoft.asc.gpg > /dev/null
 AZ_REPO=$(lsb_release -cs)
-echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | \
+echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
     sudo tee /etc/apt/sources.list.d/azure-cli.list
-
-apt-get update
-apt-get install azure-cli
+sudo apt-get update
+sudo apt-get install azure-cli
 
 # Install azcopy
 echo -e "\n\e[0;32m${bold}Installating AzCopy${normal}"
 apt update
 wget https://aka.ms/downloadazcopy-v10-linux
-tar -xvf downloadazcopy-v10-linux
+tar -xf downloadazcopy-v10-linux
 cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
 rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
 ###
@@ -101,4 +110,7 @@ su jenkins bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.
 echo -e "\n\e[0;32m${bold}Installing jmespath${normal}"
 pip install jmespath
 
-echo -e "\n\e[0;32m${bold}Installation complete. Please go to your jenkins URL and continue setup if this first run..${normal}"
+echo -e "\n\e[0;32m${bold}Clean up${normal}"
+sudo apt -y autoremove
+
+echo -e "\n\e[0;32m${bold}Installation complete. Please go to your jenkins URL and continue setup if this is the first run..${normal}"
