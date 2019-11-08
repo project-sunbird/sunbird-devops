@@ -20,6 +20,158 @@ kubelet:
 prometheusOperator:
   createCustomResource: false
 
+alertmanager:
+  enabled: true
+  serviceAccount:
+    create: true
+    name: ""
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+  config:
+    global:
+      resolve_timeout: 5m
+      smtp_from: "{{ monitor_alerts_mail_from_email }}"
+      smtp_smarthost: "{{ monitor_alerts_mail_server_host }}:{{ monitor_alerts_mail_server_port}}"
+      smtp_auth_username: "{{ monitor_alerts_mail_server_username }}"
+      smtp_auth_password: "{{ monitor_alerts_mail_server_password }}"
+      smtp_require_tls: true
+
+    route:
+      receiver: '{{env}}_devops_team'
+      group_by: ['alertname']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      routes:
+      - receiver: slack
+        continue: true
+      {% for item in alert_teams %}
+      # Comment to ensure proper indentation while templating
+      - match_re:
+          {{ item.group }}: "{{ item.services | join('|') }}"
+        receiver: "{{ item.team }}"
+        # Comment to ensure proper indentation while templating
+        {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
+routes:
+        {% for filter in item.severity_mailing_filter %}
+        # Comment to ensure proper indentation while templating
+        - match:
+            severity: "{{ filter.severity }}"
+          receiver: "{{ item.team }}_{{ filter.severity }}"
+        {% endfor %}
+        {% endif %}
+      {% endfor %}
+      # Comment to ensure proper indentation while templating
+      - match:
+          owner:
+        receiver: {{env}}_devops_team
+
+    receivers:
+      - name: 'slack'
+        slack_configs:
+          - send_resolved: true
+            api_url: "{{ monitor_alerts_slack_url }}"
+            username: 'Monitor - Alerter'
+            channel: "{{ monitor_alerts_slack_channel }}"
+            text: |-
+                  {{ "{{" }} range .Alerts {{ "}}" }}
+                    *From:* {{env}}-KUBERNETES
+                    *Alert:* {{ "{{" }} .Annotations.message {{ "}}" }} - `{{ "{{" }} .Labels.severity {{ "}}" }}`
+                    *Description:* {{ "{{" }} .Annotations.message {{ "}}" }}
+                    *Details:*
+                    {{ "{{" }} range .Labels.SortedPairs {{ "}}" }} • *{{ "{{" }} .Name {{ "}}" }}:* `{{ "{{" }} .Value {{ "}}" }}`
+                    {{ "{{" }} end {{ "}}" }}
+                  {{ "{{" }} end {{ "}}" }}
+            icon_emoji: ':dart:'
+      {% for item in alert_teams %}
+      # Comment to ensure proper indentation while templating
+      - name: "{{ item.team }}"
+        email_configs:
+          - send_resolved: true
+            to: '{{ item.alerts_mailing_list }}'
+            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            headers:
+              subject: '[{{ env }}-{{cluster_name}}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+      {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
+      {% for filter in item.severity_mailing_filter %}
+      # Comment to ensure proper indentation while templating
+      - name: "{{ item.team }}_{{ filter.severity }}"
+        email_configs:
+          - send_resolved: true
+            to: '{{ filter.alerts_mailing_list }}'
+            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            headers:
+              subject: '[{{ env }}-{{cluster_name}}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+      {% endfor %}
+      {% endif %}
+      {% endfor %}
+      # Comment to ensure proper indentation while templating
+      - name: {{env}}_devops_team
+        email_configs:
+          - send_resolved: true
+            to: '{{ default_mailing_list }}'
+            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            headers:
+              subject: '[{{ env }}-{{cluster_name}}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+
+  tplConfig: false
+  templateFiles: {}
+  ingress:
+    enabled: false
+    annotations: {}
+    labels: {}
+    hosts: []
+    paths: []
+    tls: []
+  secret:
+    annotations: {}
+  service:
+    annotations: {}
+    labels: {}
+    clusterIP: ""
+    nodePort: 30903
+    externalIPs: []
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+    type: ClusterIP
+  serviceMonitor:
+    interval: ""
+    selfMonitor: true
+    metricRelabelings: []
+    relabelings: []
+  alertmanagerSpec:
+    podMetadata: {}
+    image:
+      repository: quay.io/prometheus/alertmanager
+      tag: v0.19.0
+    useExistingSecret: false
+    secrets: []
+    configMaps: []
+    logFormat: logfmt
+    logLevel: info
+    replicas: 1
+    retention: 120h
+    storage: {}
+    externalUrl:
+    routePrefix: /
+    paused: false
+    nodeSelector: {}
+    resources: {}
+    podAntiAffinity: ""
+    podAntiAffinityTopologyKey: kubernetes.io/hostname
+    affinity: {}
+    tolerations: []
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 2000
+    listenLocal: false
+    containers: []
+    priorityClassName: ""
+    additionalPeers: []
+
 grafana:
   env:
     GF_SERVER_ROOT_URL: http://grafana.local.com/grafana
