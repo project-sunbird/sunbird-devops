@@ -34,3 +34,18 @@
   file:
     name: "/tmp/user.sh"
     state: absent
+
+- name: Getting private lb ip
+  command: kubectl get svc -n istio-system ingressgateway-private -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+  register: private_lb_ip
+
+- set_fact:
+    badger_url: "http://{{private_lb_ip.stdout}}/badger"
+
+- name: Getting auth token
+  shell: curl -X POST '{{badger_url}}/api-auth/token' -d "username="{{badger_admin_user}}"&password={{badger_admin_password}}"
+  register: curl
+  no_log: true
+
+- name: Copy admin auth token to desktop
+  copy: content="{{curl.stdout}}" dest=~/badger_token.txt
