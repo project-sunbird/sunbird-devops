@@ -12,3 +12,13 @@
 - name: helm install
   shell: helm upgrade --install {{ release_name }} {{ chart_path }}
   #shell: helm template {{ chart_path }} > /tmp/test.yaml
+
+- name: Copying user creation script
+  template:
+    src: user.j2
+    dest: /tmp/user.sh
+    mode: 0755
+
+- name: Creating superuser
+  shell: "kubectl exec $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1) /tmp/user.sh"
+  no_log: true
