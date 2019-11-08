@@ -12,6 +12,17 @@ Role Variables
 --------------
 
 A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+* monitor_alerts_mail_from_email:  # Email from address
+* monitor_alerts_mail_server_host: # Email host address
+* monitor_alerts_mail_server_port: 587 # Email server port
+* monitor_alerts_mail_server_username: # Email user
+* monitor_alerts_mail_server_password: # Email password
+* monitor_alerts_slack_url: # Slack URL
+* monitor_alerts_slack_channel: # Slack channel
+* env: # Environment name
+* cluster_name: KUBERNETES # Cluster name
+* default_mailing_list: # Default email list for alerts
+
 
 Dependencies
 ------------
