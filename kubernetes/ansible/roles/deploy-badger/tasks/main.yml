@@ -19,6 +19,18 @@
     dest: /tmp/user.sh
     mode: 0755
 
+- name: Copying user creation script 
+  shell: "kubectl cp /tmp/user.sh --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1):/tmp/user.sh"
+
 - name: Creating superuser
-  shell: "kubectl exec $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1) /tmp/user.sh"
+  shell: "kubectl exec --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1) /tmp/user.sh"
   no_log: true
+
+- name: Cleaning up secrets in container
+  shell: "kubectl exec --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1) rm /tmp/user.sh"
+
+- name: Deleting user.sh 
+  become: yes
+  file:
+    name: "/tmp/user.sh"
+    state: absent
