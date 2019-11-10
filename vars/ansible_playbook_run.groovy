@@ -26,7 +26,7 @@ def call(Map pipelineParams) {
                         println(ANSI_BOLD + ANSI_YELLOW + 'Info: Branch override is disabled' + ANSI_NORMAL)
 
                     if (!checkDir.exists())
-                        checkout scm: [$class: 'GitSCM', branches: [[name: private_repo_branch]], extensions: [[$class: 'GitLFSPull'], [$class: 'CloneOption', depth: 1, noTags: true, reference: '', shallow: true]], userRemoteConfigs: [[credentialsId: private_repo_credentials, url: private_repo_url]]]
+                        checkout scm: [$class: 'GitSCM', branches: [[name: private_repo_branch]], extensions: [[$class: 'CloneOption', depth: 1, noTags: true, reference: '', shallow: true]], userRemoteConfigs: [[credentialsId: private_repo_credentials, url: private_repo_url]]]
                     else
                         println(ANSI_BOLD + ANSI_YELLOW + 'Github repo already exists. Not cloning again' + ANSI_NORMAL)
                 }
