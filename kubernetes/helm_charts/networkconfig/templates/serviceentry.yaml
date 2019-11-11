@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: ServiceEntry
 metadata:
-  name: {{ .Chart.Name }}
+  name: {{ .Values.namespace }}-keycloak
   namespace: {{ .Values.namespace }}
 spec:
   hosts:
@@ -9,7 +9,7 @@ spec:
   location: MESH_EXTERNAL
   ports:
   - number: 80
-    name: {{ .Chart.Name }}
+    name: blob
     protocol: HTTP
   resolution: DNS
 
@@ -17,7 +17,7 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: {{ .Chart.Name }}
+  name: {{ .Values.namespace }}-blob
   namespace: {{ .Values.namespace }}
 spec:
   type: ExternalName
@@ -27,14 +27,14 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: ServiceEntry
 metadata:
-  name: {{ .Chart.Name }}
+  name: {{ .Values.namespace }}-blob
   namespace: {{ .Values.namespace }}
 spec:
   hosts:
-  - {{ .Chart.Name }}.{{ .Values.namespace }}.{{ .Values.internal_domain_name | default "global" }}
+  - keycloak.{{ .Values.namespace }}.{{ .Values.internal_domain_name | default "global" }}
   ports:
   - number: 8080
-    name: {{ .Chart.Name }}
+    name: keycloak
     protocol: HTTP
   location: MESH_INTERNAL
   resolution: STATIC
