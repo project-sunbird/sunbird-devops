@@ -21,22 +21,12 @@ prometheusOperator:
   createCustomResource: false
 
 alertmanager:
-  enabled: true
-  serviceAccount:
-    create: true
-    name: ""
-  podDisruptionBudget:
-    enabled: false
-    minAvailable: 1
-    maxUnavailable: ""
   config:
     global:
-      resolve_timeout: 5m
       smtp_from: "{{ monitor_alerts_mail_from_email }}"
       smtp_smarthost: "{{ monitor_alerts_mail_server_host }}:{{ monitor_alerts_mail_server_port}}"
       smtp_auth_username: "{{ monitor_alerts_mail_server_username }}"
       smtp_auth_password: "{{ monitor_alerts_mail_server_password }}"
-      smtp_require_tls: true
 
     route:
       receiver: '{{env}}_devops_team'
@@ -115,61 +105,6 @@ routes:
             headers:
               subject: '[{{ env }}-{{cluster_name}}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
 
-  tplConfig: false
-  templateFiles: {}
-  ingress:
-    enabled: false
-    annotations: {}
-    labels: {}
-    hosts: []
-    paths: []
-    tls: []
-  secret:
-    annotations: {}
-  service:
-    annotations: {}
-    labels: {}
-    clusterIP: ""
-    nodePort: 30903
-    externalIPs: []
-    loadBalancerIP: ""
-    loadBalancerSourceRanges: []
-    type: ClusterIP
-  serviceMonitor:
-    interval: ""
-    selfMonitor: true
-    metricRelabelings: []
-    relabelings: []
-  alertmanagerSpec:
-    podMetadata: {}
-    image:
-      repository: quay.io/prometheus/alertmanager
-      tag: v0.19.0
-    useExistingSecret: false
-    secrets: []
-    configMaps: []
-    logFormat: logfmt
-    logLevel: info
-    replicas: 1
-    retention: 120h
-    storage: {}
-    externalUrl:
-    routePrefix: /
-    paused: false
-    nodeSelector: {}
-    resources: {}
-    podAntiAffinity: ""
-    podAntiAffinityTopologyKey: kubernetes.io/hostname
-    affinity: {}
-    tolerations: []
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 1000
-      fsGroup: 2000
-    listenLocal: false
-    containers: []
-    priorityClassName: ""
-    additionalPeers: []
 
 grafana:
   env:
