@@ -1,5 +1,6 @@
 <#macro registrationLayout bodyClass="" displayInfo=false displayMessage=true>
 <!DOCTYPE html>
+<#ftl autoesc=false>
 <html class="${properties.kcHtmlClass!}">
 <head>
     <meta charset="utf-8">
