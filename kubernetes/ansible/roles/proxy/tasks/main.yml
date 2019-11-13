@@ -20,22 +20,11 @@
         tls.key: "{{ tls_key }}"
       EOF
 
-#- name: Creating tmp directory
-#  tempfile:
-#    state: directory
-#    suffix: template
-#  register: tempdir
-#- name: templating manifests to "{{ tempdir.path }}"
-#  template:
-#    src: "{{ item }}.yaml"
-#    dest: "{{ tempdir.path }}/{{ item }}.yaml"
-#  with_items: "{{ bootstrap_items }}"
-#
-#- name: "Creating {{ item }}"
-#  shell: "kubectl apply -f {{ tempdir.path }}/{{ item }}.yaml"
-#  with_items: "{{ bootstrap_items }}"
-#
-#- name: Deleting template directory
-#  file:
-#    name: "{{ tempdir.path }}"
-#    state: absent
+- name: rename template
+  template:
+    src: "{{ chart_path }}/values.j2"
+    dest: "{{ chart_path }}/values.yaml"
+
+- name: helm install
+  shell: helm upgrade --install {{ release_name }} {{ chart_path }}
+  #shell: helm template {{ chart_path }} > /tmp/test.yaml
