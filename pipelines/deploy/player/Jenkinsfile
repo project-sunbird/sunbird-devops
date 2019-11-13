@@ -15,14 +15,14 @@ node() {
             stage('deploy') {
                 values = docker_params()
                 currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                ansiblePlaybook = "$currentWs/ansible/deploy.yml"
+                ansiblePlaybook = "$currentWs/kubernetes/ansible/player.yml"
                 cdn_file_exists = new File("$currentWs/index_cdn.ejs")
                 if (cdn_file_exists.exists()) {
                     println(ANSI_BOLD + ANSI_GREEN + "Found index_cdn.ejs file. Deploying player with CDN.." + ANSI_NORMAL)
-                    ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True cdn_file_path=$currentWs/index_cdn.ejs\" --vault-password-file /var/lib/jenkins/secrets/vault-pass "
+                    ansibleExtraArgs = "--extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag cdn_file_path=$currentWs/index_cdn.ejs\" --vault-password-file /var/lib/jenkins/secrets/vault-pass "
                 } else {
                     println(ANSI_BOLD + ANSI_YELLOW + "Could not find index_cdn.ejs file. Deploying player without CDN.." + ANSI_NORMAL)
-                    ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=player deploy_stack=True\" --vault-password-file /var/lib/jenkins/secrets/vault-pass "
+                    ansibleExtraArgs = "--extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag\" --vault-password-file /var/lib/jenkins/secrets/vault-pass "
                 }
                 values.put('currentWs', currentWs)
                 values.put('ansiblePlaybook', ansiblePlaybook)
