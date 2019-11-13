@@ -1,10 +1,10 @@
 
 - name: Remove existing index_cdn.ejs
-  file: path=/home/deployer/index_cdn.ejs state=absent
+  file: path=/var/lib/jenkins/player_config/index_cdn.ejs state=absent
   ignore_errors: true
 
 - name: copy new index file
-  copy: src="{{cdn_file_path}}" dest="/home/deployer/index_cdn.ejs" mode=0644
+  copy: src="{{cdn_file_path}}" dest="/var/lib/jenkins/player_config/index_cdn.ejs" mode=0644
   when: sunbird_portal_cdn_url is not none and cdn_file_path is not none
 
 - name: Remove the existing CDN config
@@ -12,14 +12,13 @@
   ignore_errors: true
 
 - name: Create player-cdn configmap
-  shell: "kubectl create configmap player-cdn-config --from-file=/home/deployer/index_cdn.ejs --namespace {{namespace}}"
+  shell: "kubectl create configmap player-cdn-config --from-file=/var/lib/jenkins/player_config/index_cdn.ejs --namespace {{namespace}}"
   when: sunbird_portal_cdn_url is not none and cdn_file_path is not none
 
 - name: rename template
   template:
     src: "{{ chart_path }}/values.j2"
     dest: "{{ chart_path }}/values.yaml"
-
 
 - name: helm install
   shell: helm upgrade --install {{ release_name }} {{ chart_path }}
