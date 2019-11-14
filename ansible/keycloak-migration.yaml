@@ -112,16 +112,8 @@
 
 # Ansible copy module doesn't copy directories recursively in remote servers so using shell module
     - name: Create backup of existing keycloak 3.2.0 version
-      shell: "cp -rf {{ keycloak_dir }}/{{ item }} {{ keycloak_dir }}_new/{{ item }} && chown -R keycloak:keycloak {{ keycloak_dir }}_new"
       become: yes
-      with_items:
-        - standalone
-        - domain
-        - modules/system/layers/keycloak/org/postgresql
-
-    - name: Create backup of existing keycloak 3.2.0 version as a backup
       shell: "cp -rf {{ keycloak_dir }} {{ keycloak_dir }}_old && chown -R keycloak:keycloak {{ keycloak_dir }}_old"
-      become: yes
 
     - name: make sure keycloak path exists
       become: yes
@@ -131,36 +123,30 @@
         owner: keycloak
         group: keycloak
 
-    - name: unarchive the compatible version of keycloak from the blob
+    - name: unarchive keycloak
       become: yes
       unarchive:
         src: https://sunbirdpublic.blob.core.windows.net/installation/keycloak-6.0.1.tar.gz
         dest: "{{ keycloak_dir }}_new"
         extra_opts: ['--strip-components=1']
+        remote_src: yes
         owner: keycloak
         group: keycloak
-        remote_src: yes
 
-# Ansible copy module doesn't copy directories recursively in remote servers so using shell module
     - name: Copying old files to new keycloak for migration
       become: yes
-      shell: "cp -rf {{ keycloak_dir }}/{{ item }}/ {{ keycloak_dir }}_new/{{ item }}/ && chown -R keycloak:keycloak {{ keycloak_dir }}/{{ item }}" 
+      become_user: keycloak
+      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }}/* {{ keycloak_dir }}_new/{{ item }}/"
       with_items:
         - standalone
         - domain
-        - modules/system/layers/keycloak/org/postgresql
 
-    - name: changing the permissions of keycloak directory
+    - name: Copying old files to new keycloak for migration
       become: yes
-      file:
-        path: "{{ item }}"
-        state: directory
-        recurse: yes
-        owner: keycloak
-        group: keycloak
+      become_user: keycloak
+      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }} {{ keycloak_dir }}_new/{{ item }}"
       with_items:
-        - "{{ keycloak_dir }}_new"
-        - "{{ keycloak_dir }}"
+        - modules/system/layers/keycloak/org/postgresql
 
     - name: Deleting unnecessary fields from standalone.xml file
       become: yes
@@ -185,12 +171,18 @@
         chdir: "{{ keycloak_dir }}_new"
       run_once: yes
 
-    - name: Starting keycloak in both the servers to make sure migration completed
+    - name: delete the old keycloak version from the server
+      file:
+        path: "{{ keycloak_dir }}"
+        state: absent
+        force: yes
+
+    - name: renaming the folder to make version 6 as the keycloak version
+      shell: "mv {{ keycloak_dir }}_new {{ keycloak_dir }}"
+
+    - name: Starting keycloak in both the servers 
       become: yes
-      become_user: keycloak
-      shell: "./bin/standalone.sh -b 0.0.0.0 -bprivate={{inventory_hostname}} --server-config standalone-ha.xml"
-      args:
-        chdir: "{{ keycloak_dir }}_new"
+      shell: "/etc/init.d/keycloak start"
 
     - name: get the list of all services in the system
       service_facts:
@@ -199,3 +191,4 @@
       service: name=monit state=started
       become: yes
       when: ansible_facts.services.monit is defined
+
