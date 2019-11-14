@@ -17,10 +17,12 @@
     - name: Get the list of all the services running in our OS
       service_facts:
 
-    - name: Stop the monit
+    - name: Stop the monit to ensure that it doesn't start keycloak
       service: name=monit state=stopped
       become: yes
       when: ansible_facts.services.monit is defined
+
+    - name: stop the keycloak server so that it will not cause any issues at time of migration
 
 - hosts: local
   vars_files:
@@ -39,6 +41,7 @@
         login_password: "{{ keycloak_postgres_password }}"
         login_host: "{{ keycloak_postgres_host }}"
         port: 5432
+
     - name: creating backup db {{ keycloak_postgres_database }}_301
       postgresql_db:
         name: "{{ keycloak_postgres_database }}_301"
@@ -47,6 +50,7 @@
         login_password: "{{ keycloak_postgres_password }}"
         login_host: "{{ keycloak_postgres_host }}"
       register: status
+
     - name: creating backup keycloak old db {{ keycloak_postgres_database }}_301 for the first time
       become: yes
       postgresql_db:
@@ -58,11 +62,13 @@
         login_host: "{{ keycloak_postgres_host }}"
         port: 5432
       when: status.changed
+
     - name: copying keycloak db revert script.
       copy:
         src: generic_templates/keycloak_301_rollback.sql
         dest: /tmp/keycloak_301_rollback.sql
       when: fail_db is defined
+
     - name: Reverting back the keycloak db if migration failed. Please use this with caution
       become: yes
       postgresql_db:
