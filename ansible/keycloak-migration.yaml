@@ -115,7 +115,7 @@
       copy:
         src: {{ keycloak_dir }}
         dest: {{ keycloak_dir }}_old
-        user: keycloak
+        owner: keycloak
         group: keycloak
         remote_src: true
 
@@ -140,16 +140,15 @@
     - name: Copying old files to new keycloak for migration
       become: yes
       become_user: keycloak
-      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }}/* {{ keycloak_dir }}_new/{{ item }}/"
+      copy:
+        src: "{{ keycloak_dir }}_old/{{ item }}/"
+        dest: "{{ keycloak_dir }}_new/{{ item }}/"
+        owner: keycloak
+        group: keycloak
+        remote_src: yes
       with_items:
         - standalone
         - domain
-
-    - name: Copying old files to new keycloak for migration
-      become: yes
-      become_user: keycloak
-      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }} {{ keycloak_dir }}_new/{{ item }}"
-      with_items:
         - modules/system/layers/keycloak/org/postgresql
 
     - name: Deleting unnecessary fields from standalone.xml file
@@ -173,11 +172,12 @@
         - "bin/jboss-cli.sh --file=bin/migrate-standalone-ha.cli"
       args:
         chdir: "{{ keycloak_dir }}_new"
+      run_once: yes
 
-    - name: Starting keycloak to make sure migration completed
+    - name: Starting keycloak in both the servers to make sure migration completed
       become: yes
       become_user: keycloak
-      shell: ./bin/standalone.sh -b 0.0.0.0 -bprivate=$(hostname -i) --server-config standalone-ha.xml
+      shell: "./bin/standalone.sh -b 0.0.0.0 -bprivate={{inventory_hostname}} --server-config standalone-ha.xml"
       args:
         chdir: "{{ keycloak_dir }}_new"
 
