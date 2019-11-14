@@ -24,3 +24,7 @@ DELETE FROM web_origins a USING web_origins b WHERE a.id < b.id AND a.client_id 
 select count(*) from public.web_origins;
 ALTER TABLE web_origins DROP COLUMN id;
 ALTER TABLE public.USER_ENTITY DROP COLUMN  NOT_BEFORE;
+select count(*) from offline_client_session;
+select count(*) from offline_user_session;
+delete from offline_user_session;
+delete from offline_client_session;
