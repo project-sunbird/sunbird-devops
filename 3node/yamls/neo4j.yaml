@@ -1,0 +1,110 @@
+---
+# Source: neo4j/templates/core-dns.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j
+  labels:
+    release: "neo4j"
+    app: neo4j
+    component: core
+spec:
+  clusterIP: None
+  ports:
+    - name: http
+      port: 7474
+      targetPort: 7474
+    - name: bolt
+      port: 7687
+      targetPort: 7687
+  selector:
+    app: neo4j
+    release: "neo4j"
+    component: core
+---
+# Source: neo4j/templates/core-statefulset.yaml
+apiVersion: "apps/v1beta2"
+kind: StatefulSet
+metadata:
+  name: "neo4j-core"
+spec:
+  serviceName: neo4j
+  replicas: 1
+  selector:
+    matchLabels:
+      release: "neo4j"
+      app: neo4j
+      component: core
+  template:
+    metadata:
+      labels:
+        release: "neo4j"
+        app: neo4j
+        component: core
+    spec:
+      containers:
+      - name: neo4j
+        image: "neo4j:3.3.5-enterprise"
+        imagePullPolicy: "IfNotPresent"
+        env:
+          - name: NEO4J_ACCEPT_LICENSE_AGREEMENT
+            value: "yes"
+          - name: NEO4J_dbms_mode
+            value: CORE
+          - name: NUMBER_OF_CORES
+            value: "3"
+          - name: AUTH_ENABLED
+            value: "false"
+          - name: NEO4J_causal__clustering_discovery__type
+            value: DNS
+          - name: NEO4J_causal__clustering_initial__discovery__members
+            value: "neo4j.default.svc.cluster.local:5000"
+        command:
+          - "/bin/bash"
+          - "-c"
+          - |
+            export NEO4J_dbms_connectors_default__advertised__address=$(hostname -f)
+            export NEO4J_causal__clustering_discovery__advertised__address=$(hostname -f):5000
+            export NEO4J_causal__clustering_transaction__advertised__address=$(hostname -f):6000
+            export NEO4J_causal__clustering_raft__advertised__address=$(hostname -f):7000
+
+            if [ "${AUTH_ENABLED:-}" == "true" ]; then
+              export NEO4J_AUTH="neo4j/${NEO4J_SECRETS_PASSWORD}"
+            else
+              export NEO4J_AUTH="none"
+            fi
+
+            exec /docker-entrypoint.sh "neo4j"
+        ports:
+        - containerPort: 5000
+          name: discovery
+        - containerPort: 7000
+          name: raft
+        - containerPort: 6000
+          name: tx
+        - containerPort: 7474
+          name: browser
+        - containerPort: 7687
+          name: bolt
+        volumeMounts:
+        - name: datadir
+          mountPath: "/data"
+        - name: plugins
+          mountPath: /plugins
+        resources:
+          {}
+          
+      volumes:
+        - name: plugins
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: datadir
+        annotations:
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: "local-path"
+        resources:
+          requests:
+            storage: "10Gi"
