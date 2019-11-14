@@ -112,12 +112,16 @@
 
 # Ansible copy module doesn't copy directories recursively in remote servers so using shell module
     - name: Create backup of existing keycloak 3.2.0 version
-      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }} {{ keycloak_dir }}_new/{{ item }} && chown -R keycloak:keycloak {{ keycloak_dir }}_new"
+      shell: "cp -rf {{ keycloak_dir }}/{{ item }} {{ keycloak_dir }}_new/{{ item }} && chown -R keycloak:keycloak {{ keycloak_dir }}_new"
       become: yes
       with_items:
         - standalone
         - domain
         - modules/system/layers/keycloak/org/postgresql
+
+    - name: Create backup of existing keycloak 3.2.0 version as a backup
+      shell: "cp -rf {{ keycloak_dir }} {{ keycloak_dir }}_old && chown -R keycloak:keycloak {{ keycloak_dir }}_old"
+      become: yes
 
     - name: make sure keycloak path exists
       become: yes
@@ -140,7 +144,7 @@
 # Ansible copy module doesn't copy directories recursively in remote servers so using shell module
     - name: Copying old files to new keycloak for migration
       become: yes
-      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }}/ {{ keycloak_dir }}_new/{{ item }}/ && chown -R keycloak:keycloak {{ keycloak_dir }}_old/{{ item }}" 
+      shell: "cp -rf {{ keycloak_dir }}/{{ item }}/ {{ keycloak_dir }}_new/{{ item }}/ && chown -R keycloak:keycloak {{ keycloak_dir }}/{{ item }}" 
       with_items:
         - standalone
         - domain
@@ -156,7 +160,6 @@
         group: keycloak
       with_items:
         - "{{ keycloak_dir }}_new"
-        - "{{ keycloak_dir }}_old"
         - "{{ keycloak_dir }}"
 
     - name: Deleting unnecessary fields from standalone.xml file
