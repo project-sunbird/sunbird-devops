@@ -94,11 +94,13 @@
       become: yes
       shell: /bin/bash -c "/etc/init.d/keycloak stop || pkill keycloak"
       failed_when: false
-    - name: Waiting for keycloak to exit
+
+    - name: Waiting for keycloak to stop completely
       wait_for:
         port: 8080
         state: stopped
         timeout: 30
+
     - name: deleting keycloak new and old directory if present
       become: yes
       file:
@@ -108,9 +110,11 @@
       with_items:
         - "{{ keycloak_dir }}_new"
         - "{{ keycloak_dir }}_old"
+
     - name: Backing up old keycloak
       become: yes
       shell: "cp -rf {{ keycloak_dir }} {{ keycloak_dir }}_old && chown -R keycloak:keycloak {{ keycloak_dir }}_old"
+
     - name: make sure keycloak path exists
       become: yes
       file:
@@ -118,6 +122,7 @@
         state: directory
         owner: keycloak
         group: keycloak
+
     - name: unarchive keycloak
       become: yes
       unarchive:
@@ -127,6 +132,7 @@
         remote_src: yes
         owner: keycloak
         group: keycloak
+
     - name: Copying old files to new keycloak for migration
       become: yes
       become_user: keycloak
@@ -134,12 +140,14 @@
       with_items:
         - standalone
         - domain
+
     - name: Copying old files to new keycloak for migration
       become: yes
       become_user: keycloak
       shell: "cp -rf {{ keycloak_dir }}_old/{{ item }} {{ keycloak_dir }}_new/{{ item }}"
       with_items:
         - modules/system/layers/keycloak/org/postgresql
+
     - name: Deleting unnecessary fields from standalone.xml file
       become: yes
       become_user: keycloak
@@ -151,6 +159,7 @@
         - '<property name="port_range">.*'
         - '<property name="timeout">.*'
         - '<property name="num_initial_members">.*'
+
     - name: Running migration
       become: yes
       become_user: keycloak
@@ -160,6 +169,7 @@
         - "bin/jboss-cli.sh --file=bin/migrate-standalone-ha.cli"
       args:
         chdir: "{{ keycloak_dir }}_new"
+
     - name: Starting keycloak to make sure migration completed
       become: yes
       become_user: keycloak
