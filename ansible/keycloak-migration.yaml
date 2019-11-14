@@ -15,6 +15,7 @@
     - "{{ inventory_dir }}/secrets.yml"
   tasks:
     - name: Get the list of all the services running in our OS
+      become: yes
       service_facts:
 
     - name: Stop the monit to ensure that it doesn't start keycloak
@@ -23,6 +24,9 @@
       when: ansible_facts.services.monit is defined
 
     - name: stop the keycloak server so that it will not cause any issues at time of migration
+      become: yes
+      shell: /bin/bash -c "/etc/init.d/keycloak stop || pkill keycloak"
+      failed_when: false
 
 - hosts: local
   vars_files:
@@ -31,7 +35,7 @@
     db_backup_name: "/root/keycloak{{ ansible_date_time.epoch }}.sql"
     no_log: true
   tasks:
-    - name: taking backup of keycloak db
+    - name: taking backup of existing DB
       become: yes
       postgresql_db:
         name: "{{ keycloak_postgres_database }}"
@@ -67,7 +71,6 @@
       copy:
         src: generic_templates/keycloak_301_rollback.sql
         dest: /tmp/keycloak_301_rollback.sql
-      when: fail_db is defined
 
     - name: Reverting back the keycloak db if migration failed. Please use this with caution
       become: yes
