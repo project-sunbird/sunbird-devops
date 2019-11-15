@@ -4662,8 +4662,8 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: rejectMigrate
-    uris: "{{ user_service_prefix }}/v1/migrate/reject"
-    upstream_url: "{{ learning_service_url }}/v1/user/migrate/reject"
+    uris: "{{ user_service_prefix }}/v1/migrate"
+    upstream_url: "{{ learning_service_url }}/v1/user/migrate"
     strip_uri: true
     plugins:
     - name: jwt
@@ -4706,6 +4706,22 @@ kong_apis:
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ large_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: userFeed
+    uris: "{{ user_service_prefix }}/v1/feed"
+    upstream_url: "{{ learning_service_url }}/v1/user/feed"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: publicUser
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
