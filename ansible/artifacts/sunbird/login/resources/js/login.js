@@ -4,7 +4,8 @@ function getQueryStringValue (key) {
 
 window.onload = function(){
 	var mergeaccountprocess = (new URLSearchParams(window.location.search)).get('mergeaccountprocess');
-	var version = (new URLSearchParams(window.location.search)).get('version');
+	var version = getValueFromSession('version');
+	var isForgetPasswordAllow = getValueFromSession('version');
 	var renderingType = 'queryParams';
 	if (!mergeaccountprocess) {
 		mergeaccountprocess = localStorage.getItem('mergeaccountprocess');
@@ -26,7 +27,7 @@ window.onload = function(){
 	addVersionToURL(version);
 	var error_message = (new URLSearchParams(window.location.search)).get('error_message');
 	var success_message = (new URLSearchParams(window.location.search)).get('success_message');
-	var version = (new URLSearchParams(window.location.search)).get('version');
+
 	if(error_message){
 		var error_msg = document.getElementById('error-msg');
 		error_msg.className = error_msg.className.replace("hide","");
@@ -38,13 +39,23 @@ window.onload = function(){
 	}
 	if (version >= 4) {
 		var forgotElement = document.getElementById("fgtPortalFlow");
-		forgotElement.className = forgotElement.className.replace("hide","");
+		if(forgotElement){
+			forgotElement.className = forgotElement.className.replace("hide","");
+		}
 	} else {
 		var forgotElement = document.getElementById("fgtKeycloakFlow");
-		forgotElement.className = forgotElement.className.replace("hide","");
-		forgotElement.href = forgotElement.href + '&version=' + version ;
+		if(forgotElement){
+			forgotElement.className = forgotElement.className.replace("hide","");
+			forgotElement.href = forgotElement.href + '&version=' + version ;
+		}
 	}
-
+	if(!version && isForgetPasswordAllow >=4 ){
+		hideElement("fgtKeycloakFlow");
+		var forgotElement = document.getElementById("fgtPortalFlow");
+		if(forgotElement){
+			forgotElement.className = forgotElement.className.replace("hide","");
+		}
+	}
 	if (mergeaccountprocess === '1') {
 		hideElement("kc-registration");
 		hideElement("stateButton");
@@ -75,12 +86,7 @@ window.onload = function(){
 			mergeAccountMessage.className = mergeAccountMessage.className.replace("hide", "");
 		}
 	}
-
-	var response_type = (new URLSearchParams(window.location.search)).get('response_type');
-	if ((new URLSearchParams(window.location.search)).get('automerge') !== '1' && response_type === 'code') {
-		localStorage.clear();
-	}
-	var autoMerge = getValue('automerge');
+	var autoMerge = getValueFromSession('automerge');
 	if (autoMerge === '1') {
 		decoratePage('autoMerge');
 		storeValueForMigration();
@@ -88,13 +94,28 @@ window.onload = function(){
 };
 
 var storeValueForMigration = function () {
-	// storing values in localstorage for future references
-	localStorage.setItem('automerge', getValue('automerge'));
-	localStorage.setItem('goBackUrl', getValue('goBackUrl'));
-	localStorage.setItem('identifierValue', getValue('identifierValue'));
-	localStorage.setItem('identifierType', getValue('identifierType'));
-	localStorage.setItem('userId', getValue('userId'));
+	// storing values in sessionStorage for future references
+	sessionStorage.setItem('automerge', getValueFromSession('automerge'));
+	sessionStorage.setItem('goBackUrl', getValueFromSession('goBackUrl'));
+	sessionStorage.setItem('identifierValue', getValueFromSession('identifierValue'));
+	sessionStorage.setItem('identifierType', getValueFromSession('identifierType'));
+	sessionStorage.setItem('userId', getValueFromSession('userId'));
 };
+var getValueFromSession = function (valueId) {
+	var value = (new URLSearchParams(window.location.search)).get(valueId);
+	if (value) {
+		sessionStorage.setItem(valueId, value);
+		sessionStorage.setItem('renderingType', 'queryParams');
+		return value
+	} else {
+		value = sessionStorage.getItem(valueId);
+		if (value) {
+			sessionStorage.setItem('renderingType', 'sessionStorage');
+		}
+		return value
+	}
+};
+
 
 var getValue = function (valueId) {
 	var value = (new URLSearchParams(window.location.search)).get(valueId);
@@ -113,12 +134,16 @@ var getValue = function (valueId) {
 
 var decoratePage = function (pageType) {
 	if (pageType === 'autoMerge') {
-		var identifierValue = getValue('identifierValue');
-		var goBackUrl = getValue('goBackUrl');
+		var identifierValue = getValueFromSession('identifierValue');
+		var goBackUrl = getValueFromSession('goBackUrl');
 		var signIn = document.getElementById("signIn");
 		if (signIn) {
 			signIn.innerText = 'Merge Account';
 			signIn.classList.add('fs-22');
+		}
+		var loginButton = document.getElementById("login");
+		if (loginButton) {
+			loginButton.innerText = 'Next';
 		}
 		setElementValue('username', identifierValue);
 
@@ -131,11 +156,11 @@ var decoratePage = function (pageType) {
 		if (goBackElement) {
 			goBackElement.href = goBackUrl;
 		}
-		if (localStorage.getItem('renderingType') === 'localStorage') {
+		if (sessionStorage.getItem('renderingType') === 'sessionStorage') {
 			unHideElement('selfSingUp');
 			var errorElement = document.getElementById('error-summary');
 			if (errorElement) {
-				if (errorElement.innerText === 'Invalid email ID/Mobile number or password. Please try again with valid credentials') {
+				if (errorElement.innerText === 'Invalid email Address/Mobile number or password. Please try again with valid credentials') {
 					unHideElement('inCorrectPasswordError');
 					handlePasswordFailure();
 				}
@@ -149,12 +174,12 @@ var decoratePage = function (pageType) {
 };
 
 var handlePasswordFailure = function () {
-	var passwordFailCount = Number(localStorage.getItem('passwordFailCount') || 0);
+	var passwordFailCount = Number(sessionStorage.getItem('passwordFailCount') || 0);
 	passwordFailCount = passwordFailCount + 1;
-	localStorage.setItem('passwordFailCount', passwordFailCount);
+	sessionStorage.setItem('passwordFailCount', passwordFailCount);
 	if (passwordFailCount >= 2) {
-		const url = '/sign-in/sso/auth?status=error' + '&identifierType=' + getValue('identifierType');
-		const query = '&userId=' + getValue('userId') + '&identifierValue=' + getValue('identifierValue');
+		const url = '/sign-in/sso/auth?status=error' + '&identifierType=' + getValueFromSession('identifierType');
+		const query = '&userId=' + getValueFromSession('userId') + '&identifierValue=' + getValueFromSession('identifierValue');
 		window.location.href = window.location.protocol + '//' + window.location.host + url + query;
 	}
 };
@@ -199,7 +224,7 @@ var makeDivUnclickable = function() {
 };
 
 var inputBoxFocusIn = function(currentElement){
-	var autoMerge = getValue('automerge');
+	var autoMerge = getValueFromSession('automerge');
 	if (autoMerge === '1') {
 		return;
 	}
@@ -211,7 +236,7 @@ var inputBoxFocusIn = function(currentElement){
 	}
 };
 var inputBoxFocusOut = function (currentElement) {
-	var autoMerge = getValue('automerge');
+	var autoMerge = getValueFromSession('automerge');
 	if (autoMerge === '1') {
 		return;
 	}
@@ -261,7 +286,7 @@ var urlMap = {
 	self: '/signup'
 }
 var navigate = function(type) {
-	var version = getQueryStringValue("version");
+	var version = getValueFromSession('version');
 	if(version == '1' || version == '2') {
 		if(type == 'google' || type == 'self'){
 			redirect(urlMap[type]);
@@ -276,30 +301,24 @@ var navigate = function(type) {
 		}
 	}
 }
-var redirect  = (redirectUrlPath) => {
-	console.log('redirect', redirectUrlPath)
-	const curUrlObj = window.location;
-	var redirect_uri = (new URLSearchParams(curUrlObj.search)).get('redirect_uri');
-	var client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
-	const sessionUrl = sessionStorage.getItem('url');
-	if (redirect_uri) {
-		const updatedQuery = curUrlObj.search + '&error_callback=' + curUrlObj.href.split('?')[0];
-		const redirect_uriLocation = new URL(redirect_uri);
-		sessionStorage.setItem('url', window.location.href);
 
-		if(client_id === 'android'){
-            window.location.href = curUrlObj.protocol + '//' + curUrlObj.host + redirectUrlPath + updatedQuery;
-		}
-		else
-		{
-			window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + redirectUrlPath + updatedQuery;
-		}
-	} else if (sessionUrl) {
+var initialize = () => {
+	getValueFromSession('redirect_uri');
+	if (!sessionStorage.getItem('session_url')) {
+		sessionStorage.setItem('session_url', window.location.href);
+	}
+};
+
+initialize();
+
+var forgetPassword = (redirectUrlPath) => {
+	const curUrlObj = window.location;
+	var redirect_uri = getValueFromSession('redirect_uri');
+	var client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
+	const sessionUrl = sessionStorage.getItem('session_url');
+	if (sessionUrl) {
 		const sessionUrlObj = new URL(sessionUrl);
 		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
-		redirect_uri = (new URLSearchParams(sessionUrlObj.search)).get('redirect_uri');
-		client_id = (new URLSearchParams(sessionUrlObj.search)).get('client_id');
-
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
 			if(client_id === 'android'){
@@ -307,7 +326,32 @@ var redirect  = (redirectUrlPath) => {
 			}
 			else{
 				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
-				redirectUrlPath + updatedQuery;
+					redirectUrlPath + updatedQuery;
+			}
+		} else {
+			redirectToLib();
+		}
+	} else {
+		redirectToLib();
+	}
+}
+
+var redirect  = (redirectUrlPath) => {
+	console.log('redirect', redirectUrlPath)
+	const curUrlObj = window.location;
+	var redirect_uri = getValueFromSession('redirect_uri');
+	var client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
+	const sessionUrl = sessionStorage.getItem('session_url');
+	if (sessionUrl) {
+		const sessionUrlObj = new URL(sessionUrl);
+		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
+		if (redirect_uri) {
+			const redirect_uriLocation = new URL(redirect_uri);
+			if (client_id === 'android') {
+				window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
+			} else {
+				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
+					redirectUrlPath + updatedQuery;
 			}
 		} else {
 			redirectToLib();
@@ -317,109 +361,73 @@ var redirect  = (redirectUrlPath) => {
 	}
 };
 var handleSsoEvent  = () => {
-  const ssoPath = '/sign-in/sso/select-org';
-  const curUrlObj = window.location;
-  let redirect_uri = (new URLSearchParams(curUrlObj.search)).get('redirect_uri');
-  let client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
-  const sessionUrl = sessionStorage.getItem('url');
-  if (redirect_uri) {
-    const redirect_uriLocation = new URL(redirect_uri);
-    sessionStorage.setItem('url', window.location.href);
-    if (client_id === 'android') {
-      const ssoUrl = curUrlObj.protocol + '//' + curUrlObj.host + ssoPath;
-      window.location.href = redirect_uri + '?ssoUrl=' + ssoUrl;
-    } else {
-      window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + ssoPath;
-    }
-  } else if (sessionUrl) {
-    const sessionUrlObj = new URL(sessionUrl);
-    redirect_uri = (new URLSearchParams(sessionUrlObj.search)).get('redirect_uri');
-    client_id = (new URLSearchParams(sessionUrlObj.search)).get('client_id');
-    if (redirect_uri) {
-      const redirect_uriLocation = new URL(redirect_uri);
-      if (client_id === 'android') {
-        const ssoUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + ssoPath;
-        window.location.href = redirect_uri + '?ssoUrl=' + ssoUrl;
-      } else {
-        window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + ssoPath;
-      }
-    } else {
-      redirectToLib();
-    }
-  } else {
-    redirectToLib();
-  }
+	const ssoPath = '/sign-in/sso/select-org';
+	const curUrlObj = window.location;
+	let redirect_uri = getValueFromSession('redirect_uri');
+	let client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
+	const sessionUrl = sessionStorage.getItem('session_url');
+	if (sessionUrl) {
+		const sessionUrlObj = new URL(sessionUrl);
+		if (redirect_uri) {
+			const redirect_uriLocation = new URL(redirect_uri);
+			if (client_id === 'android') {
+				const ssoUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + ssoPath;
+				window.location.href = redirect_uri + '?ssoUrl=' + ssoUrl;
+			} else {
+				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + ssoPath;
+			}
+		} else {
+			redirectToLib();
+		}
+	} else {
+		redirectToLib();
+	}
 };
 var handleGoogleAuthEvent = () => {
-  const googleAuthUrl = '/google/auth';
-  const curUrlObj = window.location;
-  let redirect_uri = (new URLSearchParams(curUrlObj.search)).get('redirect_uri');
-  let client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
-  const updatedQuery = curUrlObj.search + '&error_callback=' + curUrlObj.href.split('?')[0];
-  const sessionUrl = sessionStorage.getItem('url');
-  if (redirect_uri) {
-    const redirect_uriLocation = new URL(redirect_uri);
-    sessionStorage.setItem('url', window.location.href);
-    if (client_id === 'android') {
-      const googleRedirectUrl = curUrlObj.protocol + '//' + curUrlObj.host + googleAuthUrl;
-      window.location.href = redirect_uri + '?googleRedirectUrl=' + googleRedirectUrl  + updatedQuery;
-    } else {
-      window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + googleAuthUrl + updatedQuery;
-    }
-  } else if (sessionUrl) {
-    const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
-    const sessionUrlObj = new URL(sessionUrl);
-    redirect_uri = (new URLSearchParams(sessionUrlObj.search)).get('redirect_uri');
-    client_id = (new URLSearchParams(sessionUrlObj.search)).get('client_id');
-    if (redirect_uri) {
-      const redirect_uriLocation = new URL(redirect_uri);
-      if (client_id === 'android') {
-        const googleRedirectUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + googleAuthUrl;
-        window.location.href = redirect_uri + '?googleRedirectUrl=' + googleRedirectUrl + updatedQuery;
-      } else {
-        window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + googleAuthUrl + updatedQuery;
-      }
-    } else {
-      redirectToLib();
-    }
-  } else {
-    redirectToLib();
-  }
+	const googleAuthUrl = '/google/auth';
+	const curUrlObj = window.location;
+	let redirect_uri = getValueFromSession('redirect_uri');
+	let client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
+	const updatedQuery = curUrlObj.search + '&error_callback=' + curUrlObj.href.split('?')[0];
+	const sessionUrl = sessionStorage.getItem('session_url');
+	if (sessionUrl) {
+		const sessionUrlObj = new URL(sessionUrl);
+		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
+		if (redirect_uri) {
+			const redirect_uriLocation = new URL(redirect_uri);
+			if (client_id === 'android') {
+				const googleRedirectUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + googleAuthUrl;
+				window.location.href = redirect_uri + '?googleRedirectUrl=' + googleRedirectUrl + updatedQuery;
+			} else {
+				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + googleAuthUrl + updatedQuery;
+			}
+		} else {
+			redirectToLib();
+		}
+	} else {
+		redirectToLib();
+	}
 };
 var redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and self signUp
-  const curUrlObj = window.location;
-  var redirect_uri = (new URLSearchParams(curUrlObj.search)).get('redirect_uri');
-  var client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
-  const sessionUrl = sessionStorage.getItem('url');
-  if (redirect_uri) {
-    const updatedQuery = curUrlObj.search + '&error_callback=' + curUrlObj.href.split('?')[0];
-    const redirect_uriLocation = new URL(redirect_uri);
-    sessionStorage.setItem('url', window.location.href);
-
-    if (client_id === 'android') {
-      window.location.href = curUrlObj.protocol + '//' + curUrlObj.host + redirectUrlPath + updatedQuery;
-    } else {
-      window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + redirectUrlPath + updatedQuery;
-    }
-  } else if (sessionUrl) {
-    const sessionUrlObj = new URL(sessionUrl);
-    const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
-    redirect_uri = (new URLSearchParams(sessionUrlObj.search)).get('redirect_uri');
-    client_id = (new URLSearchParams(sessionUrlObj.search)).get('client_id');
-
-    if (redirect_uri) {
-      const redirect_uriLocation = new URL(redirect_uri);
-      if (client_id === 'android') {
-        window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
-      }
-      else {
-        window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
-          redirectUrlPath + updatedQuery;
-      }
-    } else {
-      redirectToLib();
-    }
-  } else {
-    redirectToLib();
-  }
+	const curUrlObj = window.location;
+	var redirect_uri = getValueFromSession('redirect_uri');
+	var client_id = (new URLSearchParams(curUrlObj.search)).get('client_id');
+	const sessionUrl = sessionStorage.getItem('session_url');
+	if (sessionUrl) {
+		const sessionUrlObj = new URL(sessionUrl);
+		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
+		if (redirect_uri) {
+			const redirect_uriLocation = new URL(redirect_uri);
+			if (client_id === 'android') {
+				window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
+			} else {
+				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
+					redirectUrlPath + updatedQuery;
+			}
+		} else {
+			redirectToLib();
+		}
+	} else {
+		redirectToLib();
+	}
 };
