@@ -2,11 +2,11 @@
 ## Please, note that this will override the image parameters, including dependencies, configured to use the global value
 ## Current available global Docker image parameters: imageRegistry and imagePullSecrets
 ##
-global:
+# global:
 #   imageRegistry: myRegistryName
 #   imagePullSecrets:
 #     - myRegistryKeySecretName
-  # storageClass: local-path
+#   storageClass: myStorageClass
 
 ## Bitnami Cassandra image version
 ## ref: https://hub.docker.com/r/bitnami/cassandra/tags/
@@ -99,7 +99,7 @@ persistence:
   ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
   ##   GKE, AWS & OpenStack)
   ##
-  storageClass: "local-path"
+  # storageClass: "-"
   ## Persistent Volume Claim annotations
   ##
   annotations:
@@ -134,14 +134,14 @@ resources: {}
 ##
 cluster:
   name: cassandra
-  replicaCount: 1
-  seedCount: 1
+  replicaCount: 3
+  seedCount: 2
   numTokens: 256
   datacenter: dc1
   rack: rack1
   enableRPC: true
   endpointSnitch: SimpleSnitch
-  minimumAvailable: 1
+  minimumAvailable: 2
   ## Encryption values. NOTE: They require tlsEncryptionSecretName
   internodeEncryption: none
   clientEncryption: false
@@ -162,8 +162,8 @@ jvm:
 ##
 dbUser:
   user: cassandra
-  forcePassword: false
-  password: password
+  forcePassword: true
+  # password:
   # existingSecret:
 
 ## ConfigMap with cql scripts. Useful for creating a keyspace
@@ -235,7 +235,7 @@ cmd: "/run.sh"
 networkPolicy:
   ## Specifies whether a NetworkPolicy should be created
   ##
-  enabled: false
+  enabled: true
 
   ## The Policy model to apply. When set to false, only pods with the correct
   ## client label will have network access to the port Redis is listening
@@ -248,7 +248,7 @@ networkPolicy:
 ## Ref: https://github.com/criteo/cassandra_exporter
 ##
 metrics:
-  enabled: false
+  enabled: true
   image:
     registry: docker.io
     pullPolicy: IfNotPresent
