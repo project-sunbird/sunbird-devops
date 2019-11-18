@@ -6,7 +6,7 @@ apt-get update && apt-get install -y \
     nodejs npm libffi-dev libxml2-dev libxslt-dev \
     postgresql-client
 
-pip install psycopg2
+pip install psycopg2-binary
 
 # Cloning source code of badger
 cd /badger
