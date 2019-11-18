@@ -79,6 +79,22 @@ cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
 rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
 ###
 
+# Install Helm version 2
+echo -e "\n\e[0;32m${bold}Installating Helm${normal}"
+wget https://get.helm.sh/helm-v2.15.2-linux-amd64.tar.gz
+tar -xzvf helm-v2.15.2-linux-amd64.tar.gz
+cp linux-amd64/helm /usr/local/bin/helm
+rm -rf helm-v* linux-amd*
+
+# Install kubectl
+echo -e "\n\e[0;32m${bold}Installating kubectl${normal}"
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+touch /etc/apt/sources.list.d/kubernetes.list
+echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+apt-get update
+apt-get install -y kubectl
+
+
 echo -e "\n\e[0;32m${bold}Installating Docker-py${normal}"
 pip install docker-py
 
