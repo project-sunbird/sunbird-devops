@@ -41,9 +41,9 @@
                         </label>
                         <#ftl autoesc=false>
                         <#if usernameEditDisabled??>
-                        <input placeholder="${msg('usernamePlaceholder')}" class="mt-8" id="username" name="username" value="${(login.username!'')?html}" type="text" disabled />
+                        <input placeholder="${msg('usernamePlaceholder')}" class="mt-8" id="username" name="username" type="text" disabled />
                         <#else>
-                        <input placeholder="${msg('usernamePlaceholder')}" class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" value="${(login.username!'')?html}" type="text" autofocus autocomplete="off" />
+                        <input placeholder="${msg('usernamePlaceholder')}" class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="off" />
                         </#if>
                     </div>
                     <div class="field">
