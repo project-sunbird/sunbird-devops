@@ -160,7 +160,8 @@ var decoratePage = function (pageType) {
 			unHideElement('selfSingUp');
 			var errorElement = document.getElementById('error-summary');
 			if (errorElement) {
-				if (errorElement.innerText === 'Invalid Email Address/Mobile number or password. Please try again with valid credentials') {
+				var errorMessage = 'Invalid Email Address/Mobile number or password. Please try again with valid credentials';
+				if (errorElement.innerText.toLowerCase() === errorMessage.toLowerCase()) {
 					unHideElement('inCorrectPasswordError');
 					handlePasswordFailure();
 				}
