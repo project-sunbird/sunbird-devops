@@ -9,21 +9,19 @@
 
 - name: copy new index file
   copy: src="{{cdn_file_path}}" dest="/var/lib/jenkins/player_config/index_cdn.ejs" mode=0644
-  when: sunbird_portal_cdn_url is not none and cdn_file_path is not none
-  ignore_errors: true
+  when: sunbird_portal_cdn_url is undefined and cdn_file_path is undefined
 
 - name: remove whitespaces in index file
   shell: 'sed -i s/\\s\\+$//e /var/lib/jenkins/player_config/index_cdn.ejs'
-  when: sunbird_portal_cdn_url is not none and cdn_file_path is not none
-  ignore_errors: true
-  
+  when: sunbird_portal_cdn_url is undefined and cdn_file_path is undefined
+
 - name: Remove the existing CDN config
   shell: "kubectl delete configmap player-cdn-config --namespace={{namespace}}"
   ignore_errors: true
 
 - name: Create player-cdn configmap
   shell: "kubectl create configmap player-cdn-config --from-file=/var/lib/jenkins/player_config/index_cdn.ejs --namespace={{namespace}}"
-  when: sunbird_portal_cdn_url is not none and cdn_file_path is not none
+  when: sunbird_portal_cdn_url is undefined and cdn_file_path is undefined
 
 - name: rename template
   template:
