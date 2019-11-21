@@ -61,8 +61,6 @@ fi
 # Generating configs
 config() { 
     sudo ./install-deps.sh
-    ansible-playbook -i "localhost," -c local ../ansible/generate-hosts.yml --extra-vars @config.yml --extra-vars "host_path=$ansible_variable_path"
-    .sunbird/generate_host.sh  > $ansible_variable_path/hosts 2>&1 /dev/null
 }
 
 
@@ -87,9 +85,6 @@ apis() { ./deploy-apis.sh $ansible_variable_path; }
 keycloak() {  
     ./bootstrap-keycloak.sh $ansible_variable_path
 }
-
-# badger
-badger() { ./deploy-badger.sh $ansible_variable_path; }
 
 # Core
 core() { ./deploy-core.sh $ansible_variable_path; }
@@ -208,7 +203,6 @@ echo """
 """
 
 ## Installing and configuring prerequisites
-echo -e \n$(date)\n >> logs/validateconfig.log; validateconfig 2>&1 | tee -a logs/validateconfig.log
 echo -e \n$(date)\n >> logs/config.log; config 2>&1 | tee -a logs/config.log
 ## checking for prerequisites
 echo -e \n$(date)\n >> logs/sanity.log; sanity 2>&1 | tee -a logs/sanity.log
