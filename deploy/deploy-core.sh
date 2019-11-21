@@ -28,7 +28,3 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird"
 echo "Redeploy content service"
 ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=content-service image_tag=${CONTENT_SERVICE_VERSION} service_name=content-service deploy_content=True sunbird_api_auth_token=${sunbird_api_auth_token} vault_badging_authorization_key=${badger_token}" --extra-vars @config.yml
 
-#Telemetry-Service
-echo "Redeploy Telemetry service"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=telemetry-service image_tag=${TELEMETRY_SERVICE_VERSION} service_name=telemetry-service deploy_telemetry=True" --extra-vars @config.yml
-
