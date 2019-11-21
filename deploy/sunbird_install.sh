@@ -65,10 +65,6 @@ config() {
     .sunbird/generate_host.sh  > $ansible_variable_path/hosts 2>&1 /dev/null
 }
 
-# Sanity check
-sanity() {
-    ./sanity.sh $ssh_ansible_user $ansible_private_key_path
-}
 
 configservice() {
 	echo "Deploy Config service"
