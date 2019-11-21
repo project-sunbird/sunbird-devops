@@ -83,9 +83,6 @@ dbs() { ./install-dbs.sh $ansible_variable_path; ./init-dbs.sh $ansible_variable
 # Apis
 apis() { ./deploy-apis.sh $ansible_variable_path; }
 
-# Proxy
-proxy() { ./deploy-proxy.sh $ansible_variable_path; }
-
 # Keycloak
 keycloak() {  
     ./provision-keycloak.sh $ansible_variable_path
