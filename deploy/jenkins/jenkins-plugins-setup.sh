@@ -9,8 +9,8 @@ read -sp 'Jenkins admin Password: ' password
 
 if [[ ! -d /var/lib/jenkins/.m2 ]]; then
 echo -e "\n\e[0;32m${bold}Downloading and copying m2 directory to Jenkins ${normal}"
-wget https://sunbirdpublic.blob.core.windows.net/installation/m2_new.zip
-unzip m2_new.zip
+wget https://sunbirdpublic.blob.core.windows.net/installation/m2_updated.zip
+unzip m2_updated.zip
 mv .m2 /var/lib/jenkins
 chown -R jenkins:jenkins /var/lib/jenkins/.m2
 fi
