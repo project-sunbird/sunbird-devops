@@ -63,12 +63,6 @@ config() {
     sudo ./install-deps.sh
 }
 
-
-configservice() {
-	echo "Deploy Config service"
-	ansible-playbook -i $ansible_variable_path ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=config-service image_tag=${CONFIG_SERVICE_VERSION} service_name=config-service deploy_config=True" --extra-vars @config.yml
-}
-
 # Installing dependencies
 deps() { 
 ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config.yml 
