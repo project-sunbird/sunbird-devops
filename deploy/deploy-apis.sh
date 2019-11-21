@@ -17,8 +17,8 @@ ADMIN_UTILS_VERSION=0.0.1-SNAPSHOT-gold
 
 # Onboard APIs
 echo "@@@@@@@@@ Onboard APIs"
-ansible-playbook -i $INVENTORY_PATH ../ansible/api-manager.yml --tags kong-api --extra-vars kong_admin_api_url=http://$kong_admin_api_url:8001 --extra-vars=@config.yml
+ansible-playbook -i $INVENTORY_PATH ../ansible/api-manager.yml --tags kong-api --extra-vars kong_admin_api_url=http://localhost:31801 --extra-vars=@config.yml
 
 # Onboard Consumers
 echo "@@@@@@@@@ Onboard Consumers"
-ansible-playbook -v -i $INVENTORY_PATH ../ansible/api-manager.yml --tags kong-consumer --extra-vars kong_admin_api_url=http://$kong_admin_api_url:8001 --extra-vars=@config.yml
+ansible-playbook -v -i $INVENTORY_PATH ../ansible/api-manager.yml --tags kong-consumer --extra-vars kong_admin_api_url=http://localhost:31801 --extra-vars=@config.yml
