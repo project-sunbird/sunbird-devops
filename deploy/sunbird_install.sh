@@ -74,7 +74,6 @@ configservice() {
 # Installing dependencies
 deps() { 
 ansible-playbook -i $ansible_variable_path/hosts ../ansible/sunbird_prerequisites.yml --extra-vars @config.yml 
-ansible-playbook -i $ansible_variable_path/hosts ../ansible/setup-dockerswarm.yml --extra-vars @config.yml
 }
 
 
