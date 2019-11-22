@@ -11,19 +11,18 @@ node() {
             checkout scm
         }
         ansiColor('xterm') {
-            stage('get artifact') {
-                values = lp_dp_params()
-                currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                artifact = values.artifact_name + ":" + values.artifact_version
-                values.put('currentWs', currentWs)
-                values.put('artifact', artifact)
-                artifact_download(values)
-            }
             stage ('Keycloak migration') {
+                values = [:]
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                 ansiblePlaybook = "${currentWs}/ansible/keycloak-migration.yaml"
-                ansibleExtraArgs = """\
-                        --extra-vars keycloak_zip=${currentWs}/${artifact} --vault-password-file /var/lib/jenkins/secrets/vault-pass -v
-                        """.stripIndent().replace("\n", " ")
+                ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                values.put('currentWs', currentWs)
+                values.put('env', envDir)
+                values.put('module', module)
+                values.put('jobName', jobName)
                 values.put('ansiblePlaybook', ansiblePlaybook)
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 println values
