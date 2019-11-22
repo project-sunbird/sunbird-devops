@@ -39,10 +39,10 @@
                             </#if>
                         </label>
                         <#if usernameEditDisabled??>
-                        <input class="mt-8" id="username" name="username" value="${(login.username!'')?html}" type="text" disabled />
+                          <#-- TODO: need to find alternative for prepopulating username -->
+                        <input class="mt-8" id="username" name="username" type="text" disabled />
                         <#else>
-                        <input class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" value="${(login.username!'')?html}" type="text" autofocus autocomplete="off" />
-                        </#if>
+                        <input class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="off" />                        </#if>
                     </div>
                     <div class="field">
                         <div>
