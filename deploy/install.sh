@@ -11,4 +11,4 @@ echo $INVENTORY_PATH
 module=Core
 # Creating inventory strucure
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
-ansible-playbook -i $INVENTORY_PATH ../ansible/provision.yml --skip-tags  postgresql-slave --extra-vars=@config.yml
+ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --skip-tags  postgresql-slave
