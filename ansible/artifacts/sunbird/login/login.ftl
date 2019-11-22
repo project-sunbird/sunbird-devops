@@ -1,6 +1,5 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayInfo=social.displayInfo; section>
-<#ftl autoesc=false>
 <#if section = "title">
     ${msg("loginTitle",(realm.displayName!''))}
     <#elseif section = "header">
@@ -39,11 +38,11 @@
                             <#else>${msg("email")}
                             </#if>
                         </label>
-                        <#ftl autoesc=false>
-                        <#if usernameEditDisabled??>
-                        <input placeholder="${msg('usernamePlaceholder')}" class="mt-8" id="username" name="username" value="${(login.username!'')?html}" type="text" disabled />
+                         <#if usernameEditDisabled??>
+                          <#-- TODO: need to find alternative for prepopulating username -->
+                        <input class="mt-8" id="username" name="username" type="text" disabled />
                         <#else>
-                        <input placeholder="${msg('usernamePlaceholder')}" class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" value="${(login.username!'')?html}" type="text" autofocus autocomplete="off" />
+                        <input class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="off" />
                         </#if>
                     </div>
                     <div class="field">
