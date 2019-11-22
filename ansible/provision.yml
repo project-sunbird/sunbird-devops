@@ -1,14 +1,3 @@
-- hosts: cassandra
-  become: yes
-  vars_files:
-    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-  roles:
-   - jre-1.8.0_144
-   - cassandra
-   - cassandra-cql-update
-  tags:
-   - cassandra
-
 - hosts: es
   become: yes
   vars_files:
@@ -36,6 +25,7 @@
     - curl_es_command
   tags:
     - es
+
 
 - hosts: log-es
   gather_facts: true
@@ -73,3 +63,16 @@
     - postgresql-slave
   tags:
     - postgresql-slave
+
+# Have to run cassandra provision at last because of java depenendecy issues
+# workaround for cassandra gets uninstalled
+- hosts: cassandra
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+   - jre-1.8.0_144
+   - cassandra
+   - cassandra-cql-update
+  tags:
+   - cassandra
