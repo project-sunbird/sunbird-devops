@@ -1,3 +1,12 @@
+- name: Get the list of all the services running in our OS
+  become: yes
+  service_facts:
+
+- name: Stop the monit to ensure that it doesn't start keycloak
+  service: name=monit state=stopped
+  become: yes
+  when: ansible_facts.services.monit is defined
+
 - name: Status service
   become: true
   command: /etc/init.d/keycloak status
@@ -177,3 +186,12 @@
   command: /etc/init.d/keycloak start
   poll: 5
   async: 5
+
+- name: get the list of all services in the system
+  become: yes
+  service_facts:
+
+- name: After succesful migration and staring of keycloak, start back monit if installed
+  service: name=monit state=started
+  become: yes
+  when: ansible_facts.services.monit is defined
