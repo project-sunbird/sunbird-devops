@@ -105,3 +105,22 @@ groups:
     annotations:
       description: '{{ env_name }}.telemetry.assess consumer group lag is {% raw %}{{$value}}{% endraw %} for partition: {% raw %}{{ $labels.partition }}{% endraw %}'
       summary: secor consumer group lag is more for {{ env_name }}.telemetry.assess
+### kafkaindexer logstash lag alertrules
+  - alert: kafkaindexer logstash {{ env_name }}.pipeline.metrics consumer group lag
+    expr: kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ env_name }}.pipeline.metrics"} > {{ telemetry_pipelinemetrics_threshold }}
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: '{{ env_name }}.pipeline.metrics consumer group lag is {% raw %}{{$value}}{% endraw %} for partition: {% raw %}{{ $labels.partition }}{% endraw %}'
+      summary: kafkaindexer logstash consumer group lag is more for {{ env_name }}.pipeline.metrics
+
+  - alert: kafkaindexer logstash {{ env_name }}.analytics.metrics consumer group lag
+    expr: kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ env_name }}.analytics.metrics"} > {{ telemetry_analyticsmetrics_threshold }}
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: '{{ env_name }}.analytics.metrics consumer group lag is {% raw %}{{$value}}{% endraw %} for partition: {% raw %}{{ $labels.partition }}{% endraw %}'
+      summary: kafkaindexer logstash consumer group lag is more for {{ env_name }}.analytics.metrics
+### End of logstash lag alert rules      
