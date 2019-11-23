@@ -16,5 +16,13 @@ ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.
 
 # # Bootstrapping k8s
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
-# # Installing API manager and onboarding apis
+# # Installing API manager
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e release_name=apimanager -v
+
+# Onboaring apis
+echo "@@@@@@@@@ Onboard APIs"
+ansible-playbook -i $INVENTORY_PATH ../ansible/api-manager.yml --tags kong-api --extra-vars kong_admin_api_url=http://localhost:31801 --extra-vars=@config.yml
+
+# Onboard Consumers
+echo "@@@@@@@@@ Onboard Consumers"
+ansible-playbook -v -i $INVENTORY_PATH ../ansible/api-manager.yml --tags kong-consumer --extra-vars kong_admin_api_url=http://localhost:31801 --extra-vars=@config.yml
