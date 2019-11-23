@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Installing deps
-# sudo ./install-deps.sh
+bash install-deps.sh
 
 # installing dbs
 # Installing all dbs
@@ -15,6 +15,6 @@ ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --tags po
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml --tags postgresql-master #--skip-tags "postgresql-slave,log-es"
 
 # # Bootstrapping k8s
-# ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
+ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
 # # Installing API manager and onboarding apis
-# ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e release_name=apimanager -v
+ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e release_name=apimanager -v
