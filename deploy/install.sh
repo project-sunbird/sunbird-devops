@@ -32,7 +32,7 @@ ansible-playbook -v -i ../ansible/inventory/env/ ../ansible/api-manager.yml --ta
 jwt_token=$(sudo cat /root/jwt_token_player.txt)
 
 services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
-for service in $(cat $services);
+for service in $services;
 do
   ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} core_vault_kong__test_jwt=${jwt_token}"
 done
