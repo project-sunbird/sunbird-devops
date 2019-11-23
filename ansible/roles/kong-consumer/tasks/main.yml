@@ -15,34 +15,25 @@
 - name: Copy kong api scripts
   copy: src=static-files/kong-api-scripts dest=/tmp mode=0755
 
-  #- name: "Ensure kong_admin_api_url is available before running the scripts"
-  #  uri:
-  #    url: "{{ kong_admin_api_url }}/status"
-  #    status_code: 200
-  #  register: result
-  #  until: result.status == 200
-  #  retries: 60
-  #  delay: 5
-
-- name: Extracting where the host in which api manager is running
-  command: bash -lc "sudo docker service ps api-manager_kong | grep Runn | head -n1 | awk '{print $4}'"
-  register: kong_running_host
-  delegate_to: "{{groups['swarm-manager-1'][0]}}"
-
-- set_fact:
-        kong_admin_api_url: "http://{{kong_running_host.stdout}}:8001"
+- name: "Ensure kong_admin_api_url is available before running the scripts"
+  uri:
+    url: "{{ kong_admin_api_url }}/status"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 60
+  delay: 5
 
 - name: Run script to save consumers
-  shell: "python /tmp/kong-api-scripts/kong_consumers.py /tmp/kong_consumers.json --kong-admin-api-url={{ kong_admin_api_url }}"
+  shell: "python /tmp/kong-api-scripts/kong_consumers.py /tmp/kong_consumers.json --kong-admin-api-url={{ kong_admin_api_url |d('localhost:31801') }}"
   register: jwt_token
 
 - name: Touch the token file
   become: yes
   file: path={{item}} state=touch
   with_items:
-             - /tmp/jwt_token_output.txt
-             - /tmp/jwt_token.txt
-
+    - /tmp/jwt_token_output.txt
+    - /tmp/jwt_token.txt
 - name: write to file
   become: yes
   copy: content="{{jwt_token.stdout}}" dest=/tmp/jwt_token_output.txt
