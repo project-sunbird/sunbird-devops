@@ -21,11 +21,11 @@ ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_
 
 # Onboaring apis
 echo "@@@@@@@@@ Onboard APIs"
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/api-manager.yml --tags kong-api --extra-vars kong_admin_api_url=http://localhost:31801
+ansible-playbook -i ../ansible/inventory/env/ ../ansible/api-manager.yml --tags kong-api
 
 # Onboard Consumers
 ## This will generate a player token in /root/jwt_token_player.txt
 echo "@@@@@@@@@ Onboard Consumers"
-ansible-playbook -v -i ../ansible/inventory/env/ ../ansible/api-manager.yml --tags kong-consumer --extra-vars kong_admin_api_url=http://localhost:31801
+ansible-playbook -v -i ../ansible/inventory/env/ ../ansible/api-manager.yml --tags kong-consumer
 
 jwt_token=$(sudo cat /root/jwt_token_player.txt)
