@@ -12,16 +12,10 @@
 - name: Copy kong api scripts
   copy: src=static-files/kong-api-scripts dest=/tmp mode=0755
 
-- name: Getting private lb ip
-  command: kubectl get svc -n istio-system ingressgateway-private -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
-  register: private_lb_ip
-
-- set_fact:
-        kong_admin_api_url: "http://{{private_lb_ip.stdout}}/admin-api"
-
 - name: waiting for 30 seconds for api manager to be fully functional
   pause:
     seconds: 30
 
+## Have to pass kong_api address as ip extravars
 - name: Run script to save apis
-  shell: "python /tmp/kong-api-scripts/kong_apis.py /tmp/kong_apis.json --kong-admin-api-url={{ kong_admin_api_url }}"
+  shell: "python /tmp/kong-api-scripts/kong_apis.py /tmp/kong_apis.json --kong-admin-api-url={{ kong_admin_api_url | d('localhost:31801') }}"
