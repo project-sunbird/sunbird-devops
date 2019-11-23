@@ -15,12 +15,12 @@ cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --tags postgresql-master #--skip-tags "postgresql-slave,log-es"
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml #--skip-tags "postgresql-slave,log-es"
 
-# # Bootstrapping k8s
+# Bootstrapping k8s
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
-# # Installing API manager
+# Installing API manager
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e release_name=apimanager -v
 
-Onboaring apis
+# Onboard apis
 echo "@@@@@@@@@ Onboard APIs"
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/api-manager.yml --tags kong-api
 
