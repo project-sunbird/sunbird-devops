@@ -10,6 +10,13 @@ node() {
             values = docker_params()
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
             ansiblePlaybook = "$currentWs/ansible/deploy.yml"
+            directory = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+	    fileExists = sh(returnStdout: true, script: "find ${currentWs} -name 'itext_trail_license.xml'")
+            if (fileExists != "")
+                      sh "cp private/static-files/itext/$directory/itext_trail_license.xml/itext_trail_license.xml ansible/"
+            else {
+                      println(ANSI_BOLD + "CAN'T FIND THE itext file for the environment " + ANSI_NORMAL)
+_           }
             ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=cert-service deploy_cert=True\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
             values.put('currentWs', currentWs)
             values.put('ansiblePlaybook', ansiblePlaybook)
