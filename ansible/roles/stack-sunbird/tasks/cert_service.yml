@@ -1,18 +1,27 @@
 ---
 - name: Remove existing itext file in the server
   file: path=/home/deployer/config/itext_trail_license.xml state=absent
-  ignore_errors: true
 
 - name: Remove cert service
   shell: "docker service rm cert-service"
   ignore_errors: yes
 
-- name: Remove the existing itext file from docker container
+- name: Remove the existing itext config from docker container
   shell: docker config rm itext_trail_license.xml
   ignore_errors: true
 
 - name: Save itext file in the server
   copy: src="static-files/itext/{{env}}/itext_trail_license.xml" dest="/home/deployer/config/itext_trail_license.xml" mode=0644
+  register: config_status
+  ignore_errors: yes
 
 - name: Deploy cert service
   shell: "docker service create --with-registry-auth --replicas {{ cert_replicas }} -p 9011:9000  --name cert-service --hostname cert-service --limit-memory {{ cert_limit_memory }} --limit-cpu {{ cert_limit_cpu }} --health-cmd 'wget -qO- cert-service:9000/service/health || exit 1' --health-timeout 3s --health-retries 3 --network application_default --env-file /home/deployer/env/sunbird_cert-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"
+
+- name: Create the new itext_trail_license.xml file as a config
+  shell: "docker config create itext_trail_license.xml /home/deployer/config/itext_trail_license.xml"
+  when: config_status.changed
+
+- name: Deploy config service with updated itext_trail_license.xml config
+  shell: docker service update --config-add source=index_cdn.ejs,target=/home/sunbird/itext_trail_license.xml cert-service
+  when: config_status.changed
