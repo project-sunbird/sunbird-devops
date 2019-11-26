@@ -1,27 +1,5 @@
 #jinja2:lstrip_blocks: True
-
 namespace: {{ namespace }}
-service:
-  type: NodePort
-  ports:
-  - port: 80
-    name: http
-    targetPort: 80
-    nodePort: 31380
-  - port: 443
-    name: https
-    targetPort: 443
-    nodePort: 31390
-
-imagePullSecrets: {{ imagepullsecrets }}
-dockerhub: {{ dockerhub }}
-
-replicaCount: {{replicacount|default(1)}}
-repository: {{proxy.repository|default('proxy')}}
-image_tag: {{ proxy.image_tag | d(image_tag) }}
-resources:
-  cpu: {{player_service_cpu|default('50m')}}
-  memory: {{player_service_memory|default('50Mi')}}
 proxyconfig: |
   {% if proto=='https' %}
   server {
@@ -40,8 +18,8 @@ proxyconfig: |
     listen    [::]:80;
   {% else %}
     listen                443 ssl;
-    ssl_certificate       /etc/secrets/site.crt;
-    ssl_certificate_key   /etc/secrets/site.key;
+    ssl_certificate       /run/secrets/site.crt;
+    ssl_certificate_key   /run/secrets/site.key;
   {% endif  %}
     server_name           {{ proxy_server_name }};
 
@@ -91,31 +69,31 @@ proxyconfig: |
     location ~* ^/auth/admin/master/console/ {
       return 301 {{proto}}://{{ proxy_server_name }};
     }
-  
-      location /auth/ {
-        set $target {{ keycloak_url }};
-        rewrite ^/auth/(.*) /auth/$1 break;
-        proxy_pass $target;
-  
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Scheme $scheme;
-        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-      }
-     location /registry/ {
-        set $target http://registry_registry:8080;
-        rewrite ^/registry/(.*) /$1 break;
-        proxy_pass $target;
-  
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Scheme $scheme;
-        proxy_connect_timeout 1;
-        proxy_send_timeout 30;
-        proxy_read_timeout 40;
-        proxy_set_header    X-Forwarded-Proto $scheme;
-        # root   /usr/share/nginx/www;
+
+    location /auth/ {
+      set $target {{ keycloak_url }};
+      rewrite ^/auth/(.*) /auth/$1 break;
+      proxy_pass $target;
+
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+   location /registry/ {
+      set $target http://registry_registry:8080;
+      rewrite ^/registry/(.*) /$1 break;
+      proxy_pass $target;
+
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_connect_timeout 1;
+      proxy_send_timeout 30;
+      proxy_read_timeout 40;
+      proxy_set_header    X-Forwarded-Proto $scheme;
+      # root   /usr/share/nginx/www;
     }
     location /api/ {
       if ($request_method = OPTIONS ) {
@@ -139,12 +117,12 @@ proxyconfig: |
       proxy_http_version 1.1;
       header_filter_by_lua_block {
         local h = ngx.req.get_headers()
-  
+
         ngx.log(ngx.WARN, "Deviceid: ", h["x-device-id"], "  Channelid: ", h["x-channel-id"], "  Appid: ", h["x-app-id"])
       }
       proxy_pass http://kong;
     }
-  
+
     # Oauth2 config
     location /oauth2/ {
       set $target http://{{swarm_dashboard}}:4111;
@@ -154,7 +132,7 @@ proxyconfig: |
       proxy_set_header X-Scheme                $scheme;
       proxy_set_header X-Auth-Request-Redirect $request_uri;
     }
-  
+
     location = /oauth2/auth {
       set $target http://{{swarm_dashboard}}:4111;
       proxy_pass $target;
@@ -165,11 +143,11 @@ proxyconfig: |
       proxy_set_header Content-Length   "";
       proxy_pass_request_body           off;
     }
-  
+
     location /dashboard/ {
       auth_request /oauth2/auth;
       error_page 401 = /oauth2/sign_in;
-  
+
       # Setting target url
       auth_request_set $target http://{{swarm_dashboard}}:5601;
       # pass information via X-User and X-Email headers to backend,
@@ -178,19 +156,19 @@ proxyconfig: |
       auth_request_set $email  $upstream_http_x_auth_request_email;
       proxy_set_header X-User  $user;
       proxy_set_header X-Email $email;
-  
+
       # if you enabled --cookie-refresh, this is needed for it to work with auth_request
       auth_request_set $auth_cookie $upstream_http_set_cookie;
       add_header Set-Cookie $auth_cookie;
       rewrite ^/dashboard/(.*) /$1 break;
       proxy_pass $target;
-  
+
     }
-  
+
     location /dashboard-old/ {
       auth_request /oauth2/auth;
       error_page 401 = /oauth2/sign_in;
-  
+
       # Setting target url
       auth_request_set $target http://{{swarm_dashboard}}:5602;
       # pass information via X-User and X-Email headers to backend,
@@ -199,73 +177,73 @@ proxyconfig: |
       auth_request_set $email  $upstream_http_x_auth_request_email;
       proxy_set_header X-User  $user;
       proxy_set_header X-Email $email;
-  
+
       # if you enabled --cookie-refresh, this is needed for it to work with auth_request
       auth_request_set $auth_cookie $upstream_http_set_cookie;
       add_header Set-Cookie $auth_cookie;
       rewrite ^/dashboard-old/(.*) /$1 break;
       proxy_pass $target;
-  
+
     }
-  
+
     location /pipeline-dashboard/ {
         auth_request /oauth2/auth;
         error_page 401 = /oauth2/sign_in;
-  
+
         # Setting Target url
         auth_request_set $target http://{{ ep_es_host}}:5601;
-  
+
         # pass information via X-User and X-Email headers to backend,
         # requires running with --set-xauthrequest flag
         auth_request_set $user   $upstream_http_x_auth_request_user;
         auth_request_set $email  $upstream_http_x_auth_request_email;
         proxy_set_header X-User  $user;
         proxy_set_header X-Email $email;
-  
+
         # if you enabled --cookie-refresh, this is needed for it to work with auth_request
         auth_request_set $auth_cookie $upstream_http_set_cookie;
         add_header Set-Cookie $auth_cookie;
-  
+
         rewrite ^/pipeline-dashboard/(.*) /$1 break;
         proxy_pass $target;
-  
+
     }
-  
+
     location /grafana/ {
       set $target http://{{swarm_dashboard}}:3001;
       rewrite ^/grafana/(.*) /$1 break;
       proxy_pass $target;
     }
-  
+
   {% if proxy_prometheus==true %}
     location /{{prometheus_alertmanager_route_prefix}}/ {
       set $target http://monitor_alertmanager:9093;
       rewrite ^/{{prometheus_alertmanager_route_prefix}}/(.*) /{{prometheus_alertmanager_route_prefix}}/$1 break;
       proxy_pass $target;
-  
+
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Scheme $scheme;
       proxy_connect_timeout 1;
       proxy_send_timeout 30;
       proxy_read_timeout 40;
-  
+
       auth_basic           "Prometheus Alert manager";
       auth_basic_user_file /run/secrets/prom_admin_creds;
     }
-  
+
     location /{{prometheus_route_prefix}}/ {
       set $target http://monitor_prometheus:9090;
       rewrite ^/(.*) /$1 break;
       proxy_pass $target;
     }
   {% endif %}
-  
+
    location /encryption/ {
       set $target http://encryption-service:8013;
       rewrite ^/encryption/(.*) /$1 break;
       proxy_pass $target;
-  
+
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Scheme $scheme;
@@ -275,13 +253,13 @@ proxyconfig: |
       proxy_set_header    X-Forwarded-Proto $scheme;
       # root   /usr/share/nginx/www;
     }
-  
-  
+
+
     location /badging/ {
       set $target http://badger-service:8004;
       rewrite ^/badging/(.*) /$1 break;
       proxy_pass $target;
-  
+
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Scheme $scheme;
@@ -289,22 +267,22 @@ proxyconfig: |
       proxy_send_timeout 30;
       proxy_read_timeout 40;
       proxy_set_header    X-Forwarded-Proto $scheme;
-  
+
   }
-  
-  
+
+
     location ~* ^/assets/public/(.*) {
           # Enabling cache for Response code 200
           expires 1M;
           add_header Pragma public;
           add_header Cache-Control "public";
-  
+
           # Enabling compression
           gzip            on;
           gzip_min_length 100000;
           gzip_proxied    expired no-cache no-store private auth;
           gzip_types application/javascript application/x-javascript text/javascript;
-  
+
           if ($request_method = OPTIONS ) {
                   add_header Access-Control-Allow-Origin "*" ;
                   add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
@@ -314,7 +292,7 @@ proxyconfig: |
                   add_header Content-Type text/plain;
                   return 200;
           }
-  
+
       set $bucket        "{{upstream_url}}";
       set $url_full         '$1';
       proxy_http_version     1.1;
@@ -332,15 +310,15 @@ proxyconfig: |
           add_header             Access-Control-Allow-Methods GET;
       proxy_pass             https://$bucket/$url_full;
   }
-  
-  
+
+
    location ~* ^/content/preview/(.*) {
           # Enabling compression
           gzip            on;
           gzip_min_length 100000;
           gzip_proxied    expired no-cache no-store private auth;
           gzip_types application/javascript application/x-javascript text/css text/javascript;
-  
+
           if ($request_method = OPTIONS ) {
                   add_header Access-Control-Allow-Origin "*" ;
                   add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
@@ -350,7 +328,7 @@ proxyconfig: |
                   add_header Content-Type text/plain;
                   return 200;
           }
-  
+
       set $s3_bucket        "{{plugin_upstream_url}}";
       set $url_full         '$1';
       proxy_http_version     1.1;
@@ -368,19 +346,19 @@ proxyconfig: |
       add_header             Access-Control-Allow-Methods GET;
       proxy_pass             https://$s3_bucket/v3/preview/$url_full;
   }
-  
+
   location ~* ^/content-plugins/(.*) {
           # Enabling cache for Response code 200
           expires 1M;
           add_header Pragma public;
           add_header Cache-Control "public";
-  
+
           # Enabling compression
           gzip            on;
           gzip_min_length 100000;
           gzip_proxied    expired no-cache no-store private auth;
           gzip_types application/javascript application/x-javascript text/css text/javascript;
-  
+
           if ($request_method = OPTIONS ) {
                   add_header Access-Control-Allow-Origin "*" ;
                   add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
@@ -391,7 +369,7 @@ proxyconfig: |
                   return 200;
           }
          set $s3_bucket        "{{plugin_upstream_url}}";
-  
+
          set $url_full         '$1';
          proxy_http_version     1.1;
          proxy_set_header       Host "{{plugin_upstream_url.split('/')[0]|lower}}";
@@ -408,21 +386,21 @@ proxyconfig: |
          add_header             Access-Control-Allow-Methods GET;
          proxy_pass             https://$s3_bucket/content-plugins/$url_full;
   }
-  
+
     location /thirdparty {
           # Enabling cache for Response code 200
           expires 1M;
           add_header Pragma public;
           add_header Cache-Control "public";
-  
+
           # Enabling compression
           gzip            on;
           gzip_min_length 100000;
           gzip_proxied    expired no-cache no-store private auth;
           gzip_types application/javascript application/x-javascript text/css text/javascript;
-  
+
       rewrite ^/(.*) /$1 break;
-  
+
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Scheme $scheme;
@@ -434,19 +412,19 @@ proxyconfig: |
       proxy_http_version 1.1;
       proxy_pass http://player;
     }
-  
+
   location ~* ^/desktop/(.*) {
           # Enabling cache for Response code 200
           expires 1M;
           add_header Pragma public;
           add_header Cache-Control "public";
-  
+
           # Enabling compression
           gzip            on;
           gzip_min_length 100000;
           gzip_proxied    expired no-cache no-store private auth;
           gzip_types application/javascript application/x-javascript text/css text/javascript;
-  
+
           if ($request_method = OPTIONS ) {
                   add_header Access-Control-Allow-Origin "*" ;
                   add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
@@ -457,7 +435,7 @@ proxyconfig: |
                   return 200;
           }
          set $offline_bucket        "{{ sunbird_offline_azure_storage_account_url }}";
-  
+
          set $url_full         '$1';
          proxy_http_version     1.1;
          proxy_set_header       Host "{{sunbird_offline_azure_storage_account_url.split('/')[0]|lower}}";
@@ -474,10 +452,10 @@ proxyconfig: |
          add_header             Access-Control-Allow-Methods GET;
          proxy_pass             https://$offline_bucket/$url_full;
   }
-  
+
     location / {
       rewrite ^/(.*) /$1 break;
-  
+
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Scheme $scheme;
@@ -489,12 +467,12 @@ proxyconfig: |
       proxy_http_version 1.1;
       proxy_pass http://player;
     }
-  
+
     location /v3/device/register {
       proxy_pass http://kong;
       proxy_set_header Connection "";
       rewrite ^/v3/device/register/(.*) /v3/device/register/$1 break;
-  
+
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Scheme $scheme;
@@ -503,12 +481,12 @@ proxyconfig: |
       proxy_read_timeout 70;
       proxy_http_version 1.1;
     }
-  
+
     location /action/data/v3/metrics {
       proxy_pass http://kong;
       proxy_set_header Connection "";
       rewrite ^/action/data/v3/metrics/(.*) /data/v3/metrics/$1 break;
-  
+
       proxy_http_version 1.1;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
@@ -517,97 +495,13 @@ proxyconfig: |
       proxy_send_timeout 60;
       proxy_read_timeout 70;
     }
-  
+
     location /oauth2callback {
       return 200 'OK';
       add_header Content-Type text/plain;
     }
-  
+
     {# Including custom configuration #}
     {{ proxy_custom_config }}
     client_max_body_size 60M;
-  }
-
-nginxconfig: |
-  user  nginx;
-  worker_processes  1;
-
-  error_log  /var/log/nginx/error.log warn;
-  pid        /var/run/nginx.pid;
-
-  events {
-      worker_connections  10000;
-  }
-
-
-  http {
-      include       /etc/nginx/mime.types;
-      default_type  application/octet-stream;
-
-      lua_load_resty_core off;
-      log_format  main  '$remote_addr - $remote_user [$time_local] '
-                        '"$request" $status $body_bytes_sent '
-                        '$request_time $upstream_response_time $pipe'
-                        '"$http_referer" "$http_user_agent"';
-
-      access_log  /var/log/nginx/access.log  main;
-
-      # Shared dictionary to store metrics
-      lua_shared_dict prometheus_metrics 10M;
-      lua_package_path "/etc/nginx/lua_modules/?.lua";
-      # Defining metrics
-      init_by_lua '
-        prometheus = require("prometheus").init("prometheus_metrics")
-        metric_requests = prometheus:counter(
-          "nginx_http_requests_total", "Number of HTTP requests", {"host", "status", "request_method"})
-        metric_latency = prometheus:histogram(
-          "nginx_http_request_duration_seconds", "HTTP request latency", {"host"})
-        metric_connections = prometheus:gauge(
-          "nginx_http_connections", "Number of HTTP connections", {"state"})
-      ';
-
-      # Collecting metrics
-      log_by_lua '
-        metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.request_method})
-        metric_latency:observe(tonumber(ngx.var.request_time), {ngx.var.server_name})
-      ';
-
-      header_filter_by_lua_block {
-       ngx.header["server"] = nil
-      }
-
-      sendfile        on;
-      #tcp_nopush     on;
-      client_max_body_size 60M;
-
-      keepalive_timeout  65s;
-      keepalive_requests 200;
-
-      # Nginx connection limit per ip
-      limit_conn_zone $binary_remote_addr zone=limitbyaddr:10m;
-      limit_conn_status 429;
-
-      upstream kong {
-          server kong:8000;
-          keepalive 1000;
-      }
-
-      upstream player {
-          server player:3000;
-          keepalive 1000;
-      }
-
-      include /etc/nginx/conf.d/*.conf;
-
-     server {
-       listen 9145;
-       location /metrics {
-         content_by_lua '
-           metric_connections:set(ngx.var.connections_reading, {"reading"})
-           metric_connections:set(ngx.var.connections_waiting, {"waiting"})
-           metric_connections:set(ngx.var.connections_writing, {"writing"})
-           prometheus:collect()
-         ';
-       }
-     }
   }
