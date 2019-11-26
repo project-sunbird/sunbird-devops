@@ -31,6 +31,13 @@ ansible-playbook -v -i ../ansible/inventory/env/ ../ansible/api-manager.yml --ta
 
 jwt_token=$(sudo cat /root/jwt_token_player.txt)
 
+# Provisioning keycloak
+ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags provision
+# Deploying keycloak
+ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags deploy
+# Bootstrapping keycloak
+ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags deploy
+
 # services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
 # disabling some services due to unavailability of public images
 services="adminutil apimanager content learner player telemetry"
