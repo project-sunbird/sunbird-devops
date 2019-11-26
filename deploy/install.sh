@@ -14,7 +14,7 @@ cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 # Installing dbs (es, cassandra, postgres)
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --tags postgresql-master #--skip-tags "postgresql-slave,log-es"
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml #--skip-tags "postgresql-slave,log-es"
-
+#
 # Bootstrapping k8s
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
 # Installing API manager
@@ -40,7 +40,7 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags depl
 
 # services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
 # disabling some services due to unavailability of public images
-services="adminutil apimanager content learner player telemetry"
+services="adminutil apimanager content learner player telemetry nginx-private-ingress"
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
