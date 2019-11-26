@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: private-ingress
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: private-ingress
+  template:
+    metadata:
+      labels:
+        app: private-ingress
+    volumes:
+      - name: config-volume
+        configMap:
+          name: private-ingress.conf
+    spec:
+      containers:
+      - name: name
+        image: nginx
+        resources:
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /etc/nginx/conf.d/
+          name: config-volume
+          readOnly: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: private-ingress
+  namespace: dev
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: private-ingress
