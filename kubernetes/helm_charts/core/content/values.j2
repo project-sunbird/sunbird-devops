@@ -1,0 +1,55 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{content_replicacount|default(1)}}
+repository: {{content_repository|default('learning-service')}}
+image_tag: {{image_tag }}
+resources:
+  requests:
+    cpu: {{content_service_cpu_req|default('50m')}}
+    memory: {{content_service_mem_req|default('50Mi')}}
+  limits:
+    cpu: {{content_service_cpu_limit|default('1')}}
+    memory: {{content_service_mem_limit|default('550Mi')}}
+network:
+  port: 9696
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: 1
+  maxunavailable: 0
+
+contentenv:
+  cassandra.lp.connection: {{ lp_cassandra_connection }}
+  cassandra.lpa.connection: {{ dp_cassandra_connection }}
+  redis.host: localhost
+  redis.port: '"6379"'
+  redis.maxConnections: '"128"'
+  MAX_CONTENT_PACKAGE_FILE_SIZE_LIMIT: '"52428800"'
+  MAX_ASSET_FILE_SIZE_LIMIT: '"20971520"'
+  RETRY_ASSET_DOWNLOAD_COUNT: '"1"'
+  cloud_storage.env: dev
+  graph.dir: /data/graphDB
+  akka.request_timeout: '"30"'
+  environment.id: '"{{ environment_id }}"'
+  graph.passport.key.base: {{ graph_passport_key }}
+  route.domain: {{ learning_neo4j_bolt_url }}
+  route.bolt.write.domain: {{ learning_write_elb_url }}
+  route.bolt.read.domain: {{ learning_read_elb_url }}
+  route.all: {{ language_neo4j_bolt_url }}
+  route.bolt.write.all: {{ language_write_elb_url }}
+  route.bolt.read.all: {{ language_read_elb_url }}
+  shard.id: '"{{ mw_shard_id }}"'
+  platform.auth.check.enabled: "'false'"
+  platform.cache.ttl: '"3600000"'
+  telemetry_env: dev
+  installation.id: ekstep
+  channel.default: in.ekstep
+  content.cache.ttl: '"86400"'
+  content.cache.read: "'true'"
+  content.cache.hierarchy: "'true'"
+
+graph_ids: '["domain"]'

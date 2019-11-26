@@ -1,0 +1,64 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+     type: {{ .Values.strategy.type }}
+     rollingUpdate:
+       maxSurge: {{ .Values.strategy.maxsurge }}
+       maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      annotations:
+        readiness.status.sidecar.istio.io/applicationPorts: ""
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+          name: network
+        - containerPort: {{ .Values.service.port }}
+          name: service
+      - name: go-dns
+        image: "{{ .Values.godns.repository }}:{{ .Values.godns.image_tag }}"
+        resources:
+{{ toYaml .Values.godns.resources | indent 10 }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  ports:
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network.port }}
+    targetPort: {{ .Values.network.targetport }}
+  - name: http-admin-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.targetport }}
+  selector:
+    app: {{ .Chart.Name }} # metadataname of deployment

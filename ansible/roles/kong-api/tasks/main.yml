@@ -12,22 +12,12 @@
 - name: Copy kong api scripts
   copy: src=static-files/kong-api-scripts dest=/tmp mode=0755
 
-  #- name: "Ensure kong_admin_api_url is available before running the scripts"
-  #  uri:
-  #    url: "{{ kong_admin_api_url }}/status"
-  #    status_code: 200
-  #  register: result
-  #  until: result.status == 200
-  #  retries: 60
-  #  delay: 5
-
-- name: Extracting where the host in which api manager is running
-  command: bash -lc "sudo docker service ps api-manager_kong | grep Runn | head -n1 | awk '{print $4}'"
-  register: kong_running_host
-  delegate_to: "{{groups['swarm-manager-1'][0]}}"
+- name: Getting private lb ip
+  command: kubectl get svc -n istio-system ingressgateway-private -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+  register: private_lb_ip
 
 - set_fact:
-        kong_admin_api_url: "http://{{kong_running_host.stdout}}:8001"
+        kong_admin_api_url: "http://{{private_lb_ip.stdout}}/admin-api"
 
 - name: waiting for 30 seconds for api manager to be fully functional
   pause:
