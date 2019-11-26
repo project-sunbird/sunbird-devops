@@ -87,11 +87,21 @@
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
   roles:
-    - { role: vm-agents-filebeat, filebeat_log_path: '/mount/data/analytics/logs/services/api-service.log' }
+    - { role: vm-agents-filebeat, filebeat_log_path: '/mount/data/analytics/logs/services/api-service.log, /var/log/logstash/logstash-plain.log' }
   tags:            
     - analytics
     - filebeat
 
+- hosts: dp-kafkaindexer-ps
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  roles:
+    - { role: vm-agents-filebeat, filebeat_log_path: '/var/log/logstash/logstash-plain.log' }
+  tags:            
+    - kafkaindexer
+    - filebeat
+      
 - hosts: zookeeper
   become: yes
   vars_files:
