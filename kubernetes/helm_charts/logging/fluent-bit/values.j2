@@ -16,6 +16,7 @@ testFramework:
 nameOverride: ""
 fullnameOverride: ""
 
+# When enabled, exposes json and prometheus metrics on {{ .Release.Name }}-metrics service
 metrics:
   enabled: false
   service:
@@ -46,22 +47,22 @@ backend:
   type: es
   forward:
     host: fluentd
-    port: 24220
+    port: 24284
     tls: "off"
-    tls_verify: "off"
+    tls_verify: "on"
     tls_debug: 1
     shared_key:
   es:
-    host: {{ log_es_host  }}
+    host: {{ log_es_host }}
     port: 9200
     # Elastic Index Name
     index: fluent-bit
-#    index: flb_type
     type: doc
-#    logstash_prefix: fluent-bit
+#    logstash_prefix: kubernetes_cluster
     replace_dots: "On"
     logstash_format: "On"
-    time_key: "@timestamp-fb"
+    retry_limit: "False"
+    time_key: "@timestamp"
     # Optional username credential for Elastic X-Pack access
     http_user:
     # Password for user defined in HTTP_User
@@ -102,18 +103,18 @@ backend:
     headers: []
 
 parsers:
-  enabled: true
+  enabled: false
   ## List the respective parsers in key: value format per entry
   ## Regex required fields are name and regex. JSON and Logfmt required field
   ## is name.
   regex: []
-  logfmt: [] 
+  logfmt: []
   ##  json parser config can be defined by providing an extraEntries field.
   ##  The following entry:
-  ##  json:
-  ##  - extraEntries: |
-  ##      Decode_Field_As  escaped log do_next
-  ##      Decode_Field_As  json log
+  ## json:
+  ##   - extraEntries: |
+  ##       Decode_Field_As  escaped log do_next
+  ##       Decode_Field_As  json log
   ##
   ##  translates into
   ##
@@ -122,9 +123,8 @@ parsers:
   ##   Decode_Field_As  escaped   log  do_next
   ##   Decode_Field_As  json log
   ##
-  json: 
-    - name: dockerJson
-      extraEntries: |-
+  json:
+    - extraEntries: |
         Time_Key  time
         Time_Format  %Y-%m-%dT%H:%M:%S.%L
         Time_Keep  On
@@ -146,8 +146,7 @@ podAnnotations: {}
 ## used
 fullConfigMap: false
 
-
-## ConfigMap override where fullname is .Release.Name-.Values.existingConfigMap
+## ConfigMap override where fullname is {{.Release.Name}}-{{.Values.existingConfigMap}}
 ## Defining existingConfigMap will cause templates/config.yaml
 ## to NOT generate a ConfigMap resource
 ##
@@ -156,7 +155,6 @@ existingConfigMap: ""
 
 # NOTE If you want to add extra sections, add them here, inbetween the includes,
 # wherever they need to go. Sections order matters.
-
 
 rawConfig: |-
   @INCLUDE fluent-bit-service.conf
@@ -194,10 +192,10 @@ extraVolumes: []
 ##
 extraVolumeMounts: []
 
-resources:
+resources: {}
    limits:
-     cpu: 100m
-     memory: 128Mi
+     cpu: 500m
+     memory: 512Mi
    requests:
      cpu: 10m
      memory: 8Mi
@@ -283,7 +281,7 @@ serviceAccount:
   create: true
   # The name of the ServiceAccount to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: fluent-bit
+  name:
 
 ## Specifies security settings for a container
 ## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
