@@ -1,0 +1,42 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: {{ .Values.namespace }}-blob
+  namespace: {{ .Values.namespace }}
+spec:
+  hosts:
+  - {{ .Values.cloud_storage_url }}
+  location: MESH_EXTERNAL
+  ports:
+  - number: 80
+    name: blob
+    protocol: HTTP
+  resolution: DNS
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Values.namespace }}-keycloak
+  namespace: {{ .Values.namespace }}
+spec:
+  type: ExternalName
+  externalName: {{ .Values.keycloak_ip }}
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: {{ .Values.namespace }}-keycloak
+  namespace: {{ .Values.namespace }}
+spec:
+  hosts:
+  - keycloak.{{ .Values.namespace }}.{{ .Values.internal_domain_name | default "global" }}
+  ports:
+  - number: 8080
+    name: keycloak
+    protocol: HTTP
+  location: MESH_INTERNAL
+  resolution: STATIC
+  endpoints:
+  - address: {{ .Values.keycloak_ip }}

@@ -1,0 +1,38 @@
+### Default variable file for enc-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{enc_replicacount|default(1)}}
+repository: {{enc_repository|default('enc_service')}}
+image_tag: {{image_tag }}
+resources:
+  requests:
+    cpu: {{enc_service_cpu_req|default('50m')}}
+    memory: {{enc_service_mem_req|default('50Mi')}}
+  limits:
+    cpu: {{enc_service_cpu_limit|default('1')}}
+    memory: {{enc_service_mem_limit|default('800Mi')}}
+network:
+  port: 9010
+  targetport: 8013
+strategy:
+  type: RollingUpdate
+  maxsurge: 1
+  maxunavailable: 0
+
+encenv:
+  DB_HOST: {{enc_postgres_host}}
+  DB_PORT: '"{{postgres_port|default('5432')}}"'
+  DB_USER: {{enc_postgres_user}}
+  DB_PASSWORD: {{enc_postgres_password}}
+  DB_NAME: {{enc_postgres_database}}
+  DB_DIALECT: {{enc_dialect|default('postgres')}}
+  DB_SSL: '"True"'
+  ENTRY_PASS: {{enc_entry_password}}
+  MASTER_PASS: {{enc_master_pass}}
+  N_KEYS: '"{{enc_n_keys}}"'
+  N_RESERVED_KEYS: '"{{enc_n_reserved_keys}}"'
+  
+

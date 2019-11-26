@@ -1,0 +1,30 @@
+---
+# Proxy config
+- name: Deleting domain ssl if present
+  shell: "kubectl get secrets ingress-cert -n istio-system && kubectl delete secrets ingress-cert -n istio-system"
+  ignore_errors: true
+
+- name: Creating domain sssl
+  shell: 
+    cmd: |
+      cat <<EOF | kubectl apply -f -
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ingress-cert
+        namespace: istio-system
+      type: kubernetes.io/tls
+      data:
+        ca.crt: ""
+        tls.crt: "{{ tls_crt }}"
+        tls.key: "{{ tls_key }}"
+      EOF
+
+- name: rename template
+  template:
+    src: "{{ chart_path }}/values.j2"
+    dest: "{{ chart_path }}/values.yaml"
+
+- name: helm install
+  shell: helm upgrade --install {{ release_name }} {{ chart_path }}
+  #shell: helm template {{ chart_path }} > /tmp/test.yaml
