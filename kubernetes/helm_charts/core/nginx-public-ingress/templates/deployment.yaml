@@ -21,6 +21,12 @@ spec:
         - name: tls
           secret:
             secretName: ingress-cert
+        - name: proxy-config
+          configMap:
+            configMapName: proxy-default
+        - name: nginx-config
+          configMap:
+            configMapName: nginx-conf
       containers:
       - name: name
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
@@ -30,7 +36,14 @@ spec:
             memory: 200Mi
         volumeMounts:
           - name: tls
-            mountPath: /run/secrets
+            mountPath: /etc/secrets
+            readOnly: true
+          - name: proxy-config
+            mountPath: /etc/nginx/conf.d
+            readOnly: true
+          - name: nginx-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
             readOnly: true
         ports:
         - containerPort: 80
