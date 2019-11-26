@@ -131,3 +131,4 @@ echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove
 
 echo -e "\n\e[0;32m${bold}Installation complete. Please go to your jenkins URL and continue setup if this is the first run..${normal}"
+

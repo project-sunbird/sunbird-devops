@@ -1,0 +1,9 @@
+---
+- name: Remove content-service
+  shell: "docker service rm content-service"
+  ignore_errors: yes
+
+- name: Deploy content-service
+  shell: "docker service create --with-registry-auth --replicas {{ learner_replicas }} -p 9696:9000  --name content-service --hostname content-service --reserve-memory {{ learner_reservation_memory }} --limit-memory {{ learner_limit_memory }} --limit-cpu {{ learner_limit_cpu }} --reserve-cpu {{ learner_reservation_cpu }} --health-cmd 'wget -qO- content-service:9000/health || exit 1' --health-timeout 3s --health-retries 3  --network application_default --env-file /home/deployer/env/sunbird_content-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"
+  args:
+    chdir: /home/deployer/stack

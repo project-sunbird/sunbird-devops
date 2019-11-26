@@ -3,10 +3,19 @@
   become: true
   vars_files:
     - ['{{ inventory_dir }}/secrets.yml', 'secrets/{{ env }}.yml']
-  # --tags provision/deployment will trigger respective roles
-  # --tags bootstrap will trigger user/realm creation
   roles:
     - {role: openjdk, tags: provision}
     - {role: keycloak-provision, tags: provision}
     - keycloak-deploy
-    #- {role: monit, monit_checks: ['keycloak'], tags: deploy}
+    - {role: monit, monit_checks: ['keycloak'], tags: deploy}
+
+  post_tasks:
+    - name: get the list of all services in the system
+      become: yes
+      service_facts:
+
+    - name: After succesful migration and staring of keycloak, start back monit if installed
+      service: name=monit state=started
+      become: yes
+      when: ansible_facts.services.monit is defined
+
