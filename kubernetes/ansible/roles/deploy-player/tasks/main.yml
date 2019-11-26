@@ -1,0 +1,33 @@
+- name: Create a directory if it does not exist
+  file:
+    path: /var/lib/jenkins/player_config
+    state: directory
+
+- name: Remove existing index_cdn.ejs
+  file: path=/var/lib/jenkins/player_config/index_cdn.ejs state=absent
+  ignore_errors: true
+
+- name: copy new index file
+  copy: src="{{cdn_file_path}}" dest="/var/lib/jenkins/player_config/index_cdn.ejs" mode=0644
+  when: sunbird_portal_cdn_url is undefined and cdn_file_path is undefined
+
+- name: remove whitespaces in index file
+  shell: 'sed -i s/\\s\\+$//e /var/lib/jenkins/player_config/index_cdn.ejs'
+  when: sunbird_portal_cdn_url is undefined and cdn_file_path is undefined
+
+- name: Remove the existing CDN config
+  shell: "kubectl delete configmap player-cdn-config --namespace={{namespace}}"
+  ignore_errors: true
+
+- name: Create player-cdn configmap
+  shell: "kubectl create configmap player-cdn-config --from-file=/var/lib/jenkins/player_config/index_cdn.ejs --namespace={{namespace}}"
+  when: sunbird_portal_cdn_url is undefined and cdn_file_path is undefined
+
+- name: rename template
+  template:
+    src: "{{ chart_path }}/values.j2"
+    dest: "{{ chart_path }}/values.yaml"
+
+- name: helm install
+  shell: helm upgrade --install {{ release_name }} {{ chart_path }}
+  #shell: helm template {{ chart_path }} > /tmp/test.yaml
