@@ -12,8 +12,8 @@ module=Core
 # Creating inventory strucure
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 # Installing dbs (es, cassandra, postgres)
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --tags postgresql-master #--skip-tags "postgresql-slave,log-es"
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml #--skip-tags "postgresql-slave,log-es"
+ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
+ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml 
 #
 # Bootstrapping k8s
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
