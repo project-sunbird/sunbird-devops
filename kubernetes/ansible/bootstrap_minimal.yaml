@@ -17,3 +17,18 @@
     - name: Creating docker secrets
       shell: kubectl create secret docker-registry {{ imagepullsecrets }} --namespace {{ namespace }} --docker-server {{ vault_docker_registry_url }} --docker-username {{ vault_docker_registry_user }} --docker-password {{ vault_docker_registry_password }}
       when: imagepullsecrets|length > 0
+    - name: Creating domain sssl
+      shell: 
+        cmd: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: ingress-cert
+            namespace: istio-system
+          type: kubernetes.io/tls
+          data:
+            ca.crt: ""
+            site.crt: "{{ core_vault_proxy_site_crt | b64encode }}"
+            site.key: "{{ core_vault_proxy_site_key | b64encode }}"
+          EOF
