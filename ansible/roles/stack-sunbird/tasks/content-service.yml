@@ -2,8 +2,21 @@
 - name: Remove content-service
   shell: "docker service rm content-service"
   ignore_errors: yes
+  
+- name: Save configurations into an env file
+  become: yes
+  template: src=application.conf dest=/home/deployer/config/application.conf mode=0644
+
+- name: Remove old application.conf docker config
+  become: yes
+  shell: "docker config rm application.conf"
+  ignore_errors: yes
+  
+- name: Save as docker config
+  become: yes
+  shell: "docker config create settings_local.py /home/deployer/config/application.conf"
 
 - name: Deploy content-service
-  shell: "docker service create --with-registry-auth --replicas {{ learner_replicas }} -p 9696:9000  --name content-service --hostname content-service --reserve-memory {{ learner_reservation_memory }} --limit-memory {{ learner_limit_memory }} --limit-cpu {{ learner_limit_cpu }} --reserve-cpu {{ learner_reservation_cpu }} --health-cmd 'wget -qO- content-service:9000/health || exit 1' --health-timeout 3s --health-retries 3  --network application_default --env-file /home/deployer/env/sunbird_content-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"
+  shell: "docker service create --with-registry-auth --replicas {{ learner_replicas }} -p 9696:9000  --name content-service --hostname content-service --reserve-memory {{ learner_reservation_memory }} --limit-memory {{ learner_limit_memory }} --limit-cpu {{ learner_limit_cpu }} --reserve-cpu {{ learner_reservation_cpu }} --health-cmd 'wget -qO- content-service:9000/health || exit 1' --health-timeout 3s --health-retries 3  --network application_default --env-file /home/deployer/env/sunbird_content-service.env --config source=application.conf,target=/home/sunbird/learning-service-1.0-SNAPSHOT/config/application.conf,mode=0644  {{hub_org}}/{{image_name}}:{{image_tag}}"
   args:
     chdir: /home/deployer/stack
