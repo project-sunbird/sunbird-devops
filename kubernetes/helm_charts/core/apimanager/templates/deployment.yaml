@@ -1,0 +1,78 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+     type: {{ .Values.strategy.type }}
+     rollingUpdate:
+       maxSurge: {{ .Values.strategy.maxsurge }}
+       maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+          requests:
+            cpu: {{ quote .Values.resources.cpu }}
+            memory: {{ quote .Values.resources.memory }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+          name: network
+        - containerPort: {{ .Values.service.port }}
+          name: service
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  ports:
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network.port }}
+    targetPort: {{ .Values.network.targetport }}
+  selector:
+    app: {{ .Chart.Name }} # metadataname of deployment
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-admin-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  type: NodePort
+  ports:
+  - name: http-admin-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.targetport }}
+    nodePort: {{ .Values.service.nodePort }}
+  selector:
+    app: {{ .Chart.Name }} # metadataname of deployment

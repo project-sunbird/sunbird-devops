@@ -1,0 +1,28 @@
+
+### variables for telemetry service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{replicacount|default(1)}}
+repository: {{telemetry.repository|default('telemetry-service')}}
+image_tag: {{ telemetry.image_tag }}
+resources:
+  cpu: {{telemetry_service_cpu|default('50m')}}
+  memory: {{telemetry_service_memory|default('50Mi')}}
+network:
+  port: 9001
+  targetport: 9001
+strategy:
+  type: RollingUpdate
+  maxsurge: 1
+  maxunavailable: 0
+
+telemetryenv:
+  telemetry_service_threads: '"2"'
+  telemetry_local_storage_enabled: '"true"'
+  telemetry_local_storage_type: {{sunbird_telemetry_dispatchers|default('kafka')}}
+  telemetry_kafka_broker_list: "{{groups['kafka']|join(':9092,')}}:9092"
+  telemetry_kafka_topic: {{sunbird_telemetry_kafka_topic}}
+  

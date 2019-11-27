@@ -1,0 +1,141 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: virtual-istio
+  namespace: {{ .Values.namespace }}
+spec:
+  gateways:
+  - public-gateway
+  hosts:
+  - {{ .Values.domain_name }}
+  http:
+  - match:
+    - uri:
+        prefix: /grafana/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: grafana.istio-system.svc.cluster.local
+  - match:
+    - uri:
+        prefix: /auth/admin/master/console/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: player-service
+  - match:
+    - uri:
+        prefix: /auth/
+    rewrite:
+      uri: /auth/
+    route:
+    - destination:
+        host: keycloak.{{ .Values.namespace }}
+  - match:
+    - uri:
+        prefix: /api/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: apimanager-service
+        port:
+          number: 8000
+  - match:
+    - uri:
+        prefix: /content/preview/
+    rewrite:
+      authority: {{ .Values.cloud_storage_url }}
+      uri: /sunbird-content-dev/v3/preview/
+    route:
+    - destination:
+        host: {{ .Values.cloud_storage_url }}
+  - match:
+    - uri:
+        prefix: /assets/public/
+    rewrite:
+      authority: {{ .Values.cloud_storage_url }}
+      uri: /sunbird-content-dev/
+    route:
+    - destination:
+        host: {{ .Values.cloud_storage_url }}
+      headers:
+        request:
+          add:
+            Accept: '*/*'
+            Access-Control-Allow-Methods: GET
+            Access-Control-Allow-Origin: '*'
+            Authorization: ""
+            Cache-Control: public
+            Host: {{ .Values.cloud_storage_url }}
+            Pragma: public
+          remove:
+          - Access-Control-Allow-Origin
+          - Access-Control-Allow-Methods
+          - x-amz-id-2
+          - x-amz-request-id
+          - Set-Cookie
+  - match:
+    - uri:
+        prefix: /content-plugins/
+    rewrite:
+      authority: {{ .Values.cloud_storage_url }}
+      uri: /sunbird-content-dev/content-plugins/
+    route:
+    - destination:
+        host: {{ .Values.cloud_storage_url }}
+      headers:
+        request:
+          add:
+            Access-Control-Allow-Methods: GET
+            Access-Control-Allow-Origin: '*'
+            Authorization: ""
+            Cache-Control: public
+            Host: {{ .Values.cloud_storage_url }}
+            Pragma: public
+          remove:
+          - Access-Control-Allow-Origin
+          - Access-Control-Allow-Methods
+          - x-amz-id-2
+          - x-amz-request-id
+          - Set-Cookie
+  - match:
+    - uri:
+        prefix: /thirdparty/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: player-service
+      headers:
+        request:
+          add:
+            Cache-Control: public
+            Pragma: public
+  - match:
+    - uri:
+        prefix: /kibana
+    route:
+    - destination:
+        host: oauth2-proxy-service.{{ .Values.namespace }}-logging.svc.cluster.local
+        port:
+          number: 4180
+  - match:
+    - uri:
+       prefix: /oauth2
+    route:
+    - destination:
+        host: oauth2-proxy-service.{{ .Values.namespace }}-logging.svc.cluster.local
+        port:
+          number: 4180
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: player-service
+  
+  

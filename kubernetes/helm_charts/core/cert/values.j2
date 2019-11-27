@@ -1,0 +1,30 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{replicacount|default(1)}}
+repository: {{cert.repository|default('cert_service')}}
+image_tag: {{cert.image_tag }}
+resources:
+  cpu: {{cert_service_cpu|default('50m')}}
+  memory: {{cert_service_memory|default('50Mi')}}
+network:
+  port: 9011
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: 1
+  maxunavailable: 0
+
+certenv:
+  CONTAINER_NAME: {{cert_service_container_name}}
+  CLOUD_STORAGE_TYPE: {{cert_service_cloud_storage_type}}
+  AZURE_STORAGE_SECRET: {{sunbird_azure_storage_key}}
+  AZURE_STORAGE_KEY: {{sunbird_azure_storage_account}}
+  sunbird_cert_domain_url: {{proto}}://{{proxy_server_name}}
+  sunbird_cert_enc_service_url: "http://enc-service.{{namespace}}.svc.cluster.local:9010"
+  download_link_expiry_timeout: "'600'"
+  
+

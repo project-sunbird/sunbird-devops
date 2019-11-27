@@ -1,0 +1,49 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: virtual-istio-private
+  namespace: {{ .Values.namespace }}
+spec:
+  gateways:
+  - istio-gateway-private
+  hosts:
+  - '*'
+  http:
+  - match:
+    - uri:
+        prefix: /learner/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: learner-service
+  - match:
+    - uri:
+        prefix: /api/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: apimanager-service
+        port:
+          number: 8000
+  - match:
+    - uri:
+        prefix: /admin-api/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: apimanager-service
+        port:
+          number: 8001
+  - match:
+    - uri:
+        prefix: /badger
+    rewrite:
+      uri: /api-auth/token
+    route:
+    - destination:
+        host: badger-service
+        port:
+          number: 8004
