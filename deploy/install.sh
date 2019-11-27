@@ -34,7 +34,7 @@ jwt_token=$(sudo cat /root/jwt_token_player.txt)
 
 # services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
 # disabling some services due to unavailability of public images
-services="adminutil apimanager content learner player telemetry nginx-private-ingress nginx-private-ingress"
+services="adminutil apimanager content learner player telemetry nginx-private-ingress nginx-public-ingress"
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
