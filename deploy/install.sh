@@ -38,7 +38,7 @@ services="adminutil apimanager content learner player telemetry nginx-private-in
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
-  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} core_vault_kong__test_jwt=${jwt_token}"
+  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} sunbird_api_auth_token=${jwt_token}"
 done
 # Provisioning keycloak
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags provision
