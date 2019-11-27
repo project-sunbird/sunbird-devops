@@ -1,12 +1,3 @@
-- name: Get the list of all the services running in our OS
-  become: yes
-  service_facts:
-
-- name: Stop the monit to ensure that it doesn't start keycloak
-  service: name=monit state=stopped
-  become: yes
-  when: ansible_facts.services.monit is defined
-
 - name: Status service
   become: true
   command: /etc/init.d/keycloak status
@@ -48,24 +39,33 @@
     group: "{{ wildfly_group }}"
     force: true
 
-- name: Creating keycloak directory
-  become: true
-  file:
-    path: "{{ keycloak_home }}"
-    state: directory
+- name: Paste keycloak package on server
+  copy:
+    src: "{{ artifact_path }}"
+    dest: "/opt/"
     owner: "{{ wildfly_user }}"
     group: "{{ wildfly_group }}"
+    force: true
 
 - name: Extarct the folder
   unarchive:
-    src: "{{ artifact_path }}"
-    dest: "{{ keycloak_home }}"
+    src: "/opt/{{ artifact }}"
+    dest: /opt/
+    copy: false
     owner: "{{ wildfly_user }}"
     group: "{{ wildfly_group }}"
 
-- name: Creating keycloak directory in proper structure
-  become: yes
-  shell: "cd {{ keycloak_home }} ; mv sunbird_auth_1.0v/* ./ ; rm -rf sunbird_auth_1.0v; chown -R keycloak:keycloak {{ keycloak_home }}"
+- name: Move the folder name
+  command: mv sunbird_auth_{{ sunbird_auth_version }} keycloak
+  args:
+    chdir: /opt
+
+- name: Remove the opt/{{ artifact }}
+  become: true
+  file:
+    path: "/opt/{{ artifact }}"
+    state: absent
+    force: true
 
 - name: Create required directories
   file:
@@ -186,12 +186,3 @@
   command: /etc/init.d/keycloak start
   poll: 5
   async: 5
-
-- name: get the list of all services in the system
-  become: yes
-  service_facts:
-
-- name: After succesful migration and staring of keycloak, start back monit if installed
-  service: name=monit state=started
-  become: yes
-  when: ansible_facts.services.monit is defined

@@ -1,5 +1,6 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayInfo=social.displayInfo; section>
+<#ftl autoesc=false>
 <#if section = "title">
     ${msg("loginTitle",(realm.displayName!''))}
     <#elseif section = "header">
@@ -38,11 +39,11 @@
                             <#else>${msg("email")}
                             </#if>
                         </label>
-                         <#if usernameEditDisabled??>
-                          <#-- TODO: need to find alternative for prepopulating username -->
-                        <input class="mt-8" id="username" name="username" type="text" disabled />
+                        <#ftl autoesc=false>
+                        <#if usernameEditDisabled??>
+                        <input placeholder="${msg('usernamePlaceholder')}" class="mt-8" id="username" name="username" value="${(login.username!'')?html}" type="text" disabled />
                         <#else>
-                        <input class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="off" />
+                        <input placeholder="${msg('usernamePlaceholder')}" class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" value="${(login.username!'')?html}" type="text" autofocus autocomplete="off" />
                         </#if>
                     </div>
                     <div class="field">
@@ -52,7 +53,7 @@
                             </label>
                             <#if realm.resetPasswordAllowed>
                                 <a id="fgtKeycloakFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:storeLocation(); javascript:makeDivUnclickable()" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
-                                <div id="fgtPortalFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:forgetPassword('/recover/identify/account');javascript:makeDivUnclickable()">${msg("doForgotPassword")}</div>
+                                <div id="fgtPortalFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:redirect('/recover/identify/account');javascript:makeDivUnclickable()">${msg("doForgotPassword")}</div>
                             </#if>
                             <label id="passwordLabelPlaceholder" for="password" class="activeLabelColor hide">
                                 ${msg("placeholderForPassword")}
