@@ -33,14 +33,13 @@
   file: path=/home/deployer/env/sunbird_{{service_name}}.env state=absent
 
 - name: check if env file exists
-  stat: path={{env_file_path}}/{{service_name}}.env
+  stat: path={{role_path}}/templates/sunbird_{{service_name}}.env
   register: out
   delegate_to: "localhost"
-  when: jenkins_WS is defined
 
 - debug: var=out
 
 - name: Save service configurations into an env file
   template: src="sunbird_{{service_name}}.env" dest="/home/deployer/env/sunbird_{{service_name}}.env" mode=0644
-  when: out.stat.exists or jenkins_WS is undefined
+  when: out.stat.exists
   
