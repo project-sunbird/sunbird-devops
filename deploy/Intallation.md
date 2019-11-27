@@ -8,6 +8,7 @@ Infastructure required.
 Three 2 core 8G machines
 
 Steps:
+> If you don't have a ssl certificate but public domain name, you can run deploy/certbot.sh
 1. Will create a single node kubernetes cluster
    - you can access via `kubectl` from the machine
 2. Create databases on the second machine
