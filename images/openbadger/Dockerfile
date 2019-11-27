@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:17.10
 MAINTAINER Rajesh Rajendran<rjshrjndrn@gmail.com>
 
 # Installing and configuring packages
