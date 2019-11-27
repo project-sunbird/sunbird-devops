@@ -1,5 +1,7 @@
 
 ---
+kong_admin_api_url: "http://{{kong_host}}:8001"
+
 # Default statsd_metrics
 statsd_metrics: ["request_count", "status_count", "latency", "upstream_latency", "request_size", "response_size"]
 statsd_host: monitor_statsd_exporter
@@ -65,7 +67,7 @@ player_service_url: "http://player:3000"
 echo_service_url: "http://echo:9595"
 am_util_url: "http://adminutil:4000"
 config_service_url: "http://config-service:8080"
-user_org_service_url: "http://userorg-service:9000"
+user_org_service_url: "http://user-org-service:9000"
 lms_service_url: "http://lms-service:9000"
 cert_service_url: "http://cert-service:9000"
 cert_registry_service_url: "http://cert-registry-service:9000"
@@ -84,7 +86,21 @@ premium_consumer_rate_limits:
     config.limit_by: credential
     config.policy: local
 
+# Example:
+# kong_apis:
+# - name: "readContent"
+#   uris: "/v3/public/content/read"
+#   upstream_url: "{{ learning_service_url }}/v3/public/content/read"
+#   strip_uri: true
+#   plugins:
+#    - {name: 'jwt'}
+#    - {name: 'cors'}
+#    - {name: 'statsd', config.metrics: "{{ statsd_metrics }}" }
+#    - {name: 'acl', config.whitelist: 'contentUser'}
+#    - {name: 'rate-limiting', config.hour: "{{ medium_rate_limit_per_hour }}"}
+#    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ medium_request_size_limit }}" }
 kong_apis:
+
   - name: PrivateContentAPIs
     uris: "{{ private_content_prefix }}/v3"
     upstream_url: "{{ vm_learning_service_url }}/content/v3"
