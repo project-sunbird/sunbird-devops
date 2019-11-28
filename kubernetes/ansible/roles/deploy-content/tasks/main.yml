@@ -1,0 +1,26 @@
+- name: Create a directory if it does not exist
+  file:
+    path: /var/lib/jenkins/content_config
+    state: directory
+
+- name: copy new index file
+  template: src="application.conf" dest="/var/lib/jenkins/content_config/application.conf" mode=0644
+
+- name: remove whitespaces in index file
+  shell: 'sed -i s/\\s\\+$//e /var/lib/jenkins/content_config/application.conf'
+
+- name: Remove the existing content config
+  shell: "kubectl delete configmap content-config --namespace={{namespace}}"
+  ignore_errors: true
+
+- name: Create content service configmap
+  shell: "kubectl create configmap content-config --from-file=/var/lib/jenkins/content_config/application.conf --namespace={{namespace}}"
+
+- name: rename template
+  template:
+    src: "{{ chart_path }}/values.j2"
+    dest: "{{ chart_path }}/values.yaml"
+
+- name: helm install
+  shell: helm upgrade --install {{ release_name }} {{ chart_path }}
+  #shell: helm template {{ chart_path }} > /tmp/test.yaml

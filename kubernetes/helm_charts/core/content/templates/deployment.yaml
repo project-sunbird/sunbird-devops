@@ -24,6 +24,10 @@ spec:
     spec:
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
+      volumes:
+        - name: {{ .Chart.Name }}-config
+          configMap:
+            name: {{ .Chart.Name }}-config
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
@@ -34,6 +38,9 @@ spec:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
         - containerPort: {{ .Values.network.port }}
+        volumeMounts:
+          - name: {{ .Chart.Name }}-config
+            mountPath: /home/sunbird/learning-service-1.0-SNAPSHOT/config/applicaton.conf
 
 ---
 apiVersion: v1
