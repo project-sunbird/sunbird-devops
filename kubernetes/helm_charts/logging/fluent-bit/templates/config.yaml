@@ -78,9 +78,8 @@ data:
 {{ if .Values.extraEntries.filter }}
 {{ .Values.extraEntries.filter | indent 8 }}
 {{- end }}
-
     [FILTER]
-        Name                envoyparser
+        Name                parser
         Match               kube.istio-proxy.*
         Key_Name            log
         Parser              envoy
@@ -168,14 +167,11 @@ data:
 {{ end }}
 {{- end }}
     [PARSER]
-        Name        dockerJson
-        Format      json
-        Time_Key  time
+        Name         dockerJson
+        Format       json
+        Time_Key     time
         Time_Format  %Y-%m-%dT%H:%M:%S.%L
-        Time_Keep  On
-        Decode_Field_As  json log
-        Decode_Field_As  escaped log do_next
-        Decode_Field_As  escaped_utf8 log do_next
+        Time_Keep    On
 {{- if .Values.parsers.logfmt }}
 {{- range .Values.parsers.logfmt }}
     [PARSER]
@@ -194,8 +190,8 @@ data:
 {{- end }}
 {{- end }}
     [PARSER]
-        Name        envoy
-        Format      regex
-        Regex       ^(?<host>[^ ]*) - \[(?<real_ip>[^ ]*)\] - (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*) "(?<referer>[^\"]*)" "(?<agent>[^\"]*)" (?<request_length>[^ ]*) (?<request_time>[^ ]*) \[(?<proxy_upstream_name>[^ ]*)\] (?<upstream_addr>[^ ]*) (?<upstream_response_length>[^ ]*) (?<upstream_response_time>[^ ]*) (?<upstream_status>[^ ]*) (?<last>[^$]*)
-        Preserve_Key true
-        Reserve_Data        On
+        Name            envoy
+        Format          regex
+        Regex           ^(?<host>[^ ]*) - \[(?<real_ip>[^ ]*)\] - (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*) "(?<referer>[^\"]*)" "(?<agent>[^\"]*)" (?<request_length>[^ ]*) (?<request_time>[^ ]*) \[(?<proxy_upstream_name>[^ ]*)\] (?<upstream_addr>[^ ]*) (?<upstream_response_length>[^ ]*) (?<upstream_response_time>[^ ]*) (?<upstream_status>[^ ]*) (?<last>[^$]*)
+        Preserve_Key    true
+        Reserve_Data    On
