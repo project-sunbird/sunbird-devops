@@ -84,6 +84,7 @@ data:
         Key_Name            log
         Parser              envoy
         Reserve_Data        On
+        Preserve_Key        On
 
   fluent-bit-output.conf: |
 {{- if eq .Values.backend.type "test" }}
@@ -152,46 +153,10 @@ data:
 {{ .Values.rawConfig | indent 4 }}
 
   parsers.conf: |
-{{- if .Values.parsers.regex }}
-{{- range .Values.parsers.regex }}
-    [PARSER]
-        Name        {{ .name }}
-        Format      regex
-        Regex       {{ .regex }}
-{{- if .timeKey }}
-        Time_Key    {{ .timeKey }}
-{{- end }}
-{{- if .timeFormat }}
-        Time_Format {{ .timeFormat }}
-{{- end }}
-{{ end }}
-{{- end }}
-    [PARSER]
-        Name         dockerJson
-        Format       json
-        Time_Key     time
-        Time_Format  %Y-%m-%dT%H:%M:%S.%L
-        Time_Keep    On
-{{- if .Values.parsers.logfmt }}
-{{- range .Values.parsers.logfmt }}
-    [PARSER]
-        Name        {{ .name }}
-        Format      logfmt
-{{- if .timeKey }}
-        Time_Key    {{ .timeKey }}
-{{- end }}
-{{- if .timeFormat }}
-        Time_Format {{ .timeFormat }}
-{{- end }}
-{{- if .extraEntries }}
-{{ .extraEntries | indent 8 }}
-{{- end }}
-{{ end }}
-{{- end }}
-{{- end }}
     [PARSER]
         Name            envoy
         Format          regex
         Regex           ^(?<host>[^ ]*) - \[(?<real_ip>[^ ]*)\] - (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*) "(?<referer>[^\"]*)" "(?<agent>[^\"]*)" (?<request_length>[^ ]*) (?<request_time>[^ ]*) \[(?<proxy_upstream_name>[^ ]*)\] (?<upstream_addr>[^ ]*) (?<upstream_response_length>[^ ]*) (?<upstream_response_time>[^ ]*) (?<upstream_status>[^ ]*) (?<last>[^$]*)
-        Preserve_Key    true
+        Preserve_Key    On
         Reserve_Data    On
+{{- end }}
