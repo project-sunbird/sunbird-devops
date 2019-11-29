@@ -86,6 +86,25 @@ services:
                 limits:
                     memory: "{{ blackbox_exporter_limit_memory }}"
 
+
+    redis-exporter:
+        image: oliver006/redis_exporter
+        ports:
+            - "19115:9121"
+{% if 'dp-redis' in group_names %}
+        command: "-redis.addr=redis://{{groups['dp-redis'][0]}}:6379"
+{% else %}
+        command: "-redis.addr=redis://{{groups['lp-redis-ps'][0]}}:6379"
+{% endif %}
+        networks:
+            - application_default
+        deploy:
+            resources:
+                reservations:
+                    memory: "{{ blackbox_exporter_reservation_memory }}"
+                limits:
+                    memory: "{{ blackbox_exporter_limit_memory }}"
+
     cadvisor:
         image: google/cadvisor:v0.33.0
         ports:
