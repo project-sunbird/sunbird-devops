@@ -40,3 +40,39 @@ spec:
   resolution: STATIC
   endpoints:
   - address: {{ .Values.keycloak_ip }}
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: swarm-grafana
+  namespace: {{ .Values.namespace }}
+spec:
+  endpoints:
+  - address: {{ .Values.swarm-manager-ip }}
+  hosts:
+  - grafana.{{ .Values.namespace }}.global
+  location: MESH_INTERNAL
+  ports:
+  - name: grafana
+    number: 3001
+    protocol: HTTP
+  resolution: STATIC
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: swarm-kibana
+  namespace: {{ .Values.namespace }}
+spec:
+  endpoints:
+  - address: {{ .Values.swarm-manager-ip }}
+  hosts:
+  - kibana.{{ .Values.namespace }}.global
+  location: MESH_INTERNAL
+  ports:
+  - name: kibana
+    number: 5601
+    protocol: HTTP
+  resolution: STATIC
