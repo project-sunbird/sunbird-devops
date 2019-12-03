@@ -47,3 +47,13 @@
   delegate_to: "{{item}}"
   with_items: "{{(proxy_details.stdout_lines)|list}}"
   register: proxy_out
+
+- name: Getting the list of kong services host details
+  shell: "getent hosts $(docker service ps api-manager_kong | grep Runn | awk '{print $4}') | cut -d \" \" -f1| grep -v f"
+  register: kong_details
+
+- name: reload kong container configurations
+  shell: "docker ps | grep api-manager_kong | awk '{print $1}' | xargs -I % docker exec % kong reload;"
+  delegate_to: "{{item}}"
+  with_items: "{{(kong_details.stdout_lines)|list}}"
+  register: kong_out
