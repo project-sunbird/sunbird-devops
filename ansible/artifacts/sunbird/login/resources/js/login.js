@@ -397,7 +397,11 @@ var handleGoogleAuthEvent = () => {
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
 			if (client_id === 'android') {
-				const googleRedirectUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + googleAuthUrl;
+				let host = sessionUrlObj.host;
+				if (host.indexOf("merge.") !== -1) {
+					host = host.slice(host.indexOf("merge.") + 6, host.length);
+				}
+				const googleRedirectUrl = sessionUrlObj.protocol + '//' + host + googleAuthUrl;
 				window.location.href = redirect_uri + '?googleRedirectUrl=' + googleRedirectUrl + updatedQuery;
 			} else {
 				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + googleAuthUrl + updatedQuery;
