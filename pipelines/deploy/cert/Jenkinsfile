@@ -11,13 +11,7 @@ node() {
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
             ansiblePlaybook = "$currentWs/ansible/deploy.yml"
             directory = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-            try{
-		  sh "cp --preserve=links private/ansible/static-files/itext/${directory}/itext_trail_license.xml ansible/"
-            }
-            catch (err) {
-		println("itext_trail_license.xml file not found")
-	    }
-            ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=cert-service deploy_cert=True\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+            ansibleExtraArgs = "--tags \"stack-sunbird\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag service_name=cert-service deploy_cert=True itextLocation=${currentWs}/private/ansible/static-files/itext/${directory}/itext_trail_license.xml \" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
             values.put('currentWs', currentWs)
             values.put('ansiblePlaybook', ansiblePlaybook)
             values.put('ansibleExtraArgs', ansibleExtraArgs)
