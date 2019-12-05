@@ -1,0 +1,39 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: keycloak-vs
+  namespace: {{ .Values.namespace }}
+spec:
+  gateways:
+  - public-gateway
+  hosts:
+  - {{ .Values.domain_name }} 
+  http:
+  - match:
+    - uri:
+        prefix: /auth/
+    route:
+    - destination:
+        host: keycloak.{{ .Values.namespace }}.global
+  - match:
+    - uri:
+        prefix: /auth/realms/
+    rewrite:
+      uri: /auth/v1/realms/
+    route:
+    - destination:
+        host: kong
+  - match:
+    - uri:
+        prefix: /auth/admin/master/console/
+    redirect:
+      uri: /
+      authority: {{ .Values.domain_name }}
+  - match:
+    - uri: 
+        prefix: /auth/v1/refresh/token
+    rewrite:
+      uri: /auth/
+    route:
+    - destination:
+        host: player
