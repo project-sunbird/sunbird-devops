@@ -69,7 +69,6 @@ user_org_service_url: "http://user-org-service:9000"
 lms_service_url: "http://lms-service:9000"
 cert_service_url: "http://cert-service:9000"
 cert_registry_service_url: "http://cert-registry-service:9000"
-content_service_url: "http://content-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -89,54 +88,6 @@ kong_apis:
   - name: PrivateContentAPIs
     request_path: "{{ private_content_prefix }}/v3"
     upstream_url: "{{ vm_learning_service_url }}/content/v3"
-    strip_request_path: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: privateContentMgmt
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-  - name: PrivateContentCreateAPIs
-    request_path: "{{ private_content_prefix }}/v3/create"
-    upstream_url: "{{ content_service_url }}/content/v3/create"
-    strip_request_path: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: privateContentMgmt
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-  - name: PrivateContentUpdateAPIs
-    request_path: "{{ private_content_prefix }}/v3/update"
-    upstream_url: "{{ content_service_url }}/content/v3/update"
-    strip_request_path: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: privateContentMgmt
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-  - name: PrivateContentReadAPIs
-    request_path: "{{ private_content_prefix }}/v3/read"
-    upstream_url: "{{ content_service_url }}/content/v3/read"
     strip_request_path: true
     plugins:
     - name: jwt
@@ -4735,22 +4686,4 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-  - name: freshDesk
-    request_path: "/tickets/v1/create"
-    upstream_url: "{{ freshDesk_url }}/api/v2/tickets"
-    strip_request_path: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - name: request-transformer
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: publicUser
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-    - name: request-transformer
-      config.replace.headers: "Authorization: Basic {{ freshDesk_token }}"
+
