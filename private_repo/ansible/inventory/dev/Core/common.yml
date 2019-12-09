@@ -8,7 +8,6 @@ bootstrap_user:
 bootstrap_key_path: 
 ssh_public_key_deployer: ""             # SSH Public key for deployer user, with which ansible will execute tasks
 
-ekstep_s3_env:                        # dev or qa or prod of ekstep for plugins
 learningservice_ip:                     # Load balancer IP for learning server
 searchservice_ip:                       # search service Load balancer IP
 analyticsapi_ip:                        # Analytics Service Load Balancer IP
@@ -17,7 +16,7 @@ sunbird_default_channel:                # Organization channel name which portal
 sunbird_app_name:                       # By default app name will be sunbird
 azure_account_name:                     # Storage account name for blobs
 sunbird_content_azure_storage_container: # Conatainer store assets/public
-swarm_load_balancer: # Loadbalancer ip to push the logspout result to logstash in swarm
+sunbird_swarm_manager_lb_ip:             # Swarm manager load balancer private IP. If you don't have a load swarm manager load balancer, you can use swarm manager private ip.
 
 # Blob where data analytics pushing content
 # Check same variable in DP common.yml
@@ -49,10 +48,25 @@ keycloak_api_management_user_email: "admin@sunbird.org"
 jenkins_url:                            # Jenkins urls to be accessed from slaves; eg "http://10.20.0.12:8080/jenkins" 
 sunbird_installation_email: "admin@sunbird.org" # fallback email for badger badge creation if the user doesn't have email address.
 upstream_url: "{{azure_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}" # Proxy url to get /assets/public
-
+ekstep_s3_env: ""                       # This variable is not used and leave the value as empty
 
 ############## Release-1.15.0 & 2.0.0 ##################
 #sunbird_cassandra_replication_strategy: '{"class":"NetworkTopologyStrategy","datacenter1":2}' # If using cluster give this value and choose datacenter and replication factor as required '{"class":"NetworkTopologyStrategy","datacenter1":2}' if not using cluster, leave this variable commented
 
-cert_service_container_name: e-credentials                    # conatiner name for cert service to store cert templates
-cert_service_cloud_storage_type: azure                # can be updated if we are using some other blob
+
+### Modified for plugins - Release - 2.4.0 ###
+sunbird_ekstep_proxy_base_url: "{{proto}}://{{domain_name}}"
+upstream_url: "{{azure_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}" # Proxy url to get /assets/public
+plugin_upstream_url: "{{upstream_url}}"
+azure_plugin_storage_account_name: "{{azure_account_name}}"
+azure_plugin_storage_account_key: "{{core_vault_sunbird_azure_storage_key}}"
+plugin_container_name: "{{sunbird_content_azure_storage_container}}"
+
+# Certs related vars
+certs_badge_name:                  # Course Completion Certificate Name e.g value is "Course Completion Certificate"
+certs_badge_description:           # Descripton of course Completion e.g value is "Successfully completed course on Sunbird"
+certs_badge_image:                 # Image of the certs badge e.g value is "sunbird"
+certs_badge_root_org_id:           # Root org ID for which the certs will be created e.g value is "0124229474659643111"
+certs_badge_issuer_name:           # The issuer of the certs name e.g value is "Government of karnataka"
+certs_badge_issuer_url:            # Issuer organisation official URL e.g value is "https://testdomain.in"
+cert_service_cloud_storage_type: azure                # Can be updated if we are using some other cloud storage
