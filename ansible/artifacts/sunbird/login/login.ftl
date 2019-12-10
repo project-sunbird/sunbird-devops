@@ -1,5 +1,6 @@
 <#import "template.ftl" as layout>
 <@layout.registrationLayout displayInfo=social.displayInfo; section>
+<#ftl autoesc=false>
 <#if section = "title">
     ${msg("loginTitle",(realm.displayName!''))}
     <#elseif section = "header">
@@ -11,7 +12,7 @@
             <div class="ui column height-fix">
                 <div class="ui header centered">
                     <img onerror="" alt="">
-                    <div id="signIn" class="signInHead mt-27">${msg("doSignIn")}</div>
+                    <div id="signIn" class="signInHead mt-27">${msg("loginDiksha")}</div>
                 </div>
                 <p id="mergeAccountMessage" class="hide mb-0 textCenter">${msg("mergeAccountMessage")}</p>
                 <p id="migrateAccountMessage" class="hide mb-0 textCenter">${msg("migrateAccountMessage")}</p>
@@ -38,10 +39,11 @@
                             <#else>${msg("email")}
                             </#if>
                         </label>
+                        <#ftl autoesc=false>
                         <#if usernameEditDisabled??>
-                        <input class="mt-8" id="username" name="username" value="${(login.username!'')?html}" type="text" disabled />
+                        <input placeholder="${msg('usernamePlaceholder')}" class="mt-8" id="username" name="username" value="${(login.username!'')?html}" type="text" disabled />
                         <#else>
-                        <input class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" value="${(login.username!'')?html}" type="text" autofocus autocomplete="off" />
+                        <input placeholder="${msg('usernamePlaceholder')}" class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" value="${(login.username!'')?html}" type="text" autofocus autocomplete="off" />
                         </#if>
                     </div>
                     <div class="field">
@@ -57,15 +59,15 @@
                                 ${msg("placeholderForPassword")}
                             </label>
                         </div>
-                        <input class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="off" />
+                        <input placeholder="${msg('passwordPlaceholder')}" class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="off" />
                     <span class="ui text error hide" id="inCorrectPasswordError">${msg("inCorrectPasswordError")}</span>
                     </div>
                     <div class="field">
-                        <button id="login" class="mt-36 ui fluid button">${msg("doSignIn")}</button>
+                        <button id="login" class="mt-16 sb-btn sb-btn-normal sb-btn-primary width-100">${msg("doLogIn")}</button>
                     </div>
 
                     <div id="selfSingUp" class="hide">
-                        <p class="or mb-30 mt-30 textCenter">OR</p>
+                        <p class="or my-16 textCenter">OR</p>
                         <div class="field">
                             <#if realm.password && social.providers??>
                                 <!--div id="kc-social-providers">
@@ -76,18 +78,18 @@
                                     </#list>
                                 </div-->
                             </#if>
-                            <button type="button" class="ui fluid blue basic button googleButton" onclick="navigate('google')">
-                            <img class="signInWithGoogle" src="${url.resourcesPath}/img/google.png">
-                            ${msg("doSignIn")} ${msg("doSignWithGoogle")}
-                            </button>
-							<button type="button" id="stateButton" class="ui fluid blue basic button googleButton stateButton hide" onclick="navigate('state')">
+							<button type="button" id="stateButton" class="sb-btn sb-btn-normal sb-btn-success width-100 mb-16" onclick="navigate('state')">
 								${msg("doSignWithState")}
 							</button>
+                            <button type="button" class="sb-btn sb-btn-normal sb-btn-outline-primary width-100 d-flex flex-ai-center flex-jc-center" onclick="navigate('google')">
+                            <img class="signInWithGoogle" src="${url.resourcesPath}/img/google.png">
+                            ${msg("doLogIn")} ${msg("doSignWithGoogle")}
+                            </button>
                         </div>
                         <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??>
                             <div id="kc-registration" class="field">
                                 <div class="ui content signUpMsg">
-                                    ${msg("noAccount")} <span id="signup" tabindex="0" class="registerLink" onclick=navigate('self')>${msg("doRegister")}</span> to access relevant learning material and enroll for courses.
+                                    ${msg("noAccount")} <span id="signup" tabindex="0" class="registerLink" onclick=navigate('self')>${msg("registerHere")}</span>
                                 </div>
                             </div>
                         </#if>

@@ -1,4 +1,5 @@
 <#import "template.ftl" as layout>
+<#ftl autoesc=false>
 <@layout.registrationLayout; section>
     <#if section = "title">
         ${msg("pageExpiredTitle")}
