@@ -51,7 +51,9 @@ data:
         Max_Entries     {{ .Values.input.systemd.maxEntries }}
         Read_From_Tail  {{ .Values.input.systemd.readFromTail }}
 {{- end }}
+{{ if .Values.extraEntries.input }}
 {{ .Values.extraEntries.input | indent 8 }}
+{{- end }}
 
   fluent-bit-filter.conf: |
     [FILTER]
@@ -64,21 +66,28 @@ data:
 {{- if .Values.filter.mergeJSONLog }}
         Merge_Log           On
 {{- end }}
-
 {{- if .Values.filter.mergeLogKey }}
         Merge_Log_Key       {{ .Values.filter.mergeLogKey }}
 {{- end }}
-
 {{- if .Values.filter.enableParser }}
         K8S-Logging.Parser  On
 {{- end }}
 {{- if .Values.filter.enableExclude }}
         K8S-Logging.Exclude On
-{{- end }}
+{{- end -}}
+{{ if .Values.extraEntries.filter }}
 {{ .Values.extraEntries.filter | indent 8 }}
+{{- end }}
+    [FILTER]
+        Name                parser
+        Match               kube.istio-proxy.*
+        Key_Name            log
+        Parser              envoy
+        Reserve_Data        On
+        Preserve_Key        On
 
   fluent-bit-output.conf: |
-{{ if eq .Values.backend.type "test" }}
+{{- if eq .Values.backend.type "test" }}
     [OUTPUT]
         Name  file
         Match *
@@ -138,109 +147,16 @@ data:
         tls.ca_file /secure/es-tls-ca.crt
 {{- end }}
 {{- end }}
-{{ else if eq .Values.backend.type "splunk" }}
-    [OUTPUT]
-        Name  splunk
-        Match *
-        Host  {{ .Values.backend.splunk.host }}
-        Port  {{ .Values.backend.splunk.port }}
-        Splunk_Token  {{ .Values.backend.splunk.token }}
-        Splunk_Send_Raw {{ .Values.backend.splunk.send_raw}}
-        TLS   {{ .Values.backend.splunk.tls }}
-        TLS.Verify   {{ .Values.backend.splunk.tls_verify }}
-        tls.debug {{ .Values.backend.splunk.tls_debug }}
-        Message_Key   {{ .Values.backend.splunk.message_key }}
-{{ else if eq .Values.backend.type "stackdriver" }}
-    [OUTPUT]
-        Name  stackdriver
-        Match *
-        resource global
-{{- if .Values.backend.stackdriver.google_service_credentials }}
-        google_service_credentials /secure/google_service_credentials.json
-{{- else }}
-        service_account_email  {{ .Values.backend.stackdriver.service_account_email }}
-        service_account_secret  {{ .Values.backend.stackdriver.service_account_secret }}
 {{- end }}
-{{ else if eq .Values.backend.type "http" }}
-    [OUTPUT]
-        Name  http
-        Match *
-        Host {{ .Values.backend.http.host }}
-        Port {{ .Values.backend.http.port }}
-        URI {{ .Values.backend.http.uri }}
-{{- if .Values.backend.http.http_user }}
-        HTTP_User {{ .Values.backend.http.http_user }}
-        HTTP_Passwd {{ .Values.backend.http.http_passwd }}
-{{- end }}
-        tls {{ .Values.backend.http.tls }}
-        tls.verify {{ .Values.backend.http.tls_verify }}
-        tls.debug {{ .Values.backend.http.tls_debug }}
-{{- if .Values.backend.http.proxy }}
-        Proxy {{ .Values.backend.http.proxy }}
-{{- end }}
-        Format {{ .Values.backend.http.format }}
-{{- end }}
-{{- range  .Values.backend.http.headers }}
-        Header  {{ . }}
-{{- end }}
-{{ .Values.extraEntries.output | indent 8 }}
-
 
   fluent-bit.conf: |
 {{ .Values.rawConfig | indent 4 }}
 
   parsers.conf: |
-{{- if .Values.parsers.regex }}
-{{- range .Values.parsers.regex }}
     [PARSER]
-        Name        {{ .name }}
-        Format      regex
-        Regex       {{ .regex }}
-{{- if .timeKey }}
-        Time_Key    {{ .timeKey }}
+        Name            envoy
+        Format          regex
+        Regex           ^(?<host>[^ ]*) - \[(?<real_ip>[^ ]*)\] - (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*) "(?<referer>[^\"]*)" "(?<agent>[^\"]*)" (?<request_length>[^ ]*) (?<request_time>[^ ]*) \[(?<proxy_upstream_name>[^ ]*)\] (?<upstream_addr>[^ ]*) (?<upstream_response_length>[^ ]*) (?<upstream_response_time>[^ ]*) (?<upstream_status>[^ ]*) (?<last>[^$]*)
+        Preserve_Key    On
+        Reserve_Data    On
 {{- end }}
-{{- if .timeFormat }}
-        Time_Format {{ .timeFormat }}
-{{- end }}
-{{ end }}
-{{- end }}
-{{- if .Values.parsers.json }}
-{{- range .Values.parsers.json }}
-    [PARSER]
-        Name        {{ .name }}
-        Format      json
-{{- if .timeKeep }}
-        Time_Keep   {{ .timeKeep }}
-{{- end }}
-{{- if .timeKey }}
-        Time_Key    {{ .timeKey }}
-{{- end }}
-{{- if .timeFormat }}
-        Time_Format {{ .timeFormat }}
-{{- end }}
-{{- if .decodeFieldAs  }}
-        Decode_Field_As {{ .decodeFieldAs }} {{ .decodeField | default "log" }}
-{{- end}}
-{{- if .extraEntries }}
-{{ .extraEntries | indent 8 }}
-{{- end }}
-{{ end }}
-{{- end }}
-{{- if .Values.parsers.logfmt }}
-{{- range .Values.parsers.logfmt }}
-    [PARSER]
-        Name        {{ .name }}
-        Format      logfmt
-{{- if .timeKey }}
-        Time_Key    {{ .timeKey }}
-{{- end }}
-{{- if .timeFormat }}
-        Time_Format {{ .timeFormat }}
-{{- end }}
-{{- if .extraEntries }}
-{{ .extraEntries | indent 8 }}
-{{- end }}
-{{ end }}
-{{- end }}
-
-{{- end -}}
