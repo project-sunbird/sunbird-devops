@@ -38,11 +38,12 @@
                             <#else>${msg("email")}
                             </#if>
                         </label>
-                        <#if usernameEditDisabled??>
+                         <#if usernameEditDisabled??>
                           <#-- TODO: need to find alternative for prepopulating username -->
                         <input class="mt-8" id="username" name="username" type="text" disabled />
                         <#else>
-                        <input class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="off" />                        </#if>
+                        <input class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="off" />
+                        </#if>
                     </div>
                     <div class="field">
                         <div>
@@ -57,7 +58,7 @@
                                 ${msg("placeholderForPassword")}
                             </label>
                         </div>
-                        <input class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="off" />
+                        <input placeholder="${msg('passwordPlaceholder')}" class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="off" />
                     <span class="ui text error hide" id="inCorrectPasswordError">${msg("inCorrectPasswordError")}</span>
                     </div>
                     <div class="field">
