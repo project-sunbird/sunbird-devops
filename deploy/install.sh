@@ -1,3 +1,4 @@
+# vim: set ts=4 sw=4 tw=0 et :
 #!/bin/bash
 set -eu -o pipefail
 
@@ -9,6 +10,7 @@ bash install-deps.sh
 echo $INVENTORY_PATH
 [[ $INVENTORY_PATH == "" ]] && echo -e "ERROR: set environment variable \nexport INVENTORY_PATH=/path/to/ansible/inventory" && exit 100
 module=Core
+version=2.6.0
 # Creating inventory strucure
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 # Installing dbs (es, cassandra, postgres)
@@ -46,3 +48,24 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags prov
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags deploy -e "artifact_path=${HOME}/keycloak_artifacts.zip"
 # Bootstrapping keycloak
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags bootstrap -v
+
+
+# Installing KP
+module=KnowledgePlatform
+# Creating inventory strucure
+cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
+ansible_path=${HOME}/sunbird-learning-platform
+# Checking out specific revision of KP
+git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/
+
+echo "downloading artifacts"
+artifacts="lp_artifacts.zip lp_neo4j_artifacts.zip"
+for artifact in $artifacts;
+do
+    wget https://sunbirdpublic.blob.core.windows.net/installation/$version/KP/lp_artifacts.zip -P $ansible_path/
+done
+
+# Installing neo4j
+# This version installs neo4j enterprize edition which will have validity for 1 month
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_neo4j_provision.yml -e download_neo4j=false
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_neo4j_deploy.yml -e "zip_file=
