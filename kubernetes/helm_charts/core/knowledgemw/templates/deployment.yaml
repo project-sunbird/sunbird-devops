@@ -13,14 +13,14 @@ spec:
        maxUnavailable: {{ .Values.strategy.maxunavailable }}
   selector:
     matchLabels:
-      app: {{ .Chart.Name }}
+      app: {{ .Chart.Name }}-test
   template:
     metadata:
       annotations:
         readiness.status.sidecar.istio.io/applicationPorts: ""
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        #checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
-        app: {{ .Chart.Name }}
+        app: {{ .Chart.Name }}-test
     spec:
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
@@ -29,7 +29,7 @@ spec:
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         envFrom:
         - configMapRef:
-            name: {{ .Chart.Name }}-config
+            name: test #{{ .Chart.Name }}-config
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
@@ -39,7 +39,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Chart.Name }}-service
+  name: {{ .Chart.Name }}-service-test
   namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Chart.Name }}
@@ -49,4 +49,4 @@ spec:
     protocol: TCP
     port: {{ .Values.network.targetport }}
   selector:
-    app: {{ .Chart.Name }}
+    app: {{ .Chart.Name }}-test
