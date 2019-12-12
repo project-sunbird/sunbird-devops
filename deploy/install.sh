@@ -60,12 +60,21 @@ git clone https://github.com/project-sunbird/sunbird-learning-platform -b releas
 
 echo "downloading artifacts"
 artifacts="lp_artifacts.zip lp_neo4j_artifacts.zip"
+# installing unzip
+sudo apt install unzip
 for artifact in $artifacts;
 do
-    wget https://sunbirdpublic.blob.core.windows.net/installation/$version/KP/lp_artifacts.zip -P $ansible_path/
+    wget https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path/
 done
+cd $ansible_path
+find ./ -type f -iname "*.zip" -exec unzip {} \;
+cd -
 
 # Installing neo4j
 # This version installs neo4j enterprize edition which will have validity for 1 month
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_kafka_provision.yml -e download_neo4j=false
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_kafka_setup.yml -e download_neo4j=false
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_neo4j_provision.yml -e download_neo4j=false
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_neo4j_deploy.yml -e "zip_file=
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_redis_provision.yml -e download_neo4j=false
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_provision.yml -e "zip_file="
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_deploy.yml -e "zip_file="
