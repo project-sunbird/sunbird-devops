@@ -15,8 +15,9 @@
     dest: "/tmp/{{ release_name }}.env"
 
 - name: create configmap
-  shell: "kubectl create configmap test --from-env-file=/tmp/{{ release_name }}.env -n logging-test"
+  #shell: "kubectl create configmap test --from-env-file=/tmp/{{ release_name }}.env -n logging-test"
+  shell: "kubectl create configmap test --from-env-file=/tmp/{{ release_name }}.env -n logging-test --dry-run -o=yaml | kubectl replace -f -"
 
 - name: helm install
-  shell: helm upgrade --install {{ release_name }}-test {{ chart_path }} -n logging-test 
+  shell: helm upgrade --install --recreate-pods {{ release_name }}-test {{ chart_path }} -n logging-test 
   #shell: helm template {{ chart_path }} > /tmp/test.yaml
