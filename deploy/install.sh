@@ -7,10 +7,10 @@ set -eu -o pipefail
 # 
 # # installing dbs
 # # Installing all dbs
-# echo $INVENTORY_PATH
-# [[ $INVENTORY_PATH == "" ]] && echo -e "ERROR: set environment variable \nexport INVENTORY_PATH=/path/to/ansible/inventory" && exit 100
+echo $INVENTORY_PATH
+[[ $INVENTORY_PATH == "" ]] && echo -e "ERROR: set environment variable \nexport INVENTORY_PATH=/path/to/ansible/inventory" && exit 100
 # module=Core
-# version=2.6.0
+version=2.6.0
 # # Creating inventory strucure
 # cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 # # Installing dbs (es, cassandra, postgres)
@@ -52,25 +52,29 @@ set -eu -o pipefail
 
 # Installing KP
 module=KnowledgePlatform
+# Checking out specific revision of KP
+# git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/
+
 # Creating inventory strucure
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
+cp ~/sunbird-learning-platform/ansible/inventory/env/group_vars/all.yml ../ansible/inventory/env/group_vars/
 ansible_path=${HOME}/sunbird-learning-platform
-# Checking out specific revision of KP
-git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/
 
 echo "downloading artifacts"
 artifacts="lp_artifacts.zip lp_neo4j_artifacts.zip"
 # installing unzip
 for artifact in $artifacts;
 do
-    wget https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path/
+    wget -N https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path/ansible/
 done
+# Downloading neo4j
+wget -N https://sunbirdpublic.blob.core.windows.net/installation/neo4j-community-3.3.9-unix.tar.gz -P $ansible_path/ansible/artifacts/
 
-# Installing neo4j
-# This version installs neo4j enterprize edition which will have validity for 1 month
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_kafka_provision.yml -e download_neo4j=false
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_kafka_setup.yml -e download_neo4j=false
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_neo4j_provision.yml -e download_neo4j=false
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_redis_provision.yml -e download_neo4j=false
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_provision.yml -e "zip_file="
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_deploy.yml -e "zip_file="
+# ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_zookeeper_provision.yml
+# ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_kafka_provision.yml
+# ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_kafka_setup.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_neo4j_provision.yml -e "download_neo4j=false neo4j_zip=neo4j-community-3.3.9-unix.tar.gz neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_neo4j_deploy.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_redis_provision.yml
+# ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_provision.yml -e "zip_file="
+# ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_deploy.yml -e "zip_file="
