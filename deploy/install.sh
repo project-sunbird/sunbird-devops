@@ -16,7 +16,7 @@ cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 # Installing dbs (es, cassandra, postgres)
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml
-#
+ansible-playbook -i ../ansible/inventory/env/ ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
 # Bootstrapping k8s
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
 # Installing API manager
@@ -32,8 +32,6 @@ echo "@@@@@@@@@ Onboard Consumers"
 ansible-playbook -v -i ../ansible/inventory/env/ ../ansible/api-manager.yml --tags kong-consumer
 
 jwt_token=$(sudo cat /root/jwt_token_player.txt)
-#
-
 # services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
 # disabling some services due to unavailability of public images
 services="adminutil apimanager content learner player telemetry nginx-private-ingress nginx-public-ingress"
@@ -48,7 +46,6 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags prov
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags deploy -e "artifact_path=${HOME}/keycloak_artifacts.zip"
 # Bootstrapping keycloak
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags bootstrap -v
-
 
 # Installing KP
 module=KnowledgePlatform
