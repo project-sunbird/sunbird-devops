@@ -31,7 +31,7 @@
 
 - name: copy env file from swarm role
   template:
-    src: "{{service_env}}.{{ release_name }}"
+    src: "{{service_env[release_name]}}"
     dest: "{{role_path}}/templates/{{ release_name }}.env"
 
 - name: template vars
@@ -40,7 +40,7 @@
     dest: "/var/lib/jenkins/env/{{ release_name }}.env"
 
 - name: create configmap
-  shell: "kubectl create configmap test --from-env-file=/var/lib/jenkins/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
+  shell: "kubectl create configmap player-config --from-env-file=/var/lib/jenkins/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
 
 - name: check helm release
   shell:  helm ls | grep {{ release_name }}
