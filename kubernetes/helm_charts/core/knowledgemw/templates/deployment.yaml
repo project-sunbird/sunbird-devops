@@ -2,34 +2,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: test #{{ .Chart.Name }}
-  namespace: logging-test
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
      type: {{ .Values.strategy.type }}
-     rollingUpdate:
-       maxsurge: {{ .Values.strategy.maxsurge }}
-       maxUnavailable: {{ .Values.strategy.maxunavailable }}
   selector:
     matchLabels:
-      app: test #{{ .Chart.Name }}
+      app: {{ .Chart.Name }}
   template:
     metadata:
       annotations:
         readiness.status.sidecar.istio.io/applicationPorts: ""
         #checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
-        app: test #{{ .Chart.Name }}
+        app: {{ .Chart.Name }}
     spec:
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
       containers:
-      - name: test #{{ .Chart.Name }}
+      - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         envFrom:
         - configMapRef:
-            name: test #{{ .Chart.Name }}-config
+            name: {{ .Chart.Name }}-config
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
@@ -39,14 +36,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: test-service #{{ .Chart.Name }}-service
-  namespace: logging-test
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Values.namespace }}
   labels:
-    app: test #{{ .Chart.Name }}
+    app: {{ .Chart.Name }}
 spec:
   ports:
   - name: http-{{ .Chart.Name }}
     protocol: TCP
     port: {{ .Values.network.targetport }}
   selector:
-    app: test #{{ .Chart.Name }}
+    app: {{ .Chart.Name }}

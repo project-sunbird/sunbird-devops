@@ -1,30 +1,36 @@
 
-- name: template env
+- name: template values.yaml file
   template:
     src: "{{ chart_path }}/values.j2"
     dest: "{{ chart_path }}/values.yaml"
 
-- name: rename vars
+- name: Create prometheus data dir
+  file:
+    path: "/home/deployer/env"
+    state: directory
+    mode: 0755
+
+- name: copy env file from swarm role
   template:
-    src: "service.env"
-    dest: "{{ release_name }}.env"
+    src: "{{service_env}}.{{ release_name }}_env_path"
+    dest: "{{role_path}}/templates/{{ release_name }}.env"
 
 - name: template vars
   template:
     src: "{{ release_name }}.env"
-    dest: "/tmp/{{ release_name }}.env"
+    dest: "/home/deployer/env/{{ release_name }}.env"
 
 - name: create configmap
-  shell: "kubectl create configmap test --from-env-file=/tmp/{{ release_name }}.env -n logging-test --dry-run -o=yaml | kubectl apply -f -"
+  shell: "kubectl create configmap test --from-env-file=/home/deployer/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
 
 - name: check helm release
-  shell:  helm ls | grep {{ release_name }}-test
+  shell:  helm ls | grep {{ release_name }}
   register: output
 
 - name: helm install
-  shell: helm install --name {{ release_name }}-test {{ chart_path }}
+  shell: helm install --name {{ release_name }} {{ chart_path }}
   when: output.rc == 1
 
-- name: helm install
-  shell: helm upgrade --recreate-pods {{ release_name }}-test {{ chart_path }}
-  #shell: helm template {{ chart_path }} > /tmp/test.yaml
+- name: helm upgrade
+  shell: helm upgrade --recreate-pods {{ release_name }} {{ chart_path }}
+  when: output.rc == 0
