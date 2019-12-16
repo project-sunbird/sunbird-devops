@@ -43,7 +43,7 @@
                             ${msg("passwordConfirm")}
                         </label>
                         <input type="password" class="mt-8" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" id="password-confirm" name="password-confirm" autocomplete="off" onkeydown="javascript:matchPassword()"/>
-                        <div id="passwd-match-error-msg" class="ui text confpasswderr hide">Passwords don't match.</div>
+                        <div id="passwd-match-error-msg" class="ui text confpasswderr hide">Passwords do not match</div>
                     </div>
                     <div class="field">
                         <button id="login" class="ui fluid button submit mt-36" onclick="javascript:makeDivUnclickable()">
