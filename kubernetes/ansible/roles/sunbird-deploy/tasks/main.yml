@@ -20,13 +20,17 @@
     src: "{{ release_name }}.env"
     dest: "/var/lib/jenkins/env/{{ release_name }}.env"
 
+- debug: var=release_name
+  register: output
+
 - name: create configmap
   shell: "kubectl create configmap {{ release_name }}-config --from-env-file=/var/lib/jenkins/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
+  when: output.release_name != "content"
 
 - name: create configmap
   shell: "kubectl create configmap {{ release_name }}-config --from-file=/var/lib/jenkins/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
-  when: "{{ release_name }}" == content
-  
+  when: output.release_name == "content"
+
 - name: check helm release
   shell:  helm ls | grep {{ release_name }}
   register: output
