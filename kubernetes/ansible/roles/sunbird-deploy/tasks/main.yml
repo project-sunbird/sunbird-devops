@@ -21,8 +21,12 @@
     dest: "/var/lib/jenkins/env/{{ release_name }}.env"
 
 - name: create configmap
-  shell: "kubectl create configmap test --from-env-file=/var/lib/jenkins/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
+  shell: "kubectl create configmap {{ release_name }}-config --from-env-file=/var/lib/jenkins/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
 
+- name: create configmap
+  shell: "kubectl create configmap {{ release_name }}-config --from-file=/var/lib/jenkins/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
+  when: "{{ release_name }}" == content
+  
 - name: check helm release
   shell:  helm ls | grep {{ release_name }}
   register: output
