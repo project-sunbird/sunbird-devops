@@ -25,7 +25,7 @@
 
 - name: Create env data dir
   file:
-    path: "/home/deployer/env"
+    path: "/var/lib/jenkins/env"
     state: directory
     mode: 0755
 
@@ -37,10 +37,10 @@
 - name: template vars
   template:
     src: "{{ release_name }}.env"
-    dest: "/home/deployer/env/{{ release_name }}.env"
+    dest: "/var/lib/jenkins/env/{{ release_name }}.env"
 
 - name: create configmap
-  shell: "kubectl create configmap test --from-env-file=/home/deployer/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
+  shell: "kubectl create configmap test --from-env-file=/var/lib/jenkins/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
 
 - name: check helm release
   shell:  helm ls | grep {{ release_name }}
