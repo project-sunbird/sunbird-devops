@@ -9,6 +9,11 @@ bash install-deps.sh
 # Installing all dbs
 echo $INVENTORY_PATH
 [[ $INVENTORY_PATH == "" ]] && echo -e "ERROR: set environment variable \nexport INVENTORY_PATH=/path/to/ansible/inventory" && exit 100
+#########################
+#
+#       CORE
+#
+#########################
 module=Core
 version=2.6.0
 # Creating inventory strucure
@@ -47,6 +52,11 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags depl
 # Bootstrapping keycloak
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags bootstrap -v
 
+#########################
+#
+#       KP
+#
+#########################
 # Installing KP
 module=KnowledgePlatform
 # Checking out specific revision of KP
