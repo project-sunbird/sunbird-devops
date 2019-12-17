@@ -1,0 +1,81 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: private-vs
+  namespace: {{ .Values.namespace }}
+spec:
+  gateways:
+  - istio-gateway-private
+  hosts:
+  - '*'
+  http:
+  - match:
+    - uri:
+        prefix: /learner/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: learner-service
+  - match:
+    - uri:
+        prefix: /api/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: kong
+        port:
+          number: 8000
+  - match:
+    - uri:
+        prefix: /admin-api/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: kong
+        port:
+          number: 8001
+  - match:
+    - uri:
+        prefix: /badger
+    rewrite:
+      uri: /api-auth/token
+    route:
+    - destination:
+        host: badger-service
+        port:
+          number: 8004
+  - match:
+    - uri:
+        prefix: /prometheus/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: sunbird-monitoring-prometheus.monitoring.svc.cluster.local
+        port:
+          number: 9090
+  - match:
+    - uri:
+        prefix: /kiali/
+    route:
+    - destination:
+        host: kiali.istio-system.svc.cluster.local
+  - match:
+    - uri:
+        prefix: /cert/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: cert-service
+  - match:
+    - uri:
+        prefix: /cert/
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: cert-service

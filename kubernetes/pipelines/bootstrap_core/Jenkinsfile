@@ -1,0 +1,35 @@
+@Library('deploy-conf') _
+node() {
+    try {
+        stage('checkout public repo') {
+            cleanWs()
+            checkout scm
+        }
+
+        stage('deploy') {
+            values = [:]
+            envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+            module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+            jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+            currentWs = sh(returnStdout: true, script: 'pwd').trim()
+            ansiblePlaybook = "$currentWs/kubernetes/ansible/bootstrap.yaml"
+            ansibleExtraArgs = "--extra-vars \"chart_path=${currentWs}/kubernetes/helm_charts/istio-system \" --vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+            values.put('currentWs', currentWs)
+            values.put('env', envDir)
+            values.put('module', module)
+            values.put('ansiblePlaybook', ansiblePlaybook)
+            values.put('ansibleExtraArgs', ansibleExtraArgs)
+            ansible_playbook_run(values)
+            archiveArtifacts 'metadata.json'
+            currentBuild.description = "Image: ${values.image_tag}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
+        }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
+    }
+}
