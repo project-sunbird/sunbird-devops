@@ -38,12 +38,11 @@ ansible-playbook -v -i ../ansible/inventory/env/ ../ansible/api-manager.yml --ta
 
 jwt_token=$(sudo cat /root/jwt_token_player.txt)
 # services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
-# disabling some services due to unavailability of public images
-services="adminutil apimanager content learner player telemetry nginx-private-ingress nginx-public-ingress"
+services="adminutils knowledgemw lms apimanager content learner player telemetry nginx-private-ingress nginx-public-ingress"
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
-  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} sunbird_api_auth_token=${jwt_token}"
+  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy sunbird_api_auth_token=${jwt_token}"
 done
 # Provisioning keycloak
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags provision
@@ -92,3 +91,7 @@ ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_definiti
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_redis_provision.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_provision.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_deploy.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/es_composite_search_cluster_setup.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/es-mapping.yml -e "ansible_tag=run_all_index_and_mapping"
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_search_provision.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_search_deploy.yml
