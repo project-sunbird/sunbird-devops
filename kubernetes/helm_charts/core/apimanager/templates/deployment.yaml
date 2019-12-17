@@ -17,13 +17,14 @@ spec:
   template:
     metadata:
       annotations:
-        readiness.status.sidecar.istio.io/applicationPorts: ""
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
         app: {{ .Chart.Name }}
     spec:
+{{- if .Values.imagepullsecrets }}
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
+{{- end }}
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
