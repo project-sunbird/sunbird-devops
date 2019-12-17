@@ -13,7 +13,7 @@
 
 - name: remove whitespaces in index file
   shell: 'sed -i s/\\s\\+$//e /var/lib/jenkins/player_config/index_cdn.ejs'
-  when: sunbird_portal_cdn_url is defined and cdn_file_path is defined
+  when: sunbird_portal_cdn_url|length>0 and  cdn_file_path|length>0
 
 - name: Remove the existing CDN config
   shell: "kubectl delete configmap player-cdn-config --namespace={{namespace}}"
@@ -21,7 +21,7 @@
 
 - name: Create player-cdn configmap
   shell: "kubectl create configmap player-cdn-config --from-file=/var/lib/jenkins/player_config/index_cdn.ejs --namespace={{namespace}}"
-  when: sunbird_portal_cdn_url is defined and cdn_file_path is defined
+  when: sunbird_portal_cdn_url|length>0 and  cdn_file_path|length>0
 
 - name: Create env data dir
   file:
