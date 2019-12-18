@@ -30,13 +30,13 @@ done
 git checkout -- ../ansible/inventory/env/group_vars/all.yml # This is to make sure always the all.yaml is updated
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 # Installing dbs (es, cassandra, postgres)
-# ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
+ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --skip-tags "es,postgresql-slave,log-es"
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
 # Bootstrapping k8s
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
 
-# Creating private ingress 
+# Creating private ingress
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/nginx-private-ingress release_name=nginx-private-ingress role_name=sunbird-deploy"
 
 # Installing API manager
@@ -61,7 +61,7 @@ done
 # Provisioning keycloak
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags provision
 # Deploying keycloak
-ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags deploy -e "artifact_path=keycloak_artifacts.zip"
+ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags deploy -e "artifact_path=keycloak_artifacts.zip deploy_monit=false"
 # Bootstrapping keycloak
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags bootstrap -v
 
@@ -73,7 +73,7 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags boot
 # Installing KP
 module=KnowledgePlatform
 # Checking out specific revision of KP
-# git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/
+git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/
 
 # Creating inventory strucure
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
