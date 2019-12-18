@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: public-nginx-ingress
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: public-nginx-ingress
+  template:
+    metadata:
+      labels:
+        app: public-nginx-ingress
+    spec:
+{{- if .Values.imagepullsecrets }}
+      {{- if .Values.imagePullSecrets }}
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+{{- if .Values.imagepullsecrets }}
+      - name: {{ .Values.imagePullSecrets }}
+      {{- end }}
+      volumes:
+        - name: tls
+          secret:
+            secretName: ingress-cert
+        - name: proxy-config
+          configMap:
+            name: proxy-default
+        - name: nginx-config
+          configMap:
+            name: nginx-conf
+      containers:
+      - name: name
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+          - name: tls
+            mountPath: /etc/secrets
+            readOnly: true
+          - name: proxy-config
+            mountPath: /etc/nginx/conf.d
+            readOnly: true
+          - name: nginx-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+            readOnly: true
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: public-nginx-ingress
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: public-nginx-ingress
+  type: {{ .Values.service.type }}
+  ports:
+{{ toYaml .Values.service.ports | indent 4 }}
