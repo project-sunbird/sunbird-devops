@@ -26,3 +26,24 @@ Installation procedure:
 3. fill the common.yaml and secrets.yaml; It is adviced to copy the folder to another location, and keep it in a private repo.
 4. export INVENTORY_PATH=/path/to/the/private_repo
 5. cd deploy && bash install.sh
+
+
+### Manual steps
+1. Create 3vms of 2core 8Gi and one azure storage account
+2. clone rjshrjndrn/sunbird-devops -b 3node
+3. clone project-sunbird/sunbird-learning-platform
+4. open sunbird-devops/deploy -> ./certbot.sh # To generate certificates from Letsencrypt, should see certs in `ls ~`
+5. sunbird-devops/private_repo/ansible/inventory/dev/ Core and KnowledgePlatform fill hosts, common, secrets
+6. example inventory seggregation
+| module | application | ip       |
+|--------|-------------|----------|
+| Core   | kubernetes  | 10.1.4.4 |
+|        | keycloak    |          |
+| DBs    | Cassandra   | 10.1.4.5 |
+|        | Neo4j       |          |
+|        | postgres    |          |
+|        | redis       |          |
+| KP     | learning    | 10.1.4.6 |
+|        | search      |          |
+|        | ES          |          |
+|        | Kafka       |          |
