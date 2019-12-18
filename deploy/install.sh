@@ -16,11 +16,21 @@ echo $INVENTORY_PATH
 #########################
 module=Core
 version=2.6.0
+
+echo "downloading artifacts"
+artifacts="keycloak_artifacts.zip"
+
+ansible_path=${HOME}/sunbird-devops
+for artifact in $artifacts;
+do
+    wget -N https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path/ansible/
+done
+
 # Creating inventory strucure
 git checkout -- ../ansible/inventory/env/group_vars/all.yml # This is to make sure always the all.yaml is updated
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 # Installing dbs (es, cassandra, postgres)
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
+# ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
 # Bootstrapping k8s
@@ -51,7 +61,7 @@ done
 # Provisioning keycloak
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags provision
 # Deploying keycloak
-ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags deploy -e "artifact_path=${HOME}/keycloak_artifacts.zip"
+ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags deploy -e "artifact_path=keycloak_artifacts.zip"
 # Bootstrapping keycloak
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags bootstrap -v
 
