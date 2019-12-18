@@ -27,11 +27,11 @@
 - name: Getting private lb ip
   command: kubectl get svc -n istio-system ingressgateway-private -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
   register: private_lb_ip
-  when: kong_admin_api_url not defined
+  when: kong_admin_api_url is not defined
 
 - set_fact:
         kong_admin_api_url: "http://{{private_lb_ip.stdout}}/admin-api"
-  when: kong_admin_api_url not defined
+  when: kong_admin_api_url is not defined
 
 - name: Run script to save consumers
   shell: "python /tmp/kong-api-scripts/kong_consumers.py /tmp/kong_consumers.json --kong-admin-api-url={{ kong_admin_api_url }}"
