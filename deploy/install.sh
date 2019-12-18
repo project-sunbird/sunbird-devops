@@ -25,21 +25,24 @@ ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
 # Bootstrapping k8s
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
+
+# Creating private ingress 
+ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/nginx-private-ingress release_name=nginx-private-ingress role_name=sunbird-deploy"
+
 # Installing API manager
-ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy" -v
+ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy kong_admin_api_url=http://$(hostname -i)/admin-api" -v
 
-# Onboard apis
-echo "@@@@@@@@@ Onboard APIs"
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/api-manager.yml --tags kong-api
+# echo "@@@@@@@@@ Onboard APIs"
+ansible-playbook -i ../ansible/inventory/env/ ../ansible/api-manager.yml -e kong_admin_api_url=http://$(hostname -i):12000/admin-api --tags kong-api
 
-# Onboard Consumers
+# echo "@@@@@@@@@ Onboard Consumers"
 ## This will generate a player token in /root/jwt_token_player.txt
 echo "@@@@@@@@@ Onboard Consumers"
-ansible-playbook -v -i ../ansible/inventory/env/ ../ansible/api-manager.yml --tags kong-consumer
+ansible-playbook -v -i ../ansible/inventory/env/ ../ansible/api-manager.yml -e "kong_admin_api_url=http://$(hostname -i):12000/admin-api kubeconfig_path=/etc/rancher/k3s/k3s.yaml" --tags kong-consumer
 
 jwt_token=$(sudo cat /root/jwt_token_player.txt)
 # services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
-services="adminutils knowledgemw lms apimanager content learner player telemetry nginx-private-ingress nginx-public-ingress"
+services="adminutils knowledgemw lms apimanager content learner player telemetry nginx-public-ingress"
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
