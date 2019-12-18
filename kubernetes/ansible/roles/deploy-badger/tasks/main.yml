@@ -1,4 +1,4 @@
-
+---
 - name: template values file
   template:
     src: "{{ chart_path }}/values.j2"
@@ -19,33 +19,33 @@
     dest: /tmp/user.sh
     mode: 0755
 
-- name: Copying user creation script to badger
-  shell: "kubectl cp /tmp/user.sh --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1):/tmp/user.sh"
-
-- name: Creating superuser
-  shell: "kubectl exec --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1) /tmp/user.sh"
-  no_log: true
-
-- name: Cleaning up secrets in container
-  shell: "kubectl exec --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1) rm /tmp/user.sh"
-
-- name: Deleting user.sh 
-  become: yes
-  file:
-    name: "/tmp/user.sh"
-    state: absent
-
-- name: Getting private lb ip
-  command: kubectl get svc -n istio-system ingressgateway-private -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
-  register: private_lb_ip
-
-- set_fact:
-    badger_url: "http://{{private_lb_ip.stdout}}/badger"
-
-- name: Getting auth token
-  shell: curl -X POST '{{badger_url}}' -d "username="{{badger_admin_user}}"&password={{badger_admin_password}}"
-  register: curl
-  no_log: true
-
-- name: Copy admin auth token to desktop
-  copy: content="{{curl.stdout}}" dest=~/badger_token.txt
+    #- name: Copying user creation script to badger
+    #  shell: "kubectl cp /tmp/user.sh --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1):/tmp/user.sh"
+    #
+    #- name: Creating superuser
+    #  shell: "kubectl exec --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1) /tmp/user.sh"
+    #  no_log: true
+    #
+    #- name: Cleaning up secrets in container
+    #  shell: "kubectl exec --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1) rm /tmp/user.sh"
+    #
+    #- name: Deleting user.sh 
+    #  become: yes
+    #  file:
+    #    name: "/tmp/user.sh"
+    #    state: absent
+    #
+    #- name: Getting private lb ip
+    #  command: kubectl get svc -n istio-system ingressgateway-private -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+    #  register: private_lb_ip
+    #
+    #- set_fact:
+    #    badger_url: "http://{{private_lb_ip.stdout}}/badger"
+    #
+    #- name: Getting auth token
+    #  shell: curl -X POST '{{badger_url}}' -d "username="{{badger_admin_user}}"&password={{badger_admin_password}}"
+    #  register: curl
+    #  no_log: true
+    #
+    #- name: Copy admin auth token to desktop
+    #  copy: content="{{curl.stdout}}" dest=~/badger_token.txt
