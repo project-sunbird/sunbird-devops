@@ -26,7 +26,7 @@ ansible-playbook -i ../ansible/inventory/env/ ../ansible/es-mapping.yml --extra-
 # Bootstrapping k8s
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
 # Installing API manager
-ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e release_name=apimanager -v
+ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy" -v
 
 # Onboard apis
 echo "@@@@@@@@@ Onboard APIs"
