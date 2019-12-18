@@ -1,0 +1,61 @@
+- name: Create a directory if it does not exist
+  file:
+    path: /var/lib/jenkins/player_config
+    state: directory
+
+- name: Remove existing index_cdn.ejs
+  file: path=/var/lib/jenkins/player_config/index_cdn.ejs state=absent
+  ignore_errors: true
+
+- name: copy new index file
+  copy: src="{{cdn_file_path}}" dest="/var/lib/jenkins/player_config/index_cdn.ejs" mode=0644
+  when: sunbird_portal_cdn_url|length>0 and  cdn_file_path|length>0
+
+- name: remove whitespaces in index file
+  shell: 'sed -i s/\\s\\+$//e /var/lib/jenkins/player_config/index_cdn.ejs'
+  when: sunbird_portal_cdn_url|length>0 and  cdn_file_path|length>0
+
+- name: Remove the existing CDN config
+  shell: "kubectl delete configmap player-cdn-config --namespace={{namespace}}"
+  ignore_errors: true
+
+- name: Create player-cdn configmap
+  shell: "kubectl create configmap player-cdn-config --from-file=/var/lib/jenkins/player_config/index_cdn.ejs --namespace={{namespace}}"
+  when: sunbird_portal_cdn_url|length>0 and  cdn_file_path|length>0
+
+- name: rename template
+  template:
+    src: "{{ chart_path }}/values.j2"
+    dest: "{{ chart_path }}/values.yaml"
+
+- name: Create env data dir
+  file:
+    path: "/var/lib/jenkins/env"
+    state: directory
+    mode: 0755
+
+- name: copy env file from swarm role
+  template:
+    src: "{{service_env[release_name]}}"
+    dest: "{{role_path}}/templates/{{ release_name }}.env"
+
+- name: template vars
+  template:
+    src: "{{ release_name }}.env"
+    dest: "/var/lib/jenkins/env/{{ release_name }}.env"
+
+- name: create configmap
+  shell: "kubectl create configmap player-config --from-env-file=/var/lib/jenkins/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
+
+- name: check helm release
+  shell:  helm ls | grep {{ release_name }}
+  register: output
+  ignore_errors: true
+
+- name: helm install
+  shell: helm install {{ release_name }} {{ chart_path }}
+  when: output.rc == 1
+
+- name: helm upgrade
+  shell: helm upgrade --recreate-pods {{ release_name }} {{ chart_path }}
+  when: output.rc == 0

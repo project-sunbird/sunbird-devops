@@ -1,0 +1,52 @@
+
+- name: template values.yaml file
+  template:
+    src: "{{ chart_path }}/values.j2"
+    dest: "{{ chart_path }}/values.yaml"
+
+- name: Create env data dir
+  file:
+    path: "/var/lib/jenkins/env"
+    state: directory
+    mode: 0755
+
+- name: copy env file from swarm role
+  template:
+    src: "{{service_env[release_name]}}"
+    dest: "{{role_path}}/templates/{{ release_name }}.env"
+
+- debug: var=release_name
+  register: output
+
+- name: template vars
+  template:
+    src: "{{ release_name }}.env"
+    dest: "/var/lib/jenkins/env/{{ release_name }}.env"
+  when: output.release_name != "content"
+
+- name: template content service vars
+  template:
+    src: "{{ release_name }}.env"
+    dest: "/var/lib/jenkins/env/application.conf"
+  when: output.release_name == "content"
+
+- name: create configmap
+  shell: "kubectl create configmap {{ release_name }}-config --from-env-file=/var/lib/jenkins/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
+  when: output.release_name != "content"
+
+- name: create content configmap
+  shell: "kubectl create configmap {{ release_name }}-config --from-file=/var/lib/jenkins/env/application.conf -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
+  when: output.release_name == "content"
+
+- name: check helm release
+  shell:  helm ls | grep {{ release_name }}
+  register: output
+  ignore_errors: true
+
+- name: helm install
+  shell: helm install {{ release_name }} {{ chart_path }}
+  when: output.rc == 1
+
+- name: helm upgrade
+  shell: helm upgrade --recreate-pods {{ release_name }} {{ chart_path }}
+  when: output.rc == 0

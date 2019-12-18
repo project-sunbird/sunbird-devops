@@ -1,0 +1,53 @@
+### variables for apimanager-kong service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{api_manager_replicacount|default(1)}}
+repository: {{api_manager_repository|default('kong')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{api_manager_cpu_req|default('50m')}}
+    memory: {{api_manager_mem_req|default('50Mi')}}
+  limits:
+    cpu: {{api_manager_cpu_limit|default('1000m')}}
+    memory: {{api_manager_memory_limit|default('256Mi')}}
+network:
+  port: 8000
+  targetport: 8000
+service:
+  port: 8001
+  targetport: 8001
+strategy:
+  type: RollingUpdate
+  maxsurge: 1
+  maxunavailable: 0
+
+apimanagerecho:
+  replicaCount: {{replicacount|default(1)}}
+  repository: {{apimanagerecho_repository|default('echo-server')}}
+  image_tag: 1.5.0-gold
+  resources:
+    cpu: {{api_manager_echo|default('50m')}}
+    memory: {{api_manager_echo|default('50Mi')}}
+  network:
+    port: 9595
+    targetport: 9595
+  strategy:
+    type: RollingUpdate
+    maxsurge: 1
+    maxunavailable: 0
+
+godns:
+  repository: {{ go_dns_repository | default('docker.io/sunbird/go-dns') }}
+  image_tag: {{ go_dns_image_tag | default('v1.0') }}
+  resources:
+    requests:
+      cpu: {{ go_dns_cpu_req | default('50m') }}
+      memory: {{ go_dns_mem_req | default('100Mi') }}
+    limits:
+      cpu: {{ go_dns_cpu_limit | default('300m') }}
+      memory: {{ go_dns_mem_limit | default('350Mi') }}
+
