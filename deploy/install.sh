@@ -17,10 +17,10 @@ echo $INVENTORY_PATH
 module=Core
 version=2.6.0
 # Creating inventory strucure
-git checkout -- ../ansible/inventory/env/group_vars/all.yml This is to make sure always the all.yaml is updated
+git checkout -- ../ansible/inventory/env/group_vars/all.yml # This is to make sure always the all.yaml is updated
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 # Installing dbs (es, cassandra, postgres)
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --tags "es" # --skip-tags "postgresql-slave,log-es"
+ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
 # Bootstrapping k8s
