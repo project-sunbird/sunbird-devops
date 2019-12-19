@@ -29,7 +29,7 @@ Installation procedure:
 
 
 ### Manual steps
-1. Create 3vms(one of them should have a public ip, and 80,443 exposed to internet) of 2core 8Gi
+1. Create 3vms(one of them should have a public ip, and 80,443 exposed to internet) of 2core 8Gi of ubuntu16.04
 2. azure storage account with one public container( for example content)
 3. clone rjshrjndrn/sunbird-devops -b 3node
 4. clone project-sunbird/sunbird-learning-platform
