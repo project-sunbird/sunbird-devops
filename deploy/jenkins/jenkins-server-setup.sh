@@ -117,7 +117,7 @@ echo -e "\n\e[0;32m${bold}Installating Helm${normal}"
 wget https://get.helm.sh/helm-v3.0.2-linux-386.tar.gz
 tar -xzvf helm-v3.0.2-linux-386.tar.gz
 rm -rf /usr/local/bin/helm
-cp linux-amd64/helm /usr/local/bin/helm
+cp linux-386/helm /usr/local/bin/helm
 rm -rf helm-v* linux-amd*
 
 # Install kubectl
