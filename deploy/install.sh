@@ -91,7 +91,7 @@ cp ~/sunbird-learning-platform/ansible/inventory/env/group_vars/all.yml ../ansib
 ansible_path=${HOME}/sunbird-learning-platform
 
 echo "downloading artifacts"
-artifacts="lp_artifacts.zip lp_neo4j_artifacts.zip"
+artifacts="lp_artifacts.zip lp_neo4j_artifacts.zip lp_cassandratrigger_artifacts.zip"
 
 for artifact in $artifacts;
 do
@@ -104,6 +104,7 @@ cd -
 # Downloading neo4j
 wget -N https://sunbirdpublic.blob.core.windows.net/installation/neo4j-community-3.3.9-unix.tar.gz -P $ansible_path/ansible/artifacts/
 
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/cassandra-trigger-deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_cassandra_db_update.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_zookeeper_provision.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_kafka_provision.yml
