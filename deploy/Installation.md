@@ -29,12 +29,13 @@ Installation procedure:
 
 
 ### Manual steps
-1. Create 3vms(one of them should have a public ip, and 80,443 exposed to internet) of 2core 8Gi and one azure storage account
-2. clone rjshrjndrn/sunbird-devops -b 3node
-3. clone project-sunbird/sunbird-learning-platform
-4. open sunbird-devops/deploy -> ./certbot.sh # To generate certificates from Letsencrypt, should see certs in `ls ~`
-5. sunbird-devops/private_repo/ansible/inventory/dev/ Core and KnowledgePlatform fill hosts, common, secrets
-6. example inventory seggregation
+1. Create 3vms(one of them should have a public ip, and 80,443 exposed to internet) of 2core 8Gi
+2. azure storage account with one public container( for example content)
+3. clone rjshrjndrn/sunbird-devops -b 3node
+4. clone project-sunbird/sunbird-learning-platform
+5. open sunbird-devops/deploy -> ./certbot.sh # To generate certificates from Letsencrypt, should see certs in `ls ~`
+6. sunbird-devops/private_repo/ansible/inventory/dev/ Core and KnowledgePlatform fill hosts, common, secrets
+7. example inventory seggregation
 | module | application | ip       |
 |--------|-------------|----------|
 | Core   | kubernetes  | 10.1.4.4 |
