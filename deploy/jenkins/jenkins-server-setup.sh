@@ -110,6 +110,24 @@ su jenkins bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.
 echo -e "\n\e[0;32m${bold}Installing jmespath${normal}"
 pip install jmespath
 
+#### Kubernetes Tools ####
+
+# Install Helm version 3.0.2
+echo -e "\n\e[0;32m${bold}Installating Helm${normal}"
+wget https://get.helm.sh/helm-v3.0.2-linux-386.tar.gz
+tar -xzvf helm-v3.0.2-linux-386.tar.gz
+rm -rf /usr/local/bin/helm
+cp linux-amd64/helm /usr/local/bin/helm
+rm -rf helm-v* linux-amd*
+
+# Install kubectl
+echo -e "\n\e[0;32m${bold}Installating kubectl${normal}"
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+touch /etc/apt/sources.list.d/kubernetes.list
+echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+apt-get update
+apt-get install -y kubectl
+
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove
 
