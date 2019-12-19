@@ -163,6 +163,7 @@ USING_G1=$?
 # 100 MB per physical CPU core.
 {% if cassandra_heap_size is defined %}
 MAX_HEAP_SIZE="{{cassandra_heap_size}}"
+HEAP_NEWSIZE="800M"
 {% else %}
 #MAX_HEAP_SIZE="4G"
 {% endif %}
