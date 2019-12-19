@@ -66,7 +66,7 @@ services="adminutils knowledgemw lms apimanager content learner player telemetry
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
-  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy sunbird_api_auth_token=${jwt_token}"
+  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy sunbird_api_auth_token=${jwt_token}" -v
 done
 # Provisioning keycloak
 ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags provision
@@ -103,7 +103,10 @@ find ./ -type f -iname "*.zip" -exec unzip -o {} \;
 cd -
 # Downloading neo4j
 wget -N https://sunbirdpublic.blob.core.windows.net/installation/neo4j-community-3.3.9-unix.tar.gz -P $ansible_path/ansible/artifacts/
+cp $ansible_path/ansible/cassandra.transaction-event-handler-*.jar $ansible_path/ansible/static-files
 
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_provision.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_search_provision.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/cassandra-trigger-deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_cassandra_db_update.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_zookeeper_provision.yml
@@ -111,12 +114,12 @@ ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_kafka_pr
 # Will create all topic
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_kafka_setup.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_neo4j_provision.yml -e "download_neo4j=false neo4j_zip=neo4j-community-3.3.9-unix.tar.gz neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_redis_provision.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_neo4j_deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_start_neo4j.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/es_composite_search_cluster_setup.yml -v
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_definition_update.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_redis_provision.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_provision.yml
+bash ./csindexupdate.sh
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_deploy.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_search_provision.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_search_deploy.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_definition_update.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
+
