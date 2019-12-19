@@ -38,15 +38,6 @@
   shell: "kubectl create configmap {{ release_name }}-config --from-file=/var/lib/jenkins/env/application.conf -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
   when: output.release_name == "content"
 
-- name: check helm release
-  shell:  helm ls --all-namespaces | grep {{ release_name }}
-  register: output
-  ignore_errors: true
-
-- name: helm install
-  shell: helm install {{ release_name }} {{ chart_path }} -n {{namespace}}
-  when: output.rc == 1
-
 - name: helm upgrade
-  shell: helm upgrade --recreate-pods {{ release_name }} {{ chart_path }} -n {{namespace}}
-  when: output.rc == 0
+  shell: helm install --upgrade --force {{ release_name }} {{ chart_path }} -n {{namespace}}
+
