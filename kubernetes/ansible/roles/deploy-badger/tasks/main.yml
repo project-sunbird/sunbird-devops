@@ -1,4 +1,4 @@
-
+---
 - name: template values file
   template:
     src: "{{ chart_path }}/values.j2"
@@ -35,15 +35,8 @@
     name: "/tmp/user.sh"
     state: absent
 
-- name: Getting private lb ip
-  command: kubectl get svc -n istio-system ingressgateway-private -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
-  register: private_lb_ip
-
-- set_fact:
-    badger_url: "http://{{private_lb_ip.stdout}}/badger"
-
 - name: Getting auth token
-  shell: curl -X POST '{{badger_url}}' -d "username="{{badger_admin_user}}"&password={{badger_admin_password}}"
+  shell: curl -X POST 'http://{{private_ingressgateway_ip}}/badger' -d "username="{{badger_admin_user}}"&password={{badger_admin_password}}"
   register: curl
   no_log: true
 
