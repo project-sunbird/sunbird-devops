@@ -29,7 +29,7 @@ Installation procedure:
 
 
 ### Manual steps
-1. Create 3vms of 2core 8Gi and one azure storage account
+1. Create 3vms(one of them should have a public ip, and 80,443 exposed to internet) of 2core 8Gi and one azure storage account
 2. clone rjshrjndrn/sunbird-devops -b 3node
 3. clone project-sunbird/sunbird-learning-platform
 4. open sunbird-devops/deploy -> ./certbot.sh # To generate certificates from Letsencrypt, should see certs in `ls ~`
