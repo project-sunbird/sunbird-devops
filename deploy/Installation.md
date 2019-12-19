@@ -23,7 +23,7 @@ Steps:
 ### Manual steps
 1. Create 3vms(one of them should have a public ip, and 80,443 exposed to internet) of 2core 8Gi of ubuntu16.04
 2. azure storage account with one public container( for example content)
-3. Create a keyfile ~/ops.key which can ssh into all nodes
+3. Create a keyfile ~/deployer.pem which can ssh into all nodes
 4. clone rjshrjndrn/sunbird-devops -b 3node
 5. open sunbird-devops/deploy -> ./certbot.sh # To generate certificates from Letsencrypt, should see certs in `ls ~`
 6. sunbird-devops/private_repo/ansible/inventory/dev/ Core and KnowledgePlatform fill hosts, common, secrets
