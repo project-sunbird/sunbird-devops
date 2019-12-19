@@ -19,13 +19,20 @@ module=Core
 version=2.6.0
 
 echo "downloading artifacts"
-artifacts="keycloak_artifacts.zip"
+artifacts="keycloak_artifacts.zip cassandra_artifacts.zip"
 
 ansible_path=${HOME}/sunbird-devops
 for artifact in $artifacts;
 do
-    wget -N https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path/ansible/
+        wget -N https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path/ansible/
 done
+
+# installing unzip
+sudo apt install unzip
+ansible_path=${HOME}/sunbird-devops
+cd $ansible_path/ansible
+find ./ -type f -iname "cassandra*" -exec unzip -o {} \;
+cd -
 
 # Creating inventory strucure
 git checkout -- ../ansible/inventory/env/group_vars/all.yml # This is to make sure always the all.yaml is updated
@@ -35,6 +42,7 @@ ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --skip-ta
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/cassandra-cassandra-deploy.yml
+ansible-playbook -i ../ansible/inventory/env/ ../ansible/cassandra-deploy.yml -e "cassandra_jar_path=$ansible_path/ansible cassandra_deploy_path=/home/{{ansible_ssh_user}}" -v
 
 # Bootstrapping k8s
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
@@ -91,7 +99,6 @@ do
     wget -N https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path/ansible/
 done
 # installing unzip
-sudo apt install unzip
 cd $ansible_path/ansible
 find ./ -type f -iname "*.zip" -exec unzip -o {} \;
 cd -
