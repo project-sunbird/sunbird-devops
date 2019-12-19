@@ -84,7 +84,7 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags boot
 # Installing KP
 module=KnowledgePlatform
 # Checking out specific revision of KP
-git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/sunbird-learning-platform
+[[ -d ~/sunbird-learning-platform ]] || git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/sunbird-learning-platform && cd ~/sunbird-learning-platform; git pull origin release-$version; cd -
 
 # Creating inventory strucure
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
