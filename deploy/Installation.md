@@ -36,6 +36,7 @@ Installation procedure:
 5. open sunbird-devops/deploy -> ./certbot.sh # To generate certificates from Letsencrypt, should see certs in `ls ~`
 6. sunbird-devops/private_repo/ansible/inventory/dev/ Core and KnowledgePlatform fill hosts, common, secrets
 7. example inventory seggregation
+
 | module | application | ip       |
 |--------|-------------|----------|
 | Core   | kubernetes  | 10.1.4.4 |
