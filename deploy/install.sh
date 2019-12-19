@@ -41,7 +41,6 @@ cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/cassandra-cassandra-deploy.yml
 ansible-playbook -i ../ansible/inventory/env/ ../ansible/cassandra-deploy.yml -e "cassandra_jar_path=$ansible_path/ansible cassandra_deploy_path=/home/{{ansible_ssh_user}}" -v
 
 # Bootstrapping k8s
