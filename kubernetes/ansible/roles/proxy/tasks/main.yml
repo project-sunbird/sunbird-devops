@@ -21,6 +21,24 @@
         tls.key: "{{ core_vault_proxy_site_key | b64encode }}"
       EOF
 
+- name: Creating domain sssl
+  no_log: true
+  shell:
+    cmd: |
+      cat <<EOF | kubectl apply -f -
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ingress-merge-cert
+        namespace: istio-system
+      type: kubernetes.io/tls
+      data:
+        ca.crt: ""
+        tls.crt: "{{ proxymerge_site_crt | b64encode }}"
+        tls.key: "{{ proxymerge_site_key | b64encode }}"
+      EOF
+   when: merge_proxy_server_name != ""
+
 - name: rename template
   template:
     src: "{{ chart_path }}/values.j2"
@@ -28,4 +46,3 @@
 
 - name: helm install
   shell: helm upgrade --install {{ release_name }} {{ chart_path }}
-  #shell: helm template {{ chart_path }} > /tmp/test.yaml
