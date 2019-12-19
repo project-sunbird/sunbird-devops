@@ -20,14 +20,6 @@ Steps:
    - Learning service
    - Search service
 
-Installation procedure:
-1. clone sunbird-devops repo
-2. cd `private_repo/ansible/dev/Core/`
-3. fill the common.yaml and secrets.yaml; It is adviced to copy the folder to another location, and keep it in a private repo.
-4. export INVENTORY_PATH=/path/to/the/private_repo
-5. cd deploy && bash install.sh
-
-
 ### Manual steps
 1. Create 3vms(one of them should have a public ip, and 80,443 exposed to internet) of 2core 8Gi of ubuntu16.04
 2. azure storage account with one public container( for example content)
