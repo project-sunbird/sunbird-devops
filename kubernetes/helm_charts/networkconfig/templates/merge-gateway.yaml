@@ -1,7 +1,8 @@
+{{- if .Values.merge_domain_status }}
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
-  name: public-gateway
+  name: merge-gateway
   namespace: {{ .Values.namespace }}
 spec:
   servers:
@@ -10,7 +11,7 @@ spec:
       name: http
       protocol: HTTP
     hosts:
-    - {{ .Values.domain_name }}
+    - {{ .Values.merge_proxy_server_name }}
     tls:
       httpsRedirect: true
   - port:
@@ -18,7 +19,8 @@ spec:
       name: https
       protocol: HTTPS
     hosts:
-    - {{ .Values.domain_name }}
+    - {{ .Values.merge_proxy_server_name }}
     tls:
       mode: SIMPLE
-      credentialName: ingress-cert # must be the same as secret
+      credentialName: ingress-merge-cert # must be the same as secret
+{{- end }}
