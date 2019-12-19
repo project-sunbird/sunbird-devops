@@ -4,6 +4,7 @@ set -eu -o pipefail
 
 # Installing deps
 bash install-deps.sh
+export ANSIBLE_HOST_KEY_CHECKING=false
 
 # installing dbs
 # Installing all dbs
