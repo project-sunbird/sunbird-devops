@@ -3736,3 +3736,196 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: listLock
+    request_path: "{{ lock_service_prefix }}/v1/list"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/lock/list"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ listLock_ACL | default(['orgAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createSession
+    request_path: "{{ sso_service_prefix }}/v1/create/session"
+    upstream_url: "{{ player_service_url }}/v1/sso/create/session"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ createSession_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  # Data pipeline
+
+  - name: "datasetSubmitRequest"
+    request_path: "{{ data_service_prefix }}/v3/dataset/request/submit"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/request/submit"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl', config.whitelist: "{{ datasetSubmitRequest_ACL | default(['publicUser']) }}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "datasetReadRequest"
+    request_path: "{{ data_service_prefix }}/v3/dataset/request/read"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/request/read"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ datasetReadRequest_ACL | default(['publicUser']) }}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "datasetListRequest"
+    request_path: "{{ data_service_prefix }}/v3/dataset/request/list"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/request/list"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ datasetListRequest_ACL | default(['publicUser']) }}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "deviceRegister"
+    request_path: "/v3/device/register"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/v1/device/register"
+    strip_request_path: true
+    plugins:
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "deviceProfile"
+    request_path: "/v3/device/profile"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/v1/device/profile"
+    strip_request_path: true
+    plugins:
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }   
+
+  - name: "channelSpecificTelemetryExhaust"
+    request_path: "{{ data_service_prefix }}/v3/dataset/get"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/dataset/get"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ channelSpecificTelemetryExhaust_ACL | default(['publicUser']) }}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+
+  - name: "dataproductsCumulativeMetrics"
+    request_path: "{{ data_service_prefix }}/v3/metrics"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/metrics"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ dataproductsCumulativeMetrics_ACL | default(['publicUser'])}}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+     
+
+  - name: "experimentcreate"
+    request_path: "{{ data_service_prefix }}/v1/experiement/create"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/experiment/create"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ experimentcreate_ACL | default(['publicUser'])}}" }
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+
+  - name: "experimentread"
+    request_path: "{{ data_service_prefix }}/v1/experiement/get"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/experiment/get"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ experimentread_ACL | default(['publicUser'])}}"}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "configRefresh"
+    request_path: "{{ config_service_prefix }}/v1/refresh"
+    upstream_url: "{{ config_service_url }}/config-service/v1/refresh"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ configRefresh_ACL | default(['dataAdmin'])}}"}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+
+  - name: "getConfigByKey"
+    request_path: "{{ config_service_prefix }}/v1/read"
+    upstream_url: "{{ config_service_url }}/config-service/v1/read"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ getConfigByKey_ACL | default(['publicUser'])}}"}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ large_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "addSystemSettings"
+    request_path: "{{ data_service_prefix }}/v1/system/settings/set"
+    upstream_url: "{{ learning_service_url }}/v1/system/settings/set"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ addSystemSettings_ACL | default(['dataAdmin'])}}"}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "getSystemSettings"
+    request_path: "{{ data_service_prefix }}/v1/system/settings/get"
+    upstream_url: "{{ learning_service_url }}/v1/system/settings/get"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+     - name: acl
+       config.whitelist: "{{ getSystemSettings_ACL | default(['publicUser','mobileApis']) }}"
