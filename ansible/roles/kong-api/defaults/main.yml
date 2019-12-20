@@ -951,3 +951,20 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createPageSection
+    request_path: "{{ data_service_prefix }}/v1/page/section/create"
+    upstream_url: "{{ lms_service_url }}/v1/page/section/create"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ createPageSection_ACL | default(['appUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
