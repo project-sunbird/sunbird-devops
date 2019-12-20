@@ -3651,3 +3651,20 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: reserveDialcode
+    request_path: "{{ dialcode_service_prefix }}/v1/reserve"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/reserve"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ reserveDialcode_ACL | default(['dialcodeAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
