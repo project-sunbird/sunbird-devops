@@ -60,7 +60,7 @@ ansible-playbook -i ../ansible/inventory/env/ ../ansible/api-manager.yml -e kong
 echo "@@@@@@@@@ Onboard Consumers"
 ansible-playbook -v -i ../ansible/inventory/env/ ../ansible/api-manager.yml -e "kong_admin_api_url=http://$(hostname -i):12000/admin-api kubeconfig_path=/etc/rancher/k3s/k3s.yaml" --tags kong-consumer
 
-jwt_token=$(sudo cat /root/jwt_token_player.txt)
+jwt_token=$(sudo cat /root/jwt_token_player.txt|xargs)
 # services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
 services="adminutils knowledgemw lms apimanager content learner player telemetry nginx-public-ingress"
 for service in $services;
