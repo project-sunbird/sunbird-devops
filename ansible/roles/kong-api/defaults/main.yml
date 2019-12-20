@@ -1157,3 +1157,21 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+
+  - name: registerMobileDeviceOpenRAP
+    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_device_openrap/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/mobile_device_openrap/credential/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registerMobileDeviceOpenRAP_ACL | default(['mobileAppOpenRAP']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
