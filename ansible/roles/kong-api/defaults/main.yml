@@ -4173,3 +4173,15 @@ kong_apis:
      - {name: 'acl',config.whitelist: "{{ getUserType_ACL | default(['publicUser'])}}"}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "masterLocationDelete"
+    request_path: "{{data_service_prefix }}/v1/location/delete"
+    upstream_url: "{{ learning_service_url }}/v1/location/delete"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ masterLocationDelete_ACL | default(['locationAdmin'])}}"}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
