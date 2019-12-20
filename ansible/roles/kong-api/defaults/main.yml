@@ -3953,3 +3953,20 @@ kong_apis:
      - {name: 'acl',config.whitelist: "{{ getConfigHealth_ACL | default(['dataAdmin'])}}"}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: onboardConsumer
+    request_path: "{{ api_manager_perfix }}/v1/consumer/create/jwt"
+    upstream_url: "{{ am_util_url }}/v1/consumer/create/jwt"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ onboardConsumer_ACL | default(['kongConsumer']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ small_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
