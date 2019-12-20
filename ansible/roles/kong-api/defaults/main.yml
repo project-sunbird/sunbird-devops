@@ -4718,3 +4718,13 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: "telemetryErrorLogging"
+    request_path: "/data/v1/client/logs"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/data/v1/client/logs"
+    strip_request_path: true
+    plugins:
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
