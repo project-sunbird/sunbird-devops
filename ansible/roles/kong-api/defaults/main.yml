@@ -1583,3 +1583,241 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getParticipants
+    request_path: "{{ course_service_prefix }}/v1/batch/participants/list"
+    upstream_url: "{{ lms_service_url }}/v1/batch/participants/list"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ getParticipants_ACL | default(['courseUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: assignRole
+    request_path: "{{ user_service_prefix }}/v1/role/assign"
+    upstream_url: "{{ learning_service_url }}/v1/user/assign/role"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ assignRole_ACL | default(['orgAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: indexSync
+    request_path: "{{ data_service_prefix }}/v1/index/sync"
+    upstream_url: "{{ learning_service_url }}/v1/data/sync"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ indexSync_ACL | default(['appUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: blockUser
+    request_path: "{{ user_service_prefix }}/v1/block"
+    upstream_url: "{{ learning_service_url }}/v1/user/block"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ blockUser_ACL | default(['userAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: unblockUser
+    request_path: "{{ user_service_prefix }}/v1/unblock"
+    upstream_url: "{{ learning_service_url }}/v1/user/unblock"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ unblockUser_ACL | default(['userAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: uploadMedia
+    request_path: "{{ content_prefix }}/v1/media/upload"
+    upstream_url: "{{ learning_service_url }}/v1/file/upload"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ uploadMedia_ACL | default(['contentUpdate','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: listCourseBatches
+    request_path: "{{ course_service_prefix }}/v1/batch/list"
+    upstream_url: "{{ lms_service_url }}/v1/course/batch/search"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ listCourseBatches_ACL | default(['courseUser','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: batchBulkEnrolment
+    request_path: "{{ course_service_prefix }}/v1/batch/bulk/enrollment"
+    upstream_url: "{{ lms_service_url }}/v1/batch/bulk/enrollment"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ batchBulkEnrolment_ACL | default(['orgAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: batchBulkUnEnrolment
+    request_path: "{{ course_service_prefix }}/v1/batch/bulk/unenrollment"
+    upstream_url: "{{ lms_service_url }}/v1/batch/bulk/unenrollment"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ batchBulkUnEnrolment_ACL | default(['orgAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getTenantInfo
+    request_path: "{{ org_service_prefix }}/v1/tenant/info"
+    upstream_url: "{{ player_service_url }}/v1/tenant/info"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ getTenantInfo_ACL | default(['publicUser','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getContentUploadUrl
+    request_path: "{{ content_prefix }}/v1/upload/url/read"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/content/upload/url"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ getContentUploadUrl_ACL | default(['contentUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: rejectContent
+    request_path: "{{ content_prefix }}/v1/reject"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/content/reject"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ rejectContent_ACL | default(['contentAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: deleteNote
+    request_path: "{{ notes_service_prefix }}/v1/delete"
+    upstream_url: "{{ learning_service_url }}/v1/note/delete"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ deleteNote_ACL | default(['noteAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: sendEmailNotification
+    request_path: "{{ user_service_prefix }}/v1/notification/email"
+    upstream_url: "{{ learning_service_url }}/v1/notification/email"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ sendEmailNotification_ACL | default(['userUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
