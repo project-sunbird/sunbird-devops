@@ -4820,3 +4820,236 @@ kong_apis:
     - {name: 'acl',config.whitelist: "{{ orgAssignKeys_ACL | default(['orgAdmin']) }}"}
     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "mergeUserAccounts"
+    request_path: "{{ user_service_prefix }}/v1/account/merge"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/account/merge"
+    strip_request_path: true
+    plugins:
+    - {name: 'jwt'}
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'acl',config.whitelist: "{{ mergeUserAccounts_ACL | default(['publicUser']) }}"}
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: qrCodeDownload
+    request_path: "{{ course_service_prefix }}/v1/qrcode/download"
+    upstream_url: "{{ lms_service_url }}/v1/course/qrcode/download"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: "{{ qrCodeDownload_ACL | default(['courseUser']) }}"
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: courseIssueCertificate
+    request_path: "{{ course_service_prefix }}/batch/cert/v1/issue"
+    upstream_url: "{{ lms_service_url }}/v1/course/batch/cert/issue"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ courseIssueCertificate_ACL | default(['courseUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: courseBatchAddCertificateTemplate
+    request_path: "{{ course_service_prefix }}/batch/cert/v1/template/add"
+    upstream_url: "{{ lms_service_url }}/v1/course/batch/cert/template/add"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ courseBatchAddCertificateTemplate_ACL | default(['courseUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: courseBatchRemoveCertificateTemplate
+    request_path: "{{ course_service_prefix }}/batch/cert/v1/template/remove"
+    upstream_url: "{{ lms_service_url }}/v1/course/batch/cert/template/remove"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ courseBatchRemoveCertificateTemplate_ACL | default(['courseUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: downloadCertificate
+    request_path: "{{ user_service_prefix }}/v1/certs/download"
+    upstream_url: "{{ learning_service_url }}/v1/user/certs/download"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ downloadCertificate_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: UserBulkUploadv2
+    request_path: "{{ user_service_prefix }}/v2/bulk/upload"
+    upstream_url: "{{ learning_service_url }}/v2/bulk/user/upload"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ UserBulkUploadv2_ACL | default(['userAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ small_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: downloadRegCertificate
+    request_path: "{{ cert_registry_service_prefix }}/v1/certs/download"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/download"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ downloadRegCertificate_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: validateRegCertificate
+    request_path: "{{ cert_registry_service_prefix }}/v1/certs/validate"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/validate"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ validateRegCertificate_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: addRegCertificate
+    request_path: "{{ cert_registry_service_prefix }}/v1/certs/add"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/add"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ addRegCertificate_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: userMigrate
+    request_path: "{{ user_service_prefix }}/v1/migrate"
+    upstream_url: "{{ learning_service_url }}/v1/user/migrate"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ userMigrate_ACL | default(['publicUser','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: verifyRegCertificate
+    request_path: "{{ cert_registry_service_prefix }}/v1/certs/verify"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/verify"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ verifyRegCertificate_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateDesktopApp
+    request_path: "{{ desktop_app_prefix }}/v1/update"
+    upstream_url: "{{ player_service_url }}/v1/desktop/update"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ updateDesktopApp_ACL | default(['contentUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ large_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: userFeed
+    request_path: "{{ user_service_prefix }}/v1/feed"
+    upstream_url: "{{ learning_service_url }}/v1/user/feed"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ userFeed_ACL | default(['publicUser','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
