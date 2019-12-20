@@ -4294,3 +4294,20 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getUserByKeyV3
+    request_path: "{{ user_service_prefix  }}/v1.3/get"
+    upstream_url: "{{ user_org_service_url }}/v1.3/user/get"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ getUserByKeyV3_ACL | default(['appUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
