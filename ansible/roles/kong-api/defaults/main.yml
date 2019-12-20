@@ -4362,3 +4362,226 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getUserTypeV3
+    request_path: "{{ user_service_prefix }}/v1.3/type/list"
+    upstream_url: "{{ user_org_service_url }}/v1.3/user/type/list"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl', config.whitelist: "{{ getUserTypeV3_ACL | default(['publicUser']) }}"}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: blockUserV3
+    request_path: "{{ user_service_prefix }}/v1.3/block"
+    upstream_url: "{{ user_org_service_url }}/v1.3/user/block"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ blockUserV3_ACL | default(['userAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: unblockUserV3
+    request_path: "{{ user_service_prefix }}/v1.3/unblock"
+    upstream_url: "{{ user_org_service_url }}/v1.3/user/unblock"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ unblockUserV3_ACL | default(['userAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: readRoleMappingV3
+    request_path: "{{ data_service_prefix }}/v1.3/role/read"
+    upstream_url: "{{ user_org_service_url }}/v1.3/role/read"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ readRoleMappingV3_ACL | default(['appUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: assignRoleV3
+    request_path: "{{ user_service_prefix }}/v1.3/role/assign"
+    upstream_url: "{{ user_org_service_url }}/v1.3/user/assign/role"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ assignRoleV3_ACL | default(['orgAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: "privateUserAssignRoleV3"
+    request_path: "{{ user_service_prefix }}/private/v1.3/assign/role"
+    upstream_url: "{{ user_org_service_url }}/private/user/v1.3/assign/role"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ privateUserAssignRoleV3_ACL | default(['publicUser']) }}"}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: updateUserV3
+    request_path: "{{ user_service_prefix }}/v1.3/update"
+    upstream_url: "{{ user_org_service_url }}/v1.3/user/update"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ updateUserV3_ACL | default(['userUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: "privateUserUpdateV3"
+    request_path: "{{ user_service_prefix }}/private/v1.3/update"
+    upstream_url: "{{ user_org_service_url }}/private/user/v1.3/update"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ privateUserUpdateV3_ACL | default(['publicUser']) }}"}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: updateUserloginTimeV3
+    request_path: "{{ user_service_prefix }}/v1.3/update/logintime"
+    upstream_url: "{{ user_org_service_url }}/v1.3/user/update/logintime"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ updateUserloginTimeV3_ACL | default(['userUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: acceptTermsAndConditionV3
+    request_path: "{{ user_service_prefix }}/v1.3/tnc/accept"
+    upstream_url: "{{ user_org_service_url }}/v1.3/user/tnc/accept"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ acceptTermsAndConditionV3_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: DecryptDataV3
+    request_path: "{{ data_service_prefix }}/v1.3/user/decrypt"
+    upstream_url: "{{ user_org_service_url }}/v1.3/user/data/decrypt"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ DecryptDataV3_ACL | default(['appUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: encryptDataV3
+    request_path: "{{ data_service_prefix }}/v1.3/user/encrypt"
+    upstream_url: "{{ user_org_service_url }}/v1.3/user/data/encrypt"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ encryptDataV3_ACL | default(['appUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createOrgV3
+    request_path: "{{ org_service_prefix }}/v1.3/create"
+    upstream_url: "{{ user_org_service_url }}/v1.3/org/create"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ createOrgV3_ACL | default(['orgUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateOrgV3
+    request_path: "{{ org_service_prefix }}/v1.3/update"
+    upstream_url: "{{ user_org_service_url }}/v1.3/org/update"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ updateOrgV3_ACL | default(['orgUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
