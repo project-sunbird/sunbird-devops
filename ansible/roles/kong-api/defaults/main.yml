@@ -5053,3 +5053,23 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: freshDesk
+    request_path: "/tickets/v1/create"
+    upstream_url: "{{ freshDesk_url }}/api/v2/tickets"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - name: request-transformer
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ freshDesk_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+    - name: request-transformer
+      config.replace.headers: "Authorization: Basic {{ freshDesk_token }}"
