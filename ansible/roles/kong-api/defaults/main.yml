@@ -3482,3 +3482,17 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: readForm
+    request_path: "{{ data_service_prefix }}/v1/form/read"
+    upstream_url: "{{ player_service_url }}/plugin/v1/form/read"
+    strip_request_path: true
+    plugins:
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: ip
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
