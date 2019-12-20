@@ -1685,3 +1685,20 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: listCourseBatches
+    request_path: "{{ course_service_prefix }}/v1/batch/list"
+    upstream_url: "{{ lms_service_url }}/v1/course/batch/search"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ listCourseBatches_ACL | default(['courseUser','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
