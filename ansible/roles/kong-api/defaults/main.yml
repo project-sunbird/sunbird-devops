@@ -5073,3 +5073,20 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
     - name: request-transformer
       config.replace.headers: "Authorization: Basic {{ freshDesk_token }}"
+
+  - name: LicenseAPI
+    request_path: "{{ license_api_prefix }}/v3"
+    upstream_url: "{{ content_service_url }}/license/v3"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ LicenseAPI_ACL | default(['domainUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
