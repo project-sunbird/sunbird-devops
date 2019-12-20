@@ -3941,3 +3941,15 @@ kong_apis:
      - {name: 'acl',config.whitelist: "{{ getConfigStatus_ACL | default(['dataAdmin'])}}"}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: "getConfigHealth"
+    request_path: "{{ config_service_prefix }}/v1/health"
+    upstream_url: "{{ config_service_url }}/config-service/v1/health"
+    strip_request_path: true
+    plugins:
+     - {name: 'jwt'}
+     - {name: 'cors'}
+     - "{{ statsd_pulgin }}"
+     - {name: 'acl',config.whitelist: "{{ getConfigHealth_ACL | default(['dataAdmin'])}}"}
+     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
