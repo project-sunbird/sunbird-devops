@@ -3565,3 +3565,21 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: copyContent
+    request_path: "{{ content_prefix }}/v1/copy"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/content/copy"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ copyContent_ACL | default(['contentUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
