@@ -3583,3 +3583,20 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: fetchURLMetaInformation
+    request_path: "{{ content_prefix }}/v1/fetchmeta"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/url/fetchmeta"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ fetchURLMetaInformation_ACL | default(['contentUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
