@@ -4745,3 +4745,15 @@ kong_apis:
         config.limit_by: credential
       - name: request-size-limiting
         config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: "certValidation"
+    request_path: "{{ user_service_prefix }}/v1/certs/validate"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/certs/validate"
+    strip_request_path: true
+    plugins:
+    - {name: 'jwt'}
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'acl',config.whitelist: "{{ certValidation_ACL | default(['userUpdate']) }}"}
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
