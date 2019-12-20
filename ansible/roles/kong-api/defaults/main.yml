@@ -4791,3 +4791,20 @@ kong_apis:
         config.limit_by: credential
       - name: request-size-limiting
         config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: readCertTemplate
+    request_path: "{{ cert_service_prefix }}/v1/template/read"
+    upstream_url: "{{ cert_service_url }}/cert/v1/template/read"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: "{{ readCertTemplate_ACL | default(['orgUpdate']) }}"
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
