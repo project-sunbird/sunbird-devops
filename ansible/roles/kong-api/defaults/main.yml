@@ -5019,3 +5019,37 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateDesktopApp
+    request_path: "{{ desktop_app_prefix }}/v1/update"
+    upstream_url: "{{ player_service_url }}/v1/desktop/update"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ updateDesktopApp_ACL | default(['contentUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ large_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: userFeed
+    request_path: "{{ user_service_prefix }}/v1/feed"
+    upstream_url: "{{ learning_service_url }}/v1/user/feed"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ userFeed_ACL | default(['publicUser','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
