@@ -4374,3 +4374,20 @@ kong_apis:
      - {name: 'acl', config.whitelist: "{{ getUserTypeV3_ACL | default(['publicUser']) }}"}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: blockUserV3
+    request_path: "{{ user_service_prefix }}/v1.3/block"
+    upstream_url: "{{ user_org_service_url }}/v1.3/user/block"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ blockUserV3_ACL | default(['userAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
