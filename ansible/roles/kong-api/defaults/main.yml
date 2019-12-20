@@ -4866,3 +4866,20 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: courseBatchAddCertificateTemplate
+    request_path: "{{ course_service_prefix }}/batch/cert/v1/template/add"
+    upstream_url: "{{ lms_service_url }}/v1/course/batch/cert/template/add"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ courseBatchAddCertificateTemplate_ACL | default(['courseUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
