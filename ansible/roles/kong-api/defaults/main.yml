@@ -1104,3 +1104,244 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: registerMobileApp
+    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_app/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/mobile_app/credential/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registerMobileApp_ACL | default(['mobileAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: registerMobileDevice
+    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_device/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/mobile_device/credential/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registerMobileDevice_ACL | default(['mobileApp','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+
+  - name: registerMobileAppOpenRAP
+    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_app_openrap/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/mobile_app_openrap/credential/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registerMobileAppOpenRAP_ACL | default(['mobileAdminOpenRAP']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+
+  - name: registerMobileDeviceOpenRAP
+    request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_device_openrap/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/mobile_device_openrap/credential/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registerMobileDeviceOpenRAP_ACL | default(['mobileAppOpenRAP']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+
+  - name: compositeSearch
+    request_path: "{{ composite_service_prefix }}/v1/search"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/search"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ compositeSearch_ACL | default(['appUpdate','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ premium_consumer_large_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: listTerms
+    request_path: "{{ meta_service_prefix }}/v1/terms/list"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/terms/list"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ listTerms_ACL | default(['configUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: listResourceBundles
+    request_path: "{{ meta_service_prefix }}/v1/resourcebundles/list"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/resourcebundles/list"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ listResourceBundles_ACL | default(['configUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: listOrdinals
+    request_path: "{{ meta_service_prefix }}/v1/ordinals/list"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/ordinals/list"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ listOrdinals_ACL | default(['configUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: telemetry
+    request_path: "{{ data_service_prefix }}/v1/telemetry"
+    upstream_url: "{{ telemetry_service_url }}/v1/telemetry"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ telemetry_ACL | default(['publicUser','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ premium_consumer_large_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: flagContent
+    request_path: "{{ content_prefix }}/v1/flag"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/content/flag"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ flagContent_ACL | default(['contentUser','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: acceptContentFlag
+    request_path: "{{ content_prefix }}/v1/flag/accept"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/content/flag/accept"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ acceptContentFlag_ACL | default(['contentAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: rejectContentFlag
+    request_path: "{{ content_prefix }}/v1/flag/reject"
+    upstream_url: "{{ knowledge_mw_service_url }}/v1/content/flag/reject"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ rejectContentFlag_ACL | default(['contentAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getOrgCreationDashboard
+    request_path: "{{ dashboard_service_prefix }}/v1/creation/org"
+    upstream_url: "{{ learning_service_url }}/v1/dashboard/creation/org"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ getOrgCreationDashboard_ACL | default(['orgUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getOrgConsumptionDashboard
+    request_path: "{{ dashboard_service_prefix }}/v1/consumption/org"
+    upstream_url: "{{ learning_service_url }}/v1/dashboard/consumption/org"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ getOrgConsumptionDashboard_ACL | default(['orgUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
