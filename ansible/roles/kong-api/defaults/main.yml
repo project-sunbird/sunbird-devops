@@ -4757,3 +4757,20 @@ kong_apis:
     - {name: 'acl',config.whitelist: "{{ certValidation_ACL | default(['userUpdate']) }}"}
     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: createCertTemplate
+    request_path: "{{ cert_service_prefix }}/v1/template/create"
+    upstream_url: "{{ cert_service_url }}/cert/v1/template/create"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: "{{ createCertTemplate_ACL | default(['orgUpdate']) }}"
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
