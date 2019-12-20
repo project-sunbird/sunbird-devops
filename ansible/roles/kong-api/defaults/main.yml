@@ -4585,3 +4585,238 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: readOrgV3
+    request_path: "{{ org_service_prefix }}/v1.3/read"
+    upstream_url: "{{ user_org_service_url }}/v1.3/org/read"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ readOrgV3_ACL | default(['orgUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: searchOrgV3
+    request_path: "{{ org_service_prefix }}/v1.3/search"
+    upstream_url: "{{ user_org_service_url }}/v1.3/org/search"
+    strip_request_path: true
+    plugins:
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: ip
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: addMemberV3
+    request_path: "{{ org_service_prefix }}/v1.3/member/add"
+    upstream_url: "{{ user_org_service_url }}/v1.3/org/member/add"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ addMemberV3_ACL | default(['orgUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: removeMemberV3
+    request_path: "{{ org_service_prefix }}/v1.3/member/remove"
+    upstream_url: "{{ user_org_service_url }}/v1.3/org/member/remove"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ removeMemberV3_ACL | default(['orgAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateOrgStatusV3
+    request_path: "{{ org_service_prefix }}/v1.3/status/update"
+    upstream_url: "{{ user_org_service_url }}/v1.3/org/status/update"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ updateOrgStatusV3_ACL | default(['orgUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: listOrgTypesV3
+    request_path: "{{ org_service_prefix }}/v1.3/type/list"
+    upstream_url: "{{ user_org_service_url }}/v1.3/org/type/list"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ listOrgTypesV3_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createOrgTypeV3
+    request_path: "{{ org_service_prefix }}/v1.3/type/create"
+    upstream_url: "{{ user_org_service_url }}/v1.3/org/type/create"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ createOrgTypeV3_ACL | default(['orgUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: updateOrgTypeV3
+    request_path: "{{ org_service_prefix }}/v1.3/type/update"
+    upstream_url: "{{ user_org_service_url }}/v1.3/org/type/update"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ updateOrgTypeV3_ACL | default(['orgUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: "telemetryErrorLogging"
+    request_path: "/data/v1/client/logs"
+    upstream_url: "{{ sunbird_analytics_api_base_url }}/data/v1/client/logs"
+    strip_request_path: true
+    plugins:
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: generateCertificate
+    request_path: "{{ cert_service_prefix }}/v1/certs/generate"
+    upstream_url: "{{ cert_service_url }}/v1/certs/generate"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: "{{ generateCertificate_ACL | default(['orgUpdate']) }}"
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: "certValidation"
+    request_path: "{{ user_service_prefix }}/v1/certs/validate"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/certs/validate"
+    strip_request_path: true
+    plugins:
+    - {name: 'jwt'}
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'acl',config.whitelist: "{{ certValidation_ACL | default(['userUpdate']) }}"}
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+
+  - name: createCertTemplate
+    request_path: "{{ cert_service_prefix }}/v1/template/create"
+    upstream_url: "{{ cert_service_url }}/cert/v1/template/create"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: "{{ createCertTemplate_ACL | default(['orgUpdate']) }}"
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: updateCertTemplate
+    request_path: "{{ cert_service_prefix }}/v1/template/update"
+    upstream_url: "{{ cert_service_url }}/cert/v1/template/update"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: "{{ updateCertTemplate_ACL | default(['orgUpdate']) }}"
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: readCertTemplate
+    request_path: "{{ cert_service_prefix }}/v1/template/read"
+    upstream_url: "{{ cert_service_url }}/cert/v1/template/read"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist: "{{ readCertTemplate_ACL | default(['orgUpdate']) }}"
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: "orgAssignKeys"
+    request_path: "{{ org_service_prefix }}/v1/assign/key"
+    upstream_url: "{{ learning_service_url }}/v1/org/assign/key"
+    strip_request_path: true
+    plugins:
+    - {name: 'jwt'}
+    - {name: 'cors'}
+    - "{{ statsd_pulgin }}"
+    - {name: 'acl',config.whitelist: "{{ orgAssignKeys_ACL | default(['orgAdmin']) }}"}
+    - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour  }}"}
+    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
