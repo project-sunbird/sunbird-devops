@@ -62,9 +62,9 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/provision.yml --skip-tag
 ansible-playbook -i ../ansible/inventory/env ../ansible/postgresql-data-update.yml
 ansible-playbook -i ../ansible/inventory/env ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
 ansible-playbook -i ../ansible/inventory/env ../ansible/cassandra-deploy.yml -e "cassandra_jar_path=$ansible_path cassandra_deploy_path=/home/{{ansible_ssh_user}}" -v
+touch ~/.config/sunbird/db
 fi
 
-touch ~/.config/sunbird/db
 
 # Bootstrapping kubernetes
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/bootstrap_minimal.yaml
