@@ -36,7 +36,6 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 # installing dbs
 # Installing all dbs
 echo $inventory_path
-[[ $inventory_path == "" ]] && echo -e "ERROR: set environment variable \nexport INVENTORY_PATH=/path/to/ansible/inventory" && exit 100
 #########################
 #
 #       CORE
@@ -60,7 +59,7 @@ unzip -o $ansible_path/cassandra_artifacts.zip -d $ansible_path
 
 # Creating inventory strucure
 git checkout -- ../ansible/inventory/env/group_vars/all.yml # This is to make sure always the all.yaml is updated
-cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
+cp $inventory_path/$module/* ../ansible/inventory/env/
 # Updating variables and ips
 vars_updater
 
@@ -127,7 +126,7 @@ source 3node.vars
 [[ -d ~/sunbird-learning-platform ]] || git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/sunbird-learning-platform && cd ~/sunbird-learning-platform; git pull origin release-$version; cd -
 
 # Creating inventory strucure
-cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
+cp $inventory_path/$module/* ../ansible/inventory/env/
 cp ~/sunbird-learning-platform/ansible/inventory/env/group_vars/all.yml ../ansible/inventory/env/group_vars/
 ansible_path=${HOME}/sunbird-learning-platform
 vars_updater
