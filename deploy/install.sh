@@ -87,7 +87,7 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags boot
 # Have to refactor with some kind of function args
 echo "
 open another shell and run
-ssh -L 12000:localhost:8080 ops@${core_ip}
+ssh -L 12000:localhost:8080 ops@${domain_name}
 open browser and goto localhost:12000
 username: admin
 password: admin
