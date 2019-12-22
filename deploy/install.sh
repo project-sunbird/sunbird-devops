@@ -20,6 +20,7 @@ function vars_updater {
 
 # Importing user defined variables
 source 3node.vars
+mkdir -p ~/.config/sunbird
 # Installing deps
 bash install-deps.sh
 export ANSIBLE_HOST_KEY_CHECKING=false
@@ -54,11 +55,16 @@ cp $inventory_path/$module/* ../ansible/inventory/env/
 # Updating variables and ips
 vars_updater
 
+# Install db only once
+if [[ ! -f ~/.config/sunbird/db ]]; then
 # Installing dbs (es, cassandra, postgres)
 ansible-playbook -i ../ansible/inventory/env ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
 ansible-playbook -i ../ansible/inventory/env ../ansible/postgresql-data-update.yml
 ansible-playbook -i ../ansible/inventory/env ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
 ansible-playbook -i ../ansible/inventory/env ../ansible/cassandra-deploy.yml -e "cassandra_jar_path=$ansible_path cassandra_deploy_path=/home/{{ansible_ssh_user}}" -v
+fi
+
+touch ~/.config/sunbird/db
 
 # Bootstrapping kubernetes
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/bootstrap_minimal.yaml
