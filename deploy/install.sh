@@ -17,11 +17,13 @@ function vars_updater {
     sed -i "s/10.1.4.4/${core_ip}/g" ../ansible/inventory/env/hosts
     sed -i "s/10.1.4.5/${dbs_ip}/g" ../ansible/inventory/env/hosts
     sed -i "s/10.1.4.6/${kp_ip}/g" ../ansible/inventory/env/hosts
-    sed -i "s/ansible_ssh_user=ops/ansible_ssh_user=${ansible_ssh_user}/g" ../ansible/inventory/env/hosts
+    sed -i "s/ansible_ssh_user=ops/ansible_ssh_user=${ssh_user}/g" ../ansible/inventory/env/hosts
     sed -i "/core_vault_proxy_site_key/c\core_vault_proxy_site_key: \"{{ lookup('file', \'${nginx_key_path}\') }}\"" ../ansible/inventory/env/secrets.yml
     sed -i "/core_vault_proxy_site_crt/c\core_vault_proxy_site_crt: \"{{ lookup('file', \'${nginx_cert_path}\') }}\"" ../ansible/inventory/env/secrets.yml
     sed -i "/core_vault_sunbird_sso_publickey: /c\core_vault_sunbird_sso_publickey: \'${sso_publickey}\'" ../ansible/inventory/env/secrets.yml
     sed -i "/core_vault_sunbird_keycloak_user_federation_provider_id: /c\core_vault_sunbird_keycloak_user_federation_provider_id: \'${keycloak_user_federation_provider_id}\'" ../ansible/inventory/env/secrets.yml
+    sed -i "/core_vault_sunbird_azure_storage_key: /c\core_vault_sunbird_azure_storage_key: \'${azure_storage_key}\'" ../ansible/inventory/env/secrets.yml
+    sed -i "/lp_vault_azure_storage_secret: /c\lp_vault_azure_storage_secret: \'${azure_storage_key}\'" ../ansible/inventory/env/secrets.yml
 }
 #}}}
 
@@ -62,6 +64,10 @@ ansible_runner ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
 ansible_runner ../ansible/postgresql-data-update.yml
 ansible_runner ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
 ansible_runner ../ansible/cassandra-deploy.yml -e "cassandra_jar_path=$ansible_path/ansible cassandra_deploy_path=/home/{{ansible_ssh_user}}" -v
+
+# Updating variables and ips
+source 3node.vars
+vars_updater
 
 # Bootstrapping kubernetes
 ansible_runner ../kubernetes/ansible/bootstrap_minimal.yaml
@@ -115,6 +121,8 @@ kubectl rollout restart deployment -n dev
 #########################
 # Installing KP
 module=KnowledgePlatform
+source 3node.vars
+vars_updater
 # Checking out specific revision of KP
 [[ -d ~/sunbird-learning-platform ]] || git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/sunbird-learning-platform && cd ~/sunbird-learning-platform; git pull origin release-$version; cd -
 
@@ -155,4 +163,3 @@ bash ./csindexupdate.sh
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_search_deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_definition_update.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
-
