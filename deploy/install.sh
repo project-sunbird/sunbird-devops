@@ -20,10 +20,10 @@ function vars_updater {
     sed -i "s/ansible_ssh_user=ops/ansible_ssh_user=${ssh_user}/g" ../ansible/inventory/env/hosts
     sed -i "/core_vault_proxy_site_key/c\core_vault_proxy_site_key: \"{{ lookup('file', \'${nginx_key_path}\') }}\"" ../ansible/inventory/env/secrets.yml
     sed -i "/core_vault_proxy_site_crt/c\core_vault_proxy_site_crt: \"{{ lookup('file', \'${nginx_cert_path}\') }}\"" ../ansible/inventory/env/secrets.yml
-    sed -i "/core_vault_sunbird_sso_publickey: /c\core_vault_sunbird_sso_publickey: \'${sso_publickey}\'" ../ansible/inventory/env/secrets.yml
-    sed -i "/core_vault_sunbird_keycloak_user_federation_provider_id: /c\core_vault_sunbird_keycloak_user_federation_provider_id: \'${keycloak_user_federation_provider_id}\'" ../ansible/inventory/env/secrets.yml
-    sed -i "/core_vault_sunbird_azure_storage_key: /c\core_vault_sunbird_azure_storage_key: \'${azure_storage_key}\'" ../ansible/inventory/env/secrets.yml
-    sed -i "/lp_vault_azure_storage_secret: /c\lp_vault_azure_storage_secret: \'${azure_storage_key}\'" ../ansible/inventory/env/secrets.yml
+    sed -i "/core_vault_sunbird_sso_publickey:/c\core_vault_sunbird_sso_publickey: \'${sso_publickey}\'" ../ansible/inventory/env/secrets.yml
+    sed -i "/core_vault_sunbird_keycloak_user_federation_provider_id:/c\core_vault_sunbird_keycloak_user_federation_provider_id: \'${keycloak_user_federation_provider_id}\'" ../ansible/inventory/env/secrets.yml
+    sed -i "/core_vault_sunbird_azure_storage_key:/c\core_vault_sunbird_azure_storage_key: \'${azure_storage_key}\'" ../ansible/inventory/env/secrets.yml
+    sed -i "/lp_vault_azure_storage_secret:/c\lp_vault_azure_storage_secret: \'${azure_storage_key}\'" ../ansible/inventory/env/secrets.yml
 }
 #}}}
 
