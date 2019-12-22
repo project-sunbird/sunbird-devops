@@ -133,7 +133,7 @@ source 3node.vars
 # Creating inventory strucure
 cp $inventory_path/$module/* ../ansible/inventory/env/
 cp ~/sunbird-learning-platform/ansible/inventory/env/group_vars/all.yml ../ansible/inventory/env/group_vars/
-ansible_path=${HOME}/sunbird-learning-platform
+ansible_path=${HOME}/sunbird-learning-platform/ansible
 vars_updater
 
 echo "downloading artifacts"
@@ -141,15 +141,15 @@ artifacts="lp_artifacts.zip lp_neo4j_artifacts.zip lp_cassandratrigger_artifacts
 
 for artifact in $artifacts;
 do
-    wget -N https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path/ansible/
+    wget -N https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path
 done
 # installing unzip
 cd $ansible_path
-find ./ -type f -iname "*.zip" -exec unzip -o {} \;
+find ./ -maxdepth 1 -type f -iname "*.zip" -exec unzip -o {} \;
 cd -
 # Downloading neo4j
-wget -N https://sunbirdpublic.blob.core.windows.net/installation/neo4j-community-3.3.9-unix.tar.gz -P $ansible_path/ansible/artifacts/
-cp $ansible_path/ansible/cassandra.transaction-event-handler-*.jar $ansible_path/static-files
+wget -N https://sunbirdpublic.blob.core.windows.net/installation/neo4j-community-3.3.9-unix.tar.gz -P $ansible_path/artifacts/
+cp $ansible_path/cassandra.transaction-event-handler-*.jar $ansible_path/static-files
 
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_provision.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_search_provision.yml
