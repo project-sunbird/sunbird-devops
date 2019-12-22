@@ -1,5 +1,6 @@
+kp_ip=$1
 curl -X PUT \
-  'http://10.1.4.6:9200/compositesearch?pretty=' \
+  "http://${kp_ip}:9200/compositesearch?pretty=" \
   -H 'Content-Type: application/json' \
   -H 'Postman-Token: 68ce3805-bdea-43db-b64d-e6353098d690' \
   -H 'cache-control: no-cache' \

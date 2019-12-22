@@ -164,7 +164,7 @@ ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_redis_provision.
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_neo4j_deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_start_neo4j.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/es_composite_search_cluster_setup.yml -v
-bash ./csindexupdate.sh
+bash ./csindexupdate.sh ${kp_ip}
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_search_deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_definition_update.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
