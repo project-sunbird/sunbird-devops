@@ -80,19 +80,23 @@ do
 done
 
 # Provisioning keycloak
-ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags provision
-ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags deploy -e "artifact_path=keycloak_artifacts.zip deploy_monit=false"
-ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml -e keycloak_bootstrap_url=http://${core_ip}:8080/auth --tags bootstrap -v
+if [[ ! -f ~/.config/sunbird/keycloak ]]; then
+    ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags provision
+    ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags deploy -e "artifact_path=keycloak_artifacts.zip deploy_monit=false"
+    ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml -e keycloak_bootstrap_url=http://${core_ip}:8080/auth --tags bootstrap -v
+    touch ~/.config/sunbird/keycloak
+    # Have to refactor with some kind of function args
+    echo "
+    open another shell and run
+    ssh -L 12000:localhost:8080 ops@${domain_name}
+    open browser and goto localhost:12000
+    username: admin
+    password: admin
+    and update remaning variables in 3node.vars
+    "
+    exit 0
+fi
 
-# Have to refactor with some kind of function args
-echo "
-open another shell and run
-ssh -L 12000:localhost:8080 ops@${domain_name}
-open browser and goto localhost:12000
-username: admin
-password: admin
-"
-exit 0
 
 # Installing API manager
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy kong_admin_api_url=http://$(hostname -i):12000/admin-api" -v
