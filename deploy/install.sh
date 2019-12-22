@@ -5,16 +5,20 @@ set -eu -o pipefail
 
 ## vars Updater{{{
 function vars_updater {
-    sed -i "s/10.1.4.4/${core_ip}/g" ../ansible/inventory/env/hosts
-    sed -i "s/10.1.4.5/${dbs_ip}/g" ../ansible/inventory/env/hosts
-    sed -i "s/10.1.4.6/${kp_ip}/g" ../ansible/inventory/env/hosts
+    sed -i "s/10.1.4.4/${core_ip}/g" ../ansible/inventory/env/{hosts,common.yml}
+    sed -i "s/10.1.4.5/${dbs_ip}/g" ../ansible/inventory/env/{hosts,common.yml}
+    sed -i "s/10.1.4.6/${kp_ip}/g" ../ansible/inventory/env/{hosts,common.yml}
     sed -i "s/ansible_ssh_user=ops/ansible_ssh_user=${ssh_user}/g" ../ansible/inventory/env/hosts
+    sed -i "s/sunbird.centralindia.cloudapp.azure.com/${domain_name}/g" ../ansible/inventory/env/common.yml
     sed -i "/core_vault_proxy_site_key/c\core_vault_proxy_site_key: \"{{ lookup('file', \'${nginx_key_path}\') }}\"" ../ansible/inventory/env/secrets.yml
     sed -i "/core_vault_proxy_site_crt/c\core_vault_proxy_site_crt: \"{{ lookup('file', \'${nginx_cert_path}\') }}\"" ../ansible/inventory/env/secrets.yml
     sed -i "/core_vault_sunbird_sso_publickey:/c\core_vault_sunbird_sso_publickey: \'${sso_publickey}\'" ../ansible/inventory/env/secrets.yml
     sed -i "/core_vault_sunbird_keycloak_user_federation_provider_id:/c\core_vault_sunbird_keycloak_user_federation_provider_id: \'${keycloak_user_federation_provider_id}\'" ../ansible/inventory/env/secrets.yml
     sed -i "/core_vault_sunbird_azure_storage_key:/c\core_vault_sunbird_azure_storage_key: \'${azure_storage_key}\'" ../ansible/inventory/env/secrets.yml
     sed -i "/lp_vault_azure_storage_secret:/c\lp_vault_azure_storage_secret: \'${azure_storage_key}\'" ../ansible/inventory/env/secrets.yml
+    sed -i "/azure_account_name:/c\azure_account_name: \'${storage_account_name}\'" ../ansible/inventory/env/common.yml
+    sed -i "/azure_public_container:/c\azure_public_container: \'${storage_container_name}\'" ../ansible/inventory/env/common.yml
+    sed -i "/sunbird_content_azure_storage_container:/c\sunbird_content_azure_storage_container: \'${storage_container_name}\'" ../ansible/inventory/env/common.yml
 }
 #}}}
 
