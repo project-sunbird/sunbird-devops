@@ -8,7 +8,7 @@ function ansible_runner() {
     playbooks=$1
     local IFS=$'\n' # seperate playbooks by newline
     for playbook in ${playbooks}; do
-        ansible -playbook -i ../ansible/inventory/env $playbook
+        ansible-playbook -i ../ansible/inventory/env $playbook
     done
 }
 #}}}
