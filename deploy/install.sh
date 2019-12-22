@@ -1,6 +1,29 @@
 # vim: set ts=4 sw=4 tw=0 et :
+
 #!/bin/bash
 set -eu -o pipefail
+
+## Ansible Runner{{{
+function ansible_runner() {
+    playbooks=$1
+    local IFS=$'\n' # seperate playbooks by newline
+    for playbook in ${playbooks} do
+        ansible -playbook -i ../ansible/inventory/env $playbook
+    done
+}
+#}}}
+## vars Updater{{{
+function vars_updater {
+    sed -i "s/10.1.4.4/${core_ip}/g" ../ansible/inventory/env/hosts
+    sed -i "s/10.1.4.5/${dbs_ip}/g" ../ansible/inventory/env/hosts
+    sed -i "s/10.1.4.6/${kp_ip}/g" ../ansible/inventory/env/hosts
+    sed -i "s/ansible_ssh_user=ops/ansible_ssh_user=${ansible_ssh_user}/g" ../ansible/inventory/env/hosts
+    sed -i "/core_vault_proxy_site_key/c\core_vault_proxy_site_key: \"{{ lookup('file', \'${nginx_key_path}\') }}\"" ../ansible/inventory/env/secrets.yml
+    sed -i "/core_vault_proxy_site_crt/c\core_vault_proxy_site_crt: \"{{ lookup('file', \'${nginx_cert_path}\') }}\"" ../ansible/inventory/env/secrets.yml
+    sed -i "/core_vault_sunbird_sso_publickey: /c\core_vault_sunbird_sso_publickey: \'${sso_publickey}\'" ../ansible/inventory/env/secrets.yml
+    sed -i "/core_vault_sunbird_keycloak_user_federation_provider_id: /c\core_vault_sunbird_keycloak_user_federation_provider_id: \'${keycloak_user_federation_provider_id}\'" ../ansible/inventory/env/secrets.yml
+}
+#}}}
 
 # Installing deps
 bash install-deps.sh
@@ -20,45 +43,60 @@ version=2.6.0
 
 echo "downloading artifacts"
 artifacts="keycloak_artifacts.zip cassandra_artifacts.zip"
-
-ansible_path=${HOME}/sunbird-devops
+ansible_path=${HOME}/sunbird-devops/ansible
 for artifact in $artifacts;
 do
-        wget -N https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path/ansible/
+    wget -N https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path
 done
 
 # installing unzip
 sudo apt install unzip
 ansible_path=${HOME}/sunbird-devops
-cd $ansible_path/ansible
-find ./ -type f -iname "cassandra*" -exec unzip -o {} \;
-cd -
+unzip -o $ansible_path/cassandra_artifacts.zip -d $ansible_path
 
 # Creating inventory strucure
 git checkout -- ../ansible/inventory/env/group_vars/all.yml # This is to make sure always the all.yaml is updated
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 # Installing dbs (es, cassandra, postgres)
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/postgresql-data-update.yml
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/cassandra-deploy.yml -e "cassandra_jar_path=$ansible_path/ansible cassandra_deploy_path=/home/{{ansible_ssh_user}}" -v
+ansible_runner ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
+ansible_runner ../ansible/postgresql-data-update.yml
+ansible_runner ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
+ansible_runner ../ansible/cassandra-deploy.yml -e "cassandra_jar_path=$ansible_path/ansible cassandra_deploy_path=/home/{{ansible_ssh_user}}" -v
 
-# Bootstrapping k8s
-ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/bootstrap_minimal.yaml
+# Bootstrapping kubernetes
+ansible_runner ../kubernetes/ansible/bootstrap_minimal.yaml
+services=" apimanager learner nginx-private-ingress"
+for service in $services;
+do
+  echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
+  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy" -v
+done
 
-# Creating private ingress
-ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/nginx-private-ingress release_name=nginx-private-ingress role_name=sunbird-deploy"
+# Provisioning keycloak
+ansible_runner ../ansible/keycloak.yml --tags provision
+ansible_runner ../ansible/keycloak.yml --tags deploy -e "artifact_path=keycloak_artifacts.zip deploy_monit=false"
+ansible_runner ../ansible/keycloak.yml --tags bootstrap -v
+
+# Have to refactor with some kind of function args
+echo "
+open another shell and run
+ssh -L 12000:localhost:8080 ops@${core_ip}
+open browser and goto localhost:12000
+username: admin
+password: admin
+"
+exit 0
 
 # Installing API manager
-ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy kong_admin_api_url=http://$(hostname -i)/admin-api" -v
+ansible_runner ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy kong_admin_api_url=http://$(hostname -i)/admin-api" -v
 
 # echo "@@@@@@@@@ Onboard APIs"
-ansible-playbook -i ../ansible/inventory/env/ ../ansible/api-manager.yml -e kong_admin_api_url=http://$(hostname -i):12000/admin-api --tags kong-api
+ansible_runner ../ansible/api-manager.yml -e kong_admin_api_url=http://$(hostname -i):12000/admin-api --tags kong-api
 
 # echo "@@@@@@@@@ Onboard Consumers"
 ## This will generate a player token in /root/jwt_token_player.txt
 echo "@@@@@@@@@ Onboard Consumers"
-ansible-playbook -v -i ../ansible/inventory/env/ ../ansible/api-manager.yml -e "kong_admin_api_url=http://$(hostname -i):12000/admin-api kubeconfig_path=/etc/rancher/k3s/k3s.yaml" --tags kong-consumer
+ansible_runner ../ansible/api-manager.yml -e "kong_admin_api_url=http://$(hostname -i):12000/admin-api kubeconfig_path=/etc/rancher/k3s/k3s.yaml" --tags kong-consumer
 
 jwt_token=$(sudo cat /root/jwt_token_player.txt|xargs)
 # services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
@@ -66,14 +104,9 @@ services="adminutils knowledgemw lms apimanager content learner player telemetry
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
-  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy sunbird_api_auth_token=${jwt_token}" -v
+  ansible_runner ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy sunbird_api_auth_token=${jwt_token}" -v
 done
-# Provisioning keycloak
-ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags provision
-# Deploying keycloak
-ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags deploy -e "artifact_path=keycloak_artifacts.zip deploy_monit=false"
-# Bootstrapping keycloak
-ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags bootstrap -v
+kubectl rollout restart deployment -n dev
 
 #########################
 #
