@@ -55,7 +55,7 @@ done
 
 # installing unzip
 sudo apt install unzip
-ansible_path=${HOME}/sunbird-devops
+ansible_path=${HOME}/sunbird-devops/ansible
 unzip -o $ansible_path/cassandra_artifacts.zip -d $ansible_path
 
 # Creating inventory strucure
@@ -68,7 +68,7 @@ vars_updater
 ansible_runner ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
 ansible_runner ../ansible/postgresql-data-update.yml
 ansible_runner ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
-ansible_runner ../ansible/cassandra-deploy.yml -e "cassandra_jar_path=$ansible_path/ansible cassandra_deploy_path=/home/{{ansible_ssh_user}}" -v
+ansible_runner ../ansible/cassandra-deploy.yml -e "cassandra_jar_path=$ansible_path cassandra_deploy_path=/home/{{ansible_ssh_user}}" -v
 
 # Bootstrapping kubernetes
 ansible_runner ../kubernetes/ansible/bootstrap_minimal.yaml
@@ -140,27 +140,27 @@ do
     wget -N https://sunbirdpublic.blob.core.windows.net/installation/$version/$module/$artifact -P $ansible_path/ansible/
 done
 # installing unzip
-cd $ansible_path/ansible
+cd $ansible_path
 find ./ -type f -iname "*.zip" -exec unzip -o {} \;
 cd -
 # Downloading neo4j
 wget -N https://sunbirdpublic.blob.core.windows.net/installation/neo4j-community-3.3.9-unix.tar.gz -P $ansible_path/ansible/artifacts/
-cp $ansible_path/ansible/cassandra.transaction-event-handler-*.jar $ansible_path/ansible/static-files
+cp $ansible_path/ansible/cassandra.transaction-event-handler-*.jar $ansible_path/static-files
 
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_provision.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_search_provision.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/cassandra-trigger-deploy.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_cassandra_db_update.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_zookeeper_provision.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_kafka_provision.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_provision.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_search_provision.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/cassandra-trigger-deploy.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_cassandra_db_update.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_zookeeper_provision.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_kafka_provision.yml
 # Will create all topic
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_kafka_setup.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_neo4j_provision.yml -e "download_neo4j=false neo4j_zip=neo4j-community-3.3.9-unix.tar.gz neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_redis_provision.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_neo4j_deploy.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_start_neo4j.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/es_composite_search_cluster_setup.yml -v
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_kafka_setup.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_neo4j_provision.yml -e "download_neo4j=false neo4j_zip=neo4j-community-3.3.9-unix.tar.gz neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_redis_provision.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_neo4j_deploy.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_start_neo4j.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/es_composite_search_cluster_setup.yml -v
 bash ./csindexupdate.sh
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_learning_deploy.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_search_deploy.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/ansible/lp_definition_update.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_deploy.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_search_deploy.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_definition_update.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
