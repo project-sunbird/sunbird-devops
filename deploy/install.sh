@@ -27,6 +27,8 @@ function vars_updater {
 }
 #}}}
 
+# Importing user defined variables
+source 3node.vars
 # Installing deps
 bash install-deps.sh
 export ANSIBLE_HOST_KEY_CHECKING=false
@@ -59,15 +61,14 @@ unzip -o $ansible_path/cassandra_artifacts.zip -d $ansible_path
 # Creating inventory strucure
 git checkout -- ../ansible/inventory/env/group_vars/all.yml # This is to make sure always the all.yaml is updated
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
+# Updating variables and ips
+vars_updater
+
 # Installing dbs (es, cassandra, postgres)
 ansible_runner ../ansible/provision.yml --skip-tags "postgresql-slave,log-es"
 ansible_runner ../ansible/postgresql-data-update.yml
 ansible_runner ../ansible/es-mapping.yml --extra-vars "indices_name=all ansible_tag=run_all_index_and_mapping"
 ansible_runner ../ansible/cassandra-deploy.yml -e "cassandra_jar_path=$ansible_path/ansible cassandra_deploy_path=/home/{{ansible_ssh_user}}" -v
-
-# Updating variables and ips
-source 3node.vars
-vars_updater
 
 # Bootstrapping kubernetes
 ansible_runner ../kubernetes/ansible/bootstrap_minimal.yaml
@@ -122,7 +123,6 @@ kubectl rollout restart deployment -n dev
 # Installing KP
 module=KnowledgePlatform
 source 3node.vars
-vars_updater
 # Checking out specific revision of KP
 [[ -d ~/sunbird-learning-platform ]] || git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/sunbird-learning-platform && cd ~/sunbird-learning-platform; git pull origin release-$version; cd -
 
@@ -130,6 +130,7 @@ vars_updater
 cp $INVENTORY_PATH/$module/* ../ansible/inventory/env/
 cp ~/sunbird-learning-platform/ansible/inventory/env/group_vars/all.yml ../ansible/inventory/env/group_vars/
 ansible_path=${HOME}/sunbird-learning-platform
+vars_updater
 
 echo "downloading artifacts"
 artifacts="lp_artifacts.zip lp_neo4j_artifacts.zip lp_cassandratrigger_artifacts.zip"
