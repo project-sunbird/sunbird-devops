@@ -5,7 +5,7 @@ set -eu -o pipefail
 
 ## Ansible Runner{{{
 function ansible_runner() {
-    playbooks=$1
+    playbooks=$@
     local IFS=$'\n' # seperate playbooks by newline
     for playbook in ${playbooks}; do
         ansible-playbook -i ../ansible/inventory/env $playbook
