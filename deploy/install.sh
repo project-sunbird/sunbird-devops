@@ -153,8 +153,11 @@ cp $ansible_path/cassandra.transaction-event-handler-*.jar $ansible_path/static-
 
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_provision.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_search_provision.yml
+if [[ ! -f ~/.config/sunbird/lp_db ]]; then
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/cassandra-trigger-deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_cassandra_db_update.yml
+touch ~/.config/sunbird/lp_db
+fi
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_zookeeper_provision.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_kafka_provision.yml
 # Will create all topic
