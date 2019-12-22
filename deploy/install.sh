@@ -33,8 +33,8 @@ export ANSIBLE_HOST_KEY_CHECKING=false
 
 # installing dbs
 # Installing all dbs
-echo $INVENTORY_PATH
-[[ $INVENTORY_PATH == "" ]] && echo -e "ERROR: set environment variable \nexport INVENTORY_PATH=/path/to/ansible/inventory" && exit 100
+echo $inventory_path
+[[ $inventory_path == "" ]] && echo -e "ERROR: set environment variable \nexport INVENTORY_PATH=/path/to/ansible/inventory" && exit 100
 #########################
 #
 #       CORE
