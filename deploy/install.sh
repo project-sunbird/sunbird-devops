@@ -95,6 +95,8 @@ if [[ ! -f ~/.config/sunbird/keycloak ]]; then
     username: admin
     password: admin
     and update remaning variables in 3node.vars
+    then execute
+    bash install.sh
     "
     exit 0
 fi
