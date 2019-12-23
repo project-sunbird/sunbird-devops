@@ -84,6 +84,8 @@ if [[ ! -f ~/.config/sunbird/keycloak ]]; then
     ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml --tags provision
     ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml -e keycloak_bootstrap_url=http://${core_ip}:8080/auth --tags deploy -e "artifact_path=keycloak_artifacts.zip deploy_monit=false"
     ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml -e keycloak_bootstrap_url=http://${core_ip}:8080/auth --tags bootstrap -v
+    # Hack to install clients
+    ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml -e keycloak_bootstrap_url=http://${core_ip}:8080/auth --tags deploy -e "artifact_path=keycloak_artifacts.zip deploy_monit=false"
     touch ~/.config/sunbird/keycloak
     # Have to refactor with some kind of function args
     echo "
