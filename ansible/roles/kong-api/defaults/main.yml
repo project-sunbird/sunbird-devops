@@ -33,7 +33,6 @@ large_request_size_limit: 100
 # Default service prefixes
 private_content_prefix: /private/content
 content_prefix: /content
-itemset_prefix: /itemset
 course_service_prefix: /course
 user_service_prefix: /user
 data_service_prefix: /data
@@ -103,22 +102,7 @@ premium_consumer_rate_limits:
 #    - {name: 'rate-limiting', config.hour: "{{ medium_rate_limit_per_hour }}"}
 #    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ medium_request_size_limit }}" }
 kong_apis:
-  - name: ItemSetAPIs
-    request_path: "{{ itemset_prefix }}/v1"
-    upstream_url: "{{ knowledge_mw_service_url }}/itemset/v1"
-    strip_request_path: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: contentAdmin
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: PrivateContentAPIs
     request_path: "{{ private_content_prefix }}/v3"
     upstream_url: "{{ vm_learning_service_url }}/content/v3"
@@ -439,7 +423,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: courseUser
+      config.whitelist: 
+      - courseUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -455,7 +441,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: courseUser
+      config.whitelist: 
+      - courseUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -471,7 +459,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: courseUser
+      config.whitelist: 
+      - courseUser
+      - monileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -503,7 +493,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: courseUser
+      config.whitelist:
+      - courseUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -519,7 +511,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: courseUser
+      config.whitelist: 
+      - courseUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -567,7 +561,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: userUpdate
+      config.whitelist:
+      - userUpdate
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -599,7 +595,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist: 
+      - publicUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -615,7 +613,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist:
+      - publicUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -910,7 +910,8 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: echoUser
+      config.whitelist: 
+      - echoUser
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1086,7 +1087,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: mobileApp
+      config.whitelist:
+      - mobileApp
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1137,7 +1140,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: appUpdate
+      config.whitelist:
+      - appUpdate
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ premium_consumer_large_rate_limit_per_hour }}"
@@ -1201,7 +1206,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist: 
+      - publicUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ premium_consumer_large_rate_limit_per_hour }}"
@@ -1217,7 +1224,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: contentUser
+      config.whitelist:
+      - contentUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1505,7 +1514,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: courseUser
+      config.whitelist: 
+      - courseUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1601,7 +1612,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: contentUpdate
+      config.whitelist: 
+      - contentUpdate
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1617,7 +1630,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: courseUser
+      config.whitelist: 
+      - courseUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1665,7 +1680,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist: 
+      - publicUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1905,7 +1922,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist: 
+      - publicUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1937,7 +1956,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist: 
+      - publicUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -2498,7 +2519,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: dialcodeUser
+      config.whitelist: 
+      - dialcodeUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3353,7 +3376,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist: 
+      - publicUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3712,9 +3737,12 @@ kong_apis:
      - {name: 'jwt'}
      - {name: 'cors'}
      - "{{ statsd_pulgin }}"
-     - {name: 'acl', config.whitelist: 'publicUser'}
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{  medium_rate_limit_per_hour }}"}
      - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
+     - name: acl
+       config.whitelist:
+       - publicUser
+       - mobileApis
   - name: "getConfigStatus"
     request_path: "{{ config_service_prefix }}/v1/status"
     upstream_url: "{{ config_service_url }}/config-service/v1/status"
@@ -3810,7 +3838,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist:
+      - publicUser
+      - MobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3826,7 +3856,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist: 
+      - publicUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3842,7 +3874,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist: 
+      - publicUser
+      - mmobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -4113,7 +4147,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist: 
+      - publicUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -4713,7 +4749,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist: 
+      - publicUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -4761,7 +4799,9 @@ kong_apis:
     - name: cors
     - "{{ statsd_pulgin }}"
     - name: acl
-      config.whitelist: publicUser
+      config.whitelist: 
+      - publicUser
+      - mobileApis
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
