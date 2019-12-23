@@ -28,7 +28,9 @@ Three 2 core 8G machines
 > Note: The user should have password less sudo access to all machines
 4. clone rjshrjndrn/sunbird-devops -b 3node
 5. open sunbird-devops/deploy -> ./certbot.sh # To generate certificates from Letsencrypt, should see certs in `ls ~`
-6. sunbird-devops/private_repo/ansible/inventory/dev/ Core and KnowledgePlatform fill hosts, common, secrets
+6. sunbird-devops/deploy/3node.vars and fill the variables
+> This installation is staged 2 phases. 1st will install keycloak, and you have to login to keycloak and get some credentials
+and paste it in to 3node.vars to continue with the installation
 7. example inventory seggregation
 
 | module | application | ip       |
@@ -43,5 +45,4 @@ Three 2 core 8G machines
 |        | search      |          |
 |        | ES          |          |
 |        | Kafka       |          |
-8. export your inventory path `export INVENTORY_PATH=/home/ops/sunbird-devops/private_repo/ansible/dev/`
-9. cd sunbird-devops/deploy && bash -x install.sh
+8. cd sunbird-devops/deploy && bash -x install.sh
