@@ -34,6 +34,7 @@ large_request_size_limit: 100
 private_content_prefix: /private/content
 content_prefix: /content
 course_service_prefix: /course
+itemset_prefix: /itemset
 user_service_prefix: /user
 data_service_prefix: /data
 notes_service_prefix: /notes
@@ -102,7 +103,22 @@ premium_consumer_rate_limits:
 #    - {name: 'rate-limiting', config.hour: "{{ medium_rate_limit_per_hour }}"}
 #    - {name: 'request-size-limiting', config.allowed_payload_size: "{{ medium_request_size_limit }}" }
 kong_apis:
-
+  - name: ItemSetAPIs
+    request_path: "{{ itemset_prefix }}/v1"
+    upstream_url: "{{ knowledge_mw_service_url }}/itemset/v1"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: contentAdmin
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: PrivateContentAPIs
     request_path: "{{ private_content_prefix }}/v3"
     upstream_url: "{{ vm_learning_service_url }}/content/v3"
