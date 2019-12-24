@@ -7,20 +7,13 @@
   file: path=/var/lib/jenkins/player_config/index_cdn.ejs state=absent
   ignore_errors: true
 
-- name: check if cdn file exists
-  stat:
-    path: "{{workspace}}/index_cdn.ejs"
-  register: stat_result
-
-- debug: var=stat_result
-
 - name: copy new index file
   copy: src="{{cdn_file_path}}" dest="/var/lib/jenkins/player_config/index_cdn.ejs" mode=0644
-  when: stat_result.stat.exists
+  when: sunbird_portal_player_cdn_enabled == 'true'
 
 - name: remove whitespaces in index file
   shell: 'sed -i s/\\s\\+$//e /var/lib/jenkins/player_config/index_cdn.ejs'
-  when: stat_result.stat.exists
+  when: sunbird_portal_player_cdn_enabled == 'true'
 
 - name: Remove the existing CDN config
   shell: "kubectl delete configmap player-cdn-config --namespace={{namespace}}"
@@ -28,7 +21,7 @@
 
 - name: Create player-cdn configmap
   shell: "kubectl create configmap player-cdn-config --from-file=/var/lib/jenkins/player_config/index_cdn.ejs --namespace={{namespace}}"
-  when: stat_result.stat.exists
+  when: sunbird_portal_player_cdn_enabled == 'true'
 
 - name: rename template
   template:
