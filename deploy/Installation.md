@@ -45,4 +45,7 @@ and paste it in to 3node.vars to continue with the installation
 |        | search      |          |
 |        | ES          |          |
 |        | Kafka       |          |
+> It is advised to run the installation script in tmux session, as if the network is bad, installation may get interrupted.
+For starting a tmux session, `tmux` and once the installation starts `ctrl+b then d` will detach the session.  
+You can attach the session back with `tmux a`
 8. cd sunbird-devops/deploy && bash -x install.sh
