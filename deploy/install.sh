@@ -91,7 +91,7 @@ if [[ ! -f ~/.config/sunbird/keycloak ]]; then
     touch ~/.config/sunbird/keycloak
     # Have to refactor with some kind of function args
     echo "
-    open another shell and run
+    open another local terminal and run
     ssh -L 12000:localhost:8080 ops@${domain_name}
     open browser and goto localhost:12000
     username: admin
