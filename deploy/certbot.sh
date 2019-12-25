@@ -4,6 +4,7 @@ set -e
 
 # This script won't work for aws, as it's black listed
 
+echo -e "#### Creating SSL Certificates ####\n\n"
 echo -e "This script won't work for aws, as it's black listed in letsencrypt\nso if youre running on aws please press ctrl+c with in 5 seconds"
 
 sleep 5
