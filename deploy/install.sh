@@ -25,6 +25,8 @@ function vars_updater {
 # Importing user defined variables
 source 3node.vars
 mkdir -p ~/.config/sunbird
+# Creating ssl
+[[ $create_ssl=='true' ]] && bash certbot.sh
 # Installing deps
 bash install-deps.sh
 export ANSIBLE_HOST_KEY_CHECKING=false
