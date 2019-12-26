@@ -181,4 +181,4 @@ ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_search_deploy.ym
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_definition_update.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
 
 # Post installation
-bash apis/apis.sh
+bash apis.sh
