@@ -24,6 +24,8 @@ function vars_updater {
 
 # Importing user defined variables
 source 3node.vars
+echo set 0400 for keyfile
+[[ -f ~/deployer.pem ]] && chmod 0400 ~/deployer.pem || ( echo "coudn't find ~/deployer.pem. Installation is aborting"; exit 100 )
 mkdir -p ~/.config/sunbird
 # Creating ssl
 [[ -f ~/.config/sunbird/certbot ]] || ( [[ $create_ssl == 'true' ]] && ( bash certbot.sh; touch ~/.config/sunbird/certbot ))
