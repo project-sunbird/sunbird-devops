@@ -18,21 +18,6 @@ medium=("english" "hindi" "malayalam")
 gradeLevel=("class1" "class2" "class3")
 subject=("maths" "english" "science")
 
-user_data=$(cat <<EOF
-{ 
-    "request":
-    { 
-        "firstName": "${username}",
-        "lastName": "${username}",
-        "password": "${password}}",
-        "phone": "${phone_number}",
-        "userName": "${username}",
-        "channel": "${org}",
-        "phoneVerified": true
-    } 
-}
-EOF
-)
 #}}}
 
 echo installing jq
@@ -165,4 +150,26 @@ echo -e "\n\nPublising framework"
 curl --location --request POST "${learning_host}/framework/v3/publish/${framework}" \
 --header 'Content-Type: application/json' \
 --data-raw '{}'
+
+sleep 1
+# Creating user
+curl --location --request POST "https://${domain_name}/api/user/v1/create" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '
+{ 
+    "request":
+    { 
+        "firstName": "'${username}'",
+        "lastName": "'${username}'",
+        "password": "'${password}'}",
+        "phone": "'${phone_number}'",
+        "userName": "'${username}'",
+        "channel": "'${org}'",
+        "phoneVerified": true
+    } 
+}'
 #}}}
