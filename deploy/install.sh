@@ -105,6 +105,9 @@ if [[ ! -f ~/.config/sunbird/keycloak ]]; then
     exit 0
 fi
 
+# Updating variables
+vars_updater
+
 
 # Installing API manager
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy kong_admin_api_url=http://$(hostname -i):12000/admin-api" -v
