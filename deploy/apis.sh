@@ -2,6 +2,8 @@
 #!/bin/bash
 set -eo pipefail
 
+source 3node.vars
+jwt_token=$(sudo cat /root/jwt_token_player.txt | xargs)
 # Variable declaration {{{
 
 learning_host="${kp_ip}:8080/learning-service"
@@ -55,7 +57,7 @@ org_id=$(curl -Ss --location --request POST "https://${domain_name}/api/org/v1/s
 --header 'Cache-Control: no-cache' \
 --header 'Content-Type: application/json' \
 --header 'accept: application/json' \
---header 'Authorization: Bearer ${jwt_token}' \
+--header "Authorization: Bearer ${jwt_token}" \
 --header 'x-authenticated-user-token: ${x_auth_token}' \
 --data-raw '{ 
   "request":
