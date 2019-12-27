@@ -1,18 +1,18 @@
 # vim: set ft=sh ts=4 sw=4 tw=0 et :
 #!/bin/bash
-# set -eo pipefail
+set -eo pipefail
 
 # Variable declaration {{{
 
-learning_host="localhost:10000/learning-service"
+learning_host="${kp_ip}:8080/learning-service"
 categories="medium board gradeLevel subject"
 username=admin
 password='P@ssword1'
 phone_number=9876543410
-org=testOrg
-framework="testFramework"
-domain_name=sunbird6.centralindia.cloudapp.azure.com
-board="testFramework"
+org="sunbird"
+framework="sunbird"
+domain_name=${domain_name}
+board="sunbird"
 # Array of values
 medium=("english" "hindi" "malayalam")
 gradeLevel=("class1" "class2" "class3")
