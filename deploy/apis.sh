@@ -121,6 +121,19 @@ curl --location --request POST "${learning_host}/framework/v3/create" \
   }
 }'
 
+# Updating default framework for channel
+curl --location --request PATCH "${learning_host}/framework/v3/update/${org_id}" \
+--header 'Content-Type: application/json' \
+--header "X-Channel-Id: ${org_id}" \
+--data-raw '{
+	"request": {
+		"channel": {
+			"defaultFramework": "'${framework}'"
+		}
+	}
+}'
+
+
 # Creating categories
 echo -e "\n\nCreating categories"
 for item in $categories; do
