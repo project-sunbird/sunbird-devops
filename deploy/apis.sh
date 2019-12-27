@@ -1,16 +1,30 @@
 # vim: set ft=sh ts=4 sw=4 tw=0 et :
 #!/bin/bash
 set -eo pipefail
-
+#{{{
+if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+   RED="$(tput setaf 1)"
+   GREEN="$(tput setaf 2)"
+   YELLOW="$(tput setaf 3)"
+   BOLD="$(tput bold)"
+   NORMAL="$(tput sgr0)"
+else
+   RED=""
+   GREEN=""
+   YELLOW=""
+   BOLD=""
+   NORMAL=""
+fi
+#}}}
 source 3node.vars
 jwt_token=$(sudo cat /root/jwt_token_player.txt | xargs)
 # Variable declaration {{{
 
 learning_host="${kp_ip}:8080/learning-service"
 categories="medium board gradeLevel subject"
-username=admin
+username=firstuser
 password='P@ssword1'
-phone_number=9876543410
+phone_number=9876543411
 org="sunbird"
 framework="sunbird"
 domain_name=${domain_name}
@@ -43,30 +57,31 @@ curl -Ss --location --request POST "https://${domain_name}/api/org/v1/create" \
 --header "Authorization: Bearer ${jwt_token}" \
 --header "x-authenticated-user-token: ${x_auth_token}" \
 --data-raw '
-{ 
+{
   "request":
-  { 
+  {
     "orgName": "'${org}'",
     "description": "'${org}'",
     "isRootOrg": true,
     "channel": "'${org}'"
-  } 
+  }
 }' | jq '.'
 
+echo Getting OrgId
 org_id=$(curl -Ss --location --request POST "https://${domain_name}/api/org/v1/search" \
 --header 'Cache-Control: no-cache' \
 --header 'Content-Type: application/json' \
 --header 'accept: application/json' \
 --header "Authorization: Bearer ${jwt_token}" \
 --header 'x-authenticated-user-token: ${x_auth_token}' \
---data-raw '{ 
+--data-raw '{
   "request":
-  { 
+  {
     "filters": {
     "orgName": "'${org}'"
     }
-  } 
-}' | jq '.result.response.content[0].id' | xargs 
+  }
+}' | jq '.result.response.content[0].id' | xargs
 )
 
 echo $org_id
@@ -89,7 +104,7 @@ curl --location --request POST --header 'Content-Type: application/json' \
 # Creating framework
 curl --location --request POST "${learning_host}/framework/v3/create" \
 --header 'Content-Type: application/json' \
---header 'X-Channel-Id: ${org_id}' \
+--header "X-Channel-Id: ${org_id}" \
 --data-raw '
 {
   "request": {
@@ -106,21 +121,36 @@ curl --location --request POST "${learning_host}/framework/v3/create" \
   }
 }'
 
-Creating categories
+# Creating categories
 echo -e "\n\nCreating categories"
 for item in $categories; do
-    curl --location --request POST "${learning_host}/framework/v3/category/create?framework=${framework}" \
+    echo -e "\n Creating master category"
+    curl --location --request POST "${learning_host}/framework/v3/category/master/create" \
     --header 'Content-Type: application/json' \
-    --data-raw '
-{
-   "request": {
-      "category":{
-          "name":"'${item}'",
-          "description":"'${item}'",
-          "code":"'${item}'"
-      }
-    }
-}'
+    --header "X-Channel-Id: ${org_id}" \
+    --data-raw '{
+       "request": {
+          "category":{
+              "name":"'${item}'",
+              "description":"",
+              "code":"'${item}'"
+          }
+        }
+    }'
+
+    echo -e "\n Creating category"
+        curl --location --request POST "${learning_host}/framework/v3/category/create?framework=${framework}" \
+        --header 'Content-Type: application/json' \
+        --data-raw '
+    {
+       "request": {
+          "category":{
+              "name":"'${item}'",
+              "description":"'${item}'",
+              "code":"'${item}'"
+          }
+        }
+    }'
 done
 
 # Creating terms
@@ -151,7 +181,13 @@ sleep 1
 echo -e "\n\nPublising framework"
 curl --location --request POST "${learning_host}/framework/v3/publish/${framework}" \
 --header 'Content-Type: application/json' \
---data-raw '{}'
+--header "X-Channel-Id: ${org}" \
+--data-raw '{
+    "id": "ekstep.framework.publish",
+    "ver": "3.0",
+    "request": {
+    }
+}'
 
 sleep 1
 # Creating user
@@ -162,9 +198,9 @@ curl --location --request POST "https://${domain_name}/api/user/v1/create" \
 --header "Authorization: Bearer ${jwt_token}" \
 --header "x-authenticated-user-token: ${x_auth_token}" \
 --data-raw '
-{ 
+{
     "request":
-    { 
+    {
         "firstName": "'${username}'",
         "lastName": "'${username}'",
         "password": "'${password}'}",
@@ -172,6 +208,92 @@ curl --location --request POST "https://${domain_name}/api/user/v1/create" \
         "userName": "'${username}'",
         "channel": "'${org}'",
         "phoneVerified": true
-    } 
+    }
+}'
+
+sleep 3
+
+Assigning user role
+user_id=$(curl --location --request POST "https://${domain_name}/api/user/v1/search" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+    "request":
+    {
+        "filters": {
+        "phone": "'${phone_number}'",
+        "userName": "'${username}'"
+        }
+    }
+}' | jq '.result.response.content[].organisations[].userId' | xargs
+)
+echo user id: $user_id
+
+curl --location --request POST "https://${domain_name}/api/user/v1/role/assign" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+    "request":
+    {
+        "organisationId": "'${org_id}'",
+        "userId": "'${user_id}'",
+        "roles": ["CONTENT_CREATOR","CONTENT_REVIEWER","ORG_ADMIN","BOOK_CREATOR","BOOK_REVIEWER","COURSE_MENTOR"]
+    }
+}'
+
+# Creating location
+curl --location --request POST "https://${domain_name}/api/data/v1/location/create" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+"params": { },
+   "request":{
+          "type":"state",
+          "name":"Kerala",
+          "code":"kl",
+          "parentCode": ""
+    }
+}'
+sleep 2
+curl --location --request POST "https://${domain_name}/api/data/v1/location/create" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+"params": { },
+   "request":{
+          "type":"district",
+          "name":"Trivandrum",
+          "code":"trv",
+          "parentCode": "kl"
+    }
 }'
 #}}}
+
+
+curl --location --request POST "https://${domain_name}/api/user/v1/search" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+    "request":
+    {
+        "filters": {
+        "phone": "'${phone_number}'",
+        "userName": "'${username}'"
+        }
+    }
+}' | jq '.'
