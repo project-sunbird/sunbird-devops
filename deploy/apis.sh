@@ -24,7 +24,7 @@ learning_host="${kp_ip}:8080/learning-service"
 categories="medium board gradeLevel subject"
 username=firstuser
 password='P@ssword1'
-phone_number=9876543411
+phone_number=9876543412
 org="sunbird"
 framework="sunbird"
 domain_name=${domain_name}
@@ -203,7 +203,7 @@ curl --location --request POST "https://${domain_name}/api/user/v1/create" \
     {
         "firstName": "'${username}'",
         "lastName": "'${username}'",
-        "password": "'${password}'}",
+        "password": "'${password}'",
         "phone": "'${phone_number}'",
         "userName": "'${username}'",
         "channel": "'${org}'",
@@ -213,7 +213,7 @@ curl --location --request POST "https://${domain_name}/api/user/v1/create" \
 
 sleep 3
 
-Assigning user role
+# Assigning user role
 user_id=$(curl --location --request POST "https://${domain_name}/api/user/v1/search" \
 --header 'Cache-Control: no-cache' \
 --header 'Content-Type: application/json' \
