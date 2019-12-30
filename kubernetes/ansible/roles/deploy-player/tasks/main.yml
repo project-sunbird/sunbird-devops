@@ -1,38 +1,23 @@
-- name: Create a directory if it does not exist
-  file:
-    path: /var/lib/jenkins/player_config
-    state: directory
+- name: remove blank lines in index file
+  shell: "awk 'NF' {{cdn_file_path}} > /tmp/player-cdn-config"
+  when: sunbird_portal_player_cdn_enabled == 'true'
 
-- name: Remove existing index_cdn.ejs
-  file: path=/var/lib/jenkins/player_config/index_cdn.ejs state=absent
-  ignore_errors: true
-
-- name: copy new index file
-  copy: src="{{cdn_file_path}}" dest="/var/lib/jenkins/player_config/index_cdn.ejs" mode=0644
-  when: sunbird_portal_cdn_url|length>0 and  cdn_file_path|length>0
-
-- name: remove whitespaces in index file
-  shell: 'sed -i s/\\s\\+$//e /var/lib/jenkins/player_config/index_cdn.ejs'
-  when: sunbird_portal_cdn_url|length>0 and  cdn_file_path|length>0
+- name: remove trailing spaces in index file
+  shell: "awk '{$1=$1;print}' /tmp/player-cdn-config > {{cdn_file_path}} && rm /tmp/player-cdn-config"
+  when: sunbird_portal_player_cdn_enabled == 'true'
 
 - name: Remove the existing CDN config
   shell: "kubectl delete configmap player-cdn-config --namespace={{namespace}}"
   ignore_errors: true
 
 - name: Create player-cdn configmap
-  shell: "kubectl create configmap player-cdn-config --from-file=/var/lib/jenkins/player_config/index_cdn.ejs --namespace={{namespace}}"
-  when: sunbird_portal_cdn_url|length>0 and  cdn_file_path|length>0
+  shell: "kubectl create configmap player-cdn-config --from-file={{cdn_file_path}} --namespace={{namespace}}"
+  when: sunbird_portal_player_cdn_enabled == 'true'
 
 - name: rename template
   template:
     src: "{{ chart_path }}/values.j2"
     dest: "{{ chart_path }}/values.yaml"
-
-- name: Create env data dir
-  file:
-    path: "/var/lib/jenkins/env"
-    state: directory
-    mode: 0755
 
 - name: copy env file from swarm role
   template:
@@ -42,12 +27,10 @@
 - name: template vars
   template:
     src: "{{ release_name }}.env"
-    dest: "/var/lib/jenkins/env/{{ release_name }}.env"
+    dest: "{{role_path}}/templates/{{ release_name }}.env"
 
 - name: create configmap
-  shell: "kubectl create configmap player-config --from-env-file=/var/lib/jenkins/env/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
-
+  shell: "kubectl create configmap player-config --from-env-file={{role_path}}/templates/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
 
 - name: helm install and upgrade
-  shell: helm upgrade --install --force {{ release_name }} {{ chart_path }} -n {{namespace}}
-
+  shell: helm upgrade --install --cleanup-on-fail {{ release_name }} {{ chart_path }} -n {{namespace}}
