@@ -183,5 +183,15 @@ ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_deploy.
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_search_deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_definition_update.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
 
+# patching cassanda migration
+# This is a workaround for cassandra migration issues
+ansible_path=${HOME}/sunbird-devops/ansible
+# Creating inventory strucure
+git checkout -- ../ansible/inventory/env/group_vars/all.yml # This is to make sure always the all.yaml is updated
+cp $inventory_path/$module/* ../ansible/inventory/env/
+# Updating variables and ips
+vars_updater
+ansible-playbook -i ../ansible/inventory/env ../ansible/cassandra-deploy.yml -e "cassandra_jar_path=$ansible_path cassandra_deploy_path=/home/{{ansible_ssh_user}}" -v
+
 # Post installation
 bash apis.sh
