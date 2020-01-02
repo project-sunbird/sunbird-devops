@@ -342,4 +342,166 @@ curl --location --request POST "https://${domain_name}/api/data/v1/location/crea
     }
 }'
 
+
+# Form Creation
+## resource
+curl --location --request POST "https://${domain_name}/api/data/v1/form/create" \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--data-raw '{
+	"request": {
+		"type": "content",
+		"subType": "resource",
+		"action": "create",
+		"framework": "'${org}'",
+		"rootOrgId": "'${org_id}'",
+        "data": {
+                "templateName": "defaultTemplate",
+                "action": "create",
+                "fields": [
+                    {
+                        "code": "name",
+                        "dataType": "text",
+                        "name": "Name",
+                        "lable": "Name",
+                        "description": "Name",
+                        "editable": true,
+                        "placeholder": "Name",
+                        "inputType": "text",
+                        "required": false,
+                        "displayProperty": "Editable",
+                        "visible": true,
+                        "renderingHints": {
+                            "width": "twelve"
+                        },
+                        "index": 1,
+                        "validation": [
+                            {
+                                "type": "regex",
+                                "value": "^[a-zA-Z0-9\\s]*$",
+                                "message": "Invalid Input"
+                            },
+                            {
+                                "type": "max",
+                                "value": "75",
+                                "message": "Input is Exceded"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "description",
+                        "dataType": "text",
+                        "name": "Description",
+                        "lable": "Description",
+                        "description": "description",
+                        "editable": true,
+                        "placeholder": "Description",
+                        "inputType": "text",
+                        "required": false,
+                        "displayProperty": "Editable",
+                        "visible": true,
+                        "renderingHints": {
+                            "width": "twelve"
+                        },
+                        "index": 2,
+                        "validation": [
+                            {
+                                "type": "regex",
+                                "value": "^[a-zA-Z0-9\\s]*$",
+                                "message": "Invalid Input"
+                            },
+                            {
+                                "type": "max",
+                                "value": "250",
+                                "message": "Input is Exceded"
+                            }
+                        ]
+                    }
+                ]
+            }
+    }
+}'
+
+## Course
+
+curl --location --request POST "https://${domain_name}/api/data/v1/form/create" \
+--header 'Accept: application/json' \
+--header 'Content-Type: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--data-raw '{
+	"request": {
+		"type": "content",
+		"subType": "course",
+		"action": "create",
+		"framework": "'${org}'",
+		"rootOrgId": "'${org_id}'",
+        "data": {
+                "templateName": "defaultTemplate",
+                "action": "create",
+                "fields": [
+                    {
+                        "code": "name",
+                        "dataType": "text",
+                        "name": "Name",
+                        "lable": "Name",
+                        "description": "Name",
+                        "editable": true,
+                        "placeholder": "Name",
+                        "inputType": "text",
+                        "required": false,
+                        "displayProperty": "Editable",
+                        "visible": true,
+                        "renderingHints": {
+                            "width": "twelve"
+                        },
+                        "index": 1,
+                        "validation": [
+                            {
+                                "type": "regex",
+                                "value": "^[a-zA-Z0-9\\s]*$",
+                                "message": "Invalid Input"
+                            },
+                            {
+                                "type": "max",
+                                "value": "75",
+                                "message": "Input is Exceded"
+                            }
+                        ]
+                    },
+                    {
+                        "code": "description",
+                        "dataType": "text",
+                        "name": "Description",
+                        "lable": "Description",
+                        "description": "description",
+                        "editable": true,
+                        "placeholder": "Description",
+                        "inputType": "text",
+                        "required": false,
+                        "displayProperty": "Editable",
+                        "visible": true,
+                        "renderingHints": {
+                            "width": "twelve"
+                        },
+                        "index": 2,
+                        "validation": [
+                            {
+                                "type": "regex",
+                                "value": "^[a-zA-Z0-9\\s]*$",
+                                "message": "Invalid Input"
+                            },
+                            {
+                                "type": "max",
+                                "value": "250",
+                                "message": "Input is Exceded"
+                            }
+                        ]
+                    }
+                ]
+            }
+    }
+}'
+
+
 #}}}
