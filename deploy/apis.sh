@@ -296,6 +296,38 @@ curl --location --request POST "https://${domain_name}/api/data/v1/location/crea
           "parentCode": "kl"
     }
 }'
+
+sleep 2
+
+# custodian org
+curl --location --request POST 'https://${domain_name}/api/data/v1/system/settings/set' \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+	"request": {
+        "id": "custodianOrgId",
+        "field": "custodianOrgId",
+        "value": "'${org_id}'"
+    }
+}'
+
+curl --location --request POST "https://${domain_name}/api/data/v1/system/settings/set" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+	"request": {
+"id": "custodianOrgChannel",
+"field": "custodianOrgChannel",
+"value": "'${org}'" 
+}
+}'
+
 #}}}
 
 
