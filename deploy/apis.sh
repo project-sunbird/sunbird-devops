@@ -27,7 +27,6 @@ password='P@ssword1'
 phone_number=9876543412
 org="sunbird"
 framework="sunbird"
-domain_name=${domain_name}
 board="sunbird"
 # Array of values
 medium=("english" "hindi" "malayalam")
@@ -134,6 +133,37 @@ curl --location --request PATCH "${learning_host}/channel/v3/update/${org_id}" \
       "channel":{
           "defaultFramework": "'${framework}'"
       }
+    }
+}'
+
+sleep 2
+
+# custodian org
+curl --location --request POST "https://${domain_name}/api/data/v1/system/settings/set" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+	"request": {
+        "id": "custodianOrgId",
+        "field": "custodianOrgId",
+        "value": "'${org_id}'"
+    }
+}'
+
+curl --location --request POST "https://${domain_name}/api/data/v1/system/settings/set" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+	"request": {
+        "id": "custodianOrgChannel",
+        "field": "custodianOrgChannel",
+        "value": "'${org}'" 
     }
 }'
 
@@ -297,52 +327,4 @@ curl --location --request POST "https://${domain_name}/api/data/v1/location/crea
     }
 }'
 
-sleep 2
-
-# custodian org
-curl --location --request POST 'https://${domain_name}/api/data/v1/system/settings/set' \
---header 'Cache-Control: no-cache' \
---header 'Content-Type: application/json' \
---header 'accept: application/json' \
---header "Authorization: Bearer ${jwt_token}" \
---header "x-authenticated-user-token: ${x_auth_token}" \
---data-raw '{
-	"request": {
-        "id": "custodianOrgId",
-        "field": "custodianOrgId",
-        "value": "'${org_id}'"
-    }
-}'
-
-curl --location --request POST "https://${domain_name}/api/data/v1/system/settings/set" \
---header 'Cache-Control: no-cache' \
---header 'Content-Type: application/json' \
---header 'accept: application/json' \
---header "Authorization: Bearer ${jwt_token}" \
---header "x-authenticated-user-token: ${x_auth_token}" \
---data-raw '{
-	"request": {
-"id": "custodianOrgChannel",
-"field": "custodianOrgChannel",
-"value": "'${org}'" 
-}
-}'
-
 #}}}
-
-
-curl --location --request POST "https://${domain_name}/api/user/v1/search" \
---header 'Cache-Control: no-cache' \
---header 'Content-Type: application/json' \
---header 'accept: application/json' \
---header "Authorization: Bearer ${jwt_token}" \
---header "x-authenticated-user-token: ${x_auth_token}" \
---data-raw '{
-    "request":
-    {
-        "filters": {
-        "phone": "'${phone_number}'",
-        "userName": "'${username}'"
-        }
-    }
-}' | jq '.'
