@@ -67,6 +67,9 @@ curl -Ss --location --request POST "https://${domain_name}/api/org/v1/create" \
   }
 }' | jq '.'
 
+echo -e "\n\n waiting for org to get created\n\n"
+sleep 10
+
 echo Getting OrgId
 org_id=$(curl -Ss --location --request POST "https://${domain_name}/api/org/v1/search" \
 --header 'Cache-Control: no-cache' \
@@ -83,6 +86,8 @@ org_id=$(curl -Ss --location --request POST "https://${domain_name}/api/org/v1/s
   }
 }' | jq '.result.response.content[0].id' | xargs
 )
+
+[[ $org_id ]] || (echo -e"\n\nempty organization id"; exit 100)
 
 echo $org_id
 # Creating channel
