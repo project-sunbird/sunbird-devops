@@ -174,9 +174,9 @@ ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_kafka_provision.
 # Will create all topic
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_kafka_setup.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_neo4j_provision.yml -e "download_neo4j=false neo4j_zip=neo4j-community-3.3.9-unix.tar.gz neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_start_neo4j.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_redis_provision.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_neo4j_deploy.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_start_neo4j.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/es_composite_search_cluster_setup.yml -v
 bash ./csindexupdate.sh ${kp_ip}
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_deploy.yml
