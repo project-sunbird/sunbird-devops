@@ -41,7 +41,7 @@ sudo apt install jq -y
 # Creating form and other apis{{{
 
 echo -e "\nCreating x-auth token"
-x_auth_token=$(curl -Ss --location --request POST "https://sunbird6.centralindia.cloudapp.azure.com/auth/realms/sunbird/protocol/openid-connect/token" \
+x_auth_token=$(curl -Ss --location --request POST "https://${domain_name}/auth/realms/sunbird/protocol/openid-connect/token" \
 --header 'Content-Type: application/x-www-form-urlencoded' \
 --header "Authorization: Bearer ${jwt_token}" \
 --data-raw 'client_id=admin-cli&password=password&grant_type=password&username=admin' | jq '.access_token' | xargs )
