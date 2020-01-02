@@ -40,6 +40,19 @@ sudo apt install jq -y
 
 # Creating form and other apis{{{
 
+# Creating license
+curl --location --request POST 'localhost:12000/content/license/v3/create' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "request":{
+        "license":{
+            "name": "CC BY - 4.0",
+            "description": "License description",
+            "url": "URL"
+        }
+    }
+}'
+
 echo -e "\nCreating x-auth token"
 x_auth_token=$(curl -Ss --location --request POST "https://${domain_name}/auth/realms/sunbird/protocol/openid-connect/token" \
 --header 'Content-Type: application/x-www-form-urlencoded' \
@@ -131,7 +144,9 @@ curl --location --request PATCH "${learning_host}/channel/v3/update/${org_id}" \
 --data-raw '{
    "request": {
       "channel":{
-          "defaultFramework": "'${framework}'"
+          "defaultFramework": "'${framework}'",
+          "defaultLicense": "CC BY - 4.0"
+
       }
     }
 }'

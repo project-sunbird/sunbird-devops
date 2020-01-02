@@ -76,7 +76,7 @@ fi
 
 # Bootstrapping kubernetes
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/bootstrap_minimal.yaml
-services=" apimanager learner nginx-private-ingress"
+services=" apimanager content learner nginx-private-ingress"
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
