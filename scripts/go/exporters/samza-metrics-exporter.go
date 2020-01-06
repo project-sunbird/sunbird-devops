@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	zookeeperConn = "11.2.1.15:2181"
+	zookeeperConn = "0.0.0.0:2181"
 	cgroup        = "metrics.read"
 	topic1        = "sunbirddev.analytics_metrics"
 	topic2        = "sunbirddev.pipeline_metrics"
