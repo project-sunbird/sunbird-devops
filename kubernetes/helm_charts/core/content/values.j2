@@ -15,12 +15,33 @@ resources:
     cpu: {{content_cpu_limit|default('1')}}
     memory: {{content_mem_limit|default('1024Mi')}}
 network:
-  port: 9696
+  port: 9002
   targetport: 9000
 strategy:
   type: RollingUpdate
   maxsurge: 1
   maxunavailable: 0
+
+content:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
 
 
   
