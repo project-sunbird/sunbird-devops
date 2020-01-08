@@ -4,33 +4,16 @@
     src: "{{ chart_path }}/values.j2"
     dest: "{{ chart_path }}/values.yaml"
 
-- name: copy env file from swarm role
+- name: copy and template env file from swarm role
   template:
     src: "{{service_env[release_name]}}"
-    dest: "{{role_path}}/templates/{{ release_name }}.env"
+    dest: "{{role_path}}/templates/"
 
-- debug: var=release_name
-  register: output
+- name: create env configmap
+  shell: find "{{role_path}}/templates/" -iname "*.env" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-config --from-env-file={} -n {{namespace}} --dry-run -o=yaml | kubectl apply -f - " \;
 
-- name: template vars
-  template:
-    src: "{{ release_name }}.env"
-    dest: "{{role_path}}/templates/{{ release_name }}.env"
-  when: output.release_name != "content"
-
-- name: template content service vars
-  template:
-    src: "{{ release_name }}.env"
-    dest: "{{role_path}}/templates/application.conf"
-  when: output.release_name == "content"
-
-- name: create configmap
-  shell: "kubectl create configmap {{ release_name }}-config --from-env-file={{role_path}}/templates/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
-  when: output.release_name != "content"
-
-- name: create content configmap
-  shell: "kubectl create configmap {{ release_name }}-config --from-file={{role_path}}/templates/application.conf -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
-  when: output.release_name == "content"
+- name: create aplicaton configmap
+  shell: find "{{role_path}}/templates/" -iname "*.conf" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-config --from-file={} -n {{namespace}} --dry-run -o=yaml | kubectl apply -f - " \;
 
 - name: helm upgrade
   shell: helm upgrade --install --cleanup-on-fail {{ release_name }} {{ chart_path }} -n {{namespace}}
