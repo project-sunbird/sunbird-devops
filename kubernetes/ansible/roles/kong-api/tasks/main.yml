@@ -1,0 +1,20 @@
+---
+- name: Ensure pip is installed
+  apt: name=python-pip update_cache=yes
+  when: ansible_os_family == 'Debian'
+
+- name: Ensure retry is installed
+  pip: name=retry
+
+- name: Save api details to json file
+  copy: dest=/tmp/kong_apis.json content="{{ kong_apis | to_nice_json}}" mode=0644
+
+- name: Copy kong api scripts
+  copy: src=static-files/kong-api-scripts dest=/tmp mode=0755
+
+- name: waiting for 30 seconds for api manager to be fully functional
+  pause:
+    seconds: 30
+
+- name: Run script to save apis
+  shell: "python /tmp/kong-api-scripts/kong_apis.py /tmp/kong_apis.json --kong-admin-api-url=http://{{ private_ingressgateway_ip }}/admin-api"
