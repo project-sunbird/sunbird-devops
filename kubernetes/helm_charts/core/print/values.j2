@@ -1,3 +1,4 @@
+#jinja2:lstrip_blocks: True
 
 ### Default variable file for print-service ###
 
@@ -23,10 +24,7 @@ strategy:
   maxunavailable: 0
 
 print:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true
+{% if print.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -36,9 +34,16 @@ print:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif print.readinessProbe %}
+{{ print.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if print.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /service/health
       port: 5000
     initialDelaySeconds: 60
     periodSeconds: 10
+{% elif print.livenessProbe %}
+{{ print.livenessProbe | to_yaml }}
+{% endif %}
