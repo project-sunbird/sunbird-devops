@@ -4,6 +4,8 @@ kind: Deployment
 metadata:
   name: {{ .Chart.Name }}
   namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
@@ -13,9 +15,6 @@ spec:
       app: {{ .Chart.Name }}
   template:
     metadata:
-      annotations:
-        readiness.status.sidecar.istio.io/applicationPorts: ""
-        #checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
         app: {{ .Chart.Name }}
     spec:
@@ -33,6 +32,14 @@ spec:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
         - containerPort: {{ .Values.network.port }}
+        {{- if .Values.telemetry.livenessprobe.enabled }}
+        livenessProbe:
+{{ toYaml .Values.telemetry.livenessProbe | indent 10 }}
+        {{- end }}
+        {{- if .Values.telemetry.readinessprobe.enabled }}
+        readinessProbe:
+{{ toYaml .Values.telemetry.readinessProbe | indent 10 }}
+        {{- end }}
 
 ---
 apiVersion: v1
