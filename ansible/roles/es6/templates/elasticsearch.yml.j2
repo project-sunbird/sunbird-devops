@@ -7,6 +7,12 @@
 cluster.name: elasticsearch
 {% endif %}
 
+{% if (groups['composite-search-cluster']|length) == 1 %}
+discovery.zen.minimum_master_nodes: 1
+{% else %}
+discovery.zen.minimum_master_nodes: "{{ ((groups['composite-search-cluster']|length) / 2 +1) | round(0, 'ceil') | int}}"
+{% endif %}
+
 {% if es_config['node.name'] is not defined %}
 node.name: {{inventory_hostname}}-{{es_instance_name}}
 {% endif %}
