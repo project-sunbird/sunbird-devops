@@ -4,6 +4,8 @@ kind: Deployment
 metadata:
   name: {{ .Chart.Name }}
   namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
@@ -13,8 +15,6 @@ spec:
       app: {{ .Chart.Name }}
   template:
     metadata:
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
       labels:
         app: {{ .Chart.Name }}
     spec:
@@ -40,6 +40,14 @@ spec:
           name: network
         - containerPort: {{ .Values.service.port }}
           name: service
+        {{- if .Values.apimanager.livenessprobe.enabled }}
+        livenessProbe:
+{{ toYaml .Values.apimanager.livenessProbe | indent 10 }}
+        {{- end }}
+        {{- if .Values.apimanager.readinessprobe.enabled }}
+        readinessProbe:
+{{ toYaml .Values.apimanager.readinessProbe | indent 10 }}
+        {{- end }}
       - name: go-dns
         image: "{{ .Values.godns.repository }}:{{ .Values.godns.image_tag }}"
         resources:

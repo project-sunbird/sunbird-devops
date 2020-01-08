@@ -1,0 +1,46 @@
+---
+- name: Ensure pip is installed
+  apt: name=python-pip
+  when: ansible_os_family == 'Debian'
+
+- name: Ensure PyJWT is installed
+  pip: name=PyJWT
+
+- name: Ensure retry is installed
+  pip: name=retry
+
+- name: Save kong_consumers to json file
+  copy: dest=/tmp/kong_consumers.json content="{{ kong_consumers | to_nice_json}}" mode=0644
+
+- name: Copy kong api scripts
+  copy: src=static-files/kong-api-scripts dest=/tmp mode=0755
+
+- name: Run script to save consumers
+  shell: "python /tmp/kong-api-scripts/kong_consumers.py /tmp/kong_consumers.json --kong-admin-api-url=http://{{ private_ingressgateway_ip }}/admin-api"
+  register: jwt_token
+
+- name: Touch the token file
+  become: yes
+  file: path={{item}} state=touch
+  with_items:
+             - /tmp/jwt_token_output.txt
+             - /tmp/jwt_token.txt
+
+- name: write to file
+  become: yes
+  copy: content="{{jwt_token.stdout}}" dest=/tmp/jwt_token_output.txt
+  
+- name: run the sed command
+  shell: cat /tmp/jwt_token_output.txt | grep 'JWT token for player is' | cut -d ':' -f2
+  register: token
+  
+- name: Copy the script
+  copy: content="{{token.stdout}}" dest=~/jwt_token_player.txt
+  ignore_errors: yes
+
+- name: remove the file
+  file: path={{ item }} state=absent
+  ignore_errors: yes
+  with_items:
+    - /tmp/jwt_token_output.txt
+    - /tmp/jwt_token.txt

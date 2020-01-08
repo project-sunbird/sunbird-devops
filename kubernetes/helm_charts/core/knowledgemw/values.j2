@@ -9,15 +9,35 @@ repository: {{knowledge_mw_repository|default('knowledge-mw-service')}}
 image_tag: {{ image_tag }}
 resources:
   requests:
-    cpu: {{knowledge_mw_cpu_req|default('50m')}}
-    memory: {{knowledge_mw_mem_req|default('50Mi')}}
+    cpu: {{knowledge_mw_cpu_req|default('100m')}}
+    memory: {{knowledge_mw_mem_req|default('100Mi')}}
   limits:
     cpu: {{knowledge_mw_cpu_limit|default('1')}}
-    memory: {{knowledge_mw_mem_limit|default('256Mi')}}
+    memory: {{knowledge_mw_mem_limit|default('1024Mi')}}
 network:
   port: 5000
   targetport: 5000
 strategy:
   type: RollingUpdate
 
+knowledgemw:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 5000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 5000
+    initialDelaySeconds: 60
+    periodSeconds: 10
 
