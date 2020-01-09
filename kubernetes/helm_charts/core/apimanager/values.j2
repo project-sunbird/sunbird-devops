@@ -26,10 +26,7 @@ strategy:
   maxunavailable: 0
 
 apimanager:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true 
+{% if (apimanager is not defined) and apimanager.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -39,12 +36,19 @@ apimanager:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif apimanager.readinessProbe %}
+{{ apimanager.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (apimanager is not defined) and apimanager.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /health
       port: 8000
     initialDelaySeconds: 60
     periodSeconds: 10
+{% elif apimanager.livenessProbe %}
+{{ apimanager.livenessProbe | to_yaml }}
+{% endif %}
 
 godns:
   repository: {{ go_dns_repository | default('docker.io/sunbird/go-dns') }}

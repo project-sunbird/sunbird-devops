@@ -15,18 +15,14 @@ resources:
     cpu: {{lms_cpu_limit|default('1')}}
     memory: {{lms_mem_limit|default('1024Mi')}}
 network:
-  port: 9005
-  targetport: 9000
+  port: 9000
 strategy:
   type: RollingUpdate
   maxsurge: 1
   maxunavailable: 0
 
 lms:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true
+{% if (lms is not defined) and lms.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -36,9 +32,16 @@ lms:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif lms.readinessProbe %}
+{{ lms.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (lms is not defined) and lms.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /service/health
       port: 9000
     initialDelaySeconds: 60
     periodSeconds: 10
+{% elif lms.livenessProbe %}
+{{ lms.livenessProbe | to_yaml }}
+{% endif %}

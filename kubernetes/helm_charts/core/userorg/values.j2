@@ -15,18 +15,14 @@ resources:
     cpu: {{userorg_cpu_limit|default('1')}}
     memory: {{userorg_mem_limit|default('1024Mi')}}
 network:
-  port: 9008
-  targetport: 9000
+  port: 9000
 strategy:
   type: RollingUpdate
   maxsurge: 1
   maxunavailable: 0
 
 userorg:
-  readinessprobe:
-    enabled: false
-  livenessprobe:
-    enabled: false
+{% if (userorg is not defined) and userorg.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -36,12 +32,19 @@ userorg:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif userorg.readinessProbe %}
+{{ userorg.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (userorg is not defined) and userorg.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /health
       port: 9000
     initialDelaySeconds: 60
     periodSeconds: 10
+{% elif userorg.livenessProbe %}
+{{ userorg.livenessProbe | to_yaml }}
+{% endif %}
 
   
   

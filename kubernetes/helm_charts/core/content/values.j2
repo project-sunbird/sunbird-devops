@@ -15,18 +15,14 @@ resources:
     cpu: {{content_cpu_limit|default('1')}}
     memory: {{content_mem_limit|default('1024Mi')}}
 network:
-  port: 9002
-  targetport: 9000
+  port: 9000
 strategy:
   type: RollingUpdate
   maxsurge: 1
   maxunavailable: 0
 
 content:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true 
+{% if (content is not defined) and content.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -36,12 +32,18 @@ content:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif content.readinessProbe %}
+{{ content.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (content is not defined) and content.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /health
       port: 9000
     initialDelaySeconds: 60
     periodSeconds: 10
-
+{% elif content.livenessProbe %}
+{{ content.livenessProbe | to_yaml }}
+{% endif %}
 
   

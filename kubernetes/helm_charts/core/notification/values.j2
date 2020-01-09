@@ -15,18 +15,14 @@ resources:
     cpu: {{notification_cpu_limit|default('1')}}
     memory: {{notification_mem_limit|default('500Mi')}}
 network:
-  port: 9012
-  targetport: 9000
+  port: 9000
 strategy:
   type: RollingUpdate
   maxsurge: 1
   maxunavailable: 0
 
 notification:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true
+{% if (notification is not defined) and notification.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -36,12 +32,19 @@ notification:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif notification.readinessProbe %}
+{{ notification.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (notification is not defined) and notification.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /service/health
       port: 9000
     initialDelaySeconds: 60
     periodSeconds: 10
+{% elif notification.livenessProbe %}
+{{ notification.livenessProbe | to_yaml }}
+{% endif %}
 
   
 

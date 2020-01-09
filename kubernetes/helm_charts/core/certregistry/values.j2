@@ -15,18 +15,14 @@ resources:
     cpu: {{certregistry_cpu_limit|default('1')}}
     memory: {{certregistry_mem_limit|default('550Mi')}}
 network:
-  port: 9013
-  targetport: 9000
+  port: 9000
 strategy:
   type: RollingUpdate
   maxsurge: 1
   maxunavailable: 0
 
 certregistry:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true 
+{% if (certregistry is not defined) and certregistry.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -36,11 +32,18 @@ certregistry:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif certregistry.readinessProbe %}
+{{ certregistry.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (certregistry is not defined) and certregistry.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /service/health
       port: 9000
     initialDelaySeconds: 60
     periodSeconds: 10
+{% elif certregistry.livenessProbe %}
+{{ certregistry.livenessProbe | to_yaml }}
+{% endif %}
 
   

@@ -16,15 +16,11 @@ resources:
     memory: {{knowledge_mw_mem_limit|default('1024Mi')}}
 network:
   port: 5000
-  targetport: 5000
 strategy:
   type: RollingUpdate
 
 knowledgemw:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true
+{% if (knowledgemw is not defined) and knowledgemw.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -34,10 +30,17 @@ knowledgemw:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif knowledgemw.readinessProbe %}
+{{ knowledgemw.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (knowledgemw is not defined) and knowledgemw.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /service/health
       port: 5000
     initialDelaySeconds: 60
     periodSeconds: 10
+{% elif knowledgemw.livenessProbe %}
+{{ knowledgemw.livenessProbe | to_yaml }}
+{% endif %}
 

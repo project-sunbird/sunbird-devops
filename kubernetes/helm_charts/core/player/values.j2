@@ -16,7 +16,6 @@ resources:
     memory: {{player_mem_limit|default('1024Mi')}}
 network:
   port: 3000
-  targetport: 3000
 strategy:
   type: RollingUpdate
   maxsurge: 1
@@ -25,10 +24,7 @@ strategy:
 sunbird_portal_player_cdn_enabled: {{sunbird_portal_player_cdn_enabled|lower}}
 
 player:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true
+{% if (player is not defined) and player.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -38,10 +34,16 @@ player:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif player.readinessProbe %}
+{{ player.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (player is not defined) and player.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /service/health
       port: 3000
     initialDelaySeconds: 60
     periodSeconds: 10
-
+{% elif player.livenessProbe %}
+{{ player.livenessProbe | to_yaml }}
+{% endif %}

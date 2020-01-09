@@ -17,17 +17,13 @@ resources:
     memory: {{learner_mem_limit|default('1024Mi')}}
 network:
   port: 9000
-  targetport: 9000
 strategy:
   type: RollingUpdate
   maxsurge: 1
   maxunavailable: 0
 
 learner:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true
+{% if (learner is not defined) and learner.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -37,10 +33,16 @@ learner:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif learner.readinessProbe %}
+{{ learner.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (learner is not defined) and learner.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /service/health
       port: 9000
     initialDelaySeconds: 60
     periodSeconds: 10
-
+{% elif learner.livenessProbe %}
+{{ learner.livenessProbe | to_yaml }}
+{% endif %}

@@ -16,17 +16,13 @@ resources:
     memory: {{badger_mem_limit|default('500Mi')}}
 network:
   port: 8004
-  targetport: 8004
 strategy:
   type: RollingUpdate
   maxsurge: 1
   maxunavailable: 0
 
 badger:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true 
+{% if (badger is not defined) and badger.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -36,9 +32,16 @@ badger:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif badger.readinessProbe %}
+{{ badger.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (badger is not defined) and badger.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /health
       port: 8004
     initialDelaySeconds: 60
     periodSeconds: 10
+{% elif badger.livenessProbe %}
+{{ badger.livenessProbe | to_yaml }}
+{% endif %}

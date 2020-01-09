@@ -17,17 +17,13 @@ resources:
     memory: {{telemetry_mem_limit|default('1024Mi')}}
 network:
   port: 9001
-  targetport: 9001
 strategy:
   type: RollingUpdate
   maxsurge: 1
   maxunavailable: 0
 
 telemetry:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true
+{% if (telemetry is not defined) and telemetry.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -37,11 +33,18 @@ telemetry:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif telemetry.readinessProbe %}
+{{ telemetry.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (telemetry is not defined) and telemetry.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /health
       port: 9001
     initialDelaySeconds: 60
     periodSeconds: 10
+{% elif telemetry.livenessProbe %}
+{{ telemetry.livenessProbe | to_yaml }}
+{% endif %}
 
   

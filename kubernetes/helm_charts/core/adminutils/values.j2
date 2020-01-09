@@ -16,17 +16,13 @@ resources:
     memory: {{adminutil_memory_limit|default('1024Mi')}}
 network:
   port: 4000
-  targetport: 4000
 strategy:
   type: RollingUpdate
   maxsurge: 1
   maxunavailable: 0
 
 adminutils:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true 
+{% if (adminutils is not defined) and adminutils.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -36,12 +32,19 @@ adminutils:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif adminutils.readinessProbe %}
+{{ adminutils.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (adminutils is not defined) and adminutils.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /health
       port: 4000
     initialDelaySeconds: 60
     periodSeconds: 10
+{% elif adminutils.livenessProbe %}
+{{ adminutils.livenessProbe | to_yaml }}
+{% endif %}
 
 adminutilenv:
   JAVA_OPTS: "-Xms{{adminutil__initial_heap_size|default('256m')}} -Xmx{{adminutil__max_heap_size|default('256m')}}"

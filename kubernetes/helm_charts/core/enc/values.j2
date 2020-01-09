@@ -15,18 +15,14 @@ resources:
     cpu: {{enc_cpu_limit|default('1')}}
     memory: {{enc_mem_limit|default('800Mi')}}
 network:
-  port: 9010
-  targetport: 8013
+  port: 8013
 strategy:
   type: RollingUpdate
   maxsurge: 1
   maxunavailable: 0
 
 enc:
-  readinessprobe:
-    enabled: false
-  livenessprobe:
-    enabled: false 
+{% if (enc is not defined) and enc.readinessProbe is not defined %}
   readinessProbe:
     httpGet:
       path: /health
@@ -36,12 +32,19 @@ enc:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
+{% elif enc.readinessProbe %}
+{{ enc.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if (enc is not defined) and enc.livenessProbe is not defined %}
   livenessProbe:
     httpGet:
       path: /health
       port: 8013
     initialDelaySeconds: 60
     periodSeconds: 10
+{% elif enc.livenessProbe %}
+{{ enc.livenessProbe | to_yaml }}
+{% endif %}
 
   
 
