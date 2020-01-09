@@ -75,7 +75,7 @@ The following illustrates applying configuration parameters to an Elasticsearch 
     es_scripts: false
     es_templates: false
     es_version_lock: false
-    es_heap_size: 1g
+    log-es_heap_size: 1g
     es_api_port: 9201
 ```
 
@@ -114,7 +114,7 @@ A more complex example:
     es_scripts: false
     es_templates: false
     es_version_lock: false
-    es_heap_size: 1g
+    log-es_heap_size: 1g
     es_start_service: false
     es_plugins_reinstall: false
     es_api_port: 9201
@@ -140,7 +140,7 @@ An example of a two server deployment is shown below.  The first server holds th
 ```
 - hosts: master_nodes
   roles:
-    - { role: elasticsearch, es_instance_name: "node1", es_heap_size: "1g",
+    - { role: elasticsearch, es_instance_name: "node1", log-es_heap_size: "1g",
     es_config: {
         cluster.name: "test-cluster",
         discovery.zen.ping.unicast.hosts: "elastic02:9300",
