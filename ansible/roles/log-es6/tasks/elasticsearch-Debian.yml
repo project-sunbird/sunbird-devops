@@ -29,6 +29,18 @@
   include: elasticsearch-Debian-version-lock.yml
   when: es_version_lock
 
+  #Copy the elasticsearch mandatory variable
+
+- name: Copy the elasticsearch mandatory variables
+  become: yes
+  template:
+    src: environment.j2
+    dest: "{{ env_dir }}/elasticsearch"
+    owner: "{{ es_user }}"
+    group: "{{ es_group }}"
+    mode: 0660
+    force: yes
+
 - name: Debian - Ensure elasticsearch is installed
   become: yes
   apt: name=elasticsearch{% if es_version is defined and es_version != "" %}={{ es_version }}{% endif %} state=present force={{force_install}} allow_unauthenticated={{ 'no' if es_apt_key else 'yes' }} cache_valid_time=86400
