@@ -1,3 +1,5 @@
+#jinja2:lstrip_blocks: True
+
 ### Default variable file for cert-service ###
 
 namespace: {{ namespace }}
@@ -21,8 +23,13 @@ strategy:
   maxsurge: 1
   maxunavailable: 0
 
-adminutils:
-{% if (adminutils is not defined) and adminutils.readinessProbe is not defined %}
+
+adminutils:  
+{% if (adminutils_readinessProbe_enable == true ) and adminutils_readinessProbe_override == true %}
+  readinessProbe_enable: true
+{{ adminutils.readinessProbe | to_nice_yaml }}
+{% elif (adminutils_readinessprobe_enable == true ) and adminutils_readinessprobe_override == false %}
+  readinessProbe_enable: true
   readinessProbe:
     httpGet:
       path: /health
@@ -32,18 +39,22 @@ adminutils:
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
-{% elif adminutils.readinessProbe %}
-{{ adminutils.readinessProbe | to_nice_yaml }}
+{% else %}
+  readinessProbe_enable: false
 {% endif %}
-{% if (adminutils is not defined) and adminutils.livenessProbe is not defined %}
+{% if (adminutils_livenessProbe_enable == true ) and adminutils_livenessProbe_override == true %}
+  livenessProbe_enable: true
+{{ adminutils.livenessProbe | to_nice_yaml }}
+{% elif (adminutils_livenessProbe_enable == true ) and adminutils_livenessProbe_override == false %}
+  livenessProbe_enable: true
   livenessProbe:
     httpGet:
       path: /health
       port: 4000
     initialDelaySeconds: 60
     periodSeconds: 10
-{% elif adminutils.livenessProbe %}
-{{ adminutils.livenessProbe | to_yaml }}
+{% else %}
+  livenessProbe_enable: false
 {% endif %}
 
 adminutilenv:
