@@ -1,4 +1,4 @@
-def call(String email_list = '') {
+def call(String email_list = "") {
     try {
         ansiColor('xterm') {
             String ANSI_GREEN = "\u001B[32m"
@@ -8,7 +8,7 @@ def call(String email_list = '') {
             String ANSI_YELLOW = "\u001B[33m"
 
            println "Hello" + email_list
-           if(email_list != ''){
+           if(email_list != ""){
                     emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS: Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: email_group
                     return
            }
