@@ -1,4 +1,4 @@
-def call() {
+def call(String email_list = '') {
     try {
         ansiColor('xterm') {
             String ANSI_GREEN = "\u001B[32m"
@@ -6,7 +6,11 @@ def call() {
             String ANSI_BOLD = "\u001B[1m"
             String ANSI_RED = "\u001B[31m"
             String ANSI_YELLOW = "\u001B[33m"
-            
+
+           if(email_list != ''){
+                    emailext body: '''$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS: Check console output at $BUILD_URL to view the results.''', subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!', to: email_group
+                    return
+           }
             stage('email_notify') {
                 try {
                     envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
