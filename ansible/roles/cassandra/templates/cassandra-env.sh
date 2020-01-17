@@ -86,55 +86,32 @@ calculate_heap_sizes()
     fi
 }
 
-# Determine the sort of JVM we'll be running on.
-java_ver_output=`"${JAVA:-java}" -version 2>&1`
-jvmver=`echo "$java_ver_output" | grep '[openjdk|java] version' | awk -F'"' 'NR==1 {print $2}' | cut -d\- -f1`
-JVM_VERSION=${jvmver%_*}
-JVM_PATCH_VERSION=${jvmver#*_}
-
-if [ "$JVM_VERSION" \< "1.8" ] ; then
-    echo "Cassandra 3.0 and later require Java 8u40 or later."
-    exit 1;
+# Sets the path where logback and GC logs are written.
+if [ "x$CASSANDRA_LOG_DIR" = "x" ] ; then
+    CASSANDRA_LOG_DIR="$CASSANDRA_HOME/logs"
 fi
-
-if [ "$JVM_VERSION" \< "1.8" ] && [ "$JVM_PATCH_VERSION" -lt 40 ] ; then
-    echo "Cassandra 3.0 and later require Java 8u40 or later."
-    exit 1;
-fi
-
-jvm=`echo "$java_ver_output" | grep -A 1 'java version' | awk 'NR==2 {print $1}'`
-case "$jvm" in
-    OpenJDK)
-        JVM_VENDOR=OpenJDK
-        # this will be "64-Bit" or "32-Bit"
-        JVM_ARCH=`echo "$java_ver_output" | awk 'NR==3 {print $2}'`
-        ;;
-    "Java(TM)")
-        JVM_VENDOR=Oracle
-        # this will be "64-Bit" or "32-Bit"
-        JVM_ARCH=`echo "$java_ver_output" | awk 'NR==3 {print $3}'`
-        ;;
-    *)
-        # Help fill in other JVM values
-        JVM_VENDOR=other
-        JVM_ARCH=unknown
-        ;;
-esac
 
 #GC log path has to be defined here because it needs to access CASSANDRA_HOME
-JVM_OPTS="$JVM_OPTS -Xloggc:/var/log/cassandra/gc.log"
+if [ $JAVA_VERSION -ge 11 ] ; then
+    # See description of https://bugs.openjdk.java.net/browse/JDK-8046148 for details about the syntax
+    # The following is the equivalent to -XX:+PrintGCDetails -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M
+    echo "$JVM_OPTS" | grep -q "^-[X]log:gc"
+    if [ "$?" = "1" ] ; then # [X] to prevent ccm from replacing this line
+        # only add -Xlog:gc if it's not mentioned in jvm-server.options file
+        mkdir -p ${CASSANDRA_LOG_DIR}
+        JVM_OPTS="$JVM_OPTS -Xlog:gc=info,heap*=trace,age*=debug,safepoint=info,promotion*=trace:file=${CASSANDRA_LOG_DIR}/gc.log:time,uptime,pid,tid,level:filecount=10,filesize=10485760"
+    fi
+else
+    # Java 8
+    echo "$JVM_OPTS" | grep -q "^-[X]loggc"
+    if [ "$?" = "1" ] ; then # [X] to prevent ccm from replacing this line
+        # only add -Xlog:gc if it's not mentioned in jvm-server.options file
+        mkdir -p ${CASSANDRA_LOG_DIR}
+        JVM_OPTS="$JVM_OPTS -Xloggc:${CASSANDRA_LOG_DIR}/gc.log"
+    fi
+fi
 
-# Here we create the arguments that will get passed to the jvm when
-# starting cassandra.
-
-# Read user-defined JVM options from jvm.options file
-JVM_OPTS_FILE=$CASSANDRA_CONF/jvm.options
-for opt in `grep "^-" $JVM_OPTS_FILE`
-do
-  JVM_OPTS="$JVM_OPTS $opt"
-done
-
-# Check what parameters were defined on jvm.options file to avoid conflicts
+# Check what parameters were defined on jvm-server.options file to avoid conflicts
 echo $JVM_OPTS | grep -q Xmn
 DEFINED_XMN=$?
 echo $JVM_OPTS | grep -q Xmx
@@ -179,21 +156,21 @@ if [ "x$MALLOC_ARENA_MAX" = "x" ] ; then
     export MALLOC_ARENA_MAX=4
 fi
 
-# We only set -Xms and -Xmx if they were not defined on jvm.options file
+# We only set -Xms and -Xmx if they were not defined on jvm-server.options file
 # If defined, both Xmx and Xms should be defined together.
 if [ $DEFINED_XMX -ne 0 ] && [ $DEFINED_XMS -ne 0 ]; then
      JVM_OPTS="$JVM_OPTS -Xms${MAX_HEAP_SIZE}"
      JVM_OPTS="$JVM_OPTS -Xmx${MAX_HEAP_SIZE}"
 elif [ $DEFINED_XMX -ne 0 ] || [ $DEFINED_XMS -ne 0 ]; then
-     echo "Please set or unset -Xmx and -Xms flags in pairs on jvm.options file."
+     echo "Please set or unset -Xmx and -Xms flags in pairs on jvm-server.options file."
      exit 1
 fi
 
-# We only set -Xmn flag if it was not defined in jvm.options file
+# We only set -Xmn flag if it was not defined in jvm-server.options file
 # and if the CMS GC is being used
 # If defined, both Xmn and Xmx should be defined together.
 if [ $DEFINED_XMN -eq 0 ] && [ $DEFINED_XMX -ne 0 ]; then
-    echo "Please set or unset -Xmx and -Xmn flags in pairs on jvm.options file."
+    echo "Please set or unset -Xmx and -Xmn flags in pairs on jvm-server.options file."
     exit 1
 elif [ $DEFINED_XMN -ne 0 ] && [ $USING_CMS -eq 0 ]; then
     JVM_OPTS="$JVM_OPTS -Xmn${HEAP_NEWSIZE}"
@@ -207,12 +184,24 @@ fi
 JVM_OPTS="$JVM_OPTS -XX:CompileCommandFile=$CASSANDRA_CONF/hotspot_compiler"
 
 # add the jamm javaagent
-JVM_OPTS="$JVM_OPTS -javaagent:$CASSANDRA_HOME/lib/jamm-0.3.0.jar"
+JVM_OPTS="$JVM_OPTS -javaagent:$CASSANDRA_HOME/lib/jamm-0.3.2.jar"
 
 # set jvm HeapDumpPath with CASSANDRA_HEAPDUMP_DIR
 if [ "x$CASSANDRA_HEAPDUMP_DIR" != "x" ]; then
     JVM_OPTS="$JVM_OPTS -XX:HeapDumpPath=$CASSANDRA_HEAPDUMP_DIR/cassandra-`date +%s`-pid$$.hprof"
 fi
+
+# stop the jvm on OutOfMemoryError as it can result in some data corruption
+# uncomment the preferred option
+# ExitOnOutOfMemoryError and CrashOnOutOfMemoryError require a JRE greater or equals to 1.7 update 101 or 1.8 update 92
+# For OnOutOfMemoryError we cannot use the JVM_OPTS variables because bash commands split words
+# on white spaces without taking quotes into account
+# JVM_OPTS="$JVM_OPTS -XX:+ExitOnOutOfMemoryError"
+# JVM_OPTS="$JVM_OPTS -XX:+CrashOnOutOfMemoryError"
+JVM_ON_OUT_OF_MEMORY_ERROR_OPT="-XX:OnOutOfMemoryError=kill -9 %p"
+
+# print an heap histogram on OutOfMemoryError
+# JVM_OPTS="$JVM_OPTS -Dcassandra.printHeapHistogramOnOutOfMemoryError=true"
 
 # jmx: metrics and administration interface
 #
@@ -224,18 +213,17 @@ fi
 # for more on configuring JMX through firewalls, etc. (Short version:
 # get it working with no firewall first.)
 #
-# Cassandra ships with JMX accessible *only* from localhost.
+# Cassandra ships with JMX accessible *only* from localhost.  
 # To enable remote JMX connections, uncomment lines below
-# with authentication and/or ssl enabled. See https://wiki.apache.org/cassandra/JmxSecurity
+# with authentication and/or ssl enabled. See https://wiki.apache.org/cassandra/JmxSecurity 
 #
-#if [ "x$LOCAL_JMX" = "x" ]; then
-#    LOCAL_JMX=yes
-#fi
-LOCAL_JMX=no
+if [ "x$LOCAL_JMX" = "x" ]; then
+    LOCAL_JMX=yes
+fi
+
 # Specifies the default port over which Cassandra will be available for
 # JMX connections.
 # For security reasons, you should not expose this port to the internet.  Firewall it if needed.
-
 JMX_PORT="7199"
 
 if [ "$LOCAL_JMX" = "yes" ]; then
@@ -248,7 +236,7 @@ else
   JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.rmi.port=$JMX_PORT"
 
   # turn on JMX authentication. See below for further options
-  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=true"
+  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=true"
 
   # jmx ssl options
   #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true"
@@ -264,7 +252,7 @@ fi
 # jmx authentication and authorization options. By default, auth is only
 # activated for remote connections but they can also be enabled for local only JMX
 ## Basic file based authn & authz
-#JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=/etc/cassandra/jmxremote.password"
+JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=/etc/cassandra/jmxremote.password"
 #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.access.file=/etc/cassandra/jmxremote.access"
 ## Custom auth settings which can be used as alternatives to JMX's out of the box auth utilities.
 ## JAAS login modules can be used for authentication by uncommenting these two properties.
@@ -272,7 +260,7 @@ fi
 ## which delegates to the IAuthenticator configured in cassandra.yaml. See the sample JAAS configuration
 ## file cassandra-jaas.config
 #JVM_OPTS="$JVM_OPTS -Dcassandra.jmx.remote.login.config=CassandraLogin"
-#JVM_OPTS="$JVM_OPTS -Djava.security.auth.login.config=$CASSANDRA_HOME/conf/cassandra-jaas.config"
+#JVM_OPTS="$JVM_OPTS -Djava.security.auth.login.config=$CASSANDRA_CONF/cassandra-jaas.config"
 
 ## Cassandra also ships with a helper for delegating JMX authz calls to the configured IAuthorizer,
 ## uncomment this to use it. Requires one of the two authentication options to be enabled
@@ -280,17 +268,32 @@ fi
 
 # To use mx4j, an HTML interface for JMX, add mx4j-tools.jar to the lib/
 # directory.
-# See http://wiki.apache.org/cassandra/Operations#Monitoring_with_MX4J
+# See http://cassandra.apache.org/doc/latest/operating/metrics.html#jmx
 # By default mx4j listens on 0.0.0.0:8081. Uncomment the following lines
 # to control its listen address and port.
-#MX4J_ADDRESS="-Dmx4jaddress=127.0.0.1"
-#MX4J_PORT="-Dmx4jport=8081"
+#MX4J_ADDRESS="127.0.0.1"
+#MX4J_PORT="8081"
 
 # Cassandra uses SIGAR to capture OS metrics CASSANDRA-7838
 # for SIGAR we have to set the java.library.path
 # to the location of the native libraries.
 JVM_OPTS="$JVM_OPTS -Djava.library.path=$CASSANDRA_HOME/lib/sigar-bin"
 
-JVM_OPTS="$JVM_OPTS $MX4J_ADDRESS"
-JVM_OPTS="$JVM_OPTS $MX4J_PORT"
+if [ "x$MX4J_ADDRESS" != "x" ]; then
+    if [[ "$MX4J_ADDRESS" == \-Dmx4jaddress* ]]; then
+        # Backward compatible with the older style #13578
+        JVM_OPTS="$JVM_OPTS $MX4J_ADDRESS"
+    else
+        JVM_OPTS="$JVM_OPTS -Dmx4jaddress=$MX4J_ADDRESS"
+    fi
+fi
+if [ "x$MX4J_PORT" != "x" ]; then
+    if [[ "$MX4J_PORT" == \-Dmx4jport* ]]; then
+        # Backward compatible with the older style #13578
+        JVM_OPTS="$JVM_OPTS $MX4J_PORT"
+    else
+        JVM_OPTS="$JVM_OPTS -Dmx4jport=$MX4J_PORT"
+    fi
+fi
+
 JVM_OPTS="$JVM_OPTS $JVM_EXTRA_OPTS"
