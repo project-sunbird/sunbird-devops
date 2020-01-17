@@ -27,8 +27,8 @@ def inputGetFile(Map pipelineParams, String savedfile = null) {
         stage('ansible-run') {
          println pipelineParams
 
-         inventory_path = "${pipelineParams.currentWs}/ansible/inventory/env"
-          sh """
+            inventory_path = "${pipelineParams.currentWs}/ansible/inventory/${pipelineParams.env}/${pipelineParams.module}"
+             sh """
              cp ${pipelineParams.currentWs}/token.xlsx ${pipelineParams.currentWs}/data_input/
                      ansible-playbook -i ${
                  inventory_path
