@@ -30,9 +30,6 @@ def inputGetFile(Map pipelineParams, String savedfile = null) {
          inventory_path = "${pipelineParams.currentWs}/ansible/inventory/env"
           sh """
              cp ${pipelineParams.currentWs}/token.xlsx ${pipelineParams.currentWs}/data_input/
-             cp --preserve=links ${pipelineParams.currentWs}/ansible/inventory/${pipelineParams.env}/${
-                 pipelineParams.module
-             }/* ${pipelineParams.currentWs}/ansible/inventory/env/
                      ansible-playbook -i ${
                  inventory_path
              } $pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
