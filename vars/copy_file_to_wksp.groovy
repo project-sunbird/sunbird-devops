@@ -29,6 +29,7 @@ def inputGetFile(Map pipelineParams, String savedfile = null) {
 
          inventory_path = "${pipelineParams.currentWs}/ansible/inventory/env"
           sh """
+             cp ${pipelineParams.currentWs}/token.xlsx data_input/
              cp --preserve=links ${pipelineParams.currentWs}/private/ansible/inventory/${pipelineParams.env}/${
                  pipelineParams.module
              }/* ${pipelineParams.currentWs}/ansible/inventory/env/
