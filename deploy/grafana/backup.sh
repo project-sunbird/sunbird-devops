@@ -8,6 +8,7 @@ mode=${4:-import}
 script=$(echo $0)
 cd $(dirname "$script")
 echo ${mode}ing grafafna in $(dirname "$script")
+wizzy init
 wizzy set grafana url $url
 wizzy set grafana username $username
 wizzy set grafana password $password
