@@ -27,11 +27,11 @@ def inputGetFile(Map pipelineParams, String savedfile = null) {
         stage('ansible-run') {
          println pipelineParams
 
-            inventory_path = "${pipelineParams.currentWs}/ansible/inventory/${pipelineParams.env}/${pipelineParams.module}"
-             sh """
+         inventory_path = "${pipelineParams.currentWs}/ansible/inventory/$pipelineParams.env"
+          sh """
              cp ${pipelineParams.currentWs}/token.xlsx ${pipelineParams.currentWs}/data_input/
                      ansible-playbook -i ${
-                 inventory_path
+                 inventory_path -c local
              } $pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
              """
 
