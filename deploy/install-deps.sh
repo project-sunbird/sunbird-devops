@@ -26,7 +26,7 @@ case "$(kubectl version --short 2> /dev/null | awk 'END {print}')" in
         ;;
      *)
     # Install kubernetes
-    curl -sL https://get.k3s.io | INSTALL_K3S_VERSION=v0.9.0 INSTALL_K3S_EXEC="--no-deploy=traefik" sh -
+    curl -sL https://get.k3s.io | INSTALL_K3S_VERSION=v1.0.1 INSTALL_K3S_EXEC="--no-deploy=traefik" sh -
     sudo chown $(whoami) /etc/rancher/k3s/k3s.yaml
     ;;
 esac
