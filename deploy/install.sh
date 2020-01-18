@@ -141,7 +141,7 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/deploy-plugins.yml -e"fo
 module=KnowledgePlatform
 source 3node.vars
 # Checking out specific revision of KP
-[[ -d ~/sunbird-learning-platform ]] || git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/sunbird-learning-platform && cd ~/sunbird-learning-platform; git pull origin release-$version; cd -
+[[ -d ~/sunbird-learning-platform ]] || git clone https://github.com/project-sunbird/sunbird-learning-platform -b release-$version ~/sunbird-learning-platform && cd ~/sunbird-learning-platform; git pull --rebase origin release-$version; cd -
 
 # Creating inventory strucure
 cp $inventory_path/$module/* ../ansible/inventory/env/
