@@ -23,7 +23,7 @@ esac
 
 # Checking kube
 case "$(kubectl version --short 2> /dev/null | awk 'END {print}')" in 
-    Server*)
+    *v1.16*)
         echo "Kubernets version:\n$(kubectl version --short)"
         echo
         ;;
