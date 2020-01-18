@@ -55,7 +55,7 @@ done
 # installing unzip
 sudo apt install unzip
 ansible_path=${HOME}/sunbird-devops/ansible
-unzip -o $ansible_path/cassandra_artifacts.zip -d $ansible_path
+find $ansible_path -maxdepth 1 -type f ! -name "keycloak_artifacts.zip" -iname "*.zip" -exec unzip -o {} -d $ansible_path \;
 
 # Creating inventory strucure
 git checkout -- ../ansible/inventory/env/group_vars/all.yml # This is to make sure always the all.yaml is updated
@@ -129,6 +129,10 @@ do
   ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy sunbird_api_auth_token=${jwt_token}" -v
 done
 kubectl rollout restart deployment -n dev
+
+# Uploding content-plugins
+ansible-playbook -i ../ansible/inventory/env ../ansible/deploy-plugins.yml -e"folder_name=content-plugins source_name=${ansible_path}/content-plugins" --tags core-plugins
+
 
 #########################
 #
