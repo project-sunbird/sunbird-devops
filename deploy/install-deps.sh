@@ -18,6 +18,9 @@ case "$(ansible --version 2> /dev/null | head -n1)" in
     ;;
 esac
 
+# Installing az cli
+[[ $(which az) ]] || (curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash)
+
 # Checking kube
 case "$(kubectl version --short 2> /dev/null | awk 'END {print}')" in 
     Server*)
