@@ -45,7 +45,7 @@ module=Core
 version=2.6.0
 
 echo "downloading artifacts"
-artifacts="cassandra_artifacts.zip content-plugins.zip formdata.tar.gz keycloak_artifacts.zip"
+artifacts="cassandra_artifacts.zip content-plugins.zip formdata.zip keycloak_artifacts.zip"
 ansible_path=${HOME}/sunbird-devops/ansible
 for artifact in $artifacts;
 do
@@ -54,7 +54,6 @@ done
 
 # installing unzip
 sudo apt install unzip
-ansible_path=${HOME}/sunbird-devops/ansible
 find $ansible_path -maxdepth 1 -type f ! -name "keycloak_artifacts.zip" -iname "*.zip" -exec unzip -o {} -d $ansible_path \;
 
 # Creating inventory strucure
@@ -133,7 +132,6 @@ kubectl rollout restart deployment -n dev
 # Uploding content-plugins
 ansible-playbook -i ../ansible/inventory/env ../ansible/deploy-plugins.yml -e"folder_name=content-plugins source_name=${ansible_path}/content-plugins" --tags core-plugins
 
-
 #########################
 #
 #       KP
@@ -199,3 +197,7 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/cassandra-deploy.yml -e 
 
 # Post installation
 bash apis.sh
+# Creating form data
+wget -N https://raw.githubusercontent.com/project-sunbird/sunbird-devops/master/deploy/cassandra_restore.py
+scp -r -i ~/deployer.pem ../ansible/cassandra_backup ${dbs_ip}:~/
+ssh -i ~/deployer.pem -n ${dbs_ip} python cassandra_restore.py --snapshotdir cassandra_backup --host ${dbs_ip}
