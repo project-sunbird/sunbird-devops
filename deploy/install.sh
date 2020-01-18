@@ -45,7 +45,7 @@ module=Core
 version=2.6.0
 
 echo "downloading artifacts"
-artifacts="keycloak_artifacts.zip cassandra_artifacts.zip"
+artifacts="cassandra_artifacts.zip content-plugins.zip formdata.tar.gz keycloak_artifacts.zip"
 ansible_path=${HOME}/sunbird-devops/ansible
 for artifact in $artifacts;
 do
