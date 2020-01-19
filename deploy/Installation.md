@@ -45,11 +45,10 @@ Three 2 core 8G machines
 3. Create a keyfile ~/deployer.pem which can ssh into all nodes.
 > Note: The user should have password less sudo access to all machines
 4. `git clone https://github.com/rjshrjndrn/sunbird-devops -b 3node`
-5. Open `sunbird-devops/deploy/3node.vars` and fill the variables
-> This installation is staged 2 phases. 1st will install keycloak,  
-  you have to login to keycloak and get credentials  
-  paste it in to 3node.vars to continue with the installation
-6. example inventory seggregation
+5. Open `sunbird-devops/deploy/3node.vars` and fill the variables till `ssh_user`
+6. cd sunbird-devops/deploy && bash -x install.sh
+ 
+**example inventory seggregation**
 
 | module | application | ip       |
 |--------|-------------|----------|
@@ -66,7 +65,6 @@ Three 2 core 8G machines
 > It is advised to run the installation script in tmux session, as if the network is bad, installation may get interrupted.
 For starting a tmux session, `tmux` and once the installation starts `ctrl+b then d` will detach the session.  
 You can attach the session back with `tmux a`
-7. cd sunbird-devops/deploy && bash -x install.sh
 </details>
 
 ## Troubleshoot wiki
