@@ -12,7 +12,6 @@ NORMAL="$(tput sgr0)"
 jwt_token=$(sudo cat /root/jwt_token_player.txt | xargs)
 # Variable declaration {{{
 
-learning_host="${kp_ip}:8080/learning-service"
 categories="medium board gradeLevel subject"
 org="sunbird"
 framework="sunbird"
@@ -23,6 +22,7 @@ gradeLevel=("class1" "class2" "class3")
 subject=("maths" "english" "science")
 # Overriding variables
 source 3node.vars
+learning_host="${kp_ip}:8080/learning-service"
 
 #}}}
 

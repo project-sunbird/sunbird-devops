@@ -16,15 +16,10 @@ else
    NORMAL=""
 fi
 #}}}
-source 3node.vars
 jwt_token=$(sudo cat /root/jwt_token_player.txt | xargs)
 # Variable declaration {{{
 
-learning_host="${kp_ip}:8080/learning-service"
 categories="medium board gradeLevel subject"
-username=firstuser
-password='P@ssword1'
-phone_number=9876543412
 org="sunbird"
 framework="sunbird"
 domain_name=${domain_name}
@@ -33,6 +28,8 @@ board="sunbird"
 medium=("english" "hindi" "malayalam")
 gradeLevel=("class1" "class2" "class3")
 subject=("maths" "english" "science")
+source 3node.vars
+learning_host="${kp_ip}:8080/learning-service"
 
 #}}}
 
