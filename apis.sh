@@ -36,9 +36,6 @@ subject=("maths" "english" "science")
 
 #}}}
 
-echo installing jq
-sudo apt install jq -y
-
 # Creating form and other apis{{{
 
 echo -e "\nCreating x-auth token"

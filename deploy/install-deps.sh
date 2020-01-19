@@ -21,6 +21,9 @@ esac
 # Installing az cli
 [[ $(which az) ]] || (curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash)
 
+# Installing jq
+[[ $(which jq) ]] || sudo apt install jq -y
+
 # Checking kube
 case "$(kubectl version --short 2> /dev/null | awk 'END {print}')" in 
     *v1.16*)
