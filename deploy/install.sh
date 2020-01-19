@@ -199,5 +199,5 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/cassandra-deploy.yml -e 
 bash apis.sh
 # Creating form data
 wget -N https://raw.githubusercontent.com/project-sunbird/sunbird-devops/master/deploy/cassandra_restore.py
-scp -r -i ~/deployer.pem ../ansible/cassandra_backup ${dbs_ip}:~/
+scp -r -i ~/deployer.pem ../ansible/cassandra_backup cassandra_restore.py ${dbs_ip}:~/
 ssh -i ~/deployer.pem -n ${dbs_ip} python cassandra_restore.py --snapshotdir cassandra_backup --host ${dbs_ip}
