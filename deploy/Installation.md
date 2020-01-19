@@ -1,4 +1,16 @@
 # This is Minimal installation of sunbird
+
+Sunbird is a searchable, discoverable repository of resources contributed by educators, engineers, pedagogues, teachers, learning scientists, data scientists and many others. Search the repository using keywords, look through the cards or browse the resource and collaborator lists to discover resources that help save time, money and effort.
+
+This is a mininal installation of sunbird with 3 2vCpus and 8GB RAM machines.
+If you want to skip past to installation, feel free to do so.
+Complete documentation can be found at docs.sunbired.org
+
+
+## Design
+<details>
+<summary>Click to expand!</summary>  
+  
 Componants:
 1. Core - all containerized services
 2. DBs - all databases
@@ -20,16 +32,23 @@ Three 2 core 8G machines
 3. Create KP services on the third
    - Learning service
    - Search service
+</details>
+
+## Installation
+
+<details>
+<summary>Click to expand!</summary>  
 
 ### Installation Steps
 1. Create 3vms(one of them should have a public ip, and 80,443 exposed to internet) of 2core 8Gi of ubuntu16.04
-2. azure storage account with one public container( for example content)
-3. Create a keyfile ~/deployer.pem which can ssh into all nodes and set `chmod 0400 ~/deployer.pem`
+2. Azure storage account with one public container( for example content)
+3. Create a keyfile ~/deployer.pem which can ssh into all nodes.
 > Note: The user should have password less sudo access to all machines
-4. clone rjshrjndrn/sunbird-devops -b 3node
-5. sunbird-devops/deploy/3node.vars and fill the variables
-> This installation is staged 2 phases. 1st will install keycloak, and you have to login to keycloak and get some credentials
-and paste it in to 3node.vars to continue with the installation
+4. `git clone https://github.com/rjshrjndrn/sunbird-devops -b 3node`
+5. Open `sunbird-devops/deploy/3node.vars` and fill the variables
+> This installation is staged 2 phases. 1st will install keycloak,  
+  you have to login to keycloak and get credentials  
+  paste it in to 3node.vars to continue with the installation
 6. example inventory seggregation
 
 | module | application | ip       |
@@ -48,3 +67,4 @@ and paste it in to 3node.vars to continue with the installation
 For starting a tmux session, `tmux` and once the installation starts `ctrl+b then d` will detach the session.  
 You can attach the session back with `tmux a`
 7. cd sunbird-devops/deploy && bash -x install.sh
+</details>
