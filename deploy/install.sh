@@ -5,6 +5,9 @@ set -eu -o pipefail
 
 ## vars Updater{{{
 function vars_updater {
+    # These are the placeholder values till keyclaok provision
+    sso_publickey=${sso_publickey:-"this-variable-will-be-replaced-after-keycloak-installation"}
+    keycloak_user_federation_provider_id=${keycloak_user_federation_provider_id:-"this-variable-will-be-replaced-after-keycloak-installation"}
     sed -i "s/\b10.1.4.4\b/${core_ip}/g" ../ansible/inventory/env/{hosts,common.yml}
     sed -i "s/\b10.1.4.5\b/${dbs_ip}/g" ../ansible/inventory/env/{hosts,common.yml}
     sed -i "s/\b10.1.4.6\b/${kp_ip}/g" ../ansible/inventory/env/{hosts,common.yml}
@@ -12,13 +15,14 @@ function vars_updater {
     sed -i "s/\bsunbird.centralindia.cloudapp.azure.com\b/${domain_name}/g" ../ansible/inventory/env/common.yml
     sed -i "/\bcore_vault_proxy_site_key\b/c\core_vault_proxy_site_key: \"{{ lookup('file', \'${nginx_key_path}\') }}\"" ../ansible/inventory/env/secrets.yml
     sed -i "/\bcore_vault_proxy_site_crt\b/c\core_vault_proxy_site_crt: \"{{ lookup('file', \'${nginx_cert_path}\') }}\"" ../ansible/inventory/env/secrets.yml
-    sed -i "/\bcore_vault_sunbird_sso_publickey\b:/c\core_vault_sunbird_sso_publickey: \'${sso_publickey}\'" ../ansible/inventory/env/secrets.yml
-    sed -i "/\bcore_vault_sunbird_keycloak_user_federation_provider_id\b:/c\core_vault_sunbird_keycloak_user_federation_provider_id: \'${keycloak_user_federation_provider_id}\'" ../ansible/inventory/env/secrets.yml
     sed -i "/\bcore_vault_sunbird_azure_storage_key\b:/c\core_vault_sunbird_azure_storage_key: \'${azure_storage_key}\'" ../ansible/inventory/env/secrets.yml
     sed -i "/\blp_vault_azure_storage_secret\b:/c\lp_vault_azure_storage_secret: \'${azure_storage_key}\'" ../ansible/inventory/env/secrets.yml
     sed -i "/\bazure_account_name\b:/c\azure_account_name: \'${storage_account_name}\'" ../ansible/inventory/env/common.yml
     sed -i "/\bazure_public_container\b:/c\azure_public_container: \'${storage_container_name}\'" ../ansible/inventory/env/common.yml
     sed -i "/\bsunbird_content_azure_storage_container\b:/c\sunbird_content_azure_storage_container: \'${storage_container_name}\'" ../ansible/inventory/env/common.yml
+    # This variable will only be set after keycloak provision
+    sed -i "/\bcore_vault_sunbird_sso_publickey\b:/c\core_vault_sunbird_sso_publickey: \'${sso_publickey}\'" ../ansible/inventory/env/secrets.yml
+    sed -i "/\bcore_vault_sunbird_keycloak_user_federation_provider_id\b:/c\core_vault_sunbird_keycloak_user_federation_provider_id: \'${keycloak_user_federation_provider_id}\'" ../ansible/inventory/env/secrets.yml
 }
 #}}}
 
@@ -34,7 +38,6 @@ bash install-deps.sh
 export ANSIBLE_HOST_KEY_CHECKING=false
 
 # installing dbs
-# Installing all dbs
 echo $inventory_path
 #########################
 #
@@ -89,20 +92,20 @@ if [[ ! -f ~/.config/sunbird/keycloak ]]; then
     # Hack to install clients
     ansible-playbook -i ../ansible/inventory/env ../ansible/keycloak.yml -e keycloak_bootstrap_url=http://${core_ip}:8080/auth --tags deploy -e "artifact_path=keycloak_artifacts.zip deploy_monit=false"
     touch ~/.config/sunbird/keycloak
-    # Have to refactor with some kind of function args
-    echo "
-    open another local terminal and run
-    ssh -L 12000:localhost:8080 ops@${domain_name}
-    open browser and goto localhost:12000
-    username: admin
-    password: admin
-    and update remaning variables in 3node.vars
-    then execute
-    bash install.sh
-    "
-    exit 0
 fi
 
+# generating sso token and storage provider for keycloak
+access_token=$(curl -s -X POST https://$domain_name/auth/realms/master/protocol/openid-connect/token -H "cache-control: no-cache" -H "content-type: application/x-www-form-urlencoded" -d "client_id=admin-cli&username=admin&password=admin&grant_type=password" | jq -r ".access_token")
+sso_publickey=$(curl -s -X GET https://$domain_name/auth/admin/realms/sunbird/keys -H "Authorization: Bearer $access_token" -H "Cache-Control: no-cache" -H "Content-Type: application/json" | jq -r ".keys[0].publicKey")
+
+if [[ ! -f ~/.config/sunbird/keycloak_cassandra_storage_provider ]]; then
+# Creating cassandra-storage-provider
+curl -s -X POST "https://$domain_name/auth/admin/realms/sunbird/components" -H 'Accept: application/json' --compressed -H 'Content-Type: application/json;charset=utf-8' -H "Authorization: Bearer $access_token" --data '{"name":"cassandra-storage-provider","providerId":"cassandra-storage-provider","providerType":"org.keycloak.storage.UserStorageProvider","parentId":"sunbird","config":{"priority":["0"],"cachePolicy":["DEFAULT"],"evictionDay":[],"evictionHour":[],"evictionMinute":[],"maxLifespan":[],"host":["localhost"]}}'
+touch ~/.config/sunbird/keycloak_cassandra_storage_provider
+fi
+
+# Getting cassandra_storage_federation provider
+keycloak_user_federation_provider_id=$(curl -sS "https://$domain_name/auth/admin/realms/sunbird/components/" -H 'Accept: application/json, text/plain, */*' --compressed -H "Authorization: Bearer $access_token" | jq -r 'to_entries[] | [.value.id, .value.name] | @tsv' | grep cassandra-storage-provider | awk '{print $1}' | xargs)
 # Updating variables
 vars_updater
 
