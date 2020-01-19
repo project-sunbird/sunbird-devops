@@ -42,7 +42,6 @@ echo $inventory_path
 #
 #########################
 module=Core
-version=2.6.0
 
 echo "downloading artifacts"
 artifacts="cassandra_artifacts.zip content-plugins.zip formdata.zip keycloak_artifacts.zip"
@@ -201,3 +200,5 @@ bash apis.sh
 wget -N https://raw.githubusercontent.com/project-sunbird/sunbird-devops/master/deploy/cassandra_restore.py
 scp -r -i ~/deployer.pem ../ansible/cassandra_backup cassandra_restore.py ${dbs_ip}:~/
 ssh -i ~/deployer.pem -n ${dbs_ip} python cassandra_restore.py --snapshotdir cassandra_backup --host ${dbs_ip}
+
+bash postinstall.sh
