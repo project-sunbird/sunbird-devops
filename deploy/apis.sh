@@ -2,29 +2,18 @@
 #!/bin/bash
 set -eo pipefail
 #{{{
-if [ -t 1 ] && [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
-   RED="$(tput setaf 1)"
-   GREEN="$(tput setaf 2)"
-   YELLOW="$(tput setaf 3)"
-   BOLD="$(tput bold)"
-   NORMAL="$(tput sgr0)"
-else
-   RED=""
-   GREEN=""
-   YELLOW=""
-   BOLD=""
-   NORMAL=""
-fi
+BOLD="$(tput bold)"
+RED="${BOLD}$(tput setaf 1)"
+GREEN="${BOLD}$(tput setaf 2)"
+YELLOW="${BOLD}$(tput setaf 3)"
+WHITE="$(tput sgr0)${BOLD}"
+NORMAL="$(tput sgr0)"
 #}}}
-source 3node.vars
 jwt_token=$(sudo cat /root/jwt_token_player.txt | xargs)
 # Variable declaration {{{
 
 learning_host="${kp_ip}:8080/learning-service"
 categories="medium board gradeLevel subject"
-username=firstuser
-password='P@ssword1'
-phone_number=9876543412
 org="sunbird"
 framework="sunbird"
 board="sunbird"
@@ -32,6 +21,8 @@ board="sunbird"
 medium=("english" "hindi" "malayalam")
 gradeLevel=("class1" "class2" "class3")
 subject=("maths" "english" "science")
+# Overriding variables
+source 3node.vars
 
 #}}}
 
