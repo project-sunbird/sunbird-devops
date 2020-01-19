@@ -77,7 +77,7 @@ fi
 
 # Bootstrapping kubernetes
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/bootstrap_minimal.yaml
-services=" apimanager nginx-private-ingress"
+services="apimanager nginx-private-ingress"
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
@@ -95,17 +95,17 @@ if [[ ! -f ~/.config/sunbird/keycloak ]]; then
 fi
 
 # generating sso token and storage provider for keycloak
-access_token=$(curl -s -X POST https://$domain_name/auth/realms/master/protocol/openid-connect/token -H "cache-control: no-cache" -H "content-type: application/x-www-form-urlencoded" -d "client_id=admin-cli&username=admin&password=admin&grant_type=password" | jq -r ".access_token")
-sso_publickey=$(curl -s -X GET https://$domain_name/auth/admin/realms/sunbird/keys -H "Authorization: Bearer $access_token" -H "Cache-Control: no-cache" -H "Content-Type: application/json" | jq -r ".keys[0].publicKey")
+access_token=$(curl -s -X POST http://localhost:8080/auth/realms/master/protocol/openid-connect/token -H "cache-control: no-cache" -H "content-type: application/x-www-form-urlencoded" -d "client_id=admin-cli&username=admin&password=admin&grant_type=password" | jq -r ".access_token")
+sso_publickey=$(curl -s -X GET http://localhost:8080/auth/admin/realms/sunbird/keys -H "Authorization: Bearer $access_token" -H "Cache-Control: no-cache" -H "Content-Type: application/json" | jq -r ".keys[0].publicKey")
 
 if [[ ! -f ~/.config/sunbird/keycloak_cassandra_storage_provider ]]; then
 # Creating cassandra-storage-provider
-curl -s -X POST "https://$domain_name/auth/admin/realms/sunbird/components" -H 'Accept: application/json' --compressed -H 'Content-Type: application/json;charset=utf-8' -H "Authorization: Bearer $access_token" --data '{"name":"cassandra-storage-provider","providerId":"cassandra-storage-provider","providerType":"org.keycloak.storage.UserStorageProvider","parentId":"sunbird","config":{"priority":["0"],"cachePolicy":["DEFAULT"],"evictionDay":[],"evictionHour":[],"evictionMinute":[],"maxLifespan":[],"host":["localhost"]}}'
+curl -s -X POST "http://localhost:8080/auth/admin/realms/sunbird/components" -H 'Accept: application/json' --compressed -H 'Content-Type: application/json;charset=utf-8' -H "Authorization: Bearer $access_token" --data '{"name":"cassandra-storage-provider","providerId":"cassandra-storage-provider","providerType":"org.keycloak.storage.UserStorageProvider","parentId":"sunbird","config":{"priority":["0"],"cachePolicy":["DEFAULT"],"evictionDay":[],"evictionHour":[],"evictionMinute":[],"maxLifespan":[],"host":["localhost"]}}'
 touch ~/.config/sunbird/keycloak_cassandra_storage_provider
 fi
 
 # Getting cassandra_storage_federation provider
-keycloak_user_federation_provider_id=$(curl -sS "https://$domain_name/auth/admin/realms/sunbird/components/" -H 'Accept: application/json, text/plain, */*' --compressed -H "Authorization: Bearer $access_token" | jq -r 'to_entries[] | [.value.id, .value.name] | @tsv' | grep cassandra-storage-provider | awk '{print $1}' | xargs)
+keycloak_user_federation_provider_id=$(curl -sS "http://localhost:8080/auth/admin/realms/sunbird/components/" -H 'Accept: application/json, text/plain, */*' --compressed -H "Authorization: Bearer $access_token" | jq -r 'to_entries[] | [.value.id, .value.name] | @tsv' | grep cassandra-storage-provider | awk '{print $1}' | xargs)
 # Updating variables
 vars_updater
 
