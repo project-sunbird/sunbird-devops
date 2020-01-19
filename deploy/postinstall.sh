@@ -8,7 +8,7 @@ NORMAL="$(tput sgr0)"
 source 3node.vars
 
 
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml:${HOME}/.kube/config
 sunbird_path=${HOME}/sunbird-devops
 
 echo -e "${GREEN}Installing rancher ${NORMAL}"
@@ -24,6 +24,9 @@ source <(stern --completion=bash)
 alias k=kubectl
 complete -F __start_kubectl k
 EOF
+
+echo -e "${GREEN}Enabling kubeconfig ${NORMAL}"
+kubectl config view --flatten > ~/.kube/config
 
 ipaddress=$(curl -Ss ifconfig.co)
 
