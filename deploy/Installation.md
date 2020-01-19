@@ -68,3 +68,6 @@ For starting a tmux session, `tmux` and once the installation starts `ctrl+b the
 You can attach the session back with `tmux a`
 7. cd sunbird-devops/deploy && bash -x install.sh
 </details>
+
+## Troubleshoot wiki
+[Troubleshoot wiki](3node.troubleshoot.md)
