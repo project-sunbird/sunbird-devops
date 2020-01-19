@@ -1,8 +1,18 @@
+# This variable will get injected to nginx resolver config
+# There is no native helm way to do this. So it's 
+# kind of a workaround
+- name: getting kube dns ip
+  shell: kubectl get service --namespace kube-system kube-dns -o jsonpath="{.spec.clusterIP}"
+  register: kube_dns_ip
+
+- name: setting variable
+  set_fact:
+    kube_dns_ip: "{{ kube_dns_ip.stdout }}"
+
 - name: rename template
   template:
     src: "{{ chart_path }}/values.j2"
     dest: "{{ chart_path }}/values.yaml"
-
 
 - name: helm install
   shell: helm upgrade --install --cleanup-on-fail {{ release_name }} {{ chart_path }} -n {{namespace}}
