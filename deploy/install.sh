@@ -3,6 +3,13 @@
 #!/bin/bash
 set -eu -o pipefail
 
+# Color schemes
+BOLD="$(tput bold)"
+GREEN="${BOLD}$(tput setaf 2)"
+YELLOW="${BOLD}$(tput setaf 3)"
+WHITE="$(tput sgr0)${BOLD}"
+NORMAL="$(tput sgr0)"
+
 ## vars Updater{{{
 function vars_updater {
     # These are the placeholder values till keyclaok provision
@@ -32,7 +39,29 @@ echo set 0400 for keyfile
 [[ -f ~/deployer.pem ]] && chmod 0400 ~/deployer.pem || ( echo "coudn't find ~/deployer.pem. Installation is aborting"; exit 100 )
 mkdir -p ~/.config/sunbird
 # Creating ssl
-[[ -f ~/.config/sunbird/certbot ]] || ( [[ $create_ssl == 'true' ]] && ( bash certbot.sh; touch ~/.config/sunbird/certbot ))
+
+[[ -f ~/.config/sunbird/certbot ]] || ( [[ $create_ssl == 'true' ]] && (echo ${GREEN}Creating SSL certificate.${NORMAL}; bash certbot.sh; touch ~/.config/sunbird/certbot ))
+
+cat <<EOF
+
+
+${WHITE}Starting sunbird installation. It'll take almost 1hr to complete. 
+
+${YELLOW}You can wait or leave the insallation behind, if you're running on ${WHITE}tmux${YELLOW}
+
+It's good to run the installation on tmux, because network will fail, all the time.
+If something goes wrong, don't worry. ${WHITE} rerun the script ${YELLOW} most times, it'll figure out what to do.
+
+To run the installation in tmux, if not already, follow the instructions
+1. cancel the script : ${WHITE}ctrl+c${YELLOW}
+2. start tmux: ${WHITE}tmux${YELLOW}
+3. start installation: ${WHITE}cd ~/sunbird-devops/deploy && bash -x install.sh${YELLOW}
+
+This script will wait for 20 seconds for user to cancel
+${NORMAL}
+EOF
+sleep 20
+
 # Installing deps
 bash install-deps.sh
 export ANSIBLE_HOST_KEY_CHECKING=false
