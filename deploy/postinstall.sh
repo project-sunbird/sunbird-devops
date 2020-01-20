@@ -28,8 +28,6 @@ EOF
 echo -e "${GREEN}Enabling kubeconfig ${NORMAL}"
 kubectl config view --flatten > ~/.kube/config
 
-ipaddress=$(curl -Ss ifconfig.co)
-
 cat << EOF
 ${GREEN}
 
@@ -46,7 +44,7 @@ ${GREEN}
 Rancher is to manage the cluster
 open following link in browser and accept the ssl certificate
 ${YELLOW}
-https://${ipaddress}:8443
+https://${core_ip}:8443
 ${GREEN}
 1. Create password
 2. Add ${YELLOW}$(hostname -i):8443${GREEN} as server-url
