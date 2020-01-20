@@ -37,7 +37,7 @@ curl --location --request POST 'localhost:12000/content/license/v3/create' \
 --data-raw '{
     "request":{
         "license":{
-            "name": "CC BY - 4.0",
+            "name": "CC BY 4.0",
             "description": "License description",
             "url": "URL"
         }
