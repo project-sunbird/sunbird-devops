@@ -76,7 +76,7 @@ echo $inventory_path
 module=Core
 
 echo "downloading artifacts"
-artifacts="cassandra_artifacts.zip content-plugins.zip formdata.zip keycloak_artifacts.zip"
+artifacts="cassandra_artifacts.zip v3.zip content-plugins.zip formdata.zip keycloak_artifacts.zip"
 ansible_path=${HOME}/sunbird-devops/ansible
 for artifact in $artifacts;
 do
@@ -162,6 +162,7 @@ kubectl rollout restart deployment -n dev
 
 # Uploding content-plugins
 ansible-playbook -i ../ansible/inventory/env ../ansible/deploy-plugins.yml -e"folder_name=content-plugins source_name=${ansible_path}/content-plugins" --tags core-plugins
+ansible-playbook -i ../ansible/inventory/env ../ansible/deploy-plugins.yml -e"folder_name=v3/preview source_name=${ansible_path}/v3" --tags core-plugins
 
 #########################
 #
