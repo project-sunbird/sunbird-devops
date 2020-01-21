@@ -29,6 +29,7 @@ medium=("english" "hindi" "malayalam")
 gradeLevel=("class1" "class2" "class3")
 subject=("maths" "english" "science")
 source 3node.vars
+default_users=("creator" "publisher" "reviewer")
 learning_host="${kp_ip}:8080/learning-service"
 
 #}}}
