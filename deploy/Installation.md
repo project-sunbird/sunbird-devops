@@ -4,7 +4,7 @@ Sunbird is a searchable, discoverable repository of resources contributed by edu
 
 This is a mininal installation of sunbird with 3 2vCpus and 8GB RAM machines.
 If you want to skip past to installation, feel free to do so.
-Complete documentation can be found at [docs.sunbired.org](docs.sunbired.org)
+Complete documentation can be found at [docs.sunbird.org](http://docs.sunbird.org)
 
 
 ## Design
