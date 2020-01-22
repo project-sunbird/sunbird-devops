@@ -6,32 +6,41 @@ dockerhub: {{ dockerhub }}
 
 replicaCount: {{cert_replicacount|default(1)}}
 repository: {{cert_repository|default('cert_service')}}
-image_tag: {{cert_image_tag }}
+image_tag: {{ image_tag }}
 resources:
   requests:
-    cpu: {{cert_service_cpu_req|default('50m')}}
-    memory: {{cert_service_mem_req|default('50Mi')}}
+    cpu: {{cert_cpu_req|default('100m')}}
+    memory: {{cert_mem_req|default('100Mi')}}
   limits:
-    cpu: {{cert_service_cpu_limit|default('1')}}
-    memory: {{cert_service_mem_limit|default('550Mi')}}
+    cpu: {{cert_cpu_limit|default('1')}}
+    memory: {{cert_mem_limit|default('1024Mi')}}
 network:
   port: 9011
   targetport: 9000
 strategy:
   type: RollingUpdate
-  maxSurge: 1
-  maxUnavailable: 0
+  maxsurge: {{ cert_maxsurge|default(1) }}
+  maxunavailable: {{ cert_maxunavailable|default }}
 
-certenv:
-  CONTAINER_NAME: {{cert_service_container_name}}
-  CLOUD_STORAGE_TYPE: {{cert_service_cloud_storage_type}}
-  AZURE_STORAGE_SECRET: {{sunbird_azure_storage_key}}
-  AZURE_STORAGE_KEY: {{sunbird_azure_storage_account}}
-  sunbird_cert_domain_url: {{proto}}://{{proxy_server_name}}
-  sunbird_cert_enc_service_url: "http://enc-service.{{namespace}}.svc.cluster.local:9010"
-  download_link_expiry_timeout: "'600'"
-  es_conn_info: {{groups['es']|join(':9200,')}}:9200
-  ITEXT_LICENSE_ENABLED: '"{{itext_license_enabled|default('false')}}"'
-  ITEXT_LICENSE_PATH: /home/sunbird/itext_trail_license.xml
+cert:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
   
 

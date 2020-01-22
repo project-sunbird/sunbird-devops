@@ -6,33 +6,63 @@ dockerhub: {{ dockerhub }}
 
 replicaCount: {{enc_replicacount|default(1)}}
 repository: {{enc_repository|default('enc_service')}}
-image_tag: {{enc_image_tag }}
+image_tag: {{ image_tag }}
 resources:
   requests:
-    cpu: {{enc_service_cpu_req|default('50m')}}
-    memory: {{enc_service_mem_req|default('50Mi')}}
+    cpu: {{enc_cpu_req|default('100m')}}
+    memory: {{enc_mem_req|default('100Mi')}}
   limits:
-    cpu: {{enc_service_cpu_limit|default('1')}}
-    memory: {{enc_service_mem_limit|default('800Mi')}}
+    cpu: {{enc_cpu_limit|default('1')}}
+    memory: {{enc_mem_limit|default('1024Mi')}}
 network:
   port: 9010
   targetport: 8013
 strategy:
   type: RollingUpdate
-  maxSurge: 1
-  maxUnavailable: 0
+  maxsurge: {{ enc_maxsurge|default(1) }}
+  maxunavailable: {{ enc_maxunavailable|default }}
 
-encenv:
-  DB_HOST: {{enc_postgres_host}}
-  DB_PORT: '"{{postgres_port|default('5432')}}"'
-  DB_USER: {{enc_postgres_user}}
-  DB_PASSWORD: {{enc_postgres_password}}
-  DB_NAME: {{enc_postgres_database}}
-  DB_DIALECT: {{enc_dialect|default('postgres')}}
-  DB_SSL: '"True"'
-  ENTRY_PASS: {{enc_entry_password}}
-  MASTER_PASS: {{enc_master_pass}}
-  N_KEYS: '"{{enc_n_keys}}"'
-  N_RESERVED_KEYS: '"{{enc_n_reserved_keys}}"'
+enc:
+  readinessprobe:
+    enabled: false
+  livenessprobe:
+    enabled: false 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8013
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8013
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+enc:
+  readinessprobe:
+    enabled: false
+  livenessprobe:
+    enabled: false 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8013
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8013
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
   
 

@@ -4,20 +4,19 @@ kind: Deployment
 metadata:
   name: {{ .Chart.Name }}
   namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
-     type: {{ .Values.strategy.type }}
      rollingUpdate:
-       maxSurge: {{ .Values.strategy.maxSurge }}
-       maxUnavailable: {{ .Values.strategy.maxUnavailable }}
+        maxSurge: {{ .Values.strategy.maxsurge }}
+        maxUnavailable: {{ default (sub .Values.replicaCount 1) .Values.strategy.maxunavailable }}
   selector:
     matchLabels:
       app: {{ .Chart.Name }}
   template:
     metadata:
-      annotations:
-        readiness.status.sidecar.istio.io/applicationPorts: ""
       labels:
         app: {{ .Chart.Name }}
     spec:
@@ -36,6 +35,14 @@ spec:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
         - containerPort: {{ .Values.network.port }}
+        {{- if .Values.badger.livenessprobe.enabled }}
+        livenessProbe:
+{{ toYaml .Values.badger.livenessProbe | indent 10 }}
+        {{- end }}
+        {{- if .Values.badger.readinessprobe.enabled }}
+        readinessProbe:
+{{ toYaml .Values.badger.readinessProbe | indent 10 }}
+        {{- end }}
         volumeMounts:
           - name: {{ .Chart.Name }}-config
             mountPath: /badger/code/apps/mainsite/settings_local.py

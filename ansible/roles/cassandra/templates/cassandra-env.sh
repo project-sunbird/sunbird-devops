@@ -56,22 +56,21 @@ calculate_heap_sizes()
     # pick the max
     half_system_memory_in_mb=`expr $system_memory_in_mb / 2`
     quarter_system_memory_in_mb=`expr $half_system_memory_in_mb / 2`
-    max_heap_size_in_mb="$half_system_memory_in_mb"
-    #if [ "$half_system_memory_in_mb" -gt "1024" ]
-    #then
-    #    half_system_memory_in_mb="1024"
-    #fi
-    #if [ "$quarter_system_memory_in_mb" -gt "8192" ]
-    #then
-    #    quarter_system_memory_in_mb="8192"
-    #fi
-    #if [ "$half_system_memory_in_mb" -gt "$quarter_system_memory_in_mb" ]
-    #then
-    #    max_heap_size_in_mb="$half_system_memory_in_mb"
-    #else
-    #    max_heap_size_in_mb="$quarter_system_memory_in_mb"
-    #fi
-    MAX_HEAP_SIZE="${half_system_memory_in_mb}M"
+    if [ "$half_system_memory_in_mb" -gt "1024" ]
+    then
+        half_system_memory_in_mb="1024"
+    fi
+    if [ "$quarter_system_memory_in_mb" -gt "8192" ]
+    then
+        quarter_system_memory_in_mb="8192"
+    fi
+    if [ "$half_system_memory_in_mb" -gt "$quarter_system_memory_in_mb" ]
+    then
+        max_heap_size_in_mb="$half_system_memory_in_mb"
+    else
+        max_heap_size_in_mb="$quarter_system_memory_in_mb"
+    fi
+    MAX_HEAP_SIZE="${max_heap_size_in_mb}M"
 
     # Young gen: min(max_sensible_per_modern_cpu_core * num_cores, 1/4 * heap size)
     max_sensible_yg_per_core_in_mb="100"

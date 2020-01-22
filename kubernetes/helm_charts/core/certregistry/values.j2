@@ -6,24 +6,62 @@ dockerhub: {{ dockerhub }}
 
 replicaCount: {{certregistry_replicacount|default(1)}}
 repository: {{certregistry_repository|default('cert_registry_service')}}
-image_tag: {{certregistry_image_tag }}
+image_tag: {{ image_tag }}
 resources:
   requests:
-    cpu: {{certregistry_service_cpu_req|default('50m')}}
-    memory: {{certregistry_service_mem_req|default('50Mi')}}
+    cpu: {{certregistry_cpu_req|default('100m')}}
+    memory: {{certregistry_mem_req|default('100Mi')}}
   limits:
-    cpu: {{certregistry_service_cpu_limit|default('1')}}
-    memory: {{certregistry_service_mem_limit|default('550Mi')}}
+    cpu: {{certregistry_cpu_limit|default('1')}}
+    memory: {{certregistry_mem_limit|default('1024Mi')}}
 network:
   port: 9013
   targetport: 9000
 strategy:
   type: RollingUpdate
-  maxSurge: 1
-  maxUnavailable: 0
+  maxsurge: {{ certregistry_maxsurge|default(1) }}
+  maxunavailable: {{ certregistry_maxunavailable|default }}
 
-certregistryenv:
-  cert_service_base_url: {{sunbird_cert_service_url}}
-  sunbird_es_host: {{sunbird_es_host}}
-  sunbird_es_port: '"{{sunbird_es_port}}"'
+certregistry:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+certregistry:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
   
