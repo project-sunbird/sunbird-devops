@@ -1,6 +1,9 @@
 #!/bin/sh
 # Build script
-# set -o errexit
+set -eu -o pipefail
+
+# This is to fix cross terminal compatibility
+export LC_ALL=C
 
 ansible_version=2.5.0.0
 
