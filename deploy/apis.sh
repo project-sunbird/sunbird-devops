@@ -136,7 +136,7 @@ curl --location --request PATCH "${learning_host}/channel/v3/update/${org_id}" \
    "request": {
       "channel":{
           "defaultFramework": "'${framework}'",
-          "defaultLicense": "CC BY - 4.0"
+          "defaultLicense": "CC BY 4.0"
 
       }
     }
