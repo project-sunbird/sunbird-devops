@@ -45,7 +45,7 @@ Three 2 core 8G machines
 3. ssh into Core VM and do the following steps
 4. Create a keyfile ~/deployer.pem which can ssh into all nodes.
 > Note: The user should have password less sudo access to all machines
-4. `git clone https://github.com/rjshrjndrn/sunbird-devops -b 3node`
+4. `git clone https://github.com/project-sunbird/sunbird-devops -b 3node`
 5. Open `sunbird-devops/deploy/3node.vars` and fill the variables
 > It is advised to run the installation script in tmux session, as if the network is bad, installation may get interrupted.
 For starting a tmux session, `tmux` and once the installation starts `ctrl+b then d` will detach the session.  
