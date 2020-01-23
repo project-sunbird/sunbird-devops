@@ -5,6 +5,7 @@ set -eu -o pipefail
 
 # This is to fix cross terminal compatibility
 export LC_ALL=C
+export ANSIBLE_FORCE_COLOR=true
 
 # Color schemes
 BOLD="$(tput bold)"
