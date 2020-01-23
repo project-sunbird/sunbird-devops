@@ -3,6 +3,9 @@
 #!/bin/bash
 set -eu -o pipefail
 
+# This is to fix cross terminal compatibility
+export LC_ALL=C
+
 # Color schemes
 BOLD="$(tput bold)"
 GREEN="${BOLD}$(tput setaf 2)"
