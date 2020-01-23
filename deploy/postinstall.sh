@@ -16,6 +16,7 @@ kubectl apply -f ${sunbird_path}/kubernetes/helm_charts/cattle-system/rancher.ya
 
 echo -e "${GREEN}Installing stern ${NORMAL}"
 sudo curl -LSs https://github.com/wercker/stern/releases/download/1.11.0/stern_linux_amd64 -o /usr/local/bin/stern
+sudo chmod +x /usr/local/bin/stern
 
 echo -e "${GREEN}Enabling kubectl autocompletion ${NORMAL}"
 cat >> ~/.bashrc <<EOF
