@@ -32,7 +32,7 @@ case "$(kubectl version --short 2> /dev/null | awk 'END {print}')" in
         ;;
      *)
     # Install kubernetes
-    curl -sL https://get.k3s.io | INSTALL_K3S_VERSION=v1.0.1 INSTALL_K3S_EXEC="--no-deploy=traefik --no-deploy=local-storage --no-deploy=metrics-server" sh -
+    curl -sL https://get.k3s.io | INSTALL_K3S_VERSION=v1.0.1 INSTALL_K3S_EXEC="--kubelet-arg containerd=/run/k3s/containerd/containerd.sock --no-deploy=traefik --no-deploy=local-storage --no-deploy=metrics-server" sh -
     sudo chown $(whoami) /etc/rancher/k3s/k3s.yaml
     ;;
 esac
