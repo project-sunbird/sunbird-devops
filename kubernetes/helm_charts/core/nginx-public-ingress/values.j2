@@ -16,12 +16,18 @@ service:
 imagepullsecrets: {{ imagepullsecrets }}
 dockerhub: {{ dockerhub }}
 
-replicaCount: {{replicacount|default(1)}}
+resources:
+  requests:
+    cpu: {{proxy_cpu_req|default('100m')}}
+    memory: {{proxy_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{proxy_cpu_limit|default('1')}}
+    memory: {{proxy_mem_limit|default('1024Mi')}}
+
+replicaCount: {{nginx_public_ingress_replicas|default(1)}}
 repository: {{proxy_repository|default('proxy')}}
 image_tag: {{ image_tag }}
-resources:
-  cpu: {{player_service_cpu|default('50m')}}
-  memory: {{player_service_memory|default('50Mi')}}
+
 proxyconfig: |
   {% if proto=='https' %}
   server {
