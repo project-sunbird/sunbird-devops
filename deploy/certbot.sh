@@ -9,7 +9,7 @@ echo -e "This script won't work for aws, as it's black listed in letsencrypt\nso
 
 sleep 5
 
-echo please enter your dns name : 
+echo please enter your FQDN(fully qualified domain name) name : 
 read dns_name
 ssh_ansible_user=$(whoami)
 certbot_home=/etc/letsencrypt/archive/$dns_name
