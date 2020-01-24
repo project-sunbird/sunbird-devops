@@ -28,6 +28,7 @@ EOF
 
 echo -e "${GREEN}Enabling kubeconfig ${NORMAL}"
 kubectl config view --flatten > ~/.kube/config
+ipaddress=$(curl ifconfig.co)
 
 cat << EOF
 ${GREEN}
@@ -45,10 +46,10 @@ ${GREEN}
 Rancher is to manage the cluster
 open following link in browser and accept the ssl certificate
 ${YELLOW}
-https://${core_ip}:8443
+https://${ipaddress}:8443
 ${GREEN}
 1. Create password
-2. Add ${YELLOW}$(hostname -i):8443${GREEN} as server-url
+2. Add ${YELLOW}${core_ip}:8443${GREEN} as server-url
 
 ${GREEN}
 To see the logs of pods from cli of remote machine; for example
