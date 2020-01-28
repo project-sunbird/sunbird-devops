@@ -1,16 +1,17 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: nginx-public-ingress
   namespace: {{ .Values.namespace }}
   annotations:
     reloader.stakater.com/auto: "true"
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: nginx-public-ingress
+  updateStrategy:
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -34,9 +35,7 @@ spec:
       - name: name
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         resources:
-          requests:
-            cpu: 100m
-            memory: 200Mi
+{{ toYaml .Values.resources | indent 10 }}
         volumeMounts:
           - name: tls
             mountPath: /etc/secrets
