@@ -1,16 +1,17 @@
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: nginx-public-ingress
   namespace: {{ .Values.namespace }}
   annotations:
     reloader.stakater.com/auto: "true"
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: nginx-public-ingress
+  updateStrategy:
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -18,29 +19,42 @@ spec:
     spec:
 {{- if .Values.imagepullsecrets }}
       imagePullSecrets:
-      - name: {{ .Values.imagepullSecrets }}
+      - name: {{ .Values.imagepullsecrets }}
 {{- end }}
       volumes:
         - name: tls
           secret:
             secretName: ingress-cert
+{{- if .Values.merge_domain_status }}
+        - name: tls-merge
+          secret:
+            secretName: ingress-merge-cert
+{{- end }}
         - name: proxy-config
           configMap:
             name: proxy-default
         - name: nginx-config
           configMap:
             name: nginx-conf
+{{- if .Values.merge_domain_status }}
+        - name: nginx-merge-config
+          configMap:
+            name: keycloak-conf
+{{- end }}
       containers:
       - name: name
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         resources:
-          requests:
-            cpu: 100m
-            memory: 200Mi
+{{ toYaml .Values.resources | indent 10 }}
         volumeMounts:
           - name: tls
             mountPath: /etc/secrets
             readOnly: true
+{{- if .Values.merge_domain_status }}
+          - name: tls-merge
+            mountPath: /etc/secrets-merge
+            readOnly: true
+{{- end }}
           - name: proxy-config
             mountPath: /etc/nginx/conf.d
             readOnly: true
@@ -48,11 +62,35 @@ spec:
             mountPath: /etc/nginx/nginx.conf
             subPath: nginx.conf
             readOnly: true
+{{- if .Values.merge_domain_status }}
+          - name: nginx-merge-config
+            mountPath: /etc/nginx/keycloak.conf
+            subPath: keycloak.conf
+            readOnly: true
+{{- end }}
         ports:
         - containerPort: 80
           name: http
         - containerPort: 443
           name: https
+        - containerPort: 9145
+          name: http-metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-public-ingress-metrics
+  namespace: {{ .Values.namespace }}
+  labels:
+{{- include "nginx-public-ingress.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: nginx-public-ingress
+  ports:
+    - name: http
+      port: 9145
+      targetPort: 9145
+      protocol: TCP
 ---
 apiVersion: v1
 kind: Service
