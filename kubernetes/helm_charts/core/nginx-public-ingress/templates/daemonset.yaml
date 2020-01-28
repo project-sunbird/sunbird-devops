@@ -34,6 +34,11 @@ spec:
         - name: nginx-config
           configMap:
             name: nginx-conf
+{{- if .Values.merge_domain_status }}
+        - name: nginx-merge-config
+          configMap:
+            name: keycloak-conf
+{{- end }}
       containers:
       - name: name
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
@@ -43,9 +48,11 @@ spec:
           - name: tls
             mountPath: /run/secrets
             readOnly: true
+{{- if .Values.merge_domain_status }}
           - name: tls-merge
             mountPath: /run/secrets-merge
             readOnly: true
+{{- end }}
           - name: proxy-config
             mountPath: /etc/nginx/conf.d
             readOnly: true
@@ -53,6 +60,12 @@ spec:
             mountPath: /etc/nginx/nginx.conf
             subPath: nginx.conf
             readOnly: true
+{{- if .Values.merge_domain_status }}
+          - name: nginx-merge-config
+            mountPath: /etc/nginx/keycloak.conf
+            subPath: keycloak.conf
+            readOnly: true
+{{- end }}
         ports:
         - containerPort: 80
           name: http
