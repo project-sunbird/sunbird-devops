@@ -36,7 +36,7 @@ node() {
                     	ansible_playbook_run(values)
                 }
 		try {
-		     stage('Build Installer, create and upload it to azure') {
+		     stage('Build Installer') {
 			dir('offline-installer-repo') {
 			    sh """
                                bash -x build.sh
@@ -52,6 +52,8 @@ node() {
             currentBuild.result = "SUCCESS"
             currentBuild.description = "Artifact: ${artifact_version}, installer_type: ${offline_installer_type}, Public: ${params.github_release_tag}"
 		}
+        }
+
 		catch (err) {
 			values = [:]
                         ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
