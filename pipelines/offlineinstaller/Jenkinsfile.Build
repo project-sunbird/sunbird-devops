@@ -15,6 +15,7 @@ node() {
 		git clone https://github.com/Sunbird-Ed/sunbird-desktop-app.git -b ${sunbirded_installer_branch_or_tag} offline-installer-repo
 	      """
         artifact_version = params.sunbirded_installer_branch_or_tag
+        installer_type = params.offline_installer_type
         }
             ansiColor('xterm') {
                     envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
@@ -42,14 +43,14 @@ node() {
                                mkdir offline_desktop_artifacts
                                cp *.zip offline_desktop_artifacts
                                cp latest.json offline_desktop_artifacts
-                               zip -j offline_desktop_artifacts.zip:${artifact_version} offline_desktop_artifacts/*
+                               zip -j ${installer_type}_offline_desktop_artifacts.zip:${artifact_version} offline_desktop_artifacts/*
 		             """
 			}
 			archiveArtifacts artifacts: "offline_desktop_artifacts.zip:${artifact_version}", fingerprint: true, onlyIfSuccessful: true
-            sh """echo {\\"artifact_name\\" : \\"offline_desktop_artifacts.zip\\", \\"artifact_version\\" : \\"${artifact_version}\\", \\"node_name\\" : \\"${env.NODE_NAME}\\"} > metadata.json"""
+            sh """echo {\\"artifact_name\\" : \\"offline_desktop_artifacts.zip\\",\\"installer_type\\" : \\"${installer_type}\\", \\"artifact_version\\" : \\"${artifact_version}\\", \\"node_name\\" : \\"${env.NODE_NAME}\\"} > metadata.json"""
             archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
             currentBuild.result = "SUCCESS"
-            currentBuild.description = "Artifact: ${artifact_version}, Public: ${params.github_release_tag}"
+            currentBuild.description = "Artifact: ${artifact_version}, installer_type: ${offline_installer_type}, Public: ${params.github_release_tag}"
 		}
 		catch (err) {
 			values = [:]
