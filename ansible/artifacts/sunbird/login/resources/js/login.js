@@ -487,4 +487,3 @@ var redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and sel
 		redirectToLib();
 	}
 };
-
