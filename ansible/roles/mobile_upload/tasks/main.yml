@@ -1,0 +1,13 @@
+---
+# tasks file for mobile_upload
+  - name: templating GDrive upload script
+    template:
+      src: "uploadToGdrive.sh"
+      dest: "./uploadToGdrive.sh"
+  - name: upload to {{ env_name }}
+    shell: find ../ -maxdepth 1 -iregex ".*[0-9]-debug.apk" -exec bash uploadToGdrive.sh -v -r {} \;
+    when: env_name=='production'
+  - name: upload to {{ env_name }}
+    shell:  find ../ -maxdepth 1 -iregex ".*{{env_name}}-debug.apk" -exec bash uploadToGdrive.sh -v -r {} \;
+    when: env_name!='production'
+
