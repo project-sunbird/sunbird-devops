@@ -11,14 +11,13 @@ fullnameOverride: sunbird-monitoring
 prometheus:
   prometheusSpec:
     additionalScrapeConfigsExternal: true
+    retention: "{{ prometheus_retention_time | d('90d') }}"
+    storageSpec: {{ (prometheus_storage_spec|to_json) | d('{}') }}
 
 # Enabling monitoring kubelet monitoring over http
 kubelet:
   serviceMonitor:
     https: false
-
-prometheusOperator:
-  createCustomResource: false
 
 alertmanager:
   config:
@@ -44,7 +43,7 @@ alertmanager:
         receiver: "{{ item.team }}"
         # Comment to ensure proper indentation while templating
         {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
-routes:
+      routes:
         {% for filter in item.severity_mailing_filter %}
         # Comment to ensure proper indentation while templating
         - match:

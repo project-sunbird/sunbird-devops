@@ -6,9 +6,14 @@ node() {
         String ANSI_BOLD = "\u001B[1m"
         String ANSI_RED = "\u001B[31m"
         String ANSI_YELLOW = "\u001B[33m"
-        
+
         stage('checkout public repo') {
-            sh('git clean -fxd')
+            folder = new File("$WORKSPACE/.git")
+            if (folder.exists())
+            {
+               println "Found .git folder. Clearing it.."
+               sh'git clean -fxd'
+            }  
             checkout scm
         }
 
@@ -20,7 +25,7 @@ node() {
                 jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                 currentWs = sh(returnStdout: true, script: 'pwd').trim()
                 ansiblePlaybook = "${currentWs}/kubernetes/ansible/api-manager.yml"
-                ansibleExtraArgs = "--tags kong-api --vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                ansibleExtraArgs = "--tags kong-consumer --vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
                 values.put('currentWs', currentWs)
                 values.put('env', envDir)
                 values.put('module', module)

@@ -1,25 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: private-ingress
+  name: nginx-private-ingress
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: private-ingress
+      app: nginx-private-ingress
   template:
     metadata:
       labels:
-        app: private-ingress
+        app: nginx-private-ingress
     spec:
       containers:
       - name: name
         image: nginx
         resources:
-          requests:
-            cpu: 100m
-            memory: 200Mi
+{{ toYaml .Values.resources | indent 10 }}
         ports:
         - containerPort: 80
         volumeMounts:
@@ -30,13 +28,13 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: private-ingress.conf
+            name: nginx-private-ingress.conf
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: private-ingress
-  namespace: dev
+  name: nginx-private-ingress
+  namespace: {{ .Values.namespace }}
   annotations:
 {{- if .Values.private_ingress_custom_annotations }}
     {{ .Values.private_ingress_annotation.cloud_provider }}
@@ -49,4 +47,4 @@ spec:
     targetPort: 80
     name: http
   selector:
-    app: private-ingress
+    app: nginx-private-ingress
