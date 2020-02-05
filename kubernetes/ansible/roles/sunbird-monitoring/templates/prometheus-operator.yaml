@@ -1,3 +1,4 @@
+#jinja2:lstrip_blocks: True
 {#
 # This name is used to define the 
 # additionalScrapeConfigs name
@@ -12,7 +13,15 @@ prometheus:
   prometheusSpec:
     additionalScrapeConfigsExternal: true
     retention: "{{ prometheus_retention_time | d('90d') }}"
-    storageSpec: {{ (prometheus_storage_spec|to_json) | d('{}') }}
+    externalLabels:
+      cluster: kubernetes-1
+{% if prometheus_storage_spec is defined and prometheus_storage_spec %}
+    storageSpec: {{ prometheus_storage_spec|to_json }}
+{% endif %}
+{% if prometheus_service is defined and prometheus_service %}
+  service: {{ (prometheus_service | to_json) }}
+{% endif %}
+
 
 # Enabling monitoring kubelet monitoring over http
 kubelet:
@@ -43,7 +52,7 @@ alertmanager:
         receiver: "{{ item.team }}"
         # Comment to ensure proper indentation while templating
         {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
-      routes:
+        routes:
         {% for filter in item.severity_mailing_filter %}
         # Comment to ensure proper indentation while templating
         - match:
