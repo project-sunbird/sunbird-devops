@@ -14,6 +14,36 @@ service:
     targetPort: 443
     nodePort: 31390
 
+{% if nginx_volumes is defined and nginx_volumes %}
+{#
+This is for custom nginx volume mount options in common.yaml
+example:
+nginx_volumes:
+  volumes:
+    - name: tls
+      secret:
+        secretName: ingress-cert
+    - name: proxy-config
+      configMap:
+        name: proxy-default
+    - name: nginx-config
+      configMap:
+        name: nginx-conf
+  volumemounts:
+    - name: tls
+      mountPath: /etc/secrets
+      readOnly: true
+    - name: proxy-config
+      mountPath: /etc/nginx/conf.d
+      readOnly: true
+    - name: nginx-config
+      mountPath: /etc/nginx/nginx.conf
+      subPath: nginx.conf
+      readOnly: true
+#}
+volumes: {{ nginx_volumes.volumes | to_json }}
+volumeMounts: {{ nginx_volumes.volumeMounts | to_json }}
+{% endif %}
 
 imagepullsecrets: {{ imagepullsecrets }}
 dockerhub: {{ dockerhub }}
