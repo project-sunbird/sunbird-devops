@@ -15,8 +15,7 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 14,
-  "iteration": 1580880983581,
+  "iteration": 1580972279328,
   "links": [],
   "panels": [
     {
@@ -34,6 +33,7 @@
       "id": 1,
       "interval": "> 3600s",
       "links": [],
+      "options": {},
       "pageSize": null,
       "scroll": true,
       "showHeader": true,
@@ -105,7 +105,7 @@
           "measurement": "analytics_metrics",
           "orderByTime": "ASC",
           "policy": "autogen",
-          "query": "SELECT sum(\"number_of_output\") AS \"Output\", sum(\"success\") AS \"Success\", sum(\"time_spent\") AS \"Time spent\" FROM \"autogen\".\"analytics_metrics\" WHERE (\"env\" =~ /^$env$/) AND $timeFilter GROUP BY time(1d)",
+          "query": "SELECT sum(\"number_of_output\") AS \"Output\", sum(\"success\") AS \"Success\", sum(\"time_spent\") AS \"Time spent\" FROM \"autogen\".\"analytics_metrics\" WHERE $timeFilter GROUP BY time(1d)",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "table",
@@ -187,6 +187,7 @@
       "editable": true,
       "error": false,
       "fill": 1,
+      "fillGradient": 0,
       "grid": {},
       "gridPos": {
         "h": 8,
@@ -194,6 +195,7 @@
         "x": 0,
         "y": 8
       },
+      "hiddenSeries": false,
       "id": 2,
       "legend": {
         "avg": false,
@@ -208,6 +210,9 @@
       "linewidth": 2,
       "links": [],
       "nullPointMode": "connected",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": true,
@@ -228,9 +233,10 @@
             }
           ],
           "measurement": "analytics_metrics",
+          "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT count(\"job_name\") FROM \"autogen\".\"analytics_metrics\" WHERE \"env\" =~ /^$env$/  AND $timeFilter AND success = 1 group by time(1d)",
-          "rawQuery": false,
+          "query": "SELECT sum(\"success\") AS \"success\" FROM \"analytics_metrics\" WHERE  $timeFilter GROUP BY time(1d)",
+          "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -316,6 +322,7 @@
       "editable": true,
       "error": false,
       "fill": 1,
+      "fillGradient": 0,
       "grid": {},
       "gridPos": {
         "h": 8,
@@ -323,6 +330,7 @@
         "x": 0,
         "y": 16
       },
+      "hiddenSeries": false,
       "id": 3,
       "legend": {
         "avg": false,
@@ -337,6 +345,9 @@
       "linewidth": 2,
       "links": [],
       "nullPointMode": "connected",
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": true,
@@ -357,9 +368,10 @@
             }
           ],
           "measurement": "analytics_metrics",
+          "orderByTime": "ASC",
           "policy": "default",
-          "query": "SELECT count(\"job_name\") FROM \"autogen\".\"analytics_metrics\" WHERE \"env\" =~ /^$env$/  AND $timeFilter AND success = 1 group by time(1d)",
-          "rawQuery": false,
+          "query": "SELECT count(\"success\") AS \"failure\" FROM \"analytics_metrics\" WHERE \"is_success\" = 'false' AND $timeFilter GROUP BY time( 1d )",
+          "rawQuery": true,
           "refId": "A",
           "resultFormat": "time_series",
           "select": [
@@ -454,6 +466,7 @@
       "id": 4,
       "interval": "> 3600s",
       "links": [],
+      "options": {},
       "pageSize": null,
       "scroll": true,
       "showHeader": true,
@@ -525,7 +538,7 @@
           "measurement": "analytics_metrics",
           "orderByTime": "ASC",
           "policy": "autogen",
-          "query": "SELECT \"number_of_input\" AS \"Input\", \"number_of_output\" AS \"Output\", \"success\" AS \"Success\", \"time_spent\" AS \"Time spent\" FROM \"autogen\".\"analytics_metrics\" WHERE (\"env\" =~ /^$env$/) AND $timeFilter GROUP BY \"job_name\"",
+          "query": "SELECT \"number_of_input\" AS \"Input\", \"number_of_output\" AS \"Output\", \"success\" AS \"Success\", \"time_spent\" AS \"Time spent\" FROM \"autogen\".\"analytics_metrics\" WHERE  $timeFilter GROUP BY \"job_name\"",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "table",
@@ -614,6 +627,7 @@
       },
       "id": 5,
       "links": [],
+      "options": {},
       "pageSize": null,
       "scroll": true,
       "showHeader": true,
@@ -655,7 +669,7 @@
           "measurement": "analytics_metrics",
           "orderByTime": "ASC",
           "policy": "autogen",
-          "query": "SELECT \"number_of_input\" AS \"Inputs\", \"number_of_output\" AS \"Outputs\", \"success\" AS \"Success\", \"time_spent\" AS \"TimeSpent\", \"tag\" AS \"ClientKey\" FROM \"autogen\".\"analytics_metrics\" WHERE (\"env\" =~ /^$env$/ AND \"job_name\" = 'DataExhaustJob' AND \"job_id\" <> 'AnalyticsDataPipeline') AND $timeFilter GROUP BY \"job_id\"",
+          "query": "SELECT \"number_of_input\" AS \"Inputs\", \"number_of_output\" AS \"Outputs\", \"success\" AS \"Success\", \"time_spent\" AS \"TimeSpent\", \"tag\" AS \"ClientKey\" FROM \"autogen\".\"analytics_metrics\" WHERE \"job_name\" = 'DataExhaustJob' AND \"job_id\" <> 'AnalyticsDataPipeline' AND $timeFilter GROUP BY \"job_id\"",
           "rawQuery": true,
           "refId": "A",
           "resultFormat": "table",
@@ -758,43 +772,13 @@
     }
   ],
   "refresh": "30s",
-  "schemaVersion": 18,
+  "schemaVersion": 21,
   "style": "dark",
   "tags": [
     "pipeline"
   ],
   "templating": {
-    "list": [
-      {
-        "allValue": null,
-        "current": {
-          "tags": [],
-          "text": "ntpprod",
-          "value": "ntpprod"
-        },
-        "datasource": "Monitoring Events",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Environment",
-        "multi": false,
-        "name": "env",
-        "options": [
-          {
-            "selected": true,
-            "text": "ntpprod",
-            "value": "ntpprod"
-          }
-        ],
-        "query": "ntpprod",
-        "refresh": 0,
-        "regex": "",
-        "skipUrlSync": false,
-        "tagValuesQuery": "env",
-        "tagsQuery": "pipeline_metrics",
-        "type": "custom",
-        "useTags": false
-      }
-    ]
+    "list": []
   },
   "time": {
     "from": "now-7d",
@@ -828,5 +812,5 @@
   "timezone": "browser",
   "title": "LPA Metrics",
   "uid": "sXAhVTWWk",
-  "version": 5
+  "version": 1
 }
