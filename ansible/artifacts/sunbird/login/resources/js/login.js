@@ -148,6 +148,8 @@ var storeValueForMigration = function () {
 	sessionStorage.setItem('identifierValue', getValueFromSession('identifierValue'));
 	sessionStorage.setItem('identifierType', getValueFromSession('identifierType'));
 	sessionStorage.setItem('userId', getValueFromSession('userId'));
+	sessionStorage.setItem('tncAccepted', getValueFromSession('tncAccepted'));
+	sessionStorage.setItem('tncVersion', getValueFromSession('tncVersion'));
 };
 var getValueFromSession = function (valueId) {
 	var value = (new URLSearchParams(window.location.search)).get(valueId);
@@ -228,7 +230,8 @@ var handlePasswordFailure = function () {
 	sessionStorage.setItem('passwordFailCount', passwordFailCount);
 	if (passwordFailCount >= 2) {
 		const url = '/sign-in/sso/auth?status=error' + '&identifierType=' + getValueFromSession('identifierType');
-		const query = '&userId=' + getValueFromSession('userId') + '&identifierValue=' + getValueFromSession('identifierValue');
+		let query = '&userId=' + getValueFromSession('userId') + '&identifierValue=' + getValueFromSession('identifierValue');
+		query = query + '&tncAccepted=' + getValueFromSession('tncAccepted') + '&tncVersion=' + getValueFromSession('tncVersion');
 		window.location.href = window.location.protocol + '//' + window.location.host + url + query;
 	}
 };
