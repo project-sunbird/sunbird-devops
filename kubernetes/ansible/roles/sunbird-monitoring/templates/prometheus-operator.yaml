@@ -1,3 +1,4 @@
+#jinja2:lstrip_blocks: True
 {#
 # This name is used to define the 
 # additionalScrapeConfigs name
@@ -11,14 +12,21 @@ fullnameOverride: sunbird-monitoring
 prometheus:
   prometheusSpec:
     additionalScrapeConfigsExternal: true
+    retention: "{{ prometheus_retention_time | d('90d') }}"
+    externalLabels:
+      cluster: "{{ kubernetes_cluster_name | default('kubernetes-1')}}"
+{% if prometheus_storage_spec is defined and prometheus_storage_spec %}
+    storageSpec: {{ prometheus_storage_spec|to_json }}
+{% endif %}
+{% if prometheus_service is defined and prometheus_service %}
+  service: {{ (prometheus_service | to_json) }}
+{% endif %}
+
 
 # Enabling monitoring kubelet monitoring over http
 kubelet:
   serviceMonitor:
     https: false
-
-prometheusOperator:
-  createCustomResource: false
 
 alertmanager:
   config:
@@ -44,7 +52,7 @@ alertmanager:
         receiver: "{{ item.team }}"
         # Comment to ensure proper indentation while templating
         {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
-routes:
+        routes:
         {% for filter in item.severity_mailing_filter %}
         # Comment to ensure proper indentation while templating
         - match:
@@ -109,3 +117,8 @@ routes:
 grafana:
   env:
     GF_SERVER_ROOT_URL: http://grafana.local.com/grafana
+  adminPassword: {{ (grafana_admin_password| default('prom-operator'))}}
+  additionalDataSources: {{ (grafana_data_sources| default('[]')) | to_json}}
+{% if grafana_persistence is defined and grafana_persistence %}
+  persistence: {{ grafana_persistence|to_json}}
+{% endif %}
