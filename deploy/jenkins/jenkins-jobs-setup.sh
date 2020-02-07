@@ -21,6 +21,16 @@ setupJobs(){
       mv $JENKINS_TMP/Provision/jobs/dev $JENKINS_TMP/Provision/jobs/${arr[0]}
       find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type f -name config.xml -exec sed -i "s#ArtifactUpload/dev/#ArtifactUpload/${arr[0]}/#g" {} \;
       find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type f -name config.xml -exec sed -i "s#Deploy/dev/#Deploy/${arr[0]}/#g" {} \;
+      echo -e "\e[0;36m${bold}Do you want to disable auto trigger of build jobs based on new commits?${normal}"
+      read -p 'y/n: ' choice
+      if [[ $choice == "y" ]]; then
+         find $JENKINS_TMP/Build -type f -name config.xml -exec sed -i 's/<spec>.*<\/spec>/<spec><\/spec>/g' {} \;
+      fi
+      echo -e "\e[0;36m${bold}Do you want to disable daily backup jobs (Ex: DB backups)?${normal}"
+      read -p 'y/n: ' choice
+      if [[ $choice == "y" ]]; then
+         find $JENKINS_TMP/OpsAdministration -type f -name config.xml -exec sed -i 's/<spec>.*<\/spec>/<spec><\/spec>/g' {} \;
+      fi
    fi
    find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type d -path "*Summary*" -prune -o -name config.xml -exec sed -i 's/<upstreamProjects>.*//g' {} \;
    echo -e "\e[0;33m${bold}Jobs created for ${arr[0]}${normal}"
