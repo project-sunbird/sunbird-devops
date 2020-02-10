@@ -2045,23 +2045,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
-  - name: getAnnouncementInbox
-    request_path: "{{announcement_service_prefix}}/v1/user/inbox"
-    upstream_url: "{{ player_service_url }}/announcement/v1/user/inbox"
-    strip_request_path: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: "{{ getAnnouncementInbox_ACL | default(['publicUser']) }}"
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
   - name: getAnnouncementOutbox
     request_path: "{{announcement_service_prefix}}/v1/user/outbox"
     upstream_url: "{{ player_service_url }}/announcement/v1/user/outbox"
@@ -4218,7 +4201,6 @@ kong_apis:
 
 
 #HAWK
-getAnnouncementInbox
 getAnnouncementOutbox
 getAnnouncement
 registerClient
