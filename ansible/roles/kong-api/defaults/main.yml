@@ -3312,18 +3312,6 @@ kong_apis:
      - name: acl
        config.whitelist: "{{ getSystemSettings_ACL | default(['publicUser','mobileApis']) }}"
 
-  - name: "getConfigHealth"
-    request_path: "{{ config_service_prefix }}/v1/health"
-    upstream_url: "{{ config_service_url }}/config-service/v1/health"
-    strip_request_path: true
-    plugins:
-     - {name: 'jwt'}
-     - {name: 'cors'}
-     - "{{ statsd_pulgin }}"
-     - {name: 'acl',config.whitelist: "{{ getConfigHealth_ACL | default(['dataAdmin'])}}"}
-     - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ small_rate_limit_per_hour }}"}
-     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
-
   - name: onboardConsumer
     request_path: "{{ api_manager_perfix }}/v1/consumer/create/jwt"
     upstream_url: "{{ am_util_url }}/v1/consumer/create/jwt"
@@ -4005,7 +3993,6 @@ kong_apis:
 
 
 #HAWK
-getConfigHealth
 getConfigByKey
 certValidation
 PrivateContentAPIs
