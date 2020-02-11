@@ -62,6 +62,7 @@ echo -e "\e[0;33m${bold}This might take a while... Do not kill the process!${nor
    if [[ $changes == "YES" ]]; then
      rsync -r $JENKINS_TMP/* /var/lib/jenkins/jobs
      chown -R jenkins:jenkins /var/lib/jenkins/jobs
+     echo -e "\e[0;32m${bold}Setup complete!${normal}"
    else
         echo -e "\e[0;31m${bold}Aborted!${normal}"
    fi
