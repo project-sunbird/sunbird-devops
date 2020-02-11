@@ -52,6 +52,7 @@ echo -e "\e[0;33m${bold}This might take a while... Do not kill the process!${nor
    if [[ $changes == "YES" ]]; then
      rsync -r $JENKINS_TMP/* /var/lib/jenkins/jobs
      chown -R jenkins:jenkins /var/lib/jenkins/jobs
+     echo -e "\e[0;32m${bold}Setup complete!${normal}"
    else
         echo -e "\e[0;31m${bold}Aborted!${normal}"
    fi
@@ -94,7 +95,7 @@ fi
 echo -e "\e[0;33m${bold}**** Welcome to Jenkins config setup! ****${normal}"
 if [[ ! -f /var/lib/jenkins/envOrder.txt ]]; then
    if [[ ! -f ./envOrder.txt ]]; then
-      echo -e "\e[0;31m${bold}Please create a file named envOrder.txt with your environment order. Refer envOrder.txt.sample for reference"
+      echo -e "\e[0;33m${bold}Please create a file named envOrder.txt with your environment order. Refer envOrder.txt.sample for reference"
    else
       echo -e "\e[0;33m${bold}Starting setup...${normal}"
       firstRun
