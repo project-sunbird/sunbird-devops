@@ -95,7 +95,7 @@ fi
 echo -e "\e[0;33m${bold}**** Welcome to Jenkins config setup! ****${normal}"
 if [[ ! -f /var/lib/jenkins/envOrder.txt ]]; then
    if [[ ! -f ./envOrder.txt ]]; then
-      echo -e "\e[0;33m${bold}Please create a file named envOrder.txt with your environment order. Refer envOrder.txt.sample for reference"
+      echo -e "\e[0;31m${bold}Please create a file named envOrder.txt with your environment order. Refer envOrder.txt.sample for reference"
    else
       echo -e "\e[0;33m${bold}Starting setup...${normal}"
       firstRun
