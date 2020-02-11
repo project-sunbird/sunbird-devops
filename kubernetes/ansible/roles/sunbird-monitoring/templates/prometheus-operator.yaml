@@ -13,6 +13,8 @@ prometheus:
     additionalScrapeConfigsExternal: true
     retention: "{{ prometheus_retention_time | d('90d') }}"
     storageSpec: {{ (prometheus_storage_spec|to_json) | d('{}') }}
+    externalLabels:
+      cluster: "{{ kubernetes_cluster_name }}"
 
 # Enabling monitoring kubelet monitoring over http
 kubelet:
@@ -81,7 +83,7 @@ alertmanager:
             to: '{{ item.alerts_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ env }}-KUBERNETES] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
       {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
       {% for filter in item.severity_mailing_filter %}
       # Comment to ensure proper indentation while templating
@@ -91,7 +93,7 @@ alertmanager:
             to: '{{ filter.alerts_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ env }}-KUBERNETES] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
       {% endfor %}
       {% endif %}
       {% endfor %}
@@ -102,7 +104,7 @@ alertmanager:
             to: '{{ default_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ env }}-KUBERNETES] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
 
 
 grafana:
