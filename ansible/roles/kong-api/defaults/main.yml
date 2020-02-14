@@ -57,6 +57,7 @@ otp_service_prefix: /otp
 sso_service_prefix: /sso
 cert_service_prefix: /cert
 cert_registry_service_prefix: /certreg
+registry_service_prefix: /reg
 desktop_app_prefix: /desktop
 license_api_prefix: /license
 
@@ -74,6 +75,7 @@ lms_service_url: "http://lms-service:9000"
 cert_service_url: "http://cert-service:9000"
 cert_registry_service_url: "http://cert-registry-service:9000"
 content_service_url: "http://content-service:9000"
+registry-service_url: "http://registry-service:8080"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -5129,6 +5131,23 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist: "{{ searchRegCertificate_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: registryServiceAdd
+    request_path: "{{ registry_service_prefix }}/add"
+    upstream_url: "{{ registry-service_url }}/add"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registryServiceAdd_ACL | default(['publicUser']) }}"
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
