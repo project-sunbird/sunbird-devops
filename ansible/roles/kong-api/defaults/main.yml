@@ -60,6 +60,7 @@ cert_registry_service_prefix: /certreg
 registry_service_prefix: /reg
 desktop_app_prefix: /desktop
 license_api_prefix: /license
+reghelper_api_prefix: /reghelper
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -76,6 +77,7 @@ cert_service_url: "http://cert-service:9000"
 cert_registry_service_url: "http://cert-registry-service:9000"
 content_service_url: "http://content-service:9000"
 registry_service_url: "http://registry-service:8080"
+reghelper_service_url: "http://reghelper-service:8083"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -5220,6 +5222,58 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist: "{{ registryServiceDelete_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ large_rate_limit_per_hour }}"
+
+  - name: registryHelperCertCreate
+    request_path: "{{ reghelper_api_prefix }}/certificate/v1/create"
+    upstream_url: "{{ reghelper_service_url }}/v1/certificate/create"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registryHelperCertCreate_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ large_rate_limit_per_hour }}"
+
+
+  - name: registryHelperFaceIdentify
+    request_path: "{{ reghelper_api_prefix }}/face/identify"
+    upstream_url: "{{ reghelper_service_url }}/v1/identify"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registryHelperFaceIdentify_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ large_rate_limit_per_hour }}"
+
+  - name: registryHelperFaceRegister
+    request_path: "{{ reghelper_api_prefix }}/face/register"
+    upstream_url: "{{ reghelper_service_url }}/v1/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registryHelperFaceRegister_ACL | default(['publicUser']) }}"
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
