@@ -5153,4 +5153,76 @@ kong_apis:
       config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
+      config.allowed_payload_size: "{{ large_rate_limit_per_hour }}"
+
+  - name: registryServiceUpdate
+    request_path: "{{ registry_service_prefix }}/update"
+    upstream_url: "{{ registry_service_url }}/update"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registryServiceUpdate_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ large_rate_limit_per_hour }}"
+
+
+  - name: registryServiceRead
+    request_path: "{{ registry_service_prefix }}/read"
+    upstream_url: "{{ registry_service_url }}/read"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registryServiceRead_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ large_rate_limit_per_hour }}"
+
+
+  - name: registryServiceSearch
+    request_path: "{{ registry_service_prefix }}/search"
+    upstream_url: "{{ registry_service_url }}/search"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registryServiceSearch_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ large_rate_limit_per_hour }}"
+
+
+
+  - name: registryServiceDelete
+    request_path: "{{ registry_service_prefix }}/delete"
+    upstream_url: "{{ registry_service_url }}/delete"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registryServiceDelete_ACL | default(['publicUser']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ large_rate_limit_per_hour }}"
