@@ -61,6 +61,7 @@ registry_service_prefix: /reg
 desktop_app_prefix: /desktop
 license_api_prefix: /license
 reghelper_api_prefix: /reghelper
+registry_util_service_prefix: /regutil
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -78,6 +79,8 @@ cert_registry_service_url: "http://cert-registry-service:9000"
 content_service_url: "http://content-service:9000"
 registry_service_url: "http://registry-service:8080"
 reghelper_service_url: "http://reghelper-service:9000"
+registry_util_service_url: "http://reg-utils:9090"
+
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -5314,3 +5317,58 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+
+  - name: registryUtilServiceNew
+    request_path: "{{ registry_util_service_prefix }}/visitor/new"
+    upstream_url: "{{ registry_util_service_url }}/visitor/new"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+    config.whitelist: "{{ registryUtilServiceNew_ACL | default(['publicUser','mobileApis']) }}"
+    - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+    - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+
+  - name: registryUtilServiceExit
+    request_path: "{{ registry_util_service_prefix }}/visitor/exit"
+    upstream_url: "{{ registry_util_service_url }}/visitor/exit"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+    config.whitelist: "{{ registryUtilServiceExit_ACL | default(['publicUser','mobileApis']) }}"
+    - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+    - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+
+
+  - name: registryUtilServiceDisplay
+    request_path: "{{ registry_util_service_prefix }}/visitor/display"
+    upstream_url: "{{ registry_util_service_url }}/visitor/display"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+    config.whitelist: "{{ registryUtilServiceDisplay_ACL | default(['publicUser','mobileApis']) }}"
+    - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+    - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
