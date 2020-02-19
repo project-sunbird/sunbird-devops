@@ -5392,4 +5392,19 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-
+  - name: registryHelperFaceIdentifyMultiple
+    request_path: "{{ reghelper_api_prefix }}/face/identify/multiple"
+    upstream_url: "{{ reghelper_service_url }}/v1/identify/multiple"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registryHelperFaceIdentifyMultiple_ACL | default(['publicUser','mobileApis']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ large_rate_limit_per_hour }}"
