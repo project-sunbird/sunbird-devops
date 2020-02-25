@@ -109,7 +109,7 @@ func main() {
 				fmt.Printf("err reading message: %v", err)
 				break
 			}
-			fmt.Printf("message at topic/partition/offset %v/%v/%v: %s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
+			fmt.Printf("topic: %q partition: %v offset %v\n", m.Topic, m.Partition, m.Offset)
 			go metricsCreation(m.Value)
 		}
 	}()
