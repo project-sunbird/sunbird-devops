@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -92,7 +93,14 @@ func main() {
 		log.Fatalf("kafka_topic or kafka_host environment variables not set")
 	}
 	fmt.Printf("kafak_host: %s\nkafka_topic: %s\n", kafka_host, kafka_topic)
-
+	// Checking kafka port and ip are accessible
+	fmt.Println("Checking connection to kafka")
+	conn, err := net.DialTimeout("tcp", kafka_host, 10*time.Second)
+	if err != nil {
+		log.Fatalf("Connection error: %s", err)
+	}
+	conn.Close()
+	fmt.Println("kafka is accessible")
 	// Initializing kafka
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  []string{kafka_host},
