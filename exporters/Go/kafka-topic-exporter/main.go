@@ -48,7 +48,8 @@ func (metrics *Metrics) pushMetrics() (err error) {
 	label := fmt.Sprintf("system=%q,subsystem=%q,", metrics.System, metrics.SubSystem)
 	// Creating dictionary of labels
 	for _, labels := range metrics.Lables {
-		label += fmt.Sprintf("%v=%q,", labels.ID, labels.Value)
+		// Lables can't have '-' in it
+		label += fmt.Sprintf("%v=%q,", metricsNameValidator(labels.ID), labels.Value)
 	}
 	// Generating metrics
 	for _, metric := range metrics.Metrics {
