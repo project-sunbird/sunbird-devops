@@ -44,10 +44,10 @@ func metricsNameValidator(names ...string) string {
 // output and send it to metrics channel
 // So that http endpoint can serve the data
 func (metrics *Metrics) pushMetrics() (err error) {
-	label := ""
+	label := fmt.Sprintf("system=%q,subsystem=%q,", metrics.System, metrics.SubSystem)
 	// Creating dictionary of labels
 	for _, labels := range metrics.Lables {
-		label += fmt.Sprintf("%q:%q,", labels.ID, labels.Value)
+		label += fmt.Sprintf("%v=%q,", labels.ID, labels.Value)
 	}
 	// Generating metrics
 	for _, metric := range metrics.Metrics {
@@ -76,7 +76,8 @@ func serve(w http.ResponseWriter, r *http.Request) {
 		select {
 		case message := <-promMetricsChannel:
 			fmt.Fprintf(w, "%s\n", message)
-		case <-time.After(1 * time.Second):
+		// Waiting for 1 ms before quitting
+		case <-time.After(1 * time.Millisecond):
 			fmt.Printf("done")
 			return
 		}
@@ -109,15 +110,9 @@ func main() {
 				break
 			}
 			fmt.Printf("message at topic/partition/offset %v/%v/%v: %s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
-			metricsCreation(m.Value)
+			go metricsCreation(m.Value)
 		}
 	}()
-	// jsonFile, err := os.Open("values.json")
-	// if err != nil {
-	//     log.Fatalf("Error opening file: %v", err)
-	// }
-	// data, _ := ioutil.ReadAll(jsonFile)
-	// go metricsCreation(data)
 	http.HandleFunc("/metrics", serve)
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
