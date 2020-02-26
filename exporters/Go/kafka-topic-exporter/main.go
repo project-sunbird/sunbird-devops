@@ -1,3 +1,70 @@
+// This package reads the topic from kafka and prase it as prometheus metrics with optional timestamp.
+// Json format should be as described below.
+// {
+// 	"system": "<category of the metrics, for example: samza>",
+// 	"subsystem": "<producer of the metrics, for example: pipeline-metrics>",
+// 	"metricts": "< timestamp of the merics, which should be passed to prometheus. This should be in epoch milliseconds>", // This is an optional field
+// 	"metrics": [
+// 		{
+// 			"id": "<name of the metric>", // It can contain alphabets and '-' and '_'. Should should start with alphabet
+// 			"value": "< value of the metric>" // Should be of int or float64
+// 		}
+// 		{
+// 			...
+// 			...
+// 			...
+// 		}
+// 	],
+// 	"dimensions": [ // Labels which will get injectd to each of the above metrics
+// 		{
+// 			"id": "< name of the label>", // It can contain alphabets and '-' and '_'. Should should start with alphabet
+// 			"value": < value of the label>"
+// 		}
+// 		{
+// 			...
+// 			...
+// 			...
+// 		}
+// 	]
+// }
+//
+// Example:
+// {
+//     "system": "samza",
+//     "subsystem": "pipeline-metrics",
+//     "metricts" : 1582521646464,
+//     "metrics": [
+//         {
+//             "id": "success-message-count",
+//             "value": 1
+//         },
+//         {
+//             "id": "skipped-message-count",
+//             "value": 1
+//         },
+//         {
+//         }
+//     ],
+//     "dimensions": [
+//         {
+//             "id": "job-name",
+//             "value": "test-job"
+//         },
+//         {
+//             "id": "partition",
+//             "value": 0
+//         }
+//     ]
+// }
+//
+// kafka_host and kafka_topic environment variables should be set
+//
+// Example:
+// export kafka_host=10.0.0.9:9092
+// export kafka_topic=sunbird.metrics.topic
+//
+// Author : Kaliraja Ramasami <kaliraja.ramasamy@tarento.com>
+// Author : Rajesh Rajendran <rjshrjdnrn@gmail.com>
 package main
 
 import (
@@ -81,6 +148,8 @@ func metricsCreation(data []byte) error {
 	metrics.pushMetrics()
 	return nil
 }
+
+// Http handler
 func serve(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
@@ -92,14 +161,16 @@ func serve(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
 }
 func main() {
 	// Getting kafka_ip and topic
 	kafka_host := os.Getenv("kafka_host")
 	kafka_topic := os.Getenv("kafka_topic")
 	if kafka_topic == "" || kafka_host == "" {
-		log.Fatalf("kafka_topic or kafka_host environment variables not set")
+		log.Fatalf(`"kafka_topic or kafka_host environment variables not set."
+For example,
+	export kafka_host=10.0.0.9:9092
+	kafka_topic=sunbird.metrics.topic`)
 	}
 	fmt.Printf("kafak_host: %s\nkafka_topic: %s\n", kafka_host, kafka_topic)
 	// Checking kafka port and ip are accessible
