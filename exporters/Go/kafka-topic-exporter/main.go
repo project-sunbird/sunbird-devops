@@ -16,8 +16,9 @@ import (
 
 // Metrics structure
 type Metrics struct {
-	System    string `json:"system"`
-	SubSystem string `json:"subsystem"`
+	System    string      `json:"system"`
+	SubSystem string      `json:"subsystem"`
+	MetricTS  json.Number `json:"metricTs"`
 	Metrics   []struct {
 		ID    string  `json:"id"`
 		Value float64 `json:"value"`
@@ -53,7 +54,14 @@ func (metrics *Metrics) pushMetrics() (err error) {
 	}
 	// Generating metrics
 	for _, metric := range metrics.Metrics {
-		retMetrics := fmt.Sprintf("%s{%s} %.2f", metricsNameValidator(metrics.System, metrics.SubSystem, metric.ID), strings.TrimRight(label, ","), metric.Value)
+		retMetrics := ""
+		// Adding optional timestamp
+		switch metrics.MetricTS {
+		case "":
+			retMetrics = fmt.Sprintf("%s{%s} %.2f", metricsNameValidator(metrics.System, metrics.SubSystem, metric.ID), strings.TrimRight(label, ","), metric.Value)
+		default:
+			retMetrics = fmt.Sprintf("%s{%s} %.2f %s", metricsNameValidator(metrics.System, metrics.SubSystem, metric.ID), strings.TrimRight(label, ","), metric.Value, metrics.MetricTS)
+		}
 		fmt.Printf("%s\n", retMetrics)
 		promMetricsChannel <- retMetrics
 	}
