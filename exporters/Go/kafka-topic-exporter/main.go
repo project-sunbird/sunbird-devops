@@ -151,17 +151,34 @@ func metricsCreation(data []byte) error {
 
 // Http handler
 func serve(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	// Creating context
+	// Reading topic
+	go func(ctx context.Context, r *kafka.Reader) {
+		for {
+			m, err := r.ReadMessage(ctx)
+			if err != nil {
+				fmt.Printf("err reading message: %v", err)
+				break
+			}
+			fmt.Printf("topic: %q partition: %v offset %v\n", m.Topic, m.Partition, m.Offset)
+			go metricsCreation(m.Value)
+		}
+	}(ctx, kafkaReader)
 	for {
 		select {
 		case message := <-promMetricsChannel:
 			fmt.Fprintf(w, "%s\n", message)
-		// Waiting for 1 ms before quitting
-		case <-time.After(1 * time.Millisecond):
+			// Waiting for 1 ms before quitting
+		case <-ctx.Done():
 			fmt.Printf("done")
 			return
 		}
 	}
 }
+
+var kafkaReader *kafka.Reader
+
 func main() {
 	// Getting kafka_ip and topic
 	kafka_host := os.Getenv("kafka_host")
@@ -182,25 +199,13 @@ For example,
 	conn.Close()
 	fmt.Println("kafka is accessible")
 	// Initializing kafka
-	r := kafka.NewReader(kafka.ReaderConfig{
+	kafkaReader = kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  []string{kafka_host},
 		GroupID:  "metrics-reader-test", // Consumer group ID
 		Topic:    kafka_topic,
 		MinBytes: 10e3, // 10KB
 		MaxBytes: 10e6, // 10MB
 	})
-	// Reading topic
-	go func() {
-		for {
-			m, err := r.ReadMessage(context.Background())
-			if err != nil {
-				fmt.Printf("err reading message: %v", err)
-				break
-			}
-			fmt.Printf("topic: %q partition: %v offset %v\n", m.Topic, m.Partition, m.Offset)
-			go metricsCreation(m.Value)
-		}
-	}()
 	http.HandleFunc("/metrics", serve)
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
