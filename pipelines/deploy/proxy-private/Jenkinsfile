@@ -11,11 +11,8 @@ node() {
             checkout scm
         }
         stage('deploy') {
-            values = [:]
+            values = docker_params()
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
-            envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-            module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
-            jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
             ansiblePlaybook = "$currentWs/ansible/deploy.yml"
             ansibleExtraArgs = "--tags \"stack-proxy-private\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
             values.put('currentWs', currentWs)
