@@ -78,7 +78,7 @@ import (
 	"strings"
 	"time"
 
-	kafka "github.com/segmentio/kafka-go"
+	kafka "github.com/rjshrjndrn/kafka-go"
 )
 
 // Metrics structure
