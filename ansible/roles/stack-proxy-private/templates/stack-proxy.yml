@@ -1,0 +1,33 @@
+version: '3.3'
+
+services:
+  proxy:
+    image: nginx
+    # This is a workaround for remote ip address is not visible nginx
+    ports:
+      - mode: host
+        target: 80
+        published: 31480
+        protocol: TCP
+    deploy:
+      replicas: 1
+      resources:
+        reservations:
+          memory: "{{ proxy_reservation_memory }}"
+        limits:
+          memory: "{{ proxy_limit_memory }}"
+      update_config:
+        parallelism: 1
+        delay: 30s
+    configs:
+      - source: proxy-default-private.conf
+        target: /etc/nginx/conf.d/default.conf
+    networks:
+      - application_default
+configs:
+  proxy-default-private.conf:
+    external: true
+
+networks:
+  application_default:
+    external: true
