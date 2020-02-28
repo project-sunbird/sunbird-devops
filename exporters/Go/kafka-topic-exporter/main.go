@@ -151,6 +151,8 @@ func metricsCreation(data []byte) error {
 
 // Http handler
 func serve(w http.ResponseWriter, r *http.Request) {
+	// Channel to keep track of offset lag
+	lagChannel := make(chan int64, 1)
 	ctx := r.Context()
 	// Creating context
 	// Reading topic
@@ -161,8 +163,10 @@ func serve(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("err reading message: %v", err)
 				break
 			}
-			fmt.Printf("topic: %q partition: %v offset %v\n", m.Topic, m.Partition, m.Offset)
+			fmt.Printf("topic: %q partition: %v offset: %v lag: %d\n ", m.Topic, m.Partition, m.Offset, r.Lag())
 			go metricsCreation(m.Value)
+			fmt.Println(r.Lag())
+			lagChannel <- r.Lag()
 		}
 	}(ctx, kafkaReader)
 	for {
@@ -173,6 +177,10 @@ func serve(w http.ResponseWriter, r *http.Request) {
 		case <-ctx.Done():
 			fmt.Printf("done")
 			return
+		case lag := <-lagChannel:
+			if lag == 0 {
+				return
+			}
 		}
 	}
 }
