@@ -1,3 +1,4 @@
+//  vim: set ts=4 sw=4 tw=0 noet :
 // This package reads the topic from kafka and prase it as prometheus metrics with optional timestamp.
 // Json format should be as described below.
 // {
@@ -259,18 +260,18 @@ var kafkaReader *kafka.Reader
 
 func main() {
 	// Getting kafka_ip and topic
-	kafka_host := os.Getenv("kafka_host")
-	kafka_topic := os.Getenv("kafka_topic")
-	if kafka_topic == "" || kafka_host == "" {
+	kafkaHost := os.Getenv("kafka_host")
+	kafkaTopic := os.Getenv("kafka_topic")
+	if kafkaTopic == "" || kafkaHost == "" {
 		log.Fatalf(`"kafka_topic or kafka_host environment variables not set."
 For example,
 	export kafka_host=10.0.0.9:9092
 	kafka_topic=sunbird.metrics.topic`)
 	}
-	fmt.Printf("kafak_host: %s\nkafka_topic: %s\n", kafka_host, kafka_topic)
+	fmt.Printf("kafak_host: %s\nkafka_topic: %s\n", kafkaHost, kafkaTopic)
 	// Checking kafka port and ip are accessible
 	fmt.Println("Checking connection to kafka")
-	conn, err := net.DialTimeout("tcp", kafka_host, 10*time.Second)
+	conn, err := net.DialTimeout("tcp", kafkaHost, 10*time.Second)
 	if err != nil {
 		log.Fatalf("Connection error: %s", err)
 	}
@@ -278,9 +279,9 @@ For example,
 	fmt.Println("kafka is accessible")
 	// Initializing kafka
 	kafkaReader = kafka.NewReader(kafka.ReaderConfig{
-		Brokers:          []string{kafka_host},
+		Brokers:          []string{kafkaHost},
 		GroupID:          "metrics-reader-test", // Consumer group ID
-		Topic:            kafka_topic,
+		Topic:            kafkaTopic,
 		MinBytes:         1e3,  // 1KB
 		MaxBytes:         10e6, // 10MB
 		MaxWait:          200 * time.Millisecond,
