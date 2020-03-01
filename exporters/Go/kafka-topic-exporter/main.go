@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -41,8 +42,9 @@ type Metrics struct {
 
 // This is to get the last message served to prom endpoint.
 type lastReadMessage struct {
-	mu   sync.RWMutex
-	last kafka.Message
+	mu sync.RWMutex
+	// 	 	partition message
+	last map[int]kafka.Message
 }
 
 // Adding message
@@ -50,23 +52,24 @@ type lastReadMessage struct {
 func (lrm *lastReadMessage) Store(message kafka.Message) error {
 	lrm.mu.Lock()
 	defer lrm.mu.Unlock()
-	// Updating only if the offset is greater
-	if lrm.last.Offset < message.Offset {
-		lrm.last = message
-		return nil
+	// Initializing map if nil
+	if lrm.last == nil {
+		lrm.last = make(map[int]kafka.Message)
 	}
-	return fmt.Errorf("lower offset(%d) than the latest(%d)", message.Offset, lrm.last.Offset)
-}
-
-func (lrm *lastReadMessage) Reset() error {
-	lrm.mu.Lock()
-	defer lrm.mu.Unlock()
-	lrm.last = kafka.Message{}
+	if _, ok := lrm.last[message.Partition]; ok {
+		// Updating only if the offset is greater
+		if lrm.last[message.Partition].Offset < message.Offset {
+			lrm.last[message.Partition] = message
+		}
+		return fmt.Errorf("lower offset(%d) than the latest(%d)", message.Offset, lrm.last[message.Partition].Offset)
+	} else {
+		lrm.last[message.Partition] = message
+	}
 	return nil
 }
 
 // Return the last message read
-func (lrm *lastReadMessage) Get() kafka.Message {
+func (lrm *lastReadMessage) Get() map[int]kafka.Message {
 	lrm.mu.RLock()
 	defer lrm.mu.RUnlock()
 	return lrm.last
@@ -138,6 +141,19 @@ func metricsCreation(ctx context.Context, m kafka.Message) error {
 	}
 }
 
+func commitMessage(messages *map[int]kafka.Message) error {
+	for k, message := range *messages {
+		if message.Offset > 0 {
+			fmt.Printf("Commiting message partition %d offset %d\n", k, message.Offset)
+			if err := kafkaReader.CommitMessages(context.Background(), message); err != nil {
+				return err
+			}
+		}
+		return errors.New("offset is not > 0")
+	}
+	return nil
+}
+
 func serve(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Serving Request")
 	ctx := r.Context()
@@ -167,23 +183,12 @@ func serve(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "%s\n", message.message)
 			lastReadMessage.Store(message.id)
 		case <-ctx.Done():
-			// This method will only work with single partion topics
 			messageLastRead := lastReadMessage.Get()
-			if messageLastRead.Offset > 0 {
-				fmt.Printf("Commiting message offset %d\n", messageLastRead.Offset)
-				if err := kafkaReader.CommitMessages(context.Background(), messageLastRead); err != nil {
-					fmt.Println(err)
-				}
-			}
+			commitMessage(&messageLastRead)
 			return
 		case <-time.After(1 * time.Second):
 			messageLastRead := lastReadMessage.Get()
-			if messageLastRead.Offset > 0 {
-				fmt.Printf("Commiting message offset %d\n", messageLastRead.Offset)
-				if err := kafkaReader.CommitMessages(context.Background(), messageLastRead); err != nil {
-					fmt.Println(err)
-				}
-			}
+			commitMessage(&messageLastRead)
 			return
 		}
 	}
