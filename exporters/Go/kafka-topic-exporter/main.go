@@ -227,18 +227,16 @@ func serve(w http.ResponseWriter, r *http.Request) {
 		case message := <-promMetricsChannel:
 			lastReadMessage.Store(message.id)
 			fmt.Fprintf(w, "%s\n", message.message)
-			// Waiting for 1 ms before quitting
 		case <-ctx.Done():
 			// explicitly commiting last read message
 			messageLastRead := lastReadMessage.Get()
 			// Don't commit if offset is zero
-			if messageLastRead.Offset != 0 {
+			if messageLastRead.Offset > 0 {
 				fmt.Printf("Commiting message offset %d\n", messageLastRead.Offset)
 				// Using context.Background, Commit need to be successful.
 				if err := kafkaReader.CommitMessages(context.Background(), messageLastRead); err != nil {
 					fmt.Printf("Error commiting message, err: %q\n", err)
 				}
-
 			}
 			fmt.Printf("done\n")
 			return
