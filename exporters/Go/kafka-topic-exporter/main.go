@@ -14,8 +14,30 @@ import (
 	"sync"
 	"time"
 
-	kafka "github.com/rjshrjndrn/kafka-go"
+	kafka "github.com/segmentio/kafka-go"
 )
+
+var kafkaReader *kafka.Reader
+
+// Channel to keep metrics till prometheus scrape that
+var promMetricsChannel = make(chan metric)
+
+// Metrics structure
+type Metrics struct {
+	System    string      `json:"system"`
+	SubSystem string      `json:"subsystem"`
+	MetricTS  json.Number `json:"metricTs"`
+	Metrics   []struct {
+		ID    string  `json:"id"`
+		Value float64 `json:"value"`
+	} `json:"metrics"`
+	// Labels to be added for the metric
+	Lables []struct {
+		ID string `json:"id"`
+		// Even nimbers will be read as string
+		Value json.Number `json:"value"`
+	} `json:"dimensions"`
+}
 
 // This is to get the last message served to prom endpoint.
 type lastReadMessage struct {
@@ -36,34 +58,18 @@ func (lrm *lastReadMessage) Store(message kafka.Message) error {
 	return fmt.Errorf("lower offset(%d) than the latest(%d)", message.Offset, lrm.last.Offset)
 }
 
+func (lrm *lastReadMessage) Reset() error {
+	lrm.mu.Lock()
+	defer lrm.mu.Unlock()
+	lrm.last = kafka.Message{}
+	return nil
+}
+
 // Return the last message read
 func (lrm *lastReadMessage) Get() kafka.Message {
 	lrm.mu.RLock()
 	defer lrm.mu.RUnlock()
 	return lrm.last
-}
-
-// Message format
-type metric struct {
-	message string
-	id      kafka.Message
-}
-
-// Metrics structure
-type Metrics struct {
-	System    string      `json:"system"`
-	SubSystem string      `json:"subsystem"`
-	MetricTS  json.Number `json:"metricTs"`
-	Metrics   []struct {
-		ID    string  `json:"id"`
-		Value float64 `json:"value"`
-	} `json:"metrics"`
-	// Labels to be added for the metric
-	Lables []struct {
-		ID string `json:"id"`
-		// Even nimbers will be read as string
-		Value json.Number `json:"value"`
-	} `json:"dimensions"`
 }
 
 // Validating metrics name
@@ -75,6 +81,12 @@ func metricsNameValidator(names ...string) string {
 		retName += strings.ReplaceAll(name, "-", "_") + "_"
 	}
 	return strings.TrimRight(retName, "_")
+}
+
+// Message format
+type metric struct {
+	message string
+	id      kafka.Message
 }
 
 // This function will take the metrics input and create prometheus metrics
@@ -109,9 +121,6 @@ func (metrics *Metrics) pushMetrics(ctx context.Context, metricData *kafka.Messa
 	}
 }
 
-// Channel to keep metrics till prometheus scrape that
-var promMetricsChannel = make(chan metric)
-
 func metricsCreation(ctx context.Context, m kafka.Message) error {
 	metrics := Metrics{}
 	data := m.Value
@@ -129,13 +138,10 @@ func metricsCreation(ctx context.Context, m kafka.Message) error {
 	}
 }
 
-// Http handler
 func serve(w http.ResponseWriter, r *http.Request) {
-	// Channel to keep track of offset lag
-	lagChannel := make(chan int64)
+	fmt.Println("Serving Request")
 	ctx := r.Context()
 	lastReadMessage := lastReadMessage{}
-	// Creating context
 	// Reading topic
 	go func(ctx context.Context, r *kafka.Reader) {
 		for {
@@ -153,51 +159,35 @@ func serve(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}(ctx)
-			lagChannel <- r.Lag()
 		}
 	}(ctx, kafkaReader)
 	for {
 		select {
 		case message := <-promMetricsChannel:
-			fmt.Println("In metrics channel")
-			lastReadMessage.Store(message.id)
 			fmt.Fprintf(w, "%s\n", message.message)
+			lastReadMessage.Store(message.id)
 		case <-ctx.Done():
-			// explicitly commiting last read message
+			// This method will only work with single partion topics
 			messageLastRead := lastReadMessage.Get()
-			// Don't commit if offset is zero
 			if messageLastRead.Offset > 0 {
 				fmt.Printf("Commiting message offset %d\n", messageLastRead.Offset)
-				// Using context.Background, Commit need to be successful.
 				if err := kafkaReader.CommitMessages(context.Background(), messageLastRead); err != nil {
-					fmt.Printf("Error commiting message, err: %q\n", err)
+					fmt.Println(err)
 				}
 			}
-			fmt.Printf("done\n")
 			return
-		case lag := <-lagChannel:
-			fmt.Println("In lag channel")
-			if lag == 0 {
-				// explicitly commiting last read message
-				messageLastRead := lastReadMessage.Get()
-				// Don't commit if offset is zero
-				if messageLastRead.Offset > 0 {
-					// explicitly commiting last read message
-					messageLastRead := lastReadMessage.Get()
-					fmt.Printf("Commiting message offset %d\n", messageLastRead.Offset)
-					// Using context.Background, Commit need to be successful.
-					if err := kafkaReader.CommitMessages(context.Background(), messageLastRead); err != nil {
-						fmt.Printf("Error commiting message, err: %q\n", err)
-					}
+		case <-time.After(1 * time.Second):
+			messageLastRead := lastReadMessage.Get()
+			if messageLastRead.Offset > 0 {
+				fmt.Printf("Commiting message offset %d\n", messageLastRead.Offset)
+				if err := kafkaReader.CommitMessages(context.Background(), messageLastRead); err != nil {
+					fmt.Println(err)
 				}
-				fmt.Println("queue length: ", len(promMetricsChannel))
-				return
 			}
+			return
 		}
 	}
 }
-
-var kafkaReader *kafka.Reader
 
 func main() {
 	// Getting kafka_ip and topic
