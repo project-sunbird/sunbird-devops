@@ -247,7 +247,9 @@ func serve(w http.ResponseWriter, r *http.Request) {
 					// explicitly commiting last read message
 					messageLastRead := lastReadMessage.Get()
 					fmt.Printf("Commiting message offset %d\n", messageLastRead.Offset)
-					kafkaReader.CommitMessages(ctx, messageLastRead)
+					if err := kafkaReader.CommitMessages(ctx, messageLastRead); err != nil {
+						fmt.Printf("Error commiting message, err: %q\n", err)
+					}
 				}
 				fmt.Println("queue length: ", len(promMetricsChannel))
 				return
