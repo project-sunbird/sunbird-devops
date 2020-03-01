@@ -214,7 +214,6 @@ func serve(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}(ctx)
-			fmt.Println(r.Lag())
 			lagChannel <- r.Lag()
 		}
 	}(ctx, kafkaReader)
