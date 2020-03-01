@@ -90,11 +90,16 @@ type lastReadMessage struct {
 }
 
 // Adding message
-func (lrm *lastReadMessage) Store(message kafka.Message) {
+// Only the latest
+func (lrm *lastReadMessage) Store(message kafka.Message) error {
 	lrm.mu.Lock()
 	defer lrm.mu.Unlock()
-
-	lrm.last = message
+	// Updating only if the offset is greater
+	if lrm.last.Offset < message.Offset {
+		lrm.last = message
+		return nil
+	}
+	return fmt.Errorf("lower offset(%d) than the latest(%d)", message.Offset, lrm.last.Offset)
 }
 
 // Return the last message read
