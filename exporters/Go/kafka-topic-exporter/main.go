@@ -1,69 +1,3 @@
-//  vim: set ts=4 sw=4 tw=0 noet :
-// This package reads the topic from kafka and prase it as prometheus metrics with optional timestamp.
-// Json format should be as described below.
-// {
-// 	"system": "<category of the metrics, for example: samza>",
-// 	"subsystem": "<producer of the metrics, for example: pipeline-metrics>",
-// 	"metricts": "< timestamp of the merics, which should be passed to prometheus. This should be in epoch milliseconds>", // This is an optional field
-// 	"metrics": [
-// 		{
-// 			"id": "<name of the metric>", // It can contain alphabets and '-' and '_'. Should should start with alphabet
-// 			"value": "< value of the metric>" // Should be of int or float64
-// 		}
-// 		{
-// 			...
-// 			...
-// 			...
-// 		}
-// 	],
-// 	"dimensions": [ // Labels which will get injectd to each of the above metrics
-// 		{
-// 			"id": "< name of the label>", // It can contain alphabets and '-' and '_'. Should should start with alphabet
-// 			"value": < value of the label>"
-// 		}
-// 		{
-// 			...
-// 			...
-// 			...
-// 		}
-// 	]
-// }
-//
-// Example:
-// {
-//     "system": "samza",
-//     "subsystem": "pipeline-metrics",
-//     "metricts" : 1582521646464,
-//     "metrics": [
-//         {
-//             "id": "success-message-count",
-//             "value": 1
-//         },
-//         {
-//             "id": "skipped-message-count",
-//             "value": 1
-//         },
-//         {
-//         }
-//     ],
-//     "dimensions": [
-//         {
-//             "id": "job-name",
-//             "value": "test-job"
-//         },
-//         {
-//             "id": "partition",
-//             "value": 0
-//         }
-//     ]
-// }
-//
-// kafka_host and kafka_topic environment variables should be set
-//
-// Example:
-// export kafka_host=10.0.0.9:9092
-// export kafka_topic=sunbird.metrics.topic
-//
 // Author : Kaliraja Ramasami <kaliraja.ramasamy@tarento.com>
 // Author : Rajesh Rajendran <rjshrjdnrn@gmail.com>
 package main
@@ -167,7 +101,7 @@ func (metrics *Metrics) pushMetrics(ctx context.Context, metricData *kafka.Messa
 			default:
 				metricStruct.message = fmt.Sprintf("%s{%s} %.1f %s", metricsNameValidator(metrics.System, metrics.SubSystem, m.ID), strings.TrimRight(label, ","), m.Value, metrics.MetricTS)
 			}
-			fmt.Printf("%s\n", metricStruct.message)
+			// fmt.Printf("%s\n", metricStruct.message)
 			metricStruct.id = *metricData
 			promMetricsChannel <- metricStruct
 		}
@@ -198,7 +132,7 @@ func metricsCreation(ctx context.Context, m kafka.Message) error {
 // Http handler
 func serve(w http.ResponseWriter, r *http.Request) {
 	// Channel to keep track of offset lag
-	lagChannel := make(chan int64, 1)
+	lagChannel := make(chan int64)
 	ctx := r.Context()
 	lastReadMessage := lastReadMessage{}
 	// Creating context
@@ -225,6 +159,7 @@ func serve(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case message := <-promMetricsChannel:
+			fmt.Println("In metrics channel")
 			lastReadMessage.Store(message.id)
 			fmt.Fprintf(w, "%s\n", message.message)
 		case <-ctx.Done():
@@ -241,15 +176,17 @@ func serve(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("done\n")
 			return
 		case lag := <-lagChannel:
+			fmt.Println("In lag channel")
 			if lag == 0 {
 				// explicitly commiting last read message
 				messageLastRead := lastReadMessage.Get()
 				// Don't commit if offset is zero
-				if messageLastRead.Offset != 0 {
+				if messageLastRead.Offset > 0 {
 					// explicitly commiting last read message
 					messageLastRead := lastReadMessage.Get()
 					fmt.Printf("Commiting message offset %d\n", messageLastRead.Offset)
-					if err := kafkaReader.CommitMessages(ctx, messageLastRead); err != nil {
+					// Using context.Background, Commit need to be successful.
+					if err := kafkaReader.CommitMessages(context.Background(), messageLastRead); err != nil {
 						fmt.Printf("Error commiting message, err: %q\n", err)
 					}
 				}
