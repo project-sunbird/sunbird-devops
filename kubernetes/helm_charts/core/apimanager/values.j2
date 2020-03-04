@@ -25,30 +25,11 @@ strategy:
   maxsurge: {{ apimanager_maxsurge|default(1) }}
   maxunavailable: {{ apimanager_maxunavailable|default }}
 
-apimanager:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true 
-  readinessProbe:
-    httpGet:
-      path: /status
-      port: 8001
-    initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 5
-    successThreshold: 1
-  livenessProbe:
-    httpGet:
-      path: /
-      port: 8001
-    initialDelaySeconds: 60
-    periodSeconds: 10
+{{ apimanager_liveness_readiness | to_nice_yaml }}
 
 godns:
   repository: {{ go_dns_repository | default('docker.io/sunbird/go-dns') }}
-  image_tag: {{ go_dns_image_tag | default('v1.0') }}
+  image_tag: {{ go_dns_image_tag | default('v1.1') }}
   resources:
     requests:
       cpu: {{ go_dns_cpu_req | default('50m') }}
