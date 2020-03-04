@@ -120,7 +120,17 @@ proxyconfig: |
     location ~* ^/auth/admin/master/console/ {
       return 301 {{proto}}://{{ proxy_server_name }};
     }
-  
+
+    location ~* ^/auth/v1/refresh/token  {
+      rewrite ^/auth/(.*) /auth/$1 break;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_pass http://player;
+    }
+
     location /auth/ {
       set $target {{ keycloak_url }};
       rewrite ^/auth/(.*) /auth/$1 break;
