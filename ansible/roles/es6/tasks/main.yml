@@ -80,16 +80,14 @@
   tags:
       - templates
 
+# Add ES Plugin credentials for backups
 - name: Add ES Backup variables to elasticsearch to have backups enabled
   lineinfile:
     path: '{{conf_dir}}/elasticsearch.yml'
-    line: 'cloud.azure.storage.default.{{item.var}}={{item.value}}'
+    line: 'cloud.azure.storage.default.{{item.var}}: {{item.value}}'
     regexp: "cloud.azure.storage.default.{{ item.var }}.*"
   with_items:
     - {var: 'account', value: '{{ sunbird_management_storage_account_name }}'}
     - {var: 'key', value: '{{ sunbird_management_storage_account_key }}'}
   when: sunbird_management_storage_account_name is defined and sunbird_management_storage_account_key is defined
-
-- name: restart es service
-  become: yes
   notify: restart elasticsearch
