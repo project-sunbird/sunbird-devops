@@ -22,7 +22,6 @@ prometheus:
   service: {{ (prometheus_service | to_json) }}
 {% endif %}
 
-
 # Enabling monitoring kubelet monitoring over http
 kubelet:
   serviceMonitor:
@@ -90,7 +89,7 @@ alertmanager:
             to: '{{ item.alerts_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ env }}-KUBERNETES] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
       {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
       {% for filter in item.severity_mailing_filter %}
       # Comment to ensure proper indentation while templating
@@ -100,7 +99,7 @@ alertmanager:
             to: '{{ filter.alerts_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ env }}-KUBERNETES] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
       {% endfor %}
       {% endif %}
       {% endfor %}
@@ -111,7 +110,7 @@ alertmanager:
             to: '{{ default_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ env }}-KUBERNETES] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
 
 
 grafana:
@@ -121,4 +120,7 @@ grafana:
   additionalDataSources: {{ (grafana_data_sources| default('[]')) | to_json}}
 {% if grafana_persistence is defined and grafana_persistence %}
   persistence: {{ grafana_persistence|to_json}}
+{% endif %}
+{% if grafana_service is defined and grafana_service %}
+  service: {{ grafana_service|to_json}}
 {% endif %}

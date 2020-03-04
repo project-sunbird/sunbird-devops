@@ -88,6 +88,11 @@ window.onload = function(){
 	}
 	var autoMerge = getValueFromSession('automerge');
 	if (autoMerge === '1') {
+		var isValuePresent = (new URLSearchParams(window.location.search)).get('automerge');
+		if (isValuePresent) {
+			sessionStorage.removeItem('session_url');
+			initialize();
+		}
 		decoratePage('autoMerge');
 		storeValueForMigration();
 	}

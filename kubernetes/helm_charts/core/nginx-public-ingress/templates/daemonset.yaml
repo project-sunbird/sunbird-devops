@@ -84,8 +84,12 @@ metadata:
   name: nginx-public-ingress
   namespace: {{ .Values.namespace }}
 spec:
+  externalTrafficPolicy: Local
   selector:
     app: nginx-public-ingress
   type: {{ .Values.service.type }}
+{{- if and .Values.service.nginx_public_ingress_ip (ne .Values.service.type "NodePort") }}
+  loadBalancerIP: {{ .Values.service.nginx_public_ingress_ip }}
+{{- end }}
   ports:
 {{ toYaml .Values.service.ports | indent 4 }}
