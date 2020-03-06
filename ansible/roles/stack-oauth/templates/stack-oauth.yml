@@ -2,7 +2,7 @@ version: '3.3'
 
 services:
   oauth:
-    image: rjshrjndrn/oauth2-proxy:2.2
+    image: sunbird/oauth2_proxy:v1.0
     ports:
         - "4111:4111"
     deploy:
@@ -12,7 +12,7 @@ services:
         limits:
           memory: "{{ logger_oauth_limit_memory }}"
     command: |
-      -cookie-secure=false
+      -cookie-secure=true
       -upstream=http://{{swarm_agent_for_proxy}}/oauth2
       -redirect-url={{kibana_oauth_redirect_url}}
       -http-address=0.0.0.0:4111
@@ -20,6 +20,12 @@ services:
       -email-domain={{email_domain}}
       {% endfor %}
       -authenticated-emails-file=/authenticated_email.txt
+      -cookie-secret={{cookie_secret}}
+      -cookie-expire=24h
+      -cookie-refresh=4h
+      -cookie-httponly=true
+      -silence-ping-logging=true
+      -skip-provider-button=true
     environment:
       - OAUTH2_PROXY_CLIENT_ID={{google_client_id}}
       - OAUTH2_PROXY_CLIENT_SECRET={{google_client_secret}}
