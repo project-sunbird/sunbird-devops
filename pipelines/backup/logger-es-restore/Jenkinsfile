@@ -1,6 +1,6 @@
 @Library('deploy-conf') _
 node() {
-      try {  
+    try {
         String ANSI_GREEN = "\u001B[32m"
         String ANSI_NORMAL = "\u001B[0m"
         String ANSI_BOLD = "\u001B[1m"
@@ -8,12 +8,7 @@ node() {
         String ANSI_YELLOW = "\u001B[33m"
 
         stage('checkout public repo') {
-            folder = new File("$WORKSPACE/.git")
-            if (folder.exists())
-            {
-               println "Found .git folder. Clearing it.."
-               sh'git clean -fxd'
-            }
+            cleanWs()
             checkout scm
         }
 
@@ -24,8 +19,8 @@ node() {
                 module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
                 jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                 currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                ansiblePlaybook = "${currentWs}/ansible/es.yml"
-                ansibleExtraArgs = "--tags \"log_es_restore\" --extra-vars \"remote=${params.host} snapshot_number=${params.snapshot_name}\" -v --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                ansiblePlaybook = "${currentWs}/ansible/es_restore.yml"
+                ansibleExtraArgs = "--extra-vars \"es_restore_host=${params.host} snapshot_number=${params.SNAPSHOT_NUMBER}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                 values.put('currentWs', currentWs)
                 values.put('env', envDir)
                 values.put('module', module)
@@ -34,12 +29,12 @@ node() {
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 println values
                 ansible_playbook_run(values)
-                currentBuild.result = 'SUCCESS'
-                currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
-            }
+                currentBuild.result = "SUCCESS"
+                currentBuild.description = "Artifact: ${values.artifact_version}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
+             }
         }
-      }           
-        catch (err) {
+    }
+    catch (err) {
         currentBuild.result = "FAILURE"
         throw err
     }
