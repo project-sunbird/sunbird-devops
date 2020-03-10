@@ -60,7 +60,8 @@ To run the installation in tmux, if not already, follow the instructions
 This script will wait for 20 seconds for user to cancel
 ${NORMAL}
 EOF
-sleep 20
+# commenting the below one and can be uncomment later
+#sleep 20
 
 # Installing deps
 bash install-deps.sh
@@ -85,7 +86,7 @@ done
 
 # installing unzip
 sudo apt install unzip
-find $ansible_path -maxdepth 1 -type f ! -name "keycloak_artifacts.zip" -iname "*.zip" -exec unzip -o {} -d $ansible_path \;
+# find $ansible_path -maxdepth 1 -type f ! -name "keycloak_artifacts.zip" -iname "*.zip" -exec unzip -o {} -d $ansible_path \;
 
 # Creating inventory strucure
 git checkout -- ../ansible/inventory/env/group_vars/all.yml # This is to make sure always the all.yaml is updated
@@ -103,15 +104,20 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/cassandra-deploy.yml -e 
 touch ~/.config/sunbird/db
 fi
 
-
+source version.env
 # Bootstrapping kubernetes
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/bootstrap_minimal.yaml
-services="apimanager nginx-private-ingress"
-for service in $services;
-do
-  echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
-  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/${service} image_tag=${services}_image_tag release_name=${service} role_name=sunbird-deploy" -v
-done
+#services="apimanager nginx-private-ingress"
+#for service in $services;
+#do
+#  echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
+#  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/${service} image_tag=${!service} release_name=${service} role_name=sunbird-deploy" -v
+#done
+
+ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/apimanager image_tag=${apimanager} release_name=apimanager role_name=sunbird-deploy" -vvvv
+rm -rf /home/deployer/sunbird-devops/kubernetes/ansible/roles/sunbird-deploy/templates/*
+
+ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/nginx-private-ingress release_name=nginx-private-ingress role_name=helm-deploy" -v
 
 # Provisioning keycloak
 if [[ ! -f ~/.config/sunbird/keycloak ]]; then
@@ -140,7 +146,8 @@ vars_updater
 
 
 # Installing API manager
-ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy kong_admin_api_url=http://$(hostname -i):12000/admin-api" -v
+ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy image_tag=${apimanager} kong_admin_api_url=http://$(hostname -i):12000/admin-api" -v
+rm -rf /home/deployer/sunbird-devops/kubernetes/ansible/roles/sunbird-deploy/templates/*
 
 # echo "@@@@@@@@@ Onboard APIs"
 ansible-playbook -i ../ansible/inventory/env ../ansible/api-manager.yml -e kong_admin_api_url=http://$(hostname -i):12000/admin-api --tags kong-api
@@ -151,13 +158,24 @@ echo "@@@@@@@@@ Onboard Consumers"
 ansible-playbook -i ../ansible/inventory/env ../ansible/api-manager.yml -e "kong_admin_api_url=http://$(hostname -i):12000/admin-api kubeconfig_path=/etc/rancher/k3s/k3s.yaml" --tags kong-consumer
 
 jwt_token=$(sudo cat /root/jwt_token_player.txt|xargs)
+# Deploying the adminutils
+echo "@@@@@@@@@@@@@@ Deploying adminutils @@@@@@@@@@@@@@@@@@"
+ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/adminutils release_name=adminutils image_tag=${adminutils} role_name=helm-deploy sunbird_api_auth_token=${jwt_token}" -v
+
 # services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
-services="adminutils knowledgemw lms apimanager content learner player telemetry nginx-public-ingress"
+services="knowledgemw lms content learner telemetry"
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
-  ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy sunbird_api_auth_token=${jwt_token}" -v
+  ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} image_tag=${!service} role_name=sunbird-deploy sunbird_api_auth_token=${jwt_token}" -vvvv
+rm -rf /home/deployer/sunbird-devops/kubernetes/ansible/roles/sunbird-deploy/templates/*
 done
+
+ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/player release_name=player image_tag=${player} role_name=deploy-player sunbird_api_auth_token=${jwt_token}" -vvvv
+rm -rf /home/deployer/sunbird-devops/kubernetes/ansible/roles/sunbird-deploy/templates/*
+
+ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/nginx-public-ingress release_name=nginx-public-ingress role_name=helm-deploy image_tag="" " -v
+
 kubectl rollout restart deployment -n dev
 
 # Uploding content-plugins
