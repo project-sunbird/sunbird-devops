@@ -267,7 +267,7 @@ curl --location --request POST "https://${domain_name}/api/user/v1/create" \
         "phoneVerified": true
     }
 }'
-
+sleep 5
 # Creating reviewer user
 curl --location --request POST "https://${domain_name}/api/user/v1/create" \
 --header 'Cache-Control: no-cache' \
@@ -290,7 +290,7 @@ curl --location --request POST "https://${domain_name}/api/user/v1/create" \
 }'
 
 
-sleep 3
+sleep 5 
 
 # Assigning user role to creator user
 user_id=$(curl --location --request POST "https://${domain_name}/api/user/v1/search" \
@@ -309,6 +309,8 @@ user_id=$(curl --location --request POST "https://${domain_name}/api/user/v1/sea
     }
 }' | jq '.result.response.content[].organisations[].userId' | xargs
 )
+sleep 5
+
 echo user id: $user_id
 
 curl --location --request POST "https://${domain_name}/api/user/v1/role/assign" \
@@ -326,6 +328,7 @@ curl --location --request POST "https://${domain_name}/api/user/v1/role/assign" 
     }
 }'
 
+sleep 5
 # Assigning user role to reviewer user 
 user_id=$(curl --location --request POST "https://${domain_name}/api/user/v1/search" \
 --header 'Cache-Control: no-cache' \

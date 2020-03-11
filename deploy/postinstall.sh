@@ -39,7 +39,10 @@ Sunbird installation is complete
 
 open ${WHITE}https://${domain_name}${GREEN}
 
-your admin user is: ${WHITE}${username}${GREEN}
+your content creator user is: ${WHITE}creator${GREEN}
+password : ${WHITE}${password}${GREEN}
+
+your content reviewer user is: ${WHITE}reviewer${GREEN}
 password : ${WHITE}${password}${GREEN}
 
 ${GREEN}
