@@ -304,7 +304,7 @@ user_id=$(curl --location --request POST "https://${domain_name}/api/user/v1/sea
     {
         "filters": {
         "phone": "'${creatorPhone_number}'",
-        "userName": "'${creatorusername}'"
+        "userName": "'${creatorUsername}'"
         }
     }
 }' | jq '.result.response.content[].organisations[].userId' | xargs
@@ -341,7 +341,7 @@ user_id=$(curl --location --request POST "https://${domain_name}/api/user/v1/sea
     {
         "filters": {
         "phone": "'${reviewerPhone_number}'",
-        "userName": "'${reviewerusername}'"
+        "userName": "'${reviewerUsername}'"
         }
     }
 }' | jq '.result.response.content[].organisations[].userId' | xargs
