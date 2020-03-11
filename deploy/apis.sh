@@ -20,6 +20,10 @@ board="sunbird"
 medium=("english" "hindi" "malayalam")
 gradeLevel=("class1" "class2" "class3")
 subject=("maths" "english" "science")
+reviewerUsername=reviewer
+reviewerPhone_number=9876543543
+creatorUsername=creator
+creatorPhone_number=9876543542
 # Overriding variables
 source 3node.vars
 learning_host="${kp_ip}:8080/learning-service"
@@ -243,7 +247,7 @@ curl --location --request POST "${learning_host}/framework/v3/publish/${framewor
 }'
 
 sleep 1
-# Creating user
+# Creating creator user
 curl --location --request POST "https://${domain_name}/api/user/v1/create" \
 --header 'Cache-Control: no-cache' \
 --header 'Content-Type: application/json' \
@@ -254,19 +258,41 @@ curl --location --request POST "https://${domain_name}/api/user/v1/create" \
 {
     "request":
     {
-        "firstName": "'${username}'",
-        "lastName": "'${username}'",
+        "firstName": "'${creatorUsername}'",
+        "lastName": "'${creatorUsername}'",
         "password": "'${password}'",
-        "phone": "'${phone_number}'",
-        "userName": "'${username}'",
+        "phone": "'${creatorPhone_number}'",
+        "userName": "'${creatorUsername}'",
         "channel": "'${org}'",
         "phoneVerified": true
     }
 }'
 
+# Creating reviewer user
+curl --location --request POST "https://${domain_name}/api/user/v1/create" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '
+{
+    "request":
+    {
+        "firstName": "'${reviewerUsername}'",
+        "lastName": "'${reviewerUsername}'",
+        "password": "'${password}'",
+        "phone": "'${reviewerPhone_number}'",
+        "userName": "'${reviewerUsername}'",
+        "channel": "'${org}'",
+        "phoneVerified": true
+    }
+}'
+
+
 sleep 3
 
-# Assigning user role
+# Assigning user role to creator user
 user_id=$(curl --location --request POST "https://${domain_name}/api/user/v1/search" \
 --header 'Cache-Control: no-cache' \
 --header 'Content-Type: application/json' \
@@ -277,8 +303,42 @@ user_id=$(curl --location --request POST "https://${domain_name}/api/user/v1/sea
     "request":
     {
         "filters": {
-        "phone": "'${phone_number}'",
-        "userName": "'${username}'"
+        "phone": "'${creatorPhone_number}'",
+        "userName": "'${creatorusername}'"
+        }
+    }
+}' | jq '.result.response.content[].organisations[].userId' | xargs
+)
+echo user id: $user_id
+
+curl --location --request POST "https://${domain_name}/api/user/v1/role/assign" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+    "request":
+    {
+        "organisationId": "'${org_id}'",
+        "userId": "'${user_id}'",
+        "roles": ["CONTENT_CREATOR","CONTENT_REVIEWER","ORG_ADMIN","BOOK_CREATOR","BOOK_REVIEWER","COURSE_MENTOR"]
+    }
+}'
+
+# Assigning user role to reviewer user 
+user_id=$(curl --location --request POST "https://${domain_name}/api/user/v1/search" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+    "request":
+    {
+        "filters": {
+        "phone": "'${reviewerPhone_number}'",
+        "userName": "'${reviewerusername}'"
         }
     }
 }' | jq '.result.response.content[].organisations[].userId' | xargs
