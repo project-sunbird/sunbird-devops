@@ -114,7 +114,7 @@ services="apimanager nginx-private-ingress"
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
-  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy" -v
+  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/$ssh_user/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy" -v
 done
 
 # Provisioning keycloak
@@ -144,7 +144,7 @@ vars_updater
 
 
 # Installing API manager
-ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy kong_admin_api_url=http://$(hostname -i):12000/admin-api" -v
+ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/$ssh_user/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy kong_admin_api_url=http://$(hostname -i):12000/admin-api" -v
 
 # echo "@@@@@@@@@ Onboard APIs"
 ansible-playbook -i ../ansible/inventory/env ../ansible/api-manager.yml -e kong_admin_api_url=http://$(hostname -i):12000/admin-api --tags kong-api
@@ -160,7 +160,7 @@ services="adminutils knowledgemw lms apimanager content learner player telemetry
 for service in $services;
 do
   echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
-  ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/ops/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy sunbird_api_auth_token=${jwt_token}" -v
+  ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/$ssh_user/sunbird-devops/kubernetes/helm_charts/core/${service} release_name=${service} role_name=sunbird-deploy sunbird_api_auth_token=${jwt_token}" -v
 done
 kubectl rollout restart deployment -n dev
 
