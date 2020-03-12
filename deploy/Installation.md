@@ -43,7 +43,7 @@ Three 2vCpus 8GB(RAM) VMs 50G(HardDisk)
 
 ### Installation Steps
 1. Create 3vms(**Core VM should have a public ip, and 80,443,8443 exposed to internet**) of 2core(CPU) 8GB(RAM) 50GB(HardDisk) of Ubuntu16.04
-2. Azure storage account with one public container( for example content)
+2. Create Azure storage account with one public container named `content`
 3. ssh into Core VM and do the following steps
     > Note: The user should have password less sudo access to all VMs
     1. Create a key file `vim ~/deployer.pem` which can ssh into all nodes.
