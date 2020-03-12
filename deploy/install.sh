@@ -23,6 +23,7 @@ function vars_updater {
     sed -i "s/\b10.1.4.5\b/${dbs_ip}/g" ../ansible/inventory/env/{hosts,common.yml}
     sed -i "s/\b10.1.4.6\b/${kp_ip}/g" ../ansible/inventory/env/{hosts,common.yml}
     sed -i "s/\bansible_ssh_user=ops\b/ansible_ssh_user=${ssh_user}/g" ../ansible/inventory/env/hosts
+    sed -i "s#\bansible_ssh_private_key_file=/home/ops/deployer.pem\b#ansible_ssh_private_key_file=/home/${ssh_user}/deployer.pem#g" ../ansible/inventory/env/hosts
     sed -i "s/\bsunbird.centralindia.cloudapp.azure.com\b/${domain_name}/g" ../ansible/inventory/env/common.yml
     sed -i "/\bcore_vault_proxy_site_key\b/c\core_vault_proxy_site_key: \"{{ lookup('file', \'${nginx_key_path}\') }}\"" ../ansible/inventory/env/secrets.yml
     sed -i "/\bcore_vault_proxy_site_crt\b/c\core_vault_proxy_site_crt: \"{{ lookup('file', \'${nginx_cert_path}\') }}\"" ../ansible/inventory/env/secrets.yml
