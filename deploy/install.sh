@@ -201,7 +201,7 @@ cd -
 wget -N https://sunbirdpublic.blob.core.windows.net/installation/neo4j-community-3.3.9-unix.tar.gz -P $ansible_path/artifacts/
 cp $ansible_path/cassandra.transaction-event-handler-*.jar $ansible_path/static-files
 
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_provision.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_provision.yml --extra-vars offline_kp=true
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_search_provision.yml
 if [[ ! -f ~/.config/sunbird/lp_db ]]; then
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/cassandra-trigger-deploy.yml
@@ -215,7 +215,7 @@ ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_redis_provision.
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_neo4j_deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/es_composite_search_cluster_setup.yml -v
 bash ./csindexupdate.sh ${kp_ip}
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_deploy.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_deploy.yml --extra-vars offline_kp=true
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_search_deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_definition_update.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
 
