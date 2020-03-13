@@ -58,8 +58,8 @@ sunbird_cassandra_port: 9042
 sunbird_portal_title_name: 'portal'
 sunbird_keycloak_client_id: 'portal'
 vault_sunbird_api_auth_token:
-sunbird_azure_storage_account:
-sunbird_azure_storage_key:
+sunbird_public_storage_account_name:
+sunbird_public_storage_account_key:
 sunbird_container_name:
 sunbird_portal_cdn_url:
 sunbird_dataservice_url:
@@ -71,7 +71,7 @@ sunbird_telemetry_dispatchers: kafka
 content_service_whitelisted_channels:
 content_service_blacklisted_channels:
 sunbird_env_logo_url:
-desktop_app_storage_url: "https://{{sunbird_offline_azure_storage_account}}.blob.core.windows.net/{{offline_installer_container_name}}"
+desktop_app_storage_url: "https://{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{offline_installer_container_name}}"
 
 telemetry_logstash_heap_size: 512m
 telemetry_logstash_replicas: 1
@@ -135,7 +135,6 @@ sunbird_portal_player_cdn_enabled:
 sunbird_portal_preview_cdn_url:
 cdn_file_path:
 sunbird_portal_cdn_blob_url:
-desktop_app_storage_url: "https://{{sunbird_offline_azure_storage_account}}.blob.core.windows.net/{{offline_installer_container_name}}"
 itext_license_enabled: false
 
 # Knowledge MW Service Config
@@ -214,7 +213,7 @@ registry_url: "{{proto}}://{{proxy_server_name}}/registry"
 
 upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
 plugin_upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
-sunbird_offline_azure_storage_account_url: "{{ sunbird_offline_azure_storage_account }}.blob.core.windows.net/{{ offline_installer_container_name }}"
+sunbird_offline_azure_storage_account_url: "{{ sunbird_public_storage_account_name }}.blob.core.windows.net/{{ offline_installer_container_name }}"
 # Override this dictionary in your common.yaml
 proxy:  
   # repository:  'proxy'
@@ -291,7 +290,7 @@ assessment_liveness_readiness:
   healthcheck: true
   readinessProbe:
     httpGet:
-      path: /service/health
+      path: /health
       port: 9000
     initialDelaySeconds: 30
     periodSeconds: 10
@@ -300,7 +299,7 @@ assessment_liveness_readiness:
     successThreshold: 1
   livenessProbe:
     httpGet:
-      path: /service/health
+      path: /health
       port: 9000
     initialDelaySeconds: 60
     periodSeconds: 10
@@ -396,6 +395,24 @@ knowledgemw_liveness_readiness:
     periodSeconds: 10
 
 learner_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+notification_liveness_readiness:
   healthcheck: true
   readinessProbe:
     httpGet:

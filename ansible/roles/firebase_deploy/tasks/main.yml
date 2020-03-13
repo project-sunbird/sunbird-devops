@@ -1,0 +1,17 @@
+---
+# tasks file for firebase_deploy
+  - name: Templating Firebase build upload script
+    template:
+      src: "deployToFirebase.sh"
+      dest: "./deployToFirebase.sh"
+  - name: Templating GDrive build upload script
+    template:
+      src: "uploadToGdrive.sh"
+      dest: "./uploadToGdrive.sh"
+  - name: Uploading build  to {{ env_name }} firebase
+    shell:  find ../ -maxdepth 1 -iregex ".*{{env_name}}.apk" -exec bash deployToFirebase.sh {} \;
+    when: env_name!='production'
+  - name: Uploading build to {{ env_name }} Gdrive
+    shell: find ../ -maxdepth 1 -iregex ".*[0-9].apk" -exec bash uploadToGdrive.sh -v -r {} \;
+    when: env_name=='production'
+
