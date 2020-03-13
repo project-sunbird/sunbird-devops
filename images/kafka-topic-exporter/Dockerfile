@@ -1,7 +1,7 @@
 FROM golang:1.13 AS builder
 COPY main.go /work
 WORKDIR /work
-RUN CGO_ENABLED=0 go build -o kafka-topic-exporter ../../exporters/Go/kafka-topic-exporter/main.go
+RUN CGO_ENABLED=0 go build -o kafka-topic-exporter main.go
 
 FROM scratch
 LABEL maintainer="Rajesh Rajendran<rjshrjndrn@gmail.com>"
