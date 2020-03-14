@@ -153,7 +153,7 @@ ansible-playbook -i ../ansible/inventory/env ../ansible/api-manager.yml -e kong_
 # echo "@@@@@@@@@ Onboard Consumers"
 ## This will generate a player token in /root/jwt_token_player.txt
 echo "@@@@@@@@@ Onboard Consumers"
-ansible-playbook -i ../ansible/inventory/env ../ansible/api-manager.yml -e "kong_admin_api_url=http://$(hostname -i):12000/admin-api kubeconfig_path=/etc/rancher/k3s/k3s.yaml" --tags kong-consumer
+ansible-playbook -i ../ansible/inventory/env ../ansible/api-manager.yml -e "kong_admin_api_url=http://$(hostname -i):12000/admin-api kubeconfig_path=/etc/rancher/k3s/k3s.yaml" --tags kong-consumer -v | tee -a ~/consumers.logs
 
 jwt_token=$(sudo cat /root/jwt_token_player.txt|xargs)
 # services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
