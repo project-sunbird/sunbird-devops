@@ -7,6 +7,9 @@ set -eu -o pipefail
 export LC_ALL=C
 export ANSIBLE_FORCE_COLOR=true
 
+# Make sure there are no keys in ssh-agent
+eval $(ssh-agent -s)
+
 # Color schemes
 BOLD="$(tput bold)"
 GREEN="${BOLD}$(tput setaf 2)"
