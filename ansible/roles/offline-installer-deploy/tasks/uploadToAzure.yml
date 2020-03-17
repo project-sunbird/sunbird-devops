@@ -1,5 +1,5 @@
 - name: Ensure azure blob storage container exists
-  command: az storage container create  --name offline-installer-test --public-access blob
+  command: az storage container create  --name {{offline_installer_container_name}} --public-access blob
   environment:
     AZURE_STORAGE_ACCOUNT: "{{sunbird_offline_azure_storage_account}}"
     AZURE_STORAGE_KEY: "{{sunbird_offline_azure_storage_key}}"
@@ -57,7 +57,7 @@
     - metadata.sh
 
 - name: Upload to azure blob storage
-  command: az storage blob upload-batch --destination offline-installer-test --source "offline_artifacts"
+  command: az storage blob upload-batch --destination {{offline_installer_container_name}} --source "offline_artifacts"
   args:
     chdir: "{{offline_repo_location}}/offline-installer-repo/"
   environment:
@@ -67,7 +67,7 @@
   poll: 10
 
 - name: Upload to latest.json file to blob
-  command: az storage blob upload-batch --destination "offline-installer-test/latest" --source "{{folderName.stdout}}"
+  command: az storage blob upload-batch --destination "{{offline_installer_container_name}}/latest" --source "{{folderName.stdout}}"
   args:
     chdir: "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/"
   environment:
