@@ -154,6 +154,10 @@ func commitMessage(messages *map[int]kafka.Message) error {
 	return nil
 }
 
+func health(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte("{\"Healthy\": true}"))
+}
 func serve(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Serving Request")
 	ctx := r.Context()
@@ -225,5 +229,6 @@ For example,
 	})
 	defer kafkaReader.Close()
 	http.HandleFunc("/metrics", serve)
+	http.HandleFunc("/health", health)
 	log.Fatal(http.ListenAndServe(":8000", nil))
 }
