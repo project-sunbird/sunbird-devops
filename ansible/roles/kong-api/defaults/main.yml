@@ -1075,6 +1075,39 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: registerDesktopApp
+    request_path: "{{ api_manager_perfix }}/v1/consumer/desktop_app/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/desktop_app/credential/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registerDesktopApp_ACL | default(['desktopAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: registerDesktopDevice
+    request_path: "{{ api_manager_perfix }}/v1/consumer/desktop_device/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/desktop_device/credential/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registerDesktopDevice_ACL | default(['desktopApp']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: registerMobileAppOpenRAP
     request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_app_openrap/credential/register"
