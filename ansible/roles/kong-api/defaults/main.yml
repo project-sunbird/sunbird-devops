@@ -33,6 +33,7 @@ large_request_size_limit: 100
 # Default service prefixes
 private_content_prefix: /private/content
 content_prefix: /content
+etextbook_prefix: /etextbook
 course_service_prefix: /course
 itemset_prefix: /itemset
 user_service_prefix: /user
@@ -296,6 +297,40 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist: "{{ retireContent_ACL | default(['contentAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createeTextbook
+    request_path: "{{ etextbook_prefix }}/v1/create"
+    upstream_url: "{{ knowledge_mw_service_url }}/etextbook/v1/create"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ createContent_ACL | default(['contentUpdate']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateeTextbook
+    request_path: "{{ etextbook_prefix }}/v1/update"
+    upstream_url: "{{ knowledge_mw_service_url }}/etextbook/v1/update"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ updateContent_ACL | default(['contentUpdate']) }}"
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1056,6 +1091,39 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: registerDesktopApp
+    request_path: "{{ api_manager_perfix }}/v1/consumer/desktop_app/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/desktop_app/credential/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registerDesktopApp_ACL | default(['desktopAdmin']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: registerDesktopDevice
+    request_path: "{{ api_manager_perfix }}/v1/consumer/desktop_device/credential/register"
+    upstream_url: "{{ am_util_url }}/v1/consumer/desktop_device/credential/register"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ registerDesktopDevice_ACL | default(['desktopApp']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: registerMobileAppOpenRAP
     request_path: "{{ api_manager_perfix }}/v1/consumer/mobile_app_openrap/credential/register"
@@ -3692,7 +3760,7 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-- name: downloadCertificate
+  - name: downloadCertificate
     request_path: "{{ user_service_prefix }}/v1/certs/download"
     upstream_url: "{{ learning_service_url }}/v1/user/certs/download"
     strip_request_path: true
