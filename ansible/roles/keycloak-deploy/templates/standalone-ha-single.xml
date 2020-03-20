@@ -3,7 +3,6 @@
 <server xmlns="urn:jboss:domain:10.0">
     <extensions>
         <extension module="org.jboss.as.clustering.infinispan"/>
-        <extension module="org.jboss.as.clustering.jgroups"/>
         <extension module="org.jboss.as.connector"/>
         <extension module="org.jboss.as.deployment-scanner"/>
         <extension module="org.jboss.as.ee"/>
@@ -13,7 +12,6 @@
         <extension module="org.jboss.as.jpa"/>
         <extension module="org.jboss.as.logging"/>
         <extension module="org.jboss.as.mail"/>
-        <extension module="org.jboss.as.modcluster"/>
         <extension module="org.jboss.as.naming"/>
         <extension module="org.jboss.as.remoting"/>
         <extension module="org.jboss.as.security"/>
@@ -146,24 +144,20 @@
                         <user-name>{{ keycloak_postgres_user }}</user-name>
                         <password>{{ keycloak_postgres_password }}</password>
                     </security>
-
-                <validation>
-                      <check-valid-connection-sql>select 1</check-valid-connection-sql>
-                      <validate-on-match>false</validate-on-match>
-                      <background-validation>true</background-validation>
-                      <background-validation-millis>120000</background-validation-millis>
-                </validation>
-                <statement>
-                      <share-prepared-statements>false</share-prepared-statements>
-                </statement>
+		   <!-- <connection-url>jdbc:h2:${jboss.server.data.dir}/keycloak;AUTO_SERVER=TRUE</connection-url>
+                    <driver>h2</driver>
+                    <security>
+                        <user-name>sa</user-name>
+                        <password>sa</password>
+                    </security>-->
                 </datasource>
                 <drivers>
+                    <driver name="postgresql" module="org.postgresql">
+<xa-datasource-class>org.postgresql.xa.PGXADataSource</xa-datasource-class>
+<datasource-class>org.postgresql.ds.PGPoolingDataSource</datasource-class>
+</driver>
                     <driver name="h2" module="com.h2database.h2">
                         <xa-datasource-class>org.h2.jdbcx.JdbcDataSource</xa-datasource-class>
-                    </driver>
-                    <driver name="postgresql" module="org.postgresql">
-                        <xa-datasource-class>org.postgresql.xa.PGXADataSource</xa-datasource-class>
-                        <datasource-class>org.postgresql.ds.PGPoolingDataSource</datasource-class>
                     </driver>
                 </drivers>
             </datasources>
@@ -194,7 +188,7 @@
                 <stateless>
                     <bean-instance-pool-ref pool-name="slsb-strict-max-pool"/>
                 </stateless>
-                <stateful default-access-timeout="5000" cache-ref="distributable" passivation-disabled-cache-ref="simple"/>
+                <stateful default-access-timeout="5000" cache-ref="simple" passivation-disabled-cache-ref="simple"/>
                 <singleton default-access-timeout="5000"/>
             </session-bean>
             <pools>
@@ -239,66 +233,60 @@
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:infinispan:8.0">
             <cache-container name="keycloak">
-                <transport lock-timeout="60000"/>
                 <local-cache name="realms">
                     <object-memory size="10000"/>
                 </local-cache>
                 <local-cache name="users">
                     <object-memory size="10000"/>
                 </local-cache>
-                <distributed-cache name="sessions" owners="1"/>
-                <distributed-cache name="authenticationSessions" owners="1"/>
-                <distributed-cache name="offlineSessions" owners="1"/>
-                <distributed-cache name="clientSessions" owners="1"/>
-                <distributed-cache name="offlineClientSessions" owners="1"/>
-                <distributed-cache name="loginFailures" owners="1"/>
+                <local-cache name="sessions"/>
+                <local-cache name="authenticationSessions"/>
+                <local-cache name="offlineSessions"/>
+                <local-cache name="clientSessions"/>
+                <local-cache name="offlineClientSessions"/>
+                <local-cache name="loginFailures"/>
+                <local-cache name="work"/>
                 <local-cache name="authorization">
                     <object-memory size="10000"/>
                 </local-cache>
-                <replicated-cache name="work"/>
                 <local-cache name="keys">
                     <object-memory size="1000"/>
                     <expiration max-idle="3600000"/>
                 </local-cache>
-                <distributed-cache name="actionTokens" owners="2">
+                <local-cache name="actionTokens">
                     <object-memory size="-1"/>
                     <expiration max-idle="-1" interval="300000"/>
-                </distributed-cache>
+                </local-cache>
             </cache-container>
-            <cache-container name="server" aliases="singleton cluster" default-cache="default" module="org.wildfly.clustering.server">
-                <transport lock-timeout="60000"/>
-                <replicated-cache name="default">
+            <cache-container name="server" default-cache="default" module="org.wildfly.clustering.server">
+                <local-cache name="default">
                     <transaction mode="BATCH"/>
-                </replicated-cache>
+                </local-cache>
             </cache-container>
-            <cache-container name="web" default-cache="dist" module="org.wildfly.clustering.web.infinispan">
-                <transport lock-timeout="60000"/>
-                <distributed-cache name="dist">
+            <cache-container name="web" default-cache="passivation" module="org.wildfly.clustering.web.infinispan">
+                <local-cache name="passivation">
                     <locking isolation="REPEATABLE_READ"/>
                     <transaction mode="BATCH"/>
-                    <file-store/>
-                </distributed-cache>
+                    <file-store passivation="true" purge="false"/>
+                </local-cache>
             </cache-container>
-            <cache-container name="ejb" aliases="sfsb" default-cache="dist" module="org.wildfly.clustering.ejb.infinispan">
-                <transport lock-timeout="60000"/>
-                <distributed-cache name="dist">
+            <cache-container name="ejb" aliases="sfsb" default-cache="passivation" module="org.wildfly.clustering.ejb.infinispan">
+                <local-cache name="passivation">
                     <locking isolation="REPEATABLE_READ"/>
                     <transaction mode="BATCH"/>
-                    <file-store/>
-                </distributed-cache>
+                    <file-store passivation="true" purge="false"/>
+                </local-cache>
             </cache-container>
             <cache-container name="hibernate" module="org.infinispan.hibernate-cache">
-                <transport lock-timeout="60000"/>
+                <local-cache name="entity">
+                    <object-memory size="10000"/>
+                    <expiration max-idle="100000"/>
+                </local-cache>
                 <local-cache name="local-query">
                     <object-memory size="10000"/>
                     <expiration max-idle="100000"/>
                 </local-cache>
-                <invalidation-cache name="entity">
-                    <transaction mode="NON_XA"/>
-                    <object-memory size="10000"/>
-                    <expiration max-idle="100000"/>
-                </invalidation-cache>
-                <replicated-cache name="timestamps"/>
+                <local-cache name="timestamps"/>
             </cache-container>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jaxrs:1.0"/>
@@ -321,42 +309,6 @@
             </default-workmanager>
             <cached-connection-manager/>
         </subsystem>
-        <subsystem xmlns="urn:jboss:domain:jgroups:6.0">
-            <channels default="ee">
-                <channel name="ee" stack="udp" cluster="ejb"/>
-            </channels>
-            <stacks>
-                <stack name="udp">
-                    <transport type="UDP" socket-binding="jgroups-udp"/>
-                    <protocol type="PING"/>
-                    <protocol type="MERGE3"/>
-                    <protocol type="FD_SOCK"/>
-                    <protocol type="FD_ALL"/>
-                    <protocol type="VERIFY_SUSPECT"/>
-                    <protocol type="pbcast.NAKACK2"/>
-                    <protocol type="UNICAST3"/>
-                    <protocol type="pbcast.STABLE"/>
-                    <protocol type="pbcast.GMS"/>
-                    <protocol type="UFC"/>
-                    <protocol type="MFC"/>
-                    <protocol type="FRAG3"/>
-                </stack>
-                <stack name="tcp">
-                    <transport type="TCP" socket-binding="jgroups-tcp"/>
-                    <socket-protocol type="MPING" socket-binding="jgroups-mping"/>
-                    <protocol type="MERGE3"/>
-                    <protocol type="FD_SOCK"/>
-                    <protocol type="FD_ALL"/>
-                    <protocol type="VERIFY_SUSPECT"/>
-                    <protocol type="pbcast.NAKACK2"/>
-                    <protocol type="UNICAST3"/>
-                    <protocol type="pbcast.STABLE"/>
-                    <protocol type="pbcast.GMS"/>
-                    <protocol type="MFC"/>
-                    <protocol type="FRAG3"/>
-                </stack>
-            </stacks>
-        </subsystem>
         <subsystem xmlns="urn:jboss:domain:jmx:1.3">
             <expose-resolved-model/>
             <expose-expression-model/>
@@ -369,13 +321,6 @@
             <mail-session name="default" jndi-name="java:jboss/mail/Default">
                 <smtp-server outbound-socket-binding-ref="mail-smtp"/>
             </mail-session>
-        </subsystem>
-        <subsystem xmlns="urn:jboss:domain:modcluster:5.0">
-            <proxy name="default" advertise-socket="modcluster" listener="ajp">
-                <dynamic-load-provider>
-                    <load-metric type="cpu"/>
-                </dynamic-load-provider>
-            </proxy>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:naming:2.0">
             <remote-naming/>
@@ -539,7 +484,6 @@
         <subsystem xmlns="urn:jboss:domain:undertow:8.0" default-server="default-server" default-virtual-host="default-host" default-servlet-container="default" default-security-domain="other" statistics-enabled="${wildfly.undertow.statistics-enabled:${wildfly.statistics-enabled:false}}">
             <buffer-cache name="default"/>
             <server name="default-server">
-                <ajp-listener name="ajp" socket-binding="ajp"/>
                 <http-listener name="default" socket-binding="http" redirect-socket="https" enable-http2="true"/>
                 <https-listener name="https" socket-binding="https" security-realm="ApplicationRealm" enable-http2="true"/>
                 <host name="default-host" alias="localhost">
@@ -642,9 +586,6 @@
         <interface name="public">
             <inet-address value="${jboss.bind.address:127.0.0.1}"/>
         </interface>
-        <interface name="private">
-            <inet-address value="${jboss.bind.address.private:127.0.0.1}"/>
-        </interface>
     </interfaces>
     <socket-binding-group name="standard-sockets" default-interface="public" port-offset="${jboss.socket.binding.port-offset:0}">
         <socket-binding name="management-http" interface="management" port="${jboss.management.http.port:9990}"/>
@@ -652,10 +593,6 @@
         <socket-binding name="ajp" port="${jboss.ajp.port:8009}"/>
         <socket-binding name="http" port="${jboss.http.port:8080}"/>
         <socket-binding name="https" port="${jboss.https.port:8443}"/>
-        <socket-binding name="jgroups-mping" interface="private" multicast-address="${jboss.default.multicast.address:230.0.0.4}" multicast-port="45700"/>
-        <socket-binding name="jgroups-tcp" interface="private" port="7600"/>
-        <socket-binding name="jgroups-udp" interface="private" port="55200" multicast-address="${jboss.default.multicast.address:230.0.0.4}" multicast-port="45688"/>
-        <socket-binding name="modcluster" multicast-address="${jboss.modcluster.multicast.address:224.0.1.105}" multicast-port="23364"/>
         <socket-binding name="txn-recovery-environment" port="4712"/>
         <socket-binding name="txn-status-manager" port="4713"/>
         <outbound-socket-binding name="mail-smtp">
