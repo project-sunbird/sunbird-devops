@@ -119,7 +119,7 @@
 - name: Keycloak configuration XML file - Single node keycloak
   template:
     src: "standalone-ha-single.xml"
-    dest: "sunbird_auth_{{ sunbird_auth_version }}.config/standalone.xml"
+    dest: "sunbird_auth_{{ sunbird_auth_version }}.config/standalone-ha.xml"
     mode: 0750
   when: groups['keycloak'] | length < 2
 
@@ -137,7 +137,7 @@
   when: "{{ msg_91_required|default(false) }}"
   ignore_errors: true
 
-- name: Keycloak configuration XML file - multi node
+- name: Keycloak configuration XML file 
   copy:
     src: "sunbird_auth_{{ sunbird_auth_version }}.config/standalone-ha.xml"
     dest: "{{ keycloak_home }}/standalone/configuration/standalone-ha.xml"
@@ -145,17 +145,6 @@
     owner: "{{ wildfly_user }}"
     group: "{{ wildfly_group }}"
     remote_src: true
-  when: groups['keycloak'] | length > 1
-
-- name: Keycloak configuration XML file - single node
-  copy:
-    src: "sunbird_auth_{{ sunbird_auth_version }}.config/standalone.xml"
-    dest: "{{ keycloak_home }}/standalone/configuration/standalone.xml"
-    mode: 0750
-    owner: "{{ wildfly_user }}"
-    group: "{{ wildfly_group }}"
-    remote_src: true
-  when: groups['keycloak'] | length < 2
 
 - name: Postgresql Configuration- module.xml
   copy:
