@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 1m
+  scrape_timeout: 30s
+  evaluation_interval: 1m
+  {% if cluster_name and cluster_name | length  %}
+  # Clustername is defined for multi swarm cluster
+  # can name first cluster as DS1 and 2nd as DS2 ... DSn
+  # all metrics will have label as cluster: < value >
+  # This value won't be accessible from GUI but for external tools like
+  # federation or alertmanager
+  external_labels:
+    cluster: {{cluster_name}}
+  {% endif %}
+
+scrape_configs:
+  - job_name: 'prometheus'
+    metrics_path: /prometheus/metrics
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'process-exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["{{ groups['process-exporter'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9256' ) | list | join("\", \"") }}"]

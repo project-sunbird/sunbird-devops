@@ -1,0 +1,89 @@
+---
+- name: Create prometheus data dir
+  file:
+    path: "{{ process_exporter_prometheus_mount_point }}"
+    state: directory
+    mode: 0755
+    owner: 'nobody'
+    group: 'nogroup'
+
+- name: create prometheus system group
+  group:
+    name: "{{ process_exporter_prometheus_common_group }}"
+    system: yes
+    state: present
+
+- name: create prometheus system user
+  user:
+    name: "{{ process_exporter_prometheus_common_user }}"
+    system: yes
+    shell: "/sbin/nologin"
+    group: "{{ process_exporter_prometheus_common_group }}"
+    createhome: no
+
+- name: create prometheus directory
+  file:
+    path: "{{ process_exporter_prometheus_common_root_dir }}"
+    state: directory
+    owner: "{{ process_exporter_prometheus_common_user }}"
+    group: "{{ process_exporter_prometheus_common_group }}"
+    mode: 0755
+
+- name: download prometheus process exporter binary
+  get_url:
+    url: "{{ process_exporter_prometheus_download_url }}"
+    dest: "{{ process_exporter_prometheus_common_dist_dir }}/{{ process_exporter_prometheus_release_name }}.tar.gz"
+
+- name: unarchive binary tarball
+  unarchive:
+    copy: no
+    src: "{{ process_exporter_prometheus_common_dist_dir }}/{{ process_exporter_prometheus_release_name }}.tar.gz"
+    dest: "{{ process_exporter_prometheus_common_dist_dir }}"
+    creates: "{{ process_exporter_prometheus_common_dist_dir }}/{{ process_exporter_prometheus_release_name }}/process_exporter"
+  register: process_exporter_prometheus_updated
+  notify:
+    - restart process exporter all
+
+- name: copy the custom configuration file
+  template:
+    src: config.j2
+    dest: "{{ process_exporter_prometheus_common_dist_dir }}/{{ process_exporter_prometheus_release_name }}/config.yml"
+  
+- name: update group and owner for files
+  file:
+    path: "{{ process_exporter_prometheus_release_name }}"
+    state: directory
+    recurse: yes
+    owner: "{{ process_exporter_prometheus_common_user}}"
+    group: "{{ process_exporter_prometheus_common_group }}"
+  when: process_exporter_prometheus_updated | changed
+
+- name: create symlink to the current release
+  file:
+    src: "{{ process_exporter_prometheus_common_dist_dir }}/{{ process_exporter_prometheus_release_name }}"
+    path: "{{ process_exporter_prometheus_common_root_dir }}/process_exporter_all"
+    state: link
+
+- name: create systemd service unit
+  template:
+    src: process-exporter.service.j2
+    dest: /etc/systemd/system/process-exporter-all.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - reenable process exporter all service
+    - restart process exporter all
+
+- meta: flush_handlers
+
+- name: ensure prometheus process exporter service is enabled and started
+  service:
+    name: process-exporter-all
+    state: started
+    enabled: yes
+
+- name: Restart process exporter for metrics to be updated
+  service:
+    name: process-exporter-all
+    state: restarted
