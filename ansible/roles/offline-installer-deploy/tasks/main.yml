@@ -1,0 +1,50 @@
+---
+- name: get the date and time for the artifact
+  set_fact:
+    time: "{{ lookup('pipe', 'date +\"%Y-%b-%d-%H-%M-%S\"') }}-{{offline_installer_type}}"
+  when: uploadInstaller is not defined
+
+- name: copy the env.json file to the repo
+  template:
+    src: "{{item}}.j2"
+    dest: "{{offline_repo_location}}/offline-installer-repo/src/{{item}}"
+    mode: '0755'
+  with_items:
+    - env.json
+  when: uploadInstaller is not defined
+
+- name: copy the installer script file and build script for building offline installer
+  template:
+    src: "{{item}}.j2"
+    dest: "{{offline_repo_location}}/offline-installer-repo/{{item}}"
+    mode: '0755'
+  with_items:
+    - build.sh
+    - envfile
+    - 32-bit-prerequisite.sh
+  when: uploadInstaller is not defined
+
+- name: create a directory to store artifacts
+  file:
+    path: "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/{{time}}"
+    state: directory
+    recurse: yes
+  when: uploadInstaller is not defined
+
+- name: copy the installer script file and build script for building offline installer
+  template:
+    src: "{{item}}.j2"
+    dest: "{{offline_repo_location}}/offline-installer-repo/{{item}}"
+    mode: '0755'
+  with_items:
+    - setupOfflineInstaller.sh
+  when: uploadInstaller is not defined
+
+- name: upload to azure
+  include: uploadToAzure.yml
+  when: uploadInstaller is defined
+
+- name: Delete offline installer folder if any issue
+  include: remove.yml
+  when: removeOfflineInstallerFolder is defined
+
