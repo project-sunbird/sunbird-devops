@@ -1,8 +1,24 @@
 ---
+- name: create prometheus system group
+  group:
+    name: "{{ prometheus_exporters_common_group }}"
+    system: yes
+    state: present
+
+- name: create prometheus system user
+  user:
+    name: "{{ prometheus_exporters_common_user }}"
+    system: yes
+    shell: "/sbin/nologin"
+    group: "{{ prometheus_exporters_common_group }}"
+    createhome: no
+
 - name: create prometheus directory
   file:
     path: "{{ process_exporter_prometheus_common_root_dir }}"
     state: directory
+    owner: "{{ prometheus_exporters_common_user }}"
+    group: "{{ prometheus_exporters_common_group }}"
     mode: 0755
 
 - name: download prometheus process exporter binary
@@ -30,6 +46,8 @@
     path: "{{ process_exporter_prometheus_release_name }}"
     state: directory
     recurse: yes
+    owner: "{{ prometheus_exporters_common_user}}"
+    group: "{{ prometheus_exporters_common_group }}"
   when: process_exporter_prometheus_updated | changed
 
 - name: create symlink to the current release
