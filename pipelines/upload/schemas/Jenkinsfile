@@ -25,11 +25,15 @@ node() {
                 jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                 stage('deploy artifact'){
                     sh """
-			rm -rf creation-portal
-		        git clone https://github.com/Sunbird-Ed/creation-portal.git
+			    rm -rf creation-portal
+		        git clone https://github.com/Sunbird-Ed/creation-portal.git -b creation_portal
                     """
                     ansiblePlaybook = "${currentWs}/ansible/upload-schemas.yml"
-                    ansibleExtraArgs = "--extra-vars \" source_file=${currentWs}/creation-portal/kp_schemas \" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                    ansibleExtraArgs = "--extra-vars \" source_name=${currentWs}/creation-portal/kp_schemas \" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                    values.put('currentWs', currentWs)
+                    values.put('env', envDir)
+                    values.put('module', module)
+                    values.put('jobName', jobName)
                     values.put('ansiblePlaybook', ansiblePlaybook)
                     values.put('ansibleExtraArgs', ansibleExtraArgs)
                     println values
