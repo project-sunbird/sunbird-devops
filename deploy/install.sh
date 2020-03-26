@@ -84,7 +84,7 @@ echo $inventory_path
 module=Core
 
 echo "downloading artifacts"
-artifacts="cassandra_artifacts.zip v3.zip content-plugins.zip formdata.zip keycloak_artifacts.zip"
+artifacts="cassandra_artifacts.zip v3.zip contentplugins.zip formdata.zip keycloak_artifacts.zip"
 ansible_path=${HOME}/sunbird-devops/ansible
 for artifact in $artifacts;
 do
