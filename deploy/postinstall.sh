@@ -35,11 +35,14 @@ ${GREEN}
 Yay !! 
 Sunbird installation is complete
 open ${WHITE}https://${domain_name}${GREEN}
+
 your content creator user is: ${WHITE}creator${GREEN}
 password : ${WHITE}${password}${GREEN}
+
 your content reviewer user is: ${WHITE}reviewer${GREEN}
 password : ${WHITE}${password}${GREEN}
 ${GREEN}
+
 Rancher is to manage the cluster
 open following link in browser and accept the ssl certificate
 ${YELLOW}
