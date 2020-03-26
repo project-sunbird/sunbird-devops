@@ -26,6 +26,7 @@ function vars_updater {
     sed -i "s/\b10.1.4.5\b/${dbs_ip}/g" ../ansible/inventory/env/{hosts,common.yml}
     sed -i "s/\b10.1.4.6\b/${kp_ip}/g" ../ansible/inventory/env/{hosts,common.yml}
     sed -i "s/\bansible_ssh_user=ops\b/ansible_ssh_user=${ssh_user}/g" ../ansible/inventory/env/hosts
+    sed -i "s#\bansible_ssh_private_key_file=/home/ops/deployer.pem\b#ansible_ssh_private_key_file=/home/${ssh_user}/deployer.pem#g" ../ansible/inventory/env/hosts
     sed -i "s/\bsunbird.centralindia.cloudapp.azure.com\b/${domain_name}/g" ../ansible/inventory/env/common.yml
     sed -i "/\bcore_vault_proxy_site_key\b/c\core_vault_proxy_site_key: \"{{ lookup('file', \'${nginx_key_path}\') }}\"" ../ansible/inventory/env/secrets.yml
     sed -i "/\bcore_vault_proxy_site_crt\b/c\core_vault_proxy_site_crt: \"{{ lookup('file', \'${nginx_cert_path}\') }}\"" ../ansible/inventory/env/secrets.yml
@@ -114,12 +115,14 @@ source version.env
 # Bootstrapping kubernetes
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/bootstrap_minimal.yaml
 
+
 echo "@@@@@@@@@@@@@@ Deploying apimanager @@@@@@@@@@@@@@@@@@" 
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/apimanager image_tag=${apimanager} release_name=apimanager role_name=sunbird-deploy" -vvvv
 rm -rf /home/deployer/sunbird-devops/kubernetes/ansible/roles/sunbird-deploy/templates/*
 
 echo "@@@@@@@@@@@@@@ Deploying nginx-private-ingress @@@@@@@@@@@@@@@@@@"
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/nginx-private-ingress release_name=nginx-private-ingress role_name=helm-deploy" -v
+
 
 # Provisioning keycloak
 if [[ ! -f ~/.config/sunbird/keycloak ]]; then
@@ -224,10 +227,7 @@ ansible-playbook -i ../ansible/inventory/env ${ansible_path}/cassandra-trigger-d
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_cassandra_db_update.yml
 touch ~/.config/sunbird/lp_db
 fi
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_zookeeper_provision.yml
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_kafka_provision.yml
 # Will create all topic
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_kafka_setup.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_neo4j_provision.yml -e "download_neo4j=false neo4j_zip=neo4j-community-3.3.9-unix.tar.gz neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_start_neo4j.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_redis_provision.yml

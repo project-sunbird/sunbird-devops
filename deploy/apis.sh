@@ -267,6 +267,7 @@ curl --location --request POST "https://${domain_name}/api/user/v1/create" \
     }
 }'
 sleep 5
+
 # Creating reviewer user
 curl --location --request POST "https://${domain_name}/api/user/v1/create" \
 --header 'Cache-Control: no-cache' \
@@ -287,7 +288,28 @@ curl --location --request POST "https://${domain_name}/api/user/v1/create" \
         "phoneVerified": true
     }
 }'
+sleep 5
 
+# Assigning user role to creator user
+user_id=$(curl --location --request POST "https://${domain_name}/api/user/v1/search" \
+--header 'Cache-Control: no-cache' \
+--header 'Content-Type: application/json' \
+--header 'accept: application/json' \
+--header "Authorization: Bearer ${jwt_token}" \
+--header "x-authenticated-user-token: ${x_auth_token}" \
+--data-raw '{
+    "request":
+    {
+        "filters": {
+        "phone": "'${creatorPhone_number}'",
+        "userName": "'${creatorUsername}'"
+        }
+    }
+}' | jq '.result.response.content[].organisations[].userId' | xargs
+)
+sleep 5
+
+echo user id: $user_id
 
 sleep 5 
 
@@ -326,6 +348,7 @@ curl --location --request POST "https://${domain_name}/api/user/v1/role/assign" 
         "roles": ["CONTENT_CREATOR","CONTENT_REVIEWER","ORG_ADMIN","BOOK_CREATOR","BOOK_REVIEWER","COURSE_MENTOR"]
     }
 }'
+
 
 sleep 5
 # Assigning user role to reviewer user 
