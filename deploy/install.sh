@@ -3,6 +3,13 @@
 #!/bin/bash
 set -eu -o pipefail
 
+# This is to fix cross terminal compatibility
+export LC_ALL=C
+export ANSIBLE_FORCE_COLOR=true
+
+# Make sure there are no keys in ssh-agent
+eval $(ssh-agent -s)
+
 # Color schemes
 BOLD="$(tput bold)"
 GREEN="${BOLD}$(tput setaf 2)"
@@ -107,16 +114,12 @@ fi
 source version.env
 # Bootstrapping kubernetes
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/bootstrap_minimal.yaml
-#services="apimanager nginx-private-ingress"
-#for service in $services;
-#do
-#  echo "@@@@@@@@@@@@@@ Deploying $service @@@@@@@@@@@@@@@@@@"
-#  ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/${service} image_tag=${!service} release_name=${service} role_name=sunbird-deploy" -v
-#done
 
+echo "@@@@@@@@@@@@@@ Deploying apimanager @@@@@@@@@@@@@@@@@@" 
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/apimanager image_tag=${apimanager} release_name=apimanager role_name=sunbird-deploy" -vvvv
 rm -rf /home/deployer/sunbird-devops/kubernetes/ansible/roles/sunbird-deploy/templates/*
 
+echo "@@@@@@@@@@@@@@ Deploying nginx-private-ingress @@@@@@@@@@@@@@@@@@"
 ansible-playbook -i ../ansible/inventory/env/ ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/nginx-private-ingress release_name=nginx-private-ingress role_name=helm-deploy" -v
 
 # Provisioning keycloak
@@ -149,20 +152,19 @@ vars_updater
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/apimanager -e "release_name=apimanager role_name=sunbird-deploy image_tag=${apimanager} kong_admin_api_url=http://$(hostname -i):12000/admin-api" -v
 rm -rf /home/deployer/sunbird-devops/kubernetes/ansible/roles/sunbird-deploy/templates/*
 
-# echo "@@@@@@@@@ Onboard APIs"
+echo "@@@@@@@@@ Onboard APIs"
 ansible-playbook -i ../ansible/inventory/env ../ansible/api-manager.yml -e kong_admin_api_url=http://$(hostname -i):12000/admin-api --tags kong-api
 
-# echo "@@@@@@@@@ Onboard Consumers"
+echo "@@@@@@@@@ Onboard Consumers"
 ## This will generate a player token in /root/jwt_token_player.txt
 echo "@@@@@@@@@ Onboard Consumers"
-ansible-playbook -i ../ansible/inventory/env ../ansible/api-manager.yml -e "kong_admin_api_url=http://$(hostname -i):12000/admin-api kubeconfig_path=/etc/rancher/k3s/k3s.yaml" --tags kong-consumer
+ansible-playbook -i ../ansible/inventory/env ../ansible/api-manager.yml -e "kong_admin_api_url=http://$(hostname -i):12000/admin-api kubeconfig_path=/etc/rancher/k3s/k3s.yaml" --tags kong-consumer -v | tee -a ~/consumers.logs
 
 jwt_token=$(sudo cat /root/jwt_token_player.txt|xargs)
 # Deploying the adminutils
 echo "@@@@@@@@@@@@@@ Deploying adminutils @@@@@@@@@@@@@@@@@@"
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/adminutils release_name=adminutils image_tag=${adminutils} role_name=helm-deploy sunbird_api_auth_token=${jwt_token}" -v
 
-# services="adminutil apimanager badger cert content enc learner lms notification player telemetry userorg"
 services="knowledgemw lms content learner telemetry"
 for service in $services;
 do
@@ -171,9 +173,11 @@ do
 rm -rf /home/deployer/sunbird-devops/kubernetes/ansible/roles/sunbird-deploy/templates/*
 done
 
+echo "@@@@@@@@@@@@@@ Deploying player @@@@@@@@@@@@@@@@@@"
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/player release_name=player image_tag=${player} role_name=deploy-player sunbird_api_auth_token=${jwt_token}" -vvvv
 rm -rf /home/deployer/sunbird-devops/kubernetes/ansible/roles/sunbird-deploy/templates/*
 
+echo "@@@@@@@@@@@@@@ Deploying nginx-public-ingress @@@@@@@@@@@@@@@@@@"
 ansible-playbook -i ../ansible/inventory/env ../kubernetes/ansible/deploy_core_service.yml -e "kubeconfig_path=/etc/rancher/k3s/k3s.yaml chart_path=/home/${ssh_user}/sunbird-devops/kubernetes/helm_charts/core/nginx-public-ingress release_name=nginx-public-ingress role_name=helm-deploy image_tag="" " -v
 
 kubectl rollout restart deployment -n dev
@@ -214,7 +218,7 @@ cd -
 wget -N https://sunbirdpublic.blob.core.windows.net/installation/neo4j-community-3.3.9-unix.tar.gz -P $ansible_path/artifacts/
 cp $ansible_path/cassandra.transaction-event-handler-*.jar $ansible_path/static-files
 
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_provision.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_provision.yml --extra-vars offline_kp=true
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_search_provision.yml
 if [[ ! -f ~/.config/sunbird/lp_db ]]; then
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/cassandra-trigger-deploy.yml
@@ -231,7 +235,7 @@ ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_redis_provision.
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_neo4j_deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/es_composite_search_cluster_setup.yml -v
 bash ./csindexupdate.sh ${kp_ip}
-ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_deploy.yml
+ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_learning_deploy.yml --extra-vars offline_kp=true
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_search_deploy.yml
 ansible-playbook -i ../ansible/inventory/env ${ansible_path}/lp_definition_update.yml -e "neo4j_home={{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"
 

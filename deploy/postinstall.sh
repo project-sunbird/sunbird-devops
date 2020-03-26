@@ -16,6 +16,7 @@ kubectl apply -f ${sunbird_path}/kubernetes/helm_charts/cattle-system/rancher.ya
 
 echo -e "${GREEN}Installing stern ${NORMAL}"
 sudo curl -LSs https://github.com/wercker/stern/releases/download/1.11.0/stern_linux_amd64 -o /usr/local/bin/stern
+sudo chmod +x /usr/local/bin/stern
 
 echo -e "${GREEN}Enabling kubectl autocompletion ${NORMAL}"
 cat >> ~/.bashrc <<EOF
@@ -27,35 +28,31 @@ EOF
 
 echo -e "${GREEN}Enabling kubeconfig ${NORMAL}"
 kubectl config view --flatten > ~/.kube/config
+ipaddress=$(curl ifconfig.co)
 
 cat << EOF
 ${GREEN}
-
 Yay !! 
-
 Sunbird installation is complete
-
 open ${WHITE}https://${domain_name}${GREEN}
-
-your admin user is: ${WHITE}${username}${GREEN}
+your content creator user is: ${WHITE}creator${GREEN}
 password : ${WHITE}${password}${GREEN}
-
+your content reviewer user is: ${WHITE}reviewer${GREEN}
+password : ${WHITE}${password}${GREEN}
 ${GREEN}
 Rancher is to manage the cluster
 open following link in browser and accept the ssl certificate
 ${YELLOW}
-https://${core_ip}:8443
+https://${ipaddress}:8443
 ${GREEN}
 1. Create password
-2. Add ${YELLOW}$(hostname -i):8443${GREEN} as server-url
-
+2. Add ${YELLOW}${core_ip}:8443${GREEN} as server-url
 ${GREEN}
 To see the logs of pods from cli of remote machine; for example
 to see nginx logs
 ${YELLOW}
 stern --namespace dev nginx
 ${GREEN}
-
 To interact with your kubernetes cluster, use kubectl; for example
 ${YELLOW}kubectl get all --all-namespaces
 ${NORMAL}
