@@ -67,8 +67,7 @@ To run the installation in tmux, if not already, follow the instructions
 This script will wait for 20 seconds for user to cancel
 ${NORMAL}
 EOF
-# commenting the below one and can be uncomment later
-#sleep 20
+sleep 20
 
 # Installing deps
 bash install-deps.sh
@@ -93,7 +92,7 @@ done
 
 # installing unzip
 sudo apt install unzip
-# find $ansible_path -maxdepth 1 -type f ! -name "keycloak_artifacts.zip" -iname "*.zip" -exec unzip -o {} -d $ansible_path \;
+find $ansible_path -maxdepth 1 -type f ! -name "keycloak_artifacts.zip" -iname "*.zip" -exec unzip -o {} -d $ansible_path \;
 
 # Creating inventory strucure
 git checkout -- ../ansible/inventory/env/group_vars/all.yml # This is to make sure always the all.yaml is updated
