@@ -1,0 +1,34 @@
+version: "3.3"
+
+services:
+    prometheus:
+        image: quay.io/prometheus/prometheus:v2.16.0
+        ports:
+            - "39090:9090"
+        networks:
+            - application_default
+        volumes:
+            - "{{ process_exporter_prometheus_mount_point }}:/prometheus"
+        command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/etc/prometheus/console_libraries  --storage.tsdb.retention.time={{prometheus_storage_retention_time}} --web.console.templates=/etc/prometheus/consoles --web.route-prefix={{process_exporter_prometheus_route_prefix}} --web.external-url={{process_exporter_prometheus_web_external_url}} --web.enable-admin-api --storage.tsdb.wal-compression"
+        configs:
+            - source: process_exporter_prometheus.yml
+              target: /etc/prometheus/prometheus.yml
+        deploy:
+            replicas: 1
+            placement:
+                constraints:
+                    - "node.labels.prometheus_stateful==1"
+            resources:
+              reservations:
+                memory: "1G"
+              limits:
+                memory: "{{ process_exporter_prometheus_limit_memory }}"
+
+
+configs:
+  process_exporter_prometheus.yml:
+    external: true
+  
+networks:
+    application_default:
+        external: true

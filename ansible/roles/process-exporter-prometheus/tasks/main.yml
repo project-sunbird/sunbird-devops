@@ -1,0 +1,69 @@
+---
+- name: Create prometheus data dir
+  file:
+    path: "{{ process_exporter_prometheus_mount_point }}"
+    state: directory
+    mode: 0755
+    owner: 'nobody'
+    group: 'nogroup'
+
+- name: create prometheus system group
+  group:
+    name: "{{ process_exporter_prometheus_common_group }}"
+    system: yes
+    state: present
+
+- name: create prometheus system user
+  user:
+    name: "{{ process_exporter_prometheus_common_user }}"
+    system: yes
+    shell: "/sbin/nologin"
+    group: "{{ process_exporter_prometheus_common_group }}"
+    createhome: no
+
+- name: Ensure stack directory exists
+  file:
+    path: "{{ process_exporter_prometheus_stack_files }}"
+    state: directory
+    owner: '{{ root_owner }}'
+    group: '{{ root_group }}'
+
+- name: Ensure config directory exists
+  file:
+    path: "{{ process_exporter_prometheus_config_files }}"
+    state: directory
+    owner: '{{ root_owner }}'
+    group: '{{ root_group }}'
+
+- name: Save stack file
+  template:
+    src: process_exporter_prometheus_stack.yml
+    dest: "{{ process_exporter_prometheus_stack_files }}/process_exporter_prometheus_stack.yml"
+    mode: 0644
+
+- name: Save prometheus config {{ item }}
+  template:
+    src: "{{ item }}"
+    dest: "{{ process_exporter_prometheus_config_files }}/{{ item }}"
+    mode: 0644
+  with_items:
+    - "{{ process_exporter_prometheus_config_templates }}"
+
+- name: Remove monitor stack
+  shell: "docker stack rm process_exporter"
+  ignore_errors: yes
+
+- name: Remove docker config process_{{ item }}
+  shell: "docker config rm process_exporter_{{ item }}"
+  with_items: "{{ process_exporter_prometheus_config_templates }}"
+  ignore_errors: yes
+
+- name: Save docker config process_exporter_prometheus_{{ item }}
+  shell: "docker config create process_exporter_{{ item }} {{ process_exporter_prometheus_config_files }}/{{ item }}"
+  with_items: "{{ process_exporter_prometheus_config_templates }}"
+
+- name: Deploy stack
+  shell: "docker stack deploy -c process_exporter_prometheus_stack.yml process_exporter"
+  args:
+    chdir: "{{ process_exporter_prometheus_stack_files }}"
+
