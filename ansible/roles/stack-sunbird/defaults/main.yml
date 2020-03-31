@@ -173,6 +173,13 @@ print_service_limit_memory: 256M
 print_service_reservation_cpu: 0
 print_service_limit_cpu: 1
 
+# Search Service Config
+search_service_replicas: 1
+search_service_reservation_memory: 1000M
+search_service_limit_memory: 1000M
+search_service_reservation_cpu: 0
+search_service_limit_cpu: 1
+
 ############################ kube vars #######################
 hub_org: sunbird
 nginx_per_ip_connection_limit: 400
@@ -236,6 +243,9 @@ service_env:
   userorg: ../../../../ansible/roles/stack-sunbird/templates/sunbird_user-org-service.env
   player: ../../../../ansible/roles/stack-sunbird/templates/sunbird_player.env
   print: ../../../../ansible/roles/stack-sunbird/templates/sunbird_print-service.env
+  search: 
+    - ../../../../ansible/roles/stack-sunbird/templates/search-service_application.conf
+    - ../../../../ansible/roles/stack-sunbird/templates/search-service_logback.xml
 
 sunbird_portal_player_cdn_enabled: false 
 
@@ -497,6 +507,24 @@ userorg_liveness_readiness:
   livenessProbe:
     httpGet:
       path: /service/health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+search_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
       port: 9000
     initialDelaySeconds: 60
     periodSeconds: 10
