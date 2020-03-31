@@ -1,0 +1,35 @@
+---
+- name: Remove search-service
+  shell: "docker service rm search-service"
+  ignore_errors: yes
+  
+- name: Save configurations into an env file
+  become: yes
+  template: src=search-service_application.conf dest=/home/deployer/config/search-service.conf mode=0644
+
+- name: Save logback configuration into a env file
+  become: yes
+  template: src=search-service_logback.xml dest=/home/deployer/config/search-service_logback.xml mode=0644
+
+- name: Remove old application.conf docker config
+  become: yes
+  shell: "docker config rm search-service.conf"
+  ignore_errors: yes
+  
+- name: Save as docker config
+  become: yes
+  shell: "docker config create search-service.conf /home/deployer/config/search-service.conf"
+
+- name: Remove old logback.xml docker config
+  become: yes
+  shell: "docker config rm search-service_logback.xml"
+  ignore_errors: yes
+  
+- name: Copy new logback.xml
+  become: yes
+  shell: "docker config create search-service_logback.xml /home/deployer/config/search-service_logback.xml"
+
+- name: Deploy search-service
+  shell: "docker service create --with-registry-auth --replicas {{ search_service_replicas }} -p 9004:9000  --name search-service --hostname search-service --reserve-memory {{ search_service_reservation_memory }} --limit-memory {{ search_service_limit_memory }} --limit-cpu {{ search_service_limit_cpu }} --reserve-cpu {{ search_service_reservation_cpu }} --health-cmd 'wget -qO- search-service:9000/health || exit 1' --health-timeout 3s --health-retries 3  --network application_default --config source=search-service.conf,target=/home/sunbird/search-service-1.0-SNAPSHOT/config/application.conf,mode=0644 --config source=search-service_logback.xml,target=/home/sunbird/search-service-1.0-SNAPSHOT/config/logback.xml,mode=0644  {{hub_org}}/{{image_name}}:{{image_tag}}"
+  args:
+    chdir: /home/deployer/stack
