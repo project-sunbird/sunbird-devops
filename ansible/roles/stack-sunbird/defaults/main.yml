@@ -180,6 +180,13 @@ search_service_limit_memory: 1000M
 search_service_reservation_cpu: 0
 search_service_limit_cpu: 1
 
+# Taxonomy Service Config
+taxonomy_service_replicas: 1
+taxonomy_service_reservation_memory: 256M
+taxonomy_service_limit_memory: 512M
+taxonomy_service_reservation_cpu: 0
+taxonomy_service_limit_cpu: 1
+
 ############################ kube vars #######################
 hub_org: sunbird
 nginx_per_ip_connection_limit: 400
@@ -246,6 +253,9 @@ service_env:
   search: 
     - ../../../../ansible/roles/stack-sunbird/templates/search-service_application.conf
     - ../../../../ansible/roles/stack-sunbird/templates/search-service_logback.xml
+  taxonomy: 
+    - ../../../../ansible/roles/stack-sunbird/templates/taxonomy-service_application.conf
+    - ../../../../ansible/roles/stack-sunbird/templates/taxonomy-service_logback.xml
 
 sunbird_portal_player_cdn_enabled: false 
 
@@ -512,6 +522,24 @@ userorg_liveness_readiness:
     periodSeconds: 10
 
 search_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+taxonomy_liveness_readiness:
   healthcheck: true
   readinessProbe:
     httpGet:
