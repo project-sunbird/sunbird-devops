@@ -17,7 +17,7 @@ def call(){
                 println("Error.. Tag does not contain RC")
                 error("Oh ho! Tag is not a release candidate.. Skipping build")
             }
-            println ANSI_BOLD + ANSI_GREEN + "$jobname build succeeded. Triggering ArtifactUpload.." + ANSI_NORMAL
+            println ANSI_BOLD + ANSI_GREEN + "$jobName build succeeded. Triggering ArtifactUpload.." + ANSI_NORMAL
             uploadStatus = build job: "ArtifactUpload/$envDir/$module/$jobName", parameters: [string(name: 'absolute_job_path', value: "$JOB_NAME")]
             if (uploadStatus.result == "SUCCESS") {
                 println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/$jobName succeeded. Triggering Deployment.." + ANSI_NORMAL
