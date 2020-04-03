@@ -29,7 +29,13 @@ def call(){
                     error 'Please resolve errors and rerun..'
                 }
                 values = [:]
-                copyArtifacts projectName: params.absolute_job_path, flatten: true
+                try {
+                    copyArtifacts projectName: params.absolute_job_path, flatten: true
+                }
+                catch (err) {
+                    println ANSI_YELLOW + ANSI_BOLD + "Ok that failed!. Lets try an alertnative.." + ANSI_NORMAL
+                    copyArtifacts projectName: params.absolute_job_path, flatten: true, selector: upstream()
+                }
                 image_name = sh(returnStdout: true, script: 'jq -r .image_name metadata.json').trim()
                 agent = sh(returnStdout: true, script: 'jq -r .node_name metadata.json').trim()
 
