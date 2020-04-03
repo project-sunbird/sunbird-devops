@@ -1,4 +1,4 @@
-def call(String buildStatus, String release_tag=null, String jobName=null, String buildNumber=null, String jobUrl=null) {
+def call(String buildStatus, String release_tag=null, String jobName=null, int buildNumber=null, String jobUrl=null) {
     try {
         ansiColor('xterm') {
             String ANSI_GREEN = "\u001B[32m"
