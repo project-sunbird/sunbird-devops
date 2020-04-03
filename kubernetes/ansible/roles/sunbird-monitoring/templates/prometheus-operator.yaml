@@ -19,6 +19,23 @@ prometheus:
 {% if prometheus_storage_spec is defined and prometheus_storage_spec %}
     storageSpec: {{ prometheus_storage_spec|to_json }}
 {% endif %}
+{% if enable_thanos == "true" %}
+    thanosSecret:
+      type: AZURE
+      config:
+        storage_account: "{{ sunbird_management_storage_account_name }}"
+        storage_account_key: "{{ sunbird_management_storage_account_key }}"
+        container: "{{ thanos_storage_container }}"
+        endpoint: "blob.core.windows.net"
+        max_retries: 0
+    thanos:
+      baseImage: improbable/thanos
+      version: v0.2.1
+      peers: thanos-peers.monitoring.svc:10900
+      objectStorageConfig:
+        key: thanos.yaml
+        name: thanos-objstore-config
+{% endif %}
 {% if prometheus_service is defined and prometheus_service %}
   service: {{ (prometheus_service | to_json) }}
 {% endif %}
