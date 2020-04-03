@@ -6,10 +6,11 @@ def call(){
             String ANSI_BOLD = "\u001B[1m"
             String ANSI_RED = "\u001B[31m"
             String ANSI_YELLOW = "\u001B[33m"
-
-            jobName = env.JOB_NAME.split("/")[-1]
-            module = env.JOB_NAME.split("/")[-2]
-            branch_or_tag = jobName.split("_")[0]
+            
+            tag_name = env.JOB_NAME.split("/")[-1]
+            jobName = env.JOB_NAME.split("/")[-2]
+            module = env.JOB_NAME.split("/")[-3]
+            branch_or_tag = tag_name.split("_")[-0]
             envDir = "$auto_deploy_env"
 
             if (!jobName.contains("_RC")) {
