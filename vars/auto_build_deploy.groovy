@@ -13,7 +13,7 @@ def call(){
             branch_or_tag = tag_name.split("_")[-0]
             envDir = "$auto_deploy_env"
 
-            if (!jobName.contains("_RC")) {
+            if (!tag_name.contains("_RC")) {
                 println("Error.. Tag does not contain RC")
                 error("Oh ho! Tag is not a release candidate.. Skipping build")
             }
