@@ -28,7 +28,13 @@ def call(){
                     buildNumber = params.build_number
 
                 values = [:]
-                copyArtifacts projectName: params.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(buildNumber)
+                try {
+                    copyArtifacts projectName: params.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: specific(buildNumber)
+                }
+                catch (err) {
+                    println ANSI_YELLOW + ANSI_BOLD + "Ok that failed!. Lets try an alertnative.."
+                    copyArtifacts projectName: params.absolute_job_path, fingerprintArtifacts: true, flatten: true, selector: upstream()
+                }
                 artifact_name = sh(returnStdout: true, script: 'jq -r .artifact_name metadata.json').trim()
                 agent = sh(returnStdout: true, script: 'jq -r .node_name metadata.json').trim()
 
