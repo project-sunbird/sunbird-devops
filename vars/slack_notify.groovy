@@ -52,7 +52,7 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                     if (release_tag != null && jobName != null && buildNumber != 0 && jobUrl != null)
                     {
                         slackSend(
-                                channel: slack_channel,
+                                channel: "${env.GLOBAL_NOTIFY_SLACK_CHANNEL}",
                                 color: slack_status,
                                 message: "Build ${build_status} for ${release_tag} - ${jobName} ${buildNumber} (<${jobUrl}|Open>)"
                         )
