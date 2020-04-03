@@ -1,4 +1,4 @@
-def call(String buildStatus, String release_tag=null, String jobName=null, int buildNumber=null, String jobUrl=null) {
+def call(String buildStatus, String release_tag=null, String jobName=null, int buildNumber=0, String jobUrl=null) {
     try {
         ansiColor('xterm') {
             String ANSI_GREEN = "\u001B[32m"
@@ -24,7 +24,7 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                     envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
                     channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
                     slack_channel = evaluate "$channel_env_name".replace('-', '')
-                    if (release_tag != null && jobName != null && buildNumber != null && jobUrl != null)
+                    if (release_tag != null && jobName != null && buildNumber != 0 && jobUrl != null)
                     {
                         slackSend(
                                 channel: slack_channel,
@@ -49,7 +49,7 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                 }
 
                 if(env.GLOBAL_NOTIFY_SLACK_CHANNEL != null)
-                    if (release_tag != null && jobName != null && buildNumber != null && jobUrl != null)
+                    if (release_tag != null && jobName != null && buildNumber != 0 && jobUrl != null)
                     {
                         slackSend(
                                 channel: slack_channel,
