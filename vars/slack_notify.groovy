@@ -1,4 +1,4 @@
-def call(String buildStatus, String release_tag=null) {
+def call(String buildStatus, String release_tag=null, String jobName=null, String buildNumber=null, String jobUrl=null) {
     try {
         ansiColor('xterm') {
             String ANSI_GREEN = "\u001B[32m"
@@ -16,20 +16,30 @@ def call(String buildStatus, String release_tag=null) {
                     slack_status = 'good'
                     build_status = "Succeded"
                 }
-                
+
                 if(release_tag == null)
-                   release_tag = "job"
-                
+                    release_tag = "job"
+
                 try {
                     envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
                     channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
                     slack_channel = evaluate "$channel_env_name".replace('-', '')
-                    slackSend (
-                            channel: slack_channel,
-                            color: slack_status,
-                        message: "Build ${build_status} for ${release_tag} - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
-                    )
-                    return
+                    if (release_tag != null && jobName != null && buildNumber != null && jobUrl != null)
+                    {
+                        slackSend(
+                                channel: slack_channel,
+                                color: slack_status,
+                                message: "Build ${build_status} for ${release_tag} - ${jobName} ${buildNumber} (<${jobUrl}|Open>)"
+                        )
+                    }
+                    else {
+                        slackSend(
+                                channel: slack_channel,
+                                color: slack_status,
+                                message: "Build ${build_status} for ${release_tag} - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+                        )
+                        return
+                    }
                 }
                 catch (MissingPropertyException ex) {
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find env specific Slack channel. Check for global slack channel.." + ANSI_NORMAL
@@ -39,11 +49,21 @@ def call(String buildStatus, String release_tag=null) {
                 }
 
                 if(env.GLOBAL_NOTIFY_SLACK_CHANNEL != null)
-                    slackSend (
-                            channel: "${env.GLOBAL_NOTIFY_SLACK_CHANNEL}",
-                            color: slack_status,
-                            message: "Build ${build_status} for ${release_tag} - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
-                    )
+                    if (release_tag != null && jobName != null && buildNumber != null && jobUrl != null)
+                    {
+                        slackSend(
+                                channel: slack_channel,
+                                color: slack_status,
+                                message: "Build ${build_status} for ${release_tag} - ${jobName} ${buildNumber} (<${jobUrl}|Open>)"
+                        )
+                    }
+                    else {
+                        slackSend(
+                                channel: "${env.GLOBAL_NOTIFY_SLACK_CHANNEL}",
+                                color: slack_status,
+                                message: "Build ${build_status} for ${release_tag} - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+                        )
+                    }
                 else
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find slack environment variable. Skipping slack notification.." + ANSI_NORMAL
             }
