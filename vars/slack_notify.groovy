@@ -1,4 +1,4 @@
-def call(String buildStatus) {
+def call(String buildStatus, String release_tag=null) {
     try {
         ansiColor('xterm') {
             String ANSI_GREEN = "\u001B[32m"
@@ -16,6 +16,10 @@ def call(String buildStatus) {
                     slack_status = 'good'
                     build_status = "Succeded"
                 }
+                
+                if(release_tag == null)
+                   release_tag = "the job"
+                
                 try {
                     envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
                     channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
@@ -23,7 +27,7 @@ def call(String buildStatus) {
                     slackSend (
                             channel: slack_channel,
                             color: slack_status,
-                            message: "Build ${build_status} - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+                        message: "Build ${build_status} for ${release_tag} - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
                     )
                     return
                 }
@@ -38,7 +42,7 @@ def call(String buildStatus) {
                     slackSend (
                             channel: "${env.GLOBAL_NOTIFY_SLACK_CHANNEL}",
                             color: slack_status,
-                            message: "Build ${build_status} - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
+                            message: "Build ${build_status} for ${release_tag} - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
                     )
                 else
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find slack environment variable. Skipping slack notification.." + ANSI_NORMAL
