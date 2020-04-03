@@ -18,7 +18,7 @@ def call(String buildStatus, String release_tag=null) {
                 }
                 
                 if(release_tag == null)
-                   release_tag = "the job"
+                   release_tag = "job"
                 
                 try {
                     envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
