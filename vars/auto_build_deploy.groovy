@@ -13,10 +13,6 @@ def call(){
             branch_or_tag = tag_name.split("_")[-0]
             envDir = "$auto_deploy_env"
 
-            if (!tag_name.contains("_RC")) {
-                println("Error.. Tag does not contain RC")
-                error("Oh ho! Tag is not a release candidate.. Skipping build")
-            }
             println ANSI_BOLD + ANSI_GREEN + "$jobName build succeeded. Triggering ArtifactUpload.." + ANSI_NORMAL
             uploadStatus = build job: "ArtifactUpload/$envDir/$module/$jobName", parameters: [string(name: 'absolute_job_path', value: "$JOB_NAME")]
             if (uploadStatus.result == "SUCCESS") {
