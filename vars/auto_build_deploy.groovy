@@ -30,12 +30,14 @@ def call(){
             
                     slack_notify("SUCCESS", tag_name, deployStatus.fullProjectName, deployStatus.number, deployStatus.absoluteUrl)
                     email_notify()
+                    currentBuild.result = "SUCCESS"
             
                 } else {
                     println ANSI_BOLD + ANSI_RED + "Deploy/$envDir/$module/$jobName failed. Notifying via email and slack.." + ANSI_NORMAL
             
                     slack_notify("FAILURE", tag_name, deployStatus.fullProjectName, deployStatus.number, deployStatus.absoluteUrl)
                     email_notify()
+                    currentBuild.result = "UNSTABLE"
             
                 }
             } else {
@@ -43,6 +45,7 @@ def call(){
             
                 slack_notify("FAILURE", tag_name, uploadStatus.fullProjectName, uploadStatus.number, uploadStatus.absoluteUrl)
                 email_notify()
+                currentBuild.result = "UNSTABLE"
             }
         }
     }
