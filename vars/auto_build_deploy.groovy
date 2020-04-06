@@ -10,7 +10,8 @@ def call(){
             tag_name = env.JOB_NAME.split("/")[-1]
             jobName = env.JOB_NAME.split("/")[-2]
             module = env.JOB_NAME.split("/")[-3]
-            branch_or_tag = tag_name.split("_")[-0]
+            // branch_or_tag = tag_name.split("_")[-0]
+            branch_or_tag = env.public_repo_branch
             envDir = "$auto_deploy_env"
 
             println ANSI_BOLD + ANSI_GREEN + "$jobName build succeeded. Triggering ArtifactUpload.." + ANSI_NORMAL
