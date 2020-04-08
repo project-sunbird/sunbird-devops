@@ -1,0 +1,23 @@
+{{- if .Values.prometheus.thanos }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thanos-sidecar
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    app: thanos-sidecar
+    self-monitor: {{ .Values.prometheus.serviceMonitor.selfMonitor | quote }}
+{{ include "prometheus-operator.labels" . | indent 4 }}
+{{- if .Values.prometheus.service.labels }}
+{{ toYaml .Values.prometheus.service.labels | indent 4 }}
+{{- end }}
+spec:
+  clusterIP: None
+  selector:
+    app: prometheus
+  ports:
+  - name: grpc
+    port: 10901
+    targetPort: grpc
+{{- end }}
