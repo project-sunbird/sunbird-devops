@@ -4,27 +4,25 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   labels:
-    app.kubernetes.io/component: object-store-gateway
-    app.kubernetes.io/instance: thanos-store
-    app.kubernetes.io/name: thanos-store
-    app.kubernetes.io/version: v0.11.0
+{{- if .Values.prometheus.prometheusSpec.thanosLabels }}
+{{ toYaml .Values.prometheus.prometheusSpec.thanosLabels | indent 4 }}
+{{- end }}
   name: thanos-store
-  namespace: monitoring
+  namespace: {{ $.Release.Namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/component: object-store-gateway
-      app.kubernetes.io/instance: thanos-store
-      app.kubernetes.io/name: thanos-store
+{{- if .Values.prometheus.prometheusSpec.thanosLabels }}
+{{ toYaml .Values.prometheus.prometheusSpec.thanosLabels | indent 6 }}
+{{- end }}
   serviceName: thanos-store
   template:
     metadata:
       labels:
-        app.kubernetes.io/component: object-store-gateway
-        app.kubernetes.io/instance: thanos-store
-        app.kubernetes.io/name: thanos-store
-        app.kubernetes.io/version: v0.11.0
+{{- if .Values.prometheus.prometheusSpec.thanosLabels }}
+{{ toYaml .Values.prometheus.prometheusSpec.thanosLabels | indent 8 }}
+{{- end }}
     spec:
       containers:
       - args:
@@ -71,9 +69,9 @@ spec:
   volumeClaimTemplates:
   - metadata:
       labels:
-        app.kubernetes.io/component: object-store-gateway
-        app.kubernetes.io/instance: thanos-store
-        app.kubernetes.io/name: thanos-store
+{{- if .Values.prometheus.prometheusSpec.thanosLabels }}
+{{ toYaml .Values.prometheus.prometheusSpec.thanosLabels | indent 8 }}
+{{- end }}
       name: data
     spec:
       accessModes:
