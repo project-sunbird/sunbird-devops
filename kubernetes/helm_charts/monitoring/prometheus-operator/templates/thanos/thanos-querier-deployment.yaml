@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: thanos-query
-  namespace: monitoring
+  namespace: {{ $.Release.Namespace }}
   labels:
     app: thanos-query
 spec:
@@ -16,9 +16,9 @@ spec:
     metadata:
       labels:
         app: thanos-query
-        app.kubernetes.io/component: query-layer
-        app.kubernetes.io/instance: thanos-query
-        app.kubernetes.io/name: thanos-query
+{{- if .Values.prometheus.prometheusSpec.thanosLabels }}
+{{ toYaml .Values.prometheus.prometheusSpec.thanosLabels | indent 8 }}
+{{- end }}
     spec:
       containers:
       - name: thanos-query
