@@ -3,22 +3,25 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: thanos-compactor
-  namespace: monitoring
+  namespace: {{ $.Release.Namespace }}
   labels:
-    app: thanos-compactor
-    thanos-peer: "true"
+{{- if .Values.prometheus.prometheusSpec.thanosCompactorLabels }}
+{{ toYaml .Values.prometheus.prometheusSpec.thanosCompactorLabels | indent 4 }}
+{{- end }}
 spec:
   serviceName: "thanos-compactor"
   replicas: 1
   selector:
     matchLabels:
-      app: thanos-compactor
-      thanos-peer: "true"
+{{- if .Values.prometheus.prometheusSpec.thanosCompactorLabels }}
+{{ toYaml .Values.prometheus.prometheusSpec.thanosCompactorLabels | indent 6 }}
+{{- end }}
   template:
     metadata:
       labels:
-        app: thanos-compactor
-        thanos-peer: "true"
+{{- if .Values.prometheus.prometheusSpec.thanosCompactorLabels }}
+{{ toYaml .Values.prometheus.prometheusSpec.thanosCompactorLabels | indent 8 }}
+{{- end }}
     spec:
       containers:
       - name: thanos-compactor
