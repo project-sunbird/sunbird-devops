@@ -19,14 +19,27 @@
 
 - name: Get the deployment rollout status
   shell: "kubectl get deployments -A | grep -i {{ release_name }} | awk -F' ' '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'"
-  register: task_result
-  until: task_result.rc == 0
+  register: deployment_result
+  until: deployment_result.rc == 0
   retries: 6
   delay: 30
 
-- name: Get deployed image name
-  shell: "kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
+- name: Get deployed image name - deployments
+  shell: "kubectl get deployments {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
   register: deployed_image
+
+ name: Get the daemonset rollout status
+  shell: "kubectl get daemonsets -A | grep -i {{ release_name }} | awk -F' ' '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'"
+  register: daemonset_result
+  until: daemonset_result.rc == 0
+  retries: 6
+  delay: 30
+  when: deployment_result.rc != 0
+
+- name: Get deployed image name - daemonsets
+  shell: "kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
+  register: deployed_image
+  when: deployment_result.rc != 0
 
 - set_fact:
    metadata_image: "{{ image_name }}:{{ image_tag }}"
