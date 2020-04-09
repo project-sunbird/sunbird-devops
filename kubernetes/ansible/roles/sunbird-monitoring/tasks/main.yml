@@ -6,6 +6,16 @@
     dest: "/tmp/{{item}}.yaml"
   with_items: "{{ monitoring_stack }}"
 
+- name: copy the template file for thanos
+  template:
+    src: "thanosSecret.yaml"
+    dest: "/tmp/thanosSecret.yaml"
+  when: enable_thanos == "true"
+
+- name: Create a secret for the thanos
+  shell: "kubectl apply -f "
+  when: enable_thanos == "true"
+
 - name: Creating sunbird monitoring stack
   shell: "helm upgrade --install --force --cleanup-on-fail {{ item }} {{chart_path}}/{{ item }} --namespace monitoring -f /tmp/{{ item }}.yaml"
   with_items: "{{ monitoring_stack }}"
