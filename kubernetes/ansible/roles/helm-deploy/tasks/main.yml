@@ -40,25 +40,25 @@
 - name: Get deployed image name - daemonsets
   shell: "kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
   register: deployed_image
-  when: daemonset_result.rc == 0 AND deployment_result.rc != 0
+  when: daemonset_result.rc == 0 and deployment_result.rc != 0
 
 - name: Get the statefulset rollout status
   shell: "kubectl get statefulsets -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"
   args:
     executable: /bin/bash
   register: statefulset_result
-  when: deployment_result.rc != 0 AND daemonset_result.rc != 0
+  when: deployment_result.rc != 0 and daemonset_result.rc != 0
   ignore_errors: yes
 
 - name: Get deployed image name - statefulsets
   shell: "kubectl get statefulsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
   register: deployed_image
-  when: statefulset_result.rc == 0 AND daemonset_result.rc != 0 AND deployment_result.rc != 0
+  when: statefulset_result.rc == 0 and daemonset_result.rc != 0 and deployment_result.rc != 0
 
 - name: fail when deployment or daemonset or statefulset are not successful
   fail:
     msg: "Unable to get success status for any of these - deployment, daemonset, statefulset"
-  when: statefulset_result.rc != 0 AND daemonset_result.rc != 0 AND deployment_result.rc != 0
+  when: statefulset_result.rc != 0 and daemonset_result.rc != 0 and deployment_result.rc != 0
 
 - set_fact:
    metadata_image: "{{ image_name }}:{{ image_tag }}"
