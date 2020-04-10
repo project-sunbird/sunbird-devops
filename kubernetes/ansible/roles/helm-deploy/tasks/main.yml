@@ -19,7 +19,8 @@
 
 - name: Get the deployment rollout status
   shell: "kubectl get deployments -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"
-  executable: /bin/bash
+  args:
+    executable: /bin/bash
   register: deployment_result
   until: deployment_result.rc == 0
   retries: 6
@@ -32,7 +33,8 @@
 
 - name: Get the daemonset rollout status
   shell: "kubectl get daemonsets -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"
-  executable: /bin/bash
+  args:
+    executable: /bin/bash
   register: daemonset_result
   until: daemonset_result.rc == 0
   retries: 6
