@@ -482,17 +482,13 @@ nginxconfig: |
   
   error_log  /var/log/nginx/error.log warn;
   pid        /var/run/nginx.pid;
-  
   events {
       worker_connections  10000;
   }
-  
-  
   http {
       include       /etc/nginx/mime.types;
       default_type  application/octet-stream;
       resolver {{ kube_dns_ip }} valid=30s;
-  
       lua_load_resty_core off;
       log_format  main  '$remote_addr - $remote_user [$time_local] '
                         '"$request" $status $body_bytes_sent '
@@ -552,6 +548,9 @@ nginxconfig: |
       }
 
       include /etc/nginx/conf.d/*.conf;
+
+      # local caching for images and files
+      proxy_cache_path /tmp/proxy_cache levels=1:2 keys_zone=tmp_cache:5m max_size=10m inactive=60m use_temp_path=off;
   
      server {
        listen 9145;
