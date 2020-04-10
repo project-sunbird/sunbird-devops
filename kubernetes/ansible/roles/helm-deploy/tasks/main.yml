@@ -30,7 +30,7 @@
   when: deployment_result.rc == 0
 
 - set_fact:
-   deployed_image: "{{ image }}"
+   deployed_image: "{{ image.stdout }}"
 
 - name: Get the daemonset rollout status
   shell: "kubectl get daemonsets -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"
@@ -45,8 +45,7 @@
   when: daemonset_result.rc == 0 and deployment_result.rc != 0
 
 - set_fact:
-   deployed_image: "{{ image }}"
-   when: image.changed
+   deployed_image: "{{ image.stdout if not image.skipped else deployed_image }}"
 
 - name: Get the statefulset rollout status
   shell: "kubectl get statefulsets -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"
@@ -61,8 +60,7 @@
   when: statefulset_result.rc == 0 and daemonset_result.rc != 0 and deployment_result.rc != 0
 
 - set_fact:
-   deployed_image: "{{ image }}"
-   when: image.changed
+   deployed_image: "{{ image.stdout if not image.skipped else deployed_image }}"
 
 - name: fail when deployment or daemonset or statefulset are not successful
   fail:
@@ -72,7 +70,10 @@
 - set_fact:
    metadata_image: "{{ image_name }}:{{ image_tag }}"
 
+- debug: 
+    msg: "deployed image: {{ deployed_image }}"
+
 - name: Compare deployed image and metadata_image
   fail:
     msg: "Image version from Jenkins job and actual deployed image version do not match"
-  when: deployed_image.stdout != metadata_image
+  when: deployed_image != metadata_image
