@@ -50,22 +50,22 @@ calculate_heap_sizes()
     fi
 
     # New Logic to pick the heap size
-    # If resource_crunch == true then take quarter size of the Server
+    # If resource_crunch == True then take quarter size of the Server
     # else take half the size of the server and if half server Size exceeds 12GB then always take 12GB as the max heap size
   
     half_system_memory_in_mb=`expr $system_memory_in_mb / 2`
     quarter_system_memory_in_mb=`expr $half_system_memory_in_mb / 2`
     
     resource_crunch="{{resource_crunch}}"
-    if [ "$resource_crunch" == "true" ]
+    if [ "$resource_crunch" == "True" ]
     then
       MAX_HEAP_SIZE="${quarter_system_memory_in_mb}M"
     fi
   
-    if [[ "$resource_crunch" != "true" ]] && [[ "$half_system_memory_in_mb" -gt "12288" ]]
+    if [[ "$resource_crunch" != "True" ]] && [[ "$half_system_memory_in_mb" -gt "12288" ]]
     then
         MAX_HEAP_SIZE="12288M"
-    elif [ "$resource_crunch" != "true" ]
+    elif [ "$resource_crunch" != "True" ]
     then
         MAX_HEAP_SIZE="${half_system_memory_in_mb}M"
     fi
