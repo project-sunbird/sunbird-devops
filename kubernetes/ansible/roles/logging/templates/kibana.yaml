@@ -1,0 +1,40 @@
+elasticsearchHosts: "http://{{logger_es6_host}}:{{logger_es_port}}"
+
+replicas: {{ kibana_replicas | default(1) }}
+image: "docker.elastic.co/kibana/kibana"
+imageTag: "6.8.6"
+imagePullPolicy: "IfNotPresent"
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "100Mi"
+  limits:
+    cpu: "4"
+    memory: "4Gi"
+
+healthCheckPath: "/dashboard"
+
+kibanaConfig:
+   kibana.yml: |
+     server.basePath: "/dashboard"
+     server.rewriteBasePath: true
+     elasticsearch.shardTimeout: 0
+     elasticsearch.requestTimeout: 300000
+     elasticsearch.preserveHost: true
+     elasticsearch.ssl.verificationMode: full
+     kibana.index: ".kibana"
+     kibana.defaultAppId: "discover"
+     xpack.ilm.enabled: false
+     xpack.security.enabled: false
+
+updateStrategy:
+  type: "RollingUpdate"
+
+readinessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 60
+  timeoutSeconds: 5
+  failureThreshold: 10
+
+fullnameOverride: "kibana"

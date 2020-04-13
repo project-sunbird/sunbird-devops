@@ -1,8 +1,10 @@
-- name: rename template
+# tasks file for sunbird-monitoring
+- name: tempating variables
   template:
-    src: "{{ chart_path }}/values.j2"
-    dest: "{{ chart_path }}/values.yaml"
-
+    src: "{{ item }}.yaml"
+    dest: "/tmp/{{item}}.yaml"
+  with_items: "{{ logging_templates }}"
 
 - name: helm install
-  shell: helm upgrade --install --atomic --timeout 10m --force {{ release_name }} {{ chart_path }} -n logging
+  shell: helm upgrade --install --atomic --timeout 10m --force {{ item }} {{ chart_path }} -n logging -f /tmp/{{ item }}.yaml"
+  with_items: "{{ logging_templated }}"

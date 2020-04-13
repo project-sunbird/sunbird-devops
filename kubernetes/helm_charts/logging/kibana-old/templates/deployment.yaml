@@ -1,7 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "kibana.fullname" . }}
+  name: kibana
+  namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Chart.Name }}
     release: {{ .Release.Name | quote }}
@@ -11,19 +12,18 @@ metadata:
 spec:
   replicas: {{ .Values.replicas }}
   strategy:
-{{ toYaml .Values.updateStrategy | indent 4 }}
+    rollingUpdate:
+      maxSurge: {{ .Values.strategy.maxsurge }}
+      maxUnavailable: {{ default (sub .Values.replicas 1) .Values.strategy.maxunavailable }}
   selector:
     matchLabels:
-      app: {{ .Chart.Name }}
+      app: kibana
       release: {{ .Release.Name | quote }}
   template:
     metadata:
       labels:
-        app: {{ .Chart.Name }}
+        app: kibana
         release: {{ .Release.Name | quote }}
-        {{- range $key, $value := .Values.labels }}
-        {{ $key }}: {{ $value | quote }}
-        {{- end }}
       annotations:
         {{- range $key, $value := .Values.podAnnotations }}
         {{ $key }}: {{ $value | quote }}
@@ -50,7 +50,7 @@ spec:
         {{- if .Values.kibanaConfig }}
         - name: kibanaconfig
           configMap:
-            name: {{ template "kibana.fullname" . }}-config
+            name: kibana-config
         {{- end }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
@@ -68,57 +68,29 @@ spec:
       imagePullSecrets:
 {{ toYaml .Values.imagePullSecrets | indent 8 }}
     {{- end }}
-      {{- if .Values.extraInitContainers }}
-      initContainers:
-{{ tpl .Values.extraInitContainers . | indent 6 }}
-      {{- end }}
       containers:
       - name: kibana
         securityContext:
 {{ toYaml .Values.securityContext | indent 10 }}
         image: "{{ .Values.image }}:{{ .Values.imageTag }}"
         imagePullPolicy: "{{ .Values.imagePullPolicy }}"
-        env:
-          {{- if .Values.elasticsearchURL }}
-          - name: ELASTICSEARCH_URL
-            value: "{{ .Values.elasticsearchURL }}"
-          {{- else if .Values.elasticsearchHosts }}
-          - name: ELASTICSEARCH_HOSTS
-            value: "{{ .Values.elasticsearchHosts }}"
-          {{- end }}
-          - name: SERVER_HOST
-            value: "{{ .Values.serverHost }}"
 {{- if .Values.extraEnvs }}
 {{ toYaml .Values.extraEnvs | indent 10 }}
 {{- end }}
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
-          exec:
-            command:
-              - sh
-              - -c
-              - |
-                #!/usr/bin/env bash -e
-                http () {
-                    local path="${1}"
-                    set -- -XGET -s --fail -L
-
-                    if [ -n "${ELASTICSEARCH_USERNAME}" ] && [ -n "${ELASTICSEARCH_PASSWORD}" ]; then
-                      set -- "$@" -u "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}"
-                    fi
-
-                    STATUS=$(curl --output /dev/null --write-out "%{http_code}" -k "$@" "{{ .Values.protocol }}://localhost:{{ .Values.httpPort }}${path}")
-                    if [[ "${STATUS}" -eq 200 ]]; then
-                      exit 0
-                    fi
-
-                    echo "Error: Got HTTP code ${STATUS} but expected a 200"
-                    exit 1
-                }
-
-                http "{{ .Values.healthCheckPath }}"
+          httpGet:
+            path: {{ .Values.healthCheckPath }}
+            port: {{ .Values.httpPort }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+          httpGet:
+            path: {{ .Values.healthCheckPath }}
+            port: {{ .Values.httpPort }}
         ports:
-        - containerPort: {{ .Values.httpPort }}
+          - name: http-port
+            containerPort: {{ .Values.httpPort }}
+            protocol: TCP
 {{- if .Values.lifecycle }}
         lifecycle:
 {{ toYaml .Values.lifecycle | indent 10 }}
@@ -138,6 +110,3 @@ spec:
             mountPath: /usr/share/kibana/config/{{ $path }}
             subPath: {{ $path }}
           {{- end -}}
-      {{- if .Values.extraContainers }}
-{{ tpl .Values.extraContainers . | indent 6 }}
-      {{- end }}
