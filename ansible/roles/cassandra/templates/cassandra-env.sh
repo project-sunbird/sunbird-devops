@@ -56,7 +56,7 @@ calculate_heap_sizes()
     half_system_memory_in_mb=`expr $system_memory_in_mb / 2`
     quarter_system_memory_in_mb=`expr $half_system_memory_in_mb / 2`
     
-    resource_crunch="true"
+    resource_crunch="{{resource_crunch}}"
     if [ "$resource_crunch" == "true" ]
     then
       MAX_HEAP_SIZE="${quarter_system_memory_in_mb}M"
