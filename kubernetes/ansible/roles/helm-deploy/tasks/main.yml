@@ -27,7 +27,6 @@
 - name: Get deployed image name - deployments
   shell: "kubectl get deployments {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
   register: image
-#  when: deployment_result.rc == 0
 
 - set_fact:
    deployed_image: "{{ image }}"
@@ -42,7 +41,6 @@
 - name: Get deployed image name - daemonsets
   shell: "kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
   register: image 
-#  when: daemonset_result.rc == 0 and deployment_result.rc != 0
 
 - set_fact:
    deployed_image: "{{ image if image.stdout_lines | length > 0 else deployed_image }}"
@@ -57,7 +55,6 @@
 - name: Get deployed image name - statefulsets
   shell: "kubectl get statefulsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
   register: image
-#  when: statefulset_result.rc == 0 and daemonset_result.rc != 0 and deployment_result.rc != 0
 
 - set_fact:
    deployed_image: "{{ image if image.stdout_lines | length > 0 else deployed_image }}"
