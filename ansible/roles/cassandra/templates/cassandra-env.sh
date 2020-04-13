@@ -1,3 +1,4 @@
+#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -50,22 +51,22 @@ calculate_heap_sizes()
     fi
 
     # New Logic to pick the heap size
-    # If resource_crunch == True then take quarter size of the Server
+    # If resource_crunch == yes then take quarter size of the Server
     # else take half the size of the server and if half server Size exceeds 12GB then always take 12GB as the max heap size
   
     half_system_memory_in_mb=`expr $system_memory_in_mb / 2`
     quarter_system_memory_in_mb=`expr $half_system_memory_in_mb / 2`
     
     resource_crunch="{{resource_crunch}}"
-    if [ "$resource_crunch" == "True" ]
+    if [ $resource_crunch = "yes" ];
     then
       MAX_HEAP_SIZE="${quarter_system_memory_in_mb}M"
     fi
   
-    if [[ "$resource_crunch" != "True" ]] && [[ "$half_system_memory_in_mb" -gt "12288" ]]
+    if [ $resource_crunch != "yes" -a $half_system_memory_in_mb > 12288 ];
     then
         MAX_HEAP_SIZE="12288M"
-    elif [ "$resource_crunch" != "True" ]
+    elif [ "$resource_crunch" != "yes" ]
     then
         MAX_HEAP_SIZE="${half_system_memory_in_mb}M"
     fi
@@ -281,3 +282,4 @@ JVM_OPTS="$JVM_OPTS -Djava.library.path=$CASSANDRA_HOME/lib/sigar-bin"
 JVM_OPTS="$JVM_OPTS $MX4J_ADDRESS"
 JVM_OPTS="$JVM_OPTS $MX4J_PORT"
 JVM_OPTS="$JVM_OPTS $JVM_EXTRA_OPTS"
+
