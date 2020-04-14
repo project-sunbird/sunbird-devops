@@ -69,6 +69,17 @@ proxyconfig: |
     listen 80;
     listen [::]:80;
     server_name {{ proxy_server_name }};
+    {#
+    custom nginx server config section
+    eg:
+    nginx_server_config: |
+      if ($allowed_country = no) {
+          return 444;
+      }
+    #}
+{% if nginx_server_config is defined and nginx_server_config %}
+  {{ nginx_server_config | indent( width=4, indentfirst=True)  }}
+{% endif %}
     # Limitting open connection per ip
     limit_conn limitbyaddr {{ nginx_per_ip_connection_limit }};
     return 301 https://{{ proxy_server_name }}$request_uri;
@@ -86,6 +97,17 @@ proxyconfig: |
     ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA HIGH !RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS";
   {% endif  %}
     server_name *.{{ proxy_server_name }} {{ proxy_server_name }};
+    {#
+    custom nginx server config section
+    eg:
+    nginx_server_config: |
+      if ($allowed_country = no) {
+          return 444;
+      }
+    #}
+{% if nginx_server_config is defined and nginx_server_config %}
+  {{ nginx_server_config | indent( width=6, indentfirst=True)  }}
+{% endif %}
     # Limitting open connection per ip
     limit_conn limitbyaddr {{ nginx_per_ip_connection_limit }};
     proxy_set_header    Host              $host;
@@ -436,20 +458,40 @@ proxyconfig: |
 nginxconfig: |
   user  nginx;
   worker_processes  1;
-  
+  {#
+  Can add custom modules like
+  eg:
+  nginx_modules: |
+      load_module modules/ngx_http_geoip2_module.so;
+      load_module modules/ngx_stream_geoip2_module.so;
+  #}
+{% if nginx_modules is defined and nginx_modules %}
+  {{ nginx_modules | indent( width=2, indentfirst=True)  }}
+{% endif %}
   error_log  /var/log/nginx/error.log warn;
   pid        /var/run/nginx.pid;
-  
   events {
       worker_connections  10000;
   }
-  
-  
   http {
       include       /etc/nginx/mime.types;
       default_type  application/octet-stream;
       resolver {{ kube_dns_ip }} valid=30s;
-  
+      {#
+      This is to define custom nginx_http_configs
+      for example
+      nginx_http_config: |
+        geoip2 /usr/local/share/GeoLite2-Country.mmdb {
+            $geoip2_data_country_iso_code country iso_code;
+        }
+        map $geoip2_data_country_iso_code $allowed_country {
+        default no;
+            IN  no;
+        }
+      #}
+{% if nginx_http_config is defined and nginx_http_config %}
+  {{ nginx_http_config | indent( width=7, indentfirst=True)  }}
+{% endif %}
       lua_load_resty_core off;
       log_format  main  '$remote_addr - $remote_user [$time_local] '
                         '"$request" $status $body_bytes_sent '
@@ -509,6 +551,9 @@ nginxconfig: |
       }
 
       include /etc/nginx/conf.d/*.conf;
+
+      # local caching for images and files
+      proxy_cache_path /tmp/proxy_cache levels=1:2 keys_zone=tmp_cache:5m max_size=10m inactive=60m use_temp_path=off;
   
      server {
        listen 9145;
