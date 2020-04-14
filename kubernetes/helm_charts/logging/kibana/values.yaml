@@ -1,14 +1,16 @@
 ---
-namespace: "logging"
-#elasticsearchURL: "" # "http://elasticsearch-master:9200"
-#elasticsearchHosts: "http://elasticsearch-master:9200"
+
+elasticsearchURL: "" # "http://elasticsearch-master:9200"
+elasticsearchHosts: "http://elasticsearch-master:9200"
 
 replicas: 1
 
 # Extra environment variables to append to this nodeGroup
 # This will be appended to the current 'env:' key. You can use any of the kubernetes env
 # syntax here
-extraEnvs: []
+extraEnvs:
+  - name: "NODE_OPTIONS"
+    value: "--max-old-space-size=1800"
 #  - name: MY_ENVIRONMENT_VAR
 #    value: the_value_goes_here
 
@@ -22,7 +24,7 @@ secretMounts: []
 #    subPath: kibana.keystore # optional
 
 image: "docker.elastic.co/kibana/kibana"
-imageTag: "7.3.2"
+imageTag: "7.6.2"
 imagePullPolicy: "IfNotPresent"
 
 # additionals labels
@@ -33,29 +35,24 @@ podAnnotations: {}
 
 resources:
   requests:
-    cpu: "100m"
-    memory: "500Mi"
+    cpu: "1000m"
+    memory: "2Gi"
   limits:
-    cpu: "2"
+    cpu: "1000m"
     memory: "2Gi"
 
 protocol: http
 
 serverHost: "0.0.0.0"
 
-healthCheckPath: "/kibana"
+healthCheckPath: "/app/kibana"
 
 # Allows you to add any config files in /usr/share/kibana/config/
 # such as kibana.yml
-kibanaConfig: 
-   kibana.yml: |
-     server.basePath: "/kibana"
-     server.rewriteBasePath: true
-     elasticsearch.hosts: "http://elasticsearch-master:9200"
-     elasticsearch.shardTimeout: 0
-     kibana.defaultAppId: "discover"
-     xpack.ilm.enabled: false
-     xpack.security.enabled: false
+kibanaConfig: {}
+#   kibana.yml: |
+#     key:
+#       nestedkey: value
 
 # If Pod Security Policy in use it may be required to specify security context as well as service account
 
@@ -76,20 +73,17 @@ serviceAccount: ""
 # https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass
 priorityClassName: ""
 
-# By default this will make sure two pods don't end up on the same node
-# Changing this to a region would allow you to spread pods across regions
-antiAffinityTopologyKey: "kubernetes.io/hostname"
-
-# Hard means that by default pods will only be scheduled if there are enough nodes for them
-# and that they will never end up on the same node. Setting this to soft will do this "best effort"
-antiAffinity: "soft"
-
 httpPort: 5601
 
-# This is the max unavailable setting for the pod disruption budget
-# The default value of 1 will make sure that kubernetes won't allow more than 1
-# of your pods to be unavailable during maintenance
-maxUnavailable: 1
+extraContainers: ""
+# - name: dummy-init
+#   image: busybox
+#   command: ['echo', 'hey']
+
+extraInitContainers: ""
+# - name: dummy-init
+#   image: busybox
+#   command: ['echo', 'hey']
 
 updateStrategy:
   type: "Recreate"
@@ -97,13 +91,16 @@ updateStrategy:
 service:
   type: ClusterIP
   port: 5601
-  nodePort:
+  nodePort: ""
+  labels: {}
   annotations: {}
     # cloud.google.com/load-balancer-type: "Internal"
     # service.beta.kubernetes.io/aws-load-balancer-internal: 0.0.0.0/0
     # service.beta.kubernetes.io/azure-load-balancer-internal: "true"
     # service.beta.kubernetes.io/openstack-internal-load-balancer: "true"
     # service.beta.kubernetes.io/cce-load-balancer-internal-vpc: "true"
+  loadBalancerSourceRanges: []
+    # 0.0.0.0/0
 
 ingress:
   enabled: false
@@ -119,7 +116,10 @@ ingress:
   #      - chart-example.local
 
 readinessProbe:
-  initialDelaySeconds: 300
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 3
   timeoutSeconds: 5
 
 imagePullSecrets: []
