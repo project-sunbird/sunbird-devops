@@ -24,6 +24,10 @@ def call(){
                 slack_notify("SUCCESS", tag_name, uploadStatus.fullProjectName, uploadStatus.number, uploadStatus.absoluteUrl)
                 email_notify()
                 
+                if (module == "Core") {
+                    module = "Kubernetes"
+                }    
+                
                 deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$private_repo_branch"), string(name: 'branch_or_tag', value: "$branch_or_tag")]
                 
                 if (deployStatus.currentResult == "SUCCESS") {
