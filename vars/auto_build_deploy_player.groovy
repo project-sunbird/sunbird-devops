@@ -31,7 +31,7 @@ def call(){
                     email_notify()
                     currentBuild.result = "SUCCESS"
 
-                    customUploadStatus = build job: "ArtifactUpload/$envDir/$module/PlayerCustom", parameters: [string(name: 'absolute_job_path', value: "$JOB_NAME")]
+                    customUploadStatus = build job: "ArtifactUpload/$envDir/$module/PlayerCustom", parameters: [string(name: 'absolute_job_path', value: "Build/$module/PlayerCustomStage")]
 
                     if (customUploadStatus.currentResult == "SUCCESS") {
                         println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/PlayerCustom succeeded. Triggering CDN.." + ANSI_NORMAL
