@@ -16,13 +16,20 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                     slack_status = 'good'
                     build_status = "Succeded"
                 }
-                
+
                 try {
                     if(env.automated_slack_channel != "" && release_tag != null) {
+                        if (jobName == null)
+                            jobName = env.JOB_NAME
+                        if (buildNumber == 0)
+                            buildNumber = env.BUILD_NUMBER
+                        if (jobUrl == null)
+                            jobUrl = env.JOB_URL
+
                         slackSend (
                                 channel: env.automated_slack_channel,
                                 color: slack_status,
-                                message: "Build ${build_status} for ${release_tag} - Job Name: $JOB_NAME, Build Number: $BUILD_NUMBER, Click here for logs: (<${JOB_URL}|Open>)",
+                                message: "Build ${build_status} for ${release_tag} - Job Name: $jobName, Build Number: $buildNumber, Click here for logs: (<${jobUrl}|Open>)",
                                 notifyCommitters: true,
                                 baseUrl: env.automated_slack_workspace,
                                 tokenCredentialId: 'automated_slack_token'
@@ -31,7 +38,7 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                     }
 
                     if(release_tag == null)
-                    release_tag = "job"
+                        release_tag = "job"
 
                     envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
                     channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
