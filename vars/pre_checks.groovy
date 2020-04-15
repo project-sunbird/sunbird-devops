@@ -25,7 +25,7 @@ def call() {
                     currentBuild.result = "UNSTABLE"
                 }
                 else {
-                 println ANSI_BOLD + ANSI_GREEN + "All checks passed - Continuing build.."
+                    println ANSI_BOLD + ANSI_GREEN + "All checks passed - Continuing build.." + ANSI_NORMAL
                 }
             }
             else {
