@@ -18,6 +18,11 @@ def call() {
 
             if (current.after(start) && current.before(end)) {
                 println ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window. Continuing build" + ANSI_NORMAL
+                tag_name = env.JOB_NAME.split("/")[-1]
+                if (!tag_name.contains(env.public_repo_branch) || !tag_name.contains("_RC")) {
+                    println(ANSI_BOLD + ANSI_RED + "Error.. Tag does not contain " + env.public_repo_branch + "or is not a RC tag" + ANSI_NORMAL)
+                    error("Oh ho! Tag is not a release candidate.. Skipping build")
+                }
                 return
             }
             else {
