@@ -29,7 +29,7 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                         slackSend (
                                 channel: env.automated_slack_channel,
                                 color: slack_status,
-                                message: "Build ${build_status} for ${release_tag} - Job Name: $jobName, Build Number: $buildNumber, Click here for logs: (<${jobUrl}|Open>)",
+                                message: "Build ${build_status} for ${release_tag} - Job: $jobName, Build Number: $buildNumber, Logs: (<${jobUrl}|Open>)",
                                 notifyCommitters: true,
                                 baseUrl: env.automated_slack_workspace,
                                 tokenCredentialId: 'automated_slack_token'
@@ -46,7 +46,7 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                     slackSend(
                             channel: slack_channel,
                             color: slack_status,
-                            message: "Build ${build_status} for ${release_tag} - Job Name: $JOB_NAME, Build Number: $BUILD_NUMBER, Click here for logs: (<${JOB_URL}|Open>)",
+                            message: "Build ${build_status} for ${release_tag} - Job: $JOB_NAME, Build Number: $BUILD_NUMBER, Logs: (<${JOB_URL}|Open>)",
                     )
                     return
                 }
@@ -63,14 +63,14 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                         slackSend(
                                 channel: "${env.GLOBAL_NOTIFY_SLACK_CHANNEL}",
                                 color: slack_status,
-                                message: "Build ${build_status} for ${release_tag} - Job Name: $JOB_NAME, Build Number: $BUILD_NUMBER, Click here for logs: (<${JOB_URL}|Open>)",
+                                message: "Build ${build_status} for ${release_tag} - Job: $JOB_NAME, Build Number: $BUILD_NUMBER, Logs: (<${JOB_URL}|Open>)",
                         )
                     }
                     else {
                         slackSend(
                                 channel: "${env.GLOBAL_NOTIFY_SLACK_CHANNEL}",
                                 color: slack_status,
-                                message: "Build ${build_status} for ${release_tag} - Job Name: $JOB_NAME, Build Number: $BUILD_NUMBER, Click here for logs: (<${JOB_URL}|Open>)",
+                                message: "Build ${build_status} for ${release_tag} - Job: $JOB_NAME, Build Number: $BUILD_NUMBER, Logs: (<${JOB_URL}|Open>)",
                         )
                     }
                 else
