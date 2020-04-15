@@ -85,7 +85,7 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                                     message: "Build ${build_status} for ${release_tag} - ${jobName} ${buildNumber} (<${jobUrl}|Open>)",
                                     notifyCommitters: true,
                                     teamDomain: env.automated_slack_workspace,
-                                    tokenCredentialId: automated_slack_token
+                                    tokenCredentialId: 'automated_slack_token'
                             )
 
             }
