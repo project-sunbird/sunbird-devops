@@ -26,11 +26,23 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                     slack_channel = evaluate "$channel_env_name".replace('-', '')
                     if (release_tag != null && jobName != null && buildNumber != 0 && jobUrl != null)
                     {
-                        slackSend(
-                                channel: slack_channel,
-                                color: slack_status,
-                                message: "Build ${build_status} for ${release_tag} - ${jobName} ${buildNumber} (<${jobUrl}|Open>)"
-                        )
+                        if(env.automated_slack_channel != "") {
+                            slack_channel = env.automated_slack_channel
+                            slackSend(
+                                    channel: slack_channel,
+                                    tokenCredentialId: 'automated_slack_token',
+                                    color: slack_status,
+                                    message: "Build ${build_status} for ${release_tag} - ${jobName} ${buildNumber} (<${jobUrl}|Open>)"
+                            )
+                        }
+                        else {
+                            slackSend(
+                                    channel: slack_channel,
+                                    color: slack_status,
+                                    message: "Build ${build_status} for ${release_tag} - ${jobName} ${buildNumber} (<${jobUrl}|Open>)"
+                            )
+                        }
+                        return
                     }
                     else {
                         slackSend(
