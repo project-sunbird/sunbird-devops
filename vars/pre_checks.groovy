@@ -17,22 +17,24 @@ def call() {
             current = Date.parse("HH:mm:ss", current)
 
             if (current.after(start) && current.before(end)) {
-                println ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window. Continuing build" + ANSI_NORMAL
+                println ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if tag matches our pattern.." + ANSI_NORMAL
                 tag_name = env.JOB_NAME.split("/")[-1]
                 if (!tag_name.contains(env.public_repo_branch) || !tag_name.contains("_RC")) {
                     println(ANSI_BOLD + ANSI_RED + "Error.. Tag does not contain " + env.public_repo_branch + "or is not a RC tag" + ANSI_NORMAL)
                     error("Oh ho! Tag is not a release candidate.. Skipping build")
                     currentBuild.result = "UNSTABLE"
                 }
-                return
+                else {
+                 println ANSI_BOLD + ANSI_GREEN + "All checks passed - Continuing build.."
+                }
             }
             else {
                 println ANSI_BOLD + ANSI_RED + "Tigger is NOT in the deployment window. Skipping build" + ANSI_NORMAL
                 error "Tigger is not in the deployment window. Skipping build"
                 currentBuild.result = "UNSTABLE"
             }
-    }
         }
+    }
     catch (err){
         throw err
     }
