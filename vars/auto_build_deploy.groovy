@@ -10,44 +10,42 @@ def call(){
             tag_name = env.JOB_NAME.split("/")[-1]
             jobName = env.JOB_NAME.split("/")[-2]
             module = env.JOB_NAME.split("/")[-3]
-            // branch_or_tag = tag_name.split("_")[-0]
-            branch_or_tag = env.public_repo_branch
             envDir = "$auto_deploy_env"
 
             println ANSI_BOLD + ANSI_GREEN + "$jobName build succeeded. Triggering ArtifactUpload.." + ANSI_NORMAL
-            
+
             uploadStatus = build job: "ArtifactUpload/$envDir/$module/$jobName", parameters: [string(name: 'absolute_job_path', value: "$JOB_NAME")]
-            
+
             if (uploadStatus.currentResult == "SUCCESS") {
                 println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/$jobName succeeded. Triggering Deployment.." + ANSI_NORMAL
-                
+
                 slack_notify("SUCCESS", tag_name, uploadStatus.fullProjectName, uploadStatus.number, uploadStatus.absoluteUrl)
                 email_notify()
-                
+
                 if (module == "Core") {
                     module = "Kubernetes"
-                }    
-                
-                deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$private_repo_branch"), string(name: 'branch_or_tag', value: "$branch_or_tag")]
-                
+                }
+
+                deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")]
+
                 if (deployStatus.currentResult == "SUCCESS") {
                     println ANSI_BOLD + ANSI_GREEN + "Deploy/$envDir/$module/$jobName succeeded. Notifying via email and slack.." + ANSI_NORMAL
-            
+
                     slack_notify("SUCCESS", tag_name, deployStatus.fullProjectName, deployStatus.number, deployStatus.absoluteUrl)
                     email_notify()
                     currentBuild.result = "SUCCESS"
-            
+
                 } else {
                     println ANSI_BOLD + ANSI_RED + "Deploy/$envDir/$module/$jobName failed. Notifying via email and slack.." + ANSI_NORMAL
-            
+
                     slack_notify("FAILURE", tag_name, deployStatus.fullProjectName, deployStatus.number, deployStatus.absoluteUrl)
                     email_notify()
                     currentBuild.result = "UNSTABLE"
-            
+
                 }
             } else {
                 println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/$jobName failed. Notifying via email and slack.." + ANSI_NORMAL
-            
+
                 slack_notify("FAILURE", tag_name, uploadStatus.fullProjectName, uploadStatus.number, uploadStatus.absoluteUrl)
                 email_notify()
                 currentBuild.result = "UNSTABLE"
