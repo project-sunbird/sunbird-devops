@@ -18,7 +18,7 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                 }
                 
                 try {
-                    if(env.automated_slack_channel != "" && release_tag != null {
+                    if(env.automated_slack_channel != "" && release_tag != null) {
                         slackSend (
                                 channel: env.automated_slack_channel,
                                 color: slack_status,
