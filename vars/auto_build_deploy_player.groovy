@@ -71,9 +71,16 @@ def call(){
 
                             }
                         }
+                        else {
+                            println ANSI_BOLD + ANSI_RED + "Deploy/$envDir/$module/PlayerCDN failed. Notifying via email and slack.." + ANSI_NORMAL
+
+                            slack_notify("FAILURE", tag_name, cdnStatus.fullProjectName, cdnStatus.number, cdnStatus.absoluteUrl)
+                            email_notify()
+                            currentBuild.result = "UNSTABLE"
+                        }
                     }
                     else {
-                        println ANSI_BOLD + ANSI_RED + "Deploy/$envDir/$module/PlayerCDN failed. Notifying via email and slack.." + ANSI_NORMAL
+                        println ANSI_BOLD + ANSI_RED + "ArtifactUplaod/$envDir/$module/PlayerCustom failed. Notifying via email and slack.." + ANSI_NORMAL
 
                         slack_notify("FAILURE", tag_name, cdnStatus.fullProjectName, cdnStatus.number, cdnStatus.absoluteUrl)
                         email_notify()
