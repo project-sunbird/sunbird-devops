@@ -16,13 +16,9 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                     slack_status = 'good'
                     build_status = "Succeded"
                 }
-
-                if(release_tag == null)
-                    release_tag = "job"
-
+                
                 try {
-                    println env.automated_slack_channel + "OK"
-                    if(env.automated_slack_channel != "") {
+                    if(env.automated_slack_channel != "" && release_tag != "") {
                         slackSend (
                                 channel: env.automated_slack_channel,
                                 color: slack_status,
@@ -33,6 +29,10 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                         )
                         return
                     }
+
+                    if(release_tag == null)
+                    release_tag = "job"
+
                     envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
                     channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
                     slack_channel = evaluate "$channel_env_name".replace('-', '')
