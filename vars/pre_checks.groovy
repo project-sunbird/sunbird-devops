@@ -22,12 +22,14 @@ def call() {
                 if (!tag_name.contains(env.public_repo_branch) || !tag_name.contains("_RC")) {
                     println(ANSI_BOLD + ANSI_RED + "Error.. Tag does not contain " + env.public_repo_branch + "or is not a RC tag" + ANSI_NORMAL)
                     error("Oh ho! Tag is not a release candidate.. Skipping build")
+                    currentBuild.result = "UNSTABLE"
                 }
                 return
             }
             else {
                 println ANSI_BOLD + ANSI_RED + "Tigger is NOT in the deployment window. Skipping build" + ANSI_NORMAL
                 error "Tigger is not in the deployment window. Skipping build"
+                currentBuild.result = "UNSTABLE"
             }
     }
         }
