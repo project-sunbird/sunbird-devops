@@ -22,13 +22,13 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
 
                 try {
                     println env.automated_slack_channel + "OK"
-                    if(env.automated_slack_channel) {
+                    if(env.automated_slack_channel != "") {
                         slackSend (
                                 channel: env.automated_slack_channel,
                                 color: slack_status,
                                 message: "Build ${build_status} for ${release_tag} - Job Name: $JOB_NAME, Build Number: $BUILD_NUMBER, Click here for logs: (<${JOB_URL}|Open>)",
                                 notifyCommitters: true,
-                                teamDomain: env.automated_slack_workspace,
+                                baseUrl: env.automated_slack_workspace,
                                 tokenCredentialId: automated_slack_token
                         )
                         return
