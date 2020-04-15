@@ -17,15 +17,15 @@ def call(){
             uploadStatus = build job: "ArtifactUpload/$envDir/$module/$jobName", parameters: [string(name: 'absolute_job_path', value: "$JOB_NAME")]
 
             if (uploadStatus.currentResult == "SUCCESS") {
-                println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/$jobName succeeded. Triggering PlayerCustom.." + ANSI_NORMAL
+                println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/$jobName succeeded. Triggering PlayerCustomStage.." + ANSI_NORMAL
 
                 slack_notify("SUCCESS", tag_name, uploadStatus.fullProjectName, uploadStatus.number, uploadStatus.absoluteUrl)
                 email_notify()
 
-                customBuildStatus = build job: "Build/$module/PlayerCustom", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'diksha_tenant_tag', value: "master")]
+                customBuildStatus = build job: "Build/$module/PlayerCustomStage", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'diksha_tenant_tag', value: "master")]
 
                 if (customBuildStatus.currentResult == "SUCCESS") {
-                    println ANSI_BOLD + ANSI_GREEN + "Build/$module/PlayerCustom succeeded. Triggering ArtifactUpload for PlayerCustom.." + ANSI_NORMAL
+                    println ANSI_BOLD + ANSI_GREEN + "Build/$module/PlayerCustomStage succeeded. Triggering ArtifactUpload for PlayerCustomStage.." + ANSI_NORMAL
 
                     slack_notify("SUCCESS", tag_name, customBuildStatus.fullProjectName, customBuildStatus.number, customBuildStatus.absoluteUrl)
                     email_notify()
