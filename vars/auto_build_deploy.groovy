@@ -19,8 +19,8 @@ def call(){
             if (uploadStatus.currentResult == "SUCCESS") {
                 println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/$jobName succeeded. Triggering Deployment.." + ANSI_NORMAL
 
-                slack_notify("SUCCESS", tag_name, uploadStatus.fullProjectName, uploadStatus.number, uploadStatus.absoluteUrl)
-                email_notify()
+//                slack_notify("SUCCESS", tag_name, uploadStatus.fullProjectName, uploadStatus.number, uploadStatus.absoluteUrl)
+//                email_notify()
 
                 if (module == "Core") {
                     module = "Kubernetes"
