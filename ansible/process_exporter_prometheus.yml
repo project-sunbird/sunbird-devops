@@ -1,5 +1,17 @@
-- name: Creating prometheus-stateful configuration folder
+- name: labelling process exporter prometheus
+  hosts: swarm-dashboard
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml']
+  tasks:
+    - name: Adding label for stateful prometheus
+      shell: "docker node update --label-add prometheus_stateful=1 {{ hostvars[groups['swarm-agent-for-prometheus-stateful'][0]]['ansible_hostname'] }}"
+  tags:
+    - process-exporter-prometheus
+
+- name: deploy process exporter prometheus
   hosts: swarm-agent-for-prometheus-stateful
+  gather_facts: no
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml']
@@ -8,7 +20,9 @@
   tags:
     - process-exporter-prometheus
 
-- hosts: process-exporter
+- name: deployer process exporter to vms
+  hosts: process-exporter
+  gather_facts: no
   become: yes
   vars_files:
     - ['{{inventory_dir}}/secrets.yml']

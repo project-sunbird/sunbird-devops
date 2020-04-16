@@ -15,7 +15,7 @@
 
 - name: create prometheus directory
   file:
-    path: "{{ process_exporter_prometheus_common_root_dir }}"
+    path: "{{ process_exporter_prometheus_common_dist_dir }}"
     state: directory
     owner: "{{ process_exporter_prometheus_common_user }}"
     group: "{{ process_exporter_prometheus_common_group }}"
@@ -27,9 +27,6 @@
     dest: "{{ process_exporter_prometheus_common_dist_dir }}"
     creates: "{{ process_exporter_prometheus_common_dist_dir }}/{{ process_exporter_prometheus_release_name }}/process_exporter"
     remote_src: yes
-  register: process_exporter_prometheus_updated
-  notify:
-    - restart process exporter all
 
 - name: copy the custom configuration file
   copy:
@@ -43,7 +40,6 @@
     recurse: yes
     owner: "{{ process_exporter_prometheus_common_user }}"
     group: "{{ process_exporter_prometheus_common_group }}"
-  when: process_exporter_prometheus_updated | changed
 
 - name: create symlink to the current release
   file:
@@ -58,8 +54,13 @@
     owner: root
     group: root
     mode: 0644
-  notify:
-    - enable process exporter all service
-    - restart process exporter all
 
-- meta: flush_handlers
+- name: enable process exporter all service
+  systemd:
+    enabled: yes
+    name: process-exporter-all.service
+
+- name: restart process exporter all
+  systemd:
+    name: process-exporter-all.service
+    state: restarted
