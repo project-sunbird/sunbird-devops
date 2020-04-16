@@ -36,7 +36,7 @@ def call(){
                     if (customUploadStatus.currentResult == "SUCCESS") {
                         println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/PlayerCustom succeeded. Triggering CDN.." + ANSI_NORMAL
 
-                        slack_notify("SUCCESS", tag_name, customBuildStatus.fullProjectName, customBuildStatus.number, customBuildStatus.absoluteUrl)
+                        slack_notify("SUCCESS", tag_name, customUploadStatus.fullProjectName, customUploadStatus.number, customUploadStatus.absoluteUrl)
                         email_notify()
                         currentBuild.result = "SUCCESS"
 
