@@ -37,8 +37,14 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                         return
                     }
 
-                    if(release_tag == null)
-                        release_tag = "job"
+                    if(release_tag == null && params.github_release_tag != "") {
+                        release_tag = params.github_release_tag
+                    }
+                    else {
+                        commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        branch_name = sh(script: 'git name-rev --name-only HEAD | rev | cut -d "/" -f1| rev', returnStdout: true).trim()
+                        release_tag = branch_name + "_" + commit_hash
+                    }
 
                     envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
                     channel_env_name = envDir.toUpperCase() + "_NOTIFY_SLACK_CHANNEL"
