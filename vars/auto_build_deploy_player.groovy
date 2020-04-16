@@ -50,7 +50,7 @@ def call(){
                                 module = "Kubernetes"
                             }
 
-                            deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")]
+                            deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")]
 
                             if (deployStatus.currentResult == "SUCCESS") {
                                 println ANSI_BOLD + ANSI_GREEN + "Deploy/$envDir/$module/$jobName succeeded. Notifying via email and slack.." + ANSI_NORMAL
