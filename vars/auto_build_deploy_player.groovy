@@ -79,7 +79,7 @@ def call(){
                     else {
                         println ANSI_BOLD + ANSI_RED + "ArtifactUplaod/$envDir/$module/PlayerCustom failed. Notifying via email and slack.." + ANSI_NORMAL
 
-                        slack_notify("FAILURE", tag_name, cdnStatus.fullProjectName, cdnStatus.number, cdnStatus.absoluteUrl)
+                        slack_notify("FAILURE", tag_name, customUploadStatus.fullProjectName, cdnStatus.number, cdnStatus.absoluteUrl)
                         email_notify()
                         currentBuild.result = "UNSTABLE"
                     }
