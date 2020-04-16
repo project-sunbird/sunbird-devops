@@ -19,35 +19,32 @@ def call(){
             if (uploadStatus.currentResult == "SUCCESS") {
                 println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/$jobName succeeded. Triggering PlayerCustomStage.." + ANSI_NORMAL
 
-                slack_notify("SUCCESS", tag_name, uploadStatus.fullProjectName, uploadStatus.number, uploadStatus.absoluteUrl)
-                email_notify()
+//                slack_notify("SUCCESS", tag_name, uploadStatus.fullProjectName, uploadStatus.number, uploadStatus.absoluteUrl)
+//                email_notify()
 
                 customBuildStatus = build job: "Build/$module/PlayerCustomStage", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'diksha_tenant_tag', value: "master")]
 
                 if (customBuildStatus.currentResult == "SUCCESS") {
                     println ANSI_BOLD + ANSI_GREEN + "Build/$module/PlayerCustomStage succeeded. Triggering ArtifactUpload for PlayerCustomStage.." + ANSI_NORMAL
 
-                    slack_notify("SUCCESS", tag_name, customBuildStatus.fullProjectName, customBuildStatus.number, customBuildStatus.absoluteUrl)
-                    email_notify()
-                    currentBuild.result = "SUCCESS"
+//                    slack_notify("SUCCESS", tag_name, customBuildStatus.fullProjectName, customBuildStatus.number, customBuildStatus.absoluteUrl)
+//                    email_notify()
 
                     customUploadStatus = build job: "ArtifactUpload/$envDir/$module/PlayerCustom", parameters: [string(name: 'absolute_job_path', value: "Build/$module/PlayerCustomStage")]
 
                     if (customUploadStatus.currentResult == "SUCCESS") {
                         println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/PlayerCustom succeeded. Triggering CDN.." + ANSI_NORMAL
 
-                        slack_notify("SUCCESS", tag_name, customUploadStatus.fullProjectName, customUploadStatus.number, customUploadStatus.absoluteUrl)
-                        email_notify()
-                        currentBuild.result = "SUCCESS"
+//                        slack_notify("SUCCESS", tag_name, customUploadStatus.fullProjectName, customUploadStatus.number, customUploadStatus.absoluteUrl)
+//                        email_notify()
 
                         cdnStatus = build job: "Deploy/$envDir/$module/PlayerCDN", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch"), string(name: 'cdn_enable', value: "true")]
 
                         if (cdnStatus.currentResult == "SUCCESS") {
                             println ANSI_BOLD + ANSI_GREEN + "Deploy/$envDir/$module/PlayerCDN succeeded. Triggering deployment.." + ANSI_NORMAL
 
-                            slack_notify("SUCCESS", tag_name, cdnStatus.fullProjectName, cdnStatus.number, cdnStatus.absoluteUrl)
-                            email_notify()
-                            currentBuild.result = "SUCCESS"
+//                            slack_notify("SUCCESS", tag_name, cdnStatus.fullProjectName, cdnStatus.number, cdnStatus.absoluteUrl)
+//                            email_notify()
 
                             if (module == "Core") {
                                 module = "Kubernetes"
