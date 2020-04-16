@@ -1,12 +1,11 @@
 # Minikube stores its logs in a separate directory.
 # Enable if you install the chart in minikube.
-namespace: "logging"
 on_minikube: false
 
 image:
   fluent_bit:
     repository: fluent/fluent-bit
-    tag: 1.3.2
+    tag: 1.3.7
   pullPolicy: Always
 
 testFramework:
@@ -16,6 +15,7 @@ testFramework:
 nameOverride: ""
 fullnameOverride: ""
 
+# When enabled, exposes json and prometheus metrics on {{ .Release.Name }}-metrics service
 metrics:
   enabled: false
   service:
@@ -43,7 +43,7 @@ trackOffsets: false
 priorityClassName: ""
 
 backend:
-  type: es
+  type: forward
   forward:
     host: fluentd
     port: 24284
@@ -52,12 +52,12 @@ backend:
     tls_debug: 1
     shared_key:
   es:
-    host: {{ log_es_host }}
+    host: elasticsearch
     port: 9200
     # Elastic Index Name
-    index: logstash-fb
+    index: kubernetes_cluster
     type: flb_type
-    logstash_prefix: logstash-fb
+    logstash_prefix: kubernetes_cluster
     replace_dots: "On"
     logstash_format: "On"
     retry_limit: "False"
@@ -99,6 +99,7 @@ backend:
     ## Specify the data format to be used in the HTTP request body
     ## Can be either 'msgpack' or 'json'
     format: msgpack
+    # json_date_format: double or iso8601
     headers: []
 
 parsers:
@@ -138,6 +139,7 @@ podAnnotations: {}
 ## used
 fullConfigMap: false
 
+## ConfigMap override where fullname is {{.Release.Name}}-{{.Values.existingConfigMap}}
 ## Defining existingConfigMap will cause templates/config.yaml
 ## to NOT generate a ConfigMap resource
 ##
@@ -162,6 +164,8 @@ rawConfig: |-
 extraEntries:
   input: |-
 #     # >=1 additional Key/Value entrie(s) for existing Input section
+  audit: |-
+#     # >=1 additional Key/Value entrie(s) for existing Input section
   filter: |-
 #     # >=1 additional Key/Value entrie(s) for existing Filter section
   output: |-
@@ -183,13 +187,13 @@ extraVolumes: []
 ##
 extraVolumeMounts: []
 
-resources:
-   limits:
-     cpu: 500m
-     memory: 512Mi
-   requests:
-     cpu: 10m
-     memory: 8Mi
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 10m
+  #   memory: 8Mi
 
 # When enabled, pods will bind to the node's network namespace.
 hostNetwork: false
@@ -232,7 +236,20 @@ input:
         - node-problem-detector.service
     maxEntries: 1000
     readFromTail: true
+    stripUnderscores: false
     tag: host.*
+
+audit:
+  enable: false
+  input:
+    memBufLimit: 35MB
+    parser: docker
+    tag: audit.*
+    path: /var/log/kube-apiserver-audit.log
+    bufferChunkSize: 2MB
+    bufferMaxSize: 10MB
+    skipLongLines: On
+    key: kubernetes-audit
 
 filter:
   kubeURL: https://kubernetes.default.svc:443
@@ -258,6 +275,9 @@ filter:
 # fluentbit.io/exclude: true. If present, discard logs from that pod.
   enableExclude: true
 
+# If true, the filter reads logs coming in Journald format.
+  useJournal: false
+
 rbac:
   # Specifies whether RBAC resources should be created
   create: true
@@ -270,6 +290,8 @@ taildb:
 serviceAccount:
   # Specifies whether a ServiceAccount should be created
   create: true
+  # Annotations to add to the service account
+  annotations: {}
   # The name of the ServiceAccount to use.
   # If not set and create is true, a name is generated using the fullname template
   name:
