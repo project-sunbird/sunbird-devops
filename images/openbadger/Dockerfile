@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 MAINTAINER Rajesh Rajendran<rjshrjndrn@gmail.com>
 
 # Installing and configuring packages
-RUN apt install python-psycopg2
+RUN apt updat && apt install python-psycopg2
 COPY ./images/openbadger/configure.sh /tmp
 RUN /tmp/configure.sh
 
