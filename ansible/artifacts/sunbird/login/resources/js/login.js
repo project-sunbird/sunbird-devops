@@ -107,7 +107,7 @@ var validatePassword = function () {
 		var spaceRegex = new RegExp('^\\S*$');
 		var upcsRegex = new RegExp("^(?=.*[A-Z])");
 		var numRegex = new RegExp("^(?=.*[0-9])");
-		var specRegex = new RegExp("^[^<>{}\'\"/|;:.\ ,~!?@#$%^=&*\\]\\\\()\\[¿§«»ω⊙¤°℃℉€¥£¢¡®©_+]*$");
+		var specRegex = new RegExp("^[^<>{}\'\"/|;:.,~!?@#$%^=&*\\]\\\\()\\[¿§«»ω⊙¤°℃℉€¥£¢¡®©_+]*$");
 		var error_msg = document.getElementById('passwd-error-msg');
 		var match_error_msg = document.getElementById('passwd-match-error-msg');
 		if (charRegex.test(textInput) && spaceRegex.test(textInput) && lwcsRegex.test(textInput) && upcsRegex.test(textInput) && numRegex.test(textInput) && !specRegex.test(textInput)) {
@@ -134,7 +134,7 @@ var matchPassword = function () {
 		var lwcsRegex = new RegExp("^(?=.*[a-z])");
 		var upcsRegex = new RegExp("^(?=.*[A-Z])");
 		var numRegex = new RegExp("^(?=.*[0-9])");
-		var specRegex = new RegExp("^[^<>{}\'\"/|;:.\ ,~!?@#$%^=&*\\]\\\\()\\[¿§«»ω⊙¤°℃℉€¥£¢¡®©_+]*$");
+		var specRegex = new RegExp("^[^<>{}\'\"/|;:.,~!?@#$%^=&*\\]\\\\()\\[¿§«»ω⊙¤°℃℉€¥£¢¡®©_+]*$");
 		var match_error_msg = document.getElementById('passwd-match-error-msg');
 		if (textInput === text2Input) {
 			if (charRegex.test(text2Input) && spaceRegex.test(textInput) && lwcsRegex.test(text2Input) && upcsRegex.test(text2Input) && numRegex.test(text2Input) && !specRegex.test(text2Input)) {
