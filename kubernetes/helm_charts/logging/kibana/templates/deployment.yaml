@@ -1,8 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "fullname" . }}
-  namespace: {{ .Values.namespace }}
+  name: {{ template "kibana.fullname" . }}
   labels:
     app: {{ .Chart.Name }}
     release: {{ .Release.Name | quote }}
@@ -15,13 +14,16 @@ spec:
 {{ toYaml .Values.updateStrategy | indent 4 }}
   selector:
     matchLabels:
-      app: kibana
+      app: {{ .Chart.Name }}
       release: {{ .Release.Name | quote }}
   template:
     metadata:
       labels:
-        app: kibana
+        app: {{ .Chart.Name }}
         release: {{ .Release.Name | quote }}
+        {{- range $key, $value := .Values.labels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
       annotations:
         {{- range $key, $value := .Values.podAnnotations }}
         {{ $key }}: {{ $value | quote }}
@@ -48,7 +50,7 @@ spec:
         {{- if .Values.kibanaConfig }}
         - name: kibanaconfig
           configMap:
-            name: {{ template "fullname" . }}-config
+            name: {{ template "kibana.fullname" . }}-config
         {{- end }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
@@ -66,6 +68,10 @@ spec:
       imagePullSecrets:
 {{ toYaml .Values.imagePullSecrets | indent 8 }}
     {{- end }}
+      {{- if .Values.extraInitContainers }}
+      initContainers:
+{{ tpl .Values.extraInitContainers . | indent 6 }}
+      {{- end }}
       containers:
       - name: kibana
         securityContext:
@@ -87,13 +93,32 @@ spec:
 {{- end }}
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
-          httpGet:
-            path: /kibana
-            port: {{ .Values.httpPort }}
+          exec:
+            command:
+              - sh
+              - -c
+              - |
+                #!/usr/bin/env bash -e
+                http () {
+                    local path="${1}"
+                    set -- -XGET -s --fail -L
+
+                    if [ -n "${ELASTICSEARCH_USERNAME}" ] && [ -n "${ELASTICSEARCH_PASSWORD}" ]; then
+                      set -- "$@" -u "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}"
+                    fi
+
+                    STATUS=$(curl --output /dev/null --write-out "%{http_code}" -k "$@" "{{ .Values.protocol }}://localhost:{{ .Values.httpPort }}${path}")
+                    if [[ "${STATUS}" -eq 200 ]]; then
+                      exit 0
+                    fi
+
+                    echo "Error: Got HTTP code ${STATUS} but expected a 200"
+                    exit 1
+                }
+
+                http "{{ .Values.healthCheckPath }}"
         ports:
-          - name: http-port
-            containerPort: {{ .Values.httpPort }}
-            protocal: TCP
+        - containerPort: {{ .Values.httpPort }}
 {{- if .Values.lifecycle }}
         lifecycle:
 {{ toYaml .Values.lifecycle | indent 10 }}
@@ -113,3 +138,6 @@ spec:
             mountPath: /usr/share/kibana/config/{{ $path }}
             subPath: {{ $path }}
           {{- end -}}
+      {{- if .Values.extraContainers }}
+{{ tpl .Values.extraContainers . | indent 6 }}
+      {{- end }}
