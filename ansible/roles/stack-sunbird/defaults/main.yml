@@ -34,6 +34,12 @@ notification_replicas: 1
 notification_limit_memory: 500MB
 notification_limit_cpu: 1
 
+#Report service vars
+report_replicas: 1
+report_reservation_memory: 300M
+report_limit_memory: 500M
+report_limit_cpu: 1
+
 # This variable is not to access learner service but to call the api
 # learner-service:9000/org/v1/search
 sunbird_learner_service_base_url: http://kong:8000/
@@ -239,7 +245,13 @@ service_env:
   userorg: ../../../../ansible/roles/stack-sunbird/templates/sunbird_user-org-service.env
   player: ../../../../ansible/roles/stack-sunbird/templates/sunbird_player.env
   print: ../../../../ansible/roles/stack-sunbird/templates/sunbird_print-service.env
-
+  search: 
+    - ../../../../ansible/roles/stack-sunbird/templates/search-service_application.conf
+    - ../../../../ansible/roles/stack-sunbird/templates/search-service_logback.xml
+  taxonomy: 
+    - ../../../../ansible/roles/stack-sunbird/templates/taxonomy-service_application.conf
+    - ../../../../ansible/roles/stack-sunbird/templates/taxonomy-service_logback.xml
+  report: ../../../../ansible/roles/stack-sunbird/templates/sunbird_report-service.env
 sunbird_portal_player_cdn_enabled: false 
 
 ########### stack-apimanager defaults vars ##### for kubernetes #########
@@ -545,3 +557,64 @@ userorg_liveness_readiness:
     timeoutSeconds: 10
     failureThreshold: 5
     successThreshold: 2
+
+search_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+
+taxonomy_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+report_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 3030
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 3030
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+
