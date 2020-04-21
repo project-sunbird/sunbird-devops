@@ -34,6 +34,12 @@ notification_replicas: 1
 notification_limit_memory: 500MB
 notification_limit_cpu: 1
 
+#Report service vars
+report_replicas: 1
+report_reservation_memory: 300M
+report_limit_memory: 500M
+report_limit_cpu: 1
+
 # This variable is not to access learner service but to call the api
 # learner-service:9000/org/v1/search
 sunbird_learner_service_base_url: http://kong:8000/
@@ -239,7 +245,13 @@ service_env:
   userorg: ../../../../ansible/roles/stack-sunbird/templates/sunbird_user-org-service.env
   player: ../../../../ansible/roles/stack-sunbird/templates/sunbird_player.env
   print: ../../../../ansible/roles/stack-sunbird/templates/sunbird_print-service.env
-
+  search: 
+    - ../../../../ansible/roles/stack-sunbird/templates/search-service_application.conf
+    - ../../../../ansible/roles/stack-sunbird/templates/search-service_logback.xml
+  taxonomy: 
+    - ../../../../ansible/roles/stack-sunbird/templates/taxonomy-service_application.conf
+    - ../../../../ansible/roles/stack-sunbird/templates/taxonomy-service_logback.xml
+  report: ../../../../ansible/roles/stack-sunbird/templates/sunbird_report-service.env
 sunbird_portal_player_cdn_enabled: false 
 
 ########### stack-apimanager defaults vars ##### for kubernetes #########
@@ -258,16 +270,19 @@ lms_liveness_readiness:
       path: /service/health
       port: 9000
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /service/health
       port: 9000
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 apimanager_liveness_readiness:
   healthcheck: true
@@ -276,16 +291,19 @@ apimanager_liveness_readiness:
       path: /status
       port: 8001
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /
       port: 8001
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 assessment_liveness_readiness:
   healthcheck: true
@@ -294,16 +312,19 @@ assessment_liveness_readiness:
       path: /health
       port: 9000
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /health
       port: 9000
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 cert_liveness_readiness:
   healthcheck: true 
@@ -312,16 +333,19 @@ cert_liveness_readiness:
       path: /service/health
       port: 9000
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /service/health
       port: 9000
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 certregistry_liveness_readiness:
   healthcheck: true
@@ -330,16 +354,19 @@ certregistry_liveness_readiness:
       path: /service/health
       port: 9000
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /service/health
       port: 9000
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 content_liveness_readiness:
   healthcheck: true
@@ -348,35 +375,40 @@ content_liveness_readiness:
       path: /health
       port: 9000
     initialDelaySeconds: 30
-    periodSeconds: 10
+    periodSeconds: 30
     timeoutSeconds: 10
     failureThreshold: 5
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /health
       port: 9000
-    initialDelaySeconds: 60
-    periodSeconds: 10
-    timeoutSeconds: 5
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
+    successThreshold: 2
 
 enc_liveness_readiness:
   healthcheck: true
   readinessProbe:
     httpGet:
-      path: /health
+      path: /service/health
       port: 8013
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
-      path: /health
+      path: /service/health
       port: 8013
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 knowledgemw_liveness_readiness:
   healthcheck: true
@@ -385,16 +417,19 @@ knowledgemw_liveness_readiness:
       path: /service/health
       port: 5000
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /service/health
       port: 5000
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 learner_liveness_readiness:
   healthcheck: true
@@ -403,16 +438,19 @@ learner_liveness_readiness:
       path: /service/health
       port: 9000
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /service/health
       port: 9000
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 notification_liveness_readiness:
   healthcheck: true
@@ -421,16 +459,19 @@ notification_liveness_readiness:
       path: /service/health
       port: 9000
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /service/health
       port: 9000
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 player_liveness_readiness:
   healthcheck: true
@@ -439,16 +480,19 @@ player_liveness_readiness:
       path: /service/health
       port: 3000
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /service/health
       port: 3000
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 print_liveness_readiness:
   healthcheck: true 
@@ -457,16 +501,19 @@ print_liveness_readiness:
       path: /health
       port: 5000
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /health
       port: 5000
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 telemetry_liveness_readiness:
   healthcheck: true
@@ -475,21 +522,45 @@ telemetry_liveness_readiness:
       path: /health
       port: 9001
     initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
+    periodSeconds: 30
+    timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 1
+    successThreshold: 2
   livenessProbe:
     httpGet:
       path: /health
       port: 9001
-    initialDelaySeconds: 60
-    periodSeconds: 10
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
 
 userorg_liveness_readiness:
   readinessProbe:
     httpGet:
       path: /service/health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+
+search_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
       port: 9000
     initialDelaySeconds: 30
     periodSeconds: 10
@@ -498,7 +569,50 @@ userorg_liveness_readiness:
     successThreshold: 1
   livenessProbe:
     httpGet:
-      path: /service/health
+      path: /health
       port: 9000
     initialDelaySeconds: 60
     periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+
+taxonomy_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+report_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 3030
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 3030
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+
