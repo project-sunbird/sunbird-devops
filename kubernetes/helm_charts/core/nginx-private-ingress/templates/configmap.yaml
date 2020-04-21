@@ -14,6 +14,16 @@ data:
       include /etc/nginx/conf.d/*.conf;
       sendfile        on;
         
+        lua_load_resty_core off;
+        lua_package_path "/etc/nginx/lua_modules/?.lua";
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+    
+        access_log  /var/log/nginx/access.log  main;
+        include /etc/nginx/conf.d/*.conf;
+        sendfile        on;
+        
       server {
         listen 80;
         listen [::]:80;
@@ -35,6 +45,14 @@ data:
         location /admin-api/ {
           rewrite ^/admin-api/(.*) /$1 break;
           proxy_pass http://kong:8001;
+        }
+        location /player/ {
+          rewrite ^/player/(.*) /$1 break;
+          proxy_pass http://player:3000;
+        }
+        location /knowledgemw/ {
+          rewrite ^/knowledgemw/(.*) /$1 break;
+          proxy_pass http://knowledge-mw-service:5000;
         }
         location /content/ {
           rewrite ^/content/(.*) /$1 break;
@@ -63,6 +81,18 @@ data:
         location /notification/ {
           rewrite ^/notification/(.*) /$1 break;
           proxy_pass http://notification-service:9000;
+        }
+        location /search/ {
+          rewrite ^/search/(.*) /$1 break;
+          proxy_pass http://search-service:9000;
+        }
+        location /taxonomy/ {
+          rewrite ^/taxonomy/(.*) /$1 break;
+          proxy_pass http://taxonomy-service:9000;
+        }
+        location /report/ {
+          rewrite ^/report/(.*) /$1 break;
+          proxy_pass http://report-service:3030;
         }
         location /search/ {
           rewrite ^/search/(.*) /$1 break;
