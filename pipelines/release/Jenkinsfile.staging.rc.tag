@@ -1,3 +1,4 @@
+import java.text.SimpleDateFormat
 @Library('deploy-conf') _
 node {
     try {
@@ -34,6 +35,8 @@ node {
            def date = new Date()
             def sdf = new SimpleDateFormat("HH:mm:ss")
             current = sdf.format(date)
+             
+
 
             start = Date.parse("HH:mm:ss", env.START_TIME)
             end = Date.parse("HH:mm:ss", env.END_TIME)
