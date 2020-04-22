@@ -31,19 +31,15 @@ node {
             String ANSI_NORMAL = "\u001B[0m"
             String ANSI_BOLD = "\u001B[1m"
             String ANSI_RED = "\u001B[31m"
-            
-            println("1")
 
             def date = new Date()
             def sdf = new SimpleDateFormat("HH:mm:ss")
             current = sdf.format(date)
-            
-            println("2")
 
             start = Date.parse("HH:mm:ss", env.START_TIME)
             end = Date.parse("HH:mm:ss", env.END_TIME)
             current = Date.parse("HH:mm:ss", current)
-             println("3")
+
             if (current.after(start) && current.before(end)) {
                 println (ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if the release branch mathes pattren.." + ANSI_NORMAL)
                 branch_name = ${params.release_branch}
