@@ -33,7 +33,7 @@ node {
 
             branch_name = params.release_branch
             if (branch_name.contains(env.public_repo_branch)) {
-                println(ANSI_BOLD + ANSI_RED + "Error.. " + env.public_repo_branch + "is not a hot fix branch "  + ANSI_NORMAL)
+                println(ANSI_BOLD + ANSI_RED + "Error.. " + branch_name + " is not a hot fix branch "  + ANSI_NORMAL)
                 error "Oh ho! branch is not a hofix branch.. Skipping creation of tag"
             }
             else {
