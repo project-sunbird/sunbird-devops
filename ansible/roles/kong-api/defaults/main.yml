@@ -259,6 +259,108 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: PrivateContentRetireAPI
+    request_path: "{{ private_content_prefix }}/v3/retire"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/retire"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ PrivateContent_ACL | default(['privateContentMgmt']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: PrivateContentUploadAPI
+    request_path: "{{ private_content_prefix }}/v3/upload"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/upload"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ PrivateContent_ACL | default(['privateContentMgmt']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: PrivateContentReviewAPI
+    request_path: "{{ private_content_prefix }}/v3/review"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/review"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ PrivateContentAPIs_ACL | default(['privateContentMgmt']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: PrivateContentPublishAPI
+    request_path: "{{ private_content_prefix }}/v3/publish"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/publish"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ PrivateContentAPIs_ACL | default(['privateContentMgmt']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: PrivateContentRejectAPI
+    request_path: "{{ private_content_prefix }}/v3/reject"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/reject"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ PrivateContentAPIs_ACL | default(['privateContentMgmt']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: PrivateContentHierarchyAPI
+    request_path: "{{ private_content_prefix }}/v3/hierarchy"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/hierarchy"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: "{{ PrivateContentAPIs_ACL | default(['privateContentMgmt']) }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: createContent
     request_path: "{{ content_prefix }}/v1/create"
     upstream_url: "{{ knowledge_mw_service_url }}/v1/content/create"
@@ -4141,3 +4243,128 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: listReports
+    request_path: "{{ report_service_prefix }}/report/list"
+    upstream_url: "{{ report_service_url }}/report/list"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'reportsAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getReport
+    request_path: "{{ report_service_prefix }}/report/get"
+    upstream_url: "{{ report_service_url }}/report/get"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'reportsAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateReport
+    request_path: "{{ report_service_prefix }}/report/update"
+    upstream_url: "{{ report_service_url }}/report/update"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'reportsUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ small_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: deleteReport
+    request_path: "{{ report_service_prefix }}/report/delete"
+    upstream_url: "{{ report_service_url }}/report/delete"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'reportsAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ small_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createReport
+    request_path: "{{ report_service_prefix }}/report/create"
+    upstream_url: "{{ report_service_url }}/report/create"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'reportsCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: searchRegCertificate
+    request_path: "{{ cert_registry_service_prefix }}/v1/certs/search"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/search"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'certificateAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: readRegCertificate
+    request_path: "{{ cert_registry_service_prefix }}/v1/certs/read"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/read"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'certificateAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
