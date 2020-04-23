@@ -45,13 +45,6 @@ def call(String private_branch, String public_branch) {
                 }  
             }
 
-            stage('Archive artifacts') {
-                sh "cp ${JENKINS_HOME}/summary/${envDir}/summary.txt ."
-                sh "sort summary.txt -o summary.txt && cat summary.txt"
-                archiveArtifacts artifacts: 'summary.txt', fingerprint: true, onlyIfSuccessful: true
-                currentBuild.description = "${module}-${jobName}"
-
-            }
         }
     }
 
