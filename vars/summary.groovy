@@ -1,4 +1,4 @@
-def call(String privateBranch, String publicBranch) {
+def call() {
     try {
         ansiColor('xterm') {
             String ANSI_GREEN = "\u001B[32m"
@@ -10,6 +10,8 @@ def call(String privateBranch, String publicBranch) {
             module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
             envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
             jobType = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-4].trim()
+            privateBranch = params.private_branch
+            publicBranch = params.branch_or_tag
         
             stage('Write data') {
                 sh """
