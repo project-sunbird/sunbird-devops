@@ -29,6 +29,10 @@ def call(){
                 if (jobName == "KnowledgePlatform") {
                     jobName = "Learning"
                 } 
+                
+                if (jobName == "DataPipeline") {
+                    jobName = "Yarn"
+                } 
 
                 deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")]
 
