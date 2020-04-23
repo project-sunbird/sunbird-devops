@@ -12,7 +12,7 @@ def call(String private_branch, String public_branch) {
             jobType = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-4].trim()
         
             stage('Write data') {
-                
+                println (private_branch)
                 sh """
                     mkdir -p ${JENKINS_HOME}/summary/${envDir}
                     touch -a ${JENKINS_HOME}/summary/${envDir}/summary.txt
