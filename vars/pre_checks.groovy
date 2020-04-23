@@ -17,14 +17,25 @@ def call() {
             current = Date.parse("HH:mm:ss", current)
 
             if (current.after(start) && current.before(end)) {
-                println ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if tag matches our pattern.." + ANSI_NORMAL
-                tag_name = env.JOB_NAME.split("/")[-1]
-                if (!tag_name.contains(env.public_repo_branch) || !tag_name.contains("_RC")) {
-                    println(ANSI_BOLD + ANSI_RED + "Error.. Tag does not contain " + env.public_repo_branch + "or is not a RC tag" + ANSI_NORMAL)
-                    error "Oh ho! Tag is not a release candidate.. Skipping build"
+                if (env.JOB_NAME == "StagingRCTag") {
+                    println(ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if the release branch matches pattren.." + ANSI_NORMAL)
+                    branch_name = params.release_branch
+                    if (!branch_name.contains(env.public_repo_branch)) {
+                        println(ANSI_BOLD + ANSI_RED + "This is not a staging release branch.. Please use the HotFixTag job for non staging release branch.." + env.public_repo_branch + ANSI_NORMAL)
+                        error "Oh ho! Branch is not a staging release candidate.. Skipping creation of tag"
+                    } else {
+                        println(ANSI_BOLD + ANSI_GREEN + "Staging release candidate.. Creating tag.." + ANSI_NORMAL)
+                    }
                 }
                 else {
-                    println ANSI_BOLD + ANSI_GREEN + "All checks passed - Continuing build.." + ANSI_NORMAL
+                    println ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if tag matches our pattern.." + ANSI_NORMAL
+                    tag_name = env.JOB_NAME.split("/")[-1]
+                    if (!tag_name.contains(env.public_repo_branch) || !tag_name.contains("_RC")) {
+                        println(ANSI_BOLD + ANSI_RED + "Error.. Tag does not contain " + env.public_repo_branch + "or is not a RC tag" + ANSI_NORMAL)
+                        error "Oh ho! Tag is not a release candidate.. Skipping build"
+                    } else {
+                        println ANSI_BOLD + ANSI_GREEN + "All checks passed - Continuing build.." + ANSI_NORMAL
+                    }
                 }
             }
             else {
