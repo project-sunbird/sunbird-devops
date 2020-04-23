@@ -12,8 +12,6 @@ def call(String privateBranch, String publicBranch) {
             jobType = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-4].trim()
         
             stage('Write data') {
-                println (privateBranch)
-                println ("hi")
                 sh """
                     mkdir -p ${JENKINS_HOME}/summary/${envDir}
                     touch -a ${JENKINS_HOME}/summary/${envDir}/summary.txt
