@@ -31,7 +31,7 @@ node {
             String ANSI_BOLD = "\u001B[1m"
             String ANSI_RED = "\u001B[31m"
 
-            pre_checks()
+            stagingRC()
 
 
             if (params.size() == 0) {
