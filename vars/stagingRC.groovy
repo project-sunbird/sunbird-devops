@@ -17,10 +17,10 @@ def call() {
             current = Date.parse("HH:mm:ss", current)
 
             if (current.after(start) && current.before(end)) {
-                println (ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if the release branch matches current release pattern.." + ANSI_NORMAL)
+                println (ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if the branch entered matches the current release branch.." + ANSI_NORMAL)
 //                branch_name = params.release_branch
                 if (params.release_branch != env.public_repo_branch) {
-                    println(ANSI_BOLD + ANSI_RED + "Sorry.. The branch your entered does not match the release branch: " + env.public_repo_branch  + ANSI_NORMAL)
+                    println(ANSI_BOLD + ANSI_RED + "Oh Uh! The branch you entered does not match the staging release branch: " + env.public_repo_branch  + ANSI_NORMAL)
                     error "Oh ho! The branch your entered is not a staging release candidate.. Skipping creation of tag"
                 }
                 else {
