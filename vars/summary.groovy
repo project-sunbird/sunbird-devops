@@ -25,14 +25,14 @@ def call() {
                         sh """
                             sed -i "s/${jobType}:${module}:${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                            echo "${jobType}:${module}-${jobName} : imagetag: ${image_tag} : privatebranch: ${privateBranch} : publicbranch: ${publicBranch}">> $JENKINS_HOME/summary/${envDir}/summary.txt
+                            echo "${jobType}:${module}:${jobName}, imagetag: ${image_tag}, privatebranch: ${privateBranch}, publicbranch: ${publicBranch}">> $JENKINS_HOME/summary/${envDir}/summary.txt
                         """
                     } else {
                         artifact_version = sh(returnStdout: true, script: 'jq -r .artifact_version metadata.json').trim()
                         sh """
                             sed -i "s/${jobType}:${module}:${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                            echo "${jobType}:${module}-${jobName} :  artifact_version: ${artifact_version} : privatebranch:${privateBranch} : publicbranch:${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
+                            echo "${jobType}:${module}:${jobName},  artifact_version: ${artifact_version}, privatebranch:${privateBranch}, publicbranch:${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                         """
                     }
                 }
@@ -41,7 +41,7 @@ def call() {
                      sh """
                         sed -i "s/${jobType}:${module}:${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                         sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                        echo "${jobType}:${module}:${jobName} : privatebranch:${privateBranch} : publicbranch:${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
+                        echo "${jobType}:${module}:${jobName}, privatebranch:${privateBranch}, publicbranch:${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                     """    
                 }  
             }
