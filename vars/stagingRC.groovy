@@ -28,8 +28,8 @@ def call() {
                 }
             }
             else {
-                println (ANSI_BOLD + ANSI_RED + "Tigger is NOT in the deployment window. Skipping build" + ANSI_NORMAL)
-                error "Tigger is not in the deployment window. Deployment starts at $env.START_TIME and ends at $env.END_TIME.. Skipping create tag"
+                println (ANSI_BOLD + ANSI_RED + "Tigger is NOT in the deployment window. Deployment starts at $env.START_TIME and ends at $env.END_TIME. Aborting!" + ANSI_NORMAL)
+                error "Tigger is not in the deployment window. Aborted!"
             }
         }
     }
