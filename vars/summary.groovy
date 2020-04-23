@@ -18,7 +18,6 @@ def call() {
                     mkdir -p ${JENKINS_HOME}/summary/${envDir}
                     touch -a ${JENKINS_HOME}/summary/${envDir}/summary.txt
                 """
-                println (privateBranch)
                 if (jobType == "Deploy") {
                     if (module == "Core" || module == "Kubernetes") {
                         image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
