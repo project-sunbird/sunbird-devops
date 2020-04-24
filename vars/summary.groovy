@@ -38,7 +38,7 @@ def call() {
 
                 if (jobType == "Provision"  || jobType == "OpsAdministration") {
                      sh """
-                        sed -i "s/${jobType}/${module}/${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
+                        sed -i "s/${jobType}\/${module}\/${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                         sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                         echo "${jobType}/${module}/${jobName}, privatebranch:${privateBranch}, publicbranch:${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                     """    
