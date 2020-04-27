@@ -1,0 +1,22 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.serviceMonitorLabels.release }}
+    release: {{ .Values.serviceMonitorLabels.release }}
+  name: {{ include "kafka-topic-exporter.fullname" . }}-alertrule
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+spec:
+  groups:
+  - name: alertrules.kafkalag
+    rules:
+    - alert: TelemetryValidator lag
+      expr: sum(samza_pipeline_metrics_consumer_lag{job_name= "TelemetryValidator"}) > {{ .Values.telemetry_validator_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        message: `"TelemetryValidator lag is {{$value}}"`
+        summary: TelemetryValidator lag is Critical
