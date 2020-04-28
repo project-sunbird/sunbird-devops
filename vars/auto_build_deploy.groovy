@@ -14,7 +14,7 @@ def call(){
 
             println ANSI_BOLD + ANSI_GREEN + "$jobName build succeeded. Triggering ArtifactUpload.." + ANSI_NORMAL
 
-            uploadStatus = build job: "ArtifactUpload/$envDir/$module/$jobName", parameters: [string(name: 'absolute_job_path', value: "$JOB_NAME")]
+            uploadStatus = build job: "ArtifactUpload/$envDir/$module/$jobName", parameters: [string(name: 'absolute_job_path', value: "$JOB_NAME")], propagate: false
 
             if (uploadStatus.currentResult == "SUCCESS") {
                 println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/$jobName succeeded. Triggering Deployment.." + ANSI_NORMAL
@@ -33,10 +33,10 @@ def call(){
                 
                 if (jobName == "DataPipeline") {
                     jobName = "Yarn"
-                    deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch"), string(name: 'job_names_to_deploy', value: "DeDuplication_1,DeNormalization_1,DruidEventsValidator_1,EventsRouter_1,TelemetryExtractor_1,TelemetryLocationUpdater_1,TelemetryRouter_1,TelemetryValidator_1,DeviceProfileUpdater_1,AssessmentAggregator_1,DerivedDeDuplication_1,ContentCacheUpdater_1,UserCacheUpdater_1,ShareEventsFlattener_1")]
+                    deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch"), string(name: 'job_names_to_deploy', value: "DeDuplication_1,DeNormalization_1,DruidEventsValidator_1,EventsRouter_1,TelemetryExtractor_1,TelemetryLocationUpdater_1,TelemetryRouter_1,TelemetryValidator_1,DeviceProfileUpdater_1,AssessmentAggregator_1,DerivedDeDuplication_1,ContentCacheUpdater_1,UserCacheUpdater_1,ShareEventsFlattener_1")], propagate: false
                 } 
                 else {
-                    deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")]
+                    deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")], propagate: false
                 }
                 
                 
