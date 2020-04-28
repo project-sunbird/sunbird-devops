@@ -4,17 +4,17 @@ kind: Deployment
 metadata:
   name: {{ .Chart.Name }}
   namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
-  replicas: {{ .Values.apimanagerecho.replicaCount }}
+  replicas: {{ .Values.replicaCount }}
   strategy:
-     type: {{ .Values.apimanagerecho.strategy.type }}
+     type: {{ .Values.strategy.type }}
   selector:
     matchLabels:
       app: {{ .Chart.Name }}
   template:
     metadata:
-      annotations:
-        readiness.status.sidecar.istio.io/applicationPorts: ""
       labels:
         app: {{ .Chart.Name }}
     spec:
@@ -24,11 +24,11 @@ spec:
 {{- end }}
       containers:
       - name: {{ .Chart.Name }}
-        image: "{{ .Values.dockerhub }}/{{ .Values.apimanagerecho.repository }}:{{ .Values.apimanagerecho.image_tag }}"
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
-        - containerPort: {{ .Values.apimanagerecho.network.port }}
+        - containerPort: {{ .Values.network.port }}
 
 ---
 apiVersion: v1
@@ -42,6 +42,6 @@ spec:
   ports:
   - name: http-{{ .Chart.Name }}
     protocol: TCP
-    port: {{ .Values.apimanagerecho.network.targetport }}
+    port: {{ .Values.network.targetport }}
   selector:
     app: {{ .Chart.Name }}
