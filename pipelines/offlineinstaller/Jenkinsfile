@@ -9,7 +9,12 @@ node() {
         String ANSI_YELLOW = "\u001B[33m"
 
         stage('checkout offline installer repo') {
-            cleanWs()
+            folder = new File("$WORKSPACE/.git")
+            if (folder.exists())
+            {
+               println "Found .git folder. Clearing it.."
+               sh'git clean -fxd'
+            }
             checkout scm
               sh """
 		git clone https://github.com/Sunbird-Ed/sunbird-desktop-app.git -b ${sunbirded_installer_branch_or_tag} offline-installer-repo
