@@ -14,7 +14,7 @@ def call(){
 
             println ANSI_BOLD + ANSI_GREEN + "$jobName build succeeded. Triggering ArtifactUpload.." + ANSI_NORMAL
 
-            uploadStatus = build job: "ArtifactUpload/$envDir/$module/$jobName", parameters: [string(name: 'absolute_job_path', value: "$JOB_NAME")]
+            uploadStatus = build job: "ArtifactUpload/$envDir/$module/$jobName", parameters: [string(name: 'absolute_job_path', value: "$JOB_NAME")], propagate: false
 
             if (uploadStatus.currentResult == "SUCCESS") {
                 println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/$jobName succeeded. Triggering PlayerCustomStage.." + ANSI_NORMAL
@@ -22,7 +22,7 @@ def call(){
 //                slack_notify("SUCCESS", tag_name, uploadStatus.fullProjectName, uploadStatus.number, uploadStatus.absoluteUrl)
 //                email_notify()
 
-                customBuildStatus = build job: "Build/$module/PlayerCustomStage", parameters: [string(name: 'absolute_job_path', value: "$JOB_NAME"), string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'diksha_tenant_tag', value: "master")]
+                customBuildStatus = build job: "Build/$module/PlayerCustomStage", parameters: [string(name: 'absolute_job_path', value: "$JOB_NAME"), string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'diksha_tenant_tag', value: "master")], propagate: false
 
                 if (customBuildStatus.currentResult == "SUCCESS") {
                     println ANSI_BOLD + ANSI_GREEN + "Build/$module/PlayerCustomStage succeeded. Triggering ArtifactUpload for PlayerCustomStage.." + ANSI_NORMAL
@@ -30,7 +30,7 @@ def call(){
 //                    slack_notify("SUCCESS", tag_name, customBuildStatus.fullProjectName, customBuildStatus.number, customBuildStatus.absoluteUrl)
 //                    email_notify()
 
-                    customUploadStatus = build job: "ArtifactUpload/$envDir/$module/PlayerCustom", parameters: [string(name: 'absolute_job_path', value: "Build/$module/PlayerCustomStage")]
+                    customUploadStatus = build job: "ArtifactUpload/$envDir/$module/PlayerCustom", parameters: [string(name: 'absolute_job_path', value: "Build/$module/PlayerCustomStage")], propagate: false
 
                     if (customUploadStatus.currentResult == "SUCCESS") {
                         println ANSI_BOLD + ANSI_GREEN + "ArtifactUpload/$envDir/$module/PlayerCustom succeeded. Triggering CDN.." + ANSI_NORMAL
@@ -38,7 +38,7 @@ def call(){
 //                        slack_notify("SUCCESS", tag_name, customUploadStatus.fullProjectName, customUploadStatus.number, customUploadStatus.absoluteUrl)
 //                        email_notify()
 
-                        cdnStatus = build job: "Deploy/$envDir/$module/PlayerCDN", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch"), string(name: 'cdn_enable', value: "true")]
+                        cdnStatus = build job: "Deploy/$envDir/$module/PlayerCDN", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch"), string(name: 'cdn_enable', value: "true")], propagate: false
 
                         if (cdnStatus.currentResult == "SUCCESS") {
                             println ANSI_BOLD + ANSI_GREEN + "Deploy/$envDir/$module/PlayerCDN succeeded. Triggering deployment.." + ANSI_NORMAL
@@ -50,7 +50,7 @@ def call(){
                                 module = "Kubernetes"
                             }
 
-                            deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")]
+                            deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")], propagate: false
 
                             if (deployStatus.currentResult == "SUCCESS") {
                                 println ANSI_BOLD + ANSI_GREEN + "Deploy/$envDir/$module/$jobName succeeded. Notifying via email and slack.." + ANSI_NORMAL
