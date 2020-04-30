@@ -133,7 +133,7 @@ func metricsCreation(ctx context.Context, m kafka.Message) error {
 		return ctx.Err()
 	default:
 		if err := json.Unmarshal(data, &metrics); err != nil {
-			fmt.Printf("Unmarshal error: %q\n", err)
+			fmt.Printf("Unmarshal error: %q data: %q\n", err, string(data))
 			return err
 		}
 		metrics.pushMetrics(ctx, &m)
@@ -172,7 +172,7 @@ func serve(w http.ResponseWriter, r *http.Request) {
 				fmt.Printf("err reading message: %v\n", err)
 				break
 			}
-			fmt.Printf("topic: %q partition: %v offset: %v lag: %d\n ", m.Topic, m.Partition, m.Offset, r.Lag())
+			fmt.Printf("topic: %q partition: %v offset: %v\n", m.Topic, m.Partition, m.Offset)
 			go func(ctx context.Context) {
 				if err := metricsCreation(ctx, m); err != nil {
 					fmt.Printf("errored out metrics creation; err:  %s\n", err)
@@ -200,27 +200,33 @@ func serve(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	// Getting kafka_ip and topic
-	kafkaHost := os.Getenv("kafka_host")
+	kafkaHosts := strings.Split(os.Getenv("kafka_host"), ",")
 	kafkaTopic := os.Getenv("kafka_topic")
-	if kafkaTopic == "" || kafkaHost == "" {
+	kafkaConsumerGroupName := os.Getenv("kafka_consumer_group_name")
+	if kafkaConsumerGroupName == "" {
+		kafkaConsumerGroupName = "prometheus-metrics-consumer"
+	}
+	if kafkaTopic == "" || kafkaHosts[0] == "" {
 		log.Fatalf(`"kafka_topic or kafka_host environment variables not set."
 For example,
-	export kafka_host=10.0.0.9:9092
+	export kafka_host=10.0.0.9:9092,10.0.0.10:9092
 	kafka_topic=sunbird.metrics.topic`)
 	}
-	fmt.Printf("kafak_host: %s\nkafka_topic: %s\n", kafkaHost, kafkaTopic)
+	fmt.Printf("kafka_host: %s\nkafka_topic: %s\nkafka_consumer_group_name: %s\n", kafkaHosts, kafkaTopic, kafkaConsumerGroupName)
 	// Checking kafka port and ip are accessible
 	fmt.Println("Checking connection to kafka")
-	conn, err := net.DialTimeout("tcp", kafkaHost, 10*time.Second)
-	if err != nil {
-		log.Fatalf("Connection error: %s", err)
+	for _, host := range kafkaHosts {
+		conn, err := net.DialTimeout("tcp", host, 10*time.Second)
+		if err != nil {
+			log.Fatalf("Connection error: %s", err)
+		}
+		conn.Close()
 	}
-	conn.Close()
 	fmt.Println("kafka is accessible")
 	// Initializing kafka
 	kafkaReader = kafka.NewReader(kafka.ReaderConfig{
 		Brokers:          strings.Split(kafkaHost, ","),
-		GroupID:          "metrics-reader-test", // Consumer group ID
+		GroupID:          kafkaConsumerGroupName, // Consumer group ID
 		Topic:            kafkaTopic,
 		MinBytes:         1e3,  // 1KB
 		MaxBytes:         10e6, // 10MB
