@@ -225,7 +225,7 @@ For example,
 	fmt.Println("kafka is accessible")
 	// Initializing kafka
 	kafkaReader = kafka.NewReader(kafka.ReaderConfig{
-		Brokers:          strings.Split(kafkaHost, ","),
+		Brokers:          kafkaHosts,
 		GroupID:          kafkaConsumerGroupName, // Consumer group ID
 		Topic:            kafkaTopic,
 		MinBytes:         1e3,  // 1KB
