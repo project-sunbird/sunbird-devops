@@ -151,8 +151,10 @@ func metricsCreation(clusterId int, ctx context.Context, m kafka.Message) error 
 }
 
 func commitMessage(lastReadMessages *[]*lastReadMessage) error {
+	fmt.Println("number of clusters: ", len(*lastReadMessages))
 	for _, lrm := range *lastReadMessages {
 		messages, clusterId := lrm.Get()
+		fmt.Println("cluster: ", clusterId)
 		for k, message := range messages {
 			if message.Offset <= 0 {
 				fmt.Println("Not committing anything", clusterId)
