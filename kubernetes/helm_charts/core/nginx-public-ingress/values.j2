@@ -156,35 +156,24 @@ proxyconfig: |
       proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
     }
-    
+
     location /api/framework {
-    if ($request_method = OPTIONS ) {
-            add_header Access-Control-Allow-Origin "*" ;
-            add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
-            add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id, Content-Encoding";
-            add_header Content-Length 0;
-            add_header Content-Type text/plain;
-            return 200;
-    }
-    client_max_body_size 60M;
-    rewrite ^/api/(.*) /$1 break;
-    proxy_cache framework_cache;
-    proxy_cache_revalidate on;
-    proxy_cache_min_uses 1;
-    proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
-    proxy_cache_background_update on;
-    proxy_set_header Connection "";
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Scheme $scheme;
-    proxy_set_header    X-Forwarded-For   $remote_addr;
-    proxy_connect_timeout 5;
-    proxy_send_timeout 60;
-    proxy_read_timeout 70;
-    proxy_http_version 1.1;
-    proxy_pass http://kong;
+      proxy_cache framework_cache;
+
+      rewrite ^/api/(.*) /$1 break;
+      client_max_body_size 60M;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header    X-Forwarded-For   $remote_addr;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_pass http://kong;
   }
-    
+
     location /api/ {
       if ($request_method = OPTIONS ) {
               add_header Access-Control-Allow-Origin "*" ;
@@ -526,9 +515,9 @@ nginxconfig: |
                         '"$request" $status $body_bytes_sent '
                         '$request_time $upstream_response_time $pipe'
                         '"$http_referer" "$http_user_agent"';
-  
+
       access_log  /var/log/nginx/access.log  main;
-  
+
       # Shared dictionary to store metrics
       lua_shared_dict prometheus_metrics 10M;
       lua_package_path "/etc/nginx/lua_modules/?.lua";
@@ -542,38 +531,38 @@ nginxconfig: |
         metric_connections = prometheus:gauge(
           "nginx_http_connections", "Number of HTTP connections", {"state"})
       ';
-  
+
       # Collecting metrics
       log_by_lua '
         metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.request_method})
         metric_latency:observe(tonumber(ngx.var.request_time), {ngx.var.server_name})
       ';
-  
+
       header_filter_by_lua_block {
        ngx.header["server"] = nil
       }
-  
+
       sendfile        on;
       #tcp_nopush     on;
       client_max_body_size 60M;
-  
+
       keepalive_timeout  65s;
       keepalive_requests 200;
-  
+
       # Nginx connection limit per ip
       limit_conn_zone $binary_remote_addr zone=limitbyaddr:10m;
       limit_conn_status 429;
-  
+
       upstream kong {
           server kong:8000;
           keepalive 1000;
       }
-      
+
       upstream encryption {
           server enc-service:8013;
           keepalive 1000;
       }
-  
+
       upstream player {
           server player:3000;
           keepalive 1000;
@@ -583,10 +572,10 @@ nginxconfig: |
 
       # local caching for images and files
       proxy_cache_path /tmp/proxy_cache levels=1:2 keys_zone=tmp_cache:5m max_size=10m inactive=60m use_temp_path=off;
-      
+
       # cache framework
       proxy_cache_path /tmp/framework_cache levels=1:2 keys_zone=framework_cache:5m max_size=700m inactive=60m use_temp_path=off;
-  
+
      server {
        listen 9145;
        location /metrics {
@@ -650,7 +639,7 @@ keycloakconf: |
       proxy_set_header X-Forwarded-Proto $scheme;
       proxy_pass http://player;
     }
-   
+
     location ~* ^/auth/admin/master/console/ {
       return 301 {{proto}}://{{ merge_proxy_server_name }};
     }
@@ -666,7 +655,7 @@ keycloakconf: |
     }
     location / {
       rewrite ^/(.*) /$1 break;
-  
+
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Scheme $scheme;
@@ -678,7 +667,7 @@ keycloakconf: |
       proxy_http_version 1.1;
       proxy_pass http://player;
     }
-  } 
+  }
 
 serviceMonitor:
   enabled: true
