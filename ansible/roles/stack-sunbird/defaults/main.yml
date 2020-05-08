@@ -17,9 +17,10 @@ actor_reservation_memory: 768M
 actor_limit_memory: 1024M
 
 learner_replicas: 1
-learner_reservation_memory: 256M
-learner_limit_memory: 512M
-learner_reservation_cpu: 0
+learner_reservation_memory: 512M
+learner_limit_memory: 1024M
+learner_reservation_cpu: 0.2
+learner_limit_cpu: 1
 learner_java_mem_limit: '-Xmx600m'
 
 #Config Service Vars
@@ -33,13 +34,22 @@ config_reservation_cpu: 0
 notification_replicas: 1
 notification_limit_memory: 500MB
 notification_limit_cpu: 1
+notification_reserve_memory: 300MB
+notification_reserve_cpu: 0.1
 
 #Report service vars
 report_replicas: 1
 report_reservation_memory: 300M
+report_reservation_cpu: 0.1
 report_limit_memory: 500M
 report_limit_cpu: 1
 sunbird_report_summary_table_name: report_summary
+
+player_replicas: 1
+player_reservation_memory: 128M
+player_limit_memory: 750M
+player_reserve_cpu: 0.1
+player_limit_cpu: 1
 
 # This variable is not to access learner service but to call the api
 # learner-service:9000/org/v1/search
@@ -48,18 +58,12 @@ sunbird_learner_service_base_url: http://kong:8000/
 telemetry_replicas: 1
 telemetry_reservation_memory: 300M
 telemetry_limit_memory: 300M
+telemetry_reservation_cpu: 0.1
 telemetry_limit_cpu: 1
 sunbird_telemetry_kafka_servers: "{{groups['kafka']|join(':9092,')}}:9092"
 sunbird_data_pipeline_kafka_servers: "{{groups['processing-cluster-kafka']|join(':9092,')}}:9092"
 
-player_replicas: 1
-player_reservation_memory: 64M
-player_limit_memory: 256M
 sunbird_build_number:
-content_replicas: 1
-content_reservation_memory: 64M
-content_java_mem_limit: '-Xmx600m'
-content_limit_memory: 256M
 keycloak_auth_server_url: "{{proto}}://{{proxy_server_name}}/auth"
 keycloak_realm: sunbird
 sunbird_web_url: "{{proto}}://{{proxy_server_name}}"
@@ -88,8 +92,6 @@ telemetry_logstash_reservation_memory: 1g
 telemetry_logstash_limit_memory: 2g
 sunbird_telemetry_api:
 sunbird_enable_signup:
-content_limit_cpu: 1
-content_reservation_cpu: 0
 
 user_org_replicas: 1
 user_org_reservation_memory: 750MB
@@ -101,22 +103,23 @@ cert_replicas: 1
 cert_reservation_memory: 500MB
 cert_limit_memory: 550MB
 cert_limit_cpu: 1
-cert_reservation_cpu: 0
+cert_reservation_cpu: 0.1
 
 cert_registry_replicas: 1
-cert_registry_limit_memory: 500MB
-cert_registry_limit_cpu: 1
+cert_registry_limit_memory: 512MB
+cert_registry_limit_cpu: 0.5
+cert_registry_reserve_cpu: 256MB
+cert_registry_reserve_memory: 0.1
 
 # Encryption service vars
 enc_replicas: 1
-enc_reservation_memory: 750MB
-enc_limit_memory: 800MB
-enc_limit_cpu: 1
-enc_reservation_cpu: 0
+enc_reservation_memory: 300MB
+enc_limit_memory: 500MB
+enc_limit_cpu: 0.5
+enc_reservation_cpu: 0.1
 postgres_port: 5432
 enc_dialect: postgres
 enc_entry_passwod: password
-
 
 telemetry_service_threads:
 telemetry_local_storage_enabled:
@@ -148,16 +151,16 @@ itext_license_enabled: false
 
 # Knowledge MW Service Config
 knowledge_mw_service_replicas: 1
-knowledge_mw_service_reservation_memory: 64M
-knowledge_mw_service_limit_memory: 256M
-knowledge_mw_service_reservation_cpu: 0
+knowledge_mw_service_reservation_memory: 200M
+knowledge_mw_service_limit_memory: 1000M
+knowledge_mw_service_reservation_cpu: 0.1
 knowledge_mw_service_limit_cpu: 1
 
 # Content Service Config
 content_service_replicas: 1
-content_service_reservation_memory: 1000M
+content_service_reservation_memory: 600M
 content_service_limit_memory: 1000M
-content_service_reservation_cpu: 0
+content_service_reservation_cpu: 0.1
 content_service_limit_cpu: 1
 content_java_mem_limit: '-Xmx600m'
 
@@ -165,23 +168,23 @@ content_java_mem_limit: '-Xmx600m'
 assessment_service_replicas: 1
 assessment_service_reservation_memory: 256M
 assessment_service_limit_memory: 512M
-assessment_service_reservation_cpu: 0
+assessment_service_reservation_cpu: 0.1
 assessment_service_limit_cpu: 1
 
 # LMS Service Config
 lms_service_replicas: 1
 lms_service_reservation_memory: 1000M
 lms_service_limit_memory: 1000M
-lms_service_reservation_cpu: 0
+lms_service_reservation_cpu: 0.1
 lms_service_limit_cpu: 1
 lms_java_mem_limit: '-Xmx600m'
 
 # Print Service Config
 print_service_replicas: 1
-print_service_reservation_memory: 64M
-print_service_limit_memory: 256M
-print_service_reservation_cpu: 0
-print_service_limit_cpu: 1
+print_service_reservation_memory: 128M
+print_service_limit_memory: 512M
+print_service_reservation_cpu: 0.1
+print_service_limit_cpu: 0.5
 
 # Search Service Config
 search_service_replicas: 1
@@ -270,7 +273,7 @@ service_env:
     - ../../../../ansible/roles/stack-sunbird/templates/taxonomy-service_application.conf
     - ../../../../ansible/roles/stack-sunbird/templates/taxonomy-service_logback.xml
   report: ../../../../ansible/roles/stack-sunbird/templates/sunbird_report-service.env
-  telemetrydplogstash: ../../../../ansible/roles/stack-sunbird/templates/telemetry-logstash-datapipeline.conf
+  telemetry-dp-logstash: ../../../../ansible/roles/stack-sunbird/templates/telemetry-logstash-datapipeline.conf
 
 sunbird_portal_player_cdn_enabled: false 
 
@@ -306,18 +309,16 @@ lms_liveness_readiness:
 apimanager_liveness_readiness:
   healthcheck: true
   readinessProbe:
-    httpGet:
-      path: /status
-      port: 8001
-    initialDelaySeconds: 30
-    periodSeconds: 30
+    tcpSocket:
+      port: 8000
+    initialDelaySeconds: 120
+    periodSeconds: 90
     timeoutSeconds: 10
     failureThreshold: 5
     successThreshold: 2
   livenessProbe:
-    httpGet:
-      path: /
-      port: 8001
+    tcpSocket:
+      port: 8000
     initialDelaySeconds: 30
     periodSeconds: 30
     timeoutSeconds: 10
