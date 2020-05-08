@@ -20,18 +20,18 @@ def call() {
                 """
                 if (jobType == "Deploy") {
                     if (module == "Core" || module == "Kubernetes") {
-                        image_tag = sh(returnStdout: true, script: 'jq -r .image_tag metadata.json').trim()
+                        image_tag = sh(returnStdout: true, script: 'if [[ -f metadata.json ]]; then jq -r .image_tag metadata.json; else echo "NA"; fi').trim()
                         sh """
                             sed -i "s/${jobType}:${module}:${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                            echo "${jobType}:${module}:${jobName},  imagetag:${image_tag}, privatebranch:${privateBranch}, publicbranch:${publicBranch}">> $JENKINS_HOME/summary/${envDir}/summary.txt
+                            echo "${jobType}/${module}/${jobName},  imagetag: ${image_tag}, privatebranch: ${privateBranch}, publicbranch: ${publicBranch}">> $JENKINS_HOME/summary/${envDir}/summary.txt
                         """
                     } else {
-                        artifact_version = sh(returnStdout: true, script: 'jq -r .artifact_version metadata.json').trim()
+                        artifact_version = sh(returnStdout: true, script: 'f [[ -f metadata.json ]]; then jq -r .artifact_version metadata.json; else echo "NA"; fi').trim()
                         sh """
                             sed -i "s/${jobType}:${module}:${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                            echo "${jobType}:${module}:${jobName},  artifact_version:${artifact_version}, privatebranch:${privateBranch}, publicbranch:${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
+                            echo "${jobType}/${module}/${jobName},  artifact_version: ${artifact_version}, privatebranch: ${privateBranch}, publicbranch: ${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                         """
                     }
                 }
@@ -40,7 +40,7 @@ def call() {
                      sh """
                         sed -i "s/${jobType}:${module}:${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                         sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                        echo "${jobType}:${module}:${jobName}, privatebranch:${privateBranch}, publicbranch:${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
+                        echo "${jobType}/${module}/${jobName}, privatebranch: ${privateBranch}, publicbranch: ${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                     """    
                 }  
             }
