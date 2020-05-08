@@ -73,7 +73,7 @@
                     <div class="field mb-8">
                         <button id="login" class="mt-24 sb-btn sb-btn-normal sb-btn-primary width-100">${msg("doLogIn")}</button>
                     </div>
-                      <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??> </#if>  ?>
+                     <? <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??> </#if>  ?>
                     <div id="kc-registration" class="field">
                                 <div class="ui content signUpMsg">
                                     ${msg("noAccount")} <span id="signup" tabindex="0" class="registerLink" onclick=navigate('self')>${msg("registerHere")}</span>
