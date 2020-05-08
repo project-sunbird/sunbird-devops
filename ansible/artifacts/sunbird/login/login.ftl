@@ -71,7 +71,7 @@
                     </div>
 
                     <div class="field mb-8">
-                        <button id="login" class="mt-24 sb-btn sb-btn-normal sb-btn-primary width-100">${msg("doLogIn")}</button>
+                        <button id="login" class="mt-24 sb-btn sb-btn-normal sb-btn-primary width-100">${msg("login")}</button>
                     </div>
                   <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??>
                     <div id="kc-registration" class="field">
@@ -92,7 +92,7 @@
                                     </#list>
                                 </div-->
                             </#if>
-                            <button type="button" class="sb-btn sb-btn-normal sb-btn-primary width-100 mb-16" onclick="navigate('google')">
+                            <button type="button" class="sb-btn sb-btn-normal sb-btn-primary width-100 mb-16 btn-signInWithGoogle" onclick="navigate('google')">
                             <img class="signInWithGoogle" src="${url.resourcesPath}/img/google.svg">
                             ${msg("doLogIn")} ${msg("doSignWithGoogle")}
                             </button>
