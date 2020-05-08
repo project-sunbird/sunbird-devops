@@ -10,7 +10,7 @@
                 <div class="ui header centered">
                     <img onerror="" alt="">
                     <div id="signIn" class="signInHead mt-8">${msg("loginDiksha")}</div>
-                    <p class="subtitle hide">Login as</p>
+                    <p class="subtitle">Login</p>
                 </div>
                 <p id="mergeAccountMessage" class="hide mb-0 textCenter">${msg("mergeAccountMessage")}</p>
                 <p id="migrateAccountMessage" class="hide mb-0 textCenter">${msg("migrateAccountMessage")}</p>
@@ -73,13 +73,13 @@
                     <div class="field mb-8">
                         <button id="login" class="mt-24 sb-btn sb-btn-normal sb-btn-primary width-100">${msg("doLogIn")}</button>
                     </div>
-                      <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??> </#if>  ?>
+                  <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??>
                     <div id="kc-registration" class="field">
                                 <div class="ui content signUpMsg">
                                     ${msg("noAccount")} <span id="signup" tabindex="0" class="registerLink" onclick=navigate('self')>${msg("registerHere")}</span>
                                 </div>
                     </div>
-
+                  </#if>
                     <div id="selfSingUp" class="hide">
                         <p class="or my-16 textCenter">OR</p>
                         <div class="field">
