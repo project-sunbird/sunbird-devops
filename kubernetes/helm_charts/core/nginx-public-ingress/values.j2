@@ -470,6 +470,43 @@ proxyconfig: |
       proxy_send_timeout 60;
       proxy_read_timeout 70;
     }
+
+    location  ~ /resourcebundles/v1/read|/learner/data/v1/(role/read|system/settings/get)|/v1/tenant/info  {
+      proxy_cache_key $proxy_host$request_uri;
+      proxy_cache proxy_cache;
+      add_header X-Proxy-Cache $upstream_cache_status;
+      proxy_cache_lock on;
+      proxy_cache_valid any 3600s;
+
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_pass http://player;
+    }
+
+    location /api/channel/v1/read {
+      proxy_cache_key $proxy_host$request_uri;
+      proxy_cache framework_cache;
+      add_header X-Proxy-Cache $upstream_cache_status;
+      proxy_cache_lock on;
+      proxy_cache_valid any 3600s;
+
+      rewrite ^/api/channel/v1/read/(.*) /channel/v1/read/$1 break;
+      client_max_body_size 60M;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header    X-Forwarded-For   $remote_addr;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_pass http://kong;
+    }
+
     location /oauth2callback {
       return 200 'OK';
       add_header Content-Type text/plain;
