@@ -50,7 +50,6 @@ data_service_prefix: /data
 notes_service_prefix: /notes
 org_service_prefix: /org
 echo_service_prefix: /echo
-echo_service_prefix_fqdn: /echofqdn
 composite_service_prefix: /composite
 api_manager_perfix: /api-manager
 meta_service_prefix: /meta
@@ -1213,24 +1212,6 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: echo
-    uris: "{{ echo_service_prefix_fqdn }}"
-    upstream_url: "{{ echo_service_url_fqdn }}"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'ssoCreate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: echo
     uris: "{{ echo_service_prefix }}"
