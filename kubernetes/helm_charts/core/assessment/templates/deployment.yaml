@@ -28,10 +28,19 @@ spec:
         - name: {{ .Chart.Name }}-config
           configMap:
             name: {{ .Chart.Name }}-config
+        - name: {{ .Chart.Name }}-xml-config
+          configMap:
+            name: {{ .Chart.Name }}-xml-config
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         imagePullPolicy: Always
+        env:
+        - name: JAVA_OPTIONS
+          value: {{ .Values.env.javaoptions | quote }}
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
@@ -46,7 +55,10 @@ spec:
           - name: {{ .Chart.Name }}-config
             mountPath: /home/sunbird/assessment-service-1.0-SNAPSHOT/config/application.conf
             subPath: assessment-service_application.conf
-
+          - name: {{ .Chart.Name }}-xml-config
+            mountPath: /home/sunbird/assessment-service-1.0-SNAPSHOT/config/logback.xml
+            subPath: assessment-service_logback.xml
+          
 ---
 apiVersion: v1
 kind: Service
@@ -59,6 +71,6 @@ spec:
   ports:
   - name: http-{{ .Chart.Name }}
     protocol: TCP
-    port: {{ .Values.network.port }}
+    port: {{ .Values.network.targetport }}
   selector:
     app: {{ .Chart.Name }}
