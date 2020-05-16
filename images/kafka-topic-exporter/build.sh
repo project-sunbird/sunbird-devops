@@ -3,4 +3,4 @@
 
 # Have to copy this file because In docker container we can't pass directories other than PWD
 cp ../../exporters/Go/kafka-topic-exporter/main.go .
-docker build -f Dockerfile -t sunbird/kafka-topic-exporter:v1 .
+docker build -f Dockerfile -t sunbird/kafka-topic-exporter:v2 .
