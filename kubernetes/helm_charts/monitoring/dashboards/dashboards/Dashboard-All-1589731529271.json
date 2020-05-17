@@ -4,10 +4,12 @@
       {
         "builtIn": 1,
         "datasource": "-- Grafana --",
-        "enable": true,
+        "enable": false,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
+        "limit": 100,
         "name": "Annotations & Alerts",
+        "showIn": 0,
         "type": "dashboard"
       }
     ]
@@ -15,30 +17,32 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
+  "id": 55,
   "links": [],
   "panels": [
     {
       "aliasColors": {},
       "bars": false,
-      "cacheTimeout": null,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "InfluxDB_Datapipeline",
+      "datasource": "prom-fed",
       "fill": 1,
-      "fillGradient": 0,
+      "fillGradient": 4,
       "gridPos": {
         "h": 7,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 0
       },
       "hiddenSeries": false,
-      "id": 3,
+      "id": 5,
       "legend": {
-        "avg": true,
+        "alignAsTable": true,
+        "avg": false,
         "current": true,
         "max": true,
         "min": false,
+        "rightSide": true,
         "show": true,
         "total": false,
         "values": true
@@ -51,7 +55,7 @@
         "dataLinks": []
       },
       "percentage": false,
-      "pointradius": 2,
+      "pointradius": 5,
       "points": false,
       "renderer": "flot",
       "seriesOverrides": [],
@@ -60,44 +64,42 @@
       "steppedLine": false,
       "targets": [
         {
-          "groupBy": [],
-          "measurement": "pipeline_metrics",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT \"consumer_lag\" FROM \"pipeline_metrics\" WHERE ( \"job_name\" = 'TelemetryExtractor') AND $timeFilter",
-          "rawQuery": true,
+          "datasource": "prom-fed",
+          "expr": "sum(rate(nginx_http_requests_total[2m]))",
+          "format": "time_series",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Today",
           "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "consumer_lag"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "env",
-              "operator": "=",
-              "value": "ntpprod"
-            },
-            {
-              "condition": "AND",
-              "key": "job_name",
-              "operator": "=",
-              "value": "TelemetryExtractor"
-            }
-          ]
+          "step": 2
+        },
+        {
+          "datasource": "prom-fed",
+          "expr": "sum(rate(nginx_http_requests_total[5m] offset 1d))  ",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Yesterday",
+          "refId": "C",
+          "step": 2
+        },
+        {
+          "datasource": "prom-fed",
+          "expr": "sum(rate(nginx_http_requests_total[5m] offset 1w))  ",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Last Week Same Day",
+          "refId": "B",
+          "step": 2
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "TelemetryExtractor Lag",
+      "title": "Traffic : Requests / Sec (both Swarm3 and K8s)",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -135,261 +137,133 @@
       }
     },
     {
+      "cacheTimeout": null,
+      "columns": [],
+      "datasource": "prom-fed",
+      "fontSize": "100%",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 15,
+      "links": [],
+      "options": {},
+      "pageSize": null,
+      "showHeader": true,
+      "sort": {
+        "col": 2,
+        "desc": true
+      },
+      "styles": [
+        {
+          "alias": "Time",
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "pattern": "Time",
+          "type": "hidden"
+        },
+        {
+          "alias": "Total Count",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "decimals": 2,
+          "pattern": "Value #B",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        },
+        {
+          "alias": "Percentage",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Value #A",
+          "thresholds": [],
+          "type": "number",
+          "unit": "percent"
+        },
+        {
+          "alias": "Total",
+          "colorMode": null,
+          "colors": [
+            "rgba(245, 54, 54, 0.9)",
+            "rgba(237, 129, 40, 0.89)",
+            "rgba(50, 172, 45, 0.97)"
+          ],
+          "dateFormat": "YYYY-MM-DD HH:mm:ss",
+          "decimals": 2,
+          "mappingType": 1,
+          "pattern": "Value #C",
+          "thresholds": [],
+          "type": "number",
+          "unit": "short"
+        }
+      ],
+      "targets": [
+        {
+          "expr": "sum(increase(nginx_http_requests_total[${__range_s}s])) by (status)",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "count",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(increase(nginx_http_requests_total[${__range_s}s])) by (status) / ignoring(status) group_left sum(increase(nginx_http_requests_total[${__range_s}s])) * 100",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(increase(nginx_http_requests_total[${__range_s}s]))",
+          "format": "table",
+          "hide": false,
+          "instant": true,
+          "legendFormat": "count",
+          "refId": "C"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "status count by percentage",
+      "transform": "table",
+      "type": "table"
+    },
+    {
       "aliasColors": {},
       "bars": false,
-      "cacheTimeout": null,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "InfluxDB_Datapipeline",
+      "datasource": "Prometheus_DS3",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 8,
-        "w": 24,
+        "h": 4,
+        "w": 12,
         "x": 0,
         "y": 7
       },
       "hiddenSeries": false,
-      "id": 6,
-      "legend": {
-        "avg": true,
-        "current": true,
-        "max": true,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "pipeline_metrics",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT \"consumer_lag\" FROM \"pipeline_metrics\" WHERE (\"job_name\" = 'TelemetryValidator' ) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "consumer_lag"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "job_name",
-              "operator": "=",
-              "value": "TelemetryValidator"
-            },
-            {
-              "condition": "AND",
-              "key": "env",
-              "operator": "=",
-              "value": "ntpprod"
-            }
-          ]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "TelemetryValidator Lag",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "cacheTimeout": null,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "InfluxDB_Datapipeline",
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 15
-      },
-      "hiddenSeries": false,
-      "id": 5,
-      "legend": {
-        "avg": true,
-        "current": true,
-        "max": true,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": true
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "pipeline_metrics",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT \"consumer_lag\" FROM \"pipeline_metrics\" WHERE (\"job_name\" = 'DeDuplication' ) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "consumer_lag"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "job_name",
-              "operator": "=",
-              "value": "DeDuplication"
-            },
-            {
-              "condition": "AND",
-              "key": "env",
-              "operator": "=",
-              "value": "ntpprod"
-            }
-          ]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Deduplication Lag",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "cacheTimeout": null,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "InfluxDB_Datapipeline",
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 23
-      },
-      "hiddenSeries": false,
       "id": 7,
       "legend": {
+        "alignAsTable": true,
         "avg": true,
         "current": true,
         "max": true,
         "min": false,
+        "rightSide": true,
         "show": true,
         "total": false,
         "values": true
@@ -402,7 +276,7 @@
         "dataLinks": []
       },
       "percentage": false,
-      "pointradius": 2,
+      "pointradius": 5,
       "points": false,
       "renderer": "flot",
       "seriesOverrides": [],
@@ -411,44 +285,20 @@
       "steppedLine": false,
       "targets": [
         {
-          "groupBy": [],
-          "measurement": "pipeline_metrics",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT \"consumer_lag\" FROM \"pipeline_metrics\" WHERE (\"job_name\" = 'TelemetryRouter' ) AND $timeFilter",
-          "rawQuery": true,
+          "expr": "sum(rate(nginx_http_requests_total[1m]))",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "All",
           "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "consumer_lag"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "job_name",
-              "operator": "=",
-              "value": "TelemetryRouter"
-            },
-            {
-              "condition": "AND",
-              "key": "env",
-              "operator": "=",
-              "value": "ntpprod"
-            }
-          ]
+          "step": 2
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "TelemetryRouter Lag",
+      "title": "Traffic : Requests / Sec - Swarm-3",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -488,25 +338,26 @@
     {
       "aliasColors": {},
       "bars": false,
-      "cacheTimeout": null,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "InfluxDB_Datapipeline",
+      "datasource": "Prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 32
+        "h": 4,
+        "w": 12,
+        "x": 12,
+        "y": 7
       },
       "hiddenSeries": false,
-      "id": 4,
+      "id": 11,
       "legend": {
+        "alignAsTable": true,
         "avg": true,
         "current": true,
         "max": true,
         "min": false,
+        "rightSide": true,
         "show": true,
         "total": false,
         "values": true
@@ -519,7 +370,7 @@
         "dataLinks": []
       },
       "percentage": false,
-      "pointradius": 2,
+      "pointradius": 5,
       "points": false,
       "renderer": "flot",
       "seriesOverrides": [],
@@ -528,44 +379,20 @@
       "steppedLine": false,
       "targets": [
         {
-          "groupBy": [],
-          "measurement": "pipeline_metrics",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT \"consumer_lag\" FROM \"pipeline_metrics\" WHERE (\"job_name\" = 'TelemetryLocationUpdater' ) AND $timeFilter",
-          "rawQuery": true,
+          "expr": "sum(rate(nginx_http_requests_total[1m]))",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "All",
           "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "consumer_lag"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "job_name",
-              "operator": "=",
-              "value": "TelemetryLocationUpdater"
-            },
-            {
-              "condition": "AND",
-              "key": "env",
-              "operator": "=",
-              "value": "ntpprod"
-            }
-          ]
+          "step": 2
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "TelemetryLocationUpdater Lag",
+      "title": "Traffic : Requests / Sec - Kubernetes",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -607,134 +434,123 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "InfluxDB_Datapipeline",
+      "datasource": "Prometheus_DS3",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 9,
-        "w": 24,
+        "h": 6,
+        "w": 12,
         "x": 0,
-        "y": 40
+        "y": 11
+      },
+      "hiddenSeries": false,
+      "id": 3,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": true,
+        "max": true,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "current",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "(sum(increase(nginx_http_requests_total{status!~\"2..|3..|5..\"}[1m])) by (status) / ignoring(status) group_left sum(increase(nginx_http_requests_total[1m]))) * 100",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{status}}",
+          "refId": "A",
+          "step": 4
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "4xx Error % Swarm",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "percent",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 11
       },
       "hiddenSeries": false,
       "id": 12,
       "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "links": [],
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "groupBy": [],
-          "measurement": "pipeline_metrics",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT \"consumer_lag\" FROM \"pipeline_metrics\" WHERE (\"job_name\" = 'DeviceProfileUpdater') AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "consumer_lag"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "job_name",
-              "operator": "=",
-              "value": "DeviceProfileUpdater"
-            }
-          ]
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "DeviceProfileUpdater",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "cacheTimeout": null,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "InfluxDB_Datapipeline",
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 49
-      },
-      "hiddenSeries": false,
-      "id": 8,
-      "legend": {
+        "alignAsTable": true,
         "avg": true,
         "current": true,
         "max": true,
         "min": false,
+        "rightSide": true,
         "show": true,
+        "sort": "current",
+        "sortDesc": true,
         "total": false,
         "values": true
       },
@@ -746,7 +562,7 @@
         "dataLinks": []
       },
       "percentage": false,
-      "pointradius": 2,
+      "pointradius": 5,
       "points": false,
       "renderer": "flot",
       "seriesOverrides": [],
@@ -755,44 +571,20 @@
       "steppedLine": false,
       "targets": [
         {
-          "groupBy": [],
-          "measurement": "pipeline_metrics",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT \"consumer_lag\" FROM \"pipeline_metrics\" WHERE (\"job_name\" = 'DeNormalization' ) AND $timeFilter",
-          "rawQuery": true,
+          "expr": "(sum(increase(nginx_http_requests_total{status!~\"2..|3..|5..\"}[1m])) by (status) / ignoring(status) group_left sum(increase(nginx_http_requests_total[1m]))) * 100",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{status}}",
           "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "consumer_lag"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "job_name",
-              "operator": "=",
-              "value": "DeNormalization"
-            },
-            {
-              "condition": "AND",
-              "key": "env",
-              "operator": "=",
-              "value": "ntpprod"
-            }
-          ]
+          "step": 4
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Denormalization Lag",
+      "title": "4xx Error % Kubernetes-1",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -808,7 +600,7 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "format": "percent",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -832,26 +624,221 @@
     {
       "aliasColors": {},
       "bars": false,
-      "cacheTimeout": null,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "InfluxDB_Datapipeline",
+      "datasource": "Prometheus_DS3",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 8,
-        "w": 24,
+        "h": 6,
+        "w": 12,
         "x": 0,
-        "y": 57
+        "y": 17
+      },
+      "hiddenSeries": false,
+      "id": 2,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": true,
+        "max": true,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "current",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "(sum(increase(nginx_http_requests_total{status!~\"2..|3..|4..\"}[1m])) by (status) / ignoring(status) group_left sum(increase(nginx_http_requests_total[1m]))) * 100",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{status}}",
+          "refId": "A",
+          "step": 4
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "5xx Error % Swarm3",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "percent",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "hiddenSeries": false,
+      "id": 13,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": true,
+        "max": true,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "current",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "(sum(increase(nginx_http_requests_total{status!~\"2..|3..|4..\"}[1m])) by (status) / ignoring(status) group_left sum(increase(nginx_http_requests_total[1m]))) * 100",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{status}}",
+          "refId": "A",
+          "step": 4
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "5xx Error % kubernetes-1",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "percent",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 23
       },
       "hiddenSeries": false,
       "id": 9,
       "legend": {
-        "avg": true,
+        "alignAsTable": true,
+        "avg": false,
         "current": true,
         "max": true,
-        "min": false,
+        "min": true,
+        "rightSide": true,
         "show": true,
+        "sort": "current",
+        "sortDesc": true,
         "total": false,
         "values": true
       },
@@ -863,7 +850,7 @@
         "dataLinks": []
       },
       "percentage": false,
-      "pointradius": 2,
+      "pointradius": 5,
       "points": false,
       "renderer": "flot",
       "seriesOverrides": [],
@@ -872,44 +859,28 @@
       "steppedLine": false,
       "targets": [
         {
-          "groupBy": [],
-          "measurement": "pipeline_metrics",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT \"consumer_lag\" FROM \"pipeline_metrics\" WHERE (\"job_name\" = 'DruidEventsValidator' ) AND $timeFilter",
-          "rawQuery": true,
+          "expr": "(host) * on (instance) group_left(nodename) node_load1",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{host}}",
           "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "consumer_lag"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "job_name",
-              "operator": "=",
-              "value": "DruidEventsValidator"
-            },
-            {
-              "condition": "AND",
-              "key": "env",
-              "operator": "=",
-              "value": "ntpprod"
-            }
-          ]
+          "step": 2
+        },
+        {
+          "expr": "(node_load1) * on (instance) group_left(nodename) node_uname_info{job=~\".*node-exporter\"}",
+          "format": "time_series",
+          "intervalFactor": 2,
+          "legendFormat": "{{nodename}}",
+          "refId": "B",
+          "step": 2
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "DruidValidator Lag",
+      "title": "Load avg on VM's",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -949,26 +920,29 @@
     {
       "aliasColors": {},
       "bars": false,
-      "cacheTimeout": null,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "InfluxDB_Datapipeline",
+      "datasource": "Prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 65
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 23
       },
       "hiddenSeries": false,
       "id": 10,
       "legend": {
-        "avg": true,
+        "alignAsTable": true,
+        "avg": false,
         "current": true,
         "max": true,
-        "min": false,
+        "min": true,
+        "rightSide": true,
         "show": true,
+        "sort": "current",
+        "sortDesc": true,
         "total": false,
         "values": true
       },
@@ -980,7 +954,7 @@
         "dataLinks": []
       },
       "percentage": false,
-      "pointradius": 2,
+      "pointradius": 5,
       "points": false,
       "renderer": "flot",
       "seriesOverrides": [],
@@ -989,44 +963,20 @@
       "steppedLine": false,
       "targets": [
         {
-          "groupBy": [],
-          "measurement": "pipeline_metrics",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "query": "SELECT \"consumer_lag\" FROM \"pipeline_metrics\" WHERE (\"job_name\" = 'EventsRouter' ) AND $timeFilter",
-          "rawQuery": true,
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "consumer_lag"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "job_name",
-              "operator": "=",
-              "value": "EventsRouter"
-            },
-            {
-              "condition": "AND",
-              "key": "env",
-              "operator": "=",
-              "value": "ntpprod"
-            }
-          ]
+          "expr": "sum((node_filesystem_size_bytes{ mountpoint=\"/\", job=~\".*node-exporter\"} - node_filesystem_free_bytes{ mountpoint=\"/\"}) * 100 / node_filesystem_size_bytes{mountpoint=\"/\"}  * on (instance) group_left(nodename) node_uname_info )  by (nodename)",
+          "format": "time_series",
+          "hide": false,
+          "intervalFactor": 2,
+          "legendFormat": "{{nodename}}",
+          "refId": "B",
+          "step": 2
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "EventsRouter Lag",
+      "title": "Disk utilization %",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1068,25 +1018,29 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "InfluxDB_Datapipeline",
+      "datasource": "Prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 10,
-        "w": 24,
+        "h": 6,
+        "w": 12,
         "x": 0,
-        "y": 73
+        "y": 29
       },
       "hiddenSeries": false,
-      "id": 14,
+      "id": 16,
       "legend": {
+        "alignAsTable": true,
         "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
+        "current": true,
+        "max": true,
+        "min": true,
+        "rightSide": true,
         "show": true,
+        "sort": "current",
+        "sortDesc": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -1096,7 +1050,7 @@
         "dataLinks": []
       },
       "percentage": false,
-      "pointradius": 2,
+      "pointradius": 5,
       "points": false,
       "renderer": "flot",
       "seriesOverrides": [],
@@ -1105,36 +1059,20 @@
       "steppedLine": false,
       "targets": [
         {
-          "groupBy": [],
-          "measurement": "pipeline_metrics",
-          "orderByTime": "ASC",
-          "policy": "default",
-          "refId": "A",
-          "resultFormat": "time_series",
-          "select": [
-            [
-              {
-                "params": [
-                  "consumer_lag"
-                ],
-                "type": "field"
-              }
-            ]
-          ],
-          "tags": [
-            {
-              "key": "job_name",
-              "operator": "=",
-              "value": "AssessmentAggregator"
-            }
-          ]
+          "expr": "sum((node_filesystem_size_bytes{ mountpoint=\"/data\", job=~\".*node-exporter\"} - node_filesystem_free_bytes{ mountpoint=\"/data\"}) * 100 / node_filesystem_size_bytes{mountpoint=\"/data\"}  * on (instance) group_left(nodename) node_uname_info )  by (nodename)",
+          "format": "time_series",
+          "hide": false,
+          "intervalFactor": 2,
+          "legendFormat": "{{nodename}}",
+          "refId": "B",
+          "step": 2
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "AssessmentAggregator",
+      "title": "Kafka servers Data Disk utilization % ",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -1172,7 +1110,7 @@
       }
     }
   ],
-  "refresh": false,
+  "refresh": "10s",
   "schemaVersion": 21,
   "style": "dark",
   "tags": [],
@@ -1180,7 +1118,7 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -1209,7 +1147,7 @@
     ]
   },
   "timezone": "",
-  "title": "EP-Pipeline - ConsumerLag",
-  "uid": "I5-sVKmZk",
-  "version": 1
+  "title": "Dashboard-All",
+  "uid": "000000006",
+  "version": 20
 }
