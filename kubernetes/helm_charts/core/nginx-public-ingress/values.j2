@@ -160,7 +160,7 @@ proxyconfig: |
     # Limitting open connection per ip
     limit_conn limitbyaddr {{ nginx_per_ip_connection_limit }};
     proxy_set_header    Host              $host;
-    proxy_set_header    X-Real-IP         $remote_addr;
+    proxy_set_header    X-Real-IP         {{ nginx_client_public_ip_header | d('$remote_addr') }};
     proxy_set_header    X-Forwarded-SSL   on;
     proxy_set_header    X-Forwarded-Proto $scheme;
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
@@ -189,7 +189,7 @@ proxyconfig: |
     location ~* ^/auth/v1/refresh/token  {
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
@@ -200,7 +200,7 @@ proxyconfig: |
       proxy_set_header Connection "";
       proxy_pass http://keycloak;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
@@ -246,9 +246,9 @@ proxyconfig: |
       client_max_body_size 60M;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
-      proxy_set_header    X-Forwarded-For   $remote_addr;
+      proxy_set_header    X-Forwarded-For   {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
       proxy_read_timeout 70;
@@ -276,9 +276,9 @@ proxyconfig: |
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
-      proxy_set_header    X-Forwarded-For   $http_x_forwarded_for;
+      proxy_set_header    X-Forwarded-For   {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
       proxy_read_timeout 70;
@@ -292,14 +292,14 @@ proxyconfig: |
     # Oauth2 config
     location /oauth2/ {
       proxy_set_header Host                    $host;
-      proxy_set_header X-Real-IP               $remote_addr;
+      proxy_set_header X-Real-IP               {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme                $scheme;
       proxy_set_header X-Auth-Request-Redirect $request_uri;
       proxy_pass http://oauth2-proxy.logging.svc.cluster.local;
     }
     location = /oauth2/auth {
       proxy_set_header Host             $host;
-      proxy_set_header X-Real-IP        $remote_addr;
+      proxy_set_header X-Real-IP        {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme         $scheme;
       # nginx auth_request includes headers but not body
       proxy_set_header Content-Length   "";
@@ -329,7 +329,7 @@ proxyconfig: |
     location /encryption/ {
     rewrite ^/encryption/(.*) /$1 break;
     proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
     proxy_set_header X-Scheme $scheme;
     proxy_connect_timeout 1;
     proxy_send_timeout 30;
@@ -340,7 +340,7 @@ proxyconfig: |
     location /badging/ {
       rewrite ^/badging/(.*) /$1 break;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_connect_timeout 1;
       proxy_send_timeout 30;
@@ -574,7 +574,7 @@ proxyconfig: |
           gzip_types application/javascript application/x-javascript text/css text/javascript;
       rewrite ^/(.*) /$1 break;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
@@ -623,7 +623,7 @@ proxyconfig: |
     location / {
       rewrite ^/(.*) /$1 break;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
@@ -638,7 +638,7 @@ proxyconfig: |
       proxy_set_header Connection "";
       rewrite ^/v3/device/register/(.*) /v3/device/register/$1 break;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
@@ -651,7 +651,7 @@ proxyconfig: |
       rewrite ^/action/data/v3/metrics/(.*) /data/v3/metrics/$1 break;
       proxy_http_version 1.1;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
@@ -668,7 +668,7 @@ proxyconfig: |
       proxy_cache_valid 200 3600s;
 
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
@@ -688,9 +688,9 @@ proxyconfig: |
       client_max_body_size 60M;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
-      proxy_set_header    X-Forwarded-For   $remote_addr;
+      proxy_set_header    X-Forwarded-For   {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
       proxy_read_timeout 70;
@@ -744,7 +744,7 @@ nginxconfig: |
   {{ nginx_http_config | indent( width=7, indentfirst=True)  }}
 {% endif %}
       lua_load_resty_core off;
-      log_format  main  '$remote_addr - $remote_user [$time_local] '
+      log_format  main  '{{ nginx_client_public_ip_header | d('$remote_addr') }} - $remote_user [$time_local] '
                         '"$request" $status $body_bytes_sent '
                         '$request_time $upstream_response_time $pipe'
                         '"$http_referer" "$http_user_agent"';
@@ -844,7 +844,7 @@ keycloakconf: |
     # Limitting open connection per ip
     limit_conn limitbyaddr {{ nginx_per_ip_connection_limit }};
     proxy_set_header    Host              $host;
-    proxy_set_header    X-Real-IP         $remote_addr;
+    proxy_set_header    X-Real-IP         {{ nginx_client_public_ip_header | d('$remote_addr') }};
     proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
     proxy_set_header    X-Forwarded-SSL   on;
     proxy_set_header    X-Forwarded-Proto $scheme;
@@ -871,7 +871,7 @@ keycloakconf: |
     location ~* ^/auth/v1/refresh/token  {
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
@@ -886,7 +886,7 @@ keycloakconf: |
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_pass $target;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
@@ -895,7 +895,7 @@ keycloakconf: |
       rewrite ^/(.*) /$1 break;
 
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
