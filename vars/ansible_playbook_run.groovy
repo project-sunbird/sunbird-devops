@@ -1,4 +1,4 @@
-def call(Map pipelineParams) { 
+def call(Map pipelineParams) {
     try {
         ansiColor('xterm') {
             String ANSI_GREEN = "\u001B[32m"
@@ -24,22 +24,21 @@ def call(Map pipelineParams) {
                     } else
                         println(ANSI_BOLD + ANSI_YELLOW + 'Info: Branch override is disabled' + ANSI_NORMAL)
 
-                        checkout scm: [$class: 'GitSCM', branches: [[name: private_repo_branch]], extensions: [[$class: 'CloneOption', depth: 1, noTags: true, reference: '', shallow: true]], userRemoteConfigs: [[credentialsId: private_repo_credentials, url: private_repo_url]]]
+                    checkout scm: [$class: 'GitSCM', branches: [[name: private_repo_branch]], extensions: [[$class: 'CloneOption', depth: 1, noTags: true, reference: '', shallow: true]], userRemoteConfigs: [[credentialsId: private_repo_credentials, url: private_repo_url]]]
                 }
 
                 inventory_path = "${pipelineParams.currentWs}/ansible/inventory/env"
                 sh """
-                        cp --preserve=links ${pipelineParams.currentWs}/private/ansible/inventory/${pipelineParams.env}/${
-                    pipelineParams.module
-                }/* ${pipelineParams.currentWs}/ansible/inventory/env/
-                        ansible-playbook -i ${
-                    inventory_path
-                } $pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
+                        cp --preserve=links ${pipelineParams.currentWs}/private/ansible/inventory/${pipelineParams.env}/${pipelineParams.module}/* ${pipelineParams.currentWs}/ansible/inventory/env/
+                        if [ -f ${pipelineParams.currentWs}/ansible/inventory/env/kubernetes.yaml ]; then
+                            cat ${pipelineParams.currentWs}/ansible/inventory/env/kubernetes.yaml >> ${pipelineParams.currentWs}/ansible/inventory/env/common.yml
+                        fi
+                        ansible-playbook -i ${inventory_path} $pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
                      """
             }
         }
     }
-        catch (err){
-            throw err
-        }
+    catch (err){
+        throw err
+    }
 }
