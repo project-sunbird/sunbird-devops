@@ -24,6 +24,7 @@ def call(){
 
                 if (module == "Core") {
                     module = "Kubernetes"
+                    module2 = "Kubernetes2"
                 }
                 
                 if (jobName == "KnowledgePlatform") {
@@ -35,6 +36,10 @@ def call(){
                     jobName = "Yarn"
                     deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch"), string(name: 'job_names_to_deploy', value: "DeDuplication_1,DeNormalization_1,DruidEventsValidator_1,EventsRouter_1,TelemetryExtractor_1,TelemetryLocationUpdater_1,TelemetryRouter_1,TelemetryValidator_1,DeviceProfileUpdater_1,AssessmentAggregator_1,DerivedDeDuplication_1,ContentCacheUpdater_1,UserCacheUpdater_1,ShareEventsFlattener_1")], propagate: false
                 } 
+                if (module == "Kubernetes") {
+                    deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")], propagate: false
+                    deployStatus = build job: "Deploy/$envDir/$module2/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")], propagate: false
+                }    
                 else {
                     deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")], propagate: false
                 }
