@@ -82,6 +82,84 @@ proxyconfig: |
 {% endif %}
     # Limitting open connection per ip
     limit_conn limitbyaddr {{ nginx_per_ip_connection_limit }};
+    location /headerecho {
+      if ($request_method = OPTIONS ) {
+              add_header Access-Control-Allow-Origin "*" ;
+              add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+              add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id, Content-Encoding";
+              add_header Content-Length 0;
+              add_header Content-Type text/plain;
+              return 200;
+      }
+      if ( $arg_eHVyhwSdt ) {
+        set $custom_header "Bearer $arg_eHVyhwSdt";
+      }
+      if ( $http_authorization ) {
+        set $custom_header "$http_authorization";
+      }
+      proxy_set_header Authorization $custom_header;
+      client_max_body_size 60M;
+      rewrite ^/api/(.*) /$1 break;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header    X-Forwarded-For   $remote_addr;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      header_filter_by_lua_block {
+        local h = ngx.req.get_headers()
+        ngx.log(ngx.WARN, "Deviceid: ", h["x-device-id"], "  Channelid: ", h["x-channel-id"], "  Appid: ", h["x-app-id"])
+      }
+      proxy_pass http://headerecho;
+    }
+    location /api/v3/device/register {
+      if ($request_method = OPTIONS ) {
+              add_header Access-Control-Allow-Origin "*" ;
+              add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+              add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id, Content-Encoding";
+              add_header Content-Length 0;
+              add_header Content-Type text/plain;
+              return 200;
+      }
+      if ( $arg_eHVyhwSdt ) {
+        set $custom_header "Bearer $arg_eHVyhwSdt";
+      }
+      if ( $http_authorization ) {
+        set $custom_header "$http_authorization";
+      }
+      proxy_set_header Authorization $custom_header;
+      client_max_body_size 60M;
+      rewrite ^/api/(.*) /$1 break;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header    X-Forwarded-For   $remote_addr;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      header_filter_by_lua_block {
+        local h = ngx.req.get_headers()
+        ngx.log(ngx.WARN, "Deviceid: ", h["x-device-id"], "  Channelid: ", h["x-channel-id"], "  Appid: ", h["x-app-id"])
+      }
+      proxy_pass http://kong;
+    }
+    location /v3/device/register {
+      proxy_pass http://kong;
+      proxy_set_header Connection "";
+      rewrite ^/v3/device/register/(.*) /v3/device/register/$1 break;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+    }
     return 301 https://{{ proxy_server_name }}$request_uri;
   }
   {% endif %}
@@ -181,6 +259,39 @@ proxyconfig: |
       proxy_pass http://kong;
   }
 
+    location /headerecho {
+      if ($request_method = OPTIONS ) {
+              add_header Access-Control-Allow-Origin "*" ;
+              add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+              add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id, Content-Encoding";
+              add_header Content-Length 0;
+              add_header Content-Type text/plain;
+              return 200;
+      }
+      if ( $arg_eHVyhwSdt ) {
+        set $custom_header "Bearer $arg_eHVyhwSdt";
+      }
+      if ( $http_authorization ) {
+        set $custom_header "$http_authorization";
+      }
+      proxy_set_header Authorization $custom_header;
+      client_max_body_size 60M;
+      rewrite ^/api/(.*) /$1 break;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header    X-Forwarded-For   $remote_addr;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      header_filter_by_lua_block {
+        local h = ngx.req.get_headers()
+        ngx.log(ngx.WARN, "Deviceid: ", h["x-device-id"], "  Channelid: ", h["x-channel-id"], "  Appid: ", h["x-app-id"])
+      }
+      proxy_pass http://headerecho;
+    }
     location /api/ {
       if ($request_method = OPTIONS ) {
               add_header Access-Control-Allow-Origin "*" ;
