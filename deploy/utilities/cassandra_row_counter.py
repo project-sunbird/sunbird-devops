@@ -16,7 +16,7 @@ with open(log_file,'a') as cf:
         try:
             for j in os.listdir(i):
                 ks = i+'.'+str(j.split('-')[0])
-                val = 'cqlsh -e "select count(*) from {};"'.format(ks)
+                val = 'cqlsh --request-timeout=36000 -e "select count(*) from {};"'.format(ks)
                 try:
                     out = check_output(["/bin/bash","-c",val], stderr=STDOUT)
                 except Exception as e:
