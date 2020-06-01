@@ -1,5 +1,3 @@
-elasticsearchHosts: "http://{{logger_es6_host}}:{{logger_es_port}}"
-
 replicas: {{ kibana_replicas | default(1) }}
 image: "docker.elastic.co/kibana/kibana"
 imageTag: "6.8.6"
@@ -18,15 +16,13 @@ healthCheckPath: "/dashboard"
 kibanaConfig:
    kibana.yml: |
      server.basePath: "/dashboard"
+     server.host: "0.0.0.0"
      server.rewriteBasePath: true
      elasticsearch.shardTimeout: 0
+     elasticsearch.hosts: ["http://{{groups['log-es'] | join(':9200","http://')}}:9200"] 
      elasticsearch.requestTimeout: 300000
      elasticsearch.preserveHost: true
      elasticsearch.ssl.verificationMode: full
-     kibana.index: ".kibana"
-     kibana.defaultAppId: "discover"
-     xpack.ilm.enabled: false
-     xpack.security.enabled: false
 
 updateStrategy:
   type: "RollingUpdate"
