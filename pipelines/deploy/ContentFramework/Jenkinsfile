@@ -40,12 +40,6 @@ node() {
                       sed -i -e 's/dispatcher:\"local\"/dispatcher:\"piwik\"/g' content-editor/scripts/*
                       mv content-editor ansible
                     """
-                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
-                    ansibleExtraArgs = "--tags content-editor --extra-vars \"folder_name=content-editor source_name=${currentWs}/ansible/content-editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
-                    values.put('ansiblePlaybook', ansiblePlaybook)
-                    values.put('ansibleExtraArgs', ansibleExtraArgs)
-                    println values
-                    ansible_playbook_run(values)
 
                     sh """                                                   
                       zip -r content-editor-artifact.zip ansible/content-editor
@@ -59,12 +53,25 @@ node() {
                       gulp package
                     """
                       
+                   sh """
+                      mkdir iframe
+                      unzip ansible/content-editor/dist/editor/content-editor-iframe-latest.zip -d iframe/
+                    """
+
+                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                    ansibleExtraArgs = "--tags content-editor --extra-vars \"folder_name=content-editor source_name=${currentWs}/iframe\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+
                     ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
                     ansibleExtraArgs = "--tags editor --extra-vars \"folder_name=artefacts/editor source_name=${currentWs}/ansible/content-editor/dist/editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
                     values.put('ansiblePlaybook', ansiblePlaybook)
                     values.put('ansibleExtraArgs', ansibleExtraArgs)
                     println values
                     ansible_playbook_run(values)
+
 
                     ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
                     ansibleExtraArgs = "--tags core-plugins --extra-vars \"folder_name=artefacts/coreplugins source_name=${currentWs}/ansible/content-editor/dist/coreplugins\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
