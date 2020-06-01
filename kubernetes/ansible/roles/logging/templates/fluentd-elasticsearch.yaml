@@ -1,0 +1,48 @@
+elasticsearch:
+  hosts: {{groups['log-es']|join(':9200,')}}:9200
+  reloadOnFailure: true
+
+configMaps:
+  useDefaults:
+    outputConf: false
+
+extraConfigMaps:
+  output.conf: |-
+    # handle timeout log lines from concat plugin
+    <match **>
+      @type relabel
+      @label @NORMAL
+    </match>
+    <label @NORMAL>
+    <match **>
+      @id elasticsearch
+      @type "#{ENV['OUTPUT_TYPE']}"
+      @log_level "#{ENV['OUTPUT_LOG_LEVEL']}"
+      include_tag_key "#{ENV['OUTPUT_INCLUDE_TAG_KEY']}"
+      hosts "#{ENV['OUTPUT_HOSTS']}"
+      path "#{ENV['OUTPUT_PATH']}"
+      scheme "#{ENV['OUTPUT_SCHEME']}"
+      ssl_verify "#{ENV['OUTPUT_SSL_VERIFY']}"
+      ssl_version "#{ENV['OUTPUT_SSL_VERSION']}"
+      type_name "#{ENV['OUTPUT_TYPE_NAME']}"
+      logstash_format "#{ENV['LOGSTASH_FORMAT']}"
+      logstash_prefix "#{ENV['LOGSTASH_PREFIX']}"
+      reconnect_on_error "#{ENV['OUTPUT_RECONNECT_ON_ERROR']}"
+      reload_on_failure "#{ENV['OUTPUT_RELOAD_ON_FAILURE']}"
+      reload_connections "#{ENV['OUTPUT_RELOAD_CONNECTIONS']}"
+      request_timeout 10s
+      <buffer>
+        @type "#{ENV['OUTPUT_BUFFER_TYPE']}"
+        path "#{ENV['OUTPUT_BUFFER_PATH']}"
+        flush_mode "#{ENV['OUTPUT_BUFFER_FLUSH_MODE']}"
+        retry_type "#{ENV['OUTPUT_BUFFER_RETRY_TYPE']}"
+        flush_thread_count "#{ENV['OUTPUT_BUFFER_FLUSH_THREAD_TYPE']}"
+        flush_interval "#{ENV['OUTPUT_BUFFER_FLUSH_INTERVAL']}"
+        retry_forever "#{ENV['OUTPUT_BUFFER_RETRY_FOREVER']}"
+        retry_max_interval "#{ENV['OUTPUT_BUFFER_RETRY_MAX_INTERVAL']}"
+        chunk_limit_size "#{ENV['OUTPUT_BUFFER_CHUNK_LIMIT']}"
+        queue_limit_length "#{ENV['OUTPUT_BUFFER_QUEUE_LIMIT']}"
+        overflow_action "#{ENV['OUTPUT_BUFFER_OVERFLOW_ACTION']}"
+      </buffer>
+    </match>
+    </label>
