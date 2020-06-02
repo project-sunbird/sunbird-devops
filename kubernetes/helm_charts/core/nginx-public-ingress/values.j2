@@ -341,6 +341,20 @@ proxyconfig: |
       add_header             Access-Control-Allow-Methods GET;
       proxy_pass             https://$s3_bucket/v3/preview/$url_full;
   }
+  
+   location ~ /content-editor/telemetry|collection-editor/telemetry {
+      rewrite ^/(.*) /$1 break;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_set_header    X-Forwarded-Proto $scheme;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_pass http://player;
+    }
   location ~* ^/content-editor/(.*) {
           # Enabling compression
           gzip            on;
