@@ -11,6 +11,11 @@ fullnameOverride: sunbird-monitoring
 # Enabling external prometheus scrape config 
 prometheus:
   prometheusSpec:
+    thanos:
+      version: {{ thanos_sidecar_version | d('v0.11.0') }}
+{% if prometheus_additional_configs is defined and prometheus_additional_configs %}
+    {{ ( prometheus_additional_configs | to_yaml ) | d ('') }}
+{% endif %}
     additionalScrapeConfigsExternal: true
     retention: "{{ prometheus_retention_time | d('90d') }}"
     externalLabels:
