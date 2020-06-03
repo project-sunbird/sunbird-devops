@@ -11,7 +11,7 @@ spec:
   strategy:
      rollingUpdate:
         maxSurge: {{ .Values.strategy.maxsurge }}
-        maxUnavailable: {{ default (sub .Values.replicaCount 1) .Values.strategy.maxunavailable }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
   selector:
     matchLabels:
       app: {{ .Chart.Name }}
@@ -28,18 +28,33 @@ spec:
         - name: {{ .Chart.Name }}-config
           configMap:
             name: {{ .Chart.Name }}-config
+        - name: {{ .Chart.Name }}-xml-config
+          configMap:
+            name: {{ .Chart.Name }}-xml-config
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
         - containerPort: {{ .Values.network.port }}
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 10 }}
+        {{- end }}
         volumeMounts:
           - name: {{ .Chart.Name }}-config
-            mountPath: /home/sunbird/assessment-service-1.0-SNAPSHOT/config/application.conf
-            subPath: assessment-service_application.conf
+            mountPath: /home/sunbird/mvc-service-1.0-SNAPSHOT/config/application.conf
+            subPath: mvc-service_application.conf
+          - name: {{ .Chart.Name }}-xml-config
+            mountPath: /home/sunbird/mvc-service-1.0-SNAPSHOT/config/logback.xml
+            subPath: mvc-service_logback.xml
 
 ---
 apiVersion: v1
@@ -53,6 +68,6 @@ spec:
   ports:
   - name: http-{{ .Chart.Name }}
     protocol: TCP
-    port: {{ .Values.network.port }}
+    port: {{ .Values.network.targetport }}
   selector:
     app: {{ .Chart.Name }}

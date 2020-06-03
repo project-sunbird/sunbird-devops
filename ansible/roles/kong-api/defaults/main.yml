@@ -61,6 +61,7 @@ desktop_app_prefix: /desktop
 license_api_prefix: /license
 opensaber_service_prefix: /reg
 program_service_prefix: /program
+mvc_service_prefix: /mvc
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -77,6 +78,7 @@ cert_registry_service_url: "http://cert-registry-service:9000"
 content_service_url: "http://content-service:9000"
 opensaber_service_url: "http://opensaber-service:8080"
 program_service_url: "http://program-service:6000"
+mvc_service_url: "http://mvc-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -4244,6 +4246,108 @@ kong_apis:
   - name: programCollectionCopy
     request_path: "{{ program_service_prefix }}/v1/collection/copy"
     upstream_url: "{{ program_service_url }}/program/v1/collection/copy"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: 'userUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: programConfigurationSearch
+    request_path: "{{ program_service_prefix }}/v1/configuration/search"
+    upstream_url: "{{ program_service_url }}/program/v1/configuration/search"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: 'userUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: programConfigurationList
+    request_path: "{{ program_service_prefix }}/v1/configuration/list"
+    upstream_url: "{{ program_service_url }}/program/v1/configuration/list"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: 'userUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: downloadProgramNominationList
+    request_path: "{{ program_service_prefix }}/v1/nomination/list/download"
+    upstream_url: "{{ program_service_url }}/program/v1/nomination/list/download"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: 'userUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: downloadProgramList
+    request_path: "{{ program_service_prefix }}/v1/list/download"
+    upstream_url: "{{ program_service_url }}/program/v1/list/download"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: 'userUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+      
+  - name: programContentReport
+    request_path: "{{ program_service_prefix }}/v1/report"
+    upstream_url: "{{ program_service_url }}/program/v1/report"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: 'userUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: mvcSearch 
+    request_path: "{{ mvc_service_prefix }}/v3/search"
+    upstream_url: "{{ mvc_service_url }}/v3/mvcsearch"
     strip_request_path: true
     plugins:
     - name: jwt
