@@ -1,3 +1,14 @@
+copy sunbird.usr_external_identity(provider,
+idtype,
+externalid,
+createdby,
+createdon,
+lastupdatedby,
+lastupdatedon,
+originalexternalid,
+originalidtype,
+originalprovider,
+userid) to 'usr_external_identity.csv' with header=true and numprocesses=8 and maxattempts=10;
 
 DROP TABLE IF EXISTS sunbird.usr_external_identity;
 
