@@ -1,3 +1,21 @@
+
+DROP TABLE IF EXISTS sunbird.usr_external_identity;
+
+CREATE TABLE sunbird.usr_external_identity(
+externalId text,
+provider text,
+idType text,
+userId text,
+createdOn timestamp,
+lastUpdatedOn timestamp,
+createdBy text,
+lastUpdatedBy text,
+originalExternalId text,
+originalIdType text,
+originalProvider text,
+PRIMARY KEY(userId, idType, provider));
+
+
 copy sunbird.usr_external_identity(provider,
 idtype,
 externalid,
