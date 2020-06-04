@@ -26,4 +26,4 @@ lastupdatedon,
 originalexternalid,
 originalidtype,
 originalprovider,
-userid) from 'usr_external_identity.csv' with header=true and ingestrate=20000 and numprocesses=8;
+userid) from 'usr_external_identity.csv' with header=true;
