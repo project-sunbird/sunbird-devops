@@ -12,9 +12,9 @@
                     <#if skipLink??>
                     <#else>
                         <#if pageRedirectUri??>
-                            <p><a href="${pageRedirectUri}">${msg("backToApplication")}</a></p>
+                            <p><a onclick="javascript:backToApplication()">${msg("backToApplication")}</a></p>
                         <#elseif client.baseUrl??>
-                            <p><a href="${client.baseUrl}">${msg("backToApplication")}</a></p>
+                            <p><a onclick="javascript:backToApplication()">${msg("backToApplication")}</a></p>
                         </#if>
                     </#if>
                 </div>
