@@ -107,7 +107,7 @@ proxyconfig: |
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_set_header    X-Forwarded-For   $http_x_forwarded_for;
       proxy_connect_timeout 5;
@@ -125,7 +125,7 @@ proxyconfig: |
       proxy_set_header Connection "";
       rewrite ^/v3/device/register/(.*) /v3/device/register/$1 break;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
@@ -223,9 +223,9 @@ proxyconfig: |
       client_max_body_size 60M;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
-      proxy_set_header    X-Forwarded-For   $remote_addr;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
       proxy_read_timeout 70;
@@ -751,7 +751,7 @@ nginxconfig: |
       log_format  main  '{{ nginx_client_public_ip_header | d('$remote_addr') }} - $remote_user [$time_local] '
                         '"$request" $status $body_bytes_sent '
                         '$request_time $upstream_response_time $pipe'
-                        '"$http_referer" "$http_user_agent"';
+                        '"$http_referer" "$http_user_agent" Cache:$upstream_cache_status';
 
       access_log  /var/log/nginx/access.log  main;
 
