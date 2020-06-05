@@ -326,6 +326,9 @@ function addClass(element,classname)
 var redirectToLib = () => {
 	window.location.href = window.location.protocol + '//' + window.location.host + '/resource';
 };
+var redirectToDockLogin = () => {
+	window.location.href = window.location.protocol + '//' + window.location.host + '/contribute';
+};
 
 var viewPassword = function(previewButton){
 	console.log('Show Password');
@@ -400,6 +403,8 @@ var backToApplication = () => {
 	if (redirect_uri) {
 		var updatedQuery = sessionStorage.redirect_uri.split('?')[0];
 		window.location.href = updatedQuery;
+	}else{
+		redirectToDockLogin();
 	}
 }
 
