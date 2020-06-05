@@ -37,4 +37,4 @@ lastupdatedon,
 originalexternalid,
 originalidtype,
 originalprovider,
-userid) from 'usr_external_identity.csv' with header=true;
+userid) from 'usr_external_identity.csv' with header=true and chunksize=2000 and numprocesses=8;
