@@ -751,7 +751,7 @@ nginxconfig: |
       log_format  main  '{{ nginx_client_public_ip_header | d('$remote_addr') }} - $remote_user [$time_local] '
                         '"$request" $status $body_bytes_sent '
                         '$request_time $upstream_response_time $pipe'
-                        '"$http_referer" "$http_user_agent" Cache:$upstream_cache_status';
+                        '"$http_referer" "$http_user_agent"';
 
       access_log  /var/log/nginx/access.log  main;
 
@@ -769,10 +769,14 @@ nginxconfig: |
         metric_connections = prometheus:gauge(
           "nginx_http_connections", "Number of HTTP connections", {"state"})
       ';
-
+      # Defining upstream cache status for nginx metrics
+      map $upstream_cache_status $cache_status {
+        default  $upstream_cache_status;
+        ''       "NONE";
+      }
       # Collecting metrics
       log_by_lua '
-        metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.request_method, ngx.var.upstream_cache_status})
+        metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.request_method, ngx.var.cache_status})
         metric_latency:observe(tonumber(ngx.var.request_time), {ngx.var.server_name})
       ';
 
