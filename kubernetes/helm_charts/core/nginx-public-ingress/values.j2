@@ -693,26 +693,27 @@ nginxconfig: |
       # Shared dictionary to store metrics
       lua_shared_dict prometheus_metrics 100M;
       lua_package_path "/etc/nginx/lua_modules/?.lua";
-      # Defining metrics
-      init_by_lua '
-        prometheus = require("prometheus").init("prometheus_metrics")
-        metric_requests = prometheus:counter(
-          "nginx_http_requests_total", "Number of HTTP requests", {"host", "status", "request_method"})
-        metric_latency = prometheus:histogram(
-          "nginx_http_request_duration_seconds", "HTTP request latency", {"host"})
-        metric_connections = prometheus:gauge(
-          "nginx_http_connections", "Number of HTTP connections", {"state"})
-      ';
+
       # Defining upstream cache status for nginx metrics
       map $upstream_cache_status $cache_status {
         default  $upstream_cache_status;
         ''       "NONE";
       }
-      # Collecting metrics
-      log_by_lua '
-        metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.request_method, ngx.var.cache_status})
+
+      # Defining metrics
+      init_worker_by_lua_block {
+        prometheus = require("prometheus").init("prometheus_metrics")
+        metric_requests = prometheus:counter(
+          "nginx_http_requests_total", "Number of HTTP requests", {"host", "status", "cache_status"})
+        metric_latency = prometheus:histogram(
+          "nginx_http_request_duration_seconds", "HTTP request latency", {"host"})
+        metric_connections = prometheus:gauge(
+          "nginx_http_connections", "Number of HTTP connections", {"state"})
+      }
+      log_by_lua_block {
+        metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.cache_status })
         metric_latency:observe(tonumber(ngx.var.request_time), {ngx.var.server_name})
-      ';
+      }
 
       header_filter_by_lua_block {
        ngx.header["server"] = nil
@@ -756,12 +757,12 @@ nginxconfig: |
      server {
        listen 9145;
        location /metrics {
-         content_by_lua '
-           metric_connections:set(ngx.var.connections_reading, {"reading"})
-           metric_connections:set(ngx.var.connections_waiting, {"waiting"})
-           metric_connections:set(ngx.var.connections_writing, {"writing"})
-           prometheus:collect()
-         ';
+         content_by_lua_block {
+            metric_connections:set(ngx.var.connections_reading, {"reading"})
+            metric_connections:set(ngx.var.connections_waiting, {"waiting"})
+            metric_connections:set(ngx.var.connections_writing, {"writing"})
+            prometheus:collect()
+          }
        }
      }
   }
