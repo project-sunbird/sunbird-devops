@@ -326,7 +326,7 @@ function addClass(element,classname)
 var redirectToLib = () => {
 	window.location.href = window.location.protocol + '//' + window.location.host + '/resource';
 };
-var redirectToDockLogin = () => {
+var redirectToLandingPage = () => {
 	window.location.href = window.location.protocol + '//' + window.location.host + '/contribute';
 };
 
@@ -404,7 +404,7 @@ var backToApplication = () => {
 		var updatedQuery = sessionStorage.redirect_uri.split('?')[0];
 		window.location.href = updatedQuery;
 	}else{
-		redirectToDockLogin();
+		redirectToLandingPage();
 	}
 }
 
