@@ -1,11 +1,11 @@
 ---
 - name: Generate Public Keys for kong_private keys
-  shell: "openssl rsa -in {{ lookup('fileglob', '{{inventory_dir}}/{{kong_private_key_prefix}}{{item}}') }} -outform PEM -pubout -out {{inventory_dir}}/{{kong_private_key_prefix}}{{item}}_public"
+  shell: "openssl rsa -in {{ lookup('fileglob', '{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}') }} -outform PEM -pubout -out {{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"
   with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
   tags: create
 
 - name: Onboard the credentails using the generated public key
-  shell: 'curl -XPOST http://{{ kong_private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_prefix}}{{item}}_public"'
+  shell: 'curl -XPOST http://{{ kong_private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"'
   args:
     warn: false
   with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
@@ -13,7 +13,7 @@
   tags: create
 
 - name: Onboard the credentails using the key number provided from Jenkins
-  shell: 'curl -XPOST http://{{ kong_private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_prefix}}{{item}}_public"'
+  shell: 'curl -XPOST http://{{ kong_private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"'
   args:
     warn: false
   when: kong_private_key_sign_user_input is defined
