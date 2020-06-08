@@ -1,0 +1,40 @@
+---
+- name: Generate Public Keys for private keys
+  shell: "openssl rsa -in {{ lookup('fileglob', '{{inventory_path}}/{{private_key_prefix}}{{item}}') }} -outform PEM -pubout -out {{inventory_path}}/{{private_key_prefix}}{{item}}_public"
+  with_sequence: start={{private_key_sign_start}} end={{private_key_sign_end}}
+  tags: create
+
+- name: Onboard the credentails using the generated public key
+  shell: 'curl -XPOST http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{mobile_v2_consumer}}/jwt -F "key={{private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_path}}/{{private_key_prefix}}{{item}}_public"'
+  args:
+    warn: false
+  with_sequence: start={{private_key_sign_start}} end={{private_key_sign_end}}
+  when: private_key_sign_start is not none and private_key_sign_end is not none and private_key_sign_start < private_key_sign_end and private_key_sign_user_input is not defined
+  tags: create
+
+- name: Onboard the credentails using the generated public key
+  shell: 'curl -XPOST http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{mobile_v2_consumer}}/jwt -F "key={{private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_path}}/{{private_key_prefix}}{{item}}_public"'
+  args:
+    warn: false
+  with_sequence: start={{private_key_sign_start}} end={{private_key_sign_end}}
+  when: private_key_sign_user_input is defined
+  tags: create
+  with_items:
+    - "{{ private_key_sign_user_input.split(',') }}"
+
+- name: Remove old credentails on key rotation
+  shell: "curl -XDELETE http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{mobile_v2_consumer}}/jwt/{{private_key_prefix}}{{item}}"
+  args:
+    warn: false
+  with_sequence: start={{private_key_rotate_start}} end={{private_key_rotate_end}}
+  when: private_key_rotate_start is not none and private_key_rotate_end is not none and private_key_rotate_start < private_key_rotate_end and private_key_rotate_user_input is not defined
+  tags: destroy
+
+- name: Remove old credentails on key rotation
+  shell: "curl -XDELETE http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{mobile_v2_consumer}}/jwt/{{private_key_prefix}}{{item}}"
+  args:
+    warn: false
+  when: private_key_rotate_user_input is defined
+  tags: destroy
+  with_items:
+    - "{{ private_key_rotate_user_input.split(',') }}"
