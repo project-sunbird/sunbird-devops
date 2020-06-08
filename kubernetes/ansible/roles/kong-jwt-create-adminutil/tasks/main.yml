@@ -5,7 +5,7 @@
   tags: create
 
 - name: Onboard the credentails using the generated public key
-  shell: 'curl -XPOST http://{{ kong_private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"'
+  shell: 'curl -XPOST http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"'
   args:
     warn: false
   with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
@@ -13,7 +13,7 @@
   tags: create
 
 - name: Onboard the credentails using the key number provided from Jenkins
-  shell: 'curl -XPOST http://{{ kong_private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"'
+  shell: 'curl -XPOST http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"'
   args:
     warn: false
   when: kong_private_key_sign_user_input is defined
@@ -22,7 +22,7 @@
   tags: create
 
 - name: Delete old credentails on key rotation
-  shell: "curl -XDELETE http://{{ kong_private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt/{{kong_private_key_prefix}}{{item}}"
+  shell: "curl -XDELETE http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt/{{kong_private_key_prefix}}{{item}}"
   args:
     warn: false
   with_sequence: start={{kong_private_key_rotate_start}} end={{kong_private_key_rotate_end}} stride={{kong_private_key_sign_incr}}
@@ -30,7 +30,7 @@
   tags: destroy
 
 - name: Delete credentails on key rotation using the key number provided from Jenkins
-  shell: "curl -XDELETE http://{{ kong_private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt/{{kong_private_key_prefix}}{{item}}"
+  shell: "curl -XDELETE http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt/{{kong_private_key_prefix}}{{item}}"
   args:
     warn: false
   when: kong_private_key_rotate_user_input is defined
