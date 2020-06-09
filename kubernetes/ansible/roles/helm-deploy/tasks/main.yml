@@ -19,8 +19,9 @@
     name: mount-keys
     tasks_from: pre-deploy.yml
   vars:
-    private_key_sign_start: "{{kong_private_key_sign_start}}"
-    private_key_sign_end: "{{kong_private_key_sign_end}}"
+    private_key_path: "{{ kong_private_key_path | default ("keys") }}
+    private_key_sign_start: "{{ kong_private_key_sign_start | default(0) }}"
+    private_key_sign_end: "{{ kong_private_key_sign_end || default(1) }}"
   when: release_name == "adminutils"
 
 - name: helm install
@@ -31,8 +32,9 @@
     name: mount-keys
     tasks_from: post-deploy.yml
   vars:
-    private_key_sign_start: "{{kong_private_key_sign_start}}"
-    private_key_sign_end: "{{kong_private_key_sign_end}}"
+    private_key_path: "{{ kong_private_key_path | default ("keys") }}
+    private_key_sign_start: "{{ kong_private_key_sign_start | default(0) }}"
+    private_key_sign_end: "{{ kong_private_key_sign_end || default(1) }}"
   when: release_name == "adminutils"
 
 - name: Get the deployment rollout status
