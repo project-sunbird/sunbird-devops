@@ -124,6 +124,7 @@ local function do_authentication(conf)
     return false, {status = 401, message = "No mandatory '" .. conf.key_claim_name .. "' in claims"}
   end
 
+  -- If the bearer key contains a kid, change the secret key
   if jwt.header.kid then
     jwt_secret_key = jwt.header.kid
   end
@@ -181,7 +182,7 @@ local function do_authentication(conf)
     return false, {status = 403, message = string_format("Could not find consumer for '%s=%s'", conf.key_claim_name, jwt_secret_key)}
   end
 
--- Restore the key
+-- Restore the orignal key and update the id post operation
   if jwt.header.kid then
     jwt_secret.id = jwt.claims["iss"]
     jwt_secret.key = jwt.claims["iss"]
