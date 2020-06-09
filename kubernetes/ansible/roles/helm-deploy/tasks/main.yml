@@ -14,8 +14,24 @@
     src: "{{ chart_path }}/values.j2"
     dest: "{{ chart_path }}/values.yaml"
 
+- name: include role
+  include_role:
+    name: mount-keys
+    apply:
+      tags:
+        - pre-deploy
+  when: release_name is adminutils
+
 - name: helm install
   shell: helm upgrade --install --atomic --timeout 10m {{ release_name }} {{ chart_path }} -n {{namespace}}
+
+- name: include role
+  include_role:
+    name: mount-keys
+    apply:
+      tags:
+        - post-deploy
+  when: release_name is adminutils
 
 - name: Get the deployment rollout status
   shell: "kubectl get deployments -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"

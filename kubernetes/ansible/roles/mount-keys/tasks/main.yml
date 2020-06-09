@@ -1,0 +1,22 @@
+---
+- name: Decrypt the data first
+  shell: "ansible-vault decrypt {{ lookup('fileglob', '{{inventory_dir}}/{{private_key_path}}/{{private_key_prefix}}{{item}}') }} --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+  with_sequence: start={{private_key_sign_start}} end={{private_key_sign_end}} stride={{private_key_sign_incr}}
+  tags: pre-deploy
+
+- name: Copy keys directory to chart path
+  synchronize:
+    src: {{inventory_dir}}/{{private_key_path}}
+    dest: {{chart_path}}
+    copy_links: yes
+  tags: pre-deploy
+
+- name: Encrypt the data back
+  shell: "ansible-vault encrypt {{ lookup('fileglob', '{{inventory_dir}}/{{private_key_path}}/{{private_key_prefix}}{{item}}') }} --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+  with_sequence: start={{private_key_sign_start}} end={{private_key_sign_end}} stride={{private_key_sign_incr}}
+  tags: post-deploy
+
+- name: Encrypt the data back after helm install
+  shell: "ansible-vault encrypt {{ lookup('fileglob', '{{{{chart_path}}}}/{{private_key_path}}/{{private_key_prefix}}{{item}}') }} --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+  with_sequence: start={{private_key_sign_start}} end={{private_key_sign_end}} stride={{private_key_sign_incr}}
+  tags: post-deploy
