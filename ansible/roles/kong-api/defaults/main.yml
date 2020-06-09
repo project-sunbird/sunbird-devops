@@ -61,6 +61,7 @@ desktop_app_prefix: /desktop
 license_api_prefix: /license
 opensaber_service_prefix: /reg
 program_service_prefix: /program
+mvc_service_prefix: /mvc
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -77,6 +78,7 @@ cert_registry_service_url: "http://cert-registry-service:9000"
 content_service_url: "http://content-service:9000"
 opensaber_service_url: "http://opensaber-service:8080"
 program_service_url: "http://program-service:6000"
+mvc_service_url: "http://mvc-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -3236,7 +3238,7 @@ kong_apis:
      - {name: 'cors'}
      - "{{ statsd_pulgin }}"
      - {name: 'rate-limiting', config.policy: "local", config.hour: "{{ medium_rate_limit_per_hour }}"}
-     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }   
+     - {name: 'request-size-limiting', config.allowed_payload_size: "{{ small_request_size_limit }}" }
 
   - name: "experimentcreate"
     request_path: "{{ data_service_prefix }}/v1/experiement/create"
@@ -3917,7 +3919,7 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-      
+
   - name: addEntity
     request_path: "{{ opensaber_service_prefix }}/add"
     upstream_url: "{{ opensaber_service_url }}/add"
@@ -3934,7 +3936,7 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-      
+
   - name: readEntity
     request_path: "{{ opensaber_service_prefix }}/read"
     upstream_url: "{{ opensaber_service_url }}/read"
@@ -3951,7 +3953,7 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-      
+
   - name: deleteEntity
     request_path: "{{ opensaber_service_prefix }}/delete"
     upstream_url: "{{ opensaber_service_url }}/delete"
@@ -3968,7 +3970,7 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-      
+
   - name: updateEntity
     request_path: "{{ opensaber_service_prefix }}/update"
     upstream_url: "{{ opensaber_service_url }}/update"
@@ -3985,7 +3987,7 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-      
+
   - name: searchEntity
     request_path: "{{ opensaber_service_prefix }}/search"
     upstream_url: "{{ opensaber_service_url }}/search"
@@ -4002,7 +4004,7 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-      
+
   - name: auditEntity
     request_path: "{{ opensaber_service_prefix }}/audit"
     upstream_url: "{{ opensaber_service_url }}/audit"
@@ -4019,7 +4021,7 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-      
+
   - name: healthCheckEntity
     request_path: "{{ opensaber_service_prefix }}/health"
     upstream_url: "{{ opensaber_service_url }}/health"
@@ -4036,7 +4038,7 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-  
+
   - name: readProgram
     request_path: "{{ program_service_prefix }}/v1/read"
     upstream_url: "{{ program_service_url }}/program/v1/read"
@@ -4312,6 +4314,57 @@ kong_apis:
   - name: downloadProgramList
     request_path: "{{ program_service_prefix }}/v1/list/download"
     upstream_url: "{{ program_service_url }}/program/v1/list/download"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: 'userUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: programContentReport
+    request_path: "{{ program_service_prefix }}/v1/report"
+    upstream_url: "{{ program_service_url }}/program/v1/report"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: 'userUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: mvcSearch
+    request_path: "{{ mvc_service_prefix }}/v3/search"
+    upstream_url: "{{ mvc_service_url }}/v3/mvcsearch"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: 'userUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: programPublishContent
+    request_path: "{{ program_service_prefix }}/v1/content/publish"
+    upstream_url: "{{ program_service_url }}/program/v1/content/publish"
     strip_request_path: true
     plugins:
     - name: jwt
