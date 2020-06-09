@@ -29,7 +29,7 @@ def call(Map pipelineParams) {
 
                 inventory_path = "${pipelineParams.currentWs}/ansible/inventory/env"
                 sh """
-                        cp --preserve=links ${pipelineParams.currentWs}/private/ansible/inventory/${pipelineParams.env}/${pipelineParams.module}/* ${pipelineParams.currentWs}/ansible/inventory/env/
+                        rsync -Lkr ${pipelineParams.currentWs}/private/ansible/inventory/${pipelineParams.env}/${pipelineParams.module}/* ${pipelineParams.currentWs}/ansible/inventory/env/
                         if [ -f ${pipelineParams.currentWs}/ansible/inventory/env/kubernetes.yaml ]; then
                             cat ${pipelineParams.currentWs}/ansible/inventory/env/kubernetes.yaml >> ${pipelineParams.currentWs}/ansible/inventory/env/common.yml
                         fi
