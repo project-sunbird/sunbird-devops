@@ -1,6 +1,16 @@
 ---
+- name: Decrypt the data first
+  shell: "ansible-vault decrypt {{ lookup('fileglob', '{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}') }} --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+  with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
+  tags: create
+
 - name: Generate Public Keys for kong_private keys
   shell: "openssl rsa -in {{ lookup('fileglob', '{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}') }} -outform PEM -pubout -out {{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"
+  with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
+  tags: create
+
+- name: Encrypoty the data back
+  shell: "ansible-vault encrypty {{ lookup('fileglob', '{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}') }} --vault-password-file /var/lib/jenkins/secrets/vault-pass"
   with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
   tags: create
 
