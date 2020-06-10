@@ -162,6 +162,7 @@ proxyconfig: |
       proxy_cache_key $proxy_host$request_uri;
       proxy_cache framework_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
       proxy_cache_background_update on;
       proxy_cache_lock on;
@@ -477,6 +478,7 @@ proxyconfig: |
       proxy_cache_key $proxy_host$request_uri;
       proxy_cache proxy_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
       proxy_cache_background_update on;
       proxy_cache_lock on;
@@ -494,6 +496,7 @@ proxyconfig: |
       proxy_cache_key $proxy_host$request_uri;
       proxy_cache framework_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
       proxy_cache_background_update on;
       proxy_cache_lock on;
@@ -567,24 +570,29 @@ nginxconfig: |
       access_log  /var/log/nginx/access.log  main;
 
       # Shared dictionary to store metrics
-      lua_shared_dict prometheus_metrics 10M;
+      lua_shared_dict prometheus_metrics 100M;
       lua_package_path "/etc/nginx/lua_modules/?.lua";
+
+      # Defining upstream cache status for nginx metrics
+      map $upstream_cache_status $cache_status {
+        default  $upstream_cache_status;
+        ''       "NONE";
+      }
+
       # Defining metrics
-      init_by_lua '
+      init_worker_by_lua_block {
         prometheus = require("prometheus").init("prometheus_metrics")
         metric_requests = prometheus:counter(
-          "nginx_http_requests_total", "Number of HTTP requests", {"host", "status", "request_method"})
+          "nginx_http_requests_total", "Number of HTTP requests", {"host", "status", "cache_status"})
         metric_latency = prometheus:histogram(
           "nginx_http_request_duration_seconds", "HTTP request latency", {"host"})
         metric_connections = prometheus:gauge(
           "nginx_http_connections", "Number of HTTP connections", {"state"})
-      ';
-
-      # Collecting metrics
-      log_by_lua '
-        metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.request_method})
+      }
+      log_by_lua_block {
+        metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.cache_status })
         metric_latency:observe(tonumber(ngx.var.request_time), {ngx.var.server_name})
-      ';
+      }
 
       header_filter_by_lua_block {
        ngx.header["server"] = nil
@@ -628,12 +636,12 @@ nginxconfig: |
      server {
        listen 9145;
        location /metrics {
-         content_by_lua '
-           metric_connections:set(ngx.var.connections_reading, {"reading"})
-           metric_connections:set(ngx.var.connections_waiting, {"waiting"})
-           metric_connections:set(ngx.var.connections_writing, {"writing"})
-           prometheus:collect()
-         ';
+         content_by_lua_block {
+            metric_connections:set(ngx.var.connections_reading, {"reading"})
+            metric_connections:set(ngx.var.connections_waiting, {"waiting"})
+            metric_connections:set(ngx.var.connections_writing, {"writing"})
+            prometheus:collect()
+          }
        }
      }
   }
