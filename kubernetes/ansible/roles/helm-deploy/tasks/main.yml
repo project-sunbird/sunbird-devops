@@ -17,7 +17,6 @@
 - name: Load role to decrypt keys data and copy to helm charts
   include_role:
     name: mount-keys
-    tasks_from: pre-deploy.yml
   vars:
     private_key_path: "{{ kong_private_key_path | default ('keys') }}"
     private_key_sign_start: "{{ kong_private_key_sign_start | default(0) }}"
@@ -27,14 +26,10 @@
 - name: helm install
   shell: helm upgrade --install --atomic --timeout 10m {{ release_name }} {{ chart_path }} -n {{namespace}}
 
-- name: Load role to encrypt keys data post deployment
-  include_role:
-    name: mount-keys
-    tasks_from: post-deploy.yml
-  vars:
-    private_key_path: "{{ kong_private_key_path | default ('keys') }}"
-    private_key_sign_start: "{{ kong_private_key_sign_start | default(0) }}"
-    private_key_sign_end: "{{ kong_private_key_sign_end | default(1) }}"
+- name: Remove the keys directory post helm install
+  file:
+    path: "{{chart_path}}/keys"
+    state: absent
   when: release_name == "adminutils" and adminutil__jwt_keycount is defined and adminutil__jwt_keycount | length > 0
 
 - name: Get the deployment rollout status
