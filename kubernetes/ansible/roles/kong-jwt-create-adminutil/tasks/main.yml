@@ -1,0 +1,49 @@
+---
+- name: Decrypt the data first
+  shell: "ansible-vault decrypt {{ lookup('fileglob', '{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}') }} --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+  with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
+  tags: create
+
+- name: Generate Public Keys for kong_private keys
+  shell: "openssl rsa -in {{ lookup('fileglob', '{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}') }} -outform PEM -pubout -out {{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"
+  with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
+  tags: create
+
+- name: Encrypt the data back
+  shell: "ansible-vault encrypt {{ lookup('fileglob', '{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}') }} --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+  with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
+  tags: create
+
+- name: Onboard the credentails using the generated public key
+  shell: 'curl -XPOST http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"'
+  args:
+    warn: false
+  with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
+  when: kong_private_key_sign_start is not none and kong_private_key_sign_end is not none and kong_private_key_sign_start < kong_private_key_sign_end and kong_private_key_user_input is not defined
+  tags: create
+
+- name: Onboard the credentails using the key number provided from Jenkins
+  shell: 'curl -XPOST http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"'
+  args:
+    warn: false
+  when: kong_private_key_sign_user_input is defined
+  with_items:
+    - "{{ kong_private_key_sign_user_input.split(',') }}"
+  tags: create
+
+- name: Delete old credentails on key rotation
+  shell: "curl -XDELETE http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt/{{kong_private_key_prefix}}{{item}}"
+  args:
+    warn: false
+  with_sequence: start={{kong_private_key_rotate_start}} end={{kong_private_key_rotate_end}} stride={{kong_private_key_sign_incr}}
+  when: kong_private_key_rotate_start is not none and kong_private_key_rotate_end is not none and kong_private_key_rotate_start < kong_private_key_rotate_end and kong_private_key_user_input is not defined
+  tags: destroy
+
+- name: Delete credentails on key rotation using the key number provided from Jenkins
+  shell: "curl -XDELETE http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt/{{kong_private_key_prefix}}{{item}}"
+  args:
+    warn: false
+  when: kong_private_key_rotate_user_input is defined
+  with_items:
+    - "{{ kong_private_key_rotate_user_input.split(',') }}"
+  tags: destroy
