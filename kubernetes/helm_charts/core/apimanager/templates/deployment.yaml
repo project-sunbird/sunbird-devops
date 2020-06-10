@@ -27,11 +27,6 @@ spec:
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
-        env:
-        - name: KONG_DNS_RESOLVER
-          value: "127.0.0.1:53"
-        - name: KONG_DNSMASQ
-          value: "off"
         envFrom:
         - configMapRef:
             name: {{ .Chart.Name }}-config
@@ -48,19 +43,12 @@ spec:
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
         {{- end }}
-      - name: go-dns
-        image: "{{ .Values.godns.repository }}:{{ .Values.godns.image_tag }}"
-        env:
-        - name: DNSMASQ_ENABLE_SEARCH
-          value: "true"
-        - name: DNSMASQ_VERBOSE
-          value: {{ .Values.godns.env.verbose | quote }}
-        - name: DNSMASQ_RCACHE
-          value: {{ .Values.godns.env.cache | quote }}
-        - name: DNSMASQ_RCACHE_TTL
-          value: {{ .Values.godns.env.cache_ttl | quote }}
-        resources:
-{{ toYaml .Values.godns.resources | indent 10 }}
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - kong
+              - quit
 
 ---
 apiVersion: v1
