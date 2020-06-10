@@ -17,8 +17,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 34,
-  "iteration": 1587017663915,
+  "id": 55,
+  "iteration": 1591774817866,
   "links": [],
   "panels": [
     {
@@ -31,8 +31,8 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 6,
-        "w": 24,
+        "h": 7,
+        "w": 18,
         "x": 0,
         "y": 0
       },
@@ -52,7 +52,7 @@
       "lines": true,
       "linewidth": 1,
       "links": [],
-      "nullPointMode": "null",
+      "nullPointMode": "null as zero",
       "options": {
         "dataLinks": []
       },
@@ -66,13 +66,28 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(nginx_http_requests_total{cluster=~\"$cluster\"}[5m]))",
+          "expr": "sum(rate(nginx_http_requests_total{cluster=~\"$cluster\"}[2m]))",
           "format": "time_series",
+          "hide": false,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "All",
           "refId": "A",
           "step": 2
+        },
+        {
+          "expr": "sum(rate(nginx_http_requests_total{cluster=~\"$cluster\", cache_status!~\"MISS|NONE\"}[2m]))",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "Cached Resp",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(nginx_http_requests_total{cluster=~\"$cluster\"}[2m])) - sum(rate(nginx_http_requests_total{cluster=~\"$cluster\", cache_status!~\"MISS|NONE\"}[2m]))",
+          "hide": false,
+          "interval": "",
+          "legendFormat": "Nginx upstream",
+          "refId": "C"
         }
       ],
       "thresholds": [],
@@ -117,6 +132,57 @@
       }
     },
     {
+      "datasource": null,
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 9,
+      "options": {
+        "displayMode": "basic",
+        "fieldOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": [],
+          "values": true
+        },
+        "orientation": "horizontal",
+        "showUnfilled": true
+      },
+      "pluginVersion": "6.7.3",
+      "targets": [
+        {
+          "expr": "sort_desc(sum(increase(nginx_http_requests_total[${__range_s}s])) by (cache_status))",
+          "format": "time_series",
+          "hide": false,
+          "instant": true,
+          "interval": "",
+          "legendFormat": "{{ cache_status }}",
+          "refId": "A"
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Nginx Request Cache Count",
+      "type": "bargauge"
+    },
+    {
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
@@ -128,7 +194,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 6
+        "y": 7
       },
       "hiddenSeries": false,
       "id": 3,
@@ -158,15 +224,15 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
+      "stack": true,
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(sum(increase(nginx_http_requests_total{cluster=~\"$cluster\", status!~\"4..|5..\"}[5m])) by (status) / ignoring(status) group_left sum(increase(nginx_http_requests_total{cluster=~\"$cluster\"}[5m]))) * 100",
+          "expr": "(sum(increase(nginx_http_requests_total{cluster=~\"$cluster\", status!~\"4..|5..\"}[5m])) by (status,cache_status) / ignoring(status,cache_status) group_left sum(increase(nginx_http_requests_total{cluster=~\"$cluster\"}[5m]))) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{status}}",
+          "legendFormat": "{{status}} {{ cache_status }}",
           "refId": "A",
           "step": 4
         }
@@ -226,7 +292,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 6
+        "y": 7
       },
       "hiddenSeries": false,
       "id": 2,
@@ -256,15 +322,15 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
+      "stack": true,
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(sum(increase(nginx_http_requests_total{cluster=~\"$cluster\", status!~\"2..|3..\"}[5m])) by (status) / ignoring(status) group_left sum(increase(nginx_http_requests_total{cluster=~\"$cluster\"}[5m]))) * 100",
+          "expr": "(sum(increase(nginx_http_requests_total{cluster=~\"$cluster\", status!~\"2..|3..\"}[5m])) by (status,cache_status) / ignoring(status,cache_status) group_left sum(increase(nginx_http_requests_total{cluster=~\"$cluster\"}[5m]))) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
-          "legendFormat": "{{status}}",
+          "legendFormat": "{{status}} Cache:{{ cache_status }}",
           "refId": "A",
           "step": 4
         }
@@ -273,7 +339,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "5xx Error %",
+      "title": "Error %",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -309,10 +375,100 @@
         "align": false,
         "alignLevel": null
       }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "hiddenSeries": false,
+      "id": 7,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": false,
+        "max": true,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "nginx_metric_errors_total",
+          "interval": "",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Nginx Metrics error",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     }
   ],
-  "refresh": "10s",
-  "schemaVersion": 21,
+  "refresh": "30s",
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [],
   "templating": {
@@ -328,6 +484,7 @@
         "definition": "label_values(nginx_http_requests_total, cluster)",
         "hide": 0,
         "includeAll": true,
+        "index": -1,
         "label": null,
         "multi": false,
         "name": "cluster",
