@@ -1,0 +1,17 @@
+---
+
+- name: copy curator config file
+  become: yes
+  template:
+    src: templates/curator.yml.j2
+    dest: /tmp/curator.yml
+
+- name: copy delete index config file
+  become: yes
+  template:
+    src: templates/delete_indices.yml.j2
+    dest: /tmp/delete_indices.yml
+
+- name: deleting indices older than {{ loges_retentation  }} days
+  become: yes
+  shell: "curator /tmp/delete_indices.yml --config /tmp/curator.yml"
