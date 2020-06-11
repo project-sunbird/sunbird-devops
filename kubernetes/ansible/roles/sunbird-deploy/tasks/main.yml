@@ -18,19 +18,21 @@
 - name: create xml configmap
   shell: find "{{role_path}}/templates/" -iname "*.xml" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-xml-config --from-file={} -n {{namespace}} --dry-run -o=yaml | kubectl apply -f - " \;
 
-- name: Load role to decrypt keys data and copy to helm charts
+- name: Load role to decrypt private keys, copy to helm chart and encrypt private keys
   include_role:
     name: mount-keys
-    tasks_from: {{item}}
+    tasks_from: "{{outer_item.1}}"
   vars:
-    private_key_path: "{{ kong_private_key_path | default ('keys') }}"
-    private_key_sign_start: "{{ kong_private_key_sign_start | default(0) }}"
-    private_key_sign_end: "{{ kong_private_key_sign_end | default(1) }}"
-  when: (release_name == ("learner" || "lms")) and adminutil__jwt_keycount is defined and adminutil__jwt_keycount > 0
-  with_items:
-    - decrypt.yml
-    - copy-to-helm.yml
-    - encrypt.yml
+    private_key_path: "{{ outer_item.0.values_to_pass.basepath }}"
+    private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
+    private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
+    private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount }}"
+  when: (release_name == "learner" or release_name == "lms") and adminutil__access_keycount is defined and adminutil__access_keycount > 0
+  with_subelements:
+    - "{{adminutil_access_values}}"
+    - role_to_run
+  loop_control:
+    loop_var: outer_item
 
 - name: helm upgrade
   shell: helm upgrade --install --atomic --timeout 10m {{ release_name }} {{ chart_path }} -n {{namespace}}
