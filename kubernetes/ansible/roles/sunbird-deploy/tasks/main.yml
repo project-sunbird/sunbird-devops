@@ -18,8 +18,28 @@
 - name: create xml configmap
   shell: find "{{role_path}}/templates/" -iname "*.xml" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-xml-config --from-file={} -n {{namespace}} --dry-run -o=yaml | kubectl apply -f - " \;
 
+- name: Load role to decrypt keys data and copy to helm charts
+  include_role:
+    name: mount-keys
+    tasks_from: {{item}}
+  vars:
+    private_key_path: "{{ kong_private_key_path | default ('keys') }}"
+    private_key_sign_start: "{{ kong_private_key_sign_start | default(0) }}"
+    private_key_sign_end: "{{ kong_private_key_sign_end | default(1) }}"
+  when: (release_name == ("learner" || "lms")) and adminutil__jwt_keycount is defined and adminutil__jwt_keycount > 0
+  with_items:
+    - decrypt.yml
+    - copy-to-helm.yml
+    - encrypt.yml
+
 - name: helm upgrade
   shell: helm upgrade --install --atomic --timeout 10m {{ release_name }} {{ chart_path }} -n {{namespace}}
+
+- name: Remove the keys directory post helm install
+  include_role:
+    name: mount-keys
+    tasks_from: remove-from-helm.yml
+  when: (release_name == ("learner" || "lms")) and adminutil__jwt_keycount is defined and adminutil__jwt_keycount > 0
 
 - name: Get the deployment rollout status
   shell: "kubectl get deployments -A | grep -i {{ release_name }} | awk -F' ' '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'"

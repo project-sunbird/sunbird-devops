@@ -1,18 +1,16 @@
 ---
-- name: Decrypt the data first
-  shell: "ansible-vault decrypt {{ lookup('fileglob', '{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}') }} --vault-password-file /var/lib/jenkins/secrets/vault-pass"
-  with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
-  tags: create
-
-- name: Generate Public Keys for kong_private keys
-  shell: "openssl rsa -in {{ lookup('fileglob', '{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}') }} -outform PEM -pubout -out {{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"
-  with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
-  tags: create
-
-- name: Encrypt the data back
-  shell: "ansible-vault encrypt {{ lookup('fileglob', '{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}') }} --vault-password-file /var/lib/jenkins/secrets/vault-pass"
-  with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
-  tags: create
+- name: Load role to decrypt keys data and copy to helm charts
+  include_role:
+    name: mount-keys
+    tasks_from: {{item}}
+  vars:
+    private_key_path: "{{ kong_private_key_path | default ('keys') }}"
+    private_key_sign_start: "{{ kong_private_key_sign_start | default(0) }}"
+    private_key_sign_end: "{{ kong_private_key_sign_end | default(1) }}"
+  with_items:
+    - decrypt.yml
+    - generate-keys.yml
+    - encrypt.yml
 
 - name: Onboard the credentails using the generated public key
   shell: 'curl -XPOST http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}_public"'
