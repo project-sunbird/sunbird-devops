@@ -4,6 +4,9 @@ namespace: {{ namespace }}
 imagepullsecrets: {{ imagepullsecrets }}
 dockerhub: {{ dockerhub }}
 
+env:
+  javaoptions: {{search_java_mem_limit|default('-Xmx600m')}}
+
 replicaCount: {{search_replicacount|default(1)}}
 repository: {{search_repository|default('search-service')}}
 image_tag: {{ image_tag }}
@@ -19,7 +22,7 @@ network:
   targetport: 9000
 strategy:
   type: RollingUpdate
-  maxsurge: {{ search_maxsurge|default(1) }}
-  maxunavailable: {{ search_maxunavailable|default }}
+  maxsurge: {{ search_maxsurge|default('25%') }}
+  maxunavailable: {{ search_maxunavailable|default('25%') }}
 
 {{ search_liveness_readiness | to_nice_yaml }}

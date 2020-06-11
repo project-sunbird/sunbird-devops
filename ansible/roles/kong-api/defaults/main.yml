@@ -39,6 +39,7 @@ large_request_size_limit: 100
 freshDesk_url: "http://dummy.freshDesk.url"
 
 # Default service prefixes
+learner_private_route_prefix: /private
 private_content_prefix: /private/content
 device_prefix: /v3/device
 content_prefix: /content
@@ -2452,6 +2453,114 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: PrivateContentRetireAPI
+    request_path: "{{ private_content_prefix }}/v3/retire"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/retire"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentSuperAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: PrivateContentUploadAPI
+    request_path: "{{ private_content_prefix }}/v3/upload"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/upload"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentSuperAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: PrivateContentReviewAPI
+    request_path: "{{ private_content_prefix }}/v3/review"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/review"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentSuperAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: PrivateContentPublishAPI
+    request_path: "{{ private_content_prefix }}/v3/publish"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/publish"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentSuperAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: PrivateContentRejectAPI
+    request_path: "{{ private_content_prefix }}/v3/reject"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/reject"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentSuperAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: PrivateContentHierarchyAPI
+    request_path: "{{ private_content_prefix }}/v3/hierarchy"
+    upstream_url: "{{ vm_learning_service_url }}/content/v3/hierarchy"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentSuperAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: privateUserAssignRole
     request_path: "{{ user_service_prefix }}/private/v1/assign/role"
     upstream_url: "{{ learning_service_url }}/private/user/v1/assign/role"
@@ -4494,6 +4603,24 @@ kong_apis:
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: forgotPassword
+    request_path: "{{ learner_private_route_prefix }}/user/v1/password/reset"
+    upstream_url: "{{ learning_service_url }}/private/user/v1/password/reset"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ small_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"

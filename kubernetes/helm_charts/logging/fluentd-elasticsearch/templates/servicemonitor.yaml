@@ -1,0 +1,37 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "fluentd-elasticsearch.fullname" . }}
+  labels:
+{{ include "fluentd-elasticsearch.labels" . | indent 4 }}
+    {{- if semverCompare "> 1.6" .Capabilities.KubeVersion.GitVersion }}
+    kubernetes.io/cluster-service: "true"
+    {{- end }}
+    addonmanager.kubernetes.io/mode: Reconcile
+    {{- if .Values.serviceMonitor.labels }}
+    {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
+    {{- end }}
+spec:
+  endpoints:
+  - interval: {{ .Values.serviceMonitor.interval }}
+    honorLabels: true
+    port: metrics
+    path: {{ .Values.serviceMonitor.path }}
+    {{- if .Values.serviceMonitor.metricRelabelings }}
+    metricRelabelings:
+    {{- toYaml .Values.serviceMonitor.metricRelabelings | nindent 4 }}
+    {{- end }}
+    {{- if .Values.serviceMonitor.relabelings }}
+    relabelings:
+    {{- toYaml .Values.serviceMonitor.relabelings | nindent 4 }}
+    {{- end }}
+  jobLabel: {{ .Values.serviceMonitor.jobLabel }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "fluentd-elasticsearch.name" . }}
+      app.kubernetes.io/instance: "{{ .Release.Name }}"
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+{{- end }}

@@ -33,7 +33,7 @@
   shell: "kubectl create configmap player-config --from-env-file={{role_path}}/templates/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
 
 - name: helm install and upgrade
-  shell: helm upgrade --install --atomic {{ release_name }} {{ chart_path }} -n {{namespace}}
+  shell: helm upgrade --install --atomic --timeout 10m {{ release_name }} {{ chart_path }} -n {{namespace}}
 
 - name: Get the deployment rollout status
   shell: "kubectl get deployments -A | grep -i {{ release_name }} | awk -F' ' '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'"
