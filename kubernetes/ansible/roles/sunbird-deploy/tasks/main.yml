@@ -40,8 +40,11 @@
 - name: Remove the keys directory post helm install
   include_role:
     name: mount-keys
-    tasks_from: remove-from-helm.yml
-  when: (release_name == ("learner" || "lms")) and adminutil__jwt_keycount is defined and adminutil__jwt_keycount > 0
+    tasks_from: {{item}}
+  when: (release_name == ("learner" || "lms")) and adminutil__access_keycount is defined and adminutil__access_keycount > 0
+  with_items:
+    - remove-from-helm.yml
+    - remove-keys-from-inventory.yml
 
 - name: Get the deployment rollout status
   shell: "kubectl get deployments -A | grep -i {{ release_name }} | awk -F' ' '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'"
