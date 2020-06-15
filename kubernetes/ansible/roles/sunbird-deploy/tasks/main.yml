@@ -18,8 +18,33 @@
 - name: create xml configmap
   shell: find "{{role_path}}/templates/" -iname "*.xml" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-xml-config --from-file={} -n {{namespace}} --dry-run -o=yaml | kubectl apply -f - " \;
 
+- name: Load role to decrypt private keys, copy to helm chart and encrypt private keys
+  include_role:
+    name: mount-keys
+    tasks_from: "{{outer_item.1}}"
+  vars:
+    private_key_path: "{{ outer_item.0.values_to_pass.basepath }}"
+    private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
+    private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
+    private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount }}"
+  when: (release_name == "learner" or release_name == "lms") and adminutil__access_keycount is defined and adminutil__access_keycount > 0
+  with_subelements:
+    - "{{adminutil_access_values}}"
+    - role_to_run
+  loop_control:
+    loop_var: outer_item
+
 - name: helm upgrade
   shell: helm upgrade --install --atomic --timeout 10m {{ release_name }} {{ chart_path }} -n {{namespace}}
+
+- name: Clean up keys
+  include_role:
+    name: mount-keys
+    tasks_from: "{{item}}"
+  when: (release_name == ("learner" || "lms")) and adminutil__access_keycount is defined and adminutil__access_keycount > 0
+  with_items:
+    - remove-from-helm.yml
+    - remove-keys-from-inventory.yml
 
 - name: Get the deployment rollout status
   shell: "kubectl get deployments -A | grep -i {{ release_name }} | awk -F' ' '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'"
