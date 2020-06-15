@@ -44,6 +44,16 @@ spec:
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
         {{- end }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+        volumeMounts:
+        - mountPath: {{ .Values.lms_device_basepath }}
+          name: access-keys
+      volumes:
+      - name: access-keys
+        secret:
+          secretName: lms-access-keys
+{{ end }}
 
 ---
 apiVersion: v1

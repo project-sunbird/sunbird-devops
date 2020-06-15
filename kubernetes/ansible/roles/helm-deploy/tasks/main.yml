@@ -14,23 +14,33 @@
     src: "{{ chart_path }}/values.j2"
     dest: "{{ chart_path }}/values.yaml"
 
-- name: Load role to decrypt keys data and copy to helm charts
+- name: Load role to decrypt private keys, copy to helm chart and encrypt private keys
   include_role:
     name: mount-keys
+    tasks_from: "{{outer_item.1}}"
   vars:
-    private_key_path: "{{ kong_private_key_path | default ('keys') }}"
-    private_key_sign_start: "{{ kong_private_key_sign_start | default(0) }}"
-    private_key_sign_end: "{{ kong_private_key_sign_end | default(1) }}"
-  when: release_name == "adminutils" and adminutil__jwt_keycount is defined and adminutil__jwt_keycount > 0
+    private_key_path: "{{ outer_item.0.values_to_pass.basepath }}"
+    private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
+    private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
+    private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount }}"
+  when: release_name == "adminutils" and ((adminutil__device_keycount is defined and adminutil__device_keycount > 0) or (adminutil__access_keycount is defined and adminutil__access_keycount > 0))
+  with_subelements:
+    - "{{adminutil_device_access_values}}"
+    - role_to_run
+  loop_control:
+    loop_var: outer_item
 
 - name: helm install
   shell: helm upgrade --install --atomic --timeout 10m {{ release_name }} {{ chart_path }} -n {{namespace}}
 
-- name: Remove the keys directory post helm install
-  file:
-    path: "{{chart_path}}/keys"
-    state: absent
-  when: release_name == "adminutils" and adminutil__jwt_keycount is defined and adminutil__jwt_keycount > 0
+- name: Clean up keys
+  include_role:
+    name: mount-keys
+    tasks_from: "{{item}}"
+  when: release_name == "adminutils" and ((adminutil__device_keycount is defined and adminutil__device_keycount > 0) or (adminutil__access_keycount is defined and adminutil__access_keycount > 0))
+  with_items:
+    - remove-from-helm.yml
+    - remove-keys-from-inventory.yml
 
 - name: Get the deployment rollout status
   shell: "kubectl get deployments -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"

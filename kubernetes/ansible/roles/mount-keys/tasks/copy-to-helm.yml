@@ -1,0 +1,15 @@
+---
+- name: Create the keys directory in case user is overriding the private_key_path
+  file:
+    path: "{{chart_path}}/keys"
+    state: directory
+    mode: 0755
+    
+- name: Copy keys directory to chart path
+  synchronize:
+    src: "{{inventory_dir}}/{{private_key_path | regex_replace('^\\/|\\/$', '')}}/"
+    dest: "{{chart_path}}/keys"
+    copy_links: yes
+    rsync_opts:
+    - "--include={{private_key_prefix}}*"
+    - "--exclude=*"
