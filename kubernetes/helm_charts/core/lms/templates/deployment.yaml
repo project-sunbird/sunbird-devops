@@ -48,19 +48,20 @@ spec:
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
         {{- end }}
+        volumeMounts:
+          - name: {{ .Chart.Name }}-xml-config
+            mountPath: /home/sunbird/lms/lms-service-1.0-SNAPSHOT/config/logback.xml
+            subPath: lms-service_logback.xml
 {{- $keys := .Files.Glob "keys/*" }}
 {{- if $keys }}
         volumeMounts:
         - mountPath: {{ .Values.lms_device_basepath }}
           name: access-keys
-        - name: {{ .Chart.Name }}-xml-config
-            mountPath: /home/sunbird/lms/lms-service-1.0-SNAPSHOT/config/logback.xml
-            subPath: lms-service_logback.xml
       volumes:
       - name: access-keys
         secret:
           secretName: lms-access-keys
-{{ end }}
+{{- end }}
 
 ---
 apiVersion: v1
