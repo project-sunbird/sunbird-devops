@@ -11,11 +11,7 @@
                     <p class="instruction">${message.summary}</p>
                     <#if skipLink??>
                     <#else>
-                        <#if pageRedirectUri??>
-                            <p><a onclick="javascript:backToApplication()">${msg("backToApplication")}</a></p>
-                        <#else>
-                            <p><a onclick="javascript:backToApplication()">${msg("backToApplication")}</a></p>
-                        </#if>
+                        <p><a onclick="javascript:backToApplication()">${msg("backToApplication")}</a></p>
                     </#if>
                 </div>
             </div>
