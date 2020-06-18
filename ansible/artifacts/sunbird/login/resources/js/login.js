@@ -326,9 +326,6 @@ function addClass(element,classname)
 var redirectToLib = () => {
 	window.location.href = window.location.protocol + '//' + window.location.host + '/resource';
 };
-var redirectToLandingPage = () => {
-	window.location.href = window.location.protocol + '//' + window.location.host + '/contribute';
-};
 
 var viewPassword = function(previewButton){
 	console.log('Show Password');
@@ -401,10 +398,8 @@ var forgetPassword = (redirectUrlPath) => {
 var backToApplication = () => {
 	var redirect_uri = getValueFromSession('redirect_uri');
 	if (redirect_uri) {
-		var updatedQuery = sessionStorage.redirect_uri.split('?')[0];
+		var updatedQuery = redirect_uri.split('?')[0];
 		window.location.href = updatedQuery;
-	}else{
-		redirectToLandingPage();
 	}
 }
 

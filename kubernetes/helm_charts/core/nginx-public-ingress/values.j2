@@ -157,6 +157,34 @@ proxyconfig: |
       proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # This is Caching mechanism for POST requests
+    location ~ /api/data/v1/form/read {
+      # Enabling caching
+      proxy_cache_key "$request_uri|$request_body";
+      proxy_cache framework_cache;
+      add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
+      proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_methods GET HEAD POST;
+      proxy_cache_background_update on;
+      proxy_cache_lock on;
+      proxy_cache_valid 200 3600s;
+
+      rewrite ^/api/(.*) /$1 break;
+      client_max_body_size 60M;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_pass http://kong;
+  }
+
+
     location /api/framework {
       # Enabling caching
       proxy_cache_key $proxy_host$request_uri;
@@ -622,6 +650,20 @@ proxyconfig: |
       proxy_http_version 1.1;
       proxy_pass http://kong;
     }
+    
+    location ~ /chatapi/bot {
+      rewrite ^/chatapi/(.*) /$1 break;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_set_header    X-Forwarded-Proto $scheme;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_pass http://router-service:8000;
+    }
 
     location /oauth2callback {
       return 200 'OK';
@@ -677,24 +719,29 @@ nginxconfig: |
       access_log  /var/log/nginx/access.log  main;
 
       # Shared dictionary to store metrics
-      lua_shared_dict prometheus_metrics 10M;
+      lua_shared_dict prometheus_metrics 100M;
       lua_package_path "/etc/nginx/lua_modules/?.lua";
+
+      # Defining upstream cache status for nginx metrics
+      map $upstream_cache_status $cache_status {
+        default  $upstream_cache_status;
+        ''       "NONE";
+      }
+
       # Defining metrics
-      init_by_lua '
+      init_worker_by_lua_block {
         prometheus = require("prometheus").init("prometheus_metrics")
         metric_requests = prometheus:counter(
-          "nginx_http_requests_total", "Number of HTTP requests", {"host", "status", "request_method"})
+          "nginx_http_requests_total", "Number of HTTP requests", {"host", "status", "request_method", "cache_status"})
         metric_latency = prometheus:histogram(
           "nginx_http_request_duration_seconds", "HTTP request latency", {"host"})
         metric_connections = prometheus:gauge(
           "nginx_http_connections", "Number of HTTP connections", {"state"})
-      ';
-
-      # Collecting metrics
-      log_by_lua '
-        metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.request_method})
+      }
+      log_by_lua_block {
+        metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.request_method, ngx.var.cache_status })
         metric_latency:observe(tonumber(ngx.var.request_time), {ngx.var.server_name})
-      ';
+      }
 
       header_filter_by_lua_block {
        ngx.header["server"] = nil
@@ -738,12 +785,12 @@ nginxconfig: |
      server {
        listen 9145;
        location /metrics {
-         content_by_lua '
-           metric_connections:set(ngx.var.connections_reading, {"reading"})
-           metric_connections:set(ngx.var.connections_waiting, {"waiting"})
-           metric_connections:set(ngx.var.connections_writing, {"writing"})
-           prometheus:collect()
-         ';
+         content_by_lua_block {
+            metric_connections:set(ngx.var.connections_reading, {"reading"})
+            metric_connections:set(ngx.var.connections_waiting, {"waiting"})
+            metric_connections:set(ngx.var.connections_writing, {"writing"})
+            prometheus:collect()
+          }
        }
      }
   }

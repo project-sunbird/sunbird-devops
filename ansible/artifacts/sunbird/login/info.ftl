@@ -13,9 +13,6 @@
                     <#else>
                         <#if pageRedirectUri??>
                             <p><a onclick="javascript:backToApplication()">${msg("backToApplication")}</a></p>
-                        <#elseif client.baseUrl??>
-                            <p><a onclick="javascript:backToApplication()">${msg("backToApplication")}</a></p>
-                        </#if>
                     </#if>
                 </div>
             </div>
