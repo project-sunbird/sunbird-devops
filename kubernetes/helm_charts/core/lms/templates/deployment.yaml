@@ -24,6 +24,10 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
 {{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-xml-config
+          configMap:
+            name: {{ .Chart.Name }}-xml-config
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
@@ -49,6 +53,9 @@ spec:
         volumeMounts:
         - mountPath: {{ .Values.lms_device_basepath }}
           name: access-keys
+        - name: {{ .Chart.Name }}-xml-config
+            mountPath: /home/sunbird/lms/lms-service-1.0-SNAPSHOT/config/logback.xml
+            subPath: lms-service_logback.xml
       volumes:
       - name: access-keys
         secret:
