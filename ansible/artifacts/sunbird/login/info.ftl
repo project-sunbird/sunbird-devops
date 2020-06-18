@@ -13,6 +13,9 @@
                     <#else>
                         <#if pageRedirectUri??>
                             <p><a onclick="javascript:backToApplication()">${msg("backToApplication")}</a></p>
+                        <#else>
+                            <p><a onclick="javascript:backToApplication()">${msg("backToApplication")}</a></p>
+                        </#if>
                     </#if>
                 </div>
             </div>
