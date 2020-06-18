@@ -40,6 +40,16 @@ spec:
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
         {{- end }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+        volumeMounts:
+        - mountPath: /keys/
+          name: rsa-keys
+      volumes:
+      - name: rsa-keys
+        secret:
+          secretName: private-keys
+{{ end }}
 
 ---
 apiVersion: v1

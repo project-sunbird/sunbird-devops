@@ -157,7 +157,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
     && ln -sf /dev/stderr /var/log/nginx/error.log
 
 COPY nginx.conf /etc/nginx/nginx.conf
-copy prometheus.lua /etc/nginx/lua_modules/
+copy nginx-lua-prometheus/*.lua /etc/nginx/lua_modules/
 
 EXPOSE 80
 
