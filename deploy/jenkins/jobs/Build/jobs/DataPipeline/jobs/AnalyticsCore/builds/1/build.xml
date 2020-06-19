@@ -1,0 +1,205 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-build plugin="workflow-job@2.36">
+  <actions>
+    <hudson.model.ParametersAction>
+      <safeParameters class="sorted-set"/>
+      <parameters>
+        <hudson.model.StringParameterValue>
+          <name>github_release_tag</name>
+          <description>&lt;font color=red size=2&gt;&lt;b&gt;CAUTION: If the value is blank, latest code will be built. Specify github tag name to build from a tag.&lt;/b&gt;&lt;/font&gt;</description>
+          <value>release-2.8.0</value>
+        </hudson.model.StringParameterValue>
+      </parameters>
+      <parameterDefinitionNames>
+        <string>github_release_tag</string>
+      </parameterDefinitionNames>
+    </hudson.model.ParametersAction>
+    <hudson.model.CauseAction>
+      <causeBag class="linked-hash-map">
+        <entry>
+          <hudson.model.Cause_-UserIdCause>
+            <userId>badal</userId>
+          </hudson.model.Cause_-UserIdCause>
+          <int>1</int>
+        </entry>
+      </causeBag>
+    </hudson.model.CauseAction>
+    <hudson.plugins.git.util.BuildData plugin="git@4.0.0">
+      <buildsByBranchName>
+        <entry>
+          <string>origin/release-2.8.0</string>
+          <hudson.plugins.git.util.Build>
+            <marked plugin="git-client@3.0.0">
+              <sha1>cc4ebad25d6331fa6525c20bd4810e05a3bbecfd</sha1>
+              <branches class="list">
+                <hudson.plugins.git.Branch>
+                  <sha1 reference="../../../sha1"/>
+                  <name>origin/release-2.8.0</name>
+                </hudson.plugins.git.Branch>
+              </branches>
+            </marked>
+            <revision reference="../marked"/>
+            <hudsonBuildNumber>1</hudsonBuildNumber>
+          </hudson.plugins.git.util.Build>
+        </entry>
+      </buildsByBranchName>
+      <lastBuild reference="../buildsByBranchName/entry/hudson.plugins.git.util.Build"/>
+      <remoteUrls>
+        <string>https://github.com/project-sunbird/sunbird-analytics-core.git</string>
+      </remoteUrls>
+    </hudson.plugins.git.util.BuildData>
+    <hudson.plugins.git.GitTagAction plugin="git@4.0.0">
+      <tags class="hudson.util.CopyOnWriteMap$Tree">
+        <entry>
+          <string>origin/release-2.8.0</string>
+          <list/>
+        </entry>
+      </tags>
+      <ws>/var/lib/jenkins/workspace/Build/DataPipeline/AnalyticsCore@script</ws>
+    </hudson.plugins.git.GitTagAction>
+    <org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState plugin="workflow-scm-step@2.9">
+      <revisionStates>
+        <entry>
+          <string>git https://github.com/project-sunbird/sunbird-analytics-core.git</string>
+          <hudson.scm.SCMRevisionState_-None/>
+        </entry>
+      </revisionStates>
+    </org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState>
+    <org.jenkinsci.plugins.workflow.libs.LibrariesAction plugin="workflow-cps-global-lib@2.15">
+      <libraries/>
+    </org.jenkinsci.plugins.workflow.libs.LibrariesAction>
+    <hudson.plugins.ansicolor.ColorizedAction plugin="ansicolor@0.6.2">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.ColorizedAction>
+    <com.sonyericsson.rebuild.RebuildAction plugin="rebuild@1.31"/>
+  </actions>
+  <queueId>540</queueId>
+  <timestamp>1587463522835</timestamp>
+  <startTime>1587463524423</startTime>
+  <result>FAILURE</result>
+  <duration>17666</duration>
+  <charset>UTF-8</charset>
+  <keepLog>false</keepLog>
+  <execution class="org.jenkinsci.plugins.workflow.cps.CpsFlowExecution">
+    <result>FAILURE</result>
+    <script>node(&apos;build-slave&apos;) {
+    try {
+        String ANSI_GREEN = &quot;\u001B[32m&quot;
+        String ANSI_NORMAL = &quot;\u001B[0m&quot;
+        String ANSI_BOLD = &quot;\u001B[1m&quot;
+        String ANSI_RED = &quot;\u001B[31m&quot;
+        String ANSI_YELLOW = &quot;\u001B[33m&quot;
+        ansiColor(&apos;xterm&apos;) {
+            stage(&apos;Checkout&apos;) {
+                cleanWs()
+                if(params.github_release_tag == &quot;&quot;){
+                    checkout scm
+                    commit_hash = sh(script: &apos;git rev-parse --short HEAD&apos;, returnStdout: true).trim()
+                    branch_name = sh(script: &apos;git name-rev --name-only HEAD | rev | cut -d &quot;/&quot; -f1| rev&apos;, returnStdout: true).trim()
+                    artifact_version = branch_name + &quot;_&quot; + commit_hash
+            println(ANSI_BOLD + ANSI_YELLOW + &quot;github_release_tag not specified, using the latest commit hash: &quot; + commit_hash + ANSI_NORMAL)
+                }
+                else {
+                    def scmVars = checkout scm
+                    checkout scm: [$class: &apos;GitSCM&apos;, branches: [[name: &quot;refs/tags/$params.github_release_tag&quot;]],  userRemoteConfigs: [[url: scmVars.GIT_URL]]]
+                    artifact_version = params.github_release_tag
+            println(ANSI_BOLD + ANSI_YELLOW + &quot;github_release_tag specified, building from github_release_tag: &quot; + params.github_release_tag + ANSI_NORMAL)
+                }
+                echo &quot;artifact_version: &quot;+ artifact_version
+            }
+        }
+        
+        stage(&apos;Build&apos;) {
+            sh &apos;&apos;&apos;
+                mvn clean install -DskipTests
+                &apos;&apos;&apos;
+        }
+        stage(&apos;Archive artifacts&apos;){
+            sh &quot;&quot;&quot;
+                        mkdir lpa_core_artifacts
+                        cp analytics-job-driver/target/analytics-framework-2.0.jar lpa_core_artifacts
+                        zip -j lpa_core_artifacts.zip:${artifact_version} lpa_core_artifacts/*
+                    &quot;&quot;&quot;
+            archiveArtifacts artifacts: &quot;lpa_core_artifacts.zip:${artifact_version}&quot;, fingerprint: true, onlyIfSuccessful: true
+            sh &quot;&quot;&quot;echo {\\&quot;artifact_name\\&quot; : \\&quot;lpa_core_artifacts.zip\\&quot;, \\&quot;artifact_version\\&quot; : \\&quot;${artifact_version}\\&quot;, \\&quot;node_name\\&quot; : \\&quot;${env.NODE_NAME}\\&quot;} &gt; metadata.json&quot;&quot;&quot;
+            archiveArtifacts artifacts: &apos;metadata.json&apos;, onlyIfSuccessful: true
+            currentBuild.description = artifact_version
+        }
+    }
+    catch (err) {
+        currentBuild.result = &quot;FAILURE&quot;
+        throw err
+    }
+}
+</script>
+    <loadedScripts class="map"/>
+    <durabilityHint>MAX_SURVIVABILITY</durabilityHint>
+    <timings class="map">
+      <entry>
+        <string>flowNode</string>
+        <long>307552347</long>
+      </entry>
+      <entry>
+        <string>classLoad</string>
+        <long>1294103180</long>
+      </entry>
+      <entry>
+        <string>run</string>
+        <long>468233734</long>
+      </entry>
+      <entry>
+        <string>parse</string>
+        <long>669600482</long>
+      </entry>
+      <entry>
+        <string>saveProgram</string>
+        <long>17614331</long>
+      </entry>
+    </timings>
+    <sandbox>true</sandbox>
+    <iota>18</iota>
+    <head>1:18</head>
+    <done>true</done>
+    <resumeBlocked>false</resumeBlocked>
+  </execution>
+  <completed>true</completed>
+  <checkouts class="hudson.util.PersistedList">
+    <org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+      <scm class="hudson.plugins.git.GitSCM" plugin="git@4.0.0">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+          <hudson.plugins.git.UserRemoteConfig>
+            <url>https://github.com/project-sunbird/sunbird-analytics-core.git</url>
+          </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+          <hudson.plugins.git.BranchSpec>
+            <name>${github_release_tag}</name>
+          </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="list"/>
+        <extensions>
+          <hudson.plugins.git.extensions.impl.CloneOption>
+            <shallow>true</shallow>
+            <noTags>false</noTags>
+            <reference></reference>
+            <depth>0</depth>
+            <honorRefspec>false</honorRefspec>
+          </hudson.plugins.git.extensions.impl.CloneOption>
+        </extensions>
+      </scm>
+      <node></node>
+      <workspace>/var/lib/jenkins/workspace/Build/DataPipeline/AnalyticsCore@script</workspace>
+      <changelogFile>/var/lib/jenkins/jobs/Build/jobs/DataPipeline/jobs/AnalyticsCore/builds/1/changelog1747714340399091454.xml</changelogFile>
+      <pollingBaseline class="hudson.scm.SCMRevisionState$None" reference="../../../actions/org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState/revisionStates/entry/hudson.scm.SCMRevisionState_-None"/>
+    </org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+    <org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+      <scm class="hudson.plugins.git.GitSCM" reference="../../org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout/scm"/>
+      <node></node>
+      <workspace>/var/lib/jenkins/workspace/Build/DataPipeline/AnalyticsCore</workspace>
+      <changelogFile>/var/lib/jenkins/jobs/Build/jobs/DataPipeline/jobs/AnalyticsCore/builds/1/changelog1446415402522471436.xml</changelogFile>
+      <pollingBaseline class="hudson.scm.SCMRevisionState$None" reference="../../../actions/org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState/revisionStates/entry/hudson.scm.SCMRevisionState_-None"/>
+    </org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+  </checkouts>
+</flow-build>

@@ -1,0 +1,254 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-build plugin="workflow-job@2.36">
+  <actions>
+    <hudson.model.ParametersAction>
+      <safeParameters class="sorted-set"/>
+      <parameters>
+        <hudson.model.StringParameterValue>
+          <name>github_release_tag</name>
+          <description>&lt;font color=red size=2&gt;&lt;b&gt;CAUTION: If the value is blank, latest code will be built. Specify github tag name to build from a tag.&lt;/b&gt;&lt;/font&gt;</description>
+          <value>release-1.15_RC9</value>
+        </hudson.model.StringParameterValue>
+      </parameters>
+      <parameterDefinitionNames>
+        <string>github_release_tag</string>
+      </parameterDefinitionNames>
+    </hudson.model.ParametersAction>
+    <hudson.model.CauseAction>
+      <causeBag class="linked-hash-map">
+        <entry>
+          <hudson.model.Cause_-UserIdCause>
+            <userId>badal</userId>
+          </hudson.model.Cause_-UserIdCause>
+          <int>1</int>
+        </entry>
+      </causeBag>
+    </hudson.model.CauseAction>
+    <hudson.plugins.git.util.BuildData plugin="git@4.0.0">
+      <buildsByBranchName>
+        <entry>
+          <string>release-1.15_RC9</string>
+          <hudson.plugins.git.util.Build>
+            <marked plugin="git-client@3.0.0">
+              <sha1>4e70a891773c477a48a2126ee7ddad60dba7922a</sha1>
+              <branches class="list">
+                <hudson.plugins.git.Branch>
+                  <sha1 reference="../../../sha1"/>
+                  <name>release-1.15_RC9</name>
+                </hudson.plugins.git.Branch>
+              </branches>
+            </marked>
+            <revision reference="../marked"/>
+            <hudsonBuildNumber>2</hudsonBuildNumber>
+          </hudson.plugins.git.util.Build>
+        </entry>
+      </buildsByBranchName>
+      <lastBuild reference="../buildsByBranchName/entry/hudson.plugins.git.util.Build"/>
+      <remoteUrls>
+        <string>https://github.com/project-sunbird/sunbird-auth.git</string>
+      </remoteUrls>
+    </hudson.plugins.git.util.BuildData>
+    <hudson.plugins.git.GitTagAction plugin="git@4.0.0">
+      <tags class="hudson.util.CopyOnWriteMap$Tree">
+        <entry>
+          <string>release-1.15_RC9</string>
+          <list/>
+        </entry>
+      </tags>
+      <ws>/var/lib/jenkins/workspace/Build/Core/Keycloak@script</ws>
+    </hudson.plugins.git.GitTagAction>
+    <org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState plugin="workflow-scm-step@2.9">
+      <revisionStates>
+        <entry>
+          <string>git https://github.com/project-sunbird/sunbird-auth.git</string>
+          <hudson.scm.SCMRevisionState_-None/>
+        </entry>
+      </revisionStates>
+    </org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState>
+    <org.jenkinsci.plugins.workflow.libs.LibrariesAction plugin="workflow-cps-global-lib@2.15">
+      <libraries/>
+    </org.jenkinsci.plugins.workflow.libs.LibrariesAction>
+    <hudson.plugins.ansicolor.ColorizedAction plugin="ansicolor@0.6.2">
+      <colorMapName>xterm</colorMapName>
+    </hudson.plugins.ansicolor.ColorizedAction>
+    <org.jenkinsci.plugins.workflow.cps.EnvActionImpl plugin="workflow-cps@2.75">
+      <env class="tree-map"/>
+    </org.jenkinsci.plugins.workflow.cps.EnvActionImpl>
+    <hudson.tasks.Fingerprinter_-FingerprintAction>
+      <record>
+        <entry>
+          <string>keycloak_artifacts.zip:release-1.15_RC9</string>
+          <string>e36e013df2642b7e29ff7d43dd216cb1</string>
+        </entry>
+      </record>
+    </hudson.tasks.Fingerprinter_-FingerprintAction>
+    <com.sonyericsson.rebuild.RebuildAction plugin="rebuild@1.31"/>
+  </actions>
+  <queueId>1243</queueId>
+  <timestamp>1587970518590</timestamp>
+  <startTime>1587970518607</startTime>
+  <result>SUCCESS</result>
+  <description>release-1.15_RC9</description>
+  <duration>52645</duration>
+  <charset>UTF-8</charset>
+  <keepLog>false</keepLog>
+  <execution class="org.jenkinsci.plugins.workflow.cps.CpsFlowExecution">
+    <result>SUCCESS</result>
+    <script>node(&apos;build-slave&apos;) {
+    try {
+        String ANSI_GREEN = &quot;\u001B[32m&quot;
+        String ANSI_NORMAL = &quot;\u001B[0m&quot;
+        String ANSI_BOLD = &quot;\u001B[1m&quot;
+        String ANSI_RED = &quot;\u001B[31m&quot;
+        String ANSI_YELLOW = &quot;\u001B[33m&quot;
+
+        ansiColor(&apos;xterm&apos;) {
+            stage(&apos;Checkout&apos;) {
+                cleanWs()
+                def scmVars = checkout scm
+                if (params.github_release_tag == &quot;&quot;) {
+                    checkout scm
+                    commit_hash = sh(script: &apos;git rev-parse --short HEAD&apos;, returnStdout: true).trim()
+                    branch_name = sh(script: &apos;git name-rev --name-only HEAD | rev | cut -d &quot;/&quot; -f1| rev&apos;, returnStdout: true).trim()
+                    artifact_version = branch_name + &quot;_&quot; + commit_hash
+                    println(ANSI_BOLD + ANSI_YELLOW + &quot;github_release_tag not specified, using the latest commit hash: &quot; + commit_hash + ANSI_NORMAL)
+                }
+                else {
+                    checkout scm: [$class: &apos;GitSCM&apos;, branches: [[name: &quot;refs/tags/${params.github_release_tag}&quot;]], userRemoteConfigs: [[url: scmVars.GIT_URL]]]
+                    artifact_version = params.github_release_tag
+                    println(ANSI_BOLD + ANSI_YELLOW + &quot;github_release_tag specified, building from: &quot; + params.github_release_tag + ANSI_NORMAL)
+                }
+                echo &quot;artifact_version: &quot;+ artifact_version
+            }
+
+
+            stage(&apos;Build&apos;) {
+                sh &quot;&quot;&quot;
+                        mkdir sunbird_auth_1.0v
+			wget https://sunbirdpublic.blob.core.windows.net/installation/keycloak-3.2.0.Final.tar.gz
+                        tar -xvf keycloak-3.2.0.Final.tar.gz --strip 1 -C sunbird_auth_1.0v
+                        mkdir -p sunbird_auth_1.0v/providers
+                        mkdir -p sunbird_auth_1.0v/modules/system/layers/keycloak/org/postgresql/main
+                        mkdir -p sunbird_auth_1.0v/themes/sunbird/login
+                        wget https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
+			mv postgresql-9.4.1212.jar sunbird_auth_1.0v/modules/system/layers/keycloak/org/postgresql/main
+                        cd keycloak/sms-provider
+                        mvn package
+                        cp target/keycloak-email-phone-autthenticator-1.0-SNAPSHOT.jar $WORKSPACE/sunbird_auth_1.0v/providers
+                        cp -r templates/* $WORKSPACE/sunbird_auth_1.0v/themes/sunbird/login
+                &quot;&quot;&quot;
+            }
+
+            stage(&apos;ArchiveArtifacts&apos;) {
+                sh &quot;&quot;&quot;
+                        mkdir keycloak_artifacts
+                        zip -r keycloak_artifacts.zip:${artifact_version} sunbird_auth_1.0v
+                    &quot;&quot;&quot;
+                archiveArtifacts artifacts: &quot;keycloak_artifacts.zip:${artifact_version}&quot;, fingerprint: true, onlyIfSuccessful: true
+                sh &quot;&quot;&quot;echo {\\&quot;artifact_name\\&quot; : \\&quot;keycloak_artifacts.zip\\&quot;, \\&quot;artifact_version\\&quot; : \\&quot;${artifact_version}\\&quot;, \\&quot;node_name\\&quot; : \\&quot;${env.NODE_NAME}\\&quot;} &gt; metadata.json&quot;&quot;&quot;
+                archiveArtifacts &quot;metadata.json&quot;
+                currentBuild.description = &quot;${artifact_version}&quot;
+            }
+        }
+
+    }
+    catch (err) {
+        currentBuild.result = &quot;FAILURE&quot;
+        throw err
+    }
+
+}
+</script>
+    <loadedScripts class="map"/>
+    <durabilityHint>MAX_SURVIVABILITY</durabilityHint>
+    <timings class="map">
+      <entry>
+        <string>flowNode</string>
+        <long>4144910649</long>
+      </entry>
+      <entry>
+        <string>classLoad</string>
+        <long>1722908884</long>
+      </entry>
+      <entry>
+        <string>run</string>
+        <long>9036320088</long>
+      </entry>
+      <entry>
+        <string>parse</string>
+        <long>901772470</long>
+      </entry>
+      <entry>
+        <string>saveProgram</string>
+        <long>2163505708</long>
+      </entry>
+    </timings>
+    <sandbox>true</sandbox>
+    <iota>33</iota>
+    <head>1:33</head>
+    <done>true</done>
+    <resumeBlocked>false</resumeBlocked>
+  </execution>
+  <completed>true</completed>
+  <checkouts class="hudson.util.PersistedList">
+    <org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+      <scm class="hudson.plugins.git.GitSCM" plugin="git@4.0.0">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+          <hudson.plugins.git.UserRemoteConfig>
+            <url>https://github.com/project-sunbird/sunbird-auth.git</url>
+          </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+          <hudson.plugins.git.BranchSpec>
+            <name>${github_release_tag}</name>
+          </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="list"/>
+        <extensions>
+          <hudson.plugins.git.extensions.impl.CloneOption>
+            <shallow>true</shallow>
+            <noTags>false</noTags>
+            <reference></reference>
+            <depth>1</depth>
+            <honorRefspec>false</honorRefspec>
+          </hudson.plugins.git.extensions.impl.CloneOption>
+        </extensions>
+      </scm>
+      <node></node>
+      <workspace>/var/lib/jenkins/workspace/Build/Core/Keycloak@script</workspace>
+      <changelogFile>/var/lib/jenkins/jobs/Build/jobs/Core/jobs/Keycloak/builds/2/changelog911574988758242160.xml</changelogFile>
+      <pollingBaseline class="hudson.scm.SCMRevisionState$None" reference="../../../actions/org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState/revisionStates/entry/hudson.scm.SCMRevisionState_-None"/>
+    </org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+    <org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+      <scm class="hudson.plugins.git.GitSCM" reference="../../org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout/scm"/>
+      <node></node>
+      <workspace>/var/lib/jenkins/workspace/Build/Core/Keycloak</workspace>
+      <changelogFile>/var/lib/jenkins/jobs/Build/jobs/Core/jobs/Keycloak/builds/2/changelog4559494485244621340.xml</changelogFile>
+      <pollingBaseline class="hudson.scm.SCMRevisionState$None" reference="../../../actions/org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState/revisionStates/entry/hudson.scm.SCMRevisionState_-None"/>
+    </org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+    <org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+      <scm class="hudson.plugins.git.GitSCM" plugin="git@4.0.0">
+        <configVersion>2</configVersion>
+        <userRemoteConfigs>
+          <hudson.plugins.git.UserRemoteConfig>
+            <url>https://github.com/project-sunbird/sunbird-auth.git</url>
+          </hudson.plugins.git.UserRemoteConfig>
+        </userRemoteConfigs>
+        <branches>
+          <hudson.plugins.git.BranchSpec>
+            <name>refs/tags/release-1.15_RC9</name>
+          </hudson.plugins.git.BranchSpec>
+        </branches>
+        <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+        <submoduleCfg class="list"/>
+        <extensions/>
+      </scm>
+      <node></node>
+      <workspace>/var/lib/jenkins/workspace/Build/Core/Keycloak</workspace>
+      <changelogFile>/var/lib/jenkins/jobs/Build/jobs/Core/jobs/Keycloak/builds/2/changelog526953265611089151.xml</changelogFile>
+      <pollingBaseline class="hudson.scm.SCMRevisionState$None" reference="../../../actions/org.jenkinsci.plugins.workflow.steps.scm.MultiSCMRevisionState/revisionStates/entry/hudson.scm.SCMRevisionState_-None"/>
+    </org.jenkinsci.plugins.workflow.job.WorkflowRun_-SCMCheckout>
+  </checkouts>
+</flow-build>
