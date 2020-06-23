@@ -135,6 +135,10 @@ sunbird_time_zone: "Asia/Kolkata"
 sunbird_content_service_log_level: info
 sunbird_response_cache_ttl: 180
 
+#adminutil
+adminutil_base_url: http://adminutil:4000/
+adminutil_sign_endpoint: v1/sign/payload
+
 #learner
 sunbird_time_zone: "Asia/Kolkata"
 
@@ -316,16 +320,18 @@ lms_liveness_readiness:
 apimanager_liveness_readiness:
   healthcheck: true
   readinessProbe:
-    tcpSocket:
-      port: 8000
-    initialDelaySeconds: 120
-    periodSeconds: 90
+    httpGet:
+      path: /status
+      port: 8001
+    initialDelaySeconds: 30
+    periodSeconds: 30
     timeoutSeconds: 10
     failureThreshold: 5
     successThreshold: 2
   livenessProbe:
-    tcpSocket:
-      port: 8000
+    httpGet:
+      path: /status
+      port: 8001
     initialDelaySeconds: 30
     periodSeconds: 30
     timeoutSeconds: 10
@@ -690,3 +696,15 @@ report_liveness_readiness:
     periodSeconds: 10
     timeoutSeconds: 10
     failureThreshold: 5
+
+adminutil_access_values:
+- key_to_register: access
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__access_keyprefix | default('access') }}"
+    keystart: "{{ adminutil__access_keystart | default('0') }}"
+    keycount: "{{ adminutil__access_keycount | default('0') }}"
+  role_to_run:
+    - decrypt.yml
+    - generate-keys.yml
+    - copy-to-helm-public.yml

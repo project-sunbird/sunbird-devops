@@ -33,12 +33,6 @@ node() {
                        unzip -o generic-editor.zip -d generic-editor
                        mv generic-editor ansible
                     """ 
-                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
-                    ansibleExtraArgs = "--tags generic-editor --extra-vars \"folder_name=generic-editor source_name=${currentWs}/ansible/generic-editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
-                    values.put('ansiblePlaybook', ansiblePlaybook)
-                    values.put('ansibleExtraArgs', ansibleExtraArgs)
-                    println values
-                    ansible_playbook_run(values)
 
                     sh """   
                        cd ansible/generic-editor
@@ -47,6 +41,17 @@ node() {
                        npm install promise
                        gulp package
                     """   
+                    sh """
+                      mkdir iframe
+                      unzip ansible/generic-editor/dist/editor/generic-editor-iframe-latest.zip -d iframe/
+                    """
+
+                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                    ansibleExtraArgs = "--tags generic-editor --extra-vars \"folder_name=generic-editor source_name=${currentWs}/iframe\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
 
                     ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
                     ansibleExtraArgs = "--tags editor --extra-vars \"folder_name=artefacts/editor source_name=${currentWs}/ansible/generic-editor/dist/editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  

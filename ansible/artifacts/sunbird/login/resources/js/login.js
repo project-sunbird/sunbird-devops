@@ -106,7 +106,6 @@ var validatePassword = function () {
 		var lwcsRegex = new RegExp("^(?=.*[a-z])");
 		var spaceRegex = new RegExp('^\\S*$');
 		var upcsRegex = new RegExp("^(?=.*[A-Z])");
-		const spaceRegex = new RegExp('^\\S*$');
 		var numRegex = new RegExp("^(?=.*[0-9])");
 		var specRegex = new RegExp('^[!"#$%&\'()*+,-./:;<=>?@[^_`{|}~\]]');
 		var error_msg = document.getElementById('passwd-error-msg');
@@ -134,7 +133,6 @@ var matchPassword = function () {
 		var spaceRegex = new RegExp('^\\S*$');
 		var lwcsRegex = new RegExp("^(?=.*[a-z])");
 		var upcsRegex = new RegExp("^(?=.*[A-Z])");
-		const spaceRegex = new RegExp('^\\S*$');
 		var numRegex = new RegExp("^(?=.*[0-9])");
 		var specRegex = new RegExp('^[!"#$%&\'()*+,-./:;<=>?@[^_`{|}~\]]');
 		var match_error_msg = document.getElementById('passwd-match-error-msg');
@@ -394,6 +392,14 @@ var forgetPassword = (redirectUrlPath) => {
 		}
 	} else {
 		redirectToLib();
+	}
+}
+
+var backToApplication = () => {
+	var redirect_uri = getValueFromSession('redirect_uri');
+	if (redirect_uri) {
+		var updatedQuery = redirect_uri.split('?')[0];
+		window.location.href = updatedQuery;
 	}
 }
 
