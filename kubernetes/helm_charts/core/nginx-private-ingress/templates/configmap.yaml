@@ -86,13 +86,14 @@ data:
           rewrite ^/notification/(.*) /$1 break;
           proxy_pass http://notification-service:9000;
         }
-        location /report/ {
-          rewrite ^/report/(.*) /$1 break;
-          proxy_pass http://report-service:3030;
-        }
         location /search/ {
           rewrite ^/search/(.*) /$1 break;
           proxy_pass http://search-service:9000;
+        }
+        location /graphite/ {
+          set $target http://graphite-exporter.monitoring.svc.cluster.local:9109;
+          rewrite ^/graphite/(.*) /$1 break;
+          proxy_pass $target;
         }
       }
     }
