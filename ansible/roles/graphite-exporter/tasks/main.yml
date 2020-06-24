@@ -1,0 +1,71 @@
+---
+
+- name: 'create druid exporter group'
+  group:
+    name: '{{ graphite_exporter_group }}'
+    system: yes
+    state: present
+
+- name: 'create graphite exporter user'
+  user:
+    name: '{{ graphite_exporter_user }}'
+    system: yes
+    shell: '/sbin/nologin'
+    group: '{{ graphite_exporter_group }}'
+    createhome: no
+
+- name: 'create graphite exporter directories'
+  file:
+    path: '{{ item }}'
+    state: directory
+    owner: '{{ graphite_exporter_user }}'
+    group: '{{ graphite_exporter_group }}'
+    mode: 0755
+  with_items:
+    - '{{ graphite_exporter_root_dir }}'
+    - '{{ graphite_exporter_dist_dir }}'
+    - '{{ graphite_exporter_config_dir }}'
+
+- name: download and unarchive graphite exporter binary
+  unarchive:
+    src: '{{ graphite_exporter_binary_url }}'
+    dest: '{{ graphite_exporter_dist_dir }}/'
+    mode: 0755
+    remote_src: yes
+
+- name: 'Copy graphite exporter config'
+  template:
+    src: config.j2
+    dest: '{{ graphite_exporter_config_dir }}/graphite_mapping.conf'
+  notify:
+    - restart graphite exporter
+
+- name: 'update group and owner for files'
+  file:
+    path: '{{ item }}'
+    state: file
+    owner: '{{ graphite_exporter_user }}'
+    group: '{{ graphite_exporter_group }}'
+  with_items:
+    - '{{ graphite_exporter_dist_dir }}/graphite_exporter-{{graphite_exporter_version}}.linux-amd64/graphite_exporter'
+    - '{{ graphite_exporter_config_dir }}/graphite_mapping.conf'
+
+- name: 'create systemd service unit'
+  template:
+    src: prometheus-graphite-exporter.service.j2
+    dest: /etc/systemd/system/prometheus-graphite-exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  when: service_mgr | default(ansible_service_mgr) == 'systemd'
+  notify:
+    - reenable graphite exporter service
+    - restart graphite exporter
+
+- meta: flush_handlers
+
+- name: 'ensure prometheus graphite exporter service is enabled and started'
+  service:
+    name: prometheus-graphite-exporter
+    state: started
+    enabled: yes

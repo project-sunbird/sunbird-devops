@@ -86,13 +86,14 @@ data:
           rewrite ^/notification/(.*) /$1 break;
           proxy_pass http://notification-service:9000;
         }
-        location /report/ {
-          rewrite ^/report/(.*) /$1 break;
-          proxy_pass http://report-service:3030;
-        }
         location /search/ {
           rewrite ^/search/(.*) /$1 break;
           proxy_pass http://search-service:9000;
+        }
+        location /report/ {
+          set $target http://report-service.{{ .Values.namespace }}.svc.cluster.local:3030;
+          rewrite ^/report/(.*) /$1 break;
+          proxy_pass $target;
         }
       }
     }
