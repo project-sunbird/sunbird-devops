@@ -1,4 +1,4 @@
-FROM kong:0.13,1
+FROM kong:0.13.1
 
 ENV KONG_VERSION 0.13.1
 
