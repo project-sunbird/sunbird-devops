@@ -1,10 +1,6 @@
-FROM kong:0.12.3
+FROM kong:0.13,1
 
-ENV KONG_VERSION 0.12.3
-
-RUN yum install -y net-tools
-
-COPY plugins/$KONG_VERSION/jwt/* /usr/local/share/lua/5.1/kong/plugins/jwt/
+ENV KONG_VERSION 0.13.1
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
