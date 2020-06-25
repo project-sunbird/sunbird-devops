@@ -11,7 +11,9 @@ fullnameOverride: sunbird-monitoring
 # Enabling external prometheus scrape config 
 prometheus:
   prometheusSpec:
-    additionalScrapeConfigsExternal: {{ additional_scrape_configs_enabled | d(true) }}
+    thanos:
+      version: {{ thanos_sidecar_version | d('v0.11.0') }}
+    additionalScrapeConfigsExternal: true
     retention: "{{ prometheus_retention_time | d('90d') }}"
     externalLabels:
       cluster: "{{ kubernetes_cluster_name | default('kubernetes-1')}}"
@@ -125,4 +127,13 @@ grafana:
 {% endif %}
 {% if grafana_service is defined and grafana_service %}
   service: {{ grafana_service|to_json}}
+{% endif %}
+
+
+# Override anything from common.yaml
+# This will override the entire dictionary which we define above
+# Means if you define a key which define above, you'll have to redifine 
+# entire dictionary here
+{% if prometheus_additional_configs is defined and prometheus_additional_configs %}
+{{ ( prometheus_additional_configs | to_yaml ) }}
 {% endif %}
