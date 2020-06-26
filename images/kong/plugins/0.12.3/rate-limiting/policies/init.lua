@@ -37,6 +37,7 @@ return {
             local cache_set, err = shm:set(cache_key,0,300)
           end
           local newval, err = shm:incr(cache_key, value, 0)
+          print("Current counter value for the cache key: " .. cache_key .. newval)
           if not newval then
             ngx_log(ngx.ERR, "[rate-limiting] could not increment counter ",
                              "for period '", period, "': ", err)
