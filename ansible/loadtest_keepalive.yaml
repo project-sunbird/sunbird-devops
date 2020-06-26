@@ -1,0 +1,39 @@
+# This script will bombard keepalive connection to a particualar domain
+# This will be helpful to test the autoscling of L7 LBs like Azure Application Gateway
+---
+- hosts: all
+  gather_facts: false
+  vars:
+    url_to_test: https://loadtest.ntp.net.in/httpserver
+  tasks:
+
+    - name: Installing ab
+      apt:
+        name: apache2-utils
+        state: present
+        update_cache: yes
+      become: yes
+      igore_errors: yes
+      tags:
+        - install
+
+    - name: 'ab run'
+      shell: |
+        ab -n 100000 -c 200 {{url_to_test}}
+      async: 1000
+      poll: 0
+      register: yum_sleeper
+
+    - name: 'check on async task'
+      async_status:
+        jid: "{{ yum_sleeper.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 30
+
+    - name: 'kill ab'
+      shell: |
+        ps -ef | grep 'ab -n 10000' | grep -v grep | awk '{print $2}' | xargs kill -9
+      become: yes
+      tags:
+        - kill
