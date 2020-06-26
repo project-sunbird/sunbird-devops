@@ -13,7 +13,8 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 RUN mkdir -p /usr/local/kong/logs \
     && ln -sf /tmp/logpipe /usr/local/kong/logs/access.log \
     && ln -sf /tmp/logpipe /usr/local/kong/logs/serf.log \
-    && ln -sf /tmp/logpipe /usr/local/kong/logs/error.log
+    && ln -sf /tmp/logpipe /usr/local/kong/logs/error.log \
+    && ln -sf /tmp/logpipe /usr/local/kong/logs/admin_access.log
 
 EXPOSE 8000 8443 8001 7946
 CMD ["kong", "start"]
