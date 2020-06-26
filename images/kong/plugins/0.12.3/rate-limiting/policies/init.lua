@@ -33,7 +33,7 @@ return {
           -- Check for cache and set it with an expiry
           local cache_present, err = shm:get(cache_key)
           if not cache_present then
-            print("Cache missing or expired. Set the cache")
+            print("Cache miss or expired. Setting the cache: " ..  cache_key)
             local cache_set, err = shm:set(cache_key,0,300)
           end
           local newval, err = shm:incr(cache_key, value, 0)
@@ -195,4 +195,3 @@ return {
     end
   }
 }
-
