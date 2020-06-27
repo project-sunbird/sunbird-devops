@@ -34,10 +34,9 @@ return {
           local cache_present, err = shm:get(cache_key)
           if not cache_present then
             print("Cache miss or expired. Setting the cache: " ..  cache_key)
-            local cache_set, err = shm:set(cache_key,0,900)
+            local cache_set, err = shm:set(cache_key,0,120)
           end
           local newval, err = shm:incr(cache_key, value, 0)
-          print("Current counter value for the cache key: " .. cache_key .. newval)
           if not newval then
             ngx_log(ngx.ERR, "[rate-limiting] could not increment counter ",
                              "for period '", period, "': ", err)
