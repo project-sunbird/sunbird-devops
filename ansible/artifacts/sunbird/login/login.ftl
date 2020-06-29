@@ -94,7 +94,7 @@
                             </#if>
                             <button type="button" class="sb-btn sb-btn-normal sb-btn-primary width-100 mb-16 btn-signInWithGoogle" onclick="navigate('google')">
                             <img class="signInWithGoogle" src="${url.resourcesPath}/img/google.svg">
-                            ${msg("doLogIn")} ${msg("doSignWithGoogle")}
+                            ${msg("signIn")} ${msg("doSignWithGoogle")}
                             </button>
                             <button type="button" id="stateButton" class="sb-btn sb-btn-outline-gray sb-btn-normal width-100" onclick="navigate('state')">
                                 ${msg("doSignWithState")}
