@@ -5,6 +5,8 @@ ENV KONG_VERSION 0.15.0
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
+
+
 # ensure Kong logs go to the log pipe from our entrypoint and so to docker logging
 RUN mkdir -p /usr/local/kong/logs \
     && ln -sf /tmp/logpipe /usr/local/kong/logs/access.log \
