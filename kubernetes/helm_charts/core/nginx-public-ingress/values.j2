@@ -116,6 +116,21 @@ proxyconfig: |
     proxy_set_header    X-Forwarded-Proto $scheme;
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
     resolver {{ kube_dns_ip }} valid=30s;
+
+## Redirection to portal
+    location ~* ^/auth/(.*)/impersonation/ {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
+
+    location ~* ^/auth/realms/master/ {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
+
+    location ~* ^/auth/admin/master/console/ {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
+
+##
     location ~* ^/auth/realms/(.+)/token/introspect/ {
           return 301 {{proto}}://$host/api/auth/v1/realms/$1/token/introspect;
     }
@@ -821,6 +836,22 @@ keycloakconf: |
     proxy_set_header    X-Forwarded-Proto $scheme;
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
     resolver 127.0.0.11 valid=5s;
+
+## Redirect to portal
+    location ~* ^/auth/(.*)/impersonation/ {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
+
+    location ~* ^/auth/realms/master/ {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
+
+    location ~* ^/auth/admin/master/console/ {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
+
+##
+
     location ~* ^/auth/realms/(.+)/token/introspect/ {
           return 301 {{proto}}://$host/api/auth/v1/realms/$1/token/introspect;
     }
