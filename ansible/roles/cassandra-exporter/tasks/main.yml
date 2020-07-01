@@ -31,21 +31,12 @@
     url: '{{ cassandra_exporter_binary_url }}'
     dest: '{{ cassandra_exporter_dist_dir }}/cassandra.jar'
 
-- name: 'download cassandra exporter config'
-  get_url:
-    url: '{{ cassandra_exporter_config_url }}'
-    dest: '{{ cassandra_exporter_config_dir }}/config.yml'
-  notify:
-    - restart cassandra exporter
-  when: cassandra_exporter_config is not defined
-
 - name: 'Copy cassandra exporter config'
-  copy:
-    src: '{{ cassandra_exporter_config }}'
+  template:
+    src: cassandra-exporter-config.yaml.j2
     dest: '{{ cassandra_exporter_config_dir }}/config.yml'
   notify:
     - restart cassandra exporter
-  when: cassandra_exporter_config is defined
 
 - name: 'set cassandra listen address'
   lineinfile:
