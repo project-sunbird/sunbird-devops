@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 FROM kong:0.12.3
 
 ENV KONG_VERSION 0.12.3
@@ -6,6 +7,11 @@ RUN yum install -y net-tools
 
 COPY plugins/$KONG_VERSION/rate-limiting/policies/* /usr/local/share/lua/5.1/kong/plugins/rate-limiting/policies/
 COPY plugins/$KONG_VERSION/jwt/* /usr/local/share/lua/5.1/kong/plugins/jwt/
+=======
+FROM kong:0.14.1-centos
+
+ENV KONG_VERSION 0.14.1
+>>>>>>> 8aa1bcbf6... fix: adding kong 14 files and reverting other changes
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]

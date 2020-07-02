@@ -107,11 +107,8 @@ def _get_first_or_create_jwt_credential(kong_admin_api_url, consumer):
     if(len(saved_credentials_for_algorithm) > 0):
         print("Updating credentials for consumer {} for algorithm {}".format(username, credential_algorithm));
         this_credential = saved_credentials_for_algorithm[0]
-        rsa_public_key = consumer.get('credential_rsa_public_key', this_credential.get("rsa_public_key", ''))
-        if(rsa_public_key == ''):
-          rsa_public_key = "null"
         credential_data = {
-            "rsa_public_key": rsa_public_key,
+            "rsa_public_key": consumer.get('credential_rsa_public_key', this_credential.get("rsa_public_key", '')),
             "key": consumer.get('credential_iss', this_credential['key'])
         }
         this_credential_url = "{}/{}".format(consumer_jwt_credentials_url, this_credential["id"])

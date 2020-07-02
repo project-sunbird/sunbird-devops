@@ -10,7 +10,7 @@ logging.basicConfig()
 # If we reach a state we have more apis than max_page_size,
 # Increase value of max_page_size judiciously
 def get_apis(kong_admin_api_url):
-    max_page_size = 1000
+    max_page_size = 2000
     apis_url_with_size_limit = "{}/apis?size={}".format(kong_admin_api_url, max_page_size)
     apis_response = json.loads(retrying_urlopen(apis_url_with_size_limit).read())
     total_apis = apis_response["total"]
@@ -20,7 +20,7 @@ def get_apis(kong_admin_api_url):
        return apis_response["data"]
 
 def get_api_plugins(kong_admin_api_url, api_name):
-    get_plugins_max_page_size = 1000
+    get_plugins_max_page_size = 2000
     api_pugins_url = "{}/apis/{}/plugins".format(kong_admin_api_url, api_name)
     get_api_plugins_url = "{}?size={}".format(api_pugins_url, get_plugins_max_page_size)
     saved_api_details = json.loads(retrying_urlopen(get_api_plugins_url).read())
