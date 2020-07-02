@@ -36,6 +36,7 @@ lua_shared_dict kong_process_events 5m;
 lua_shared_dict kong_cluster_events 5m;
 lua_shared_dict kong_healthchecks   5m;
 lua_shared_dict kong_rate_limiting_counters ${{RATELIMIT_CACHE_SIZE}};
+lua_shared_dict prometheus_metrics  ${{PROM_METRICS_CACHE_SIZE}};
 > if database == "cassandra" then
 lua_shared_dict kong_cassandra      5m;
 > end

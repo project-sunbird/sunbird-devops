@@ -17,6 +17,7 @@ nginx_optimizations = on
 nginx_daemon = on
 mem_cache_size = 128m
 ratelimit_cache_size = 12m
+prom_metrics_cache_size = 12m
 ssl_cert = NONE
 ssl_cert_key = NONE
 client_ssl = off
