@@ -37,7 +37,7 @@ def save_apis(kong_admin_api_url, input_apis):
         _save_plugins_for_api(kong_admin_api_url, input_api)
 
 def _save_plugins_for_api(kong_admin_api_url, input_api_details):
-    get_plugins_max_page_size = 2000
+    get_plugins_max_page_size = 1000
     api_name = input_api_details["name"]
     input_plugins = input_api_details["plugins"]
     api_pugins_url = "{}/apis/{}/plugins".format(kong_admin_api_url, api_name)
