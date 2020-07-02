@@ -35,7 +35,7 @@ lua_shared_dict kong_locks          8m;
 lua_shared_dict kong_process_events 5m;
 lua_shared_dict kong_cluster_events 5m;
 lua_shared_dict kong_healthchecks   5m;
-lua_shared_dict kong_rate_limiting_counters 12m;
+lua_shared_dict kong_rate_limiting_counters 512m;
 > if database == "cassandra" then
 lua_shared_dict kong_cassandra      5m;
 > end
@@ -234,4 +234,3 @@ server {
 }
 > end
 ]]
-
