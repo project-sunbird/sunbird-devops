@@ -69,6 +69,7 @@ cert_registry_service_prefix: /certreg
 desktop_app_prefix: /desktop
 license_api_prefix: /license
 report_service_prefix: /data/v1/report-service
+group_service_prefix: /group
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -84,6 +85,7 @@ cert_service_url: "http://cert-service:9000"
 cert_registry_service_url: "http://cert-registry-service:9000"
 content_service_url: "http://content-service:9000"
 report_service_url: "http://report-service:3030"
+group_service_url: "http://group-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -4660,4 +4662,74 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: createGroup
+    uris: "{{ group_service_prefix }}/v1/create"
+    upstream_url: "{{ group_service_url }}/v1/group/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'groupCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: updateGroup
+    uris: "{{ group_service_prefix }}/v1/update"
+    upstream_url: "{{ group_service_url }}/v1/group/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'groupUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"      
+
+  - name: listGroup
+    uris: "{{ group_service_prefix }}/v1/list"
+    upstream_url: "{{ group_service_url }}/v1/group/list"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'groupList'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"      
+
+  - name: readGroup
+    uris: "{{ group_service_prefix }}/v1/read"
+    upstream_url: "{{ group_service_url }}/v1/group/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'groupRead'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"            
