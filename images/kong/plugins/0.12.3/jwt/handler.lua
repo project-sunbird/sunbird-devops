@@ -114,7 +114,9 @@ local function do_authentication(conf)
   -- Decode token to find out who the consumer is
   local jwt, err = jwt_decoder:new(token)
   if err then
-    return false, {status = 401, message = "Bad token; " .. tostring(err)}
+    -- Don't sent Bad Token for null / empty Bearer tokens
+    -- return false, {status = 401, message = "Bad token; " .. tostring(err)}
+     return false, {status = 401}
   end
 
   local claims = jwt.claims
