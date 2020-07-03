@@ -1,0 +1,31 @@
+### Default variable file for groups-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+
+env:
+  javaoptions: {{groups_java_mem_limit|default('-Xmx500m')}}
+
+replicaCount: {{groups_replicacount|default(1)}}
+repository: {{groups_repository|default('groups_service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{groups_cpu_req|default('100m')}}
+    memory: {{groups_mem_req|default('300Mi')}}
+  limits:
+    cpu: {{groups_cpu_limit|default('1')}}
+    memory: {{groups_mem_limit|default('1024Mi')}}
+network:
+  port: 9000
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ groups_maxsurge|default('25%') }}
+  maxunavailable: {{ groups_maxunavailable|default('25%') }}
+
+{{ groups_liveness_readiness | to_nice_yaml }}
+
+groups_device_basepath: {{ groups_device_basepath | default('/keys/') }}
