@@ -112,9 +112,13 @@ func (metrics *Metrics) pushMetrics(ctx context.Context, metricData *kafka.Messa
 			// Adding optional timestamp
 			switch metrics.MetricTS {
 			case "":
-				metricStruct.message = fmt.Sprintf("%s{%s} %.2f", metricsNameValidator(metrics.System, metrics.SubSystem, m.ID), strings.TrimRight(label, ","), m.Value)
+				metricStruct.message = fmt.Sprintf("%s{%s} %.2f",
+					metricsNameValidator(metrics.System, metrics.SubSystem, m.ID),
+					strings.TrimRight(label, ","), m.Value)
 			default:
-				metricStruct.message = fmt.Sprintf("%s{%s} %.1f %s", metricsNameValidator(metrics.System, metrics.SubSystem, m.ID), strings.TrimRight(label, ","), m.Value, metrics.MetricTS)
+				metricStruct.message = fmt.Sprintf("%s{%s} %.1f %s",
+					metricsNameValidator(metrics.System, metrics.SubSystem, m.ID),
+					strings.TrimRight(label, ","), m.Value, metrics.MetricTS)
 			}
 			// fmt.Printf("%s\n", metricStruct.message)
 			metricStruct.id = *metricData
