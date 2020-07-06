@@ -3,15 +3,13 @@
     <#if section = "title">
         ${msg("updatePasswordTitle")}
     <#elseif section = "form">
-    <div class="ui raised shadow container segment fullpage-background-image">
-        <div class="ui three column grid stackable">
-            <div class="ui column tablet only computer only"></div>
-            <div class="ui column height-fix">
-                <div class="ui header centered mb-18">
+    <div class="fullpage-background-image">
+        <div class="container-wrapper">
+                <div class="mb-18">
                     <img onerror="" alt="">
                     <div class="signInHead mt-27">${msg("newPasswordTitle")}</div>
                 </div>
-                <div class="ui content center justfy textCenter mb-36 loginupdate">
+                <div class="ui content center justfy textCenter mb-24 loginupdate">
                     <#if message?has_content>
                         <div class="ui text ${message.type}">
                             ${message.summary}
@@ -46,7 +44,7 @@
                         <div id="passwd-match-error-msg" class="ui text confpasswderr hide">Passwords don't match.</div>
                     </div>
                     <div class="field">
-                        <button id="login" class="ui fluid button submit mt-36" onclick="javascript:makeDivUnclickable()">
+                        <button id="login" class="sb-btn sb-btn-normal sb-btn-primary width-100 mt-36" onclick="javascript:makeDivUnclickable()">
                             ${msg("doReset")}
                         </button>
                     </div>
@@ -58,8 +56,6 @@
                         </a>
                     </span>
                  </div-->
-            </div>
-            <div class="ui column tablet only computer only"></div>
         </div>
     </div>
     </#if>
