@@ -70,7 +70,7 @@ local function load_credential(jwt_secret_key)
 end
 
 local function load_consumer(consumer_id, anonymous)
-  local result, err = singletons.dao.consumers:find { id = consumer_id }
+  local result, err = singletons.db.consumers:select { id = consumer_id }
   if not result then
     if anonymous and not err then
       err = 'anonymous consumer "' .. consumer_id .. '" not found'
@@ -80,14 +80,14 @@ local function load_consumer(consumer_id, anonymous)
   return result
 end
 
-local function set_consumer(consumer, jwt_secret)
+local function set_consumer(consumer, jwt_secret, token)
   ngx_set_header(constants.HEADERS.CONSUMER_ID, consumer.id)
   ngx_set_header(constants.HEADERS.CONSUMER_CUSTOM_ID, consumer.custom_id)
   ngx_set_header(constants.HEADERS.CONSUMER_USERNAME, consumer.username)
   ngx.ctx.authenticated_consumer = consumer
-
   if jwt_secret then
     ngx.ctx.authenticated_credential = jwt_secret
+    ngx.ctx.authenticated_jwt_token = token
     ngx_set_header(constants.HEADERS.ANONYMOUS, nil) -- in case of auth plugins concatenation
   else
     ngx_set_header(constants.HEADERS.ANONYMOUS, true)
@@ -111,16 +111,18 @@ local function do_authentication(conf)
       return false, {status = 401, message = "Unrecognizable token"}
     end
   end
+
   -- Decode token to find out who the consumer is
   local jwt, err = jwt_decoder:new(token)
   if err then
     -- Don't sent Bad Token for null / empty Bearer tokens
-     return false, {status = 401}
+    return false, {status = 401}
   end
 
   local claims = jwt.claims
+  local header = jwt.header
 
-  local jwt_secret_key = claims[conf.key_claim_name]
+  local jwt_secret_key = claims[conf.key_claim_name] or header[conf.key_claim_name]
   if not jwt_secret_key then
     return false, {status = 401, message = "No mandatory '" .. conf.key_claim_name .. "' in claims"}
   end
@@ -149,7 +151,8 @@ local function do_authentication(conf)
     return false, {status = 403, message = "Invalid algorithm"}
   end
 
-  local jwt_secret_value = algorithm == "HS256" and jwt_secret.secret or jwt_secret.rsa_public_key
+  local jwt_secret_value = algorithm ~= nil and algorithm:sub(1, 2) == "HS" and
+                             jwt_secret.secret or jwt_secret.rsa_public_key
   if conf.secret_is_base64 then
     jwt_secret_value = jwt:b64_decode(jwt_secret_value)
   end
@@ -169,8 +172,16 @@ local function do_authentication(conf)
     return false, {status = 401, message = errors}
   end
 
+  -- Verify the JWT registered claims
+  if conf.maximum_expiration ~= nil and conf.maximum_expiration > 0 then
+    local ok, errors = jwt:check_maximum_expiration(conf.maximum_expiration)
+    if not ok then
+      return false, {status = 403, message = errors}
+    end
+  end
+
   -- Retrieve the consumer
-  local consumer_cache_key = singletons.dao.consumers:cache_key(jwt_secret.consumer_id)
+  local consumer_cache_key = singletons.db.consumers:cache_key(jwt_secret.consumer_id)
   local consumer, err      = singletons.cache:get(consumer_cache_key, nil,
                                                   load_consumer,
                                                   jwt_secret.consumer_id, true)
@@ -183,13 +194,13 @@ local function do_authentication(conf)
     return false, {status = 403, message = string_format("Could not find consumer for '%s=%s'", conf.key_claim_name, jwt_secret_key)}
   end
 
--- Restore the orignal key and update the id post operation
+  -- Restore the orignal key and update the id post operation
   if jwt.header.kid then
     jwt_secret.id = jwt.claims["iss"]
     jwt_secret.key = jwt.claims["iss"]
   end
 
-  set_consumer(consumer, jwt_secret)
+  set_consumer(consumer, jwt_secret, token)
 
   return true
 end
@@ -213,14 +224,14 @@ function JwtHandler:access(conf)
   if not ok then
     if conf.anonymous ~= "" then
       -- get anonymous user
-      local consumer_cache_key = singletons.dao.consumers:cache_key(conf.anonymous)
+      local consumer_cache_key = singletons.db.consumers:cache_key(conf.anonymous)
       local consumer, err      = singletons.cache:get(consumer_cache_key, nil,
                                                       load_consumer,
                                                       conf.anonymous, true)
       if err then
         return responses.send_HTTP_INTERNAL_SERVER_ERROR(err)
       end
-      set_consumer(consumer, nil)
+      set_consumer(consumer, nil, nil)
     else
       return responses.send(err.status, err.message)
     end
