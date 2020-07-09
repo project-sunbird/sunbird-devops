@@ -170,8 +170,32 @@ proxyconfig: |
       proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # This is Caching mechanism for POST requests location search
+    location ~ /learner/data/v1/location/search {
+      # Enabling caching
+      proxy_cache_key "$request_uri|$request_body";
+      proxy_cache framework_cache;
+      add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
+      proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_methods GET HEAD POST;
+      proxy_cache_background_update on;
+      proxy_cache_lock on;
+      proxy_cache_valid 200 3600s;
+
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_pass http://player;
+  }
     # This is Caching mechanism for POST requests
-    location ~ /api/data/v1/form/read {
+    location ~ /api/org/v1/search|/api/data/v1/(form/read|location/search) {
       # Enabling caching
       proxy_cache_key "$request_uri|$request_body";
       proxy_cache framework_cache;
@@ -197,8 +221,7 @@ proxyconfig: |
       proxy_pass http://kong;
   }
 
-
-    location /api/framework {
+    location /api/framework/v1/read {
       # Enabling caching
       proxy_cache_key $proxy_host$request_uri;
       proxy_cache framework_cache;
@@ -258,20 +281,22 @@ proxyconfig: |
     }
     # Oauth2 config
     location /oauth2/ {
+      set $target http://oauth2-proxy.logging.svc.cluster.local;
       proxy_set_header Host                    $host;
       proxy_set_header X-Real-IP               {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme                $scheme;
       proxy_set_header X-Auth-Request-Redirect $request_uri;
-      proxy_pass http://oauth2-proxy.logging.svc.cluster.local;
+      proxy_pass $target;
     }
     location = /oauth2/auth {
+      set $target http://oauth2-proxy.logging.svc.cluster.local;
       proxy_set_header Host             $host;
       proxy_set_header X-Real-IP        {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme         $scheme;
       # nginx auth_request includes headers but not body
       proxy_set_header Content-Length   "";
       proxy_pass_request_body           off;
-      proxy_pass http://oauth2-proxy.logging.svc.cluster.local;
+      proxy_pass $target;
     }
     location /dashboard/ {
       auth_request /oauth2/auth;
@@ -290,10 +315,13 @@ proxyconfig: |
       proxy_pass $target;
     }
     location /grafana/ {
+      set $target http://prometheus-operator-grafana.monitoring.svc.cluster.local;
       rewrite ^/grafana/(.*) /$1 break;
-      proxy_pass http://prometheus-operator-grafana.monitoring.svc.cluster.local;
+      proxy_pass $target;
     }
+
     location /encryption/ {
+    set $target http://encryption.{{ namespace }}.svc.cluster.local;
     rewrite ^/encryption/(.*) /$1 break;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -302,9 +330,10 @@ proxyconfig: |
     proxy_send_timeout 30;
     proxy_read_timeout 40;
     proxy_set_header    X-Forwarded-Proto $scheme;
-    proxy_pass http://encryption;
+    proxy_pass $target;
     }
     location /badging/ {
+      set $target http://badger-service.{{ namespace }}.svc.cluster.local:8004;
       rewrite ^/badging/(.*) /$1 break;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -313,7 +342,7 @@ proxyconfig: |
       proxy_send_timeout 30;
       proxy_read_timeout 40;
       proxy_set_header    X-Forwarded-Proto $scheme;
-      proxy_pass http://badger-service.{{ namespace }}.svc.cluster.local:8004;
+      proxy_pass $target;
   }
     location ~* ^/assets/public/(.*) {
           # Enabling cache for Response code 200
