@@ -7,7 +7,7 @@
     <#if realm.password>
     <div class="fullpage-background-image">
     <div class="container-wrapper">
-                <div class="mb-8">
+                <div class="ui header centered mb-8">
                     <img onerror="" alt="">
                     <div id="signIn" class="signInHead mt-8 mb-8">${msg("loginDiksha")}</div>
                     <p class="subtitle">Login</p>
@@ -38,7 +38,7 @@
                             </#if>
                         </label>
                          <#if usernameEditDisabled??>
-                          <#-- TODO: need to find alternative for prepopulating username -->
+                         <#-- TODO: need to find alternative for prepopulating username -->
                         <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" type="text" disabled />
                         <#else>
                         <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="off" />
