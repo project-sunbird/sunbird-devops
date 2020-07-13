@@ -17,7 +17,6 @@ This section should expand as open source contributions to support multiple run 
 Required:
 
 - Linux, preferably Ubuntu
-- [Docker Swarm Mode](https://docs.docker.com/engine/swarm/)
 - [Ansible](https://www.ansible.com/)
 
 Optional:
