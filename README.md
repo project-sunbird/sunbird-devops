@@ -18,6 +18,7 @@ Required:
 
 - Linux, preferably Ubuntu
 - [Ansible](https://www.ansible.com/)
+- K8S
 
 Optional:
 
