@@ -5,7 +5,7 @@
     <#elseif section = "form">
     <div class="fullpage-background-image">
         <div class="container-wrapper">
-                <div class="mb-18">
+                <div class="ui header centered mb-18">
                     <img onerror="" alt="">
                     <div class="signInHead mt-27">${msg("newPasswordTitle")}</div>
                 </div>
@@ -30,7 +30,7 @@
                                 <i class="eye icon link" onclick="viewPassword(this)"></i>
                                 <!--i id="preview-hide" class="eye slash icon hide link"></i-->
                             </div>
-                            <div id="passwd-error-msg" class="ui text passwdchk">Your password must contain a minimum of 8 characters. It must include numerals, lower and upper case alphabets and special characters, without any spaces.</div>
+                            <div id="passwd-error-msg" class="ui text passwdchk">Your password must contain a minimum of 8 characters. It must include numerals, lower and upper case alphabets and special characters, without any spaces</div>
                         </div>
                     </div>
                     <div class="field">
@@ -41,7 +41,7 @@
                             ${msg("passwordConfirm")}
                         </label>
                         <input type="password" class="mt-8" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" id="password-confirm" name="password-confirm" autocomplete="off" onkeydown="javascript:matchPassword()"/>
-                        <div id="passwd-match-error-msg" class="ui text confpasswderr hide">Passwords don't match.</div>
+                        <div id="passwd-match-error-msg" class="ui text confpasswderr hide">Passwords do not match</div>
                     </div>
                     <div class="field">
                         <button id="login" class="sb-btn sb-btn-normal sb-btn-primary width-100 mt-36" onclick="javascript:makeDivUnclickable()">
