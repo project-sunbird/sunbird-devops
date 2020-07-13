@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 57,
-  "iteration": 1594623239401,
+  "id": 85,
+  "iteration": 1594639611466,
   "links": [],
   "panels": [
     {
@@ -24,7 +24,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "$cluster",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -40,11 +40,13 @@
         "y": 0
       },
       "hiddenSeries": false,
-      "id": 1,
+      "id": 4,
       "legend": {
         "alignAsTable": true,
         "avg": true,
         "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
         "max": true,
         "min": false,
         "rightSide": true,
@@ -71,25 +73,23 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(kong_request_count{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api)",
+          "expr": "sum(increase(kong_request_status_count{api=~\"${api}\",status_code=~\"2..|3..\", status_code!= \"total\"}[5m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[5m]))",
           "format": "time_series",
-          "hide": false,
           "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "{{api}}",
-          "metric": "",
+          "intervalFactor": 10,
+          "legendFormat": "{{api}}-{{status_code}}",
           "refId": "A",
-          "step": 2
+          "step": 4
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Requests per sec",
+      "title": "Success %",
       "tooltip": {
         "shared": true,
-        "sort": 0,
+        "sort": 2,
         "value_type": "individual"
       },
       "type": "graph",
@@ -102,8 +102,8 @@
       },
       "yaxes": [
         {
-          "decimals": null,
-          "format": "none",
+          "decimals": 2,
+          "format": "percentunit",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -111,7 +111,7 @@
           "show": true
         },
         {
-          "decimals": null,
+          "decimals": 2,
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -130,7 +130,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "$cluster",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -146,16 +146,18 @@
         "y": 0
       },
       "hiddenSeries": false,
-      "id": 12,
+      "id": 5,
       "legend": {
         "alignAsTable": true,
         "avg": true,
         "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
         "max": true,
         "min": false,
         "rightSide": true,
         "show": true,
-        "sort": "current",
+        "sort": "avg",
         "sortDesc": true,
         "total": false,
         "values": true
@@ -177,25 +179,23 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(increase(kong_request_count{cluster=~\"$cluster\", api =~ \"$api\"}[$interval])) by (api)",
+          "expr": "sum(increase(kong_request_status_count{api=~\"${api}\",status_code!~\"2..|3..|total\"}[5m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[5m]))",
           "format": "time_series",
-          "hide": false,
           "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{api}}",
-          "metric": "",
+          "intervalFactor": 10,
+          "legendFormat": "{{api}}-{{status_code}}",
           "refId": "A",
-          "step": 2
+          "step": 4
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Total Requests",
+      "title": "Error %",
       "tooltip": {
-        "shared": true,
-        "sort": 0,
+        "shared": false,
+        "sort": 2,
         "value_type": "individual"
       },
       "type": "graph",
@@ -208,8 +208,8 @@
       },
       "yaxes": [
         {
-          "decimals": null,
-          "format": "none",
+          "decimals": 2,
+          "format": "percentunit",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -217,6 +217,7 @@
           "show": true
         },
         {
+          "decimals": 2,
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -235,7 +236,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "$cluster",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -256,6 +257,8 @@
         "alignAsTable": true,
         "avg": false,
         "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
         "max": false,
         "min": false,
         "rightSide": true,
@@ -282,10 +285,10 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(kong_latency_time_sum{cluster=~\"$cluster\", api=~\"${api}\"}[5m]) / rate(kong_latency_time_count{cluster=~\"$cluster\", api=~\"${api}\"}[5m])",
+          "expr": "sum(rate(kong_latency_time_sum{api=~\"${api}\"}[5m]) / rate(kong_latency_time_count{api=~\"${api}\"}[5m])) by (api)",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "{{api}}",
           "refId": "A",
           "step": 4
@@ -298,7 +301,7 @@
       "title": "Average Total Latency",
       "tooltip": {
         "shared": true,
-        "sort": 0,
+        "sort": 2,
         "value_type": "individual"
       },
       "type": "graph",
@@ -339,7 +342,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "$cluster",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -360,6 +363,8 @@
         "alignAsTable": true,
         "avg": false,
         "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
         "max": false,
         "min": false,
         "rightSide": true,
@@ -386,10 +391,10 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(kong_upstream_latency_time_sum{cluster=~\"$cluster\", api=~\"${api}\"}[5m]) / rate(kong_upstream_latency_time_count{cluster=~\"$cluster\", api=~\"${api}\"}[5m])",
+          "expr": "sum(rate(kong_upstream_latency_time_sum{api=~\"${api}\"}[5m])) by (api)  / sum(rate(kong_upstream_latency_time_count{api=~\"${api}\"}[5m])) by (api)",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 2,
+          "intervalFactor": 10,
           "legendFormat": "{{api}}",
           "refId": "A",
           "step": 4
@@ -402,7 +407,7 @@
       "title": "Average Upstream Latency",
       "tooltip": {
         "shared": true,
-        "sort": 0,
+        "sort": 2,
         "value_type": "individual"
       },
       "type": "graph",
@@ -443,7 +448,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "$cluster",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -464,6 +469,8 @@
         "alignAsTable": true,
         "avg": true,
         "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
         "max": false,
         "min": false,
         "rightSide": true,
@@ -490,37 +497,37 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum(rate(kong_latency_time_bucket{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api,le))",
+          "expr": "histogram_quantile(0.99, sum(rate(kong_latency_time_bucket{api=~\"${api}\"}[5m])) by (api,le))",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "p99-{{api}}",
           "refId": "A",
           "step": 4
         },
         {
-          "expr": "histogram_quantile(0.95, sum(rate(kong_latency_time_bucket{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api,le))",
+          "expr": "histogram_quantile(0.95, sum(rate(kong_latency_time_bucket{api=~\"${api}\"}[5m])) by (api,le))",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "p95-{{api}}",
           "refId": "B",
           "step": 4
         },
         {
-          "expr": "histogram_quantile(0.90, sum(rate(kong_latency_time_bucket{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api,le))",
+          "expr": "histogram_quantile(0.90, sum(rate(kong_latency_time_bucket{api=~\"${api}\"}[5m])) by (api,le))",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "p90-{{api}}",
           "refId": "C",
           "step": 4
         },
         {
-          "expr": "histogram_quantile(0.50, sum(rate(kong_latency_time_bucket{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api,le))",
+          "expr": "histogram_quantile(0.50, sum(rate(kong_latency_time_bucket{api=~\"${api}\"}[5m])) by (api,le))",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "p50-{{api}}",
           "refId": "D",
           "step": 4
@@ -533,7 +540,7 @@
       "title": "Total Latency Percentile",
       "tooltip": {
         "shared": true,
-        "sort": 0,
+        "sort": 2,
         "value_type": "individual"
       },
       "type": "graph",
@@ -574,7 +581,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "$cluster",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -595,6 +602,8 @@
         "alignAsTable": true,
         "avg": true,
         "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
         "max": false,
         "min": false,
         "rightSide": true,
@@ -621,37 +630,37 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum(rate(kong_upstream_latency_time_bucket{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api,le))",
+          "expr": "histogram_quantile(0.99, sum(rate(kong_upstream_latency_time_bucket{api=~\"${api}\"}[5m])) by (api,le))",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "p99-{{api}}",
           "refId": "A",
           "step": 4
         },
         {
-          "expr": "histogram_quantile(0.95, sum(rate(kong_upstream_latency_time_bucket{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api,le))",
+          "expr": "histogram_quantile(0.95, sum(rate(kong_upstream_latency_time_bucket{api=~\"${api}\"}[5m])) by (api,le))",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "p95-{{api}}",
           "refId": "B",
           "step": 4
         },
         {
-          "expr": "histogram_quantile(0.90, sum(rate(kong_upstream_latency_time_bucket{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api,le))",
+          "expr": "histogram_quantile(0.90, sum(rate(kong_upstream_latency_time_bucket{api=~\"${api}\"}[5m])) by (api,le))",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "p90-{{api}}",
           "refId": "C",
           "step": 4
         },
         {
-          "expr": "histogram_quantile(0.50, sum(rate(kong_upstream_latency_time_bucket{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api,le))",
+          "expr": "histogram_quantile(0.50, sum(rate(kong_upstream_latency_time_bucket{api=~\"${api}\"}[5m])) by (api,le))",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "p50-{{api}}",
           "refId": "D",
           "step": 4
@@ -664,7 +673,7 @@
       "title": "Upstream Latency Percentile",
       "tooltip": {
         "shared": true,
-        "sort": 0,
+        "sort": 2,
         "value_type": "individual"
       },
       "type": "graph",
@@ -705,7 +714,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "$cluster",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -721,11 +730,13 @@
         "y": 21
       },
       "hiddenSeries": false,
-      "id": 4,
+      "id": 1,
       "legend": {
         "alignAsTable": true,
         "avg": true,
         "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
         "max": true,
         "min": false,
         "rightSide": true,
@@ -752,23 +763,25 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(sum(increase(kong_request_status_count{cluster=~\"$cluster\", api=~\"${api}\",status_code=~\"2..|3..\", status_code!= \"total\"}[5m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{cluster=~\"$cluster\", api=~\"${api}\", status_code!= \"total\"}[5m]))) by (api,status_code)",
+          "expr": "sum(rate(kong_request_count{api=~\"${api}\"}[5m])) by (api)",
           "format": "time_series",
+          "hide": false,
           "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "{{api}}-{{status_code}}",
+          "intervalFactor": 10,
+          "legendFormat": "{{api}}",
+          "metric": "",
           "refId": "A",
-          "step": 4
+          "step": 2
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Success %",
+      "title": "Requests per sec",
       "tooltip": {
         "shared": true,
-        "sort": 0,
+        "sort": 2,
         "value_type": "individual"
       },
       "type": "graph",
@@ -781,8 +794,8 @@
       },
       "yaxes": [
         {
-          "decimals": 2,
-          "format": "percentunit",
+          "decimals": null,
+          "format": "none",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -790,7 +803,7 @@
           "show": true
         },
         {
-          "decimals": 2,
+          "decimals": null,
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -809,7 +822,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "$cluster",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -825,16 +838,18 @@
         "y": 21
       },
       "hiddenSeries": false,
-      "id": 5,
+      "id": 12,
       "legend": {
         "alignAsTable": true,
         "avg": true,
         "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
         "max": true,
         "min": false,
         "rightSide": true,
         "show": true,
-        "sort": "avg",
+        "sort": "current",
         "sortDesc": true,
         "total": false,
         "values": true
@@ -856,23 +871,25 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(sum(increase(kong_request_status_count{cluster=~\"$cluster\", api=~\"${api}\",status_code!~\"2..|3..|total\"}[5m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{cluster=~\"$cluster\", api=~\"${api}\", status_code!= \"total\"}[5m]))) by(api,status_code)",
+          "expr": "sum(increase(kong_request_count{api =~ \"$api\"}[$interval])) by (api)",
           "format": "time_series",
+          "hide": false,
           "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "{{api}}-{{status_code}}",
+          "intervalFactor": 10,
+          "legendFormat": "{{api}}",
+          "metric": "",
           "refId": "A",
-          "step": 4
+          "step": 2
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Error %",
+      "title": "Total Requests",
       "tooltip": {
-        "shared": false,
-        "sort": 0,
+        "shared": true,
+        "sort": 2,
         "value_type": "individual"
       },
       "type": "graph",
@@ -885,8 +902,8 @@
       },
       "yaxes": [
         {
-          "decimals": 2,
-          "format": "percentunit",
+          "decimals": null,
+          "format": "none",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -894,7 +911,6 @@
           "show": true
         },
         {
-          "decimals": 2,
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -913,7 +929,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "$cluster",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -934,6 +950,8 @@
         "alignAsTable": true,
         "avg": true,
         "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
         "max": true,
         "min": false,
         "rightSide": true,
@@ -960,19 +978,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(kong_request_size_sum{cluster=~\"$cluster\", api=~\"${api}\"}[5m]) / rate(kong_request_size_count{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api)",
+          "expr": "sum(rate(kong_request_size_sum{api=~\"${api}\"}[5m]) / rate(kong_request_size_count{api=~\"${api}\"}[5m])) by (api)",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "avg-{{api}}",
           "refId": "A",
           "step": 4
         },
         {
-          "expr": "sum(rate(kong_request_size_sum{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api)",
+          "expr": "sum(rate(kong_request_size_sum{api=~\"${api}\"}[5m])) by (api)",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "total-{{api}}",
           "refId": "B",
           "step": 4
@@ -985,7 +1003,7 @@
       "title": "Request Size",
       "tooltip": {
         "shared": true,
-        "sort": 0,
+        "sort": 2,
         "value_type": "individual"
       },
       "type": "graph",
@@ -1026,7 +1044,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "$cluster",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -1047,6 +1065,8 @@
         "alignAsTable": true,
         "avg": true,
         "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
         "max": true,
         "min": false,
         "rightSide": true,
@@ -1073,19 +1093,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(kong_response_size_sum{cluster=~\"$cluster\", api=~\"${api}\"}[5m]) / rate(kong_response_size_sum{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api)",
+          "expr": "sum(rate(kong_response_size_sum{api=~\"${api}\"}[5m]) / rate(kong_response_size_sum{api=~\"${api}\"}[5m])) by (api)",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "avg-{{api}}",
           "refId": "A",
           "step": 4
         },
         {
-          "expr": "sum(rate(kong_response_size_sum{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api)",
+          "expr": "sum(rate(kong_response_size_sum{api=~\"${api}\"}[5m])) by (api)",
           "format": "time_series",
           "interval": "",
-          "intervalFactor": 1,
+          "intervalFactor": 10,
           "legendFormat": "total-{{api}}",
           "refId": "B",
           "step": 4
@@ -1098,7 +1118,7 @@
       "title": "Response Size",
       "tooltip": {
         "shared": true,
-        "sort": 0,
+        "sort": 2,
         "value_type": "individual"
       },
       "type": "graph",
@@ -1139,7 +1159,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "Prometheus",
+      "datasource": "$cluster",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -1160,6 +1180,8 @@
         "alignAsTable": true,
         "avg": true,
         "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
         "max": true,
         "min": false,
         "rightSide": true,
@@ -1186,8 +1208,9 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(kong_latency_time_bucket{cluster=~\"$cluster\", api=~\"${api}\", le=\"0.5\"}[5m])) by (api) / sum(rate(kong_latency_time_count[5m])) by (api)",
+          "expr": "sum(rate(kong_latency_time_bucket{api=~\"${api}\", le=\"0.5\"}[5m])) by (api) / sum(rate(kong_latency_time_count[5m])) by (api)",
           "interval": "",
+          "intervalFactor": 10,
           "legendFormat": "{{api}}",
           "refId": "A"
         }
@@ -1196,10 +1219,10 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Apdex Score",
+      "title": "Apdex Score (Threshold of 500ms)",
       "tooltip": {
         "shared": true,
-        "sort": 0,
+        "sort": 2,
         "value_type": "individual"
       },
       "type": "graph",
@@ -1243,30 +1266,23 @@
   "templating": {
     "list": [
       {
-        "allValue": null,
         "current": {
           "selected": false,
-          "text": "All",
-          "value": "$__all"
+          "text": "Kubernetes-1",
+          "value": "Kubernetes-1"
         },
-        "datasource": "Prometheus",
-        "definition": "label_values(kong_request_count, cluster)",
         "hide": 0,
-        "includeAll": true,
+        "includeAll": false,
         "label": null,
         "multi": false,
         "name": "cluster",
         "options": [],
-        "query": "label_values(kong_request_count, cluster)",
+        "query": "prometheus",
+        "queryValue": "",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
-        "tagValuesQuery": "",
-        "tags": [],
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
+        "type": "datasource"
       },
       {
         "allValue": null,
@@ -1277,7 +1293,7 @@
             "$__all"
           ]
         },
-        "datasource": "Prometheus",
+        "datasource": "$cluster",
         "definition": "label_values(kong_request_count,api)",
         "hide": 0,
         "includeAll": true,
@@ -1374,7 +1390,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -1403,6 +1419,6 @@
   },
   "timezone": "",
   "title": "API Manager",
-  "uid": "oaS-CSgGz",
-  "version": 112
+  "uid": "E5PNTVnMz",
+  "version": 13
 }
