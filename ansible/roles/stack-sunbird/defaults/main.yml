@@ -1,4 +1,5 @@
 ---
+###################### Swarm variables #####################
 sunbird_encryption_key:
 sunbird_encryption_mode:
 sunbird_sso_publickey:
@@ -39,6 +40,7 @@ sunbird_learner_service_base_url: http://kong:8000/
 telemetry_replicas: 1
 telemetry_reservation_memory: 300M
 telemetry_limit_memory: 300M
+telemetry_limit_cpu: 1
 sunbird_telemetry_kafka_servers: "{{groups['kafka']|join(':9092,')}}:9092"
 sunbird_data_pipeline_kafka_servers: "{{groups['processing-cluster-kafka']|join(':9092,')}}:9092"
 
@@ -133,3 +135,115 @@ sunbird_portal_player_cdn_enabled:
 sunbird_portal_preview_cdn_url:
 cdn_file_path:
 sunbird_portal_cdn_blob_url:
+desktop_app_storage_url: "https://{{sunbird_offline_azure_storage_account}}.blob.core.windows.net/{{offline_installer_container_name}}"
+itext_license_enabled: false
+
+# Knowledge MW Service Config
+knowledge_mw_service_replicas: 1
+knowledge_mw_service_reservation_memory: 64M
+knowledge_mw_service_limit_memory: 256M
+knowledge_mw_service_reservation_cpu: 0
+knowledge_mw_service_limit_cpu: 1
+
+# Content Service Config
+content_service_replicas: 1
+content_service_reservation_memory: 1000M
+content_service_limit_memory: 1000M
+content_service_reservation_cpu: 0
+content_service_limit_cpu: 1
+
+# Assessment Service Config
+assessment_service_replicas: 1
+assessment_service_reservation_memory: 256M
+assessment_service_limit_memory: 512M
+assessment_service_reservation_cpu: 0
+assessment_service_limit_cpu: 1
+
+# LMS Service Config
+lms_service_replicas: 1
+lms_service_reservation_memory: 1000M
+lms_service_limit_memory: 1000M
+lms_service_reservation_cpu: 0
+lms_service_limit_cpu: 1
+
+
+# Print Service Config
+print_service_replicas: 1
+print_service_reservation_memory: 64M
+print_service_limit_memory: 256M
+print_service_reservation_cpu: 0
+print_service_limit_cpu: 1
+
+############################ kube vars #######################
+hub_org: sunbird
+nginx_per_ip_connection_limit: 400
+proxy_replicas: 1
+proxy_reservation_memory: 32M
+proxy_limit_memory: 64M
+nginx_per_ip_connection_limit: 400
+merge_proxy_server_name: 
+proxy_prometheus: false
+
+networks:
+  - {name: 'application_default', subnet: '11.11.1.0/24'}
+
+proxy_secrets:
+  - name: prom_admin_creds
+    value: "{{proxy_prometheus_admin_creds}}"
+  - name: site.key
+    value: "{{proxy_site_key}}"
+  - name: site.crt
+    value: "{{proxy_site_crt}}"
+
+merge_proxy_secrets:
+  - name: sitemerge.key
+    value: "{{proxymerge_site_key}}"
+  - name: sitemerge.crt
+    value: "{{proxymerge_site_crt}}"
+
+proxy_custom_config:
+
+# These values should be overridden in inventory
+proxy_site_key:
+proxy_site_crt:
+proxy_prometheus_admin_creds:
+prometheus_route_prefix: prometheus
+prometheus_alertmanager_route_prefix: alertmanager
+ekstep_s3_env: "{{sunbird_env}}"
+registry_url: "{{proto}}://{{proxy_server_name}}/registry"
+
+upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
+plugin_upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
+sunbird_offline_azure_storage_account_url: "{{ sunbird_offline_azure_storage_account }}.blob.core.windows.net/{{ offline_installer_container_name }}"
+# Override this dictionary in your common.yaml
+proxy:  
+  # repository:  'proxy'
+  # image_tag:  2.4.0
+
+service_env:
+  learner: ../../../../ansible/roles/stack-sunbird/templates/sunbird_learner-service.env
+  lms: ../../../../ansible/roles/stack-sunbird/templates/sunbird_lms-service.env
+  knowledgemw: ../../../../ansible/roles/stack-sunbird/templates/sunbird_knowledge-mw-service.env
+  apimanager: ../../../../ansible/roles/stack-api-manager/templates/api-manager.env
+  cert: ../../../../ansible/roles/stack-sunbird/templates/sunbird_cert-service.env
+  certregistry: ../../../../ansible/roles/stack-sunbird/templates/sunbird_cert-registry-service.env
+  content: 
+    - ../../../../ansible/roles/stack-sunbird/templates/content-service_application.conf
+    - ../../../../ansible/roles/stack-sunbird/templates/content-service_logback.xml
+  assessment: ../../../../ansible/roles/stack-sunbird/templates/assessment-service_application.conf
+  enc: ../../../../ansible/roles/stack-sunbird/templates/sunbird_enc-service.env
+  notification: ../../../../ansible/roles/stack-sunbird/templates/sunbird_notification-service.env
+  telemetry: ../../../../ansible/roles/stack-sunbird/templates/sunbird_telemetry-service.env
+  userorg: ../../../../ansible/roles/stack-sunbird/templates/sunbird_user-org-service.env
+  player: ../../../../ansible/roles/stack-sunbird/templates/sunbird_player.env
+  print: ../../../../ansible/roles/stack-sunbird/templates/sunbird_print-service.env
+
+sunbird_portal_player_cdn_enabled: false 
+
+########### stack-apimanager defaults vars ##### for kubernetes #########
+kong_database: postgres
+kong_ssl: true
+kong_replicas: 1
+kong_reservation_memory: 64M
+kong_limit_memory: 256M
+kibana_oauth_authenticated_email_domains: []

@@ -1,0 +1,55 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{adminutil_replicacount|default(1)}}
+repository: {{adminutil_repository|default('adminutil')}}
+image_tag: {{image_tag}}
+resources:
+  requests:
+    cpu: {{adminutil_cpu_req|default('100m')}}
+    memory: {{adminutil_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{adminutil_cpu_limit|default('1000m')}}
+    memory: {{adminutil_memory_limit|default('1024Mi')}}
+network:
+  port: 4000
+  targetport: 4000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ adminutil_maxsurge|default(1) }}
+  maxunavailable: {{ adminutil_maxunavailable|default }} 
+
+adminutils:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 4000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 4000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+adminutilenv:
+  JAVA_OPTS: "-Xms{{adminutil__initial_heap_size|default('256m')}} -Xmx{{adminutil__max_heap_size|default('256m')}}"
+  SERVER_PORT: '"{{adminutil__port|default('4000')}}"'
+  AM_ADMIN_API_ENDPOINT: "http://kong.{{namespace}}.svc.cluster.local:8001"
+  SPRING_PROFILES_ACTIVE: {{adminutil__spring_profile|default('production')}}
+  DEFAULT_CONSUMER_GROUP: {{adminutil__default_consumer_group|default('contentUser')}}
+  ENDPOINTS_HEALTH_ID: {{adminutil__health_id|default('apihealth')}}
+  ENDPOINTS_HEALTH_SENSITIVE: '"{{adminutil__is_health_sensitive|default('false')}}"'
+  ENDPOINTS_METRICS_ID: {{adminutil__metrics_id|default('metrics')}}
+  ENDPOINTS_METRICS_SENSITIVE: '"{{adminutil__is_metrics_sensitive|default('false')}}"'

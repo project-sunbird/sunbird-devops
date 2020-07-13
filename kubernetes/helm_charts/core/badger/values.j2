@@ -1,0 +1,44 @@
+### Default variable file for badger-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{badger_replicacount|default(1)}}
+repository: {{badger_repository|default('badger')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{badger_cpu_req|default('100m')}}
+    memory: {{badger_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{badger_cpu_limit|default('500m')}}
+    memory: {{badger_mem_limit|default('500Mi')}}
+network:
+  port: 8004
+  targetport: 8004
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ badger_maxsurge|default(1) }}
+  maxunavailable: {{ badger_maxunavailable|default }}
+
+badger:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8004
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8004
+    initialDelaySeconds: 60
+    periodSeconds: 10

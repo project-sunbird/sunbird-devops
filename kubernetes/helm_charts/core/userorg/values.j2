@@ -1,0 +1,44 @@
+### Default variable file for userorg-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{userorg_replicacount|default(1)}}
+repository: {{userorg_repository|default('user_org_service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{userorg_cpu_req|default('100m')}}
+    memory: {{userorg_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{userorg_cpu_limit|default('1')}}
+    memory: {{userorg_mem_limit|default('1024Mi')}}
+network:
+  port: 9008
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ userorg_maxsurge|default(1) }}
+  maxunavailable: {{ userorg_maxunavailable|default }}
+
+userorg:
+  readinessprobe:
+    enabled: false
+  livenessprobe:
+    enabled: false
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10

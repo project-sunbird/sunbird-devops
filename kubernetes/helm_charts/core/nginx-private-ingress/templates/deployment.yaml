@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-private-ingress
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-private-ingress
+  template:
+    metadata:
+      labels:
+        app: nginx-private-ingress
+    spec:
+      containers:
+      - name: name
+        image: nginx
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /etc/nginx/conf.d/default.conf
+          name: config-volume
+          subPath: default.conf
+          readOnly: true
+      volumes:
+        - name: config-volume
+          configMap:
+            name: nginx-private-ingress.conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-private-ingress
+  namespace: {{ .Values.namespace }}
+  annotations:
+{{- if .Values.private_ingress_custom_annotations }}
+    {{ .Values.private_ingress_annotation.cloud_provider }}
+{{- end }}
+spec:
+  type: {{ .Values.nginx_private_ingress_type }}
+  ports:
+  - port: 80
+    nodePort: 31480
+    targetPort: 80
+    name: http
+  selector:
+    app: nginx-private-ingress

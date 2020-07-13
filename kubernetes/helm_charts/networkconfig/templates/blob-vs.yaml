@@ -1,0 +1,109 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: blob-vs
+  namespace: {{ .Values.namespace }}
+spec:
+  gateways:
+  - public-gateway
+  hosts:
+  - {{ .Values.domain_name }} 
+  http:
+  - match:
+    - uri:
+        prefix: /content/preview/
+    rewrite:
+      authority: {{ .Values.cloud_storage_url }}
+      uri: /{{ .Values.plugin_container_name }}/v3/preview/
+    route:
+    - destination:
+        host: {{ .Values.cloud_storage_url }}
+      headers:
+        request:
+          add:
+            Accept: '*/*'
+            Access-Control-Allow-Methods: GET
+            Access-Control-Allow-Origin: '*'
+            Authorization: ""
+            Cache-Control: public
+            Host: {{ .Values.cloud_storage_url }}
+            Pragma: public
+    corsPolicy:
+      allowOrigin:
+        - "*"
+      allowMethods:
+        - POST
+        - GET
+        - PATCH
+        - OPTIONS
+      allowHeaders:
+        - Access-Control-Allow-Origin
+        - Authorization
+        - Content-Type
+        - Content-Encoding
+        - user-id
+  - match:
+    - uri:
+        prefix: /assets/public/
+    rewrite:
+      authority: {{ .Values.cloud_storage_url }}
+      uri: /{{ .Values.plugin_container_name }}/
+    route:
+    - destination:
+        host: {{ .Values.cloud_storage_url }}
+      headers:
+        request:
+          add:
+            Accept: '*/*'
+            Access-Control-Allow-Methods: GET
+            Access-Control-Allow-Origin: '*'
+            Authorization: ""
+            Cache-Control: public
+            Host: {{ .Values.cloud_storage_url }}
+            Pragma: public
+    corsPolicy:
+      allowOrigin:
+        - "*"
+      allowMethods:
+        - POST
+        - GET
+        - PATCH
+        - OPTIONS
+      allowHeaders:
+        - Access-Control-Allow-Origin
+        - Authorization
+        - Content-Type
+        - Content-Encoding
+        - user-id
+  - match:
+    - uri:
+        prefix: /content-plugins/
+    rewrite:
+      authority: {{ .Values.cloud_storage_url }}
+      uri: /{{ .Values.plugin_container_name }}/content-plugins/
+    route:
+    - destination:
+        host: {{ .Values.cloud_storage_url }}
+      headers:
+        request:
+          add:
+            Access-Control-Allow-Methods: GET
+            Access-Control-Allow-Origin: '*'
+            Authorization: ""
+            Cache-Control: public
+            Host: {{ .Values.cloud_storage_url }}
+            Pragma: public
+    corsPolicy:
+      allowOrigin:
+        - "*"
+      allowMethods:
+        - POST
+        - GET
+        - PATCH
+        - OPTIONS
+      allowHeaders:
+        - Access-Control-Allow-Origin
+        - Authorization
+        - Content-Type
+        - Content-Encoding
+        - user-id

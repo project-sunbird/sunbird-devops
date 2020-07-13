@@ -1,0 +1,47 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{content_replicacount|default(1)}}
+repository: {{content_repository|default('content-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{content_cpu_req|default('100m')}}
+    memory: {{content_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{content_cpu_limit|default('1')}}
+    memory: {{content_mem_limit|default('1024Mi')}}
+network:
+  port: 9002
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ content_maxsurge|default(1) }}
+  maxunavailable: {{ content_maxunavailable|default }}
+
+content:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+
+  

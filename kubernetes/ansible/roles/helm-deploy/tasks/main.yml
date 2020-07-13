@@ -1,0 +1,37 @@
+# This variable will get injected to nginx resolver config
+# There is no native helm way to do this. So it's 
+# kind of a workaround
+- name: getting kube dns ip
+  shell: kubectl get service --namespace kube-system kube-dns -o jsonpath="{.spec.clusterIP}"
+  register: kube_dns_ip
+
+- name: setting variable
+  set_fact:
+    kube_dns_ip: "{{ kube_dns_ip.stdout }}"
+
+- name: rename template
+  template:
+    src: "{{ chart_path }}/values.j2"
+    dest: "{{ chart_path }}/values.yaml"
+
+- name: helm install
+  shell: helm upgrade --install --cleanup-on-fail {{ release_name }} {{ chart_path }} -n {{namespace}}
+  #shell: helm template {{ chart_path }} > /tmp/test.yaml
+
+- name: Get the deployment rollout status
+  shell: "kubectl get deployments -A | grep -i {{ release_name }} | awk -F' ' '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'"
+  register: task_result
+  until: task_result.rc == 0
+  retries: 6
+  delay: 30
+
+- name: Get deployed image name
+  shell: "kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
+  register: deployed_image
+
+- set_fact:
+   metadata_image: "{{ image_name }}:{{ image_tag }}"
+
+- name: Compare deployed image and metadata_image
+  fail:
+  when: deployed_image.stdout != metadata_image

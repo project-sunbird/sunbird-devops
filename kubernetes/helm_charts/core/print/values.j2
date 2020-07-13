@@ -1,0 +1,41 @@
+#jinja2:lstrip_blocks: True
+
+### Default variable file for print-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{print_replicacount|default(1)}}
+repository: {{print_repository|default('print-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{print_cpu_req|default('50m')}}
+    memory: {{print_mem_req|default('50Mi')}}
+  limits:
+    cpu: {{print_cpu_limit|default('1')}}
+    memory: {{print_mem_limit|default('1024Mi')}}
+network:
+  port: 5000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ print_maxsurge|default(1) }}
+  maxunavailable: {{ print_maxunavailable|default }}
+
+print:
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 5000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 5000
+    initialDelaySeconds: 60
+    periodSeconds: 10

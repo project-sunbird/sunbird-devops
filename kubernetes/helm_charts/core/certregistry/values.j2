@@ -1,0 +1,67 @@
+### Default variable file for cert-registry-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{certregistry_replicacount|default(1)}}
+repository: {{certregistry_repository|default('cert_registry_service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{certregistry_cpu_req|default('100m')}}
+    memory: {{certregistry_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{certregistry_cpu_limit|default('1')}}
+    memory: {{certregistry_mem_limit|default('1024Mi')}}
+network:
+  port: 9013
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ certregistry_maxsurge|default(1) }}
+  maxunavailable: {{ certregistry_maxunavailable|default }}
+
+certregistry:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+certregistry:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+  

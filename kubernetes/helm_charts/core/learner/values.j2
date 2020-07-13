@@ -1,0 +1,45 @@
+
+### Default variable file for learner-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{learner_replicacount|default(1)}}
+repository: {{learner_repository|default('learner_service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{learner_cpu_req|default('100m')}}
+    memory: {{learner_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{learner_cpu_limit|default('1')}}
+    memory: {{learner_mem_limit|default('1024Mi')}}
+network:
+  port: 9000
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ learner_maxsurge|default(1) }}
+  maxunavailable: {{ learner_maxunavailable|default }}
+
+learner:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10

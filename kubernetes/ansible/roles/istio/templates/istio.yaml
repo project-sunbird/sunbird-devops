@@ -1,0 +1,34 @@
+gateways:
+  enabled: true
+nodeagent:
+  enabled: true
+  image: node-agent-k8s
+  env:
+    CA_PROVIDER: "Citadel"
+    CA_ADDR: "istio-citadel:8060"
+    VALID_TOKEN: true
+prometheus:
+  enabled: false
+tracing:
+  enabled: true
+kiali:
+  enabled: true
+  prometheusAddr: http://sunbird-monitoring-prometheus.monitoring.svc.cluster.local:9090
+  dashboard:
+    grafanaURL: http://prometheus-operator-grafana.monitoring.svc.cluster.local
+istiocoredns:
+  enabled: true
+global:
+  proxy:
+    accessLogFile: "/dev/stdout"
+    readinessPeriodSeconds: 5
+pilot:
+  env:
+    PILOT_HTTP10: "1"
+
+gateways:
+  istio-ingressgateway:
+    sds:
+      enabled: true
+    type: {{ public_istio_ingress_type | d('LoadBalancer') }}
+    externalTrafficPolicy: Local

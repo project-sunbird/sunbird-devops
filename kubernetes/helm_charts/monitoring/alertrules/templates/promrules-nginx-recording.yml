@@ -1,0 +1,20 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.prometheus_rule_selector_app }}
+    release: {{ .Values.prometheus_rule_selector_release }}
+  name: {{ .Values.fullnameOverride }}-nginx-recording-rules
+  namespace: {{ .Values.namespace }}
+spec:
+  groups:
+  - name: nginx recording rules
+    rules:
+    - expr: sum without(pod, endpoint, service, status, namespace, instance, request_method) (rate(nginx_http_requests_total[5m]))
+      record: job:http_requests:rate5m
+    - expr: avg_over_time(job:http_requests:rate5m[1w])
+      record: job:http_requests:rate5m:avg_over_time_1w
+    - expr: stddev_over_time(job:http_requests:rate5m[1w])
+      record: job:http_requests:rate5m:stddev_over_time_1w 

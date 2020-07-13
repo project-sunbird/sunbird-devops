@@ -28,10 +28,11 @@
                         </label>
                         <div class="ui search">
                             <div class="ui mt-8 icon input">
-                                <input class="" type="password" id="password-new" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password-new" autocomplete="off" />    
+                                <input class="" type="password" id="password-new" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password-new" autocomplete="off" onkeydown="javascript:validatePassword()"/>    
                                 <i class="eye icon link" onclick="viewPassword(this)"></i>
                                 <!--i id="preview-hide" class="eye slash icon hide link"></i-->
                             </div>
+                            <div id="passwd-error-msg" class="ui text passwdchk">Password must contain a minimum of 8 characters including numerals, lower and upper case alphabets and special characters.</div>
                         </div>
                     </div>
                     <div class="field">
@@ -41,7 +42,8 @@
                         <label id="password-confirmLabelPlaceholder" class="activeLabelColor hide" for="password-confirm">
                             ${msg("passwordConfirm")}
                         </label>
-                        <input type="password" class="mt-8" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" id="password-confirm" name="password-confirm" autocomplete="off" />
+                        <input type="password" class="mt-8" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" id="password-confirm" name="password-confirm" autocomplete="off" onkeydown="javascript:matchPassword()"/>
+                        <div id="passwd-match-error-msg" class="ui text confpasswderr hide">Passwords don't match.</div>
                     </div>
                     <div class="field">
                         <button id="login" class="ui fluid button submit mt-36" onclick="javascript:makeDivUnclickable()">

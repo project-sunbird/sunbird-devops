@@ -1,0 +1,68 @@
+### Default variable file for enc-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{enc_replicacount|default(1)}}
+repository: {{enc_repository|default('enc_service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{enc_cpu_req|default('100m')}}
+    memory: {{enc_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{enc_cpu_limit|default('1')}}
+    memory: {{enc_mem_limit|default('1024Mi')}}
+network:
+  port: 9010
+  targetport: 8013
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ enc_maxsurge|default(1) }}
+  maxunavailable: {{ enc_maxunavailable|default }}
+
+enc:
+  readinessprobe:
+    enabled: false
+  livenessprobe:
+    enabled: false 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8013
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8013
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+enc:
+  readinessprobe:
+    enabled: false
+  livenessprobe:
+    enabled: false 
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8013
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8013
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+  
+

@@ -37,6 +37,16 @@ setupJobs(){
       find $JENKINS_TMP/Deploy/jobs/${arr[$key]}/jobs/Summary/jobs/DeployedVersions -type f -name config.xml -exec sed -i "s#Deploy/${arr[0]}/#Deploy/${arr[$key]}/#g" {} \;
       echo -e "\e[0;33m${bold}Jobs created for ${arr[$key]}${normal}"
    done
+   echo -e "\e[0;36m${bold}Do you want to disable auto trigger of build jobs based on new commits?${normal}"
+   read -p 'y/n: ' choice
+   if [[ $choice == "y" ]]; then
+      find $JENKINS_TMP/Build -type f -name config.xml -exec sed -i 's/<spec>.*<\/spec>/<spec><\/spec>/g' {} \;
+   fi
+   echo -e "\e[0;36m${bold}Do you want to disable daily backup jobs (Ex: DB backups)?${normal}"
+   read -p 'y/n: ' choice
+   if [[ $choice == "y" ]]; then
+      find $JENKINS_TMP/OpsAdministration -type f -name config.xml -exec sed -i 's/<spec>.*<\/spec>/<spec><\/spec>/g' {} \;
+   fi
    diffs=$(colordiff -r --suppress-common-lines --no-dereference -x 'nextBuildNumber' -x 'builds' -x 'last*' /var/lib/jenkins/jobs $JENKINS_TMP | wc -l)
    if [[ $diffs -eq 0 ]]; then
       echo -e "\e[0;33m${bold}No changes detected. Exiting...${normal}"
@@ -52,6 +62,7 @@ echo -e "\e[0;33m${bold}This might take a while... Do not kill the process!${nor
    if [[ $changes == "YES" ]]; then
      rsync -r $JENKINS_TMP/* /var/lib/jenkins/jobs
      chown -R jenkins:jenkins /var/lib/jenkins/jobs
+     echo -e "\e[0;32m${bold}Setup complete!${normal}"
    else
         echo -e "\e[0;31m${bold}Aborted!${normal}"
    fi

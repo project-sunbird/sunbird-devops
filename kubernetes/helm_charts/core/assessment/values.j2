@@ -1,0 +1,49 @@
+#jinja2:lstrip_blocks: True
+
+### Default variable file for assessment-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{assessment_replicacount|default(1)}}
+repository: {{assessment_repository|default('assessment-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{assessment_cpu_req|default('50m')}}
+    memory: {{assessment_mem_req|default('50Mi')}}
+  limits:
+    cpu: {{assessment_cpu_limit|default('1')}}
+    memory: {{assessment_mem_limit|default('500Mi')}}
+network:
+  port: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ assessment_maxsurge|default(1) }}
+  maxunavailable: {{ assessment_maxunavailable|default }}
+
+assessment:
+{% if assessment.readinessProbe is not defined %}
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+{% elif assessment.readinessProbe %}
+{{ assessment.readinessProbe | to_nice_yaml }}
+{% endif %}
+{% if assessment.livenessProbe is not defined %}
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+{% elif assessment.livenessProbe %}
+{{ assessment.livenessProbe | to_nice_yaml }}
+{% endif %}

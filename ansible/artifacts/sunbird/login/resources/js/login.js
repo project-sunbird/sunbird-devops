@@ -88,10 +88,63 @@ window.onload = function(){
 	}
 	var autoMerge = getValueFromSession('automerge');
 	if (autoMerge === '1') {
+		var isValuePresent = (new URLSearchParams(window.location.search)).get('automerge');
+		if (isValuePresent) {
+			sessionStorage.removeItem('session_url');
+			initialize();
+		}
 		decoratePage('autoMerge');
 		storeValueForMigration();
 	}
 };
+
+var validatePassword = function () {
+	setTimeout(() => {
+		var textInput = document.getElementById("password-new").value;
+		var text2Input = document.getElementById("password-confirm").value;
+		var charRegex = new RegExp("^(?=.{8,})");
+		var lwcsRegex = new RegExp("^(?=.*[a-z])");
+		var upcsRegex = new RegExp("^(?=.*[A-Z])");
+		var numRegex = new RegExp("^(?=.*[0-9])");
+		var specRegex = new RegExp("^[^<>{}\'\"/|;:.\ ,~!?@#$%^=&*\\]\\\\()\\[¿§«»ω⊙¤°℃℉€¥£¢¡®©_+]*$");
+		var error_msg = document.getElementById('passwd-error-msg');
+		var match_error_msg = document.getElementById('passwd-match-error-msg');
+		if (charRegex.test(textInput) && lwcsRegex.test(textInput) && upcsRegex.test(textInput) && numRegex.test(textInput) && !specRegex.test(textInput)) {
+			error_msg.className = error_msg.className.replace("passwderr","passwdchk");
+			if (textInput === text2Input) {
+				match_error_msg.className = match_error_msg.className.replace("show","hide");
+				document.getElementById("login").disabled = false;
+			}
+		} else {
+			error_msg.className = error_msg.className.replace("passwdchk","passwderr");
+		}
+		if (textInput !== text2Input) {
+			document.getElementById("login").disabled = true;
+		}
+	});
+}
+
+var matchPassword = function () {
+	setTimeout(() => {
+		var textInput = document.getElementById("password-new").value;
+		var text2Input = document.getElementById("password-confirm").value;
+		var charRegex = new RegExp("^(?=.{8,})");
+		var lwcsRegex = new RegExp("^(?=.*[a-z])");
+		var upcsRegex = new RegExp("^(?=.*[A-Z])");
+		var numRegex = new RegExp("^(?=.*[0-9])");
+		var specRegex = new RegExp("^[^<>{}\'\"/|;:.\ ,~!?@#$%^=&*\\]\\\\()\\[¿§«»ω⊙¤°℃℉€¥£¢¡®©_+]*$");
+		var match_error_msg = document.getElementById('passwd-match-error-msg');
+		if (textInput === text2Input) {
+			if (charRegex.test(text2Input) && lwcsRegex.test(text2Input) && upcsRegex.test(text2Input) && numRegex.test(text2Input) && !specRegex.test(text2Input)) {
+				match_error_msg.className = match_error_msg.className.replace("show","hide");
+				document.getElementById("login").disabled = false;
+			}
+		} else {
+			match_error_msg.className = match_error_msg.className.replace("hide","show");
+			document.getElementById("login").disabled = true;
+		}
+	});
+}
 
 var storeValueForMigration = function () {
 	// storing values in sessionStorage for future references
@@ -397,7 +450,11 @@ var handleGoogleAuthEvent = () => {
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
 			if (client_id === 'android') {
-				const googleRedirectUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + googleAuthUrl;
+				let host = sessionUrlObj.host;
+				if (host.indexOf("merge.") !== -1) {
+					host = host.slice(host.indexOf("merge.") + 6, host.length);
+				}
+				const googleRedirectUrl = sessionUrlObj.protocol + '//' + host + googleAuthUrl;
 				window.location.href = redirect_uri + '?googleRedirectUrl=' + googleRedirectUrl + updatedQuery;
 			} else {
 				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + googleAuthUrl + updatedQuery;

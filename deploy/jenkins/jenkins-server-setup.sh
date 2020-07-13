@@ -46,24 +46,24 @@ apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io
 
 echo -e "\n\e[0;32m${bold}Installating node and npm modules"
-wget https://nodejs.org/download/release/v6.1.0/node-v6.1.0-linux-x64.tar.gz
-tar -xf node-v6.1.0-linux-x64.tar.gz
-rm -rf /usr/local/lib/node-v6.1.0-linux-x64
+wget https://nodejs.org/download/release/v6.17.1/node-v6.17.1-linux-x64.tar.gz
+tar -xf node-v6.17.1-linux-x64.tar.gz
+rm -rf /usr/local/lib/node-v6.17.1-linux-x64
 rm -rf /usr/bin/node
 rm -rf /usr/bin/npm
 rm -rf /usr/bin/grunt
 rm -rf /usr/bin/bower
 rm -rf /usr/bin/gulp
-mv node-v6.1.0-linux-x64 /usr/local/lib/
-ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/node /usr/bin/node
-ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/npm /usr/bin/npm
+mv node-v6.17.1-linux-x64 /usr/local/lib/
+ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/node /usr/bin/node
+ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/npm /usr/bin/npm
 npm install -g grunt-cli@1.2.0
-ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/grunt /usr/bin/grunt
+ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/grunt /usr/bin/grunt
 npm install -g bower@1.8.0
-ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/bower /usr/bin/bower
+ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/bower /usr/bin/bower
 npm install -g gulp@3.9.1
-ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/gulp /usr/bin/gulp
-rm -rf node-v6.1.0-linux-x64*
+ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/gulp /usr/bin/gulp
+rm -rf node-v6.17.1-linux-x64*
 
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
 pip install ansible==2.5.0
@@ -109,6 +109,24 @@ su jenkins bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.
 
 echo -e "\n\e[0;32m${bold}Installing jmespath${normal}"
 pip install jmespath
+
+#### Kubernetes Tools ####
+
+# Install Helm version 3.0.2
+echo -e "\n\e[0;32m${bold}Installating Helm${normal}"
+wget https://get.helm.sh/helm-v3.0.2-linux-386.tar.gz
+tar -xzvf helm-v3.0.2-linux-386.tar.gz
+rm -rf /usr/local/bin/helm
+cp linux-386/helm /usr/local/bin/helm
+rm -rf helm-v* linux-amd*
+
+# Install kubectl
+echo -e "\n\e[0;32m${bold}Installating kubectl${normal}"
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+touch /etc/apt/sources.list.d/kubernetes.list
+echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+apt-get update
+apt-get install -y kubectl
 
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove

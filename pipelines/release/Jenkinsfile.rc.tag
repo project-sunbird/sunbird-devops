@@ -70,7 +70,7 @@ node {
                             withCredentials([usernamePassword(credentialsId: env.githubPassword, passwordVariable: 'gitpass', usernameVariable: 'gituser')]) {
                                 origin = "https://${gituser}:${gitpass}@" + sh(script: 'git config --get remote.origin.url', returnStdout: true).trim().split('https://')[1]
                                 echo "Git Hash: ${origin}"
-                                tagRefBranch = sh(script: "git ls-remote --tags origin ${params.release_branch}* | grep -o 'release-.*' | sort -V | tail -n1", returnStdout: true).trim()
+                                tagRefBranch = sh(script: "git ls-remote --tags origin ${params.release_branch}* | grep -o ${params.release_branch}_RC.* | sort -V | tail -n1", returnStdout: true).trim()
 
                                 if (tagRefBranch == '') {
                                     tagName = params.release_branch + '_RC1'
