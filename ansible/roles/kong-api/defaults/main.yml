@@ -4766,18 +4766,19 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: listForm
-      uris: "{{ data_service_prefix }}/v1/form/list"
-      upstream_url: "{{ player_service_url }}/plugin/v1/form/list"
-      strip_uri: true
-      plugins:
-      - name: cors
-      - "{{ statsd_pulgin }}"
-      - name: acl
-        config.whitelist:
-          - 'groupAdmin'
-      - name: rate-limiting
-        config.policy: local
-        config.hour: "{{ medium_rate_limit_per_hour }}"
-        config.limit_by: ip
-      - name: request-size-limiting
-        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+    uris: "{{ data_service_prefix }}/v1/form/list"
+    upstream_url: "{{ player_service_url }}/plugin/v1/form/list"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'groupAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ small_rate_limit_per_hour }}"
+      config.limit_by: ip
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
