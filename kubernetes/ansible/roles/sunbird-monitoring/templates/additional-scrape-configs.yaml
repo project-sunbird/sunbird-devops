@@ -24,6 +24,16 @@ scrapeconfig:
     static_configs:
       - targets: ["{{ groups['process-exporter'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:1111' ) | list | join("\", \"") }}"]
 
+  - job_name: 'cassandra-exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets:  ["{{ groups['cassandra'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:8080' ) | list | join("\", \"") }}"] 
+
+  - job_name: 'druid-exporter'
+    metrics_path: /metrics
+    static_configs:
+      - targets:  ["{{ groups['druid'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9108' ) | list | join("\", \"") }}"]  
+  
   - job_name: 'helm-exporter'
     static_configs:
       - targets: ['helm-exporter.monitoring.svc.cluster.local:9571']
