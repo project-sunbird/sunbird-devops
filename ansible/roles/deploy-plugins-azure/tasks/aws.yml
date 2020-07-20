@@ -1,0 +1,44 @@
+- name: rename env_domain in preview_cdn.html for CDN
+  shell: |
+    echo "{{sunbird_portal_preview_cdn_url}}"
+    sed -i 's|cdn_url|{{sunbird_portal_preview_cdn_url}}|g' "{{currentws}}"/ansible/preview/preview_cdn.html
+  when: sunbird_portal_preview_cdn_url is defined
+  tags:
+    - preview
+    
+- name: delete batch
+  shell: |
+    aws s3 rm s3://{{ s3_bucket_name }}/{{ folder_name }}/ --recursive
+  async: 3600
+  poll: 10
+  tags:
+    - content-editor
+    - collection-editor
+    - generic-editor
+    - preview
+
+- name: upload batch
+  command: "aws s3 cp {{ source_name }} s3://{{ s3_bucket_name }}/{{ folder_name }} --recursive
+  async: 3600
+  poll: 10
+  tags:
+    - content-editor 
+    - collection-editor
+    - generic-editor
+    - preview
+    - editor
+    - core-plugins
+
+- name: upload file
+  command: "aws s3 cp {{ source_file_name }} s3://{{ s3_bucket_name }}/artefacts/content-player/content-player-{{ player_version_number }}.zip"
+  async: 3600
+  poll: 10  
+  tags:
+    - preview
+
+- name:  run s3_copy.sh
+  shell: "bash {{ s3_file_path }} {{ plugin_container_name }} {{ source_file }} {{ aws_region }}"
+  async: 3600
+  poll: 10
+  tags:
+    - plugins
