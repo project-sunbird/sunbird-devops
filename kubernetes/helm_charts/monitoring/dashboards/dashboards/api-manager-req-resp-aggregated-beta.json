@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 63,
-  "iteration": 1594910132976,
+  "id": 54,
+  "iteration": 1594797404526,
   "links": [],
   "panels": [
     {
@@ -36,8 +36,7 @@
           "cacheTimeout": null,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "$cluster",
-          "decimals": 0,
+          "datasource": "prom-fed",
           "fieldConfig": {
             "defaults": {
               "custom": {
@@ -86,14 +85,14 @@
             "min": false,
             "rightSide": true,
             "show": true,
-            "total": true,
+            "total": false,
             "values": true
           },
           "lines": true,
           "linewidth": 1,
           "links": [],
           "maxPerRow": 2,
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "options": {
             "dataLinks": []
           },
@@ -117,12 +116,20 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(increase(kong_request_size_bucket{api=~\"${api}\", le=~\"$requestSize\"}[1m])) by (api)",
+              "expr": "sum(increase(kong_request_size_bucket{sb_cluster=\"$cluster\", api=~\"${api}\", le=~\"$requestSize\"}[1m])) by (api,sb_cluster)",
               "hide": false,
               "interval": "",
-              "intervalFactor": 10,
-              "legendFormat": "{{api}}",
+              "intervalFactor": 1,
+              "legendFormat": "{{api}}-{{sb_cluster}}",
               "refId": "A"
+            },
+            {
+              "expr": "sum(increase(kong_request_size_bucket{sb_cluster=~\"$cluster\", sb_cluster!=\"$cluster\", api=~\"${api}\", le=~\"$requestSize\"}[1m])) by (api)",
+              "hide": false,
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{api}}",
+              "refId": "B"
             }
           ],
           "thresholds": [],
@@ -153,7 +160,6 @@
               "show": true
             },
             {
-              "decimals": null,
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -189,8 +195,7 @@
           "cacheTimeout": null,
           "dashLength": 10,
           "dashes": false,
-          "datasource": "$cluster",
-          "decimals": 0,
+          "datasource": "prom-fed",
           "fieldConfig": {
             "defaults": {
               "custom": {},
@@ -221,7 +226,7 @@
           "fillGradient": 0,
           "gridPos": {
             "h": 7,
-            "w": 12,
+            "w": 24,
             "x": 0,
             "y": 2
           },
@@ -237,14 +242,14 @@
             "min": false,
             "rightSide": true,
             "show": true,
-            "total": true,
+            "total": false,
             "values": true
           },
           "lines": true,
           "linewidth": 1,
           "links": [],
           "maxPerRow": 2,
-          "nullPointMode": "connected",
+          "nullPointMode": "null as zero",
           "options": {
             "dataLinks": []
           },
@@ -257,7 +262,7 @@
           "repeatDirection": "h",
           "scopedVars": {
             "responseSize": {
-              "selected": false,
+              "selected": true,
               "text": "1",
               "value": "1"
             }
@@ -268,12 +273,18 @@
           "steppedLine": false,
           "targets": [
             {
-              "expr": "sum(increase(kong_response_size_bucket{api=~\"${api}\", le=~\"$responseSize\"}[1m])) by (api)",
-              "hide": false,
+              "expr": "sum(increase(kong_response_size_bucket{sb_cluster=\"$cluster\", api=~\"${api}\", le=~\"$responseSize\"}[1m])) by (api,sb_cluster)",
               "interval": "",
-              "intervalFactor": 10,
-              "legendFormat": "{{api}}",
+              "intervalFactor": 1,
+              "legendFormat": "{{api}}-{{sb_cluster}}",
               "refId": "A"
+            },
+            {
+              "expr": "sum(increase(kong_response_size_bucket{sb_cluster=~\"$cluster\", sb_cluster!=\"$cluster\", api=~\"${api}\", le=~\"$responseSize\"}[1m])) by (api)",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{api}}",
+              "refId": "B"
             }
           ],
           "thresholds": [],
@@ -346,7 +357,7 @@
             "mode": "opacity"
           },
           "dataFormat": "tsbuckets",
-          "datasource": null,
+          "datasource": "prom-fed",
           "fieldConfig": {
             "defaults": {
               "custom": {
@@ -371,7 +382,7 @@
           },
           "gridPos": {
             "h": 8,
-            "w": 24,
+            "w": 12,
             "x": 0,
             "y": 3
           },
@@ -390,23 +401,30 @@
           "reverseYBuckets": false,
           "scopedVars": {
             "api": {
-              "selected": true,
-              "text": "acceptTermsAndCondition",
-              "value": "acceptTermsAndCondition"
+              "selected": false,
+              "text": "assemblePage",
+              "value": "assemblePage"
             }
           },
           "targets": [
             {
-              "expr": "sum(increase(kong_request_size_bucket{api = \"$api\"}[1m])) by (le,api)",
+              "expr": "sum(increase(kong_request_size_bucket{sb_cluster=\"$cluster\", api = \"$api\"}[1m])) by (le,api,sb_cluster)",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{le}}-{{sb_cluster}}",
+              "refId": "A"
+            },
+            {
+              "expr": "sum(increase(kong_request_size_bucket{sb_cluster=~\"$cluster\", sb_cluster!=\"$cluster\", api = \"$api\"}[1m])) by (le,api)",
               "interval": "",
               "intervalFactor": 1,
               "legendFormat": "{{le}}",
-              "refId": "A"
+              "refId": "B"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Request Heat Map of all Buckets - $api",
+          "title": "Request Heat Map of all Buckets - $api ($cluster)",
           "tooltip": {
             "show": true,
             "showHistogram": false
@@ -454,11 +472,11 @@
             "cardColor": "#E0B400",
             "colorScale": "linear",
             "colorScheme": "interpolateRdYlGn",
-            "exponent": 1,
+            "exponent": 0.5,
             "mode": "opacity"
           },
           "dataFormat": "tsbuckets",
-          "datasource": null,
+          "datasource": "prom-fed",
           "fieldConfig": {
             "defaults": {
               "custom": {
@@ -483,7 +501,7 @@
           },
           "gridPos": {
             "h": 8,
-            "w": 24,
+            "w": 12,
             "x": 0,
             "y": 4
           },
@@ -502,23 +520,30 @@
           "reverseYBuckets": false,
           "scopedVars": {
             "api": {
-              "selected": true,
-              "text": "acceptTermsAndCondition",
-              "value": "acceptTermsAndCondition"
+              "selected": false,
+              "text": "assemblePage",
+              "value": "assemblePage"
             }
           },
           "targets": [
             {
-              "expr": "sum(increase(kong_response_size_bucket{api = \"$api\"}[1m])) by (le,api)",
+              "expr": "sum(increase(kong_response_size_bucket{sb_cluster=\"$cluster\", api = \"$api\"}[1m])) by (le,api,sb_cluster)",
               "interval": "",
               "intervalFactor": 1,
               "legendFormat": "{{le}}",
               "refId": "A"
+            },
+            {
+              "expr": "sum(increase(kong_response_size_bucket{sb_cluster=~\"$cluster\", sb_cluster!=\"$cluster\", api=~\"${api}\"}[1m])) by (le,api)",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "{{le}}",
+              "refId": "B"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Response Heat Map of all Buckets - $api",
+          "title": "Response Heat Map of all Buckets - $api ($cluster)",
           "tooltip": {
             "show": true,
             "showHistogram": false
@@ -555,33 +580,53 @@
   "templating": {
     "list": [
       {
+        "allValue": null,
         "current": {
           "selected": false,
-          "text": "Prometheus",
-          "value": "Prometheus"
+          "text": "All",
+          "value": "$__all"
         },
+        "datasource": "prom-fed",
+        "definition": "label_values(kong_request_count, sb_cluster)",
         "hide": 0,
-        "includeAll": false,
+        "includeAll": true,
         "label": null,
         "multi": false,
         "name": "cluster",
-        "options": [],
-        "query": "prometheus",
-        "queryValue": "",
-        "refresh": 1,
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "Kubernetes-1",
+            "value": "Kubernetes-1"
+          },
+          {
+            "selected": false,
+            "text": "Kubernetes-2",
+            "value": "Kubernetes-2"
+          }
+        ],
+        "query": "label_values(kong_request_count, sb_cluster)",
+        "refresh": 0,
         "regex": "",
         "skipUrlSync": false,
-        "type": "datasource"
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
       },
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "tags": [],
+          "selected": false,
           "text": "All",
-          "value": [
-            "$__all"
-          ]
+          "value": "$__all"
         },
         "datasource": "$cluster",
         "definition": "label_values(kong_request_count,api)",
@@ -606,7 +651,6 @@
         "allValue": null,
         "current": {
           "selected": true,
-          "tags": [],
           "text": "All",
           "value": [
             "$__all"
@@ -636,10 +680,8 @@
         "current": {
           "selected": true,
           "tags": [],
-          "text": "All",
-          "value": [
-            "$__all"
-          ]
+          "text": "",
+          "value": []
         },
         "datasource": "$cluster",
         "definition": "label_values(kong_response_size_bucket,le)",
@@ -663,7 +705,7 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -680,7 +722,7 @@
     ]
   },
   "timezone": "",
-  "title": "API Manager Request/Response Size",
-  "uid": "VTE9NeMGk",
-  "version": 2
+  "title": "API Manager Request/Response Size Aggregated Beta",
+  "uid": "CS1kzvnMk",
+  "version": 1
 }
