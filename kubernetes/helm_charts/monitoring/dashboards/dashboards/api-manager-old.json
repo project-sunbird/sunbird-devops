@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 110,
-  "iteration": 1586738377579,
+  "id": 63,
+  "iteration": 1592854780910,
   "links": [],
   "panels": [
     {
@@ -44,7 +44,7 @@
       "fillGradient": 0,
       "gridPos": {
         "h": 7,
-        "w": 24,
+        "w": 12,
         "x": 0,
         "y": 1
       },
@@ -60,7 +60,7 @@
         "show": true,
         "sort": "avg",
         "sortDesc": true,
-        "total": true,
+        "total": false,
         "values": true
       },
       "lines": true,
@@ -80,7 +80,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(kong_request_count{ api=~\"${api}\"}[1m])) by (api)",
+          "expr": "sum(rate(kong_request_count{cluster=~\"$cluster\", api=~\"${api}\"}[5m])) by (api)",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -96,6 +96,104 @@
       "timeRegions": [],
       "timeShift": null,
       "title": "Requests per sec",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "none",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "hiddenSeries": false,
+      "id": 12,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "current",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(increase(kong_request_count{cluster=~\"$cluster\", api =~ \"$api\"}[$interval])) by (api)",
+          "format": "time_series",
+          "hide": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{api}}",
+          "metric": "",
+          "refId": "A",
+          "step": 2
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Total Requests",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -193,7 +291,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(kong_latency_time{api=~\"${api}\"}) by (api)",
+          "expr": "sum(kong_latency_time{cluster=~\"$cluster\", api=~\"${api}\"}) by (api)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -289,7 +387,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(kong_upstream_latency_time{api=~\"${api}\"}) by (api)",
+          "expr": "sum(kong_upstream_latency_time{cluster=~\"$cluster\", api=~\"${api}\"}) by (api)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -373,8 +471,8 @@
       "legend": {
         "alignAsTable": true,
         "avg": true,
-        "current": false,
-        "max": false,
+        "current": true,
+        "max": true,
         "min": false,
         "rightSide": true,
         "show": true,
@@ -400,7 +498,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(sum(increase(kong_request_status_count{api=~\"${api}\",status_code=~\"2..|3..\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{api=~\"${api}\"}[1m]))) by (api,status_code)",
+          "expr": "sum(sum(increase(kong_request_status_count{cluster=~\"$cluster\", api=~\"${api}\",status_code !~ \"total\",status_code=~\"2..|3..\"}[5m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{cluster=~\"$cluster\", api=~\"${api}\",status_code !~ \"total\"}[5m]))) by (api,status_code)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -469,8 +567,8 @@
       "legend": {
         "alignAsTable": true,
         "avg": true,
-        "current": false,
-        "max": false,
+        "current": true,
+        "max": true,
         "min": false,
         "rightSide": true,
         "show": true,
@@ -496,7 +594,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(sum(increase(kong_request_status_count{api=~\"${api}\",status_code!~\"2..|3..\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{api=~\"${api}\"}[1m]))) by(api,status_code)",
+          "expr": "sum(sum(increase(kong_request_status_count{cluster=~\"$cluster\", api=~\"${api}\",status_code!~\"2..|3..|total\"}[5m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{cluster=~\"$cluster\", api=~\"${api}\", status_code!~\"total\"}[5m]))) by(api,status_code)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -592,7 +690,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(kong_request_size{api=~\"${api}\"}) by (api)",
+          "expr": "sum(kong_request_size{cluster=~\"$cluster\", api=~\"${api}\"}) by (api)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -688,7 +786,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(kong_response_size{api=~\"${api}\"}) by (api)",
+          "expr": "sum(kong_response_size{cluster=~\"$cluster\", api=~\"${api}\"}) by (api)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -754,7 +852,7 @@
       "type": "row"
     }
   ],
-  "refresh": "1m",
+  "refresh": "30s",
   "schemaVersion": 21,
   "style": "dark",
   "tags": [],
@@ -763,7 +861,32 @@
       {
         "allValue": null,
         "current": {
-          "tags": [],
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "Prometheus",
+        "definition": "label_values(kong_request_count, cluster)",
+        "hide": 0,
+        "includeAll": true,
+        "label": null,
+        "multi": false,
+        "name": "cluster",
+        "options": [],
+        "query": "label_values(kong_request_count, cluster)",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
           "text": "All",
           "value": [
             "$__all"
@@ -787,11 +910,85 @@
         "tagsQuery": "",
         "type": "query",
         "useTags": false
+      },
+      {
+        "auto": true,
+        "auto_count": 1,
+        "auto_min": "1m",
+        "current": {
+          "selected": false,
+          "text": "auto",
+          "value": "$__auto_interval_interval"
+        },
+        "hide": 0,
+        "label": null,
+        "name": "interval",
+        "options": [
+          {
+            "selected": true,
+            "text": "auto",
+            "value": "$__auto_interval_interval"
+          },
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": false,
+            "text": "10m",
+            "value": "10m"
+          },
+          {
+            "selected": false,
+            "text": "30m",
+            "value": "30m"
+          },
+          {
+            "selected": false,
+            "text": "1h",
+            "value": "1h"
+          },
+          {
+            "selected": false,
+            "text": "6h",
+            "value": "6h"
+          },
+          {
+            "selected": false,
+            "text": "12h",
+            "value": "12h"
+          },
+          {
+            "selected": false,
+            "text": "1d",
+            "value": "1d"
+          },
+          {
+            "selected": false,
+            "text": "7d",
+            "value": "7d"
+          },
+          {
+            "selected": false,
+            "text": "14d",
+            "value": "14d"
+          },
+          {
+            "selected": false,
+            "text": "30d",
+            "value": "30d"
+          }
+        ],
+        "query": "1m,10m,30m,1h,6h,12h,1d,7d,14d,30d",
+        "refresh": 2,
+        "skipUrlSync": false,
+        "type": "interval"
       }
     ]
   },
   "time": {
-    "from": "now-1m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -800,16 +997,16 @@
       "10s",
       "30s",
       "1m",
-      "1m",
-      "11m",
+      "5m",
+      "15m",
       "30m",
       "1h",
       "2h",
       "1d"
     ],
     "time_options": [
-      "1m",
-      "11m",
+      "5m",
+      "15m",
       "1h",
       "6h",
       "12h",
@@ -820,8 +1017,7 @@
     ]
   },
   "timezone": "",
-  "title": "Kubernetes / API Manager",
-  "uid": "2uSXMlCZz",
-  "version": 8
+  "title": "API Manager Old",
+  "uid": "CNtX7XqWz",
+  "version": 23
 }
-
