@@ -36,6 +36,8 @@ parser.add_argument("-s", "--snapshotname", metavar="snapshotname",
                     help="Name with which snapshot to be taken. Default {}".format("cassandra_backup-"+strftime("%Y-%m-%d")))
 parser.add_argument("-t", "--tardirectory", metavar="tardir",
                     default=getcwd(), help="Path to create the tarball. Default {}".format(getcwd()))
+parser.add_argument("--disablesnapshot", action="store_true",
+                    help="disable taking snapshot, snapshot name can be given via -s flag")
 args = parser.parse_args()
 
 # Create temporary directory to copy data
@@ -81,14 +83,20 @@ if rc != 0:
     print("Couldn't backup schema, exiting...")
     exit(1)
 print("Schema backup completed. saved in {}/cassandra_backup/db_schema.sql".format(tmpdir))
-# Cleaning all old snapshots
-command = "nodetool clearsnapshot"
-system(command)
+# Default value for snapshot
+rc = 0
+
 # Creating snapshots
-command = "nodetool snapshot -t {}".format(args.snapshotname)
-rc = system(command)
+if not args.disablesnapshot:
+    # Cleaning all old snapshots
+    command = "nodetool clearsnapshot"
+    system(command)
+    # Taking new snapshot
+    command = "nodetool snapshot -t {}".format(args.snapshotname)
+    rc = system(command)
 if rc == 0:
-    print("Snapshot taken.")
+    if not args.disablesnapshot:
+        print("Snapshot taken.")
     copy()
     print("Making a tarball: {}.tar.gz".format(args.snapshotname))
     command = "cd {} && tar -czvf {}/{}.tar.gz *".format(tmpdir, args.tardirectory, args.snapshotname)
