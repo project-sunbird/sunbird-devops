@@ -22,7 +22,7 @@
     private_key_path: "{{ outer_item.0.values_to_pass.basepath }}"
     private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
     private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
-    private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount }}"
+    private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount if outer_item.0.values_to_pass.keycount > '0' else '0'  }}"
   when: release_name == "adminutils"
   with_subelements:
     - "{{adminutil_device_access_values}}"
@@ -37,7 +37,7 @@
   include_role:
     name: mount-keys
     tasks_from: "{{item}}"
-  when: release_name == "adminutils" and private_key_sign_end > 0
+  when: release_name == "adminutils"
   with_items:
     - remove-from-helm.yml
     - remove-keys-from-inventory.yml
