@@ -1,7 +1,23 @@
+#  This task will take snapshot serially for all cassandra nodes
+#  If we club both taking snapshot and upload the data, then the
+#  interval of snapshots b/w nodes will be very high; Which might lead
+#  to data discrepancies
 - hosts: cassandra
   become: yes
-  serial: 1
+  serial: true
+  tasks:
+  - name: taking cassandra snapshots
+    shell: |
+      nodetool clearsnapshot
+      nodetool snapshot -t "cassandra-backup-{{ lookup('pipe', 'date +%Y%m%d') }}-{{ ansible_hostname }}"
+
+# Once snaphot is done, 
+# We can take the snapshot and compress it and upload it
+# This will take some cpu and memory in the nodes
+# Because of that we're running it serially, so that it won't affect the perfomance
+- hosts: cassandra
+  serial: true
   vars_files:
     - ['{{ inventory_dir }}/secrets.yml']
   roles:
-    - cassandra-backup
+    - {name: cassandra-backup, vars: [ additional_arguments: "--disablesnapshot"]}
