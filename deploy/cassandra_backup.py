@@ -71,8 +71,7 @@ def copy():
     # Checking status of the copy operation
     for future in concurrent.futures.as_completed(futures):
         try:
-            print("Task completed for ...")
-            print(future.result())
+            print("Task completed. Result: {}".format(future.result()))
         except Exception as e:
             print(e)
 
