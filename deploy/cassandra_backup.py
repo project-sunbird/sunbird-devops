@@ -101,7 +101,10 @@ if rc == 0:
     copy()
     print("Making a tarball: {}.tar.gz".format(args.snapshotname))
     command = "cd {} && tar -czvf {}/{}.tar.gz *".format(tmpdir, args.tardirectory, args.snapshotname)
-    system(command)
+    rc = system(command)
+    if rc != 0:
+        print("Creation of tar failed")
+        exit(1)
     # Cleaning up backup directory
     rmtree(tmpdir)
     print("Cassandra backup completed and stored in {}/{}.tar.gz".format(args.tardirectory, args.snapshotname))
