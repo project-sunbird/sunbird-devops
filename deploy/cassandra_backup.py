@@ -57,7 +57,7 @@ def copy():
     # List of the threds running in background
     futures = []
     try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             for root, dirs, files in walk(args.datadirectory):
                 root_target_dir = tmpdir+sep+"cassandra_backup"+sep+sep.join(root.split(sep)[root_levels+1:-2])
                 if match(ignore_list, root_target_dir):
