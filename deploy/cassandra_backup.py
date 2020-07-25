@@ -19,7 +19,7 @@ eg: ./cassandra_backup.py
 for help ./cassandra_backup.py -h
 '''
 
-from os import walk, sep, system, getcwd, makedirs
+from os import walk, sep, system, getcwd, makedirs, cpu_count
 from argparse import ArgumentParser
 from shutil import rmtree, ignore_patterns, copytree
 from re import match, compile
@@ -36,6 +36,8 @@ parser.add_argument("-s", "--snapshotname", metavar="snapshotname",
                     help="Name with which snapshot to be taken. Default {}".format("cassandra_backup-"+strftime("%Y-%m-%d")))
 parser.add_argument("-t", "--tardirectory", metavar="tardir",
                     default=getcwd(), help="Path to create the tarball. Default {}".format(getcwd()))
+parser.add_argument("-w", "--workers", metavar="workers",
+                    default=cpu_count(), help="Number of workers to use. Default same as cpu cores {}".format(cpu_count()))
 parser.add_argument("--disablesnapshot", action="store_true",
                     help="disable taking snapshot, snapshot name can be given via -s flag")
 args = parser.parse_args()
@@ -57,7 +59,7 @@ def copy():
     # List of the threds running in background
     futures = []
     try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
             for root, dirs, files in walk(args.datadirectory):
                 root_target_dir = tmpdir+sep+"cassandra_backup"+sep+sep.join(root.split(sep)[root_levels+1:-2])
                 if match(ignore_list, root_target_dir):
