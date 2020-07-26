@@ -100,7 +100,7 @@ if rc == 0:
         print("Snapshot taken.")
     copy()
     print("Making a tarball: {}.tar.gz".format(args.snapshotname))
-    command = "cd {} && tar -czvf {}/{}.tar.gz *".format(tmpdir, args.tardirectory, args.snapshotname)
+    command = "cd {} && tar --remove-files -czvf {}/{}.tar.gz *".format(tmpdir, args.tardirectory, args.snapshotname)
     rc = system(command)
     if rc != 0:
         print("Creation of tar failed")
