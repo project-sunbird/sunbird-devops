@@ -84,8 +84,6 @@ if rc != 0:
     print("Couldn't backup schema, exiting...")
     exit(1)
 print("Schema backup completed. saved in {}/cassandra_backup/db_schema.sql".format(tmpdir))
-# Default value for snapshot
-rc = 0
 
 # Creating snapshots
 if not args.disablesnapshot:
@@ -95,17 +93,21 @@ if not args.disablesnapshot:
     # Taking new snapshot
     command = "nodetool snapshot -t {}".format(args.snapshotname)
     rc = system(command)
-if rc == 0:
-    if not args.disablesnapshot:
-        print("Snapshot taken.")
-    copy()
-    print("Making a tarball: {}.tar.gz".format(args.snapshotname))
-    command = "cd {} && tar --remove-files -czvf {}/{}.tar.gz *".format(tmpdir, args.tardirectory, args.snapshotname)
-    rc = system(command)
     if rc != 0:
-        print("Creation of tar failed")
+        print("Backup failed")
         exit(1)
-    # Cleaning up backup directory
-    rmtree(tmpdir)
-    print("Cassandra backup completed and stored in {}/{}.tar.gz".format(args.tardirectory, args.snapshotname))
+    print("Snapshot taken.")
+
+# Copying the snapshot to proper folder structure
+copy()
+# Creating tarball
+print("Making a tarball: {}.tar.gz".format(args.snapshotname))
+command = "cd {} && tar --remove-files -czvf {}/{}.tar.gz *".format(tmpdir, args.tardirectory, args.snapshotname)
+rc = system(command)
+if rc != 0:
+    print("Creation of tar failed")
+    exit(1)
+# Cleaning up backup directory
+rmtree(tmpdir)
+print("Cassandra backup completed and stored in {}/{}.tar.gz".format(args.tardirectory, args.snapshotname))
 
