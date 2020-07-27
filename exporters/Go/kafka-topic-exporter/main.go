@@ -16,6 +16,7 @@ import (
 	"time"
 
 	kafka "github.com/segmentio/kafka-go"
+	_ "github.com/segmentio/kafka-go/snappy"
 )
 
 var kafkaReaders []*kafka.Reader
