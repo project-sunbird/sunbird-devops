@@ -9,6 +9,7 @@ COPY plugins/$KONG_VERSION/jwt/* /usr/local/share/lua/5.1/kong/plugins/jwt/
 #COPY plugins/$KONG_VERSION/prometheus/* /usr/local/share/lua/5.1/kong/plugins/prometheus/
 COPY plugins/$KONG_VERSION/rate-limiting/policies/* /usr/local/share/lua/5.1/kong/plugins/rate-limiting/policies/
 COPY templates/$KONG_VERSION/nginx_kong.lua /usr/local/share/lua/5.1/kong/templates/
+COPY templates/$KONG_VERSION/kong_defaults.lua /usr/local/share/lua/5.1/kong/templates/
 
 # ensure Kong logs go to the log pipe from our entrypoint and so to docker logging
 RUN mkdir -p /usr/local/kong/logs \
