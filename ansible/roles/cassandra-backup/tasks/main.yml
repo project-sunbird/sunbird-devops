@@ -4,7 +4,10 @@
 
 - name: copy the backup script
   become: yes
-  template: src=cassandra_backup.j2  dest=/data/cassandra/backup/cassandra_backup.py mode=0755
+  template:
+    src: ../../../../deploy/cassandra_backup.py 
+    dest: /data/cassandra/backup/cassandra_backup.py
+    mode: 0755
 
 - set_fact:
     cassandra_backup_gzip_file_name: "cassandra-backup-{{ lookup('pipe', 'date +%Y%m%d') }}-{{ ansible_hostname }}"
@@ -14,7 +17,7 @@
 
 - name: run the backup script
   become: yes
-  shell: python cassandra_backup.py --snapshotname "{{ cassandra_backup_gzip_file_name }}"
+  shell: python3 cassandra_backup.py --snapshotname "{{ cassandra_backup_gzip_file_name }}" "{{additional_arguments|d('')}}"
   args:
     chdir: /data/cassandra/backup
   async: 7200
