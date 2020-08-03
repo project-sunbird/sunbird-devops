@@ -171,6 +171,32 @@ proxyconfig: |
       proxy_pass http://keycloak;
     }
 
+    # Caching keycloak static assets
+    location ~ /auth/resources/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css)) {
+      # Enabling caching
+      proxy_cache_key $proxy_host$request_uri;
+      proxy_cache proxy_cache;
+      add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
+      proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_revalidate on;
+      proxy_cache_background_update on;
+      proxy_cache_lock on;
+      proxy_cache_valid 200 3600s;
+
+      rewrite ^/auth/(.*) /auth/$1 break;      
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header    X-Forwarded-For   {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_pass http://keycloak;
+  }
+
     # This is Caching mechanism for POST requests location search
     location ~ /learner/data/v1/location/search {
       # Enabling caching
@@ -180,6 +206,7 @@ proxyconfig: |
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
       proxy_cache_methods GET HEAD POST;
+      proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
@@ -204,12 +231,12 @@ proxyconfig: |
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
       proxy_cache_methods GET HEAD POST;
+      proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
 
       rewrite ^/api/(.*) /$1 break;
-      client_max_body_size 60M;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -229,12 +256,12 @@ proxyconfig: |
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
 
       rewrite ^/api/(.*) /$1 break;
-      client_max_body_size 60M;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -263,7 +290,6 @@ proxyconfig: |
         set $custom_header "$http_authorization";
       }
       proxy_set_header Authorization $custom_header;
-      client_max_body_size 60M;
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -661,6 +687,7 @@ proxyconfig: |
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
@@ -679,12 +706,12 @@ proxyconfig: |
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
 
       rewrite ^/api/channel/v1/read/(.*) /channel/v1/read/$1 break;
-      client_max_body_size 60M;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -717,7 +744,6 @@ proxyconfig: |
     }
     {# Including custom configuration #}
     {{ proxy_custom_config }}
-    client_max_body_size 60M;
   }
 nginxconfig: |
   user  nginx;
