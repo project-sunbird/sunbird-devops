@@ -1,3 +1,37 @@
+Skip to content
+Search or jump to…
+
+Pull requests
+Issues
+Marketplace
+Explore
+
+@keshavprasadms
+        project-sunbird
+/
+sunbird-devops
+11
+30
+127
+Code
+Issues
+4
+Pull requests
+13
+Actions
+Projects
+Wiki
+Security
+Insights
+sunbird-devops/vars/stagingRC.groovy
+@keshavprasadms
+keshavprasadms feat: adding second time slot
+Latest commit 641a4e6 41 seconds ago
+History
+2 contributors
+@keshavprasadms@G33tha
+42 lines (37 sloc)  1.91 KB
+
 import java.text.SimpleDateFormat
 def call() {
     try {
@@ -14,13 +48,13 @@ def call() {
 
             start = Date.parse("HH:mm:ss", env.START_TIME)
             end = Date.parse("HH:mm:ss", env.END_TIME)
-            
+
             start1 = Date.parse("HH:mm:ss", env.START_TIME1)
             end1 = Date.parse("HH:mm:ss", env.END_TIME1)
-            
+
             current = Date.parse("HH:mm:ss", current)
 
-            if ((current.after(start) || current.after(start1)) && (current.before(end) || current.before(end1)) {
+            if ((current.after(start) || current.after(start1)) && (current.before(end) || current.before(end1))) {
                 println (ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if the branch entered matches the current release branch.." + ANSI_NORMAL)
                 if (params.release_branch != env.public_repo_branch) {
                     println(ANSI_BOLD + ANSI_RED + "Oh Uh! The branch you entered does not match the staging release branch: " + env.public_repo_branch  + ANSI_NORMAL)
