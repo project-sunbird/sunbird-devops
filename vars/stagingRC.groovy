@@ -1,37 +1,3 @@
-Skip to content
-Search or jump to…
-
-Pull requests
-Issues
-Marketplace
-Explore
-
-@keshavprasadms
-        project-sunbird
-/
-sunbird-devops
-11
-30
-127
-Code
-Issues
-4
-Pull requests
-13
-Actions
-Projects
-Wiki
-Security
-Insights
-sunbird-devops/vars/stagingRC.groovy
-@keshavprasadms
-keshavprasadms feat: adding second time slot
-Latest commit 641a4e6 41 seconds ago
-History
-2 contributors
-@keshavprasadms@G33tha
-42 lines (37 sloc)  1.91 KB
-
 import java.text.SimpleDateFormat
 def call() {
     try {
