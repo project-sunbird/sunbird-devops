@@ -31,7 +31,7 @@ def call() {
                 }
             }
             else {
-                println (ANSI_BOLD + ANSI_RED + "Tigger is NOT in the deployment window. Deployment windows are $env.START_TIME - $env.END_TIME and $env.START_TIME1 - $env.END_TIME1. Aborting!" + ANSI_NORMAL)
+                println (ANSI_BOLD + ANSI_RED + "Tigger is NOT in the deployment window. Deployment windows are Slot1: $env.START_TIME - $env.END_TIME, Slot2: $env.START_TIME1 - $env.END_TIME1. Aborting!" + ANSI_NORMAL)
                 error "Tigger is not in the deployment window. Aborted!"
             }
         }
