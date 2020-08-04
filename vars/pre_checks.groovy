@@ -15,8 +15,11 @@ def call() {
             start = Date.parse("HH:mm:ss", env.START_TIME)
             end = Date.parse("HH:mm:ss", env.END_TIME)
             current = Date.parse("HH:mm:ss", current)
+            
+            start1 = Date.parse("HH:mm:ss", env.START_TIME1)
+            end1 = Date.parse("HH:mm:ss", env.END_TIME1)
 
-            if (current.after(start) && current.before(end)) {
+            if ((current.after(start) || current.after(start1)) && (current.before(end) || current.before(end1)) {
                 println ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if tag matches our pattern.." + ANSI_NORMAL
                 tag_name = env.JOB_NAME.split("/")[-1]
                 if (!tag_name.contains(env.automated_public_repo_branch) || !tag_name.contains("_RC")) {
