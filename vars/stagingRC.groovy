@@ -14,11 +14,14 @@ def call() {
 
             start = Date.parse("HH:mm:ss", env.START_TIME)
             end = Date.parse("HH:mm:ss", env.END_TIME)
+            
+            start1 = Date.parse("HH:mm:ss", env.START_TIME1)
+            end1 = Date.parse("HH:mm:ss", env.END_TIME1)
+            
             current = Date.parse("HH:mm:ss", current)
 
-            if (current.after(start) && current.before(end)) {
+            if ((current.after(start) || current.after(start1)) && (current.before(end) || current.before(end1)) {
                 println (ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if the branch entered matches the current release branch.." + ANSI_NORMAL)
-//                branch_name = params.release_branch
                 if (params.release_branch != env.public_repo_branch) {
                     println(ANSI_BOLD + ANSI_RED + "Oh Uh! The branch you entered does not match the staging release branch: " + env.public_repo_branch  + ANSI_NORMAL)
                     error "Oh ho! The branch your entered is not a staging release candidate.. Skipping creation of tag"
@@ -28,7 +31,7 @@ def call() {
                 }
             }
             else {
-                println (ANSI_BOLD + ANSI_RED + "Tigger is NOT in the deployment window. Deployment starts at $env.START_TIME and ends at $env.END_TIME. Aborting!" + ANSI_NORMAL)
+                println (ANSI_BOLD + ANSI_RED + "Tigger is NOT in the deployment window. Deployment windows are $env.START_TIME - $env.END_TIME and $env.START_TIME1 - $env.END_TIME1. Aborting!" + ANSI_NORMAL)
                 error "Tigger is not in the deployment window. Aborted!"
             }
         }
