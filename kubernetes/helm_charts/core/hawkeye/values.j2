@@ -49,3 +49,12 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+init:
+  command:
+    - "/bin/sh"
+    - "-c"
+    - "until nc -zv $PG_HOST 5432 -w1; do echo 'waiting for db'; sleep 1; done"
+    - "superset db upgrade"
+    - "superset init"
+    - "superset fab create-admin --username admin --firstname Superset --lastname Admin --email admin@superset.com --password admin"
