@@ -1,0 +1,214 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.prometheus_rule_selector_app }}
+    release: {{ .Values.prometheus_rule_selector_release }}
+  name: {{ .Values.fullnameOverride }}-secor-lag-rules
+  namespace: {{ .Values.namespace }}
+spec:
+  groups:
+  - name: alertrules.kafkalag
+    rules:
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.assess.raw group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.assess.raw", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_assess_raw_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.assess.raw consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.assess.raw
+    
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.denorm.backup group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.denorm.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_denorm_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.denorm.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.denorm.backup
+    
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.derived.unique.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.derived.unique.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_derived_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.derived.unique.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.derived.unique.backup
+     
+    - alert: secor {{ .Values.kafka_topic_prefix }}.extractor.duplicate.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.extractor.duplicate.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_extractor_duplicate_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.extractor.duplicate.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.extractor.duplicate.backup
+    
+    - alert: secor {{ .Values.kafka_topic_prefix }}.extractor.failed.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.extractor.failed.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_extractor_failed_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.extractor.failed.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.extractor.failed.backup
+    
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.failed.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.failed.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_failed_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.failed.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.failed.backup
+    
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.raw.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.raw.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_raw_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.raw.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.raw.backup
+    
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.duplicate.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.duplicate.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_duplicate_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.duplicate.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.duplicate.backup
+    
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.unique.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.unique.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_unique_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.unique.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.unique.backup
+
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.ingest.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.ingest.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_ingestion_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.ingest.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.ingest.backup
+
+
+    - alert: secor {{ .Values.kafka_topic_prefix }}.events.device.profile.backup group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.events.device.profile.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_events_deviceprofile_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.events.device.profile.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.events.device.profile.backup
+
+    - alert: secor {{ .Values.kafka_topic_prefix }}.failed.learning.events.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.failed.learning.events.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_learning_failed_events_backup }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.failed.learning.events.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.failed.learning.events.backup
+
+    - alert: secor {{ .Values.kafka_topic_prefix }}.learning.graph.events.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.learning.graph.events.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_graph_events_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.learning.graph.events.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.learning.graph.events.backup
+
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.assess.events.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.assess.events.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_assess_backup }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.assess consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.assess.events.backup
+
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.ingestion.events.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.ingestion.events.backup", job="processing-kafka-exporter"}) > {{ .Values.kafka_telemetry_ingestion_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.ingestion.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.ingestion.events.backup
+
+    - alert: secor {{ .Values.kafka_topic_prefix }}.events.device.profile.backup group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.events.device.profile.backup", job="ingestion-kafka-exporter"}) > {{ .Values.kafka_events_deviceprofile_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.events.device.profile.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.events.device.profile.backup
+
+    - alert: secor {{ .Values.kafka_topic_prefix }}.failed.learning.events.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.failed.learning.events.backup", job="ingestion-kafka-exporter"}) > {{ .Values.kafka_learning_failed_events_backup }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.failed.learning.events.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.failed.learning.events.backup
+
+    - alert: secor {{ .Values.kafka_topic_prefix }}.learning.graph.events.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.learning.graph.events.backup", job="ingestion-kafka-exporter"}) > {{ .Values.kafka_graph_events_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.learning.graph.events.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.learning.graph.events.backup
+
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.assess.events.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.assess.events.backup", job="ingestion-kafka-exporter"}) > {{ .Values.kafka_telemetry_assess_backup }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.assess consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.assess.events.backup
+
+    - alert: secor {{ .Values.kafka_topic_prefix }}.telemetry.ingestion.events.backup consumer group lag
+      expr: sum without(partition) (kafka_consumergroupzookeeper_lag_zookeeper{consumergroup="{{ .Values.kafka_topic_prefix }}.telemetry.ingestion.events.backup", job="ingestion-kafka-exporter"}) > {{ .Values.kafka_telemetry_ingestion_backup_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+        module: dp
+      annotations:
+        message: {{`"`}}{{ .Values.kafka_topic_prefix }}{{`.telemetry.ingestion.backup consumer group lag is {{$value}} for partition: {{ $labels.partition }}"`}}
+        summary: secor consumer group lag is more for {{ .Values.kafka_topic_prefix }}.telemetry.ingestion.events.backup
