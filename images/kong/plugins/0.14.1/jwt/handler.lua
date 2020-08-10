@@ -141,6 +141,14 @@ local function do_authentication(conf)
   end
 
   if not jwt_secret then
+   -- Restore the key if kid not found and fetch from db
+    jwt_secret_key = claims[conf.key_claim_name] or header[conf.key_claim_name]
+    jwt_secret_cache_key = singletons.dao.jwt_secrets:cache_key(jwt_secret_key)
+    jwt_secret, err      = singletons.cache:get(jwt_secret_cache_key, nil,
+                                                     load_credential, jwt_secret_key)
+   end
+
+  if not jwt_secret then
     return false, {status = 403, message = "No credentials found for given '" .. conf.key_claim_name .. "'"}
   end
 
