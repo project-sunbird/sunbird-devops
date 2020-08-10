@@ -4855,4 +4855,58 @@ kong_apis:
      - name: request-size-limiting
        config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: createTenantPreferences
+    uris: "{{ org_service_prefix }}/v2/preferences/create"
+    upstream_url: "{{ learning_service_url }}/v2/org/preferences/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'orgUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateTenantPreferences
+    uris: "{{ org_service_prefix }}/v2/preferences/update"
+    upstream_url: "{{ learning_service_url }}/v2/org/preferences/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'orgUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}" 
+
+  - name: readTenantPreferencess
+    uris: "{{ org_service_prefix }}/v2/preferences/read"
+    upstream_url: "{{ learning_service_url }}/v2/org/preferences/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'orgAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"   
+
 
