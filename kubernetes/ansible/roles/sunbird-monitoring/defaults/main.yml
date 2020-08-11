@@ -3,7 +3,6 @@
 fullnameOverride: sunbird-monitoring
 monitoring_stack:
   - prometheus-operator
-  - kafka-lag-exporter
   - cassandra-jmx-exporter
   - elasticsearch-exporter
   - logger
@@ -25,6 +24,8 @@ monitor_alerts_slack_url:
 monitor_alerts_slack_channel: 
 env: dev
 kubernetes_cluster_name: kubernetes-1
+dp_monitor_alerts_slack_channel: "{{ env_name }}_flink_alerts"
+dp_monitor_alerts_slack_url: "{{ dp_vault_monitor_alerts_slack_url }}"
 
 default_critical_mailing_list: "{{ default_mailing_list }}"
 default_fatal_mailing_list: "{{ default_mailing_list }}"
@@ -169,4 +170,7 @@ kafka_telemetry_duplicate_backup_threshold: 1000
 
 ### kafka exporters related vars
 processing_cluster_zookeeper: "{{ groups['processing-cluster-zookeepers'] | difference(['localhost']) | map('regex_replace', '^(.*)$', '\\1:2181') | list}}"
-processing_cluster_kafka: "{{ groups['processing-cluster-kafka'] | difference(['localhost']) | map('regex_replace', '^(.*)$', '\\1:9092') | list}}" 
+processing_cluster_kafka: "{{ groups['processing-cluster-kafka'] | difference(['localhost']) | map('regex_replace', '^(.*)$', '\\1:9092') | list}}"
+
+ingestion_cluster_zookeeper: "{{ groups['ingestion-cluster-zookeeper'] | difference(['localhost']) | map('regex_replace', '^(.*)$', '\\1:2181') | list}}"
+ingestion_cluster_kafka: "{{ groups['ingestion-cluster-kafka'] | difference(['localhost']) | map('regex_replace', '^(.*)$', '\\1:9092') | list}}"

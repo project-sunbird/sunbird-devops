@@ -40,8 +40,14 @@ alertmanager:
       group_interval: 5m
       repeat_interval: 4h
       routes:
+      - match:
+          module: dp
+        receiver: dp-slack
       - receiver: slack
         continue: true
+      - match:
+          module: dp
+        receiver: dp-slack
       {% for item in alert_teams %}
       # Comment to ensure proper indentation while templating
       - match_re:
@@ -79,6 +85,21 @@ alertmanager:
                     {{ "{{" }} end {{ "}}" }}
                   {{ "{{" }} end {{ "}}" }}
             icon_emoji: ':dart:'
+      - name: 'dp-slack'
+        slack_configs:
+          - send_resolved: true
+            api_url: "{{ dp_monitor_alerts_slack_url }}"
+            username: 'Monitor - Alerter'
+            channel: "{{ dp_monitor_alerts_slack_channel }}"
+            text: |-
+                  {{ "{{" }} range .Alerts {{ "}}" }}
+                    *Alert:* {{ "{{" }} .Annotations.message {{ "}}" }} - `{{ "{{" }} .Labels.severity {{ "}}" }}`
+                    *Description:* {{ "{{" }} .Annotations.message {{ "}}" }}
+                    *Details:*
+                    {{ "{{" }} range .Labels.SortedPairs {{ "}}" }} • *{{ "{{" }} .Name {{ "}}" }}:* `{{ "{{" }} .Value {{ "}}" }}`
+                    {{ "{{" }} end {{ "}}" }}
+                  {{ "{{" }} end {{ "}}" }}
+            icon_emoji: ':dart:' 
       {% for item in alert_teams %}
       # Comment to ensure proper indentation while templating
       - name: "{{ item.team }}"
