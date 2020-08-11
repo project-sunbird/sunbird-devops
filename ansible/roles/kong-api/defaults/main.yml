@@ -175,24 +175,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: addRegCertificate
-    uris: "{{ cert_registry_service_prefix }}/v1/certs/add"
-    upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/add"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'certificateCreate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
   - name: addSystemSettings
     uris: "{{ data_service_prefix }}/v1/system/settings/set"
     upstream_url: "{{ learning_service_url }}/v1/system/settings/set"
@@ -1338,24 +1320,6 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: generateCertificate
-    uris: "{{ cert_service_prefix }}/v1/certs/generate"
-    upstream_url: "{{ cert_service_url }}/v1/certs/generate"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'certificateCreate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
   - name: generateDialcodes
     uris: "{{ dialcode_service_prefix }}/v1/generate"
