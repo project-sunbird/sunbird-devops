@@ -4909,4 +4909,57 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"   
 
+  - name: generateCertificateV2
+    uris: "{{ cert_service_prefix }}/v2/certs/generate"
+    upstream_url: "{{ cert_service_url }}/v2/certs/generate"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'certificateCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"  
+
+  - name: addRegCertificateV2
+    uris: "{{ cert_registry_service_prefix }}/v2/certs/add"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v2/registry/add"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'certificateCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+    
+  - name: readCertMetadata
+    uris: "{{ cert_registry_service_prefix }}/v1/certs/read/metadata"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/read/metadata"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'certificateAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
