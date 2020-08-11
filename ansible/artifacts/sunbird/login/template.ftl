@@ -86,7 +86,7 @@
                         if(sessionTenant){
                             var imgSrc = "${url.resourcesPath}/img/tenants/"+sessionTenant+".png";
                         }else{
-                            var imgSrc = "${url.resourcesPath}/img/diksha_gov_logo.svg";
+                            var imgSrc = "${url.resourcesPath}/img/logo.png";
                         }
 
                         var logoImg =  document.querySelector(".ui.header img");
@@ -94,7 +94,7 @@
                             logoImg.setAttribute('class','logo-image');
                             logoImg.setAttribute('alt',sessionTenant);
                             logoImg.src = imgSrc;
-                            logoImg.addEventListener("error", ()=>{ logoImg.onerror=null;logoImg.src='${url.resourcesPath}/img/diksha_gov_logo.svg'});
+                            logoImg.addEventListener("error", ()=>{ logoImg.onerror=null;logoImg.src='${url.resourcesPath}/img/logo.png'});
                         }
 
                     </script>

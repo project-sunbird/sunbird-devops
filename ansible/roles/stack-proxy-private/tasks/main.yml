@@ -1,0 +1,44 @@
+---
+- name: Ensure stack directory exists
+  file:
+    path: /home/deployer/stack
+    state: directory
+    owner: root
+    group: root
+
+- name: Ensure config directory exists
+  file:
+    path: /home/deployer/config
+    state: directory
+    owner: root
+    group: root
+
+- name: Save stack file
+  template: src=stack-proxy.yml dest=/home/deployer/stack/proxy-private.yml mode=0644
+
+- name: Remove stack
+  shell: "docker stack rm private"
+  ignore_errors: yes
+
+- name: Save proxy-default.conf
+  template: src=proxy-default.conf dest=/home/deployer/config/proxy-default-private.conf mode=0644
+
+- name: Ensure network exists
+  shell: "docker network create --driver overlay {{item.name}} --subnet {{item.subnet}}"
+  with_items:
+    - "{{networks}}"
+  ignore_errors: true
+
+- name: Remove old proxy-default-private.conf docker config
+  shell: "docker config rm proxy-default-private.conf"
+  ignore_errors: yes
+
+- name: Save proxy-default-private.conf as docker config
+  shell: "docker config create proxy-default-private.conf /home/deployer/config/proxy-default-private.conf"
+
+- debug: msg="server name {{proxy_server_name}}"
+
+- name: Deploy stack
+  shell: "docker stack deploy -c proxy-private.yml private"
+  args:
+    chdir: /home/deployer/stack

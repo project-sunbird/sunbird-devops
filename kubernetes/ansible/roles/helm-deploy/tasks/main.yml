@@ -1,0 +1,101 @@
+# This variable will get injected to nginx resolver config
+# There is no native helm way to do this. So it's 
+# kind of a workaround
+- name: getting kube dns ip
+  shell: kubectl get service --namespace kube-system kube-dns -o jsonpath="{.spec.clusterIP}"
+  register: kube_dns_ip
+
+- name: setting variable
+  set_fact:
+    kube_dns_ip: "{{ kube_dns_ip.stdout }}"
+
+- name: rename template
+  template:
+    src: "{{ chart_path }}/values.j2"
+    dest: "{{ chart_path }}/values.yaml"
+
+- name: Load role to decrypt private keys, copy to helm chart and encrypt private keys
+  include_role:
+    name: mount-keys
+    tasks_from: "{{outer_item.1}}"
+  vars:
+    private_key_path: "{{ outer_item.0.values_to_pass.basepath }}"
+    private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
+    private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
+    private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount }}"
+  when: release_name == "adminutils" and ((adminutil__device_keycount is defined and adminutil__device_keycount > 0) or (adminutil__access_keycount is defined and adminutil__access_keycount > 0))
+  with_subelements:
+    - "{{adminutil_device_access_values}}"
+    - role_to_run
+  loop_control:
+    loop_var: outer_item
+
+- name: helm install
+  shell: helm upgrade --install --atomic --timeout 10m {{ release_name }} {{ chart_path }} -n {{namespace}}
+
+- name: Clean up keys
+  include_role:
+    name: mount-keys
+    tasks_from: "{{item}}"
+  when: release_name == "adminutils" and ((adminutil__device_keycount is defined and adminutil__device_keycount > 0) or (adminutil__access_keycount is defined and adminutil__access_keycount > 0))
+  with_items:
+    - remove-from-helm.yml
+    - remove-keys-from-inventory.yml
+
+- name: Get the deployment rollout status
+  shell: "kubectl get deployments -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"
+  args:
+    executable: /bin/bash
+  register: deployment_result
+  ignore_errors: yes
+
+- name: Get deployed image name - deployments
+  shell: "kubectl get deployments {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
+  register: image
+
+- set_fact:
+   deployed_image: "{{ image }}"
+
+- name: Get the daemonset rollout status
+  shell: "kubectl get daemonsets -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"
+  args:
+    executable: /bin/bash
+  register: daemonset_result
+  ignore_errors: yes
+
+- name: Get deployed image name - daemonsets
+  shell: "kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
+  register: image 
+
+- set_fact:
+   deployed_image: "{{ image if image.stdout_lines | length > 0 else deployed_image }}"
+
+- name: Get the statefulset rollout status
+  shell: "kubectl get statefulsets -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"
+  args:
+    executable: /bin/bash
+  register: statefulset_result
+  ignore_errors: yes
+
+- name: Get deployed image name - statefulsets
+  shell: "kubectl get statefulsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
+  register: image
+
+- set_fact:
+   deployed_image: "{{ image if image.stdout_lines | length > 0 else deployed_image }}"
+
+- name: fail when deployment or daemonset or statefulset are not successful
+  fail:
+    msg: "Unable to get success status for any of these - deployment, daemonset, statefulset"
+  when: statefulset_result.rc != 0 and daemonset_result.rc != 0 and deployment_result.rc != 0
+
+- set_fact:
+   metadata_image: "{{ image_name }}:{{ image_tag }}"
+
+- debug: 
+    msg: "deployed image: {{ deployed_image.stdout }}"
+
+- name: Compare deployed image and metadata_image
+  fail:
+    msg: "Image version from Jenkins job and actual deployed image version do not match"
+  when: deployed_image.stdout != metadata_image

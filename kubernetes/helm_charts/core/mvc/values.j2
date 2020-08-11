@@ -1,0 +1,25 @@
+### Default variable file for mvc-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{mvc_replicacount|default(1)}}
+repository: {{mvc_repository|default('mvc-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{mvc_cpu_req|default('100m')}}
+    memory: {{mvc_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{mvc_cpu_limit|default('1')}}
+    memory: {{mvc_mem_limit|default('1024Mi')}}
+network:
+  port: 9005
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ mvc_maxsurge|default('25%') }}
+  maxunavailable: {{ mvc_maxunavailable|default('25%') }}
+
+{{ mvc_liveness_readiness | to_nice_yaml }}

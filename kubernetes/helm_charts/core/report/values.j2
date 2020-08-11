@@ -1,0 +1,26 @@
+
+### variables for report service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{report_replicacount|default(1)}}
+repository: {{report_repository|default('report-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{report_cpu_req|default('100m')}}
+    memory: {{report_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{report_cpu_limit|default('1')}}
+    memory: {{report_mem_limit|default('1024Mi')}}
+network:
+  port: 3030
+  targetport: 3030
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ report_maxsurge|default('25%') }}
+  maxunavailable: {{ report_maxunavailable|default('25%') }}
+
+{{ report_liveness_readiness | to_nice_yaml }}

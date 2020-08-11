@@ -18,17 +18,23 @@ swarm-agent-for-prometheus
 [swarm-manager:children]
 swarm-manager-1
 
+[swarm-node-1]
+11.3.0.27
+
+[swarm-worker:children]
+swarm-node-1
+
 [keycloak-1]
 18.0.0.9
 
 [keycloak:children]
 keycloak-1
 
-[log-es-1]
-18.0.0.15 node_name=refactor-log-es-1 es_etc_node_master=true es_etc_node_data=true
+[log-es-2]
+18.0.0.15 es_instance_name=log-es-2 node_name=log-es-2 es_etc_node_master=true es_etc_node_data=true
 
 [log-es:children]
-log-es-1
+log-es-2
 
 [swarm-agent-for-prometheus-1]
 18.0.0.15
@@ -64,7 +70,7 @@ swarm-agent-dashboard
 es-1
 
 [log-es-backup:children]
-log-es-1
+log-es-2
 
 [es:children]
 es-1
@@ -97,9 +103,6 @@ postgresql-master
 [processing-cluster-kafka]
 18.0.0.13
 
-[telemetry-search-cluster]
-18.0.0.13
-
 [kafka:children]
 kafka-1
 
@@ -111,6 +114,24 @@ processing-cluster-zookeepers
 
 [lp-redis]
 18.0.0.51              # Redis master IP of Knowledge platform
+
+[lp-redis-ps:children]
+lp-redis             
+
+[redis-ps:children]
+lp-redis-ps           
+
+[redis-exporter-targets:children]
+lp-redis
+
+[learning-neo4j-node1]
+15.0.2.9             # Neo4j ip of Knowledge platform
+
+[lp-cassandra]
+18.0.0.9             # cassandra ip of Knowledge platform
+
+[dp-cassandra]
+18.0.0.9             # cassandra ip of Datapipeline
 
 [local]
 localhost
@@ -128,7 +149,6 @@ swarm-manager
 swarm-manager
 swarm-bootstrap-manager
 swarm-agent-for-prometheus
-swarm-agent-for-grafana
 swarm-agent-for-alertmanager
 
 [node-exporter:children]
@@ -136,6 +156,9 @@ swarm-manager
 
 [log-forwarder:children]
 swarm-manager
+
+[composite-search-cluster]
+15.0.2.6
 
 [core:children]
 es
@@ -149,6 +172,7 @@ kafka
 keycloak
 swarm-dashboard
 swarm-agent-dashboard
+composite-search-cluster
 
 [env:children]
 core
@@ -156,6 +180,9 @@ local
 
 [log-forwarder:children]
 swarm-manager
+
+[dp-druid-broker]
+11.3.0.3                # Druid broker IP for druid proxy api
 
 [all:vars]
 # If you want to tag your prometheus data with unique cluster ids
@@ -165,3 +192,4 @@ swarm-manager
 #
 ansible_ssh_user=deployer
 ansible_ssh_private_key_file=/var/lib/jenkins/secrets/deployer_ssh_key
+logger_es6_host="{{ groups['log-es-2'][0] }}"

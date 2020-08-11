@@ -1,0 +1,54 @@
+- name: remove blank lines in index file
+  shell: "awk 'NF' {{cdn_file_path}} > /tmp/player-cdn-config"
+  when: sunbird_portal_player_cdn_enabled == 'true'
+
+- name: remove trailing spaces in index file
+  shell: "awk '{$1=$1;print}' /tmp/player-cdn-config > {{cdn_file_path}} && rm /tmp/player-cdn-config"
+  when: sunbird_portal_player_cdn_enabled == 'true'
+
+- name: Remove the existing CDN config
+  shell: "kubectl delete configmap player-cdn-config --namespace={{namespace}}"
+  ignore_errors: true
+
+- name: Create player-cdn configmap
+  shell: "kubectl create configmap player-cdn-config --from-file={{cdn_file_path}} --namespace={{namespace}}"
+  when: sunbird_portal_player_cdn_enabled == 'true'
+
+- name: rename template
+  template:
+    src: "{{ chart_path }}/values.j2"
+    dest: "{{ chart_path }}/values.yaml"
+
+- name: copy env file from swarm role
+  template:
+    src: "{{service_env[release_name]}}"
+    dest: "{{role_path}}/templates/{{ release_name }}.env"
+
+- name: template vars
+  template:
+    src: "{{ release_name }}.env"
+    dest: "{{role_path}}/templates/{{ release_name }}.env"
+
+- name: create configmap
+  shell: "kubectl create configmap player-config --from-env-file={{role_path}}/templates/{{ release_name }}.env -n {{namespace}} --dry-run -o=yaml | kubectl apply -f -"
+
+- name: helm install and upgrade
+  shell: helm upgrade --install --atomic --timeout 10m {{ release_name }} {{ chart_path }} -n {{namespace}}
+
+- name: Get the deployment rollout status
+  shell: "kubectl get deployments -A | grep -i {{ release_name }} | awk -F' ' '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'"
+  register: task_result
+  until: task_result.rc == 0
+  retries: 6
+  delay: 30
+
+- name: Get deployed image name
+  shell: kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[0].image | split("/")[1]' 
+  register: deployed_image
+
+- set_fact:
+   metadata_image: "{{ image_name }}:{{ image_tag }}"
+
+- name: Compare deployed image and metadata_image
+  fail:
+  when: deployed_image.stdout != metadata_image

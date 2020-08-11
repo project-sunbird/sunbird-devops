@@ -1,0 +1,7 @@
+---
+- name: Remove notification service
+  shell: "docker service rm notification-service"
+  ignore_errors: yes
+
+- name: Deploy notification service
+  shell: "docker service create --with-registry-auth --replicas {{ notification_replicas }} -p 9012:9000  --name notification-service --hostname notification-service --reserve-cpu {{ notification_reserve_cpu }} --reserve-memory {{ notification_reserve_memory }}  --limit-memory {{ notification_limit_memory }} --limit-cpu {{ notification_limit_cpu }} --network application_default --env-file /home/deployer/env/sunbird_notification-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"

@@ -1,0 +1,45 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{adminutil_replicacount|default(1)}}
+repository: {{adminutil_repository|default('adminutil')}}
+image_tag: {{image_tag}}
+resources:
+  requests:
+    cpu: {{adminutil_cpu_req|default('100m')}}
+    memory: {{adminutil_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{adminutil_cpu_limit|default('1000m')}}
+    memory: {{adminutil_memory_limit|default('1024Mi')}}
+network:
+  port: 4000
+  targetport: 4000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ adminutil_maxsurge|default('25%') }}
+  maxunavailable: {{ adminutil_maxunavailable|default('25%') }}
+
+{{ adminutils_liveness_readiness | to_nice_yaml }}
+
+adminutilenv:
+  JAVA_OPTS: "-Xms{{adminutil__initial_heap_size|default('256m')}} -Xmx{{adminutil__max_heap_size|default('256m')}}"
+  SERVER_PORT: '"{{adminutil__port|default('4000')}}"'
+  AM_ADMIN_API_ENDPOINT: "http://kong.{{namespace}}.svc.cluster.local:8001"
+  SPRING_PROFILES_ACTIVE: {{adminutil__spring_profile|default('production')}}
+  DEFAULT_CONSUMER_GROUP: {{adminutil__default_consumer_group|default('contentUser')}}
+  ENDPOINTS_HEALTH_ID: {{adminutil__health_id|default('apihealth')}}
+  ENDPOINTS_HEALTH_SENSITIVE: '"{{adminutil__is_health_sensitive|default('false')}}"'
+  ENDPOINTS_METRICS_ID: {{adminutil__metrics_id|default('metrics')}}
+  ENDPOINTS_METRICS_SENSITIVE: '"{{adminutil__is_metrics_sensitive|default('false')}}"'
+  AM_ADMIN_API_KEYS: "device,access"
+  AM_ADMIN_API_DEVICE_BASEPATH: "/keys/"
+  AM_ADMIN_API_DEVICE_KEYPREFIX: '"{{ adminutil__device_keyprefix | default('device') }}"'
+  AM_ADMIN_API_DEVICE_KEYSTART: '"{{ adminutil__device_keystart | default('0') }}"'
+  AM_ADMIN_API_DEVICE_KEYCOUNT: '"{{ adminutil__device_keycount | default('0') }}"'
+  AM_ADMIN_API_ACCESS_BASEPATH: "/keys/"
+  AM_ADMIN_API_ACCESS_KEYPREFIX: '"{{ adminutil__access_keyprefix | default('access') }}"'
+  AM_ADMIN_API_ACCESS_KEYSTART: '"{{ adminutil__access_keystart | default('0') }}"'
+  AM_ADMIN_API_ACCESS_KEYCOUNT: '"{{ adminutil__access_keycount | default('0') }}"'

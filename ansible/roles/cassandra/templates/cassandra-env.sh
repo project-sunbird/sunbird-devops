@@ -1,3 +1,4 @@
+#!/bin/bash
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -49,42 +50,28 @@ calculate_heap_sizes()
         system_cpu_cores="1"
     fi
 
-    # set max heap size based on the following
-    # max(min(1/2 ram, 1024MB), min(1/4 ram, 8GB))
-    # calculate 1/2 ram and cap to 1024MB
-    # calculate 1/4 ram and cap to 8192MB
-    # pick the max
+    # New Logic to pick the heap size
+    # If resource_crunch == yes then take quarter size of the Server
+    # else take half the size of the server and if half server Size exceeds 12GB then always take 12GB as the max heap size
+  
     half_system_memory_in_mb=`expr $system_memory_in_mb / 2`
     quarter_system_memory_in_mb=`expr $half_system_memory_in_mb / 2`
-    max_heap_size_in_mb="$half_system_memory_in_mb"
-    #if [ "$half_system_memory_in_mb" -gt "1024" ]
-    #then
-    #    half_system_memory_in_mb="1024"
-    #fi
-    #if [ "$quarter_system_memory_in_mb" -gt "8192" ]
-    #then
-    #    quarter_system_memory_in_mb="8192"
-    #fi
-    #if [ "$half_system_memory_in_mb" -gt "$quarter_system_memory_in_mb" ]
-    #then
-    #    max_heap_size_in_mb="$half_system_memory_in_mb"
-    #else
-    #    max_heap_size_in_mb="$quarter_system_memory_in_mb"
-    #fi
-    MAX_HEAP_SIZE="${half_system_memory_in_mb}M"
-
-    # Young gen: min(max_sensible_per_modern_cpu_core * num_cores, 1/4 * heap size)
-    max_sensible_yg_per_core_in_mb="100"
-    max_sensible_yg_in_mb=`expr $max_sensible_yg_per_core_in_mb "*" $system_cpu_cores`
-
-    desired_yg_in_mb=`expr $max_heap_size_in_mb / 4`
-
-    if [ "$desired_yg_in_mb" -gt "$max_sensible_yg_in_mb" ]
+    
+    resource_crunch="{{resource_crunch}}"
+    if [ $resource_crunch = "yes" ];
     then
-        HEAP_NEWSIZE="${max_sensible_yg_in_mb}M"
-    else
-        HEAP_NEWSIZE="${desired_yg_in_mb}M"
+      MAX_HEAP_SIZE="${quarter_system_memory_in_mb}M"
     fi
+  
+    if [ $resource_crunch != "yes" -a $half_system_memory_in_mb > 12288 ];
+    then
+        MAX_HEAP_SIZE="12288M"
+    elif [ "$resource_crunch" != "yes" ]
+    then
+        MAX_HEAP_SIZE="${half_system_memory_in_mb}M"
+    fi
+
+    HEAP_NEWSIZE=$MAX_HEAP_SIZE
 }
 
 # Determine the sort of JVM we'll be running on.
@@ -295,3 +282,4 @@ JVM_OPTS="$JVM_OPTS -Djava.library.path=$CASSANDRA_HOME/lib/sigar-bin"
 JVM_OPTS="$JVM_OPTS $MX4J_ADDRESS"
 JVM_OPTS="$JVM_OPTS $MX4J_PORT"
 JVM_OPTS="$JVM_OPTS $JVM_EXTRA_OPTS"
+

@@ -1,0 +1,102 @@
+- name: Ensure azure blob storage container exists
+  command: az storage container create  --name {{offline_installer_container_name}} --public-access blob
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_public_storage_account_name}}"
+    AZURE_STORAGE_KEY: "{{sunbird_public_storage_account_key}}"
+
+- name: Get the environment name for the artifact name
+  shell: "cat {{offline_repo_location}}/offline-installer-repo/src/package.json | jq -r '.name'"
+  register: env_name
+
+- name: Display the environment name of the installer
+  debug:
+    msg: "{{env_name.stdout}}"
+
+- name: Create a variable to inject environment name to upload to azure blob
+  set_fact:
+    environment_name: "{{ env_name.stdout }}"
+
+- name: Get the version from the package.json file
+  shell: "cat {{offline_repo_location}}/offline-installer-repo/src/package.json | jq -r '.version'"
+  register: version
+
+- name: Display the version number of the installer
+  debug:
+    msg: "{{version.stdout}}"
+
+- name: Create a variable to inject version in the template
+  set_fact:
+    installer_version: "{{ version.stdout }}"
+
+- name: get the directory name
+  shell: "ls {{offline_repo_location}}/offline-installer-repo/offline_artifacts/"
+  register: folderName
+
+- debug:
+    msg: "{{folderName.stdout}}"
+
+- name: set the folder name to copy the artifacts
+  set_fact:
+    time: "{{folderName.stdout}}"
+
+- name: copy the installer artifacts and metadata files to upload it to azure blob and generate latest.json file
+  template:
+    src: "{{item}}.j2"
+    dest: "{{offline_repo_location}}/offline-installer-repo/{{item}}"
+    mode: '0755'
+  with_items:
+    - artifacts.sh
+    - metadata.sh
+
+- name: copy the artifacts and generate the metadata file
+  shell: "bash {{offline_repo_location}}/offline-installer-repo/{{item}}"
+  args:
+    chdir: "{{offline_repo_location}}/offline-installer-repo/"
+  with_items:
+    - artifacts.sh
+    - metadata.sh
+
+- name: Upload to azure blob storage
+  command: az storage blob upload-batch --destination {{offline_installer_container_name}} --source "offline_artifacts"
+  args:
+    chdir: "{{offline_repo_location}}/offline-installer-repo/"
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_public_storage_account_name}}"
+    AZURE_STORAGE_KEY: "{{sunbird_public_storage_account_key}}"
+  async: 60
+  poll: 10
+
+- name: Upload to latest.json file to blob
+  command: az storage blob upload-batch --destination "{{offline_installer_container_name}}/latest" --source "{{folderName.stdout}}"
+  args:
+    chdir: "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/"
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_public_storage_account_name}}"
+    AZURE_STORAGE_KEY: "{{sunbird_public_storage_account_key}}"
+  async: 60
+  poll: 10
+
+- name: Create a zip of the folder to archieve the artifact
+  archive:
+    path:
+    - "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/{{folderName.stdout}}"
+    dest: "{{offline_repo_location}}/{{offline_installer_type}}.zip"
+    owner: jenkins
+    group: jenkins
+    format: zip
+
+- name: copy latest.json file to archieve it in jenkins
+  copy:
+    src: "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/{{folderName.stdout}}/latest.json"
+    dest: "{{offline_repo_location}}/latest.json"
+    owner: jenkins
+    group: jenkins
+    remote_src: yes
+
+- name: change the ownership of the directory to jenkins user
+  file:
+    path: "{{offline_repo_location}}"
+    state: directory
+    recurse: yes
+    owner: jenkins
+    group: jenkins

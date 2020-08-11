@@ -1,0 +1,46 @@
+---
+# tasks file for bootstrap-k8s
+
+- hosts: local
+  gather_facts: false
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  serial: 1
+  vars:
+    # This is where any custom config for helm_charts to define
+    # this file will get templatized in /tmp/helm_vars.yaml
+    # and use it in helm upgrade --install <name> .. -f /tmp/helm_vars.yaml
+    # example:
+    # chartname:
+    #   variables
+    #   ....
+    helm_vars:
+      reloader:
+        watchGlobally: false
+        deployment:
+          pod:
+            annotations:
+              sidecar.istio.io/inject: "false"
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  pre_tasks:
+    - name: Creating helm_charts vars file
+      copy:
+        content: "{{ helm_vars|to_yaml }}"
+        dest: /tmp/helm_vars.yaml
+    - name: Creating namespace
+      shell: "kubectl create namespace {{ item }} "
+      with_items:
+        - "{{ namespace }}"
+        - monitoring
+        - logging
+        - istio-system
+      ignore_errors: yes
+    - name: "Tagging {{ namespace }} to enable istio"
+      shell: "kubectl label namespaces {{ namespace }} istio-injection=enabled --overwrite"
+    - name: Creating docker secrets
+      shell: "kubectl create secret docker-registry {{ imagepullsecrets }} --namespace {{ namespace }} --docker-server {{ vault_docker_registry_url }} --docker-username {{ vault_docker_registry_user }} --docker-password {{ vault_docker_registry_password }} --dry-run -o=yaml | kubectl apply -f -"
+    - name: Installing reloader for configmaps reload
+      shell: helm upgrade --install --atomic reloader ../helm_charts/core/reloader --namespace "{{ namespace }}" -f /tmp/helm_vars.yaml
+  roles:
+    - istio

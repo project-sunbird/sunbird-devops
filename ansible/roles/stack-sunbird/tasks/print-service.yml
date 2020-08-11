@@ -1,0 +1,9 @@
+---
+- name: Remove print service
+  shell: "docker service rm print-service"
+  ignore_errors: yes
+
+- name: Deploy print service
+  shell: "docker service create --with-registry-auth --replicas {{ print_service_replicas }} -p 5001:5000  --name print-service --hostname print-service --reserve-memory {{ print_service_reservation_memory }} --limit-memory {{ print_service_limit_memory }} --limit-cpu {{ print_service_limit_cpu }} --reserve-cpu {{ print_service_reservation_cpu }} --health-cmd 'wget -qO- print-service:5000/health || exit 1' --health-timeout 10s --health-retries 5  --network application_default --env-file /home/deployer/env/sunbird_print-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"
+  args:
+    chdir: /home/deployer/stack

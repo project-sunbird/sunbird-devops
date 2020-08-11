@@ -1,0 +1,25 @@
+### Default variable file for search-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{taxonomy_replicacount|default(1)}}
+repository: {{taxonomy_repository|default('taxonomy-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{taxonomy_cpu_req|default('100m')}}
+    memory: {{taxonomy_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{taxonomy_cpu_limit|default('1')}}
+    memory: {{taxonomy_mem_limit|default('1024Mi')}}
+network:
+  port: 9006
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ taxonomy_maxsurge|default('25%') }}
+  maxunavailable: {{ taxonomy_maxunavailable|default('25%') }}
+
+{{ taxonomy_liveness_readiness | to_nice_yaml }}

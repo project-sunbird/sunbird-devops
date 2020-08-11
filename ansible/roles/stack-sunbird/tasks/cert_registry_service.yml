@@ -1,0 +1,7 @@
+---
+- name: Remove cert registry service
+  shell: "docker service rm cert-registry-service"
+  ignore_errors: yes
+
+- name: Deploy cert registry service
+  shell: "docker service create --with-registry-auth --replicas {{ cert_registry_replicas }} -p 9013:9000  --name cert-registry-service --hostname cert-registry-service --limit-memory {{ cert_registry_limit_memory }} --limit-cpu {{ cert_registry_limit_cpu }} --reserve-memory {{ cert_registry_reserve_memory  }} --reserve-cpu {{ cert_registry_reserve_cpu  }}  --health-cmd 'wget -qO- cert-registry-service:9000/service/health || exit 1' --health-timeout 10s --health-retries 5 --network application_default --env-file /home/deployer/env/sunbird_cert-registry-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"

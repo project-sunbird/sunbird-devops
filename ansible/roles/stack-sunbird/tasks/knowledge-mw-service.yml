@@ -1,0 +1,9 @@
+---
+- name: Remove knowledge-mw service
+  shell: "docker service rm knowledge-mw-service"
+  ignore_errors: yes
+
+- name: Deploy knowledge-mw service
+  shell: "docker service create --with-registry-auth --replicas {{ knowledge_mw_service_replicas }} -p 5000:5000  --name knowledge-mw-service --hostname knowledge-mw-service --reserve-memory {{ knowledge_mw_service_reservation_memory }} --limit-memory {{ knowledge_mw_service_limit_memory }} --limit-cpu {{ knowledge_mw_service_limit_cpu }} --reserve-cpu {{ knowledge_mw_service_reservation_cpu }} --health-cmd 'wget -qO- knowledge-mw-service:5000/service/health || exit 1' --health-timeout 10s --health-retries 5  --network application_default --env-file /home/deployer/env/sunbird_knowledge-mw-service.env  {{hub_org}}/{{image_name}}:{{image_tag}}"
+  args:
+    chdir: /home/deployer/stack

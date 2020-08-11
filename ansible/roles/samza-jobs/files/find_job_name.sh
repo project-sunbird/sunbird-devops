@@ -1,1 +1,0 @@
-sed -n "/job\.name.*$/ p" $1 | sed -n "s/=/\\t/g p" | cut -f 2

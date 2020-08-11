@@ -1,14 +1,34 @@
 ---
-- name: "Start Nodemanager on Slaves"
+- name: Move the selected samza app tar files to another dir
+  hosts: localhost
+  tasks:
+    - name: find the selected samza app tar files path
+      find:
+        paths: "{{job_workspace}}/{{ samza_tar_files_localpath }}/allfiles"
+        patterns: "{{ job_names['%s'|format(item)].job_file_name }}*"
+        recurse: yes
+      with_items: "{{ job_names_to_kill.split(',') }}"
+      register: existing_files
+
+    - name: Copy the selected samza app tar files to jobs folder
+      copy:
+       src: "{{ item }}"
+       dest: "{{job_workspace}}/{{ samza_tar_files_localpath }}/jobs"
+      with_items:
+         - "{{ existing_files | json_query('results[].files[].path') }}"
+
+- name: "Start Nodemanager on Slaves if stopped"
   hosts: "yarn-slave"
   vars:
     hadoop_version: 2.7.2
   become: yes
-  tasks:
+  pre_tasks:
     - name: Ensure yarn nodemanager is running
       become_user: hduser
       shell: |
-         (ps aux | grep yarn-hduser-nodemanager | grep -v grep) || /usr/local/hadoop/sbin/yarn-daemon.sh --config /usr/local/hadoop-{{hadoop_version}}/conf/ start nodemanager || sleep 10
+         (ps aux | grep yarn-hduser-nodemanager | grep -v grep) \
+         || /usr/local/hadoop/sbin/yarn-daemon.sh --config /usr/local/hadoop-{{ hadoop_version }}/conf/ start nodemanager \
+         || sleep 10
 
     - name: install imagemagick
       apt: name=imagemagick state=present update_cache=yes
@@ -16,9 +36,13 @@
 - name: "Deploy Samza jobs"
   hosts: "yarn-master"
   become: yes
+  become_user: hduser
   vars_files:
-    - "{{inventory_dir}}/secrets.yml"
-  vars:
-    deploy_jobs: true
+    - "{{ inventory_dir }}/secrets.yml"
+  pre_tasks:
+    - name: Ensure yarn resource manager is running
+      shell: |
+        (ps aux | grep yarn-hduser-resourcemanager | grep -v grep) \
+        || /usr/local/hadoop/sbin/yarn-daemon.sh --config /usr/local/hadoop-{{ hadoop_version }}/conf/ start resourcemanager
   roles:
     - samza-jobs

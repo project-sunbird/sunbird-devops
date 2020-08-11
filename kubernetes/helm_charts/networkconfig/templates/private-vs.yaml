@@ -1,0 +1,137 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: private-vs
+  namespace: {{ .Values.namespace }}
+spec:
+  gateways:
+  - private-gateway
+  hosts:
+  - '*'
+  http:
+  - match:
+    - uri:
+        prefix: /prometheus/
+    - uri:
+        prefix: /prometheus
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: sunbird-monitoring-prometheus.monitoring.svc.cluster.local
+        port:
+          number: 9090
+  - match:
+    - uri:
+        prefix: /kiali/
+    - uri:
+        prefix: /kiali
+    route:
+    - destination:
+        host: kiali.istio-system.svc.cluster.local
+  - match:
+    - uri:
+        prefix: /learner/
+    - uri:
+        prefix: /learner
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: learner-service
+  - match:
+    - uri:
+        prefix: /api/
+    - uri:
+        prefix: /api
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: kong
+        port:
+          number: 8000
+  - match:
+    - uri:
+        prefix: /admin-api/
+    - uri:
+        prefix: /admin-api
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: kong
+        port:
+          number: 8001
+  - match:
+    - uri:
+        prefix: /badger/
+    - uri:
+        prefix: /badger
+    rewrite:
+      uri: /api-auth/token
+    route:
+    - destination:
+        host: badger-service
+        port:
+          number: 8004
+  - match:
+    - uri:
+        prefix: /content/
+    - uri:
+        prefix: /content
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: content-service
+  - match:
+    - uri:
+        prefix: /certreg/
+    - uri:
+        prefix: /certreg
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: cert-registry-service
+  - match:
+    - uri:
+        prefix: /cert/
+    - uri:
+        prefix: /cert
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: cert-service
+  - match:
+    - uri:
+        prefix: /print/
+    - uri:
+        prefix: /print
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: print-service
+  - match:
+    - uri:
+        prefix: /assessment/
+    - uri:
+        prefix: /assessment
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: assessment-service
+  - match:
+    - uri:
+        prefix: /notification/
+    - uri:
+        prefix: /notification
+    rewrite:
+      uri: /
+    route:
+    - destination:
+        host: notification-service

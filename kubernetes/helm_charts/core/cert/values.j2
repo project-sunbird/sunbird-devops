@@ -1,0 +1,25 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{cert_replicacount|default(1)}}
+repository: {{cert_repository|default('cert_service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{cert_cpu_req|default('100m')}}
+    memory: {{cert_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{cert_cpu_limit|default('1')}}
+    memory: {{cert_mem_limit|default('1024Mi')}}
+network:
+  port: 9011
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ cert_maxsurge|default('25%') }}
+  maxunavailable: {{ cert_maxunavailable|default('25%') }}
+
+{{ cert_liveness_readiness | to_nice_yaml }}

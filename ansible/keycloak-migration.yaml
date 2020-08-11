@@ -1,0 +1,197 @@
+---
+# This ansible playbook will do keycloak migration from 3.0.1 to 6.0.1
+# Prerequisites
+# 1. Keycloak build artifact with 6.0.1
+# 2. Creates /opt/keycloak_new directory for migration
+# 3. Create /opt/keyloak_old with current keycloak backup
+#
+# Ref: https://project-sunbird.atlassian.net/wiki/spaces/UM/pages/1087504491/KeyCloak+6.0.1+upgrade
+
+- hosts: keycloak
+  gather_facts: yes
+  vars:
+    keycloak_dir: /opt/keycloak
+  vars_files:
+    - "{{ inventory_dir }}/secrets.yml"
+  tasks:
+    - name: Get the list of all the services running in our OS
+      become: yes
+      service_facts:
+
+    - name: Stop the monit to ensure that it doesn't start keycloak
+      service: name=monit state=stopped
+      become: yes
+      when: ansible_facts.services.monit is defined
+
+    - name: stop the keycloak server so that it will not cause any issues at time of migration
+      become: yes
+      shell: /bin/bash -c "/etc/init.d/keycloak stop || pkill keycloak"
+      failed_when: false
+
+- hosts: local
+  vars_files:
+    - "{{ inventory_dir }}/secrets.yml"
+  vars:
+    db_backup_name: "/root/keycloak{{ ansible_date_time.epoch }}.sql"
+    no_log: true
+  tasks:
+    - name: taking backup of existing DB
+      become: yes
+      postgresql_db:
+        name: "{{ keycloak_postgres_database }}"
+        state: dump
+        target: "{{ db_backup_name }}"
+        login_user: "{{keycloak_postgres_user }}"
+        login_password: "{{ keycloak_postgres_password }}"
+        login_host: "{{ keycloak_postgres_host }}"
+        port: 5432
+
+    - name: creating backup db "{{ keycloak_postgres_database }}_301"
+      postgresql_db:
+        name: "{{ keycloak_postgres_database }}_301"
+        state: present
+        login_user: "{{ keycloak_postgres_user }}"
+        login_password: "{{ keycloak_postgres_password }}"
+        login_host: "{{ keycloak_postgres_host }}"
+      register: status
+
+    - name: creating backup keycloak old db {{ keycloak_postgres_database }}_301 for the first time
+      become: yes
+      postgresql_db:
+        name: "{{ keycloak_postgres_database }}_301"
+        state: restore
+        target: "{{ db_backup_name }}"
+        login_user: "{{ keycloak_postgres_user }}"
+        login_password: "{{ keycloak_postgres_password }}"
+        login_host: "{{ keycloak_postgres_host }}"
+        port: 5432
+      when: status.changed
+
+    - name: copying keycloak db revert script.
+      copy:
+        src: generic_templates/keycloak_301_rollback.sql
+        dest: /tmp/keycloak_301_rollback.sql
+
+    - name: Altering the schema to delete duplicate events/entries from the keycloak DB
+      become: yes
+      postgresql_db:
+        name: "{{ keycloak_postgres_database }}"
+        state: restore
+        target: /tmp/keycloak_301_rollback.sql
+        login_user: "{{keycloak_postgres_user }}"
+        login_password: "{{ keycloak_postgres_password }}"
+        login_host: "{{ keycloak_postgres_host }}"
+        port: 5432
+
+- hosts: keycloak
+  vars:
+    keycloak_dir: /opt/keycloak
+  vars_files:
+    - "{{ inventory_dir }}/secrets.yml"
+  tasks:
+    - name: Stopping keycloak
+      become: yes
+      shell: /bin/bash -c "/etc/init.d/keycloak stop || pkill keycloak"
+      failed_when: false
+
+    - name: Waiting for keycloak to stop completely
+      wait_for:
+        port: 8080
+        state: stopped
+        timeout: 30
+
+    - name: deleting keycloak new and old directory if present
+      become: yes
+      file:
+        path: "{{ item }}"
+        state: absent
+        force: yes
+      with_items:
+        - "{{ keycloak_dir }}_new"
+        - "{{ keycloak_dir }}_old"
+
+# Ansible copy module doesn't copy directories recursively in remote servers so using shell module
+    - name: Create backup of existing keycloak 3.2.0 version
+      become: yes
+      shell: "cp -rf {{ keycloak_dir }} {{ keycloak_dir }}_old && chown -R keycloak:keycloak {{ keycloak_dir }}_old"
+
+    - name: make sure keycloak path exists
+      become: yes
+      file:
+        path: "{{ keycloak_dir }}_new"
+        state: directory
+        owner: keycloak
+        group: keycloak
+
+    - name: unarchive keycloak
+      become: yes
+      unarchive:
+        src: https://sunbirdpublic.blob.core.windows.net/installation/keycloak-6.0.1.tar.gz
+        dest: "{{ keycloak_dir }}_new"
+        extra_opts: ['--strip-components=1']
+        remote_src: yes
+        owner: keycloak
+        group: keycloak
+
+    - name: Copying old files to new keycloak for migration
+      become: yes
+      become_user: keycloak
+      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }}/* {{ keycloak_dir }}_new/{{ item }}/"
+      with_items:
+        - standalone
+        - domain
+
+    - name: Copying old files to new keycloak for migration
+      become: yes
+      become_user: keycloak
+      shell: "cp -rf {{ keycloak_dir }}_old/{{ item }} {{ keycloak_dir }}_new/{{ item }}"
+      with_items:
+        - modules/system/layers/keycloak/org/postgresql
+
+    - name: Deleting unnecessary fields from standalone.xml file
+      become: yes
+      become_user: keycloak
+      lineinfile:
+        path: "{{keycloak_dir }}_new/standalone/configuration/standalone-ha.xml"
+        state: absent
+        regexp: "{{ item }}"
+      with_items:
+        - '<property name="port_range">.*'
+        - '<property name="timeout">.*'
+        - '<property name="num_initial_members">.*'
+
+    - name: Running migration
+      become: yes
+      become_user: keycloak
+      shell: "bash {{ item }}"
+      with_items:
+        - "bin/jboss-cli.sh --file=bin/migrate-standalone.cli"
+        - "bin/jboss-cli.sh --file=bin/migrate-standalone-ha.cli"
+      args:
+        chdir: "{{ keycloak_dir }}_new"
+      run_once: yes
+
+    - name: delete the old keycloak version from the server
+      become: yes
+      file:
+        path: "{{ keycloak_dir }}"
+        state: absent
+        force: yes
+
+    - name: renaming the folder to make version 6 as the keycloak version
+      become: yes
+      shell: "mv {{ keycloak_dir }}_new {{ keycloak_dir }} && chown -R keycloak:keycloak {{ keycloak_dir }}"
+
+    - name: Starting keycloak in both the servers 
+      become: yes
+      shell: "/etc/init.d/keycloak start"
+
+    - name: get the list of all services in the system
+      become: yes
+      service_facts:
+
+    - name: After succesful migration and staring of keycloak, start back monit if installed
+      service: name=monit state=started
+      become: yes
+      when: ansible_facts.services.monit is defined
+

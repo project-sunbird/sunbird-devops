@@ -1,0 +1,95 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-public-ingress
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  selector:
+    matchLabels:
+      app: nginx-public-ingress
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: nginx-public-ingress
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      volumes:
+        - name: tls
+          secret:
+            secretName: ingress-cert
+        - name: proxy-config
+          configMap:
+            name: proxy-default
+        - name: nginx-config
+          configMap:
+            name: nginx-conf
+{{- if .Values.volumes }}
+{{ toYaml .Values.volumes | indent 8 }}
+{{- end }}
+      containers:
+      - name: nginx-public
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        volumeMounts:
+          - name: tls
+            mountPath: /etc/secrets
+            readOnly: true
+          - name: proxy-config
+            mountPath: /etc/nginx/conf.d/default.conf
+            subPath: proxy-default.conf
+            readOnly: true
+          - name: nginx-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+            readOnly: true
+{{- if .Values.volumeMounts }}
+{{ toYaml .Values.volumeMounts | indent 10 }}
+{{- end }}
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+        - containerPort: 9145
+          name: http-metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-public-ingress-metrics
+  namespace: {{ .Values.namespace }}
+  labels:
+{{- include "nginx-public-ingress.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: nginx-public-ingress
+  ports:
+    - name: http
+      port: 9145
+      targetPort: 9145
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-public-ingress
+  namespace: {{ .Values.namespace }}
+spec:
+  externalTrafficPolicy: Local
+  selector:
+    app: nginx-public-ingress
+  type: {{ .Values.service.type }}
+{{- if and .Values.service.nginx_public_ingress_ip (ne .Values.service.type "NodePort") }}
+  loadBalancerIP: {{ .Values.service.nginx_public_ingress_ip }}
+{{- end }}
+  ports:
+{{ toYaml .Values.service.ports | indent 4 }}

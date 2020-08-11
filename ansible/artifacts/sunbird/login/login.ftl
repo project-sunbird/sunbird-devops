@@ -5,17 +5,18 @@
     <#elseif section = "header">
     <#elseif section = "form">
     <#if realm.password>
-    <div class="ui raised shadow container segment fullpage-background-image">
-        <div class="ui three column grid stackable">
-            <div class="ui column tablet only computer only"></div>
-            <div class="ui column height-fix">
+    <div class="fullpage-background-image">
+    <div class="container-wrapper">
                 <div class="ui header centered">
                     <img onerror="" alt="">
-                    <div class="signInHead mt-27">${msg("doSignIn")}</div>
+                    <div id="signIn" class="signInHead mt-8">${msg("loginDiksha")}</div>
+                    <p class="subtitle">Login</p>
                 </div>
-                <div class="formMsg mb-28 textCenter">
+                <p id="mergeAccountMessage" class="hide mb-0 textCenter">${msg("mergeAccountMessage")}</p>
+                <p id="migrateAccountMessage" class="hide mb-0 textCenter">${msg("migrateAccountMessage")}</p>
+                <div class="formMsg textCenter">
                 <#if message?has_content>
-                    <div class="ui text ${message.type}">
+                    <div id="error-summary" class="ui text ${message.type}">
                         ${message.summary}
                     </div>
                     </#if>
@@ -36,33 +37,51 @@
                             <#else>${msg("email")}
                             </#if>
                         </label>
-                        <#if usernameEditDisabled??>
-                        <input class="mt-8" id="username" name="username" value="${(login.username!'')?html}" type="text" disabled />
+                         <#if usernameEditDisabled??>
+                          <#-- TODO: need to find alternative for prepopulating username -->
+                        <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" type="text" disabled />
                         <#else>
-                        <input class="mt-8" id="username" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" value="${(login.username!'')?html}" type="text" autofocus autocomplete="off" />
+                        <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="off" />
                         </#if>
                     </div>
-                    <div class="field">
+                    <div class="field mb-8">
                         <div>
                             <label id="passwordLabel" for="password" class="">
                                 ${msg("password")}
                             </label>
-                            <#if realm.resetPasswordAllowed>
-                                <a id="fgtKeycloakFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:storeLocation(); javascript:makeDivUnclickable()" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
-                                <div id="fgtPortalFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:redirect('/recover/identify/account');javascript:makeDivUnclickable()">${msg("doForgotPassword")}</div>
-                            </#if>
+
                             <label id="passwordLabelPlaceholder" for="password" class="activeLabelColor hide">
                                 ${msg("placeholderForPassword")}
                             </label>
                         </div>
-                        <input class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="off" />
+                        <input placeholder="${msg('passwordPlaceholder')}" class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="off" />
+                    <span class="ui text error hide" id="inCorrectPasswordError">${msg("inCorrectPasswordError")}</span>
                     </div>
-                    <div class="field">
-                        <button id="login" class="mt-36 ui fluid button">${msg("doSignIn")}</button>
+                    <div class="remember-forgot-row">
+                    <div class="sb-checkbox sb-checkbox-secondary hide">
+                        <input type="checkbox" id="rememberme" name="rememberme">
+                        <label for="rememberme">Remember Me</label>
+                    </div>
+                    <div class="forgot-password">
+                      <#if realm.resetPasswordAllowed>
+                        <a id="fgtKeycloakFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:storeLocation(); javascript:makeDivUnclickable()" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
+                        <div id="fgtPortalFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:forgetPassword('/recover/identify/account');javascript:makeDivUnclickable()">${msg("doForgotPassword")}</div>
+                      </#if>
+                    </div>
                     </div>
 
+                    <div class="field mb-8">
+                        <button id="login" class="mt-24 sb-btn sb-btn-normal sb-btn-primary width-100">${msg("login")}</button>
+                    </div>
+                  <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??>
+                    <div id="kc-registration" class="field">
+                                <div class="ui content signUpMsg">
+                                    ${msg("noAccount")} <span id="signup" tabindex="0" class="registerLink" onclick=navigate('self')>${msg("registerHere")}</span>
+                                </div>
+                    </div>
+                  </#if>
                     <div id="selfSingUp" class="hide">
-                        <p class="or mb-30 mt-30 textCenter">OR</p>
+                        <p class="or my-16 textCenter">OR</p>
                         <div class="field">
                             <#if realm.password && social.providers??>
                                 <!--div id="kc-social-providers">
@@ -73,26 +92,21 @@
                                     </#list>
                                 </div-->
                             </#if>
-                            <button type="button" class="ui fluid blue basic button googleButton" onclick="navigate('google')">
-                            <img class="signInWithGoogle" src="${url.resourcesPath}/img/google.png">
-                            ${msg("doSignIn")} ${msg("doSignWithGoogle")}
+                            <button type="button" class="sb-btn sb-btn-normal sb-btn-primary width-100 mb-16 btn-signInWithGoogle" onclick="navigate('google')">
+                            <img class="signInWithGoogle" src="${url.resourcesPath}/img/google.svg">
+                            ${msg("doLogIn")} ${msg("doSignWithGoogle")}
                             </button>
-							<button type="button" id="stateButton" class="ui fluid blue basic button googleButton stateButton hide" onclick="navigate('state')">
-								${msg("doSignWithState")}
-							</button>
+                            <button type="button" id="stateButton" class="sb-btn sb-btn-outline-gray sb-btn-normal width-100" onclick="navigate('state')">
+                                ${msg("doSignWithState")}
+                            </button>
                         </div>
-                        <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??>
-                            <div id="kc-registration" class="field">
-                                <div class="ui content signUpMsg">
-                                    ${msg("noAccount")} <span id="signup" tabindex="0" class="registerLink" onclick=navigate('self')>${msg("doRegister")}</span> to access relevant learning material and enroll for courses.
-                                </div>
-                            </div>
-                        </#if>
                     </div>
                 </form>
-            </div>
-            <div class="ui column tablet only computer only"></div>
-        </div>
+                <a id="goBack" class="textCenter mt-16 hide cursor-pointer">${msg("goBack")}</a>
+            <!-- <button id="goBack" class="sb-btn sb-btn-normal sb-btn-link sb-btn-link-primary back-btn hide" type="button">
+            <img src="${url.resourcesPath}/img/arrow_back.png" width="12" /> <span class="ml-4">${msg("goBack")}</span>
+                </button> -->
+    </div>
     </div>
     </#if>
 </#if>

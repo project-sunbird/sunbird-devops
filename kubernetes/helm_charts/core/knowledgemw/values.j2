@@ -1,0 +1,25 @@
+### Default variable file for knowledge_mw service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{knowledge_mw_replicacount|default(1)}}
+repository: {{knowledge_mw_repository|default('knowledge-mw-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{knowledge_mw_cpu_req|default('100m')}}
+    memory: {{knowledge_mw_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{knowledge_mw_cpu_limit|default('1')}}
+    memory: {{knowledge_mw_mem_limit|default('1024Mi')}}
+network:
+  port: 5000
+  targetport: 5000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ knowledge_mw_maxsurge|default('25%') }}
+  maxunavailable: {{ knowledge_mw_maxunavailable|default('25%') }}
+
+{{ knowledgemw_liveness_readiness | to_nice_yaml }}
