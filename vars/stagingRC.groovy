@@ -24,7 +24,8 @@ def call() {
                 println (ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if the branch entered matches the current release branch.." + ANSI_NORMAL)
                 allowed_releases = env.staging_allowed_releases
                 for(i = 0; i < allowed_releases.split(",").length; i++) {
-                    if (params.release_branch != allowed_releases.split(",")[i]) {   
+                    println("branch :" + allowed_releases.split(",")[i])
+                    if (params.release_branch != allowed_releases.split(",")[i]) {
                        println(ANSI_BOLD + ANSI_RED + "Oh Uh! The branch you entered does not match the staging release branch: " + env.public_repo_branch  + ANSI_NORMAL)
                        error "Oh ho! The branch your entered is not a staging release candidate.. Skipping creation of tag"
                     }
