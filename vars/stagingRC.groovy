@@ -23,9 +23,9 @@ def call() {
             if ((current.after(start) && current.before(end)) || (current.after(start1) && current.before(end1))) {
                 println (ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if the branch entered matches the current release branch.." + ANSI_NORMAL)
                 allowed_releases = env.staging_allowed_releases
+                flag = 0
                 for(i = 0; i < allowed_releases.split(",").length; i++) {
                     println("branch :" + allowed_releases.split(",")[i])
-                    flag = 0
                     if (params.release_branch == allowed_releases.split(",")[i]) {
                        println (ANSI_BOLD + ANSI_GREEN + "All checks passed - Continuing build.." + ANSI_NORMAL)
                        flag = 1
