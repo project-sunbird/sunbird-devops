@@ -183,6 +183,19 @@ data:
         </pattern>
       </parse>
     </filter>
+    # To add filtering capability of the proxy logs
+    <filter kubernetes.var.log.containers.nginx-public-ingress-**.log>
+      @type parser
+      key_name message
+      reserve_time true
+      reserve_data true
+      remove_key_name_field false
+        <parse>
+          @type regexp
+          expression /^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*) (?<request_time>[^ ]+) (?<upstream_response_time>[^ ]+) (?<pipe>\.*)(?:"(?<referer>[^\"]*)" "(?<agent>[^\"]*)"(?:\s+(?<http_x_forwarded_for>[^ ]+))?)?$/
+          time_format %d/%b/%Y:%H:%M:%S %z
+        </parse>
+    </filter>
 {{- end }}
 
 {{- if .Values.configMaps.useDefaults.systemInputConf }}
