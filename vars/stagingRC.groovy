@@ -22,14 +22,17 @@ def call() {
 
             if ((current.after(start) && current.before(end)) || (current.after(start1) && current.before(end1))) {
                 println (ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if the branch entered matches the current release branch.." + ANSI_NORMAL)
-                if (params.release_branch != env.public_repo_branch) {
-                    println(ANSI_BOLD + ANSI_RED + "Oh Uh! The branch you entered does not match the staging release branch: " + env.public_repo_branch  + ANSI_NORMAL)
-                    error "Oh ho! The branch your entered is not a staging release candidate.. Skipping creation of tag"
+                allowed_releases = env.staging_allowed_releases
+                for(i = 0; i < allowed_releases.split(",").length; i++) {
+                    if (params.release_branch != allowed_releases.split(",")[i]) {   
+                       println(ANSI_BOLD + ANSI_RED + "Oh Uh! The branch you entered does not match the staging release branch: " + env.public_repo_branch  + ANSI_NORMAL)
+                       error "Oh ho! The branch your entered is not a staging release candidate.. Skipping creation of tag"
+                    }
+                    else {
+                       println (ANSI_BOLD + ANSI_GREEN + "All checks passed - Continuing build.." + ANSI_NORMAL)
+                    }
                 }
-                else {
-                    println (ANSI_BOLD + ANSI_GREEN + "All checks passed - Continuing build.." + ANSI_NORMAL)
-                }
-            }
+            }     
             else {
                 println (ANSI_BOLD + ANSI_RED + "Tigger is NOT in the deployment window. Deployment windows are SLOT-1: $env.START_TIME - $env.END_TIME, SLOT-2: $env.START_TIME1 - $env.END_TIME1. Aborting!" + ANSI_NORMAL)
                 error "Tigger is not in the deployment window. Aborted!"
