@@ -33,6 +33,7 @@ def call() {
                     }
                     else {
                         if (flag == 0) { 
+                          println("flag :" + flag)  
                           println(ANSI_BOLD + ANSI_RED + "Oh Uh! The branch you entered does not match the staging release branch: " + env.public_repo_branch  + ANSI_NORMAL)
                           error "Oh ho! The branch your entered is not a staging release candidate.. Skipping creation of tag"
                         }     
