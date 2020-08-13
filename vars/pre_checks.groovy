@@ -19,16 +19,16 @@ def call() {
             if (current.after(start) && current.before(end)) {
                 println ANSI_BOLD + ANSI_GREEN + "Tigger is in the deployment window.. Check if tag matches our pattern.." + ANSI_NORMAL
                 tag_name = env.JOB_NAME.split("/")[-1]
-                
-                // Temporary fix starts - For the creative branching strategy of Portal 
+                allowed_releases = env.staging_allowed_releases
+                flag = 0
+
+                // Temporary fix starts - For the creative branching strategy of Portal
                 if (env.JOB_NAME.split("/")[-2] == "Player" && tag_name.contains(allowed_releases.split(",")[0])){
                     println ANSI_BOLD + ANSI_RED + "Block this build. Its creating unnecessry havoc.." + ANSI_NORMAL
                     error "This tag is blocked"
                 }
                 // Temporary fix ends - For the creative branching strategy of Portal 
-
-                allowed_releases = env.staging_allowed_releases
-                flag = 0
+                
                 for(i = 0; i < allowed_releases.split(",").length; i++) {
                     if (tag_name.contains(allowed_releases.split(",")[i]) && tag_name.contains("_RC")) {
                         println ANSI_BOLD + ANSI_GREEN + "All checks passed - Continuing build.." + ANSI_NORMAL
