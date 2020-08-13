@@ -32,7 +32,7 @@
                                 <i class="eye icon link" onclick="viewPassword(this)"></i>
                                 <!--i id="preview-hide" class="eye slash icon hide link"></i-->
                             </div>
-                            <div id="passwd-error-msg" class="ui text passwdchk">Password must contain a minimum of 8 characters including numerals, lower and upper case alphabets and special characters.</div>
+                            <div id="passwd-error-msg" class="ui text passwdchk">Your password must contain a minimum of 8 characters. It must include numerals, lower and upper case alphabets and special characters, without any spaces.</div>
                         </div>
                     </div>
                     <div class="field">

@@ -11,10 +11,11 @@ fullnameOverride: sunbird-monitoring
 # Enabling external prometheus scrape config 
 prometheus:
   prometheusSpec:
-    additionalScrapeConfigsExternal: true
+    additionalScrapeConfigsExternal: {{ additional_scrape_configs_enabled | d(true) }}
     retention: "{{ prometheus_retention_time | d('90d') }}"
     externalLabels:
       cluster: "{{ kubernetes_cluster_name | default('kubernetes-1')}}"
+      env: "{{ env }}"
 {% if prometheus_storage_spec is defined and prometheus_storage_spec %}
     storageSpec: {{ prometheus_storage_spec|to_json }}
 {% endif %}
@@ -117,7 +118,9 @@ grafana:
   env:
     GF_SERVER_ROOT_URL: http://grafana.local.com/grafana
   adminPassword: {{ (grafana_admin_password| default('prom-operator'))}}
-  additionalDataSources: {{ (grafana_data_sources| default('[]')) | to_json}}
+{% if grafana_data_sources is defined and grafana_data_sources %}
+  additionalDataSources: {{ (grafana_data_sources) | to_json}}
+{% endif %}
 {% if grafana_persistence is defined and grafana_persistence %}
   persistence: {{ grafana_persistence|to_json}}
 {% endif %}

@@ -1,4 +1,9 @@
 namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+repository: {{proxy_repository|default('proxy')}}
+image_tag: {{ image_tag }}
+replicaCount: {{nginx_private_ingress_replicacount|default(1)}}
 nginx_private_ingress_type: {{ nginx_private_ingress_type | default('LoadBalancer') }}
 private_ingress_custom_annotations: {{ private_ingress_custom_annotations | d('false') | lower }}
 kube_dns_ip: {{kube_dns_ip}}
@@ -7,3 +12,10 @@ private_ingress_annotation:
 {% if nginx_private_ingress_ip is defined %}
 nginx_private_ingress_ip: {{ nginx_private_ingress_ip }}
 {% endif %}
+resources:
+  requests:
+    cpu: {{nginx_private_ingress_cpu_req | default('100m')}}
+    memory: {{nginx_private_ingress_mem_req | default('100Mi')}}
+  limits:
+    cpu: {{nginx_private_ingress_cpu_limit | default('500m')}}
+    memory: {{nginx_private_ingress_mem_limit | default('500Mi')}}

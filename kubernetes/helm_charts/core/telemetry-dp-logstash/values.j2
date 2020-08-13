@@ -1,0 +1,23 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: sunbird
+
+replicaCount: {{telemetry_logstash_replicacount|default(1)}}
+repository: 'telemetry_logstash'
+image_tag: 5.6-alpine
+resources:
+  requests:
+    cpu: {{telemetry_logstash_cpu_req|default('100m')}}
+    memory: {{telemetry_logstash_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{telemetry_logstash_cpu_limit|default('1')}}
+    memory: {{telemetry_logstash_mem_limit|default('1024Mi')}}
+network:
+  port: 5044
+  targetport: 5044
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ telemetry_logstash_maxsurge|default('25%') }}
+  maxunavailable: {{ telemetry_logstash_maxunavailable|default('25%') }}

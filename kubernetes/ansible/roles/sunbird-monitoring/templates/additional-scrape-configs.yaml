@@ -160,6 +160,18 @@ scrapeconfig:
       replacement: $1
       action: keep
 
+  - job_name: 'redis_exporter_targets'
+    static_configs:
+      - targets: ["{{ groups['redis-exporter-targets'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:6379') | list | join("\", \"") }}"]
+    metrics_path: /scrape
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: redis-exporter:9121
+
   {% for item in service_blackbox_checks %}
   # This empty line ensures indentation is correct after ansible jinja2 template is materialized
   - job_name: 'availability_{{ item.service_name }}'

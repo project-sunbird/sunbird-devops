@@ -1,35 +1,15 @@
-{{- if .Values.oAuthConfig }}
----
+{{- if not .Values.config.existingConfig }}
+{{- if .Values.config.configFile }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Chart.Name }}-config
-  namespace: {{ .Values.namespace }}
   labels:
-    app: {{ .Chart.Name }}
-    release: {{ .Release.Name | quote }}
+    app: {{ template "oauth2-proxy.name" . }}
+    chart: {{ template "oauth2-proxy.chart" . }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+  name: {{ template "oauth2-proxy.fullname" . }}
 data:
-{{- range $path, $config := .Values.oAuthConfig }}
-  {{ $path }}: |
-{{ $config | indent 4 -}}
-{{- end -}}
-{{- end -}}
-
-
-{{- if .Values.authenticatedEmails }}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Chart.Name }}-auth-emails
-  namespace: {{ .Values.namespace }}
-  labels:
-    app: {{ .Chart.Name }}
-    release: {{ .Release.Name | quote }}
-data:
-{{- range $path, $config := .Values.authenticatedEmails }}
-  {{ $path }}: |
-{{ $config | indent 4 -}}
-{{- end -}}
-{{- end -}}
-
+  oauth2_proxy.cfg: {{ .Values.config.configFile | quote }}
+{{- end }}
+{{- end }}

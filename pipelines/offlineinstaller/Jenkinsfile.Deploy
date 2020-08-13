@@ -1,0 +1,80 @@
+@Library('deploy-conf') _
+node() {
+    try {
+        String ANSI_GREEN = "\u001B[32m"
+        String ANSI_NORMAL = "\u001B[0m"
+        String ANSI_BOLD = "\u001B[1m"
+        String ANSI_RED = "\u001B[31m"
+        String ANSI_YELLOW = "\u001B[33m"
+
+        stage('checkout public repo') {
+            cleanWs()
+            checkout scm
+        }
+            ansiColor('xterm') {
+                values = lp_dp_params()
+                stage('get artifact') {
+                    currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                    artifact = values.artifact_name + ":" + values.artifact_version
+                    values.put('currentWs', currentWs)
+                    values.put('artifact', artifact)
+                    artifact_download(values)
+                }
+                stage('deploy artifact') {
+                    sh """
+                       unzip ${artifact}
+                       mkdir offline-installer-repo
+                       tar -xvzf src.tar.gz -C offline-installer-repo/
+                    """
+
+                    ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml"
+                    ansibleExtraArgs = "--extra-vars \"offline_repo_location=$currentWs offline_installer_type=${params.offline_installer_type}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+                    currentBuild.result = "SUCCESS"
+                    currentBuild.description = "Artifact: ${values.artifact_version}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
+                    archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
+                }
+
+                try {
+		     stage('Build Installer, create and upload it to azure') {
+			dir('offline-installer-repo') {
+			    sh """
+                               bash -x build.sh
+		             """
+			}
+                        ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
+                        ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs uploadInstaller=True offline_installer_type=${offline_installer_type}\""
+                        values.put('currentWs', currentWs)
+                        values.put('ansiblePlaybook', ansiblePlaybook)
+                        values.put('ansibleExtraArgs', ansibleExtraArgs)
+                        println values
+                        ansible_playbook_run(values)
+			archiveArtifacts artifacts: '*.zip', onlyIfSuccessful: true
+			archiveArtifacts artifacts: 'latest.json', onlyIfSuccessful: true
+		     }
+		}
+		catch (err) {
+                        ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
+                        ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs removeOfflineInstallerFolder=True offline_installer_type=${offline_installer_type}\""
+                        values.put('currentWs', currentWs)
+                        values.put('ansiblePlaybook', ansiblePlaybook)
+                        values.put('ansibleExtraArgs', ansibleExtraArgs)
+                        println values
+                        ansible_playbook_run(values)
+                        currentBuild.result = 'SUCCESS'
+		}
+            }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
+    }
+}

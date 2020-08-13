@@ -1,0 +1,25 @@
+version: '3.1'
+services:
+  learner_service:
+    image: "{{hub_org}}/{{image_name}}:{{image_tag}}"
+    env_file:
+      /home/deployer/env/sunbird_ml-api.env
+    deploy:
+      replicas: {{ ml-api_replicas | default(1) }}
+      resources:
+        reservations:
+          memory: "{{ ml-api_reservation_memory  | default('256M') }}"
+        limits:
+          memory: "{{ ml-api_limit_memory  | default('512M') }}"
+    # healthcheck:
+    #   test: curl -f http://localhost:9000/health || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+     - "3579:3579"
+    networks:
+      - application_default
+networks:
+  application_default:
+    external: true

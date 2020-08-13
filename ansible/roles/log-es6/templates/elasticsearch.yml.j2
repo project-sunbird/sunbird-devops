@@ -10,7 +10,7 @@ cluster.name: elasticsearch
 {% if (groups['log-es']|length) <= 2 %}
 discovery.zen.minimum_master_nodes: 1
 {% else %}
-discovery.zen.minimum_master_nodes: "{{ ((groups['log-es']|length) / 2 +1) | round(0, 'ceil') | int}}"
+discovery.zen.minimum_master_nodes: "{{ ((groups['log-es']|length) / 2 +1) | round(0, 'floor') | int}}"
 {% endif %}
 
 {% if es_config['node.name'] is not defined %}
@@ -55,9 +55,4 @@ network.host: 0.0.0.0
 
 {% if es_remote_reindex is defined %}
 reindex.remote.whitelist: {{es_remote_host}}:9200
-{% endif %}
-
-{% if backup_azure_storage_account_name is defined and backup_azure_storage_access_key is defined %}
-cloud.azure.storage.default.account: {{ backup_azure_storage_account_name }}
-cloud.azure.storage.default.key: {{ backup_azure_storage_access_key }}
 {% endif %}

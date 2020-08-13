@@ -146,7 +146,18 @@
                         <user-name>{{ keycloak_postgres_user }}</user-name>
                         <password>{{ keycloak_postgres_password }}</password>
                     </security>
+
+                <validation>
+                      <check-valid-connection-sql>select 1</check-valid-connection-sql>
+                      <validate-on-match>false</validate-on-match>
+                      <background-validation>true</background-validation>
+                      <background-validation-millis>120000</background-validation-millis>
+                </validation>
+                <statement>
+                      <share-prepared-statements>false</share-prepared-statements>
+                </statement>
                 </datasource>
+
                 <drivers>
                     <driver name="h2" module="com.h2database.h2">
                         <xa-datasource-class>org.h2.jdbcx.JdbcDataSource</xa-datasource-class>
@@ -228,7 +239,7 @@
             <buffer-pool name="default"/>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:infinispan:8.0">
-            <cache-container name="keycloak">
+            <cache-container name="keycloak" >
                 <transport lock-timeout="60000"/>
                 <local-cache name="realms">
                     <object-memory size="10000"/>
@@ -313,9 +324,9 @@
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jgroups:6.0">
             <channels default="ee">
-                <channel name="ee" stack="udp" cluster="ejb"/>
+                <channel name="ee" stack="tcp"/>
             </channels>
-            <stacks>
+            <stacks default="tcp">
                 <stack name="udp">
                     <transport type="UDP" socket-binding="jgroups-udp"/>
                     <protocol type="PING"/>
@@ -331,20 +342,25 @@
                     <protocol type="MFC"/>
                     <protocol type="FRAG3"/>
                 </stack>
-                <stack name="tcp">
+
+            <stack name="tcp">
                     <transport type="TCP" socket-binding="jgroups-tcp"/>
-                    <socket-protocol type="MPING" socket-binding="jgroups-mping"/>
+                    <protocol type="TCPPING">
+                        <property name="initial_hosts">{{groups['keycloak'] | difference(ansible_default_ipv4.address) | join('[7600],')}}[7600]</property>
+                        <property name="port_range">10</property>
+                    </protocol>
                     <protocol type="MERGE3"/>
-                    <protocol type="FD_SOCK"/>
-                    <protocol type="FD_ALL"/>
+                    <protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
+                    <protocol type="FD"/>
                     <protocol type="VERIFY_SUSPECT"/>
                     <protocol type="pbcast.NAKACK2"/>
                     <protocol type="UNICAST3"/>
                     <protocol type="pbcast.STABLE"/>
                     <protocol type="pbcast.GMS"/>
                     <protocol type="MFC"/>
-                    <protocol type="FRAG3"/>
+                    <protocol type="FRAG2"/>
                 </stack>
+
             </stacks>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jmx:1.3">
@@ -643,7 +659,9 @@
         <socket-binding name="http" port="${jboss.http.port:8080}"/>
         <socket-binding name="https" port="${jboss.https.port:8443}"/>
         <socket-binding name="jgroups-mping" interface="private" multicast-address="${jboss.default.multicast.address:230.0.0.4}" multicast-port="45700"/>
-        <socket-binding name="jgroups-tcp" interface="private" port="7600"/>
+          <socket-binding name="jgroups-tcp" interface="private" port="7600"/>
+          <socket-binding name="jgroups-tcp-fd" interface="private" port="57600"/>
+          <socket-binding name="jgroups-udp-fd" interface="private" port="54200"/>
         <socket-binding name="jgroups-udp" interface="private" port="55200" multicast-address="${jboss.default.multicast.address:230.0.0.4}" multicast-port="45688"/>
         <socket-binding name="modcluster" multicast-address="${jboss.modcluster.multicast.address:224.0.1.105}" multicast-port="23364"/>
         <socket-binding name="txn-recovery-environment" port="4712"/>

@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 41,
-  "iteration": 1580975581165,
+  "id": 60,
+  "iteration": 1589183133348,
   "links": [],
   "panels": [
     {
@@ -24,7 +24,8 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
+      "datasource": "Prometheus",
+      "decimals": 2,
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -37,12 +38,13 @@
       "id": 7,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": true,
         "max": true,
-        "min": true,
+        "min": false,
         "rightSide": true,
         "show": true,
+        "sideWidth": null,
         "total": false,
         "values": true
       },
@@ -63,10 +65,10 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "avg without (cpu) (rate(node_cpu_seconds_total{ mode!=\"idle\"}[5m]))",
+          "expr": "sum by (instance) (avg without (cpu) (rate(node_cpu_seconds_total{ mode!=\"idle\"}[5m]))) * on (instance) group_left(nodename) node_uname_info{job=~\".*node-exporter\", nodename=~\"$nodename\"}",
           "format": "time_series",
           "intervalFactor": 1,
-          "legendFormat": "{{instance}}",
+          "legendFormat": "{{nodename}}",
           "refId": "A"
         }
       ],
@@ -116,7 +118,8 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
+      "datasource": "Prometheus",
+      "decimals": 2,
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -129,10 +132,10 @@
       "id": 1,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": true,
         "max": true,
-        "min": true,
+        "min": false,
         "rightSide": true,
         "show": true,
         "sort": "current",
@@ -157,18 +160,9 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(host) * on (instance) group_left(nodename) node_load1",
+          "expr": "(node_load1) * on (instance) group_left(nodename) node_uname_info{job=~\".*node-exporter\", nodename=~\"$nodename\"}",
           "format": "time_series",
           "hide": false,
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "{{host}}",
-          "refId": "A",
-          "step": 2
-        },
-        {
-          "expr": "(node_load1) * on (instance) group_left(nodename) node_uname_info{job=~\".*node-exporter\"}",
-          "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{nodename}}",
           "refId": "B",
@@ -221,7 +215,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
+      "datasource": "Prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -262,7 +256,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum((node_filesystem_size_bytes{ mountpoint=\"/\", job=~\".*node-exporter\"} - node_filesystem_free_bytes{ mountpoint=\"/\"}) * 100 / node_filesystem_size_bytes{mountpoint=\"/\"}  * on (instance) group_left(nodename) node_uname_info )  by (nodename)",
+          "expr": "sum((node_filesystem_size_bytes{ mountpoint=\"/\", job=~\".*node-exporter\"} - node_filesystem_free_bytes{ mountpoint=\"/\"}) * 100 / node_filesystem_size_bytes{mountpoint=\"/\"}  * on (instance) group_left(nodename) node_uname_info{job=~\".*node-exporter\", nodename=~\"$nodename\"} )  by (nodename)",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 2,
@@ -317,7 +311,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
+      "datasource": "Prometheus",
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
@@ -356,7 +350,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "((node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Cached_bytes - node_memory_Buffers_bytes - node_memory_Slab_bytes) * on (instance) group_left(nodename) node_uname_info{job=~\".*node-exporter\"})",
+          "expr": "((node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Cached_bytes - node_memory_Buffers_bytes - node_memory_Slab_bytes) * on (instance) group_left(nodename) node_uname_info{job=~\".*node-exporter\", nodename=~\"$nodename\"})",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{nodename}}",
@@ -410,21 +404,23 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
+      "datasource": "Prometheus",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 7,
         "w": 24,
         "x": 0,
         "y": 31
       },
+      "hiddenSeries": false,
       "id": 4,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": true,
         "max": true,
-        "min": true,
+        "min": false,
         "rightSide": true,
         "show": true,
         "total": false,
@@ -434,7 +430,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
-      "options": {},
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -445,7 +443,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(node_network_receive_bytes_total{device!=\"lo\"}[5m]) * on (instance) group_left(nodename) node_uname_info{job=~\".*node-exporter\"}",
+          "expr": "irate(node_network_receive_bytes_total{device!=\"lo\"}[5m]) * on (instance) group_left(nodename) node_uname_info{job=~\".*node-exporter\", nodename=~\"$nodename\"}",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "In: {{nodename}}",
@@ -473,7 +471,7 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "format": "Bps",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -481,7 +479,7 @@
           "show": true
         },
         {
-          "format": "short",
+          "format": "Bps",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -499,21 +497,23 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "$datasource",
+      "datasource": "Prometheus",
       "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 7,
         "w": 24,
         "x": 0,
         "y": 38
       },
+      "hiddenSeries": false,
       "id": 5,
       "legend": {
         "alignAsTable": true,
-        "avg": false,
+        "avg": true,
         "current": true,
         "max": true,
-        "min": true,
+        "min": false,
         "rightSide": true,
         "show": true,
         "total": false,
@@ -523,7 +523,9 @@
       "linewidth": 1,
       "links": [],
       "nullPointMode": "null",
-      "options": {},
+      "options": {
+        "dataLinks": []
+      },
       "percentage": false,
       "pointradius": 5,
       "points": false,
@@ -534,7 +536,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(node_network_transmit_bytes_total{device!=\"lo\"}[5m]) * on (instance) group_left(nodename) node_uname_info{job=~\".*node-exporter\"}",
+          "expr": "irate(node_network_transmit_bytes_total{device!=\"lo\"}[5m]) * on (instance) group_left(nodename) node_uname_info{job=~\".*node-exporter\", nodename=~\"$nodename\"}",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{nodename}}",
@@ -562,7 +564,7 @@
       },
       "yaxes": [
         {
-          "format": "short",
+          "format": "Bps",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -570,7 +572,7 @@
           "show": true
         },
         {
-          "format": "short",
+          "format": "Bps",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -585,27 +587,37 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 21,
+  "schemaVersion": 22,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": [
       {
+        "allValue": null,
         "current": {
-          "text": "Prometheus_DS1",
-          "value": "Prometheus_DS1"
+          "text": "All",
+          "value": [
+            "$__all"
+          ]
         },
+        "datasource": "Prometheus",
+        "definition": "label_values(node_uname_info{job=~\".*node-exporter\"},nodename)",
         "hide": 0,
-        "includeAll": false,
-        "label": "Data Source",
-        "multi": false,
-        "name": "datasource",
+        "includeAll": true,
+        "label": null,
+        "multi": true,
+        "name": "nodename",
         "options": [],
-        "query": "prometheus",
+        "query": "label_values(node_uname_info{job=~\".*node-exporter\"},nodename)",
         "refresh": 1,
-        "regex": "/Prom.*/",
+        "regex": "",
         "skipUrlSync": false,
-        "type": "datasource"
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
       }
     ]
   },
@@ -640,6 +652,6 @@
   },
   "timezone": "",
   "title": "Load metrics",
-  "uid": "000000007",
-  "version": 1
+  "uid": "B-a5y6eZz",
+  "version": 11
 }

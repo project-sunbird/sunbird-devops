@@ -11,7 +11,7 @@ spec:
   strategy:
      rollingUpdate:
         maxSurge: {{ .Values.strategy.maxsurge }}
-        maxUnavailable: {{ default (sub .Values.replicaCount 1) .Values.strategy.maxunavailable }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
   selector:
     matchLabels:
       app: {{ .Chart.Name }}
@@ -28,6 +28,9 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         imagePullPolicy: Always
+        env:
+        - name: JAVA_OPTIONS
+          value: {{ .Values.env.javaoptions | quote }}
         envFrom:
         - configMapRef:
             name: {{ .Chart.Name }}-config
@@ -41,6 +44,16 @@ spec:
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
         {{- end }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+        volumeMounts:
+        - mountPath: {{ .Values.lms_device_basepath }}
+          name: access-keys
+      volumes:
+      - name: access-keys
+        secret:
+          secretName: lms-access-keys
+{{ end }}
 
 ---
 apiVersion: v1

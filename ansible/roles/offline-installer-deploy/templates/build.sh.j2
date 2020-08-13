@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo "Offline Installer for Sunbird"
+
+# Build script
+set -eo pipefail
+
+if [ "{{offline_installer_type}}" == "windows32bit" ];
+then
+
+	docker run --rm -v ${PWD}:/private/ i386/node:8.16.2-stretch bash -x /private/32-bit-prerequisite.sh
+
+fi
+
+#chmod +x setupOfflineInstaller.sh
+docker run --rm --env-file envfile  --env ELECTRON_CACHE="/root/.cache/electron"  --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder"  -v ${PWD}:/project electronuserland/builder:wine bash -x setupOfflineInstaller.sh
+
+echo "Build the installer succesfully"

@@ -5,6 +5,9 @@ namespace: {{ namespace }}
 imagepullsecrets: {{ imagepullsecrets }}
 dockerhub: {{ dockerhub }}
 
+env:
+  javaoptions: {{learner_java_mem_limit|default('-Xmx600m')}}
+
 replicaCount: {{learner_replicacount|default(1)}}
 repository: {{learner_repository|default('learner_service')}}
 image_tag: {{ image_tag }}
@@ -20,8 +23,9 @@ network:
   targetport: 9000
 strategy:
   type: RollingUpdate
-  maxsurge: {{ learner_maxsurge|default(1) }}
-  maxunavailable: {{ learner_maxunavailable|default }}
+  maxsurge: {{ learner_maxsurge|default('25%') }}
+  maxunavailable: {{ learner_maxunavailable|default('25%') }}
 
 {{ learner_liveness_readiness | to_nice_yaml }}
 
+learner_device_basepath: {{ learner_device_basepath | default('/keys/') }}

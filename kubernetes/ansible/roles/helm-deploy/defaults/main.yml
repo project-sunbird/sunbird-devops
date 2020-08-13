@@ -35,8 +35,7 @@ kibana_service: "{{swarm_dashboard}}:5601"
 
 upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
 plugin_upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
-sunbird_offline_azure_storage_account_url: "{{ sunbird_offline_azure_storage_account }}.blob.core.windows.net/{{ offline_installer_container_name }}"
-
+sunbird_offline_azure_storage_account_url: "{{ sunbird_public_storage_account_name }}.blob.core.windows.net/{{ offline_installer_container_name }}"
 adminutils_liveness_readiness:
   healthcheck: true
   readinessProbe:
@@ -44,13 +43,55 @@ adminutils_liveness_readiness:
       path: /health
       port: 4000
     initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 4000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+
+api_managerecho_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /hello
+      port: 9595
+    initialDelaySeconds: 30
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 5
     successThreshold: 1
   livenessProbe:
     httpGet:
-      path: /health
-      port: 4000
+      path: /hello
+      port: 9595
     initialDelaySeconds: 60
     periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 5
+
+adminutil_device_access_values:
+- key_to_register: device
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__device_keyprefix | default('device') }}"
+    keystart: "{{ adminutil__device_keystart | default('0') }}"
+    keycount: "{{ adminutil__device_keycount | default('0') }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml
+- key_to_register: access
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__access_keyprefix | default('access') }}"
+    keystart: "{{ adminutil__access_keystart | default('0') }}"
+    keycount: "{{ adminutil__access_keycount | default('0') }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml

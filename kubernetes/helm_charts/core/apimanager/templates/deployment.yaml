@@ -11,7 +11,7 @@ spec:
   strategy:
      rollingUpdate:
         maxSurge: {{ .Values.strategy.maxsurge }}
-        maxUnavailable: {{ default (sub .Values.replicaCount 1) .Values.strategy.maxunavailable }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
   selector:
     matchLabels:
       app: {{ .Chart.Name }}
@@ -27,11 +27,6 @@ spec:
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
-        env:
-        - name: KONG_DNS_RESOLVER
-          value: "127.0.0.1:53"
-        - name: KONG_DNSMASQ
-          value: "off"
         envFrom:
         - configMapRef:
             name: {{ .Chart.Name }}-config
@@ -48,10 +43,12 @@ spec:
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
         {{- end }}
-      - name: go-dns
-        image: "{{ .Values.godns.repository }}:{{ .Values.godns.image_tag }}"
-        resources:
-{{ toYaml .Values.godns.resources | indent 10 }}
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - kong
+              - quit
 
 ---
 apiVersion: v1

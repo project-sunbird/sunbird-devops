@@ -1,47 +1,89 @@
 apiVersion: v1
 data:
-  default.conf: |
-    server {
-      listen 80;
-      listen [::]:80;
+  nginx.conf: |
+    user  nginx;
+    worker_processes  1;
 
-      resolver {{ .Values.kube_dns_ip }};
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
 
-      location /api/ {
-        rewrite ^/api/(.*) /$1 break;
-        proxy_pass http://kong:8000;
-      }
-      location /grafana/ {
-        rewrite ^/grafana/(.*) /$1 break;
-        proxy_pass http://prometheus-operator-grafana.monitoring.svc.cluster.local;
-      }
-      location /admin-api/ {
-        rewrite ^/admin-api/(.*) /$1 break;
-        proxy_pass http://kong:8001;
-      }
-      location /cert/ {
-        rewrite ^/cert/(.*) /$1 break;
-        proxy_pass http://cert-service:9000;
-      }
-      location /certreg/ {
-        rewrite ^/certreg/(.*) /$1 break;
-        proxy_pass http://cert-registry-service:9000;
-      }
-      location /assessment/ {
-        rewrite ^/assessment-service/(.*) /$1 break;
-        proxy_pass http://assessment-service:9000;
-      }
-      location /knowledge-mw/ {
-        rewrite ^/knowledge-mw/(.*) /$1 break;
-        proxy_pass http://knowledge-mw-service:5000;
-      }
-      location /player/ {
-        rewrite ^/player/(.*) /$1 break;
-        proxy_pass http://player:3000;
-      }
-      location /opensaber/ {
-        rewrite ^/opensaber/(.*) /$1 break;
-        proxy_pass http://opensaber-service:8080;
+    events {
+        worker_connections  1024;
+    }
+
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      lua_load_resty_core off;
+      lua_package_path "/etc/nginx/lua_modules/?.lua";
+      log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+    
+      access_log  /var/log/nginx/access.log  main;
+      include /etc/nginx/conf.d/*.conf;
+      sendfile        on;
+      client_max_body_size 60M;
+        
+      server {
+        listen 80;
+        listen [::]:80;
+    
+        resolver {{ .Values.kube_dns_ip }};
+
+        location /api/ {
+          rewrite ^/api/(.*) /$1 break;
+          proxy_pass http://kong:8000;
+        }
+        location /grafana/ {
+          rewrite ^/grafana/(.*) /$1 break;
+          proxy_pass http://prometheus-operator-grafana.monitoring.svc.cluster.local;
+        }
+        location /admin-api/ {
+          rewrite ^/admin-api/(.*) /$1 break;
+          proxy_pass http://kong:8001;
+        }
+        location /player/ {
+          rewrite ^/player/(.*) /$1 break;
+          proxy_pass http://player:3000;
+        }
+        location /knowledgemw/ {
+          rewrite ^/knowledgemw/(.*) /$1 break;
+          proxy_pass http://knowledge-mw-service:5000;
+        }
+        location /content/ {
+          rewrite ^/content/(.*) /$1 break;
+          proxy_pass http://content-service:9000;
+        }
+        location /cert/ {
+          rewrite ^/cert/(.*) /$1 break;
+          proxy_pass http://cert-service:9000;
+        }
+        location /certreg/ {
+          rewrite ^/certreg/(.*) /$1 break;
+          proxy_pass http://cert-registry-service:9000;
+        }
+        location /assessment/ {
+          rewrite ^/assessment/(.*) /$1 break;
+          proxy_pass http://assessment-service:9000;
+        }
+        location /search/ {
+          rewrite ^/search/(.*) /$1 break;
+          proxy_pass http://search-service:9000;
+        }
+        location /opensaber/ {
+          rewrite ^/opensaber/(.*) /$1 break;
+          proxy_pass http://opensaber-service:8080;
+        }
+        location /print/ {
+          rewrite ^/print/(.*) /$1 break;
+          proxy_pass http://print-service:5000;
+        }
+        location /program/ {
+          rewrite ^/program/(.*) /$1 break;
+          proxy_pass http://program-service:6000;
+        }
+
       }
     }
 kind: ConfigMap

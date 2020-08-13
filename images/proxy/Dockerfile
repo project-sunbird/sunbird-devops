@@ -10,7 +10,9 @@ ENV LUAJIT_INC=/usr/local/include/luajit-2.1
 COPY nginx_devel_kit /opt/nginx_devel_kit
 COPY luajit /usr/src/luajit
 COPY nginx_lua /opt/nginx_lua
+COPY ngx_http_geoip2_module /opt/nginx_http_geoip2_module
 
+RUN apk add --no-cache libmaxminddb-dev
 RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
     && CONFIG="\
         --prefix=/etc/nginx \
@@ -19,6 +21,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
         --with-ld-opt='-Wl,-rpath,/usr/local/lib' \
         --add-module=/opt/nginx_devel_kit \
         --add-module=/opt/nginx_lua \
+        --add-dynamic-module=/opt/nginx_http_geoip2_module \
         --conf-path=/etc/nginx/nginx.conf \
         --error-log-path=/var/log/nginx/error.log \
         --http-log-path=/var/log/nginx/access.log \
@@ -154,7 +157,7 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
     && ln -sf /dev/stderr /var/log/nginx/error.log
 
 COPY nginx.conf /etc/nginx/nginx.conf
-copy prometheus.lua /etc/nginx/lua_modules/
+copy nginx-lua-prometheus/*.lua /etc/nginx/lua_modules/
 
 EXPOSE 80
 
