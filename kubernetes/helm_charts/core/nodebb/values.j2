@@ -1,0 +1,26 @@
+#jinja2:lstrip_blocks: True
+
+### Default variable file for nodebb-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: nodebb
+
+replicaCount: {{nodebb_replicacount|default(1)}}
+repository: docker
+image_tag: v1.13.4-5 
+resources:
+  requests:
+    cpu: {{nodebb_cpu_req|default('50m')}}
+    memory: {{nodebb_mem_req|default('50Mi')}}
+  limits:
+    cpu: {{nodebb_cpu_limit|default('1')}}
+    memory: {{nodebb_mem_limit|default('1024Mi')}}
+network:
+  port: 5000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ nodebb_maxsurge|default('25%') }}
+  maxunavailable: {{ nodebb_maxunavailable|default('25%') }}
+
+{{ nodebb_liveness_readiness | to_nice_yaml }}
