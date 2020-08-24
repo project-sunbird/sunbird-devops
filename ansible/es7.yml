@@ -1,0 +1,28 @@
+- hosts: es7
+  become: yes
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml']
+  vars:
+    es_plugins:
+      - plugin: repository-azure
+  tasks:
+    - name: Registering node name
+      set_fact:
+        es_instance_name: "{% for servername in play_hosts %}{% if inventory_hostname==servername %}es-{{ loop.index }}{% endif %}{% endfor %}"
+  roles:
+    - openjdk
+    - { role: es7,
+        es_config: {
+          cluster.name: "{{ app_es_etc_cluster_name }}",
+          http.port: 9200,
+          transport.port: 9300,
+          node.data: "{{ es_etc_node_data | default('true') }}",
+          node.master: "{{ es_etc_node_master | default('true') }}",
+          bootstrap.memory_lock: true,
+        },
+        es_etc_cluster_name: "{{ app_es_etc_cluster_name }}",
+        es_heap_size: 4g
+      }
+    - curl_es_command
+  tags:
+    - es
