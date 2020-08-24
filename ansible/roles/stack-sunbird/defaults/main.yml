@@ -285,6 +285,7 @@ service_env:
     - ../../../../ansible/roles/stack-sunbird/templates/taxonomy-service_logback.xml
   report: ../../../../ansible/roles/stack-sunbird/templates/sunbird_report-service.env
   telemetry-dp-logstash: ../../../../ansible/roles/stack-sunbird/templates/telemetry-logstash-datapipeline.conf
+  analytics: ../../../../ansible/roles/stack-sunbird/templates/analytics_api_service.conf
 
 sunbird_portal_player_cdn_enabled: false 
 
@@ -697,6 +698,26 @@ report_liveness_readiness:
     timeoutSeconds: 10
     failureThreshold: 5
 
+analytics_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+
 adminutil__access_keyprefix: "access"
 adminutil__access_keystart: 0
 adminutil__access_keycount: 0
@@ -712,3 +733,17 @@ adminutil_access_values:
     - decrypt.yml
     - generate-keys.yml
     - copy-to-helm-public.yml
+
+# analytics-service related vars
+cassandra:
+  keyspace_prefix: "{{ env_name }}_"
+
+default_channel_id: "in.ekstep"
+default_channel: "{{default_org_hash_id}}"
+channel_data_exhaust_bucket: dev-data-store
+metadata_redis_host: "{{ groups['dp-redis'][0] }}"
+lp_composite_search_host: "{{ groups['composite-search-cluster'][0] }}"
+ingestion_kafka_brokers: "{{groups['ingestion-cluster-kafka']|join(':9092,')}}:9092"
+geo_location_city: "{{ env_name }}_geo_location_city"
+geo_location_city_ipv4: "{{ env_name }}_geo_location_city_ipv4"
+report_config: "{{ env_name }}_report_config"
