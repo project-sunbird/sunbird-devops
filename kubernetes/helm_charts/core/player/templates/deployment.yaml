@@ -26,9 +26,15 @@ spec:
 {{- end }}
       {{- if .Values.sunbird_portal_player_cdn_enabled }}
       volumes:
-        - name: player-cdn-config
-          configMap:
-            name: player-cdn-config
+      - name: player-cdn-config
+        configMap:
+          name: player-cdn-config
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+      - name: access-keys
+        secret:
+          secretName: access-keys
+{{- end }}
       {{- end }}
       containers:
       - name: {{ .Chart.Name }}
@@ -53,7 +59,11 @@ spec:
             mountPath: /home/sunbird/app_dist/dist/index_cdn.ejs
             subPath: index_cdn.ejs
         {{- end }}
-
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+        - mountPath: {{ .Values.player_access_basepath }}
+          name: access-keys
+{{- end }}
 ---
 apiVersion: v1
 kind: Service
