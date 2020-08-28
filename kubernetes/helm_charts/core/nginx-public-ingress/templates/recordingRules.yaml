@@ -1,0 +1,20 @@
+{{- if .Values.serviceMonitor.enabled }}
+{{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" ) ( .Values.serviceMonitor.enabled ) }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "nginx-public-ingress.fullname" . }}-recording.rule
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+  labels:
+    {{- include "nginx-public-ingress.labels" . | nindent 4 }}
+    {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
+spec:
+  groups:
+  - name: nginx-recording.rules
+    rules:
+    - expr: sum(rate(nginx_http_requests_total[5m])) by (cache_status, host, env, status)
+      record: job:nginx_http_requests_total:rate:sum:5m
+    - expr: sum(rate(nginx_http_requests_total[15m])) by (cache_status, host, env, status)
+      record: job:nginx_http_requests_total:rate:sum:15m
+{{- end }}
+{{- end }}
