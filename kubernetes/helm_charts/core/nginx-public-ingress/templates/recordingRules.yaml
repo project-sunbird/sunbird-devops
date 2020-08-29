@@ -16,5 +16,33 @@ spec:
       record: job:nginx_http_requests_total:rate:sum:5m
     - expr: sum(rate(nginx_http_requests_total[15m])) by (cache_status, host, env, status)
       record: job:nginx_http_requests_total:rate:sum:15m
+    - record: job:nginx_http_success_percentage:increase:sum:5m
+      expr: |-
+        (
+        sum(increase(nginx_http_requests_total{status!~"4..|5.."}[5m])) by (status)
+        /
+        ignoring(status) group_left sum(increase(nginx_http_requests_total[5m]))
+        ) * 100
+    - record: job:nginx_http_success_percentage:increase:sum:15m
+      expr: |-
+        (
+        sum(increase(nginx_http_requests_total{status!~"4..|5.."}[15m])) by (status)
+        /
+        ignoring(status) group_left sum(increase(nginx_http_requests_total[15m]))
+        ) * 100
+    - record: job:nginx_http_failure_percentage:increase:sum:5m
+      expr: |-
+        (
+        sum(increase(nginx_http_requests_total{status!~"2..|3.."}[5m])) by (status)
+        /
+        ignoring(status) group_left sum(increase(nginx_http_requests_total[5m]))
+        ) * 100
+    - record: job:nginx_http_failure_percentage:increase:sum:15m
+      expr: |-
+        (
+        sum(increase(nginx_http_requests_total{status!~"2..|3.."}[15m])) by (status)
+        /
+        ignoring(status) group_left sum(increase(nginx_http_requests_total[15m]))
+        ) * 100
 {{- end }}
 {{- end }}
