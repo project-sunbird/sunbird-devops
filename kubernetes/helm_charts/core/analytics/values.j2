@@ -1,0 +1,32 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+env:
+  javaoptions: {{analytics_java_mem_limit|default('-Xmx600m')}}
+  min_heap: {{analytics_min_heap_limit|default('-Xms1g')}}
+  max_heap: {{analytics_max_heap_limit|default('-Xmx2g')}}
+  azure_private_account_secret: {{ sunbird_private_storage_account_key }}
+  azure_private_account_name: {{ sunbird_private_storage_account_name }}
+
+replicaCount: {{analytics_replicacount|default(1)}}
+repository: {{analytics_repository|default('sunbird-analytics-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{analytics_cpu_req|default('100m')}}
+    memory: {{analytics_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{analytics_cpu_limit|default('1')}}
+    memory: {{analytics_mem_limit|default('1024Mi')}}
+network:
+  port: 9000
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ analytics_maxsurge|default('25%') }}
+  maxunavailable: {{ analytics_maxunavailable|default('25%') }}
+
+{{ analytics_liveness_readiness | to_nice_yaml }}
