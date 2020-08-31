@@ -796,8 +796,9 @@ proxyconfig: |
     }
     
     location ~ /chatapi/bot {
+      set $target http://router-service.{{ namespace }}.svc.cluster.local:8000
       rewrite ^/chatapi/(.*) /$1 break;
-      set $target http://router-service:8000;
+      proxy_pass $target;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
@@ -807,7 +808,6 @@ proxyconfig: |
       proxy_set_header    X-Forwarded-Proto $scheme;
       proxy_set_header Connection "";
       proxy_http_version 1.1;
-      proxy_pass $target;
     }
 
     location /oauth2callback {
