@@ -23,10 +23,10 @@ def call() {
                 flag = 0
 
                 // Temporary fix starts - For the creative branching strategy of Portal
-                if (env.JOB_NAME.split("/")[-2] == "Player" && tag_name.contains(allowed_releases.split(",")[0])){
+/*                if (env.JOB_NAME.split("/")[-2] == "Player" && tag_name.contains(allowed_releases.split(",")[0])){
                     println ANSI_BOLD + ANSI_RED + "Block this build. Its creating unnecessry havoc.." + ANSI_NORMAL
                     error "This tag is blocked"
-                }
+                } */
                 // Temporary fix ends - For the creative branching strategy of Portal 
                 
                 for(i = 0; i < allowed_releases.split(",").length; i++) {
