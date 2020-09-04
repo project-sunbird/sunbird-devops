@@ -1,0 +1,37 @@
+- name: Create the directory
+  file: path={{ redis_backup_dir }} state=directory recurse=yes
+  
+
+- set_fact:
+    redis_backup_file_name: "redis-backup-{{ lookup('pipe', 'date +%Y-%m-%d-%T') }}.rdb"
+ 
+- set_fact:
+    redis_backup_file_path: "{{ redis_backup_dir }}/{{ redis_backup_file_name }}"
+
+
+- name: copy dump.rdb file
+  copy:
+    src: /home/learning/redis-stable/dump.rdb
+    dest: "{{ redis_backup_dir }}/{{ redis_backup_file_name }}"
+    remote_src: yes
+    
+
+- name: upload to azure
+  include_role:
+    name: artifacts-upload-azure
+  vars:
+    artifact: "{{ redis_backup_file_name }}"
+    artifact_path: "{{ redis_backup_file_path }}"
+    artifacts_container: "{{ nodebb_redis_backup_azure_container_name }}"
+   
+- name: clean up backup dir after upload
+  file: path={{ redis_backup_dir }} state=absent
+
+- name: Keyspace info
+  shell: "echo info keyspace | ./src/redis-cli"
+  register: restoreinfo
+  args:
+    chdir: "/home/learning/redis-stable/"
+
+- debug: var=restoreinfo.stdout_lines
+
