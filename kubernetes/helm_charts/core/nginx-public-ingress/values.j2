@@ -63,7 +63,7 @@ resources:
 repository: {{proxy_repository|default('proxy')}}
 image_tag: {{ image_tag }}
 
-proxyconfig: |
+proxyconfig: |-
   {% if proto=='https' %}
   server {
     listen 80;
@@ -116,19 +116,15 @@ proxyconfig: |
     proxy_set_header    X-Forwarded-Proto $scheme;
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
     resolver {{ kube_dns_ip }} valid=30s;
-
     location ~* ^/auth/(.*)/impersonation {
       return 301 {{proto}}://{{ proxy_server_name }};
     }
-
     location ~* ^/auth/realms/master {
       return 301 {{proto}}://{{ proxy_server_name }};
     }
-
     location ~* ^/auth/admin/master/console/ {
       return 301 {{proto}}://{{ proxy_server_name }};
     }
-
     location ~* ^/auth/realms/(.+)/token/introspect/ {
           return 301 {{proto}}://$host/api/auth/v1/realms/$1/token/introspect;
     }
@@ -172,7 +168,6 @@ proxyconfig: |
       proxy_http_version 1.1;
       proxy_pass http://keycloak;
     }
-
     # Caching keycloak static assets
     location ~ /auth/resources/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css)) {
       # Enabling caching
@@ -185,8 +180,7 @@ proxyconfig: |
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
-
-      rewrite ^/auth/(.*) /auth/$1 break;      
+      rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -198,7 +192,6 @@ proxyconfig: |
       proxy_http_version 1.1;
       proxy_pass http://keycloak;
   }
-
     # This is Caching mechanism for POST requests location search
     location ~ /learner/data/v1/location/search {
       # Enabling caching
@@ -212,7 +205,6 @@ proxyconfig: |
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
-
       proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -225,7 +217,6 @@ proxyconfig: |
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://player;
     }
-
     # This is Caching mechanism for POST requests
     location ~ /api/content/v1/search {
       # Enabling caching
@@ -239,11 +230,9 @@ proxyconfig: |
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 900s;
-
       # Increasing the proxy buffer size
       proxy_buffer_size 16k;
       proxy_busy_buffers_size 16k;
-      
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -255,7 +244,6 @@ proxyconfig: |
       proxy_http_version 1.1;
       proxy_pass http://kong;
     }
-
     # This is Caching mechanism for POST requests
     location ~ /api/org/v1/search|/api/data/v1/(form/read|location/search) {
       # Enabling caching
@@ -269,7 +257,6 @@ proxyconfig: |
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
-
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -283,7 +270,6 @@ proxyconfig: |
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
   }
-
     location ~ /api/(framework/v1/read|data/v1/system/settings/get) {
       # Enabling caching
       proxy_cache_key $proxy_host$request_uri;
@@ -295,7 +281,6 @@ proxyconfig: |
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
-
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -309,7 +294,6 @@ proxyconfig: |
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
   }
-
     location /api/ {
       if ($request_method = OPTIONS ) {
               add_header Access-Control-Allow-Origin "*" ;
@@ -382,7 +366,6 @@ proxyconfig: |
       rewrite ^/grafana/(.*) /$1 break;
       proxy_pass $target;
     }
-
     location /encryption/ {
     set $target http://encryption.{{ namespace }}.svc.cluster.local;
     rewrite ^/encryption/(.*) /$1 break;
@@ -408,6 +391,21 @@ proxyconfig: |
       proxy_read_timeout 40;
       proxy_set_header    X-Forwarded-Proto $scheme;
       proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass $target;
+  }
+    location /discussions/ {
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header Host $http_host;
+      proxy_set_header X-NginX-Proxy true;
+      proxy_redirect off;
+      # Socket.IO Support
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+      set $target http://nodebb-service.{{ namespace }}.svc.cluster.local:4567;
+      #rewrite ^/discussions/(.*) /$1 break;
       proxy_pass $target;
   }
     location ~* ^/assets/public/(.*) {
@@ -480,7 +478,6 @@ proxyconfig: |
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$s3_bucket/v3/preview/$url_full;
   }
-  
    location ~ /content-editor/telemetry|collection-editor/telemetry {
       rewrite ^/(.*) /$1 break;
       proxy_set_header Host $host;
@@ -731,7 +728,6 @@ proxyconfig: |
       proxy_send_timeout 60;
       proxy_read_timeout 70;
     }
-
     location  ~ /resourcebundles/v1/read|/learner/data/v1/(role/read|system/settings/get)|/v1/tenant/info  {
       proxy_cache_key $proxy_host$request_uri;
       proxy_cache proxy_cache;
@@ -742,7 +738,6 @@ proxyconfig: |
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
-
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
@@ -751,7 +746,6 @@ proxyconfig: |
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://player;
     }
-
     location /api/channel/v1/read {
       proxy_cache_key $proxy_host$request_uri;
       proxy_cache framework_cache;
@@ -762,7 +756,6 @@ proxyconfig: |
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
-
       rewrite ^/api/channel/v1/read/(.*) /channel/v1/read/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -776,10 +769,10 @@ proxyconfig: |
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
     }
-    
     location ~ /chatapi/bot {
+      set $target http://router-service.{{ namespace }}.svc.cluster.local:8000;
       rewrite ^/chatapi/(.*) /$1 break;
-      set $target http://router-service:8000;
+      proxy_pass $target;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
@@ -789,16 +782,14 @@ proxyconfig: |
       proxy_set_header    X-Forwarded-Proto $scheme;
       proxy_set_header Connection "";
       proxy_http_version 1.1;
-      proxy_pass $target;
     }
-
     location /oauth2callback {
       return 200 'OK';
       add_header Content-Type text/plain;
     }
     {# Including custom configuration #}
-    {{ proxy_custom_config }}
-  }
+    {{ proxy_custom_config }}}
+  
 nginxconfig: |
   user  nginx;
   worker_processes  {{nginx_worker_processes | d("auto")}};
@@ -842,26 +833,21 @@ nginxconfig: |
                         ' $request_time $upstream_response_time $pipe'
                         ' "$http_referer" "$http_user_agent" "$sb_request_id"'
                         ' "$http_x_device_id" "$http_x_channel_id" "$http_x_app_id"';
-
       access_log  /var/log/nginx/access.log  main;
-
       # Shared dictionary to store metrics
       lua_shared_dict prometheus_metrics 100M;
       lua_package_path "/etc/nginx/lua_modules/?.lua";
-
       # Defining request_id
       # If the client send request_id it should be preffered over the default one
       map $http_x_request_id $sb_request_id {
         default  $http_x_request_id;
         ''  $request_id;
       }
-
       # Defining upstream cache status for nginx metrics
       map $upstream_cache_status $cache_status {
         default  $upstream_cache_status;
         ''       "NONE";
       }
-
       # Defining metrics
       init_worker_by_lua_block {
         prometheus = require("prometheus").init("prometheus_metrics")
@@ -876,57 +862,43 @@ nginxconfig: |
         metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.request_method, ngx.var.cache_status })
         metric_latency:observe(tonumber(ngx.var.request_time), {ngx.var.server_name})
       }
-
       header_filter_by_lua_block {
        ngx.header["server"] = nil
       }
-
       sendfile        on;
       #tcp_nopush     on;
       client_max_body_size 60M;
-
       keepalive_timeout  65s;
       keepalive_requests 200;
-
       # Nginx connection limit per ip
       limit_conn_zone $binary_remote_addr zone=limitbyaddr:10m;
       limit_conn_status 429;
-
       upstream kong {
           server kong:8000;
           keepalive 1000;
       }
-
       upstream encryption {
           server enc-service:8013;
           keepalive 1000;
       }
-
       upstream keycloak {
           server {{ keycloak_url.split('//')[-1] }};
           keepalive 1000;
       }
-
       upstream player {
           server player:3000;
           keepalive 1000;
       }
-
       include /etc/nginx/defaults.d/*.conf;
       include /etc/nginx/conf.d/*.conf;
-
       # local caching for images and files
       proxy_cache_path /tmp/proxy_cache levels=1:2 keys_zone=tmp_cache:5m max_size=10m inactive=60m use_temp_path=off;
-      
       proxy_cache_path /tmp/api_cache levels=1:2 keys_zone=proxy_cache:5m max_size=300m inactive=60m use_temp_path=off;
-
       # cache framework
       proxy_cache_path /tmp/framework_cache levels=1:2 keys_zone=framework_cache:5m max_size=700m inactive=60m use_temp_path=off;
-
       # cache content
       # 1‑MB zone can store data for about 8,000 keys, so the 10‑MB zone configured in the example can store data for about 80,000 keys.
       proxy_cache_path /tmp/content_cache levels=1:2 keys_zone=content_cache:100m max_size=1500m inactive=60m use_temp_path=off;
-
      server {
        listen 9145;
        location /metrics {
@@ -963,20 +935,15 @@ keycloakconf: |
     proxy_set_header    X-Forwarded-Proto $scheme;
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
     resolver 127.0.0.11 valid=5s;
-
     location ~* ^/auth/(.*)/impersonation {
       return 301 {{proto}}://{{ proxy_server_name }};
     }
-
     location ~* ^/auth/realms/master {
       return 301 {{proto}}://{{ proxy_server_name }};
     }
-
     location ~* ^/auth/admin/master/console/ {
       return 301 {{proto}}://{{ proxy_server_name }};
     }
-
-
     location ~* ^/auth/realms/(.+)/token/introspect/ {
           return 301 {{proto}}://$host/api/auth/v1/realms/$1/token/introspect;
     }
@@ -1005,7 +972,6 @@ keycloakconf: |
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://player;
     }
-
     location ~* ^/auth/admin/master/console/ {
       return 301 {{proto}}://{{ merge_proxy_server_name }};
     }
@@ -1022,7 +988,6 @@ keycloakconf: |
     }
     location / {
       rewrite ^/(.*) /$1 break;
-
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
@@ -1040,5 +1005,5 @@ keycloakconf: |
 serviceMonitor:
   enabled: true
   labels: # labels with which the prometheus choose the serviceMonitor
-    app: monitoring
+    app: prometheus-operator
     release: prometheus-operator
