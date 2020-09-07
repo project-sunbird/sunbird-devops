@@ -44,8 +44,11 @@ alertmanager:
       repeat_interval: 4h
       routes:
       - match:
-          module: dp
-        receiver: dp-slack
+          module: dp_process
+        receiver: dp-process_slack
+      - match:
+          module: dp_lag
+        receiver: dp-lag_slack
       - receiver: slack
         continue: true
       {% for item in alert_teams %}
@@ -85,21 +88,43 @@ alertmanager:
                     {{ "{{" }} end {{ "}}" }}
                   {{ "{{" }} end {{ "}}" }}
             icon_emoji: ':dart:'
-      - name: 'dp-slack'
+
+      - name: 'dp-process_slack'
         slack_configs:
           - send_resolved: true
             api_url: "{{ dp_monitor_alerts_slack_url }}"
             username: 'Monitor - Alerter'
             channel: "{{ dp_monitor_alerts_slack_channel }}"
+            title_link: ""
+            title: '[{{ "{{" }} .Status | toUpper {{ "}}" }}{{ "{{" }} if eq .Status "firing" {{ "}}" }}:{{ "{{" }} .Alerts.Firing | len {{ "}}" }}{{ "{{" }} end {{ "}}"}}]'
             text: |-
                   {{ "{{" }} range .Alerts {{ "}}" }}
-                    *Alert:* {{ "{{" }} .Annotations.message {{ "}}" }} - `{{ "{{" }} .Labels.severity {{ "}}" }}`
-                    *Description:* {{ "{{" }} .Annotations.message {{ "}}" }}
-                    *Details:*
-                    {{ "{{" }} range .Labels.SortedPairs {{ "}}" }} • *{{ "{{" }} .Name {{ "}}" }}:* `{{ "{{" }} .Value {{ "}}" }}`
-                    {{ "{{" }} end {{ "}}" }}
+                    *Alert:* {{ "{{" }} .Annotations.alertname {{ "}}" }}
+                    *processName:* {{ "{{" }} .Annotations.job_id {{ "}}" }}
+                    *AlertType:* {{ "{{" }} .Labels.severity {{ "}}" }}
+                    *Details:* {{ "{{" }} .Annotations.message {{ "}}" }}
                   {{ "{{" }} end {{ "}}" }}
-            icon_emoji: ':dart:' 
+            icon_emoji: ':dart:'
+
+      - name: 'dp-lag_slack'
+        slack_configs:
+          - send_resolved: true
+            api_url: "{{ dp_monitor_alerts_slack_url }}"
+            username: 'Monitor - Alerter'
+            channel: "{{ dp_monitor_alerts_slack_channel }}"
+            title_link: ""
+            title: '[{{ "{{" }} .Status | toUpper {{ "}}" }}{{ "{{" }} if eq .Status "firing" {{ "}}" }}:{{ "{{" }} .Alerts.Firing | len {{ "}}" }}{{ "{{" }} end {{ "}}"}}]'
+            text: |-
+                  {{ "{{" }} range .Alerts {{ "}}" }}
+                    *Alert:* {{ "{{" }} .Annotations.alertname {{ "}}" }}
+                    *Job:* {{ "{{" }} .Annotations.job_id {{ "}}" }}
+                    *AlertType:* {{ "{{" }} .Labels.severity {{ "}}" }}
+                    *AlertMetric:* {{ "{{" }} .Annotations.lag {{ "}}" }}
+                    *Details:* {{ "{{" }} .Annotations.message {{ "}}" }}
+                    {{ "{{" }} end {{ "}}" }}
+            icon_emoji: ':dart:'
+
+
       {% for item in alert_teams %}
       # Comment to ensure proper indentation while templating
       - name: "{{ item.team }}"
