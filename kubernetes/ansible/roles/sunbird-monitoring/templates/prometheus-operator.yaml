@@ -8,25 +8,65 @@
 #}
 fullnameOverride: sunbird-monitoring
 
+# This is to override/add configurations of prometheusSpec by user
+# you can add this variable in common.yaml and that will get merged / preferred
+# over the below variables.
+ 
+# for example:
+#
+# prometheus_spec_overrides:
+#   additionalAlertManagerConfigs:
+#     - static_configs:
+#       - targets:
+#         - sunbird-monitoring-alertmanager.monitoring.svc.cluster.local:9093
+#         - 28.0.33.125:9093
+#   additionalAlertRelabelConfigs:
+#   - source_labels: [sb_cluster]
+#     regex: (.+)\d+
+#     target_label: sb_cluster
+
+
+# yaml anchor for prometheusspec over ride
+prometheus_spec_overrides: &prometheus_spec_overrides
+  {{ prometheus_spec_overrides | to_yaml | indent( width=2) }}
+
+# For Example:
+#
+# alertmanager_spec_overrides:
+#   service:
+#     annotations:
+#       service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+#     type: LoadBalancer
+#     # make sure this ip is in valid ip range
+#     # For aws this won't work, as aws will only give domain_name
+#     loadBalancerIP: "10.0.0.10" 
+
+# Yaml anchor for alertmanager
+alertmanager_spec_overrides: &alertmanager_spec_overrides
+  {{ alertmanager_spec_overrides | to_yaml | indent( width=2) }}
+
+
 # Enabling external prometheus scrape config 
 prometheus:
   prometheusSpec:
-    additionalScrapeConfigsExternal: {{ additional_scrape_configs_enabled | d(true) }}
+    thanos:
+      version: {{ thanos_sidecar_version | d('v0.11.0') }}
+    additionalScrapeConfigsExternal: true
     retention: "{{ prometheus_retention_time | d('90d') }}"
     externalLabels:
-      cluster: "{{ kubernetes_cluster_name | default('kubernetes-1')}}"
-      env: "{{ env }}"
+      cluster: "{{ kubernetes_cluster_name | default('kubernetes-1')}}" # this label will deprecate in release-3.4.0
+      env: "{{ env }}" # this label will deprecate in release-3.4.0
+      sb_cluster: "{{ kubernetes_cluster_name | default('kubernetes-1')}}"
+      sb_env: "{{ env }}"
 {% if prometheus_storage_spec is defined and prometheus_storage_spec %}
     storageSpec: {{ prometheus_storage_spec|to_json }}
 {% endif %}
+    # Adding prometeus custom spec overrides 
+    # Refering promtheus sepc override yaml anchor
+    <<: *prometheus_spec_overrides
 {% if prometheus_service is defined and prometheus_service %}
   service: {{ (prometheus_service | to_json) }}
 {% endif %}
-
-# Enabling monitoring kubelet monitoring over http
-kubelet:
-  serviceMonitor:
-    https: false
 
 alertmanager:
   config:
@@ -123,8 +163,6 @@ alertmanager:
                     *Details:* {{ "{{" }} .Annotations.message {{ "}}" }}
                     {{ "{{" }} end {{ "}}" }}
             icon_emoji: ':dart:'
-
-
       {% for item in alert_teams %}
       # Comment to ensure proper indentation while templating
       - name: "{{ item.team }}"
@@ -156,6 +194,10 @@ alertmanager:
             headers:
               subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
 
+  # Adding alertmanager custom spec overrides 
+  # Refrencing alert manager yaml anchor
+  <<: *alertmanager_spec_overrides
+
 
 grafana:
   image:
@@ -173,4 +215,13 @@ grafana:
 {% endif %}
 {% if grafana_service is defined and grafana_service %}
   service: {{ grafana_service|to_json}}
+{% endif %}
+
+
+# Override anything from common.yaml
+# This will override the entire dictionary which we define above
+# Means if you define a key which define above, you'll have to redifine 
+# entire dictionary here
+{% if prometheus_additional_configs is defined and prometheus_additional_configs %}
+{{ ( prometheus_additional_configs | to_yaml ) }}
 {% endif %}
