@@ -121,11 +121,19 @@ data:
           rewrite ^/analytics/(.*) /$1 break;
           proxy_pass $target;
         }
-        location /superset/ {
-          set $target http://hawkeye-superset-service:8080;
-          rewrite ^/superset/(.*) /$1 break;
-          proxy_pass $target;
-        }
+        location /superset {
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Script-Name /supersetp;
+                    proxy_pass http://hawkeye-superset-service:8088;
+                    proxy_redirect off;
+        } 
+        location ~ ^/(static|superset|sqllab|savedqueryview|druid|tablemodelview|databaseasync|dashboardmodelview|slicemodelview) {
+          try_files $uri /superset/$uri /superset/$uri?$query_string @rules;
+        }   
+        location @rules {
+          rewrite ^(.*)$ /superset$1 permanent;
+        } 
       }
     }
 kind: ConfigMap
