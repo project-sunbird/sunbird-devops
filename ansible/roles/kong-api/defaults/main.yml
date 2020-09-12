@@ -72,6 +72,8 @@ report_service_prefix: /data/v1/report-service
 analytics_report_service_prefix: /report/jobs
 group_service_prefix: /group
 auth_service_prefix: /auth
+object_category_prefix: /object/category
+object_category_definition_prefix: /object/category/definition
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -89,6 +91,7 @@ content_service_url: "http://content-service:9000"
 report_service_url: "http://report-service:3030"
 group_service_url: "http://groups-service:9000"
 analytics_api_service_url: "http://analytics-service:9000"
+taxonomy_service_url: "http://taxonomy-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -5109,3 +5112,111 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createObjectCategory
+    uris: "{{ object_category_prefix }}/v1/create"
+    upstream_url: "{{ taxonomy_service_url }}/object/category/v4/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'frameworkCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ x_medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: readObjectCategory
+    uris: "{{ object_category_prefix }}/v1/read"
+    upstream_url: "{{ taxonomy_service_url }}/object/category/v4/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'frameworkCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ x_medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateObjectCategory
+    uris: "{{ object_category_prefix }}/v1/update"
+    upstream_url: "{{ taxonomy_service_url }}/object/category/v4/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'frameworkCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ x_medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createObjectCategoryDefinition
+    uris: "{{ object_category_definition_prefix }}/v1/create"
+    upstream_url: "{{ taxonomy_service_url }}/object/category/definition/v4/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'frameworkCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ x_medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: readObjectCategoryDefinition
+    uris: "{{ object_category_definition_prefix }}/v1/read"
+    upstream_url: "{{ taxonomy_service_url }}/object/category/definition/v4/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'frameworkCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ x_medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateObjectCategoryDefinition
+    uris: "{{ object_category_definition_prefix }}/v1/update"
+    upstream_url: "{{ taxonomy_service_url }}/object/category/definition/v4/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'frameworkCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ x_medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
