@@ -1,53 +1,17 @@
----
-version: 2.1
 
+version: 2.1
+executorType: machine
 jobs:
-  install:
-    parameters:
-      release:
-        description: "Release version"
-        type: string
-    docker:
-      - image: keshavprasad/circle-ci:1.1
+  build:
+    machine: true
     steps:
       - checkout
-      - run: &export
-          name: Export Release Version
-          command: echo 'export release=<< parameters.release >>' >> $BASH_ENV
-      - run: &config
-          name: Setup the build environment
-          command: bash ./tests/ci/setup_env.sh
-      - run: &install
-          name: Install Sunbird
-          command: bash ./tests/ci/run_installer.sh
-      - run: &remove
-          name: Remove VM's
-          command: bash ./tests/ci/remove_vm.sh
+      - run:
+          name: date command
+          command: date
 
 workflows:
- version: 2.1
- nightly:
-  triggers:
-   - schedule:
-#      cron: "0 17 1,5,9,13,17,21,25,29 * *"
-      filters:
-        branches:
-         only:
-           - master
-           - /release-.*/
-  jobs:
-   - install:
-      release: release-1.11.1
-      filters:
-        branches:
-         only: master
-   - install:
-      release: release-1.12
-      filters:
-        branches:
-         only: master
-   - install:
-      release: release-1.13
-      filters:
-       branches:
-        only: master
+  version: 2.1
+  workflow:
+    jobs:
+      - build
