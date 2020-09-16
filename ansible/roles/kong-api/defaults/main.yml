@@ -43,6 +43,7 @@ device_prefix: /v3/device
 content_prefix: /content
 tickets_prefix: /tickets
 course_service_prefix: /course
+collection_service_prefix: /collection
 itemset_prefix: /itemset
 user_service_prefix: /user
 data_service_prefix: /data
@@ -149,7 +150,7 @@ kong_apis:
     plugins:
     - name: jwt
     - name: cors
-    - "{{ statsd_pulgin }}"
+    - "{{ statsd_pulgin }}"x
     - name: acl
       config.whitelist:
         - 'badgeCreate'
@@ -1485,6 +1486,24 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: collectionSummaryAgg
+    uris: "{{ collection_service_prefix }}/v1/collection/summary"
+    upstream_url: "{{ lms_service_url }}/v1/collection/summary"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'courseAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"    
 
   - name: getContentUploadUrl
     uris: "{{ content_prefix }}/v1/upload/url/read"
@@ -5109,3 +5128,5 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+
