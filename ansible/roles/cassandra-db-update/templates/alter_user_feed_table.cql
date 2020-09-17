@@ -9,7 +9,7 @@ priority,
 status,
 updatedby,
 updatedon,
-userid) to 'user_feed.csv' with header=true and numprocesses=8 and maxattempts=10;
+userid) to 'user_feed_{{timestamp}}.csv' with header=true and numprocesses=8 and maxattempts=10;
 
 DROP TABLE IF EXISTS sunbird.user_feed;
 
@@ -37,4 +37,4 @@ priority,
 status,
 updatedby,
 updatedon,
-userid) from 'user_feed.csv' with header=true and chunksize=2000 and numprocesses=8 and maxattempts=10;
+userid) from 'user_feed_{{timestamp}}.csv' with header=true and chunksize=2000 and numprocesses=8 and maxattempts=10;
