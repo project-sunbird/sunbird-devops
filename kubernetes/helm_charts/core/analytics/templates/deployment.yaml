@@ -60,7 +60,22 @@ spec:
           - name: {{ .Chart.Name }}-config
             mountPath: /home/analytics/application.conf
             subPath: analytics_api_service.conf
-          
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+        - mountPath: {{ .Values.analytics_device_basepath }}
+          name: access-keys
+{{- end }}
+      volumes:
+      - name: {{ .Chart.Name }}-config
+        configMap:
+          name: {{ .Chart.Name }}-config
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+      - name: access-keys
+        secret:
+          secretName: analytics-access-keys
+{{- end }}
+
 ---
 apiVersion: v1
 kind: Service
