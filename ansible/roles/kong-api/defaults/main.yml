@@ -4822,6 +4822,42 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
+  - name: updateUserConsent
+    uris: "{{ user_service_prefix }}/v1/consent/update"
+    upstream_url: "{{ learning_service_url }}/v1/user/consent/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: readUserConsent
+    uris: "{{ user_service_prefix }}/v1/consent/read"
+    upstream_url: "{{ learning_service_url }}/v1/user/consent/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
   - name: "channelSpecificTelemetryExhaust"
     uris: "{{ data_service_prefix }}/v3/dataset/get"
     upstream_url: "{{ analytics_api_service_url }}/dataset/get"
