@@ -7,17 +7,15 @@ ARG NODE_ENV
 ENV NODE_ENV $NODE_ENV
 
 COPY install/package.json /usr/src/app/package.json
-
+COPY . /usr/src/app
 RUN npm install --only=prod && \
     npm cache clean --force
 
-RUN mkdir local_packages && \
-    cd local_packages && \
-    git clone https://github.com/vrayulu/nodebb-plugin-sunbird-oidc.git && \
-    cd .. && \
-    npm install local_packages/nodebb-plugin-sunbird-oidc
 
-COPY . /usr/src/app
+RUN npm install https://github.com/vrayulu/nodebb-plugin-sunbird-oidc.git
+RUN npm install https://github.com/ankitv89/nodebb-plugin-create-forum
+
+
 
 ENV NODE_ENV=production \
     daemon=false \
