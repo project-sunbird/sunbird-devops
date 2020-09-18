@@ -1,22 +1,22 @@
 FROM node:lts
-LABEL author="ankit.verma@tarento.com"
+
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
 ARG NODE_ENV
 ENV NODE_ENV $NODE_ENV
 
-COPY install/package.json /usr/src/app/package.json
-COPY . /usr/src/app
+COPY NodeBB/install/package.json /usr/src/app/package.json
 RUN npm install --only=prod && \
     npm cache clean --force
 
 
-RUN npm install https://github.com/vrayulu/nodebb-plugin-sunbird-oidc.git
-RUN npm install https://github.com/ankitv89/nodebb-plugin-create-forum
-RUN npm install https://github.com/bandanasahu123/nodebb-plugin-for-telemetry
+RUN cd /usr/src/app/node_modules &&  \
+    git clone https://github.com/vrayulu/nodebb-plugin-sunbird-oidc.git && \
+    cd nodebb-plugin-sunbird-oidc && \
+    npm install
 
-
+COPY NodeBB/ /usr/src/app
 
 ENV NODE_ENV=production \
     daemon=false \
