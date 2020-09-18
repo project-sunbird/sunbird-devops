@@ -1,5 +1,4 @@
 FROM node:lts
-LABEL author="ankit.verma@tarento.com"
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
