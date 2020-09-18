@@ -5,8 +5,8 @@ WORKDIR /usr/src/app
 ARG NODE_ENV
 ENV NODE_ENV $NODE_ENV
 
-COPY install/package.json /usr/src/app/package.json
-COPY . /usr/src/app
+COPY NodeBB/install/package.json /usr/src/app/package.json
+COPY NodeBB/ /usr/src/app
 RUN npm install --only=prod && \
     npm cache clean --force
 
