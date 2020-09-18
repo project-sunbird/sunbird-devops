@@ -71,6 +71,7 @@ license_api_prefix: /license
 report_service_prefix: /data/v1/report-service
 analytics_report_service_prefix: /report/jobs
 group_service_prefix: /group
+auth_service_prefix: /auth
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -3034,6 +3035,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: refreshToken
+    uris: "{{ auth_service_prefix }}/v1/refresh/token"
+    upstream_url: "{{ am_util_url }}/v1/auth/refresh/token"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'refreshTokenCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ small_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: registerMobileApp
     uris: "{{ api_manager_perfix }}/v1/consumer/mobile_app/credential/register"
     upstream_url: "{{ am_util_url }}/v1/consumer/mobile_app/credential/register"
@@ -4803,6 +4822,42 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
+  - name: updateUserConsent
+    uris: "{{ user_service_prefix }}/v1/consent/update"
+    upstream_url: "{{ learning_service_url }}/v1/user/consent/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: readUserConsent
+    uris: "{{ user_service_prefix }}/v1/consent/read"
+    upstream_url: "{{ learning_service_url }}/v1/user/consent/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
   - name: "channelSpecificTelemetryExhaust"
     uris: "{{ data_service_prefix }}/v3/dataset/get"
     upstream_url: "{{ analytics_api_service_url }}/dataset/get"
@@ -4820,6 +4875,60 @@ kong_apis:
        config.limit_by: credential
      - name: request-size-limiting
        config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: "submitDataExhaustRequest"
+    uris: "{{ data_service_prefix }}/v3/job/request/submit"
+    upstream_url: "{{ analytics_api_service_url }}/job/request/submit"
+    strip_uri: true
+    plugins:
+     - name: jwt
+     - name: cors
+     - "{{ statsd_pulgin }}"
+     - name: acl
+       config.whitelist:
+         - 'dataCreate'
+     - name: rate-limiting
+       config.policy: local
+       config.hour: "{{ medium_rate_limit_per_hour }}"
+       config.limit_by: credential
+     - name: request-size-limiting
+       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: "getDataExhaustRequest"
+    uris: "{{ data_service_prefix }}/v3/job/request/read"
+    upstream_url: "{{ analytics_api_service_url }}/job/request/read"
+    strip_uri: true
+    plugins:
+     - name: jwt
+     - name: cors
+     - "{{ statsd_pulgin }}"
+     - name: acl
+       config.whitelist:
+         - 'dataAccess'
+     - name: rate-limiting
+       config.policy: local
+       config.hour: "{{ medium_rate_limit_per_hour }}"
+       config.limit_by: credential
+     - name: request-size-limiting
+       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: "listDataExhaustRequest"
+    uris: "{{ data_service_prefix }}/v3/job/request/list"
+    upstream_url: "{{ analytics_api_service_url }}/job/request/list"
+    strip_uri: true
+    plugins:
+     - name: jwt
+     - name: cors
+     - "{{ statsd_pulgin }}"
+     - name: acl
+       config.whitelist:
+         - 'dataAccess'
+     - name: rate-limiting
+       config.policy: local
+       config.hour: "{{ medium_rate_limit_per_hour }}"
+       config.limit_by: credential
+     - name: request-size-limiting
+       config.allowed_payload_size: "{{ small_request_size_limit }}"              
 
   - name: createTenantPreferences
     uris: "{{ org_service_prefix }}/v2/preferences/create"
