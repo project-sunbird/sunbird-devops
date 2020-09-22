@@ -3,8 +3,8 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "analytics.fullname" . }}
-  namespace: {{ default .Values.namespace .Release.Namespace  }}
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Values.namespace }}
   labels:
     {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
 spec:
@@ -15,12 +15,12 @@ spec:
     port: {{ .Values.network.port }}
     scheme: http
     scrapeTimeout: 10s
-  jobLabel: analytics
+  jobLabel: {{ .Chart.Name }}
   namespaceSelector:
     matchNames:
     - {{ default .Values.namespace .Release.Namespace  }}
   selector:
     matchLabels:
-    {{- include "analytics.labels" . | nindent 6 }}
+      app: {{ .Chart.Name }}
 {{- end }}
 {{- end }}
