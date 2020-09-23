@@ -130,16 +130,18 @@ extraConfigMaps:
       remove_key_name_field false
         <parse>
           @type regexp
-          expression ^(?<clientip>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<status>[^ ]*) (?<req_size>[^ ]*) (?<res_size>[^ ]*) (?<req_time>[^ ]+) (?<up_res_time>[^ ]+) (?<pipe>\.*) (?:"(?<referer>[^\"]*)" "(?<agent>[^\"]*)" "(?<traceid>[^\"]*)" "(?<deviceid>[^\"]*)" "(?<channelid>[^\"]*)" "(?<appid>[^\"]*)"(?:\s+(?<http_x_forwarded_for>[^ ]+))?)?$ 
-          types up_res_time:float,req_time:float,res_size:integer,req_size:integer
+          expression ^(?<cip>[^ ]*) (?<host>[^ ]*) (?<uid>[^ ]*) \[(?<time>[^\]]*)\] "(?<verb>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<rscode>[^ ]*) (?<rqsize>[^ ]*) (?<rssize>[^ ]*) (?<rqtime>[^ ]+) (?<rstime>[^ ]+) (?<pipe>\.*) (?:"(?<referer>[^\"]*)" "(?<agent>[^\"]*)" "(?<tid>[^\"]*)" "(?<did>[^\"]*)" "(?<cid>[^\"]*)" "(?<appid>[^\"]*)"(?:\s+(?<http_x_forwarded_for>[^ ]+))?)?$ 
+          types rstime:float,rqtime:float,rssize:integer,rqsize:integer
           time_format %d/%b/%Y:%H:%M:%S %z
         </parse>
     </filter>
-
+    
+    # To remove the unwanted fields 
     <filter kubernetes.var.log.containers.nginx-public-ingress-**.log>
       @type record_transformer
-      remove_keys user,host,referer,agent
+      remove_keys user,host,referer,agent,pipe
     </filter>
+
     # to exclude the lines which has specific pattern
     <filter kubernetes.**>
       @type grep
