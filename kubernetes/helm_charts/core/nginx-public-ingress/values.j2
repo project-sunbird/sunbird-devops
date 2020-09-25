@@ -184,7 +184,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 3600s;
+      proxy_cache_valid 200 14400;
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -209,7 +209,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 3600s;
+      proxy_cache_valid 200 14400;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -222,7 +222,34 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://player;
     }
-    # This is Caching mechanism for POST requests
+    # Caching for content consumption
+    location ~ /api/(content/v1/read|course/v1/hierarchy) {
+      # Enabling caching
+      proxy_cache_key "$request_uri|$request_body";
+      proxy_cache content_cache;
+      add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
+      proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_methods GET HEAD POST;
+      proxy_cache_revalidate on;
+      proxy_cache_background_update on;
+      proxy_cache_lock on;
+      proxy_cache_valid 200 3600s;
+      # Increasing the proxy buffer size
+      proxy_buffer_size 16k;
+      proxy_busy_buffers_size 16k;
+      rewrite ^/api/(.*) /$1 break;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_pass http://kong;
+    }
+    # This is Caching mechanism for Content search
     location ~ /api/content/v1/search {
       # Enabling caching
       proxy_cache_key "$request_uri|$request_body";
@@ -234,7 +261,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 900s;
+      proxy_cache_valid 200 3600s;
       # Increasing the proxy buffer size
       proxy_buffer_size 16k;
       proxy_busy_buffers_size 16k;
@@ -261,7 +288,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 3600s;
+      proxy_cache_valid 200 14400;
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -274,7 +301,7 @@ proxyconfig: |-
       proxy_http_version 1.1;
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
-  }
+    }
     location ~ /api/(framework/v1/read|data/v1/system/settings/get) {
       # Enabling caching
       proxy_cache_key $proxy_host$request_uri;
@@ -285,7 +312,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 3600s;
+      proxy_cache_valid 200 14400;
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -742,7 +769,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 3600s;
+      proxy_cache_valid 200 14400;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
@@ -760,7 +787,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 3600s;
+      proxy_cache_valid 200 14400;
       rewrite ^/api/channel/v1/read/(.*) /channel/v1/read/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -834,7 +861,7 @@ nginxconfig: |
 {% endif %}
       lua_load_resty_core off;
       log_format  main  '{{ nginx_client_public_ip_header | d('$remote_addr') }} - $remote_user [$time_local] '
-                        '"$request" $status $body_bytes_sent'
+                        '"$request" $status $request_length $body_bytes_sent'
                         ' $request_time $upstream_response_time $pipe'
                         ' "$http_referer" "$http_user_agent" "$sb_request_id"'
                         ' "$http_x_device_id" "$http_x_channel_id" "$http_x_app_id"';
@@ -896,14 +923,30 @@ nginxconfig: |
       }
       include /etc/nginx/defaults.d/*.conf;
       include /etc/nginx/conf.d/*.conf;
-      # local caching for images and files
-      proxy_cache_path /tmp/proxy_cache levels=1:2 keys_zone=tmp_cache:5m max_size=10m inactive=60m use_temp_path=off;
-      proxy_cache_path /tmp/api_cache levels=1:2 keys_zone=proxy_cache:5m max_size=300m inactive=60m use_temp_path=off;
+      #################
+      # Caching Block #
+      #################
+      # 
+      # Keywords
+      #
+      # proxy_cache_path: path to store the cache content
+      # level: how many directories we need, 1:2 means 1 parent directory, and another child directory before the cache content.
+      # keys_zone: name of the cache and size of the keys store in RAM; 1‑MB zone can store data for about 8,000 keys
+      # max_size: size of the cache content in disk
+      # inactive: specifies how long an item can remain in the cache without being accessed. This doesn't value expiry time of cache. So keep it more than the expiry.
+      # use_temp_path: do we have to write the cache to a temp path first? This will reduce the performance.
+      #
+      # caching for images and files
+      proxy_cache_path /tmp/proxy_cache levels=1:2 keys_zone=tmp_cache:5m max_size=10m inactive=300m use_temp_path=off;
+      # caching for apis
+      proxy_cache_path /tmp/api_cache levels=1:2 keys_zone=proxy_cache:5m max_size=300m inactive=300m use_temp_path=off;
       # cache framework
-      proxy_cache_path /tmp/framework_cache levels=1:2 keys_zone=framework_cache:5m max_size=700m inactive=60m use_temp_path=off;
+      proxy_cache_path /tmp/framework_cache levels=1:2 keys_zone=framework_cache:5m max_size=700m inactive=300m use_temp_path=off;
       # cache content
-      # 1‑MB zone can store data for about 8,000 keys, so the 10‑MB zone configured in the example can store data for about 80,000 keys.
-      proxy_cache_path /tmp/content_cache levels=1:2 keys_zone=content_cache:100m max_size=1500m inactive=60m use_temp_path=off;
+      proxy_cache_path /tmp/content_cache levels=1:2 keys_zone=content_cache:100m max_size=1500m inactive=300m use_temp_path=off;
+      # cache content metadata
+      proxy_cache_path /tmp/content_metadata levels=1:2 keys_zone=content_metadata:100m max_size=1000m inactive=300m use_temp_path=off;
+      
      server {
        listen 9145;
        location /metrics {

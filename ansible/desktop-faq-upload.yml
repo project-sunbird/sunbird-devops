@@ -1,4 +1,3 @@
----
 - hosts: localhost
   become: yes
   vars_files:
@@ -14,3 +13,20 @@
     - artifacts-upload-azure
   tags:
     - upload-desktop-faq
+ 
+ 
+- hosts: localhost
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  vars:
+    artifacts_container: "{{desktop_container}}"
+    artifact: "{{destination_path}}"
+    artifact_path: "{{playbook_dir}}/../private/utils/portal/labels/all_labels_en.json"
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{ sunbird_private_storage_account_name }}"
+    AZURE_STORAGE_KEY: "{{ sunbird_private_storage_account_key }}"
+  roles:
+    - artifacts-upload-azure
+  tags:
+    - upload-label
