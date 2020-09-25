@@ -149,19 +149,27 @@ extraConfigMaps:
 {{ filter_specific_logs | indent(width=4, first=true, blank=true, indentfirst=true) }}
 {% endif %}
 
-### Example configuration to disable logs ###
-# fluentd filter and disabling logging from services capability
+# Example configuration to disable / filter logs which you can declare in private repo common.yml #
 #filter_specific_logs: |
-#    Disable info and debug logs from all the matching services
-#    <filter kubernetes.var.log.containers.{adminutils,learner,knowledgemw,player,lms,content}-**.log>
+#    <filter kubernetes.var.log.containers.{adminutils,learner,knowledgemw,player,lms,content,groups,certregistry,analytics,enc,telemetry,search,nginx-private-ingress,dashboard-metrics-scraper,processing-kafka-exporter,logger-elasticsearch-exporter,sunbird-monitoring-operator,elasticsearch-exporter}-**.log>
 #      @type grep
-#      <exclude>
-#        key message,msg
-#        pattern /^.*(?:debug|info).*$/i
-#      </exclude>
-#    </filter>
+#      <or>
+#        <exclude>
+#          key message
+#          pattern /^.*(?:debug|info|GET (\/service)?\/health).*$/i
+#        </exclude>
 #
-#    Disable all logs from a specific service
+#        <exclude>
+#          key msg
+#          pattern /^.*(?:debug|info).*$/i
+#        </exclude>
+#
+#        <exclude>
+#          key level
+#          pattern /^.*(?:debug|info).*$/i
+#        </exclude>
+#      </or>
+#    </filter>
 #    <filter kubernetes.var.log.containers.apimanagerecho-**.log>
 #      @type grep
 #      <exclude>
