@@ -130,9 +130,20 @@ extraConfigMaps:
       remove_key_name_field false
         <parse>
           @type regexp
-          expression ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<status>[^ ]*) (?<size>[^ ]*) (?<request_time>[^ ]+) (?<upstream_response_time>[^ ]+) (?<pipe>\.*) (?:"(?<referer>[^\"]*)" "(?<agent>[^\"]*)" "(?<traceid>[^\"]*)" "(?<deviceid>[^\"]*)" "(?<channelid>[^\"]*)" "(?<appid>[^\"]*)"(?:\s+(?<http_x_forwarded_for>[^ ]+))?)?$ 
+          expression ^(?<cip>[^ ]*) (?<host>[^ ]*) (?<uid>[^ ]*) \[(?<time>[^\]]*)\] "(?<verb>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<rscode>[^ ]*) (?<rqsize>[^ ]*) (?<rssize>[^ ]*) (?<rqtime>[^ ]+) (?<rstime>[^ ]+) (?<pipe>\.*) (?:"(?<referer>[^\"]*)" "(?<agent>[^\"]*)" "(?<tid>[^\"]*)" "(?<did>[^\"]*)" "(?<cid>[^\"]*)" "(?<appid>[^\"]*)"(?:\s+(?<http_x_forwarded_for>[^ ]+))?)?$
+
+    # field mappings with nginx logs and kibana index as below;
+    # cip = remote, host = host, uid = user, time = time, verb = method, path = path, rscode = status, rqsize = request_size, rssize = response_size, rqtime = request_time, rstime = upstream_response_time, pipe = pipe, referer = referer, agent = agent, tid = traceid, did = deviceid, cid = channelid, appid = appid.
+
+          types rstime:float,rqtime:float,rssize:integer,rqsize:integer
           time_format %d/%b/%Y:%H:%M:%S %z
         </parse>
+    </filter>
+     
+    # To remove the unwanted fields 
+    <filter kubernetes.var.log.containers.nginx-public-ingress-**.log>
+      @type record_transformer
+      remove_keys uid,host,referer,agent,pipe,verb
     </filter>
 
     # to exclude the lines which has specific pattern
