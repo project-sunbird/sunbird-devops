@@ -1487,6 +1487,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: collectionSummaryAgg
+    uris: "/v1/collection/summary"
+    upstream_url: "{{ lms_service_url }}/v1/collection/summary"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'courseAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"      
+
   - name: getContentUploadUrl
     uris: "{{ content_prefix }}/v1/upload/url/read"
     upstream_url: "{{ knowledge_mw_service_url }}/v1/content/upload/url"
