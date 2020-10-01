@@ -81,12 +81,39 @@
 
     </appender>
 
+    <appender name="defaultLoggerAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <layout class="net.logstash.logback.layout.LogstashLayout">
+                <fieldNames>
+                    <timestamp>timestamp</timestamp>
+                    <message>msg</message>
+                    <logger>lname</logger>
+                    <thread>tname</thread>
+                    <levelValue>[ignore]</levelValue>
+                    <version>[ignore]</version>
+                    <stack_trace>exception</stack_trace>
+                </fieldNames>
+                <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                    <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                    <maxLength>2048</maxLength>
+                    <exclude>sun\.reflect\..*\.invoke.*</exclude>
+                    <rootCauseFirst>true</rootCauseFirst>
+                    <inlineHash>true</inlineHash>
+                </throwableConverter>
+            </layout>
+        </encoder>
+    </appender>
+
     <logger name="TelemetryEventLogger" level="INFO">
         <appender-ref ref="kafka-appender" />
     </logger>
 
     <logger name="queryLogger" level="DEBUG">
         <appender-ref ref="query-kafka-appender" />  
+    </logger>
+
+    <logger name="org.sunbird" level="INFO">
+        <appender-ref ref="defaultLoggerAppender" />
     </logger>
 
 </configuration>
