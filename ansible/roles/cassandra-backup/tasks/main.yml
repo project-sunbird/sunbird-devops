@@ -1,3 +1,7 @@
+- name: Make sure backup dir is empty
+  file: path="{{ cassandra_backup_dir }}" state=absent
+  ignore_errors: true
+
 - name: Create the directory
   become: yes
   file: path=/data/cassandra/backup state=directory recurse=yes
@@ -12,15 +16,12 @@
 - set_fact:
     cassandra_backup_gzip_file_name: "cassandra-backup-{{ lookup('pipe', 'date +%Y%m%d') }}-{{ ansible_hostname }}"
 
-- set_fact:
-    cassandra_backup_gzip_file_path: "{{ cassandra_backup_dir }}/{{ cassandra_backup_gzip_file_name }}.tar.gz"
-
 - name: run the backup script
   become: yes
-  shell: python3 cassandra_backup.py --snapshotname "{{ cassandra_backup_gzip_file_name }}" "{{additional_arguments|d('')}}"
+  shell: python3 cassandra_backup.py --snapshotname "{{ cassandra_backup_gzip_file_name }}" --snapshotdirectory "{{ cassandra_backup_gzip_file_name }}" "{{additional_arguments|d('')}}"
   args:
     chdir: /data/cassandra/backup
-  async: 7200
+  async: 14400
   poll: 30
 
 - name: Check doc_root path
@@ -39,10 +40,11 @@
     AZURE_STORAGE_KEY: "{{ sunbird_management_storage_account_key }}"
 
 - name: Upload to azure blob storage
-  command: az storage blob upload --name "{{ cassandra_backup_gzip_file_name }}".tar.gz --file {{ cassandra_backup_gzip_file_path }} --container-name {{ cassandra_backup_azure_container_name }}
+  command: "azcopy copy {{cassandra_backup_gzip_file_name}} 'https://{{sunbird_management_storage_account_name}}.blob.core.windows.net/{{cassandra_backup_azure_container_name}}{{sunbird_management_storage_account_sas}}' --recursive"
   environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_management_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ sunbird_management_storage_account_key }}"
+    AZCOPY_CONCURRENT_FILES: 10 # How many files azcopy should read concurrently.
+  args:
+    chdir: /data/cassandra/backup
   async: 3600
   poll: 10
 
