@@ -19,36 +19,45 @@ eg: ./cassandra_backup.py
 for help ./cassandra_backup.py -h
 '''
 
-from os import walk, sep, system, getcwd, makedirs, cpu_count
+from os import walk, sep, system, getcwd, makedirs, cpu_count, link, path, makedirs
 from argparse import ArgumentParser
 from shutil import rmtree, ignore_patterns, copytree
 from re import match, compile
 from sys import exit
-from tempfile import mkdtemp
 from time import strftime
 import concurrent.futures
+import errno
+
+# Create temporary directory to copy data
+default_snapshot_name = "cassandra_backup" + strftime("%Y-%m-%d-%H%M%S")
+tmpdir = getcwd()+sep+default_snapshot_name
 
 parser = ArgumentParser(description="Create a snapshot and create tar ball inside tardirectory")
 parser.add_argument("-d", "--datadirectory", metavar="datadir",  default='/var/lib/cassandra/data',
                     help="Path to cassadandra keyspaces. Default /var/lib/cassadra/data")
-parser.add_argument("-s", "--snapshotname", metavar="snapshotname",
+parser.add_argument("-s", "--snapshotdirectory", metavar="snapdir",  default=tmpdir,
+                    help="Path to take cassandra snapshot. Default {}".format(tmpdir))
+parser.add_argument("-n", "--snapshotname", metavar="snapshotname",
                     default="cassandra_backup-"+strftime("%Y-%m-%d"),
-                    help="Name with which snapshot to be taken. Default {}".format("cassandra_backup-"+strftime("%Y-%m-%d")))
+                    help="Name with which snapshot to be taken. Default {}".format(default_snapshot_name))
 parser.add_argument("-t", "--tardirectory", metavar="tardir",
-                    default=getcwd(), help="Path to create the tarball. Default {}".format(getcwd()))
+                    default='', help="Path to create the tarball. Disabled by Default")
 parser.add_argument("-w", "--workers", metavar="workers",
                     default=cpu_count(), help="Number of workers to use. Default same as cpu cores {}".format(cpu_count()))
 parser.add_argument("--disablesnapshot", action="store_true",
                     help="disable taking snapshot, snapshot name can be given via -s flag")
 args = parser.parse_args()
 
-# Create temporary directory to copy data
-tmpdir = mkdtemp()
-makedirs(tmpdir+sep+"cassandra_backup")
+tmpdir = args.snapshotdirectory
+# Trying to create the directory if not exists
+try:
+    makedirs(tmpdir+sep+"cassandra_backup")
+except OSError as e:
+    raise
 
 def customCopy(root, root_target_dir):
     print("copying {} to {}".format(root, root_target_dir))
-    copytree(src=root, dst=root_target_dir, ignore=ignore_patterns('.*'))
+    copytree(src=root, dst=root_target_dir, copy_function=link, ignore=ignore_patterns('.*'))
 
 def copy():
     '''
@@ -98,16 +107,28 @@ if not args.disablesnapshot:
         exit(1)
     print("Snapshot taken.")
 
-# Copying the snapshot to proper folder structure
+# Copying the snapshot to proper folder structure, this is not a copy but a hard link
 copy()
-# Creating tarball
-print("Making a tarball: {}.tar.gz".format(args.snapshotname))
-command = "cd {} && tar --remove-files -czvf {}/{}.tar.gz *".format(tmpdir, args.tardirectory, args.snapshotname)
+
+# Clearing the snapshot.
+# We've the data now available in the copied directory.
+command = "nodetool clearsnapshot -t {}".format(args.snapshotname)
+print("Clearing snapshot {} ...".format(args.snapshotname))
 rc = system(command)
 if rc != 0:
-    print("Creation of tar failed")
+    print("Clearing snapshot {} failed".format(args.snapshotname))
+    raise
     exit(1)
-# Cleaning up backup directory
-rmtree(tmpdir)
-print("Cassandra backup completed and stored in {}/{}.tar.gz".format(args.tardirectory, args.snapshotname))
+
+# Creating tarball
+if args.tardirectory:
+    print("Making a tarball: {}.tar.gz".format(args.snapshotname))
+    command = "cd {} && tar --remove-files -czvf {}/{}.tar.gz *".format(tmpdir, args.tardirectory, args.snapshotname)
+    rc = system(command)
+    if rc != 0:
+        print("Creation of tar failed")
+        exit(1)
+    # Cleaning up backup directory
+    rmtree(tmpdir)
+    print("Cassandra backup completed and stored in {}/{}.tar.gz".format(args.tardirectory, args.snapshotname))
 
