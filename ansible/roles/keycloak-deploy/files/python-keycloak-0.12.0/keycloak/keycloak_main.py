@@ -84,7 +84,6 @@ if  __name__ == "__main__":
     except Exception as e:
         if "409" in str(e):
             print "Skipping error: " + str(e)
-            pass
-    except Exception as e:
-        raise
+        else:
+            raise
 

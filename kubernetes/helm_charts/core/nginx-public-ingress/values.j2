@@ -63,7 +63,7 @@ resources:
 repository: {{proxy_repository|default('proxy')}}
 image_tag: {{ image_tag }}
 
-proxyconfig: |
+proxyconfig: |-
   {% if proto=='https' %}
   server {
     listen 80;
@@ -116,6 +116,15 @@ proxyconfig: |
 
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
     resolver {{ kube_dns_ip }} valid=30s;
+    location ~* ^/auth/(.*)/impersonation {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
+    location ~* ^/auth/realms/master {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
+    location ~* ^/auth/admin/master/console/ {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
     location ~* ^/auth/realms/(.+)/token/introspect/ {
           return 301 {{proto}}://$host/api/auth/v1/realms/$1/token/introspect;
     }
@@ -150,65 +159,44 @@ proxyconfig: |
         
     location ~* ^/auth/v1/refresh/token  {
       rewrite ^/auth/(.*) /auth/$1 break;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
-      proxy_set_header X-Scheme $scheme;
-      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_pass http://player;
-    }
-    location /auth/ {
-      set $target {{ keycloak_url }};
-      rewrite ^/auth/(.*) /auth/$1 break;
-      proxy_pass $target;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
-      proxy_set_header X-Scheme $scheme;
-      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # This is Caching mechanism for POST requests
-    location ~ /api/data/v1/form/read {
-      # Enabling caching
-      proxy_cache_key "$request_uri|$request_body";
-      proxy_cache framework_cache;
-      add_header X-Proxy-Cache $upstream_cache_status;
-      add_header X-Proxy-Cache-Date $upstream_http_date;
-      proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
-      proxy_cache_methods GET HEAD POST;
-      proxy_cache_background_update on;
-      proxy_cache_lock on;
-      proxy_cache_valid 200 3600s;
-
-      rewrite ^/api/(.*) /$1 break;
-      client_max_body_size 60M;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
-      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
       proxy_read_timeout 70;
       proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
-  }
-
-
-    location /api/framework {
+    }
+    location /auth/ {
+      rewrite ^/auth/(.*) /auth/$1 break;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_pass http://keycloak;
+    }
+    # Caching keycloak static assets
+    location ~ /auth/resources/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css)) {
       # Enabling caching
       proxy_cache_key $proxy_host$request_uri;
-      proxy_cache framework_cache;
+      proxy_cache proxy_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
-
-      rewrite ^/api/(.*) /$1 break;
-      client_max_body_size 60M;
+      rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -218,9 +206,110 @@ proxyconfig: |
       proxy_send_timeout 60;
       proxy_read_timeout 70;
       proxy_http_version 1.1;
+      proxy_pass http://keycloak;
+  }
+    # This is Caching mechanism for POST requests location search
+    location ~ /learner/data/v1/location/search {
+      # Enabling caching
+      proxy_cache_key "$request_uri|$request_body";
+      proxy_cache framework_cache;
+      add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
+      proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_methods GET HEAD POST;
+      proxy_cache_revalidate on;
+      proxy_cache_background_update on;
+      proxy_cache_lock on;
+      proxy_cache_valid 200 3600s;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass http://player;
+    }
+    # This is Caching mechanism for POST requests
+    location ~ /api/content/v1/search {
+      # Enabling caching
+      proxy_cache_key "$request_uri|$request_body";
+      proxy_cache content_cache;
+      add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
+      proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_methods GET HEAD POST;
+      proxy_cache_revalidate on;
+      proxy_cache_background_update on;
+      proxy_cache_lock on;
+      proxy_cache_valid 200 900s;
+      # Increasing the proxy buffer size
+      proxy_buffer_size 16k;
+      proxy_busy_buffers_size 16k;
+      rewrite ^/api/(.*) /$1 break;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_pass http://kong;
+    }
+    # This is Caching mechanism for POST requests
+    location ~ /api/org/v1/search|/api/data/v1/(form/read|location/search) {
+      # Enabling caching
+      proxy_cache_key "$request_uri|$request_body";
+      proxy_cache framework_cache;
+      add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
+      proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_methods GET HEAD POST;
+      proxy_cache_revalidate on;
+      proxy_cache_background_update on;
+      proxy_cache_lock on;
+      proxy_cache_valid 200 3600s;
+      rewrite ^/api/(.*) /$1 break;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
   }
-
+    location ~ /api/(framework/v1/read|data/v1/system/settings/get) {
+      # Enabling caching
+      proxy_cache_key $proxy_host$request_uri;
+      proxy_cache framework_cache;
+      add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
+      proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_revalidate on;
+      proxy_cache_background_update on;
+      proxy_cache_lock on;
+      proxy_cache_valid 200 3600s;
+      rewrite ^/api/(.*) /$1 break;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header    X-Forwarded-For   {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass http://kong;
+  }
     location /api/ {
       if ($request_method = OPTIONS ) {
               add_header Access-Control-Allow-Origin "*" ;
@@ -237,7 +326,6 @@ proxyconfig: |
         set $custom_header "$http_authorization";
       }
       proxy_set_header Authorization $custom_header;
-      client_max_body_size 60M;
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -248,14 +336,12 @@ proxyconfig: |
       proxy_send_timeout 60;
       proxy_read_timeout 70;
       proxy_http_version 1.1;
-      header_filter_by_lua_block {
-        local h = ngx.req.get_headers()
-        ngx.log(ngx.WARN, "Deviceid: ", h["x-device-id"], "  Channelid: ", h["x-channel-id"], "  Appid: ", h["x-app-id"])
-      }
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
     }
     # Oauth2 config
     location /oauth2/ {
+      set $target http://oauth2-proxy.logging.svc.cluster.local;
       proxy_set_header Host                    $host;
       proxy_set_header X-Real-IP               {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme                $scheme;
@@ -263,6 +349,7 @@ proxyconfig: |
       proxy_pass http://oauth2-proxy-service.logging.svc.cluster.local;
     }
     location = /oauth2/auth {
+      set $target http://oauth2-proxy.logging.svc.cluster.local;
       proxy_set_header Host             $host;
       proxy_set_header X-Real-IP        {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme         $scheme;
@@ -285,12 +372,14 @@ proxyconfig: |
       # if you enabled --cookie-refresh, this is needed for it to work with auth_request
       auth_request_set $auth_cookie $upstream_http_set_cookie;
       add_header Set-Cookie $auth_cookie;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass $target;
     }
    
     location /grafana/ {
+      set $target http://prometheus-operator-grafana.monitoring.svc.cluster.local;
       rewrite ^/grafana/(.*) /$1 break;
-      proxy_pass http://prometheus-operator-grafana.monitoring.svc.cluster.local;
+      proxy_pass $target;
     }
     location ~* ^/assets/public/(.*) {
           # Enabling cache for Response code 200
@@ -326,6 +415,7 @@ proxyconfig: |
       proxy_intercept_errors on;
           add_header             Access-Control-Allow-Origin "*";
           add_header             Access-Control-Allow-Methods GET;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$bucket/$url_full;
   }
    location ~* ^/content/preview/(.*) {
@@ -358,9 +448,9 @@ proxyconfig: |
       proxy_intercept_errors on;
       add_header             Access-Control-Allow-Origin "*" ;
       add_header             Access-Control-Allow-Methods GET;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$s3_bucket/v3/preview/$url_full;
   }
-  
    location ~ /content-editor/telemetry|collection-editor/telemetry {
       rewrite ^/(.*) /$1 break;
       proxy_set_header Host $host;
@@ -372,6 +462,7 @@ proxyconfig: |
       proxy_set_header    X-Forwarded-Proto $scheme;
       proxy_set_header Connection "";
       proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://player;
     }
   location ~* ^/content-editor/(.*) {
@@ -404,6 +495,7 @@ proxyconfig: |
       proxy_intercept_errors on;
       add_header             Access-Control-Allow-Origin "*" ;
       add_header             Access-Control-Allow-Methods GET;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$s3_bucket/content-editor/$url_full;
   }
     location ~* ^/collection-editor/(.*) {
@@ -436,6 +528,7 @@ proxyconfig: |
       proxy_intercept_errors on;
       add_header             Access-Control-Allow-Origin "*" ;
       add_header             Access-Control-Allow-Methods GET;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$s3_bucket/collection-editor/$url_full;
   }
     location ~* ^/generic-editor/(.*) {
@@ -468,6 +561,7 @@ proxyconfig: |
       proxy_intercept_errors on;
       add_header             Access-Control-Allow-Origin "*" ;
       add_header             Access-Control-Allow-Methods GET;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$s3_bucket/generic-editor/$url_full;
   }
   location ~* ^/content-plugins/(.*) {
@@ -504,6 +598,7 @@ proxyconfig: |
          proxy_intercept_errors on;
          add_header             Access-Control-Allow-Origin "*";
          add_header             Access-Control-Allow-Methods GET;
+         proxy_set_header X-Request-ID $sb_request_id;
          proxy_pass             https://$s3_bucket/content-plugins/$url_full;
   }
     location /thirdparty {
@@ -526,6 +621,7 @@ proxyconfig: |
       proxy_set_header    X-Forwarded-Proto $scheme;
       proxy_set_header Connection "";
       proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://player;
     }
   location ~* ^/desktop/(.*) {
@@ -562,6 +658,7 @@ proxyconfig: |
          proxy_intercept_errors on;
          add_header             Access-Control-Allow-Origin "*";
          add_header             Access-Control-Allow-Methods GET;
+         proxy_set_header X-Request-ID $sb_request_id;
          proxy_pass             https://$offline_bucket/$url_full;
   }
     location / {
@@ -575,9 +672,11 @@ proxyconfig: |
       proxy_set_header    X-Forwarded-Proto $scheme;
       proxy_set_header Connection "";
       proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://player;
     }
     location /v3/device/register {
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
       proxy_set_header Connection "";
       rewrite ^/v3/device/register/(.*) /v3/device/register/$1 break;
@@ -590,6 +689,7 @@ proxyconfig: |
       proxy_http_version 1.1;
     }
     location /action/data/v3/metrics {
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
       proxy_set_header Connection "";
       rewrite ^/action/data/v3/metrics/(.*) /data/v3/metrics/$1 break;
@@ -601,37 +701,35 @@ proxyconfig: |
       proxy_send_timeout 60;
       proxy_read_timeout 70;
     }
-
     location  ~ /resourcebundles/v1/read|/learner/data/v1/(role/read|system/settings/get)|/v1/tenant/info  {
       proxy_cache_key $proxy_host$request_uri;
       proxy_cache proxy_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
-
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://player;
     }
-
     location /api/channel/v1/read {
       proxy_cache_key $proxy_host$request_uri;
       proxy_cache framework_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
       proxy_cache_valid 200 3600s;
-
       rewrite ^/api/channel/v1/read/(.*) /channel/v1/read/$1 break;
-      client_max_body_size 60M;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -641,11 +739,13 @@ proxyconfig: |
       proxy_send_timeout 60;
       proxy_read_timeout 70;
       proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
     }
-    
     location ~ /chatapi/bot {
+      set $target http://router-service.{{ namespace }}.svc.cluster.local:8000;
       rewrite ^/chatapi/(.*) /$1 break;
+      proxy_pass $target;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
@@ -655,20 +755,17 @@ proxyconfig: |
       proxy_set_header    X-Forwarded-Proto $scheme;
       proxy_set_header Connection "";
       proxy_http_version 1.1;
-      proxy_pass http://router-service:8000;
     }
-
     location /oauth2callback {
       return 200 'OK';
       add_header Content-Type text/plain;
     }
     {# Including custom configuration #}
-    {{ proxy_custom_config }}
-    client_max_body_size 60M;
-  }
+    {{ proxy_custom_config }}}
+  
 nginxconfig: |
   user  nginx;
-  worker_processes  1;
+  worker_processes  {{nginx_worker_processes | d("auto")}};
   {#
   Can add custom modules like
   eg:
@@ -705,22 +802,25 @@ nginxconfig: |
 {% endif %}
       lua_load_resty_core off;
       log_format  main  '{{ nginx_client_public_ip_header | d('$remote_addr') }} - $remote_user [$time_local] '
-                        '"$request" $status $body_bytes_sent '
-                        '$request_time $upstream_response_time $pipe'
-                        '"$http_referer" "$http_user_agent"';
-
+                        '"$request" $status $body_bytes_sent'
+                        ' $request_time $upstream_response_time $pipe'
+                        ' "$http_referer" "$http_user_agent" "$sb_request_id"'
+                        ' "$http_x_device_id" "$http_x_channel_id" "$http_x_app_id"';
       access_log  /var/log/nginx/access.log  main;
-
       # Shared dictionary to store metrics
       lua_shared_dict prometheus_metrics 100M;
       lua_package_path "/etc/nginx/lua_modules/?.lua";
-
+      # Defining request_id
+      # If the client send request_id it should be preffered over the default one
+      map $http_x_request_id $sb_request_id {
+        default  $http_x_request_id;
+        ''  $request_id;
+      }
       # Defining upstream cache status for nginx metrics
       map $upstream_cache_status $cache_status {
         default  $upstream_cache_status;
         ''       "NONE";
       }
-
       # Defining metrics
       init_worker_by_lua_block {
         prometheus = require("prometheus").init("prometheus_metrics")
@@ -735,18 +835,14 @@ nginxconfig: |
         metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.request_method, ngx.var.cache_status })
         metric_latency:observe(tonumber(ngx.var.request_time), {ngx.var.server_name})
       }
-
       header_filter_by_lua_block {
        ngx.header["server"] = nil
       }
-
       sendfile        on;
       #tcp_nopush     on;
       client_max_body_size 60M;
-
       keepalive_timeout  65s;
       keepalive_requests 200;
-
       # Nginx connection limit per ip
       limit_conn_zone $binary_remote_addr zone=limitbyaddr:10m;
       limit_conn_status 429;
@@ -763,14 +859,14 @@ nginxconfig: |
       }
       
       include /etc/nginx/conf.d/*.conf;
-
       # local caching for images and files
       proxy_cache_path /tmp/proxy_cache levels=1:2 keys_zone=tmp_cache:5m max_size=10m inactive=60m use_temp_path=off;
-      
       proxy_cache_path /tmp/api_cache levels=1:2 keys_zone=proxy_cache:5m max_size=300m inactive=60m use_temp_path=off;
       # cache framework
       proxy_cache_path /tmp/framework_cache levels=1:2 keys_zone=framework_cache:5m max_size=700m inactive=60m use_temp_path=off;
-
+      # cache content
+      # 1‑MB zone can store data for about 8,000 keys, so the 10‑MB zone configured in the example can store data for about 80,000 keys.
+      proxy_cache_path /tmp/content_cache levels=1:2 keys_zone=content_cache:100m max_size=1500m inactive=60m use_temp_path=off;
      server {
        listen 9145;
        location /metrics {
@@ -807,6 +903,15 @@ keycloakconf: |
     proxy_set_header    X-Forwarded-Proto $scheme;
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
     resolver 127.0.0.11 valid=5s;
+    location ~* ^/auth/(.*)/impersonation {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
+    location ~* ^/auth/realms/master {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
+    location ~* ^/auth/admin/master/console/ {
+      return 301 {{proto}}://{{ proxy_server_name }};
+    }
     location ~* ^/auth/realms/(.+)/token/introspect/ {
           return 301 {{proto}}://$host/api/auth/v1/realms/$1/token/introspect;
     }
@@ -827,20 +932,26 @@ keycloakconf: |
     }
     location ~* ^/auth/v1/refresh/token  {
       rewrite ^/auth/(.*) /auth/$1 break;
+      proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
       proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_pass http://player;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass http://kong;
     }
-
     location ~* ^/auth/admin/master/console/ {
       return 301 {{proto}}://{{ merge_proxy_server_name }};
     }
     location /auth/ {
       set $target {{ keycloak_url }};
       rewrite ^/auth/(.*) /auth/$1 break;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass $target;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -850,7 +961,6 @@ keycloakconf: |
     }
     location / {
       rewrite ^/(.*) /$1 break;
-
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
@@ -860,6 +970,7 @@ keycloakconf: |
       proxy_set_header    X-Forwarded-Proto $scheme;
       proxy_set_header Connection "";
       proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $request_id;
       proxy_pass http://player;
     }
   }
@@ -867,5 +978,5 @@ keycloakconf: |
 serviceMonitor:
   enabled: true
   labels: # labels with which the prometheus choose the serviceMonitor
-    app: monitoring
+    app: prometheus-operator
     release: prometheus-operator

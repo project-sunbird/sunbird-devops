@@ -268,8 +268,13 @@ sunbird_portal_player_cdn_enabled: false
 sunbird_cert_qr_container_name: "certqr"
 
 service_env:
-  learner: ../../../../ansible/roles/stack-sunbird/templates/sunbird_learner-service.env
-  lms: ../../../../ansible/roles/stack-sunbird/templates/sunbird_lms-service.env
+  groups: ../../../../ansible/roles/stack-sunbird/templates/sunbird_groups-service.env
+  learner:
+    - ../../../../ansible/roles/stack-sunbird/templates/sunbird_learner-service.env
+    - ../../../../ansible/roles/stack-sunbird/templates/learner-service_logback.xml
+  lms: 
+    - ../../../../ansible/roles/stack-sunbird/templates/sunbird_lms-service.env
+    - ../../../../ansible/roles/stack-sunbird/templates/lms-service_logback.xml
   knowledgemw: ../../../../ansible/roles/stack-sunbird/templates/sunbird_knowledge-mw-service.env
   apimanager: ../../../../ansible/roles/stack-api-manager/templates/api-manager.env
   cert: ../../../../ansible/roles/stack-sunbird/templates/sunbird_cert-service.env
@@ -277,7 +282,9 @@ service_env:
   content: 
     - ../../../../ansible/roles/stack-sunbird/templates/content-service_application.conf
     - ../../../../ansible/roles/stack-sunbird/templates/content-service_logback.xml
-  assessment: ../../../../ansible/roles/stack-sunbird/templates/assessment-service_application.conf
+  assessment:
+    -  ../../../../ansible/roles/stack-sunbird/templates/assessment-service_application.conf
+    - ../../../../ansible/roles/stack-sunbird/templates/assessment-service_logback.xml
   enc: ../../../../ansible/roles/stack-sunbird/templates/sunbird_enc-service.env
   notification: ../../../../ansible/roles/stack-sunbird/templates/sunbird_notification-service.env
   telemetry: ../../../../ansible/roles/stack-sunbird/templates/sunbird_telemetry-service.env
@@ -299,6 +306,8 @@ service_env:
     - ../../../../ansible/roles/stack-sunbird/templates/taxonomy-service_logback.xml
   report: ../../../../ansible/roles/stack-sunbird/templates/sunbird_report-service.env
   telemetry-dp-logstash: ../../../../ansible/roles/stack-sunbird/templates/telemetry-logstash-datapipeline.conf
+  nodebb: ../../../../ansible/roles/stack-sunbird/templates/sunbird_nodebb.env
+  analytics: ../../../../ansible/roles/stack-sunbird/templates/analytics_api_service.conf
 
 sunbird_portal_player_cdn_enabled: false 
 
@@ -311,6 +320,26 @@ kong_limit_memory: 256M
 kibana_oauth_authenticated_email_domains: []
 
 ##### livenessprobe and readinessprobe #######
+groups_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+
 lms_liveness_readiness:
   healthcheck: true
   readinessProbe:
@@ -689,7 +718,6 @@ taxonomy_liveness_readiness:
     periodSeconds: 30
     timeoutSeconds: 10
     failureThreshold: 5
-    successThreshold: 2
 
 report_liveness_readiness:
   healthcheck: true
@@ -711,14 +739,59 @@ report_liveness_readiness:
     timeoutSeconds: 10
     failureThreshold: 5
 
+analytics_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+
+adminutil__access_keyprefix: "access"
+adminutil__access_keystart: 0
+adminutil__access_keycount: 0
+
 adminutil_access_values:
 - key_to_register: access
   values_to_pass:
     basepath: "/keys/"
-    keyprefix: "{{ adminutil__access_keyprefix | default('access') }}"
-    keystart: "{{ adminutil__access_keystart | default('0') }}"
-    keycount: "{{ adminutil__access_keycount | default('0') }}"
+    keyprefix: "{{ adminutil__access_keyprefix }}"
+    keystart: "{{ adminutil__access_keystart }}"
+    keycount: "{{ adminutil__access_keystart + adminutil__access_keycount - 1 }}"
   role_to_run:
     - decrypt.yml
     - generate-keys.yml
     - copy-to-helm-public.yml
+
+# analytics-service related vars
+cassandra:
+  keyspace_prefix: "{{ env_name }}_"
+
+default_channel_id: "in.ekstep"
+default_channel: "{{default_org_hash_id}}"
+channel_data_exhaust_bucket: dev-data-store
+metadata_redis_host: "{{ groups['dp-redis'][0] }}"
+lp_composite_search_host: "{{ groups['composite-search-cluster'][0] }}"
+ingestion_kafka_brokers: "{{groups['ingestion-cluster-kafka']|join(':9092,')}}:9092"
+geo_location_city: "{{ env_name }}_geo_location_city"
+geo_location_city_ipv4: "{{ env_name }}_geo_location_city_ipv4"
+report_config: "{{ env_name }}_report_config"
+job_request: "{{ env_name }}_job_request"
+
+#### Exhuats API consumer 
+exhaust_api_consumer_ids: ["273f3b18-5dda-4a27-984a-060c7cd398d3"] # being used in analytics api to access the analytics exhaust api
+user_profile_read_url: "http://learner-service:9000/v1/user/read/" # being used in analytics api to get user details
+org_search_url: "http://learner-service:9000/v1/org/search" # being used in analytics api to get mhrd tenant id
+dataexhaust_super_admin_channel: "sunbird" # being used in analytics api for authorizing user with super admin channel

@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "superset.name" . }}-init-db
+spec:
+  template:
+    metadata:
+      name: {{ template "superset.name" . }}-init-db
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      securityContext:
+        runAsUser: 0 # Needed in order to allow pip install to work in bootstrap
+      containers:
+      - name: {{ template "superset.name" . }}-init-db
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        env:
+          {{- range $key, $value := .Values.envvar }}
+          - name: {{ $key | quote }}
+            value: {{ $value | quote }}
+          {{- end }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: {{  tpl (toJson .Values.init.command) . }}
+      restartPolicy: Never

@@ -7,14 +7,14 @@
     <#if realm.password>
     <div class="fullpage-background-image">
     <div class="container-wrapper">
-                <div class="ui header centered">
+                <div class="ui header centered mb-8">
                     <img onerror="" alt="">
-                    <div id="signIn" class="signInHead mt-8">${msg("loginDiksha")}</div>
+                    <div id="signIn" class="signInHead mt-8 mb-8">${msg("loginDiksha")}</div>
                     <p class="subtitle">Login</p>
                 </div>
                 <p id="mergeAccountMessage" class="hide mb-0 textCenter">${msg("mergeAccountMessage")}</p>
                 <p id="migrateAccountMessage" class="hide mb-0 textCenter">${msg("migrateAccountMessage")}</p>
-                <div class="formMsg textCenter">
+                <div class="formMsg textCenter mt-8">
                 <#if message?has_content>
                     <div id="error-summary" class="ui text ${message.type}">
                         ${message.summary}
@@ -23,7 +23,7 @@
                     <div id="success-msg" class="ui text success hide">suceess</div>
                     <div id="error-msg" class="ui text error hide">error</div>
                 </div>
-                <form id="kc-form-login" onsubmit="login.disabled = true; return true;" class="ui form" method="POST" action="${url.loginAction}">
+                <form id="kc-form-login"  onsubmit="login.disabled = true; return true;" class="ui form mt-16" method="POST" action="${url.loginAction}">
                     <div class="field">
                         <label id="usernameLabel" for="username" class="">
                             <#if !realm.loginWithEmailAllowed>${msg("username")}
@@ -38,7 +38,7 @@
                             </#if>
                         </label>
                          <#if usernameEditDisabled??>
-                          <#-- TODO: need to find alternative for prepopulating username -->
+                         <#-- TODO: need to find alternative for prepopulating username -->
                         <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" type="text" disabled />
                         <#else>
                         <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="off" />
@@ -94,7 +94,7 @@
                             </#if>
                             <button type="button" class="sb-btn sb-btn-normal sb-btn-primary width-100 mb-16 btn-signInWithGoogle" onclick="navigate('google')">
                             <img class="signInWithGoogle" src="${url.resourcesPath}/img/google.svg">
-                            ${msg("doLogIn")} ${msg("doSignWithGoogle")}
+                            ${msg("signIn")} ${msg("doSignWithGoogle")}
                             </button>
                             <button type="button" id="stateButton" class="sb-btn sb-btn-outline-gray sb-btn-normal width-100" onclick="navigate('state')">
                                 ${msg("doSignWithState")}

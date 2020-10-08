@@ -16,6 +16,7 @@ import (
 	"time"
 
 	kafka "github.com/segmentio/kafka-go"
+	_ "github.com/segmentio/kafka-go/snappy"
 )
 
 var kafkaReaders []*kafka.Reader
@@ -81,13 +82,14 @@ func (lrm *lastReadMessage) Get() (map[int]kafka.Message, int) {
 
 // Validating metrics name
 // Input a list of string, and concatinate with _ after
-// removing all - in the provided names
+// Removing all - in the provided names
+// Convert mix cases to lowercases
 func metricsNameValidator(names ...string) string {
 	retName := ""
 	for _, name := range names {
 		retName += strings.ReplaceAll(name, "-", "_") + "_"
 	}
-	return strings.TrimRight(retName, "_")
+	return strings.ToLower(strings.TrimRight(retName, "_"))
 }
 
 // Message format

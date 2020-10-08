@@ -4,8 +4,6 @@ kind: DaemonSet
 metadata:
   name: nginx-public-ingress
   namespace: {{ .Values.namespace }}
-  annotations:
-    reloader.stakater.com/auto: "true"
 spec:
   selector:
     matchLabels:
@@ -14,9 +12,12 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      annotations:
+        nginxRolloutID: {{ randAlphaNum 5 | quote }} # Restart nginx after every deployment
       labels:
         app: nginx-public-ingress
     spec:
+      # Running nginx with custom config
 {{- if .Values.imagepullsecrets }}
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
@@ -44,13 +45,10 @@ spec:
             mountPath: /etc/secrets
             readOnly: true
           - name: proxy-config
-            mountPath: /etc/nginx/conf.d/default.conf
-            subPath: proxy-default.conf
-            readOnly: true
+            mountPath: /etc/nginx/defaults.d
           - name: nginx-config
             mountPath: /etc/nginx/nginx.conf
             subPath: nginx.conf
-            readOnly: true
 {{- if .Values.volumeMounts }}
 {{ toYaml .Values.volumeMounts | indent 10 }}
 {{- end }}
