@@ -14,6 +14,22 @@
   loop_control:
     loop_var: outer_item
 
+- name: Load role to decrypt private keys, generate public key and encrypt private keys for desktop devices
+  include_role:
+    name: mount-keys
+    tasks_from: "{{outer_item.1}}"
+  vars:
+    private_key_path: "{{ outer_item.0.values_to_pass.basepath }}"
+    private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
+    private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
+    private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount }}"
+  with_subelements:
+    - "{{kong_desktop_mount_roles_values}}"
+    - role_to_run
+  loop_control:
+    loop_var: outer_item
+  when: kong_desktop_v2_consumer_required != "no"
+
 - name: Onboard the credentails using the generated public key
   shell: 'curl -XPOST http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}"'
   args:
