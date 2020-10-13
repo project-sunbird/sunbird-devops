@@ -132,3 +132,12 @@ echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove
 
 echo -e "\n\e[0;32m${bold}Installation complete. Please go to your jenkins URL and continue setup if this is the first run..${normal}"
+
+# Install Maven
+echo -e "\n\e[0;32m${bold}Installating mvn3.6.${normal}"
+sudo wget https://www-us.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+tar -xzvf apache-maven-3.6.3-bin.tar.gz
+sudo mv apache-maven-3.6.3 /opt/
+sudo chown -R  jenkins:jenkins /opt/apache-maven-3.6.3/
+cd /opt/apache-maven-3.6.3/bin
+sudo mv mvn mvn3.6
