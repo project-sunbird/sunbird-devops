@@ -8,26 +8,12 @@
     private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
     private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
     private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount }}"
+    kong_consumer: "{{ outer_item.0.values_to_pass.kong_consumer }}"
   with_subelements:
     - "{{kong_mount_roles_values}}"
     - role_to_run
   loop_control:
     loop_var: outer_item
-
-- name: Onboard the credentails using the generated public key
-  shell: 'curl -XPOST http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}"'
-  args:
-    warn: false
-  with_sequence: start={{kong_private_key_sign_start}} end={{kong_private_key_sign_end}} stride={{kong_private_key_sign_incr}}
-  when: kong_private_key_sign_start is not none and kong_private_key_sign_end is not none and kong_private_key_sign_start <= kong_private_key_sign_end and kong_private_key_user_input is not defined
-
-- name: Onboard the credentails using the key number provided from Jenkins
-  shell: 'curl -XPOST http://{{ private_ingressgateway_ip }}/admin-api/consumers/{{kong_mobile_v2_consumer}}/jwt -F "key={{kong_private_key_prefix}}{{item}}" -F "algorithm=RS256" -F "rsa_public_key=@{{inventory_dir}}/{{kong_private_key_path}}/{{kong_private_key_prefix}}{{item}}"'
-  args:
-    warn: false
-  when: kong_private_key_user_input is defined
-  with_items:
-    - "{{ kong_private_key_user_input.split(',') }}"
 
 - name: Remove the keys directory post onboarding install
   include_role:
