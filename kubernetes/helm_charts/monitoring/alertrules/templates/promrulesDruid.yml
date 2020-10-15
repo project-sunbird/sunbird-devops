@@ -12,7 +12,7 @@ spec:
   groups:
   - name: alertrules.process
     rules:
-    {{- if .Values.raw_druid_cluster }}
+    {{- if .Values.raw_druid_datasource }}
     ## druid segment unavailable count alert
     {{ range $key := .Values.raw_druid_datasource }}
     - alert: druid_segment_unavailable_count
@@ -23,21 +23,21 @@ spec:
         module: dp_lag
       annotations:
         message: The druid segment unavailable count is greater than 0.
-        Metric: {{`({{ humanize $value }})`}}
+        lag: {{`({{ humanize $value }})`}}
         job_id: Druid
         alertname: DruidSegmentUnavailable
     {{- end }}
      ### kafka druid ingest lag
     {{ range $key := .Values.raw_druid_datasource }}
     - alert: druid_ingest_kafka_lag
-      expr: druid_ingest_kafka_lag{exported_job={{ . | quote }}} > {{ $.Values.druid_threshold }}
+      expr: druid_ingest_kafka_lag{exported_job={{ . | quote }}} > {{ $.Values.druid_raw_ingestion_threshold }}
       for: 5m
       labels:
         severity: critical
         module: dp_lag
       annotations:
-        message: The druid ingestion lag for datasource {{ . }} is greater than 0.
-        Metric: {{`({{ humanize $value }})`}}
+        message: The druid ingestion lag for datasource {{ . }} is greater than threshold {{ $.Values.druid_raw_ingestion_threshold | int }}
+        lag: {{`({{ humanize $value }})`}}
         job_id: Druid
         alertname: DruidKafkaIngestionLag
     {{- end }}
@@ -51,7 +51,7 @@ spec:
         module: dp_lag
       annotations:
         message: The druid ingest handoff failed count for datasource {{ . }} is greater than 0.
-        Metric: {{`({{ humanize $value }})`}}
+        lag: {{`({{ humanize $value }})`}}
         job_id: Druid
         alertname: DruidIngestHandoffFailed
     {{- end }}
@@ -68,21 +68,21 @@ spec:
         module: dp_lag
       annotations:
         message: The druid segment unavailable count is greater than 0.
-        Metric: {{`({{ humanize $value }})`}}
+        lag: {{`({{ humanize $value }})`}}
         job_id: Druid
         alertname: DruidSegmentUnavailable
     {{- end }}
      ### kafka druid ingest lag
     {{ range $key := .Values.rollup_druid_datasource }}
     - alert: druid_ingest_kafka_lag
-      expr: druid_ingest_kafka_lag{exported_job={{ . | quote }}} > {{ $.Values.druid_threshold }}
+      expr: druid_ingest_kafka_lag{exported_job={{ . | quote }}} > {{ $.Values.druid_rollup_ingestion_threshold }}
       for: 5m
       labels:
         severity: critical
         module: dp_lag
       annotations:
-        message: The druid ingestion lag for datasource {{ . }} is greater than 0.
-        Metric: {{`({{ humanize $value }})`}}
+        message: The druid ingestion lag for datasource {{ . }} is greater than {{ $.Values.druid_rollup_ingestion_threshold | int }}
+        lag: {{`({{ humanize $value }})`}}
         job_id: Druid
         alertname: DruidKafkaIngestionLag
     {{- end }}
@@ -96,7 +96,7 @@ spec:
         module: dp_lag
       annotations:
         message: The druid ingest handoff failed count for datasource {{ . }} is greater than 0.
-        Metric: {{`({{ humanize $value }})`}}
+        lag: {{`({{ humanize $value }})`}}
         job_id: Druid
         alertname: DruidIngestHandoffFailed
     {{- end }}
