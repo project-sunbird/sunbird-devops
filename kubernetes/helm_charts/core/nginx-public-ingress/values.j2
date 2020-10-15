@@ -720,6 +720,90 @@ proxyconfig: |-
          proxy_set_header X-Request-ID $sb_request_id;
          proxy_pass             https://$offline_bucket/$url_full;
   }
+    # compression for svg certs download                      
+    location /api/certreg/v2/certs/download {                 
+      rewrite ^/api/(.*) /$1 break;                           
+      # Compression                                           
+      gzip on;                                                
+      gzip_comp_level    5;                                   
+      gzip_min_length    50000; # 50KB                                
+      gzip_proxied       any;                                 
+      gzip_vary          on;                                  
+      # Content types for compression                         
+      gzip_types                                              
+      application/atom+xml                                    
+      application/javascript                                  
+      application/json                                        
+      application/ld+json                                     
+      application/manifest+json                               
+      application/rss+xml                                     
+      application/vnd.geo+json                                
+      application/vnd.ms-fontobject                           
+      application/x-font-ttf                                  
+      application/x-web-app-manifest+json                     
+      application/xhtml+xml                                   
+      application/xml                                         
+      font/opentype                                           
+      image/bmp                                               
+      image/svg+xml                                           
+      image/x-icon                                            
+      text/cache-manifest                                     
+      text/css                                                
+      text/plain                                              
+      add_header test hello;                                  
+      proxy_set_header Connection "";                         
+      proxy_set_header Host $host;                            
+      proxy_set_header X-Real-IP $remote_addr;                
+      proxy_set_header X-Scheme $scheme;                      
+      proxy_set_header    X-Forwarded-For   $remote_addr;     
+      proxy_connect_timeout 5;                                
+      proxy_send_timeout 60;                                  
+      proxy_read_timeout 70;                                  
+      proxy_http_version 1.1;                                 
+      proxy_set_header X-Request-ID $sb_request_id;           
+      proxy_pass http://kong;                                 
+    }                                                         
+    location /learner/certreg/v2/certs/download {
+      # Compression
+      gzip on;
+      gzip_comp_level    5;
+      gzip_min_length    50000; # 50KB
+      gzip_proxied       any;
+      gzip_vary          on;
+      # Content types for compression
+      gzip_types
+      application/atom+xml
+      application/javascript
+      application/json
+      application/ld+json
+      application/manifest+json
+      application/rss+xml
+      application/vnd.geo+json
+      application/vnd.ms-fontobject
+      application/x-font-ttf
+      application/x-web-app-manifest+json
+      application/xhtml+xml
+      application/xml
+      font/opentype
+      image/bmp
+      image/svg+xml
+      image/x-icon
+      text/cache-manifest
+      text/css
+      text/plain
+      add_header test hello;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_set_header    X-Forwarded-Proto $scheme;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass http://player;
+    }
     location / {
       rewrite ^/(.*) /$1 break;
       proxy_set_header Host $host;
