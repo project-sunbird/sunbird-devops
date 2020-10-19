@@ -116,41 +116,12 @@ proxyconfig: |-
     proxy_set_header    X-Forwarded-Proto $scheme;
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
     resolver {{ kube_dns_ip }} valid=30s;
-    location ~* ^/auth/(.*)/impersonation {
-      return 301 {{proto}}://{{ proxy_server_name }};
-    }
-    location ~* ^/auth/realms/master {
-      return 301 {{proto}}://{{ proxy_server_name }};
-    }
-    location ~* ^/auth/admin/master/console/ {
-      return 301 {{proto}}://{{ proxy_server_name }};
-    }
-    location ~* ^/auth/realms/(.+)/token/introspect/ {
-          return 301 {{proto}}://$host/api/auth/v1/realms/$1/token/introspect;
-    }
-    location ~* ^/auth/realms/(.+)/token/ {
-      return 301  {{proto}}://$host/api/auth/v1/realms/$1/token/;
-    }
-    location ~* ^/auth/realms/(.+)/userinfo/ {
-      return 301 {{proto}}://$host/api/auth/v1/realms/$1/userinfo/;
-    }
-    location ~* ^/auth/realms/(.+)/logout/ {
-      return 301 {{proto}}://$host/api/auth/v1/realms/$1/logout/;
-    }
-    location ~* ^/auth/realms/(.+)/certs/ {
-      return 301 {{proto}}://$host/api/auth/v1/realms/$1/certs/;
-    }
-    location ~* ^/auth/realms/(.+)/clients-registrations/ {
-      return 301 {{proto}}://$host/api/auth/v1/realms/$1/clients-registrations/;
-    }
-    location ~* ^/auth/admin/master/console/ {
-      return 301 {{proto}}://{{ proxy_server_name }};
-    }
+    # Mobile Devices Refresh token Endpoints
     location ~* ^/auth/v1/refresh/token  {
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Scheme $scheme;
       proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
@@ -161,11 +132,13 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
     }
-    location /auth/ {
+    # Admin API Endpoints for sunbird realm fpr forgot password flow
+    location ~ /auth/admin/realms/sunbird/users/(.*)(/reset-password)? {
+      mirror /mirror;
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Scheme $scheme;
       proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
@@ -173,8 +146,23 @@ proxyconfig: |-
       proxy_http_version 1.1;
       proxy_pass http://keycloak;
     }
-    # Caching keycloak static assets
-    location ~ /auth/resources/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css)) {
+    # Sunbird realm keycloak API endpoints
+    location ~ /auth/realms/sunbird/(get-required-action-link|login-actions/(action-token|authenticate|required-action)|protocol/openid-connect/(auth|certs|logout|token|userinfo)|.well-known/openid-configuration) {
+      mirror /mirror;
+      rewrite ^/auth/(.*) /auth/$1 break;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_pass http://keycloak;
+    }
+    # Static Assets for keycloak endpoints with caching
+    location ~ /auth/(resources/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css))|welcome-content/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css))) {
+      mirror /mirror;
       # Enabling caching
       proxy_cache_key $proxy_host$request_uri;
       proxy_cache proxy_cache;
@@ -188,15 +176,15 @@ proxyconfig: |-
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Scheme $scheme;
-      proxy_set_header    X-Forwarded-For   {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header    X-Forwarded-For   $remote_addr;
       proxy_connect_timeout 5;
       proxy_send_timeout 60;
       proxy_read_timeout 70;
       proxy_http_version 1.1;
       proxy_pass http://keycloak;
-  }
+    }
     # This is Caching mechanism for POST requests location search
     location ~ /learner/data/v1/location/search {
       # Enabling caching
@@ -984,33 +972,6 @@ keycloakconf: |
     proxy_set_header    X-Forwarded-Proto $scheme;
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
     resolver 127.0.0.11 valid=5s;
-    location ~* ^/auth/(.*)/impersonation {
-      return 301 {{proto}}://{{ proxy_server_name }};
-    }
-    location ~* ^/auth/realms/master {
-      return 301 {{proto}}://{{ proxy_server_name }};
-    }
-    location ~* ^/auth/admin/master/console/ {
-      return 301 {{proto}}://{{ proxy_server_name }};
-    }
-    location ~* ^/auth/realms/(.+)/token/introspect/ {
-          return 301 {{proto}}://$host/api/auth/v1/realms/$1/token/introspect;
-    }
-    location ~* ^/auth/realms/(.+)/token/ {
-      return 301  {{proto}}://$host/api/auth/v1/realms/$1/token/;
-    }
-    location ~* ^/auth/realms/(.+)/userinfo/ {
-      return 301 {{proto}}://$host/api/auth/v1/realms/$1/userinfo/;
-    }
-    location ~* ^/auth/realms/(.+)/logout/ {
-      return 301 {{proto}}://$host/api/auth/v1/realms/$1/logout/;
-    }
-    location ~* ^/auth/realms/(.+)/certs/ {
-      return 301 {{proto}}://$host/api/auth/v1/realms/$1/certs/;
-    }
-    location ~* ^/auth/realms/(.+)/clients-registrations/ {
-      return 301 {{proto}}://$host/api/auth/v1/realms/$1/clients-registrations/;
-    }
     location ~* ^/auth/v1/refresh/token  {
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header Connection "";
@@ -1026,19 +987,58 @@ keycloakconf: |
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
     }
-    location ~* ^/auth/admin/master/console/ {
-      return 301 {{proto}}://{{ merge_proxy_server_name }};
-    }
-    location /auth/ {
-      set $target {{ keycloak_url }};
+    # Admin API Endpoints for sunbird realm fpr forgot password flow
+    location ~ /auth/admin/realms/sunbird/users/(.*)(/reset-password)? {
+      mirror /mirror;
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header X-Request-ID $sb_request_id;
-      proxy_pass $target;
       proxy_set_header Host $host;
-      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Scheme $scheme;
       proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_pass http://keycloak;
+    }
+    # Sunbird realm keycloak API endpoints
+    location ~ /auth/realms/sunbird/(get-required-action-link|login-actions/(action-token|authenticate|required-action)|protocol/openid-connect/(auth|certs|logout|token|userinfo)|.well-known/openid-configuration) {
+      mirror /mirror;
+      rewrite ^/auth/(.*) /auth/$1 break;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_pass http://keycloak;
+    }
+    # Static Assets for keycloak endpoints with caching
+    location ~ /auth/(resources/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css))|welcome-content/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css))) {
+      mirror /mirror;
+      # Enabling caching
+      proxy_cache_key $proxy_host$request_uri;
+      proxy_cache proxy_cache;
+      add_header X-Proxy-Cache $upstream_cache_status;
+      add_header X-Proxy-Cache-Date $upstream_http_date;
+      proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_revalidate on;
+      proxy_cache_background_update on;
+      proxy_cache_lock on;
+      proxy_cache_valid 200 14400;
+      rewrite ^/auth/(.*) /auth/$1 break;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header    X-Forwarded-For   $remote_addr;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_pass http://keycloak;
     }
     location / {
       rewrite ^/(.*) /$1 break;
