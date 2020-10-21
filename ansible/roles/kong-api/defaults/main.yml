@@ -4343,6 +4343,42 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: userFeedCreate
+    uris: "{{ user_service_prefix }}/feed/v1/create"
+    upstream_url: "{{ learning_service_url }}/v1/user/feed/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  
+  - name: userFeedUpdate
+    uris: "{{ user_service_prefix }}/feed/v1/update"
+    upstream_url: "{{ learning_service_url }}/v1/user/feed/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: userMigrate
     uris: "{{ user_service_prefix }}/v1/migrate"
     upstream_url: "{{ learning_service_url }}/v1/user/migrate"
