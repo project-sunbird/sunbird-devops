@@ -35,7 +35,7 @@ process_names:
     - .+secor.+
 {% endif %}
 {% if 'processing-secor-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['processing-secor-ps'] %}
-- name: "processingsecor"
+  - name: "processingsecor"
     comm:
     - java
     cmdline:
@@ -145,4 +145,13 @@ process_names:
     - influxd
     cmdline:
     - .+influxd.+
+{% endif %}
+{% if 'secor-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['secor-ps'] %}
+  {% for item in secor_process_names %}
+  - name: "{{ item }}"
+    comm:
+    - java
+    cmdline:
+    - .+-Dsecor_group={{ item }}
+  {% endfor %}
 {% endif %}
