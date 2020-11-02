@@ -27,20 +27,6 @@ process_names:
     cmdline:
     - .+kafka.+
 {% endif %}
-{% if 'secor-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['secor-ps'] %}
-  - name: "secor"
-    comm:
-    - java
-    cmdline:
-    - .+secor.+
-{% endif %}
-{% if 'processing-secor-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['processing-secor-ps'] %}
-- name: "processingsecor"
-    comm:
-    - java
-    cmdline:
-    - .+secor.+
-{% endif %}
 {% if 'zookeeper-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['zookeeper-ps'] %}
   - name: "zookeeper"
     comm:
@@ -145,4 +131,40 @@ process_names:
     - influxd
     cmdline:
     - .+influxd.+
+{% endif %}
+{% if 'secor-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['secor-ps'] %}
+{% for item in secor_process_names %}
+  - name: "{{ item }}"
+    comm:
+    - java
+    cmdline:
+    - .+-Dsecor_group={{ item }}
+{% endfor %}
+{% endif %}
+{% if 'secor-1-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['secor-1-ps'] %}
+{% for item in secor_1_process_names %}
+  - name: "{{ item }}"
+    comm:
+    - java
+    cmdline:
+    - .+-Dsecor_group={{ item }}
+{% endfor %}
+{% endif %}
+{% if 'secor-2-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['secor-2-ps'] %}
+{% for item in secor_2_process_names %}
+  - name: "{{ item }}"
+    comm:
+    - java
+    cmdline:
+    - .+-Dsecor_group={{ item }}
+{% endfor %}
+{% endif %}
+{% if 'secor-3-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['secor-3-ps'] %}
+{% for item in secor_3_process_names %}
+  - name: "{{ item }}"
+    comm:
+    - java
+    cmdline:
+    - .+-Dsecor_group={{ item }}
+{% endfor %}
 {% endif %}
