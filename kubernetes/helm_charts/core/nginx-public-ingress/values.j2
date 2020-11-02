@@ -169,7 +169,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 14400;
+      proxy_cache_valid 200 43200;
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -194,7 +194,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 14400;
+      proxy_cache_valid 200 43200;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -219,7 +219,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 3600s;
+      proxy_cache_valid 200 14400s;
       # Increasing the proxy buffer size
       proxy_buffer_size 16k;
       proxy_busy_buffers_size 16k;
@@ -246,7 +246,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 3600s;
+      proxy_cache_valid 200 14400s;
       # Increasing the proxy buffer size
       proxy_buffer_size 16k;
       proxy_busy_buffers_size 16k;
@@ -273,7 +273,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 14400;
+      proxy_cache_valid 200 43200;
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -297,7 +297,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 14400;
+      proxy_cache_valid 200 43200;
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -705,6 +705,90 @@ proxyconfig: |-
          proxy_set_header X-Request-ID $sb_request_id;
          proxy_pass             https://$offline_bucket/$url_full;
   }
+    # compression for svg certs download                      
+    location /api/certreg/v2/certs/download {                 
+      rewrite ^/api/(.*) /$1 break;                           
+      # Compression                                           
+      gzip on;                                                
+      gzip_comp_level    5;                                   
+      gzip_min_length    50000; # 50KB                                
+      gzip_proxied       any;                                 
+      gzip_vary          on;                                  
+      # Content types for compression                         
+      gzip_types                                              
+      application/atom+xml                                    
+      application/javascript                                  
+      application/json                                        
+      application/ld+json                                     
+      application/manifest+json                               
+      application/rss+xml                                     
+      application/vnd.geo+json                                
+      application/vnd.ms-fontobject                           
+      application/x-font-ttf                                  
+      application/x-web-app-manifest+json                     
+      application/xhtml+xml                                   
+      application/xml                                         
+      font/opentype                                           
+      image/bmp                                               
+      image/svg+xml                                           
+      image/x-icon                                            
+      text/cache-manifest                                     
+      text/css                                                
+      text/plain                                              
+      add_header test hello;                                  
+      proxy_set_header Connection "";                         
+      proxy_set_header Host $host;                            
+      proxy_set_header X-Real-IP $remote_addr;                
+      proxy_set_header X-Scheme $scheme;                      
+      proxy_set_header    X-Forwarded-For   $remote_addr;     
+      proxy_connect_timeout 5;                                
+      proxy_send_timeout 60;                                  
+      proxy_read_timeout 70;                                  
+      proxy_http_version 1.1;                                 
+      proxy_set_header X-Request-ID $sb_request_id;           
+      proxy_pass http://kong;                                 
+    }                                                         
+    location /learner/certreg/v2/certs/download {
+      # Compression
+      gzip on;
+      gzip_comp_level    5;
+      gzip_min_length    50000; # 50KB
+      gzip_proxied       any;
+      gzip_vary          on;
+      # Content types for compression
+      gzip_types
+      application/atom+xml
+      application/javascript
+      application/json
+      application/ld+json
+      application/manifest+json
+      application/rss+xml
+      application/vnd.geo+json
+      application/vnd.ms-fontobject
+      application/x-font-ttf
+      application/x-web-app-manifest+json
+      application/xhtml+xml
+      application/xml
+      font/opentype
+      image/bmp
+      image/svg+xml
+      image/x-icon
+      text/cache-manifest
+      text/css
+      text/plain
+      add_header test hello;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_set_header    X-Forwarded-Proto $scheme;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass http://player;
+    }
     location / {
       rewrite ^/(.*) /$1 break;
       proxy_set_header Host $host;
@@ -747,14 +831,14 @@ proxyconfig: |-
     }
     location  ~ /resourcebundles/v1/read|/learner/data/v1/(role/read|system/settings/get)|/v1/tenant/info  {
       proxy_cache_key $proxy_host$request_uri;
-      proxy_cache proxy_cache;
+      proxy_cache framework_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 14400;
+      proxy_cache_valid 200 43200;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
@@ -772,7 +856,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 14400;
+      proxy_cache_valid 200 43200;
       rewrite ^/api/channel/v1/read/(.*) /channel/v1/read/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -925,11 +1009,11 @@ nginxconfig: |
       # caching for images and files
       proxy_cache_path /tmp/proxy_cache levels=1:2 keys_zone=tmp_cache:5m max_size=10m inactive=300m use_temp_path=off;
       # caching for apis
-      proxy_cache_path /tmp/api_cache levels=1:2 keys_zone=proxy_cache:5m max_size=300m inactive=300m use_temp_path=off;
+      proxy_cache_path /tmp/api_cache levels=1:2 keys_zone=proxy_cache:5m max_size=600m inactive=1400m use_temp_path=off;
       # cache framework
       proxy_cache_path /tmp/framework_cache levels=1:2 keys_zone=framework_cache:5m max_size=700m inactive=300m use_temp_path=off;
       # cache content
-      proxy_cache_path /tmp/content_cache levels=1:2 keys_zone=content_cache:100m max_size=1500m inactive=300m use_temp_path=off;
+      proxy_cache_path /tmp/content_cache levels=1:2 keys_zone=content_cache:100m max_size=3000m inactive=600m use_temp_path=off;
       # cache content metadata
       proxy_cache_path /tmp/content_metadata levels=1:2 keys_zone=content_metadata:100m max_size=1000m inactive=300m use_temp_path=off;
       
