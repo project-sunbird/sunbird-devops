@@ -1,0 +1,29 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.prometheus_rule_selector_app }}
+    release: {{ .Values.prometheus_rule_selector_release }}
+  name: {{ .Values.fullnameOverride }}-secor-process-rules
+  namespace: {{ .Values.namespace }}
+spec:
+  groups:
+  - name: alertrules.process
+    rules:
+    {{- if .Values.secor_process_names }}
+    ## druid segment unavailable count alert
+    {{ range $key := .Values.secor_process_names }}
+    - alert: secor_process_not_running_critical {{ . }}
+      expr: sum without(state) (namedprocess_namegroup_states{groupname={{ . | quote }}}) == 0
+      for: 5m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: The secor job {{ . }} is not running.
+        job_id: {{ . }}
+        alertname: SecorJobNotRunning
+    {{- end }}
+    {{- end }} 
