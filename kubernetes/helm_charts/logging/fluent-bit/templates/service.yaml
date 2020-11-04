@@ -1,30 +1,16 @@
-{{- if .Values.metrics.enabled }}
+---
 apiVersion: v1
 kind: Service
 metadata:
-{{- if .Values.metrics.service.annotations }}
-  annotations:
-{{ toYaml .Values.metrics.service.annotations | indent 4 }}
-{{- end }}
-  name: {{ template "fluent-bit.fullname" . }}-metrics
+  name: fluent-bit-metrics
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
   labels:
-    app: {{ template "fluent-bit.name" . }}
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    heritage: {{ .Release.Service }}
-    release: {{ .Release.Name }}
-  {{- if .Values.metrics.service }}
-  {{- range $key, $value := .Values.metrics.service.labels }}
-    {{ $key }}: {{ $value | quote }}
-  {{- end }}
-  {{- end }}
+{{- include "fluent-bit.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.metrics.service.type}}
-  sessionAffinity: None
-  ports:
-  - port: {{ .Values.metrics.service.port }}
-    targetPort: metrics
-    name: metrics
   selector:
-    app: {{ template "fluent-bit.name" . }}
-    release: {{ .Release.Name }}
-{{- end }}
+{{- include "fluent-bit.labels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: 2020
+      targetPort: 2020
+      protocol: TCP

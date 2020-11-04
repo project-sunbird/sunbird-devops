@@ -1,0 +1,166 @@
+---
+apiVersion: v1
+data:
+  filter-kubernetes.conf: |
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc:443
+        Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+        Kube_Tag_Prefix     kube.var.log.containers.
+        # Merge application log to kubernetes structure
+        Merge_Log           On
+        # Disabling merge key as all the fileds will be in the root
+        # Else all merged content will be under 
+        # log_processed:
+        #    {
+        #    }
+        # Merge_Log_Key       log_processed
+        #
+        # Adding custom parsor not to do any json parse
+        Merge_Parser        catchall
+        # Don't need merged logs
+        # More over, we're using custom parser, which catch all and tag it as log
+        Keep_Log            Off
+        # Annotate pod to select the parser
+        # annotaions:
+        #   fluentbit.io/parsers: nginx2
+        K8S-Logging.Parser  On
+        # Disable fluent-bit from parsing logs
+        # annotaions:
+        #   fluentbit.io/exclude: true
+        K8S-Logging.Exclude On
+    [FILTER]
+        # Discard all health debug and info logs
+        Name grep
+        Match kube.*
+        exclude message /^.*(?:debug|info|GET (\/service)?\/health).*$
+
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         1
+        Log_Level     WARNING
+        Daemon        off
+        Parsers_File  parsers.conf
+        HTTP_Server   On
+        HTTP_Listen   0.0.0.0
+        HTTP_Port     2020
+        storage.path              /mnt/log/flb-storage/
+        storage.sync              normal
+        storage.checksum          off
+        storage.backlog.mem_limit 120M
+        # How many chunks from file system, which is in que to flush to es, has to be in memory(warm)
+        storage.max_chunks_up 50
+
+    @INCLUDE input-kubernetes.conf
+    @INCLUDE filter-kubernetes.conf
+    @INCLUDE output-elasticsearch.conf
+  input-kubernetes.conf: |
+    [INPUT]
+        Name              tail
+        Tag               kube.*
+        Path              /var/log/containers/*.log
+        Parser            docker
+        DB                /mnt/log/flb_kube.db
+        Mem_Buf_Limit     120MB
+        # Set the initial buffer size to read files data.
+        # This value is used too to increase buffer size.
+        Buffer_Chunk_Size 256k
+        # Set the limit of the buffer size per monitored file.
+        # When a buffer needs to be increased (e.g: very long lines),
+        # this value is used to restrict how much the memory buffer can grow.
+        # If reading a file exceed this limit, the file is removed from the monitored file list
+        Buffer_Max_Size   512k
+        Skip_Long_Lines   On
+        Refresh_Interval  1
+        storage.type  filesystem
+        # Ignore older logs of 30m
+        Ignore_Older       30m
+  output-elasticsearch.conf: |
+    [OUTPUT]
+        Name            es
+        Match           *
+        Host            ${FLUENT_ELASTICSEARCH_HOST}
+        Port            ${FLUENT_ELASTICSEARCH_PORT}
+        Logstash_Format On
+        Replace_Dots    On
+        Retry_Limit     10
+        Type            _doc
+        # Networking Setup
+        net.connect_timeout         10
+        # net.source_address          127.0.0.1
+        net.keepalive               on
+        net.keepalive_idle_timeout  100
+        net.keepalive_max_recycle 200
+        #
+        # Limit the maximum number of Chunks in the filesystem for the current output logical destination.
+        # After this LRU will kick in; that means LeastRecentlyUsed will get deleted
+        # 1 chunk =~ 2MB
+        # This config has some issues; see https://github.com/fluent/fluent-bit/issues/2688
+        storage.total_limit_size 20G
+  parsers.conf: |
+    [PARSER]
+        Name   apache
+        Format regex
+        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+    [PARSER]
+        Name   apache2
+        Format regex
+        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^ ]*) +\S*)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+    [PARSER]
+        Name   apache_error
+        Format regex
+        Regex  ^\[[^ ]* (?<time>[^\]]*)\] \[(?<level>[^\]]*)\](?: \[pid (?<pid>[^\]]*)\])?( \[client (?<client>[^\]]*)\])? (?<message>.*)$
+
+    [PARSER]
+        Name   nginx
+        Format regex
+        Regex ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+    [PARSER]
+        Name   json
+        Format json
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+    [PARSER]
+        Name        docker
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep   On
+    [PARSER]
+        Name        nginx2
+        Format      regex
+        # https://rubular.com/r/ZSLRpLS1B4XFbC
+        Regex       ^(?<n_cip>[^ ]*) (?<n_host>[^ ]*) (?<n_uid>[^ ]*) \[(?<n_time>[^\]]*)\] "(?<n_verb>\S+)(?: +(?<n_path>[^\"]*?)(?: +\S*)?)?" (?<n_rscode>[^ ]*) (?<n_rqsize>[^ ]*) (?<n_rssize>[^ ]*) (?<n_rqtime>[^ ]+) (?<n_rstime>[^ ]+) (?<n_pipe>\.*) (?:"(?<n_referer>[^\"]*)" "(?<n_agent>[^\"]*)") "(?<n_tid>[^\"]*)" "(?<n_did>[^\"]*)" "(?<n_cid>[^\"]*)" "(?<n_aid>[^\"]*)" "(?<n_aver>[^\"]*)" "(?<n_sid>[^\"]*)"
+        Time_Key    time
+        Types       n_rstime:float n_rqtime:float n_rssize:integer n_rqsize:integer
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+
+    [PARSER]
+        Name        syslog
+        Format      regex
+        Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
+        Time_Key    time
+        Time_Format %b %d %H:%M:%S
+    [PARSER]
+        Name    catchall
+        Format  regex
+        Regex   ^(?<message>.*)$
+
+kind: ConfigMap
+metadata:
+  name: fluent-bit-config
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+  labels:
+{{- include "fluent-bit.labels" . | nindent 4 }}
