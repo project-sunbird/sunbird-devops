@@ -1,0 +1,27 @@
+{{- if .Values.es.endpoint }}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: log-es
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{.Values.es_port}}
+    targetPort: {{.Values.es_port}}
+---
+kind: Endpoints
+apiVersion: v1
+metadata:
+  name: log-es
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+spec:
+subsets:
+- addresses:
+{{- range $ip := .Values.es.ips }}
+  - ip: {{ $ip }}
+{{- end}}
+  ports:
+  - port: {{.Values.es_port}}
+{{- end }}
