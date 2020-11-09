@@ -1,0 +1,26 @@
+### Default variable file for mlworkbench-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+
+replicaCount: {{mllworkbench_replicacount|default(1)}}
+repository: {{mlworkbench_repository|default('mlworkbench_service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{mlworkbench_cpu_req|default('100m')}}
+    memory: {{mlworkbench_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{mlworkbench_cpu_limit|default('2')}}
+    memory: {{mlworkbench_mem_limit|default('2048Mi')}}
+network:
+  port: 3579
+  targetport: 3579
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ mlworkbench_maxsurge|default('25%') }}
+  maxunavailable: {{ mlworkbench_maxunavailable|default('25%') }}
+
+{{ mlworkbench_liveness_readiness | to_nice_yaml }}
