@@ -38,45 +38,45 @@ def call(){
 //                        slack_notify("SUCCESS", tag_name, customUploadStatus.fullProjectName, customUploadStatus.number, customUploadStatus.absoluteUrl)
 //                        email_notify()
 
-                     //   cdnStatus = build job: "Deploy/$envDir/$module/PlayerCDN", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch"), string(name: 'cdn_enable', value: "true")], propagate: false
+                        //   cdnStatus = build job: "Deploy/$envDir/$module/PlayerCDN", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch"), string(name: 'cdn_enable', value: "true")], propagate: false
 
-                    //    if (cdnStatus.currentResult == "SUCCESS") {
-                     //       println ANSI_BOLD + ANSI_GREEN + "Deploy/$envDir/$module/PlayerCDN succeeded. Triggering deployment.." + ANSI_NORMAL
+                        //    if (cdnStatus.currentResult == "SUCCESS") {
+                        //       println ANSI_BOLD + ANSI_GREEN + "Deploy/$envDir/$module/PlayerCDN succeeded. Triggering deployment.." + ANSI_NORMAL
 
 //                            slack_notify("SUCCESS", tag_name, cdnStatus.fullProjectName, cdnStatus.number, cdnStatus.absoluteUrl)
 //                            email_notify()
 
-                            if (module == "Core") {
-                                module = "Kubernetes"
-                                module2 = "Kubernetes2"
-                            }
+                        if (module == "Core") {
+                            module = "Kubernetes"
+//                            module2 = "Kubernetes2"
+                        }
 
-                            deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")], propagate: false
-                            deployStatus2 = build job: "Deploy/$envDir/$module2/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")], propagate: false
-                            
-                            if (deployStatus.currentResult == "SUCCESS") {
-                                println ANSI_BOLD + ANSI_GREEN + "Deploy/$envDir/$module/$jobName succeeded. Notifying via email and slack.." + ANSI_NORMAL
+                        deployStatus = build job: "Deploy/$envDir/$module/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")], propagate: false
+//                        deployStatus2 = build job: "Deploy/$envDir/$module2/$jobName", parameters: [string(name: 'private_branch', value: "$automated_private_repo_branch"), string(name: 'branch_or_tag', value: "$automated_public_repo_branch")], propagate: false
 
-                                slack_notify("SUCCESS", tag_name, deployStatus.fullProjectName, deployStatus.number, deployStatus.absoluteUrl)
-                                email_notify()
-                                currentBuild.result = "SUCCESS"
+                        if (deployStatus.currentResult == "SUCCESS") {
+                            println ANSI_BOLD + ANSI_GREEN + "Deploy/$envDir/$module/$jobName succeeded. Notifying via email and slack.." + ANSI_NORMAL
 
-                            } else {
-                                println ANSI_BOLD + ANSI_RED + "Deploy/$envDir/$module/$jobName failed. Notifying via email and slack.." + ANSI_NORMAL
+                            slack_notify("SUCCESS", tag_name, deployStatus.fullProjectName, deployStatus.number, deployStatus.absoluteUrl)
+                            email_notify()
+                            currentBuild.result = "SUCCESS"
 
-                                slack_notify("FAILURE", tag_name, deployStatus.fullProjectName, deployStatus.number, deployStatus.absoluteUrl)
-                                email_notify()
-                                currentBuild.result = "UNSTABLE"
+                        } else {
+                            println ANSI_BOLD + ANSI_RED + "Deploy/$envDir/$module/$jobName failed. Notifying via email and slack.." + ANSI_NORMAL
 
-                            }
-                 //       }
-                    //    else {
-                     //       println ANSI_BOLD + ANSI_RED + "Deploy/$envDir/$module/PlayerCDN failed. Notifying via email and slack.." + ANSI_NORMAL
+                            slack_notify("FAILURE", tag_name, deployStatus.fullProjectName, deployStatus.number, deployStatus.absoluteUrl)
+                            email_notify()
+                            currentBuild.result = "UNSTABLE"
 
-                      //      slack_notify("FAILURE", tag_name, cdnStatus.fullProjectName, cdnStatus.number, cdnStatus.absoluteUrl)
-                      //      email_notify()
-                      //      currentBuild.result = "UNSTABLE"
-                      //  }
+                        }
+                        //       }
+                        //    else {
+                        //       println ANSI_BOLD + ANSI_RED + "Deploy/$envDir/$module/PlayerCDN failed. Notifying via email and slack.." + ANSI_NORMAL
+
+                        //      slack_notify("FAILURE", tag_name, cdnStatus.fullProjectName, cdnStatus.number, cdnStatus.absoluteUrl)
+                        //      email_notify()
+                        //      currentBuild.result = "UNSTABLE"
+                        //  }
                     }
                     else {
                         println ANSI_BOLD + ANSI_RED + "ArtifactUplaod/$envDir/$module/PlayerCustom failed. Notifying via email and slack.." + ANSI_NORMAL
