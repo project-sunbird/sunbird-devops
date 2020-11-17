@@ -12,8 +12,8 @@ def call() {
             def sdf = new SimpleDateFormat("HH:mm:ss")
             current = sdf.format(date)
 
-            start = Date.parse("HH:mm:ss", env.START_TIME)
-            end = Date.parse("HH:mm:ss", env.END_TIME)
+            start = Date.parse("HH:mm:ss", env.START_TIME_STAGING)
+            end = Date.parse("HH:mm:ss", env.END_TIME_STAGING)
             current = Date.parse("HH:mm:ss", current)
 
             if (current.after(start) && current.before(end)) {
