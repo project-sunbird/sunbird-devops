@@ -1,0 +1,139 @@
+host: localhost:7199
+ssl: False
+user:
+password:
+listenAddress: 0.0.0.0
+listenPort: 8080
+# Regular expression to match environment variable names that will be added
+# as labels to all data points. The name of the label will be either
+# $1 from the regex below, or the entire environment variable name if no match groups are defined
+#
+# Example:
+# additionalLabelsFromEnvvars: "^ADDL\_(.*)$"
+additionalLabelsFromEnvvars:
+blacklist:
+  # To profile the duration of jmx call you can start the program with the following options
+  # > java -Dorg.slf4j.simpleLogger.defaultLogLevel=trace -jar cassandra_exporter.jar config.yml --oneshot
+  #
+  # To get intuition of what is done by cassandra when something is called you can look in cassandra
+  # https://github.com/apache/cassandra/tree/trunk/src/java/org/apache/cassandra/metrics
+  # Please avoid to scrape frequently those calls that are iterating over all sstables
+
+  # Unaccessible metrics (not enough privilege)
+  - java:lang:memorypool:.*usagethreshold.*
+
+  # Leaf attributes not interesting for us but that are presents in many path
+  - .*:999thpercentile
+  - .*:95thpercentile
+  - .*:fifteenminuterate
+  - .*:fiveminuterate
+  - .*:durationunit
+  - .*:rateunit
+  - .*:stddev
+  - .*:meanrate
+  - .*:mean
+  - .*:min
+
+  # Path present in many metrics but uninterresting
+  - .*:viewlockacquiretime:.*
+  - .*:viewreadtime:.*
+  - .*:cas[a-z]+latency:.*
+  - .*:colupdatetimedeltahistogram:.*
+
+  # Mostly for RPC, do not scrap them
+  # - org:apache:cassandra:db:.*
+  - org:apache:cassandra:db:batchlogmanager:.*
+  - org:apache:cassandra:db:caches:.*
+  - org:apache:cassandra:db:dynamicendpointsnitch:.*
+  - org:apache:cassandra:db:indexcolumnfamilies:.*
+  - org:apache:cassandra:db:indexsummaries:.*
+  - org:apache:cassandra:db:indextables:.*
+  - org:apache:cassandra:db:nativeaccess:.*
+  - org:apache:cassandra:db:storageproxy:.*
+
+  # columnfamily is an alias for Table metrics
+  # https://github.com/apache/cassandra/blob/8b3a60b9a7dbefeecc06bace617279612ec7092d/src/java/org/apache/cassandra/metrics/TableMetrics.java#L162
+  - org:apache:cassandra:metrics:columnfamily:.*
+
+  # Should we export metrics for system keyspaces/tables ?
+  - org:apache:cassandra:metrics:[^:]+:system[^:]*:.*
+
+  # Some another uninterresting metrics
+  - org:apache:cassandra:metrics:indextable:.*
+  - org:apache:cassandra:metrics:indexcolumnfamily:.*
+
+  - .*:waitingonfreememtablespace:.*
+  - .*:estimatedpartitionsizehistogram:.*
+  - .*:estimatedcolumncounthistogram:.*
+
+  # Don't scrap us
+  - com:criteo:nosql:cassandra:exporter:.*
+
+maxScrapFrequencyInSec:
+  15:
+    - java:lang:garbagecollector:.*
+    - java:lang:memory:.*
+    - java:lang:threading:.*
+    - org:apache:cassandra:db:compactionmanager:compactions
+    - org:apache:cassandra:db:compactionmanager:corecompactorthreads
+    - org:apache:cassandra:db:compactionmanager:corevalidationthreads
+    - org:apache:cassandra:db:compactionmanager:maximumcompactorthreads
+    - org:apache:cassandra:db:storageservice:livenodes
+    - org:apache:cassandra:db:storageservice:unreachablenodes
+    - org:apache:cassandra:metrics:cache:keycache:hits:count
+    - org:apache:cassandra:metrics:cache:keycache:requests:count
+    - org:apache:cassandra:metrics:client:connectednativeclients:value
+    - org:apache:cassandra:metrics:clientrequest:.*:latency:count
+    - org:apache:cassandra:metrics:clientrequest:read:latency:oneminuterate
+    - org:apache:cassandra:metrics:clientrequest:read:timeouts:count
+    - org:apache:cassandra:metrics:clientrequest:read:totallatency:count
+    - org:apache:cassandra:metrics:clientrequest:read:unavailables:count
+    - org:apache:cassandra:metrics:clientrequest:write:latency:oneminuterate
+    - org:apache:cassandra:metrics:clientrequest:write:timeouts:count
+    - org:apache:cassandra:metrics:clientrequest:write:totallatency:count
+    - org:apache:cassandra:metrics:clientrequest:write:unavailables:count
+    - org:apache:cassandra:metrics:compaction:bytescompacted:count
+    - org:apache:cassandra:metrics:compaction:pendingtasks:value
+    - org:apache:cassandra:metrics:compaction:totalcompactionscompleted:count
+    - org:apache:cassandra:metrics:storage:.*
+    - org:apache:cassandra:metrics:table:[^:]+:[^:]+:percentrepaired:value
+    - org:apache:cassandra:metrics:table:percentrepaired:value
+    - org:apache:cassandra:metrics:threadpools:.*:activetasks:value
+    - org:apache:cassandra:metrics:threadpools:.*:pendingtasks:value
+    - org:apache:cassandra:metrics:threadpools:.*:totalblockedtasks:count
+    - org:apache:cassandra:metrics:table:.*:.*:readlatency:.*
+    - org:apache:cassandra:metrics:table:.*:.*:writelatency:.*
+    - org:apache:cassandra:metrics:table:.*:.*:rangelatency:.*
+    - org:apache:cassandra:metrics:table:.*:.*:sstablesperreadhistogram:.*
+    - org:apache:cassandra:metrics:table:.*:.*:livesstablecount:value
+    - org:apache:cassandra:metrics:table:.*:.*:pendingcompactions:value
+    - org:apache:cassandra:metrics:table:.*:.*:pendingflushes:count
+    - org:apache:cassandra:metrics:table:.*:.*:compactionbyteswritten:count
+    - org:apache:cassandra:metrics:streaming:totalincomingbytes:count
+    - org:apache:cassandra:metrics:streaming:totaloutgoingbytes:count
+    - org:apache:cassandra:metrics:table:.*:.*:tombstonescannedhistogram:.*
+    - org:apache:cassandra:metrics:commitlog:completedtasks:value
+    - org:apache:cassandra:metrics:table:.*:.*:memtableswitchcount:.*"
+
+  60:
+    - org:apache:cassandra:metrics:droppedmessage:.*:oneminuterate
+    - org:apache:cassandra:metrics:connection:totaltimeouts:oneminuterate
+    - org:apache:cassandra:metrics:table:.*:.*:readlatency:oneminuterate
+    - org:apache:cassandra:metrics:table:.*:.*:keycachehitrate:value
+    - org:apache:cassandra:metrics:cache:chunkcache:oneminutehitrate:value
+    - org:apache:cassandra:metrics:connection:totaltimeouts:oneminuterate
+    - org:apache:cassandra:metrics:table:.*:.*:writelatency:oneminuterate
+    - org:apache:cassandra:metrics:commitlog:waitingoncommit:oneminuterate
+  120:
+    - org:apache:cassandra:metrics:table:.*:.*:rowcachehit:count
+    - org:apache:cassandra:metrics:table:.*:.*:rowcachemiss:count
+    - org:apache:cassandra:metrics:threadpools:.*:completedtasks:value
+    - org:apache:cassandra:metrics:table:.*:.*:allmemtablesheapsize:value
+    - org:apache:cassandra:metrics:table:.*:.*:allmemtableslivedatasize:value
+    - org:apache:cassandra:metrics:table:$keyspace:.*:waitingonfreememtablespace:max
+
+  # Refresh those metrics only every hour as it is costly for cassandra to retrieve them
+  3600:
+    - .*:snapshotssize:.*
+    - .*:estimated.*
+    - .*:totaldiskspaceused:.*
