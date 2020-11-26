@@ -118,8 +118,7 @@ process_names:
     cmdline:
     - .+middleManager.+
 {% endif %}
-{% if 'redis-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['redis-ps'] %}
-{% if 'redis_process_names' is defined %}
+{% if 'redis-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['redis-ps'] and redis_process_names is defined %}
 {% for item in redis_process_names %}
   - name: "{{ item }}"
     comm:
@@ -127,7 +126,8 @@ process_names:
     cmdline:
     - .+{{ item }}
 {% endfor %}
-{% else %}
+{% endif %}
+{% if 'redis-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['redis-ps'] %}
   - name: "redis-server"
     comm:
     - redis-server
