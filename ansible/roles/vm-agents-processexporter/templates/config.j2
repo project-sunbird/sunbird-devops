@@ -118,12 +118,22 @@ process_names:
     cmdline:
     - .+middleManager.+
 {% endif %}
+{% if 'redis-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['redis-ps'] and redis_process_names is defined %}
+{% for item in redis_process_names %}
+  - name: "{{ item }}"
+    comm:
+    - redis-server
+    cmdline:
+    - .+{{ item }}
+{% endfor %}
+{% endif %}
 {% if 'redis-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['redis-ps'] %}
   - name: "redis-server"
     comm:
     - redis-server
     cmdline:
     - .+redis-server.+
+{% endif %}
 {% endif %}
 {% if 'influxdb-ps' in group_names and hostvars[inventory_hostname]['ansible_default_ipv4']['address'] in groups['influxdb-ps'] %}
   - name: "influxd"
