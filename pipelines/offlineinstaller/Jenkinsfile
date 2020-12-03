@@ -7,56 +7,61 @@ node() {
         String ANSI_BOLD = "\u001B[1m"
         String ANSI_RED = "\u001B[31m"
         String ANSI_YELLOW = "\u001B[33m"
+        ansiColor('xterm') {
+                cleanWs()
+                checkout scm
+                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
 
-        stage('checkout offline installer repo') {
-            cleanWs()
-            checkout scm
-              sh """
-		git clone https://github.com/Sunbird-Ed/sunbird-desktop-app.git -b ${sunbirded_installer_branch_or_tag} offline-installer-repo
-	      """
-        }
-            ansiColor('xterm') {
-                    envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-                    module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
-                    jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
-		    currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                    stage('Pre requisites for installer') {
-			values = [:]
+                stage('Download artifact') {
+                    values = lp_dp_params()
+                    currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                    artifact = values.artifact_name + ":" + values.artifact_version
+                    values.put('currentWs', currentWs)
+                    values.put('artifact', artifact)
+                    artifact_download(values)
+                }
+
+                stage('Pre requisites for installer') {
+                      values = [:]
                     	ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
-		    	ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs offline_installer_type=${offline_installer_type}\" -vv"
-		        values.put('currentWs', currentWs)
-		        values.put('env', envDir)
-                	values.put('module', module)
-                	values.put('jobName', jobName)
+                      ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs offline_installer_type=${offline_installer_type}\" -vv"
+		                  values.put('currentWs', currentWs)
+		                  values.put('env', envDir)
+                	    values.put('module', module)
+                	    values.put('jobName', jobName)
                     	values.put('ansiblePlaybook', ansiblePlaybook)
                     	values.put('ansibleExtraArgs', ansibleExtraArgs)
                     	println values
                     	ansible_playbook_run(values)
                 }
+
 		try {
-		     stage('Build Installer, create and upload it to azure') {
-			dir('offline-installer-repo') {
+		      stage('Build Installer, create and upload it to azure') {
+          dir('offline-installer-repo') {
 			    sh """
-                               bash -x build.sh
-		             """
-			}
-			values = [:]
-                        ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
-                        ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs uploadInstaller=True offline_installer_type=${offline_installer_type}\""
-                        values.put('currentWs', currentWs)
-                        values.put('env', envDir)
-                        values.put('module', module)
-                        values.put('jobName', jobName)
-                        values.put('ansiblePlaybook', ansiblePlaybook)
-                        values.put('ansibleExtraArgs', ansibleExtraArgs)
-                        println values
-                        ansible_playbook_run(values)
-			archiveArtifacts artifacts: '*.zip', onlyIfSuccessful: true
-			archiveArtifacts artifacts: 'latest.json', onlyIfSuccessful: true
+                bash -x build.sh
+		         """
+          }
+          values = [:]
+          ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
+          ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs uploadInstaller=True offline_installer_type=${offline_installer_type}\""
+          values.put('currentWs', currentWs)
+          values.put('env', envDir)
+          values.put('module', module)
+          values.put('jobName', jobName)
+          values.put('ansiblePlaybook', ansiblePlaybook)
+          values.put('ansibleExtraArgs', ansibleExtraArgs)
+          println values
+          ansible_playbook_run(values)
+			    archiveArtifacts artifacts: '*.zip', onlyIfSuccessful: true
+			    archiveArtifacts artifacts: 'latest.json', onlyIfSuccessful: true
 		     }
 		}
 		catch (err) {
-			values = [:]
+                        values = [:]
                         ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
                         ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs removeOfflineInstallerFolder=True offline_installer_type=${offline_installer_type}\""
                         values.put('currentWs', currentWs)

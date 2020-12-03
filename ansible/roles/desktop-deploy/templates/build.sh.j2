@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo "Offline Installer for Sunbird"
+
+# Build script
+set -eo pipefail
+
+#chmod +x setupOfflineInstaller.sh
+tar -xvzf app_dist.tzr.gz
+docker run -d --env-file envfile  --env ELECTRON_CACHE="/root/.cache/electron"  --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" --name offline_deploy -w /project electronuserland/builder:wine sleep infinity
+docker cp . offline_deploy:/project/
+docker exec offline_deploy bash -x /project/setupOfflineInstaller.sh
+
+
+docker cp offline_build:/project/ ../../
+docker rm offline_build --force
+
+
+docker run --rm --env-file envfile  --env ELECTRON_CACHE="/root/.cache/electron"  --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" electronuserland/builder:wine bash -x setupOfflineInstaller.sh
+
+echo "Build the installer succesfully"
