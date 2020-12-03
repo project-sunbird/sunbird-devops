@@ -571,6 +571,33 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$s3_bucket/content-editor/$url_full;
   }
+
+    location ~* ^/discussion-ui/(.*) {
+          # Enabling compression
+          gzip            on;
+          gzip_min_length 100000;
+          gzip_proxied    expired no-cache no-store private auth;
+          gzip_types application/javascript application/x-javascript text/css text/javascript;
+          }
+      set $s3_bucket        "{{discussion_upstream_url}}";
+      set $url_full         '$1';
+      proxy_http_version     1.1;
+      proxy_set_header       Host "{{discussion_upstream_url.split('/')[0]|lower}}";
+      proxy_set_header       Authorization '';
+      proxy_hide_header      Access-Control-Allow-Origin;
+      proxy_hide_header      Access-Control-Allow-Methods;
+      proxy_hide_header      x-amz-id-2;
+      proxy_hide_header      x-amz-request-id;
+      proxy_hide_header      Set-Cookie;
+      proxy_ignore_headers   "Set-Cookie";
+      proxy_buffering        off;
+      proxy_intercept_errors on;
+      add_header             Access-Control-Allow-Origin "*" ;
+      add_header             Access-Control-Allow-Methods GET;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass             https://$s3_bucket/$url_full;
+  }
+
     location ~* ^/collection-editor/(.*) {
           # Enabling compression
           gzip            on;
