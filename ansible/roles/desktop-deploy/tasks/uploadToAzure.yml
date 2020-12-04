@@ -42,16 +42,16 @@
 - name: copy the installer artifacts and metadata files to upload it to azure blob and generate latest.json file
   template:
     src: "{{item}}.j2"
-    dest: "{{offline_repo_location}}/offline-installer-repo/{{item}}"
+    dest: "{{offline_repo_location}}/{{item}}"
     mode: '0755'
   with_items:
     - artifacts.sh
     - metadata.sh
 
 - name: copy the artifacts and generate the metadata file
-  shell: "bash {{offline_repo_location}}/offline-installer-repo/{{item}}"
+  shell: "bash {{offline_repo_location}}/{{item}}"
   args:
-    chdir: "{{offline_repo_location}}/offline-installer-repo/"
+    chdir: "{{offline_repo_location}}/"
   with_items:
     - artifacts.sh
     - metadata.sh
@@ -59,7 +59,7 @@
 - name: Upload to azure blob storage
   command: az storage blob upload-batch --destination {{offline_installer_container_name}} --source "offline_artifacts"
   args:
-    chdir: "{{offline_repo_location}}/offline-installer-repo/"
+    chdir: "{{offline_repo_location}}/"
   environment:
     AZURE_STORAGE_ACCOUNT: "{{sunbird_public_storage_account_name}}"
     AZURE_STORAGE_KEY: "{{sunbird_public_storage_account_key}}"
@@ -69,7 +69,7 @@
 - name: Upload to latest.json file to blob
   command: az storage blob upload-batch --destination "{{offline_installer_container_name}}/latest" --source "{{folderName.stdout}}"
   args:
-    chdir: "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/"
+    chdir: "{{offline_repo_location}}/offline_artifacts/"
   environment:
     AZURE_STORAGE_ACCOUNT: "{{sunbird_public_storage_account_name}}"
     AZURE_STORAGE_KEY: "{{sunbird_public_storage_account_key}}"
@@ -79,7 +79,7 @@
 - name: Create a zip of the folder to archieve the artifact
   archive:
     path:
-    - "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/{{folderName.stdout}}"
+    - "{{offline_repo_location}}/offline_artifacts/{{folderName.stdout}}"
     dest: "{{offline_repo_location}}/{{offline_installer_type}}.zip"
     owner: jenkins
     group: jenkins
@@ -87,7 +87,7 @@
 
 - name: copy latest.json file to archieve it in jenkins
   copy:
-    src: "{{offline_repo_location}}/offline-installer-repo/offline_artifacts/{{folderName.stdout}}/latest.json"
+    src: "{{offline_repo_location}}/offline_artifacts/{{folderName.stdout}}/latest.json"
     dest: "{{offline_repo_location}}/latest.json"
     owner: jenkins
     group: jenkins
