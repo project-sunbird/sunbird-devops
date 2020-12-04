@@ -32,6 +32,7 @@ node() {
                     sh """
                        unzip ${artifact}
                        tar -xvzf app_dist.tar.gz
+                       cp -r ${workspace}/private/* ${workspace}/
                     """
                 }
                 stage('Install the offline desktop Application') {
@@ -56,6 +57,9 @@ node() {
         throw err
     }
     finally {
+        sh '''
+          true && docker rm -f rabbitmq
+        '''
         slack_notify(currentBuild.result)
         email_notify()
     }
