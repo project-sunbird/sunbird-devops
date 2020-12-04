@@ -1,5 +1,4 @@
 @Library('deploy-conf') _
-// node('jenkins-offline-slave') {
 node() {
     try {
         String ANSI_GREEN = "\u001B[32m"
@@ -7,15 +6,18 @@ node() {
         String ANSI_BOLD = "\u001B[1m"
         String ANSI_RED = "\u001B[31m"
         String ANSI_YELLOW = "\u001B[33m"
-        ansiColor('xterm') {
-                cleanWs()
-                checkout scm
-                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
-                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
-                currentWs = sh(returnStdout: true, script: 'pwd').trim()
 
-                stage('Download artifact') {
+        stage('checkout public repo') {
+            folder = new File("$WORKSPACE/.git")
+            if (folder.exists())
+            {
+               println "Found .git folder. Clearing it.."
+               sh'git clean -fxd'
+            }
+            checkout scm
+        }
+            ansiColor('xterm') {
+                stage('get artifact') {
                     values = lp_dp_params()
                     currentWs = sh(returnStdout: true, script: 'pwd').trim()
                     artifact = values.artifact_name + ":" + values.artifact_version
@@ -27,13 +29,12 @@ node() {
                        tar -xvzf app_dist.tar.gz
                     """
                 }
-
-                stage('Pre requisites for installer') {
+                stage('Install the offline desktop Application') {
                       values = [:]
                       ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
                       ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs offline_installer_type=${offline_installer_type}\" -vv"
-              values.put('currentWs', currentWs)
-              values.put('env', envDir)
+                      values.put('currentWs', currentWs)
+                      values.put('env', envDir)
                       values.put('module', module)
                       values.put('jobName', jobName)
                       values.put('ansiblePlaybook', ansiblePlaybook)
@@ -42,46 +43,9 @@ node() {
                       ansible_playbook_run(values)
                 }
 
-        try {
-              stage('Build Installer, create and upload it to azure') {
-                  dir('offline-installer-repo') {
-                        sh """
-                        bash -x build.sh
-                         """
-                  }
-                  values = [:]
-                  ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
-                  ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs uploadInstaller=True offline_installer_type=${offline_installer_type}\""
-                  values.put('currentWs', currentWs)
-                  values.put('env', envDir)
-                  values.put('module', module)
-                  values.put('jobName', jobName)
-                  values.put('ansiblePlaybook', ansiblePlaybook)
-                  values.put('ansibleExtraArgs', ansibleExtraArgs)
-                  println values
-                  ansible_playbook_run(values)
-                        archiveArtifacts artifacts: '*.zip', onlyIfSuccessful: true
-                        archiveArtifacts artifacts: 'latest.json', onlyIfSuccessful: true
-                 }
-        }
-        catch (err) {
-                        values = [:]
-                        ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
-                        ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs removeOfflineInstallerFolder=True offline_installer_type=${offline_installer_type}\""
-                        values.put('currentWs', currentWs)
-                        values.put('env', envDir)
-                        values.put('module', module)
-                        values.put('jobName', jobName)
-                        values.put('ansiblePlaybook', ansiblePlaybook)
-                        values.put('ansibleExtraArgs', ansibleExtraArgs)
-                        println values
-                        ansible_playbook_run(values)
-                        currentBuild.result = 'SUCCESS'
-             }
-        }
+            }
         summary()
-            
-    }
+     }
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err
