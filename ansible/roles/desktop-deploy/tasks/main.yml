@@ -9,32 +9,6 @@
     state: directory
     recurse: yes
 
-- name: copy the installer script file and build script for building offline installer
-  template:
-    src: "{{item}}.j2"
-    dest: "{{offline_repo_location}}/{{item}}"
-    mode: '0755'
-  with_items:
-    - build.sh
-    - envfile
-
-- name: copy the installer script file and build script for building offline installer
-  template:
-    src: "{{item}}.j2"
-    dest: "{{offline_repo_location}}/{{item}}"
-    mode: '0755'
-  with_items:
-    - setupOfflineInstaller.sh
-
-- name: run the installer script
-  shell: "bash -x {{offline_repo_location}}/build.sh"
-
-- name: Ensure azure blob storage container exists
-  command: az storage container create  --name {{offline_installer_container_name}} --public-access blob
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{sunbird_public_storage_account_name}}"
-    AZURE_STORAGE_KEY: "{{sunbird_public_storage_account_key}}"
-
 - name: Get the environment name for the artifact name
   shell: "cat {{offline_repo_location}}/app_dist/package.json | jq -r '.name'"
   register: env_name
@@ -59,25 +33,27 @@
   set_fact:
     installer_version: "{{ version.stdout }}"
 
-- name: copy the installer artifacts and metadata files to upload it to azure blob and generate latest.json file
+- name: copy the installer script file and build script for building offline installer
   template:
     src: "{{item}}.j2"
     dest: "{{offline_repo_location}}/{{item}}"
     mode: '0755'
   with_items:
-    - artifacts.sh
-    - metadata.sh
+    - build.sh
+    - envfile
+    - setupOfflineInstaller.sh
 
-- name: copy the artifacts and generate the metadata file
-  shell: "bash {{offline_repo_location}}/{{item}}"
-  args:
-    chdir: "{{offline_repo_location}}/"
-  with_items:
-    - artifacts.sh
-    - metadata.sh
+- name: run the installer script
+  shell: "bash -x {{offline_repo_location}}/build.sh"
+
+- name: Ensure azure blob storage container exists
+  command: az storage container create  --name {{offline_installer_container_name}} --public-access blob
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_public_storage_account_name}}"
+    AZURE_STORAGE_KEY: "{{sunbird_public_storage_account_key}}"
 
 - name: Upload to azure blob storage
-  command: az storage blob upload-batch --destination {{offline_installer_container_name}} --source "offline_artifacts"
+  command: az storage blob upload-batch --destination {{offline_installer_container_name}} --source "desktop_uploader_assets"
   args:
     chdir: "{{offline_repo_location}}/"
   environment:
@@ -87,9 +63,9 @@
   poll: 10
 
 - name: Upload to latest.json file to blob
-  command: az storage blob upload-batch --destination "{{offline_installer_container_name}}/latest" --source "{{folderName.stdout}}"
+  command: az storage blob upload-batch --destination "{{offline_installer_container_name}}/latest" --source "{{offline_repo_location}}/desktop_uploader_assets/{{time}}/"
   args:
-    chdir: "{{offline_repo_location}}/offline_artifacts/"
+    chdir: "{{offline_repo_location}}/"
   environment:
     AZURE_STORAGE_ACCOUNT: "{{sunbird_public_storage_account_name}}"
     AZURE_STORAGE_KEY: "{{sunbird_public_storage_account_key}}"
@@ -120,4 +96,3 @@
     recurse: yes
     owner: jenkins
     group: jenkins
-
