@@ -24,21 +24,13 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
 {{- end }}
-      volumes:
-      - name: nodebb-config-json
-        configMap:
-           name: nodebb-config-json
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         imagePullPolicy: Always
         envFrom:
         - configMapRef:
-            name: {{ .Chart.Name }}-config
-        volumeMounts:
-          - name: nodebb-config-json
-            mountPath: /usr/src/app/config.json
-            subPath: config.json
+            name: discussionsmw-config
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
@@ -52,28 +44,9 @@ spec:
 
 ---
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nodebb-config-json
-data:
-  config.json: |-
-     {
-         "url": "{{ .Values.nodebb_url }}",
-         "secret": "100101",
-         "database": "mongo",
-         "port": "4567",
-         "mongo": {
-             "uri": "mongodb://{{ .Values.mongo_nodebb_host }}",
-             "username": "",
-             "password": "",
-         }
-     }
-
----
-apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Chart.Name }}-service
+  name: disussionsmw-service
   namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Chart.Name }}
@@ -81,6 +54,6 @@ spec:
   ports:
   - name: http-{{ .Chart.Name }}
     protocol: TCP
-    port: {{ .Values.network.port }}
+    port: {{ .Values.network.targetport }}
   selector:
     app: {{ .Chart.Name }}
