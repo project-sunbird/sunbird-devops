@@ -24,12 +24,6 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
 {{- end }}
-      {{- if .Values.sunbird_portal_player_cdn_enabled }}
-      volumes:
-        - name: player-cdn-config
-          configMap:
-            name: player-cdn-config
-      {{- end }}
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
@@ -46,14 +40,36 @@ spec:
 {{ toYaml .Values.livenessProbe | indent 10 }}
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
-        {{- end }}
-        {{- if .Values.sunbird_portal_player_cdn_enabled }}
+{{- end }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if or  .Values.sunbird_portal_player_cdn_enabled $keys }}
         volumeMounts:
+{{- end }}
+{{- if .Values.sunbird_portal_player_cdn_enabled }}
           - name: player-cdn-config
             mountPath: /home/sunbird/app_dist/dist/index_cdn.ejs
             subPath: index_cdn.ejs
-        {{- end }}
-
+{{- end }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+          - mountPath: {{ .Values.player_access_basepath }}
+            name: access-keys
+{{- end }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if or  .Values.sunbird_portal_player_cdn_enabled $keys }}
+      volumes:
+{{- end }}
+{{- if .Values.sunbird_portal_player_cdn_enabled }}
+      - name: player-cdn-config
+        configMap:
+          name: player-cdn-config
+{{- end }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+      - name: access-keys
+        secret:
+          secretName: player-access-keys
+{{- end }}
 ---
 apiVersion: v1
 kind: Service
