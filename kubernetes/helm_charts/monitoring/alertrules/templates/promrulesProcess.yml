@@ -193,6 +193,20 @@ spec:
         job_id: Druid-MiddleManager
         alertname: MiddleManagerProcessNotRunning
 
+    {{- if .Values.redis_process_names }}
+    {{- range $key, $value := .Values.redis_process_names }}
+    - alert: redisserver_process_not_running_fatal
+      expr: sum without(state) (namedprocess_namegroup_states{groupname={{ $value | quote }}}) == 0 
+      for: 5m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: The {{ $key }} redis process which runs on port {{ $value }} is not running.
+        summary: redis-server process is not running
+        job_id: Redis
+        alertname: RedisProcessNotRunning
+    {{- end }}
 
     - alert: redisserver_process_not_running_fatal
       expr: sum without(state) (namedprocess_namegroup_states{groupname="redis-server"}) == 0
