@@ -9,11 +9,6 @@ node() {
 
         stage('checkout public repo') {
             folder = new File("$WORKSPACE/.git")
-                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
-                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
-                currentWs = sh(returnStdout: true, script: 'pwd').trim()
-
             if (folder.exists())
             {
                println "Found .git folder. Clearing it.."
@@ -35,13 +30,8 @@ node() {
                     """
                 }
                 stage('Install the offline desktop Application') {
-                      values = [:]
                       ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
                       ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs offline_installer_type=${offline_installer_type}\" -vv"
-                      values.put('currentWs', currentWs)
-                      values.put('env', envDir)
-                      values.put('module', module)
-                      values.put('jobName', jobName)
                       values.put('ansiblePlaybook', ansiblePlaybook)
                       values.put('ansibleExtraArgs', ansibleExtraArgs)
                       println values
