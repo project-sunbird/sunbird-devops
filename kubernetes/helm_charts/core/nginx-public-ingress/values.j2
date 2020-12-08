@@ -185,8 +185,11 @@ proxyconfig: |-
     }
     # This is Caching mechanism for POST requests location search
     location ~ /learner/data/v1/location/search {
+      # Enabling compression
+      include /etc/nginx/defaults.d/compression.conf;
       # Enabling caching
-      proxy_cache_key "$request_uri|$request_body";
+      # caching include Accept-Encoding header also, to provide gziped or plain content as per request
+      proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
       proxy_cache framework_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
@@ -209,9 +212,12 @@ proxyconfig: |-
       proxy_pass http://player;
     }
     # Caching for content consumption
-    location ~ /api/(content/v1/read|course/v1/hierarchy) {
+    location ~ /api/(content/v1/read|course/v1/hierarchy|course/v1/batch/read) {
+      # Enabling compression
+      include /etc/nginx/defaults.d/compression.conf;
       # Enabling caching
-      proxy_cache_key "$request_uri|$request_body";
+      # caching include Accept-Encoding header also, to provide gziped or plain content as per request
+      proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
       proxy_cache content_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
@@ -237,8 +243,11 @@ proxyconfig: |-
     }
     # This is Caching mechanism for Content search
     location ~ /api/content/v1/search {
+      # Enabling compression
+      include /etc/nginx/defaults.d/compression.conf;
       # Enabling caching
-      proxy_cache_key "$request_uri|$request_body";
+      # caching include Accept-Encoding header also, to provide gziped or plain content as per request
+      proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
       proxy_cache content_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
@@ -264,8 +273,11 @@ proxyconfig: |-
     }
     # This is Caching mechanism for POST requests
     location ~ /api/org/v1/search|/api/data/v1/(form/read|location/search) {
+      # Enabling compression
+      include /etc/nginx/defaults.d/compression.conf;
       # Enabling caching
-      proxy_cache_key "$request_uri|$request_body";
+      # caching include Accept-Encoding header also, to provide gziped or plain content as per request
+      proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
       proxy_cache framework_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
@@ -289,8 +301,11 @@ proxyconfig: |-
       proxy_pass http://kong;
     }
     location ~ /api/(framework/v1/read|data/v1/system/settings/get) {
+      # Enabling compression
+      include /etc/nginx/defaults.d/compression.conf;
       # Enabling caching
-      proxy_cache_key $proxy_host$request_uri;
+      # caching include Accept-Encoding header also, to provide gziped or plain content as per request
+      proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
       proxy_cache framework_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
@@ -327,34 +342,7 @@ proxyconfig: |-
       if ( $http_authorization ) {
         set $custom_header "$http_authorization";
       }
-      # Compression                                           
-      gzip on;                                                
-      gzip_comp_level    5;                                   
-      gzip_min_length    256; # 256Bytes
-      gzip_proxied       any;                                 
-      gzip_vary          on;                                  
-      # Content types for compression                         
-      gzip_types                                              
-      application/atom+xml                                    
-      application/javascript                                  
-      application/json                                        
-      application/ld+json                                     
-      application/manifest+json                               
-      application/rss+xml                                     
-      application/vnd.geo+json                                
-      application/vnd.ms-fontobject                           
-      application/x-font-ttf                                  
-      application/x-web-app-manifest+json                     
-      application/xhtml+xml                                   
-      application/xml                                         
-      font/opentype                                           
-      image/bmp                                               
-      image/svg+xml                                           
-      image/x-icon                                            
-      text/cache-manifest                                     
-      text/css                                                
-      text/plain                                              
-      #
+      include /etc/nginx/defaults.d/compression.conf;
       proxy_set_header Authorization $custom_header;
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
@@ -763,34 +751,7 @@ proxyconfig: |-
     # compression for svg certs download                      
     location /api/certreg/v2/certs/download {                 
       rewrite ^/api/(.*) /$1 break;                           
-      # Compression                                           
-      gzip on;                                                
-      gzip_comp_level    5;                                   
-      gzip_min_length    50000; # 50KB                                
-      gzip_proxied       any;                                 
-      gzip_vary          on;                                  
-      # Content types for compression                         
-      gzip_types                                              
-      application/atom+xml                                    
-      application/javascript                                  
-      application/json                                        
-      application/ld+json                                     
-      application/manifest+json                               
-      application/rss+xml                                     
-      application/vnd.geo+json                                
-      application/vnd.ms-fontobject                           
-      application/x-font-ttf                                  
-      application/x-web-app-manifest+json                     
-      application/xhtml+xml                                   
-      application/xml                                         
-      font/opentype                                           
-      image/bmp                                               
-      image/svg+xml                                           
-      image/x-icon                                            
-      text/cache-manifest                                     
-      text/css                                                
-      text/plain                                              
-      add_header test hello;                                  
+      include /etc/nginx/defaults.d/compression.conf;
       proxy_set_header Connection "";                         
       proxy_set_header Host $host;                            
       proxy_set_header X-Real-IP $remote_addr;                
@@ -885,7 +846,11 @@ proxyconfig: |-
       proxy_read_timeout 70;
     }
     location  ~ /resourcebundles/v1/read|/learner/data/v1/(role/read|system/settings/get)|/v1/tenant/info  {
-      proxy_cache_key $proxy_host$request_uri;
+      # Enabling compression
+      include /etc/nginx/defaults.d/compression.conf;
+      # Enabling caching
+      # caching include Accept-Encoding header also, to provide gziped or plain content as per request
+      proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
       proxy_cache framework_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
@@ -903,7 +868,11 @@ proxyconfig: |-
       proxy_pass http://player;
     }
     location /api/channel/v1/read {
-      proxy_cache_key $proxy_host$request_uri;
+      # Enabling compression
+      include /etc/nginx/defaults.d/compression.conf;
+      # Enabling caching
+      # caching include Accept-Encoding header also, to provide gziped or plain content as per request
+      proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
       proxy_cache framework_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
@@ -989,7 +958,7 @@ nginxconfig: |
                         ' $request_time $upstream_response_time $pipe'
                         ' "$http_referer" "$http_user_agent" "$sb_request_id"'
                         ' "$http_x_device_id" "$http_x_channel_id" "$http_x_app_id"'
-                        ' "$http_x_app_ver" "$http_x_session_id"';
+                        ' "$http_x_app_ver" "$http_x_session_id" {{nginx_additional_log_fields | default("")}}';
       access_log  /var/log/nginx/access.log  main;
       # Shared dictionary to store metrics
       lua_shared_dict prometheus_metrics 100M;
@@ -1152,8 +1121,11 @@ keycloakconf: |
     }
     # Static Assets for keycloak endpoints with caching
     location ~ /auth/(resources/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css))|welcome-content/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css))) {
+      # Enabling compression
+      include /etc/nginx/defaults.d/compression.conf;
       # Enabling caching
-      proxy_cache_key $proxy_host$request_uri;
+      # caching include Accept-Encoding header also, to provide gziped or plain content as per request
+      proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
       proxy_cache proxy_cache;
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
@@ -1189,6 +1161,36 @@ keycloakconf: |
       proxy_pass http://player;
     }
   }
+
+compressionConfig: |-
+  # Compression                                           
+  gzip on;                                                
+  gzip_comp_level    5;                                   
+  gzip_min_length    256; # 256Bytes
+  gzip_proxied       any;                                 
+  gzip_vary          on;                                  
+  # Content types for compression                         
+  gzip_types                                              
+  application/atom+xml                                    
+  application/javascript                                  
+  application/json                                        
+  application/ld+json                                     
+  application/manifest+json                               
+  application/rss+xml                                     
+  application/vnd.geo+json                                
+  application/vnd.ms-fontobject                           
+  application/x-font-ttf                                  
+  application/x-web-app-manifest+json                     
+  application/xhtml+xml                                   
+  application/xml                                         
+  font/opentype                                           
+  image/bmp                                               
+  image/svg+xml                                           
+  image/x-icon                                            
+  text/cache-manifest                                     
+  text/css                                                
+  text/plain                                              
+  ;
 
 serviceMonitor:
   enabled: true
