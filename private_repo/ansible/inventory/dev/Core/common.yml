@@ -7,60 +7,34 @@ proto:                          # Protocol
 
 # External service ips
 # should be accessible from core containers
-learningservice_ip:                     # Load balancer IP for learning server
-searchservice_ip:                       # search service Load balancer IP
-analyticsapi_ip:                        # Analytics Service Load Balancer IP
-keycloak_url: ""                        # Keycloak Load balancer IP; eg http://10.10.10.10
-sunbird_swarm_manager_lb_ip:             # Swarm manager load balancer private IP. If you don't have a load swarm manager load balancer, you can use swarm manager private ip.
+learningservice_ip:                     # Load balancer IP for learning server or vm ip if its a single vm for learning service
+dialservice_ip:                         # dial service vm ip or Load balancer ip
+keycloak_url: ""                        # Keycloak Load balancer IP; eg http://10.10.10.10 
+# Ip Address of the keycloak without http
+# eg: 11.2.1.10
+keycloak_lb_ip: 
 
 # Sunbird Application name and framework name
 sunbird_default_channel:                # Organization channel name which portal will connect to
 sunbird_app_name:                       # By default app name will be sunbird
 
 # Cloud Account details
-sunbird_content_azure_storage_container: # Conatainer store assets/public
-## Blob where data analytics pushing content
-## Check same variable in DP common.yml
-artifacts_container: ''                 # Azure blob container name to save built artifacts
 
-## Mail config
-mail_server_host:
-mail_server_username: ""
-alerts_mailing_list : ""                # Comma separated mail list for Alerts; eg: user1@mail.com, user2@mail.com
-sunbird_mail_server_from_email:         # Email ID that should be as from address in mails
-sunbird_env_logo_url:                    # put public url for logo, this logo url will be used in email sending.
-
-########################### Release-2.9.0 variables #######################################
-# public storage account with content conatiner.
-sunbird_azure_public_storage_account_name: 
-sunbird_private_storage_account_name:
-
-# Used to store the private contents of the storage account.
-sunbird_azure_private_storage_account_name: 
-
-# used to store backups for or application DB's
-sunbird_azure_management_storage_account_name: 
-
-# This account need to be private to store jenkins build artifacts which will be used commonly between environments.
-sunbird_azure_artifact_storage_account_name: 
-
-# Certs related vars
-certs_badge_name: ""                 # Course Completion Certificate Name e.g value is "Course Completion Certificate"
-certs_badge_description: ""           # Descripton of course Completion e.g value is "Successfully completed course on Sunbird"
-certs_badge_image: ""                # Image of the certs badge e.g value is "sunbird"
-certs_badge_root_org_id: ""          # Root org ID for which the certs will be created e.g value is "0124229474659643111"
-certs_badge_issuer_name: ""          # The issuer of the certs name e.g value is "Government of karnataka"
-certs_badge_issuer_url:  ""          # Issuer organisation official URL e.g value is "https://testdomain.in"
-cert_service_cloud_storage_type: azure  
+sunbird_azure_public_storage_account_name:   # public storage account with content conatiner.
+sunbird_content_azure_storage_container: # where cntent is stored, it has to be created in pubic storage account, its valuse should be same as azure_public_container variable in kp/common.yml
+sunbird_private_storage_account_name:        ## Used to store the private contents of the storage account.
+sunbird_azure_private_storage_account_name:       
+sunbird_azure_management_storage_account_name:   # used to store backups for or application DB's
+sunbird_azure_artifact_storage_account_name:     # This account need to be private to store jenkins build artifacts which will be used commonly between environments.
+artifacts_container: ''                 # Azure blob container name to save built artifacts, default it can be artifacts
 
 #### Content-service ####
 environment_id: # value as to be as Knowledgeplatfom/common.yml environment_id
-graph_passport_key: "{{core_vault_graph_passport_key}}"
-
+graph_passport_key: "{{core_vault_graph_passport_key}}"   ### value as to be same as graph passport key from KP/secrets.yml
 
 # Kubernetes variables
-namespace: dev
-imagepullsecrets: devregistrysecret
+namespace: "{{ env }}"
+imagepullsecrets: "{{ env }}registrysecret"
 # this willl be prepended to your image
 # for example, if you give
 # dockerhub: sunbird
@@ -74,26 +48,50 @@ sunbird_portal_player_cdn_enabled: false
 # Ip of nginx private ingress
 # Give Ip Address with which the private ingress should be created
 # For safety reason, give ip address from bottom range of cidr
-# for ex: if cidr is 11.2.1.0/24
-private_ingressgateway_ip: 11.2.1.220
+# for ex: if cidr is 11.2.1.0/24   or leave it empty get the ip after deploying private nginx ingress
+private_ingressgateway_ip: 11.2.1.220    
 storage_class_name: ""
-# Ip Address of the keycloak without http
-# eg: 11.2.1.10
-keycloak_lb_ip: 
+private_ingress_custom_annotations: true
 
-# Enable following if you're using kubernetes
- 
-## sunbird_lms_base_url: "http://{{private_ingressgateway_ip}}/api"   ### keycloak env variable
-## sunbird_user_service_base_url: "http://{{private_ingressgateway_ip}}/learner"  #### keycloak env variable
-## __lms_host__: "http://{{private_ingressgateway_ip}}/learner" ### yarn job
-## sunbird_content_service_api_base_url: "http://{{private_ingressgateway_ip}}/content"
-## sunbird_search_service_api_base_url: "http://{{private_ingressgateway_ip}}/search"
-## sunbird_user_service_api_base_url: "http://{{private_ingressgateway_ip}}/learner"
-## kibana_service: kibana.logging.svc.cluster.local:5601
+default_org_hash_id: ""
+dataexhaust_super_admin_channel: sunbird
+
+postgres:
+  db_url: "{{ groups['postgres'][0] }}"
+  db_username: analytics
+  db_name: analytics
+  db_password: "{{core_vault_dp_pgdb_password}}"
+  db_table_name: "{{env}}_consumer_channel_mapping"
+  db_port: 5432
+  db_admin_user: postgres
+  db_admin_password: "{{core_vault_postgres_password}}"
 
 
+sunbird_google_captcha_site_key: 
+google_captcha_private_key: 
+
+# Admin util keys
+adminutil__access_keyprefix: "accessv1_key"
+adminutil__access_keystart: 1
+adminutil__access_keycount: 10
 
 
+######################### Optional ###################
+## Mail config
+mail_server_host:
+mail_server_username: ""
+alerts_mailing_list : ""                # Comma separated mail list for Alerts; eg: user1@mail.com, user2@mail.com
+sunbird_mail_server_from_email:         # Email ID that should be as from address in mails
+sunbird_env_logo_url:                    # put public url for logo, this logo url will be used in email sending.
+
+# Certs related vars
+certs_badge_name: ""                 # Course Completion Certificate Name e.g value is "Course Completion Certificate"
+certs_badge_description: ""           # Descripton of course Completion e.g value is "Successfully completed course on Sunbird"
+certs_badge_image: ""                # Image of the certs badge e.g value is "sunbird"
+certs_badge_root_org_id: ""          # Root org ID for which the certs will be created e.g value is "0124229474659643111"
+certs_badge_issuer_name: ""          # The issuer of the certs name e.g value is "Government of karnataka"
+certs_badge_issuer_url:  ""          # Issuer organisation official URL e.g value is "https://testdomain.in"
+cert_service_cloud_storage_type: azure 
 
 
 
