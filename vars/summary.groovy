@@ -31,7 +31,7 @@ def call() {
                         sh """
                             #sed -i "s/${jobType}\\/${module}\\/${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             #sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                            echo "${jobType}/${module}/${jobName},  artifact_version: ${artifact_version}, privatebranch: ${privateBranch}, publicbranch: ${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
+                            echo "${jobType}/${envDir}/${module}/${jobName},  artifact_version: ${artifact_version}, privatebranch: ${privateBranch}, publicbranch: ${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                         """
                     }
                 }
