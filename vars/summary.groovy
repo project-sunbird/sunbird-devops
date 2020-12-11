@@ -24,7 +24,7 @@ def call() {
                         sh """
                             #sed -i "s/${jobType}\\/${module}\\/${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                             #sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                            echo "${jobType}/${module}/${jobName},  imagetag: ${image_tag}, privatebranch: ${privateBranch}, publicbranch: ${publicBranch}">> $JENKINS_HOME/summary/${envDir}/summary.txt
+                            echo "${jobType}/${envDir}/${module}/${jobName},  imagetag: ${image_tag}, privatebranch: ${privateBranch}, publicbranch: ${publicBranch}">> $JENKINS_HOME/summary/${envDir}/summary.txt
                         """
                     } else {
                         artifact_version = sh(returnStdout: true, script: 'if [ -f metadata.json ]; then jq -r .artifact_version metadata.json; else echo "NA"; fi').trim()
@@ -40,7 +40,7 @@ def call() {
                     sh """
                         #sed -i "s/${jobType}\\/${module}\\/${jobName}.*//g" ${JENKINS_HOME}/summary/${envDir}/summary.txt
                         #sed -i "/^\\\$/d" ${JENKINS_HOME}/summary/${envDir}/summary.txt
-                        echo "${jobType}/${module}/${jobName}, privatebranch: ${privateBranch}, publicbranch: ${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
+                        echo "${jobType}/${envDir}/${module}/${jobName}, privatebranch: ${privateBranch}, publicbranch: ${publicBranch}" >> $JENKINS_HOME/summary/${envDir}/summary.txt
                     """
                 }
             }
