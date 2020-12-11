@@ -19,9 +19,25 @@
     line: '{{item.var}}={{item.value}}'
     regexp: "{{ item.var }}.*"
   with_items:
-    - {var: 'sunbird_encryption_key', value: '{{ sunbird_encryption_key }}'}
-    - {var: 'sunbird_cassandra_host', value: '{{ sunbird_cassandra_host }}'}
     - {var: 'sunbird_user_service_base_url', value: '{{ sunbird_user_service_base_url }}'}
+
+- name: Remove old ENV Vars from environemt file
+  lineinfile:
+    path: '/etc/environment'
+    line: '{{item.var}}'
+    regexp: "{{ item.var }}.*"
+    state: absent
+  with_items:
+    - {var: 'sunbird_lms_base_url'}
+    - {var: 'sunbird_authorization'}
+    - {var: 'sunbird_encryption_key'}
+    - {var: 'sunbird_sso_username'}
+    - {var: 'sunbird_sso_password'}
+    - {var: 'sunbird_sso_url'}
+    - {var: 'sunbird_sso_realm'}
+    - {var: 'sunbird_sso_client_id'}
+    - {var: 'sunbird_cassandra_host'}
+    - {var: 'sunbird_cs_base_url'}
 
 - name: Remove keycloak
   become: true
