@@ -128,6 +128,22 @@ echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/a
 apt-get update
 apt-get install -y kubectl
 
+#Install yarn 
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+apt update && apt install yarn
+
+wget https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz
+tar -xf openjdk-11+28_linux-x64_bin.tar.gz
+mv jdk-11 java-11-openjdk-amd64
+cp -r java-11-openjdk-amd64 /usr/lib/jvm/
+rm -rf java-11-openjdk-amd64 openjdk-11+28_linux-x64_bin.tar.gz
+
+wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+tar -xf apache-maven-3.6.3-bin.tar.gz
+mv apache-maven-3.6.3/bin/mvn /opt/apache-maven-3.6.3/bin/mvn.3.6
+rm -rf apache-maven-3.6.3-bin.tar.gz
+
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove
 
