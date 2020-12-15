@@ -4,8 +4,12 @@ import yaml
 import re
 import time
 import logging
+import datetime
+from pytz import timezone
+from datetime import timedelta,date
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, REGISTRY
+from expiringdict import ExpiringDict
 import requests
 
 LOGLEVEL = os.getenv('LOGLEVEL', 'INFO').upper()
@@ -15,21 +19,16 @@ logging.basicConfig(
     , level=LOGLEVEL
 )
 
-try:
-    from statsd.defaults.env import statsd
-except Exception as e:
-    logging.error(e)
-
 BATCH_DELAY = os.getenv('BATCH_DELAY', 60)
-CONF_FILE = os.getenv('CONF_FILE', 'src/components.yaml')
+CONF_FILE = os.getenv('CONF_FILE', 'conf/components.yaml')
 
 
 
 class AmbariMetricCollector(object):
     def __init__(self, conf_file):
+        self.cache = ExpiringDict(max_len=10000, max_age_seconds=86400)
         self.prom_metrics = {}
         self.host = {}	
-        self.statsd_metrics = {}
         self.ambari_info = {
             'AMBARI_USER': os.getenv('AMBARI_USER')
             , 'AMBARI_PASS': os.getenv('AMBARI_PASS')
@@ -38,14 +37,15 @@ class AmbariMetricCollector(object):
         with open(conf_file, "r") as read_conf_file:
             conf = yaml.load(read_conf_file)
 
-        self.conf_nn, self.conf_rm, self.conf_alert = self._parse_conf(conf)
+        self.conf_nn, self.conf_rm, self.conf_alert, self.conf_apphistory = self._parse_conf(conf)
 
     def _parse_conf(self, conf):
         conf_nn = conf.get('namenode', None)
         conf_rm = conf.get('resourcemanager', None)
         conf_alert = conf.get('ambari_alert', None)
+        conf_apphistory= conf.get('ambari_apphistory', None)
 
-        return conf_nn, conf_rm, conf_alert
+        return conf_nn, conf_rm, conf_alert, conf_apphistory
 
     def _parse_metrics(self, data, prefix, metrics): 		
         for k, v in data.items():
@@ -74,7 +74,6 @@ class AmbariMetricCollector(object):
                 metric_name = '{}_{}'.format('_'.join(prefix), k)
                 if type(v) is int or type(v) is float:
                     if bool(host) :
-                       print('in host', host['component_name']) 
                        prom_metric = GaugeMetricFamily(metric_name, metric_name, labels=['component_name','host_name'])
                        prom_metric.add_metric([host['component_name'],host['host_name']],v)
                        metric_name +=(host['host_name'])
@@ -104,6 +103,44 @@ class AmbariMetricCollector(object):
         self.prom_metrics.update(new_metrics)
         metrics.update(new_metrics)
 
+    def _parse_apphistory_metrics(self, data, prefix, app_id, metrics,group_metric):
+        for k, v in data.items():
+            if type(v) is dict:
+                prefix.append(k)
+                self._parse_metrics(v, prefix, metrics)
+                if len(prefix) > 0:
+                    prefix.pop(len(prefix) - 1)
+            else:
+                if len(prefix) > 0:
+                    metric_name = '{}_{}'.format('_'.join(prefix), k)
+                else:
+                    metric_name = k
+
+                if type(v) is int or type(v) is float:
+                    prom_metric = GaugeMetricFamily(metric_name, metric_name, labels=list(group_metric.keys()))
+                    prom_metric.add_metric(list(group_metric.values()),v)
+                    metric_name += app_id
+                    metric_name += str(group_metric['stageId'])
+                    metrics[metric_name] = prom_metric
+
+    def _parse_apphistory_with_filter(self, data, prefix, app_id, group_metric, metrics, conf):
+        new_metrics = {}
+        host = {}
+        self._parse_apphistory_metrics(data, prefix, app_id, new_metrics, group_metric)
+
+        if conf.get('white_list', None):
+            self._filter_metric_in_white_list(new_metrics, conf.get('white_list', None))
+        elif conf.get('black_list', None):
+            self._filter_metric_in_black_list(new_metrics, conf.get('black_list', None))
+        for k,v in new_metrics.items():
+            if(len(self.cache) == 0 or k not in self.cache.keys()):
+              self.cache[k] = v
+              self.prom_metrics[k] = v
+              metrics[k] = v
+            else:
+              #self.prom_metrics.pop(k,'No Key found')
+              metrics.pop(k,'No Key found')
+    
     def _filter_by_rule(self, metrics, rules, is_wl=True):
         if rules is None:
             return
@@ -160,11 +197,9 @@ class AmbariMetricCollector(object):
 
     def _collect_resourcemanager_metrics(self, metrics):
         try:
-            ambari_rm_url = os.getenv('AMBARI_RM_URL', '')
             data = self._call_json_api(os.getenv('AMBARI_RM_URL', ''), headers={'Accept': 'application/json'})
         except Exception as e:
             logging.error('Call Resource Manager metrics error.\n {}'.format(e))
-
             return
 
         if not data.get('clusterMetrics'):
@@ -172,38 +207,49 @@ class AmbariMetricCollector(object):
 
         self._parse_with_filter(data['clusterMetrics'], ['resourcemanager'], metrics, self.conf_rm)
 
+    def _collect_apphistory_metrics(self, metrics):
+            group_metric={}
+            date_today = (int(date.today().strftime('%s')) * 1000)
+            try:
+                url = self.conf_apphistory['url']+'?minDate='+(datetime.datetime.now(timezone('GMT'))-datetime.timedelta(minutes = 10)).strftime('%Y-%m-%dT%H:%M:%S.000GMT')+'&maxDate='+(datetime.datetime.now(timezone('GMT'))+datetime.timedelta(minutes = 10)).strftime('%Y-%m-%dT%H:%M:%S.000GMT')
+                data = self._call_json_api(url)
+            except Exception as e:
+                logging.error('Call Namenode JMX error.\n {}'.format(e))
+                return
+            for item in data:
+               latest_attempt =  len(item['attempts'])
+               if item['attempts'][latest_attempt-1]['endTimeEpoch'] >= date_today:
+                 app_data= self._call_json_api(os.getenv('AMBARI_APPHISTORY_URL', '')+r"/"+item['id']+r"/"+str(latest_attempt)+r"/"+"stages")
+                 group_metric['appname'] = item['name'].replace(" ", "")
+                 for data_item in app_data :
+                   data_item['reportDate'] = item['attempts'][latest_attempt-1]['lastUpdated']
+                   data_item['timeTaken']= item['attempts'][latest_attempt-1]['duration']
+                   for label in self.conf_apphistory['labels']:
+                     group_metric[label]= str(data_item[label])
+                   self._parse_apphistory_with_filter(data_item,[] ,item['id'], group_metric , metrics, self.conf_apphistory) 
+
     def _collect(self):
         metrics = {}
         labels = {}
         host = {}
         self._collect_resourcemanager_metrics(metrics)
         self._collect_ambari_alerts(metrics)
-        self._collect_namenode_metrics(metrics)   
+        self._collect_namenode_metrics(metrics)
+        self._collect_apphistory_metrics(metrics)
+
         for k, v in metrics.items():
-             prom_metric = self.prom_metrics.get(k, None)	
+             prom_metric = self.prom_metrics.get(k, None)
              if not prom_metric:
                 prom_metric = GaugeMetricFamily(k, k, labels=['cluster_name', 'component_name', 'host_name'])
                 self.prom_metrics[k] = prom_metric
                 prom_metric.add_metric(list(labels.values()), v)
-             self.statsd_metrics[k] = v
-        
-
 
     def collect(self):
         logging.info('Start fetching metrics')
         self._collect()
         logging.info('Finish fetching metrics')
-
         for m in list(self.prom_metrics.values()):
-            yield m
-
-        logging.info('Send metrics to STATSD')
-        for k, v in self.statsd_metrics.items():
-            try:
-                #print(k, '=>', v) 
-                statsd.gauge(k, v)
-            except Exception as e:
-                logging.error('Send metrics to STATSD error.\n {}'.format(e))
+           yield m
 
     def _call_ambari_api(self, url):
         """
@@ -246,10 +292,3 @@ if __name__ == "__main__":
     while True:
         time.sleep(1)
 
-    if os.getenv('DEV', 'FALSE') == 'TRUE':
-        collector.collect()
-    else:
-        while True:
-            collector.collect()
-            logging.info('Sleep {} s'.format(str(BATCH_DELAY)))
-            time.sleep(int(BATCH_DELAY))
