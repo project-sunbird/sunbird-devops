@@ -1,5 +1,5 @@
 FROM python:3.9.0-alpine
-MAINTAINER Revathi(revathi21kotla@gmail.com)
+MAINTAINER Revathi Kotla <revathi21kotla@gmail.com>
 RUN mkdir /src
 WORKDIR /src
 COPY requirements.txt /src/requirements.txt
