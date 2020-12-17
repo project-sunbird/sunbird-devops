@@ -76,6 +76,7 @@ object_category_definition_prefix: /object/category/definition
 dataset_service_prefix: /dataset
 asset_prefix: /asset
 collection_prefix: /collection
+discussions_prefix: /discussion
 question_prefix: /question
 questionset_prefix: /questionset
 
@@ -97,6 +98,7 @@ report_service_url: "http://report-service:3030"
 group_service_url: "http://groups-service:9000"
 analytics_api_service_url: "http://analytics-service:9000"
 taxonomy_service_url: "http://taxonomy-service:9000"
+discussions_mw_service_url: "http://discussionsmw-service:3002/discussion"
 assessment_service_url: "http://assessment-service:9000"
 
 premium_consumer_rate_limits:
@@ -5689,6 +5691,420 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'contentCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getDiscussionTagsList
+    uris: "{{ discussions_prefix }}/tags"
+    upstream_url: "{{ discussions_mw_service_url }}/tags"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"      
+
+  - name: getDiscussionCategories
+    uris: "{{ discussions_prefix }}/categories"
+    upstream_url: "{{ discussions_mw_service_url }}/categories"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getDiscussionNotificationsList
+    uris: "{{ discussions_prefix }}/notifications"
+    upstream_url: "{{ discussions_mw_service_url }}/notifications"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getUserDetailsOfDiscussion
+    uris: "{{ discussions_prefix }}/user"
+    upstream_url: "{{ discussions_mw_service_url }}/user"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getCategoryDetailsOfDiscussion
+    uris: "{{ discussions_prefix }}/category"
+    upstream_url: "{{ discussions_mw_service_url }}/category"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getUnreadTopicsOfDiscussion
+    uris: "{{ discussions_prefix }}/unread"
+    upstream_url: "{{ discussions_mw_service_url }}/unread"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getRecentTopicsOfDiscussion
+    uris: "{{ discussions_prefix }}/recent"
+    upstream_url: "{{ discussions_mw_service_url }}/recent"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getPopularTopicsOfDiscussion
+    uris: "{{ discussions_prefix }}/popular"
+    upstream_url: "{{ discussions_mw_service_url }}/popular"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getTopTopicsOfDiscussion
+    uris: "{{ discussions_prefix }}/top"
+    upstream_url: "{{ discussions_mw_service_url }}/top"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getTopicsOfDiscussionById
+    uris: "{{ discussions_prefix }}/topic"
+    upstream_url: "{{ discussions_mw_service_url }}/topic"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getTotalUnreadTopicsOfDiscussion
+    uris: "{{ discussions_prefix }}/unread/total"
+    upstream_url: "{{ discussions_mw_service_url }}/unread/total"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getTopicsOfDiscussionByTeaserId
+    uris: "{{ discussions_prefix }}/topic/teaser"
+    upstream_url: "{{ discussions_mw_service_url }}/topic/teaser"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getTopicsPaginationByIdOfDiscussion
+    uris: "{{ discussions_prefix }}/topic/pagination"
+    upstream_url: "{{ discussions_mw_service_url }}/topic/pagination"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getGroupsListOfDiscussion
+    uris: "{{ discussions_prefix }}/groups"
+    upstream_url: "{{ discussions_mw_service_url }}/groups"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getRecentPostsByDateOfDiscussions
+    uris: "{{ discussions_prefix }}/recent/posts"
+    upstream_url: "{{ discussions_mw_service_url }}/recent/posts"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createTopicOfDiscussions
+    uris: "{{ discussions_prefix }}/v2/topics"
+    upstream_url: "{{ discussions_mw_service_url }}/v2/topics"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createCategoryOfDiscussion
+    uris: "{{ discussions_prefix }}/v2/categories"
+    upstream_url: "{{ discussions_mw_service_url }}/v2/categories"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createGroupsOfDiscussion
+    uris: "{{ discussions_prefix }}/v2/groups"
+    upstream_url: "{{ discussions_mw_service_url }}/v2/groups"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createNewPostOfDiscussion
+    uris: "{{ discussions_prefix }}/v2/posts"
+    upstream_url: "{{ discussions_mw_service_url }}/v2/posts"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createNewUserOfDiscussion
+    uris: "{{ discussions_prefix }}/v2/users"
+    upstream_url: "{{ discussions_mw_service_url }}/v2/users"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getUserDetailsOfDiscussion
+    uris: "{{ discussions_prefix }}/user/username"
+    upstream_url: "{{ discussions_mw_service_url }}/user/username"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getForumIdOfDiscussion
+    uris: "{{ discussions_prefix }}/forumId"
+    upstream_url: "{{ discussions_mw_service_url }}/forumId"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: addForumOfDiscussion
+    uris: "{{ discussions_prefix }}/forum"
+    upstream_url: "{{ discussions_mw_service_url }}/forum"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
