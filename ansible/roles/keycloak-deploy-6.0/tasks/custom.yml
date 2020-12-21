@@ -1,0 +1,62 @@
+---
+- name: Install dependencies for keycloak
+  apt:
+    name: "{{ item }}"
+    update_cache: true
+  with_items:
+    - python-pip
+    - python-setuptools
+  run_once: true
+
+- name: Copying python libraries
+  copy:
+    src: '{{ role_path }}/files/python-keycloak-0.12.0'
+    dest: /tmp/
+  run_once: true
+
+- name: Initialize python library to run keycloak paython script
+  shell: cd /tmp/python-keycloak-0.12.0 && python setup.py install
+  run_once: true
+
+- name: Save keycloak vars to json
+  template:
+    src: "keycloak-bootstrap.conf.j2"
+    dest: "/tmp/keycloak-bootstrap.conf.json"
+    mode: "0644"
+  run_once: true
+
+- name: Copy realm json file to tmp location
+  template:
+    src: "keycloak-realm.j2"
+    dest: "/tmp/keycloak-realm.json"
+    mode: "0644"
+  run_once: true
+
+- name: Copy clients file to tmp location
+  template:
+    src: "clients.j2"
+    dest: "/tmp/clients.json"
+    mode: "0644"
+  run_once: true
+
+- name: Copy user manager roles file to tmp location
+  copy:
+    src: "files/python-keycloak-0.12.0/roles.json"
+    dest: "/tmp/roles.json"
+    mode: "0644"
+  run_once: true
+
+- name: Copy the keycloak paython script
+  copy:
+    src: "{{ role_path }}/files/python-keycloak-0.12.0/keycloak"
+    dest: /tmp
+  run_once: true
+
+- name: Run the keycloak paython script to import clients if not exist
+  shell: cd /tmp/keycloak/ && python keycloak_patch.py /tmp/keycloak-bootstrap.conf.json
+  register: out
+  until: '"404" not in out.stderr'
+  retries: 2
+  delay: 10
+  run_once: true
+  ignore_errors: true
