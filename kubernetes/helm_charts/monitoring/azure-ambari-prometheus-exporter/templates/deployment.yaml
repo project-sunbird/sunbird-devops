@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "azure-ambari-prometheus-exporter.fullname" . }}
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+  labels:
+    {{- include "azure-ambari-prometheus-exporter.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "azure-ambari-prometheus-exporter.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "azure-ambari-prometheus-exporter.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          - name: AMBARI_RM_URL
+            value: "{{ .Values.env.ambari.rm_url }}"
+          - name: AMBARI_METRICS_URL
+            value: "{{ .Values.env.ambari.metrics_url }}"
+          - name: AMBARI_ALERT_URL
+            value: "{{ .Values.env.ambari.alert_url }}"
+          - name: AMBARI_APPHISTORY_URL
+          - value: "{{ .Values.env.ambari.app_history_url }}"
+          - name: AMBARI_USER
+            value: "{{ .Values.env.ambari.user }}"
+          - name: AMBARI_PASS
+            value: "{{ .Values.env.ambari.pass }}"
+          - name: PYTHONWARNINGS
+            value: "ignore:Unverified HTTPS request"
+          ports:
+            - name: http
+              containerPort: 9999
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
