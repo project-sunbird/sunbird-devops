@@ -19,13 +19,13 @@ node('build-slave') {
                     checkout scm
                     commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     branch_name = sh(script: 'git name-rev --name-only HEAD | rev | cut -d "/" -f1| rev', returnStdout: true).trim()
-                    build_tag = branch_name + "_" + commit_hash
+                    build_tag = branch_name + "_" + commit_hash + "_" + env.BUILD_NUMBER
                     println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag not specified, using the latest commit hash: " + commit_hash + ANSI_NORMAL)
                 }
                 else {
                     def scmVars = checkout scm
                     checkout scm: [$class: 'GitSCM', branches: [[name: "refs/tags/$params.github_release_tag"]], userRemoteConfigs: [[url: scmVars.GIT_URL]]]
-                    build_tag = params.github_release_tag
+                    build_tag = params.github_release_tag + "_" + env.BUILD_NUMBER
                     println(ANSI_BOLD + ANSI_YELLOW + "github_release_tag specified, building from github_release_tag: " + params.github_release_tag + ANSI_NORMAL)
                 }
                 echo "build_tag: " + build_tag
@@ -37,7 +37,7 @@ node('build-slave') {
 		sh("cp pipelines/build/nodebb/* NodeBB")
                 print "Environment will be : ${env.NODE_ENV}"
                 sh('chmod 777 NodeBB/build.sh')
-                sh("bash ./NodeBB/build.sh ${params.nodebb_branch}_${commit_hash} ${env.NODE_NAME} ${hub_org}")
+                sh("bash ./NodeBB/build.sh ${params.nodebb_branch}__${build_tag} ${env.NODE_NAME} ${hub_org}")
             }
             stage('ArchiveArtifacts') {
                 archiveArtifacts "metadata.json"
