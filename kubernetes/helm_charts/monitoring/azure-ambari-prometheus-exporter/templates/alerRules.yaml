@@ -1,0 +1,31 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.serviceMonitorLabels.release }}
+    release: {{ .Values.serviceMonitorLabels.release }}
+  name: {{ include "azure-ambari-prometheus-exporter.fullname" . }}-alertrule
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+spec:
+  groups:
+  - name: HDClusterMetrics
+    rules:
+    - alert: No of Jobs Failed 
+      expr: sum(resourcemanager_appsFailed) > {{ .Values.app_failed_critical }}
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        message: {{`"No of jobs failed is {{$value}}"`}}
+        summary: Jobs Failed
+
+    - alert: No of Cluster Nodes InActive
+      expr: sum(resourcemanager_lostNodes) > {{ .Values.nodes_inactive_critical }}
+      for: 5m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`"Cluster Nodes InActive count is {{$value}}"`}}
+        summary: Node inactive in hdcluster
