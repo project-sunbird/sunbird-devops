@@ -380,7 +380,7 @@ var forgetPassword = (redirectUrlPath) => {
 		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
-			if(client_id === 'android'){
+			if(client_id === 'android' || client_id === 'desktop'){
 				window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
 			}
 			else{
@@ -414,7 +414,7 @@ var redirect  = (redirectUrlPath) => {
 		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
-			if (client_id === 'android') {
+			if (client_id === 'android' ||  client_id === 'desktop') {
 				window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
 			} else {
 				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
@@ -437,7 +437,7 @@ var handleSsoEvent  = () => {
 		const sessionUrlObj = new URL(sessionUrl);
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
-			if (client_id === 'android') {
+			if (client_id === 'android' ||  client_id === 'desktop') {
 				const ssoUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + ssoPath;
 				window.location.href = redirect_uri + '?ssoUrl=' + ssoUrl;
 			} else {
@@ -462,7 +462,7 @@ var handleGoogleAuthEvent = () => {
 		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
-			if (client_id === 'android') {
+			if (client_id === 'android' ||  client_id === 'desktop') {
 				let host = sessionUrlObj.host;
 				if (host.indexOf("merge.") !== -1) {
 					host = host.slice(host.indexOf("merge.") + 6, host.length);
@@ -489,7 +489,7 @@ var redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and sel
 		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
-			if (client_id === 'android') {
+			if (client_id === 'android' ||  client_id === 'desktop') {
 				window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
 			} else {
 				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
