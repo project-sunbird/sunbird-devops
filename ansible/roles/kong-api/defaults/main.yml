@@ -3190,6 +3190,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: registerPortalv2
+    uris: "{{ api_manager_perfix }}/v2/consumer/portal/credential/register"
+    upstream_url: "{{ am_util_url }}/v2/consumer/portal/credential/register"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'portalAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: registerMobileDeviceOpenRAP
     uris: "{{ api_manager_perfix }}/v1/consumer/mobile_device_openrap/credential/register"
     upstream_url: "{{ am_util_url }}/v1/consumer/mobile_device_openrap/credential/register"
@@ -3577,6 +3595,7 @@ kong_apis:
       config.limit_by: ip
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: searchOrg
     uris: "{{ org_service_prefix }}/v1/search"
     upstream_url: "{{ learning_service_url }}/v1/org/search"
@@ -6058,7 +6077,7 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
-  - name: getUserDetailsOfDiscussion
+  - name: getUserDetailsByUsername
     uris: "{{ discussions_prefix }}/user/username"
     upstream_url: "{{ discussions_mw_service_url }}/user/username"
     strip_uri: true
