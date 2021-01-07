@@ -15,7 +15,7 @@ RUN npm install https://github.com/Sunbird-Ed/nodebb-plugin-sunbird-oidc.git
 RUN npm install https://github.com/Sunbird-Ed/nodebb-plugin-sunbird-api.git
 RUN npm install https://github.com/Sunbird-Ed/nodebb-plugin-sunbird-telemetry.git
 RUN npm install https://github.com/Sunbird-Ed/nodebb-plugin-azure-storage.git
-
+RUN npm install https://github.com/NodeBB/nodebb-plugin-write-api.git
 
 
 
