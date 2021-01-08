@@ -76,15 +76,18 @@ api_managerecho_liveness_readiness:
     timeoutSeconds: 10
     failureThreshold: 5
 
-adminutil__device_keyprefix: "device"
-adminutil__access_keyprefix: "access"
-adminutil__desktop_keyprefix: "desktop"
+adminutil__device_keyprefix: "device_key"
+adminutil__access_keyprefix: "access_key"
+adminutil__desktop_keyprefix: "desktop_key"
+adminutil__portal_keyprefix: "portal_key"
 adminutil__device_keystart: 0
 adminutil__device_keycount: 0
 adminutil__access_keystart: 0
 adminutil__access_keycount: 0
 adminutil__desktop_keystart: 0
 adminutil__desktop_keycount: 0
+adminutil__portal_keystart: 0
+adminutil__portal_keycount: 0
 
 adminutil_refresh_token_public_key_prefix: "refresh_token_public_key"
 adminutil_access_token_validity: 43200  # 12 hours access token validity
@@ -97,7 +100,7 @@ adminutil_keys_values:
   values_to_pass:
     basepath: "/keys/"
     keyprefix: "{{ adminutil__device_keyprefix }}"
-    keystart: "{{ adminutil__device_keystart }}"
+    keystart: "{{ adminutil__device_keystart|int }}"
     keycount: "{{ adminutil__device_keycount|int }}"
   role_to_run:
     - decrypt.yml
@@ -106,7 +109,7 @@ adminutil_keys_values:
   values_to_pass:
     basepath: "/keys/"
     keyprefix: "{{ adminutil__access_keyprefix }}"
-    keystart: "{{ adminutil__access_keystart }}"
+    keystart: "{{ adminutil__access_keystart|int }}"
     keycount: "{{ adminutil__access_keycount|int }}"
   role_to_run:
     - decrypt.yml
@@ -115,8 +118,17 @@ adminutil_keys_values:
   values_to_pass:
     basepath: "/keys/"
     keyprefix: "{{ adminutil__desktop_keyprefix }}"
-    keystart: "{{ adminutil__desktop_keystart }}"
+    keystart: "{{ adminutil__desktop_keystart|int }}"
     keycount: "{{ adminutil__desktop_keycount|int }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml
+- key_to_register: portal
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__portal_keyprefix }}"
+    keystart: "{{ adminutil__portal_keystart|int }}"
+    keycount: "{{ adminutil__portal_keycount|int }}"
   role_to_run:
     - decrypt.yml
     - copy-to-helm.yml
