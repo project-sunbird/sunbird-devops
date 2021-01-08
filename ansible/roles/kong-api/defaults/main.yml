@@ -6233,3 +6233,21 @@ kong_apis:
         config.limit_by: credential
       - name: request-size-limiting
         config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionSetReject
+    request_path: "{{ questionset_prefix }}/v1/reject"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/reject"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAdmin'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
