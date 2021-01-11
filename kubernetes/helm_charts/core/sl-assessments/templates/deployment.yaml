@@ -1,0 +1,262 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+     rollingUpdate:
+        maxSurge: {{ .Values.strategy.maxsurge }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-service
+          configMap:
+            name: {{ .Chart.Name }}-config
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        env:
+        - name: HOST
+          value: {{ .Values.env.host | quote }}
+        - name: PORT
+          value: {{ .Values.env.port | quote }}
+        - name: LOG
+          value: {{ .Values.env.log | quote }}
+        - name: NODE_ENV
+          value: {{ .Values.env.node_env | quote }}
+        - name: ENABLE_DEBUG_LOGGING
+          value: "ON"
+        - name: ENABLE_BUNYAN_LOGGING
+          value: "ON"
+        - name: MOBILE_APPLICATION_APP_TYPE
+          value: {{ .Values.env.mobile_application_app_type | quote }}
+        - name: APPLICATION_BASE_HOST
+          value: {{ .Values.env.application_base_host | quote }}
+        - name: SHIKSHALOKAM_USER_PROFILE_FETCH_ENDPOINT
+          value: {{ .Values.env.shikshalokam_user_profile_fetch_endpoint | quote }}
+        - name: APPLICATION_BASE_URL
+          value: {{ .Values.env.application_base_url | quote }}
+        - name: AUTHORIZATION
+          value: {{ .Values.env.authorization | quote }}
+        - name: MONGODB_URL
+          value: {{ .Values.env.mongodb_url | quote }}
+        - name: SHIKSHALOKAM_BASE_HOST
+          value: {{ .Values.env.shikshalokam_base_host | quote }}
+        - name: DB
+          value: {{ .Values.env.db | quote }}
+        - name: INTERNAL_ACCESS_TOKEN
+          value: {{ .Values.env.internal_access_token | quote }}
+        - name: MIGRATION_COLLECTION
+          value: {{ .Values.env.migration_collection | quote }}
+        - name: MIGRATION_DIR
+          value: {{ .Values.env.migration_dir | quote }}
+        - name: CSV_REPORTS_PATH
+          value: {{ .Values.env.csv_reports_path | quote }}
+        - name: DISABLE_LEARNER_SERVICE_ON_OFF
+          value: "ON"
+        - name: SLACK_COMMUNICATIONS_ON_OFF
+          value: "OFF"
+        - name: SLACK_EXCEPTION_LOG_URL
+          value: {{ .Values.env.slack_exception_log_url | quote }}
+        - name: SLACK_TOKEN
+          value: {{ .Values.env.slack_token | quote }}
+        - name: RUBRIC_ERROR_MESSAGES_TO_SLACK
+          value: {{ .Values.env.rubric_error_messages_to_slack | quote }}
+        - name: DISABLE_TOKEN_CHECK_ON_OFF
+          value: {{ .Values.env.disable_token_check_on_off | quote}}
+        - name: DISABLE_TOKEN_CHECK_FOR_API
+          value: {{ .Values.env.disable_token_check_for_api | quote}}
+        - name: DISABLE_TOKEN_endpoint1_USERS
+          value: {{ .Values.env.disable_token_endpoint1_users | quote}}
+        - name: DISABLE_TOKEN_endpoint2_USERS
+          value: {{ .Values.env.disable_token_endpoint2_users | quote}}
+        - name: DISABLE_TOKEN_DEFAULT_USERID
+          value: {{ .Values.env.disable_token_default_userid | quote}}
+        - name: DISABLE_TOKEN_DEFAULT_USER_ROLE
+          value: {{ .Values.env.disable_token_default_user_role | quote}}
+        - name: DISABLE_TOKEN_DEFAULT_USER_NAME
+          value: {{ .Values.env.disable_token_default_user_name | quote }}
+        - name: DISABLE_TOKEN_DEFAULT_USER_EMAIL
+          value: {{ .Values.env.disable_token_default_user_email | quote }}
+        - name: COMPLETED_SUBMISSION_TOPIC
+          value: {{ .Values.env.completed_submission_topic | quote }}
+        - name: INCOMPLETE_SUBMISSION_TOPIC
+          value: {{ .Values.env.incomplete_submission_topic | quote }}
+        - name: SUBMISSION_RATING_QUEUE_TOPIC
+          value: {{ .Values.env.submission_rating_queue_topic | quote }}
+        - name: COMPLETED_OBSERVATION_SUBMISSION_TOPIC
+          value: {{ .Values.env.completed_observation_submission_topic | quote }}
+        - name: INCOMPLETE_OBSERVATION_SUBMISSION_TOPIC
+          value: {{ .Values.env.incomplete_observation_submission_topic | quote }}
+        - name: COMPLETED_SURVEY_SUBMISSION_TOPIC
+          value: {{ .Values.env.completed_survey_submission_topic | quote }}
+        - name: INCOMPLETE_SURVEY_SUBMISSION_TOPIC
+          value: {{ .Values.env.incomplete_survey_submission_topic | quote }}
+        - name: EMAIL_COMMUNICATIONS_ON_OFF
+          value: "ON"
+        - name: EMAIL_SERVICE_BASE_URL
+          value: {{ .Values.env.email_service_base_url | quote }}
+        - name: EMAIL_SERVICE_TOKEN
+          value: {{ .Values.env.email_service_token | quote }}
+        - name: SUBMISSION_RATING_DEFAULT_EMAIL_RECIPIENTS
+          value: {{ .Values.env.submission_rating_default_email_recipients | quote }}
+        - name: DEFAULT_USER_ID
+          value: {{ .Values.env.default_user_id | quote }}
+        - name: USER_DEFAULT_ROOT_ORGANISATION
+          value: {{ .Values.env.user_default_root_organisation | quote }}
+        - name: USER_DEFAULT_ORGANISATION
+          value: {{ .Values.env.user_default_organisation | quote }}
+        - name: ELASTICSEARCH_USER_EXTENSION_INDEX
+          value: {{ .Values.env.elasticsearch_user_extension_index | quote }}
+        - name: ELASTICSEARCH_USER_EXTENSION_INDEX_TYPE
+          value: {{ .Values.env.elasticsearch_user_extension_index_type | quote }}
+        - name: KENDRA_APPLICATION_ENDPOINT
+          value: {{ .Values.env.kendra_application_endpoint | quote }}
+        - name: ELASTICSEARCH_ENTITIES_INDEX
+          value: {{ .Values.env.elasticsearch_entities_index | quote }}
+        - name: ELASTICSEARCH_ENTITIES_INDEX_TYPE
+          value: {{ .Values.env.elasticsearch_entities_index_type | quote }}
+        - name: USE_USER_ORGANISATION_ID_FILTER
+          value: {{ .Values.env.use_user_organisation_id_filter | quote }}
+        - name: APP_PORTAL_BASE_URL
+          value: {{ .Values.env.app_portal_base_url | quote }}
+        - name: IMPROVEMENT_PROJECT_SUBMISSION_TOPIC
+          value: {{ .Values.env.improvement_project_submission_topic | quote }}
+        - name: KAFKA_COMMUNICATIONS_ON_OFF
+          value: {{ .Values.env.kafka_communications_on_off | quote }}
+        - name: KAFKA_URL
+          value: {{ .Values.env.kafka_url | quote }}
+        - name: NOTIFICATIONS_TOPIC
+          value: {{ .Values.env.notifications_topic | quote }}
+        - name: KAFKA_GROUP_ID
+          value: {{ .Values.env.kafka_group_id | quote }}
+        - name: KAFKA_ERROR_MESSAGES_TO_SLACK
+          value: "ON"
+        - name: ELASTICSEARCH_COMMUNICATIONS_ON_OFF
+          value: "ON"
+        - name: ELASTICSEARCH_HOST_URL
+          value: {{ .Values.env.elasticsearch_host_url | quote }}
+        - name: ELASTICSEARCH_ENTITIES_INDEX
+          value: {{ .Values.env.elasticsearch_entities_index | quote }}
+        - name: REQUEST_TIMEOUT_FOR_REPORTS
+          value: {{ .Values.env.request_timeout_for_reports | quote }}
+        - name: APPLICATION_BASE_URL
+          value: {{ .Values.env.application_base_url | quote }}
+        - name: PUBLIC_FOLDER_PATH
+          value: {{ .Values.env.public_folder_path | quote }}
+        - name: ELASTIC_SEARCH_REQUEST_TIMEOUT
+          value: {{ .Values.env.elastic_search_request_timeout | quote }}
+        - name: ELASTIC_SEARCH_MAX_RETRIES
+          value: {{ .Values.env.elastic_search_max_retries | quote }}
+        - name: ELASTIC_SEARCH_SNIFF_ON_START
+          value: {{ .Values.env.elastic_search_sniff_on_start | quote }}
+        - name: AWS_ACCESS_KEY_ID
+          value: {{ .Values.env.aws_access_key_id | quote }}
+        - name: AWS_BUCKET_ENDPOINT
+          value: {{ .Values.env.aws_bucket_endpoint | quote }}
+        - name: AWS_BUCKET_NAME
+          value: {{ .Values.env.aws_bucket_name | quote }}
+        - name: AWS_SECRET_ACCESS_KEY
+          value: {{ .Values.env.aws_secret_access_key | quote }}
+        - name: AWS_BUCKET_REGION
+          value: {{ .Values.env.aws_bucket_region | quote }}
+        - name: AZURE_ACCOUNT_NAME
+          value: {{ .Values.env.azure_account_name | quote }}
+        - name: AZURE_ACCOUNT_KEY
+          value: {{ .Values.env.azure_account_key | quote }}
+        - name: AZURE_STORAGE_CONTAINER
+          value: {{ .Values.env.azure_storage_container | quote }}
+        - name: CLOUD_STORAGE
+          value: {{ .Values.env.cloud_storage | quote }}
+        - name: GCP_PATH
+          value: {{ .Values.env.gcp_path | quote }}
+        - name: GCP_BUCKET_NAME
+          value: {{ .Values.env.gcp_bucket_name | quote }}
+        - name: CASSANDRA_HOST
+          value: {{ .Values.env.cassandra_host | quote }}
+        - name: CASSANDRA_PORT
+          value: {{ .Values.env.cassandra_port | quote }}
+        - name: CASSANDRA_DB
+          value: {{ .Values.env.cassandra_db | quote }}
+        - name: VALIDATE_ACCESS_TOKEN_OFFLINE
+          value: "ON"
+        - name: KEYCLOAK_PUBLIC_KEY_PATH
+          value: {{ .Values.env.keycloak_public_key_path | quote }}
+        - name: sunbird_keycloak_auth_server_url
+          value: {{ .Values.env.kendra_sunbird_keycloak_auth_server_url | quote }}
+        - name: sunbird_keycloak_realm
+          value: {{ .Values.env.kendra_sunbird_keycloak_realm | quote }}
+        - name: sunbird_keycloak_client_id
+          value: {{ .Values.env.kendra_sunbird_keycloak_client_id | quote }}
+        - name: sunbird_keycloak_public
+          value: {{ .Values.env.kendra_sunbird_keycloak_public | quote }}
+        - name: sunbird_cache_store
+          value: {{ .Values.env.kendra_sunbird_cache_store | quote }}
+        - name: sunbird_cache_ttl
+          value: {{ .Values.env.kendra_sunbird_cache_ttl | quote }}
+        - name: TRANSFER_FROM_DB
+          value: {{ .Values.env.transfer_from_db | quote }}
+        - name: DISABLE_TOKEN_ON_OFF
+          value: "ON"
+        - name: DISABLE_TOKEN_getImageUploadUrl_USERS
+          value: {{.Values.env.disable_token_getimageuploadurl_users | quote }}
+        - name: DISABLE_TOKEN_make_USERS
+          value: {{ .Values.env.disable_token_make_users | quote }}
+        - name: UNNATI_APPLICATION_HOST
+          value: {{ .Values.env.unnati_application_host | quote }}
+        - name: UNNATI_APPLICATION_BASE_URL
+          value: {{ .Values.env.unnati_application_base_url | quote }}
+
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 10 }}
+        {{- end }}
+        # volumeMounts:
+        #   - name: {{ .Chart.Name }}-config
+        #     mountPath: /home/sunbird/content-service-1.0-SNAPSHOT/config/application.conf
+        #     subPath: content-service_application.conf
+        #   - name: {{ .Chart.Name }}-xml-config
+        #     mountPath: /home/sunbird/content-service-1.0-SNAPSHOT/config/logback.xml
+        #     subPath: content-service_logback.xml
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  ports:
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network.targetport }}
+  selector:
+    app: {{ .Chart.Name }}
