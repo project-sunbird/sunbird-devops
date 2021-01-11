@@ -1,0 +1,177 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+     rollingUpdate:
+        maxSurge: {{ .Values.strategy.maxsurge }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-service
+          configMap:
+            name: {{ .Chart.Name }}-config
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        env:
+        - name: HOST
+          value: {{ .Values.env.host | quote}}
+        - name: APPLICATION_PORT
+          value: {{ .Values.env.application_port | quote }}
+        - name: APPLICATION_ENV
+          value: {{ .Values.env.application_env | quote }}
+        - name: APPLICATION_BASE_HOST
+          value: {{ .Values.env.application_base_host | quote }}
+        - name: APPLICATION_BASE_URL
+          value: {{ .Values.env.application_base_url | quote }}
+        - name: ENABLE_CONSOLE_LOGGING
+          value: "OFF"
+        - name: ENABLE_BUNYAN_LOGGING
+          value: "OFF"
+        - name: ENABLE_FILE_LOGGING
+          value: "OFF"
+        - name: URL_PREFIX
+          value: {{ .Values.env.url_prefix | quote }}
+        - name: HEALTH_CHECK_URL
+          value: {{ .Values.env.health_check_url | quote }}
+        - name: LOGGER_DIRECTORY
+          value: {{ .Values.env.logger_directory | quote }}
+        - name: LOG
+          value: {{ .Values.env.log | quote }}
+        - name: AUTHORIZATION
+          value: {{ .Values.env.authorization | quote }}
+        - name: SUNBIRD_API_AUTHORIZATION
+          value: {{ .Values.env.sunbird_api_authorization | quote }}
+        - name: SHIKSHALOKAM_BASE_HOST
+          value: {{ .Values.env.shikshalokam_base_host | quote }}
+        - name: DB
+          value: {{ .Values.env.db | quote }}
+        - name: MONGODB_URL
+          value: {{ .Values.env.mongodb_url | quote }}
+        - name: MONGODB_PORT
+          value: {{ .Values.env.mongodb_port | quote }}
+        - name: MONGODB_DATABASE_NAME
+          value: {{ .Values.env.mongodb_database_name | quote }}
+        - name: TRANSFER_FROM_DB
+          value: {{ .Values.env.transfer_from_db | quote }}
+        - name: INTERNAL_ACCESS_TOKEN
+          value: {{ .Values.env.internal_access_token | quote }}
+        - name: MIGRATION_COLLECTION
+          value: {{ .Values.env.migration_collection | quote }}
+        - name: MIGRATION_DIR
+          value: {{ .Values.env.migration_dir | quote }}
+        - name: SLACK_COMMUNICATIONS_ON_OFF
+          value: "OFF"
+        - name: SLACK_EXCEPTION_LOG_URL
+          value: {{ .Values.env.slack_exception_log_url | quote }}
+        - name: SLACK_TOKEN
+          value: {{ .Values.env.slack_token | quote }}
+        - name: RUBRIC_ERROR_MESSAGES_TO_SLACK
+          value: "ON"
+        - name: DISABLE_LEARNER_SERVICE_ON_OFF
+          value: "ON"
+        - name: PUNJAB_SERVICE_BASE_URL
+          value: {{ .Values.env.punjab_service_base_url | quote }}
+        - name: PUNJAB_SERVICE_KEY
+          value: {{ .Values.env.punjab_service_key | quote }}
+        - name: PUNJAB_SERVICE_HOST
+          value: {{ .Values.env.punjab_service_host | quote }}
+        - name: PUNJAB_SERVICE_DEFAULT_PASSWORD
+          value: {{ .Values.env.punjab_service_password | quote }}
+        - name: PUNJAB_SERVICE_DEFAULT_MAIL_DOMAIN
+          value: {{ .Values.env.punjab_service_default_mail_domain | quote }}
+        - name: SUNBIRD_ORGANISATION_ID
+          value: {{ .Values.env.sunbird_organisation_id | quote }}
+        - name: SUNBIRD_CHANNEL
+          value: {{ .Values.env.sunbird_channel | quote }}
+        - name: DARPAN_APP_KEYCLOAK_CLIENT
+          value: {{ .Values.env.darpan_app_keycloak_client | quote }}
+        - name: SUNBIRD_SERIVCE_HOST
+          value: {{ .Values.env.sunbird_service_host | quote }}
+        - name: SUNBIRD_SERIVCE_BASE_URL
+          value: {{ .Values.env.sunbird_service_base_url | quote }}
+        - name: sunbird_keycloak_auth_server_url
+          value: {{ .Values.env.sunbird_keycloak_auth_server_url | quote }}
+        - name: sunbird_keycloak_realm
+          value: {{ .Values.env.sunbird_keycloak_realm | quote }}
+        - name: sunbird_keycloak_client_id
+          value: {{ .Values.env.sunbird_keycloak_client_id | quote }}
+        - name: sunbird_keycloak_grant_type
+          value: {{ .Values.env.sunbird_keycloak_grant_type | quote }}
+        - name: sunbird_keycloak_default_user_creation_channel
+          value: {{ .Values.env.sunbird_keycloak_default_user_creation_channel | quote }}
+        - name: sunbird_keycloak_public
+          value: {{ .Values.env.sunbird_keycloak_public | quote }}
+        - name: sunbird_cache_store
+          value: {{ .Values.env.sunbird_cache_store | quote }}
+        - name: sunbird_cache_ttl
+          value: {{ .Values.env.sunbird_cache_ttl | quote }}
+        - name: SUNBIRD_URL
+          value: {{ .Values.env.sunbird_url | quote }}
+        - name: SUNBIRD_PROVIDER
+          value: {{ .Values.env.sunbird_provider | quote }}
+        - name: APIDOC_URL
+          value: {{ .Values.env.apidoc_url | quote }}
+        - name: DEFAULT_APIDOC_URL
+          value: {{ .Values.env.default_apidoc_url | quote }}
+        - name: APIDOC_PATH
+          value: {{ .Values.env.apidoc_path | quote }}
+        - name: KENDRA_APPLICATION_ENDPOINT
+          value: {{ .Values.env.kenda_application_endpoint | quote }}
+        
+
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 10 }}
+        {{- end }}
+        # volumeMounts:
+        #   - name: {{ .Chart.Name }}-config
+        #     mountPath: /home/sunbird/content-service-1.0-SNAPSHOT/config/application.conf
+        #     subPath: content-service_application.conf
+        #   - name: {{ .Chart.Name }}-xml-config
+        #     mountPath: /home/sunbird/content-service-1.0-SNAPSHOT/config/logback.xml
+        #     subPath: content-service_logback.xml
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  ports:
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network.targetport }}
+  selector:
+    app: {{ .Chart.Name }}
