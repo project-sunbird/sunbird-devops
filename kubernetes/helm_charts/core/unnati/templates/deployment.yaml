@@ -1,0 +1,173 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+     rollingUpdate:
+        maxSurge: {{ .Values.strategy.maxsurge }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-service
+          configMap:
+            name: {{ .Chart.Name }}-config
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        env:
+        - name: NODE_ENV
+          value: {{ .Values.env.node_env | quote }}
+        - name: APPLICATION_PORT
+          value: {{ .Values.env.application_port | quote }}
+        - name: APPLICATION_ENV
+          value: {{ .Values.env.application_env | quote }}
+        - name: APPLICATION_BASE_HOST
+          value: {{ .Values.env.application_base_host | quote }}
+        - name: APPLICATION_BASE_URL
+          value: {{ .Values.env.application_base_url | quote }}
+        - name: ENABLE_CONSOLE_LOGGING
+          value: "ON"
+        - name: ENABLE_FILE_LOGGING
+          value: "ON"
+        - name: AUTHORIZATION
+          value: {{ .Values.env.authorization | quote }}
+        - name: INTERNAL_ACCESS_TOKEN
+          value: {{ .Values.env.internal_access_token | quote }}
+        - name: TRANSFER_FROM_DB
+          value: {{ .Values.env.transfer_from_db | quote }}
+        - name: MONGODB_URL
+          value: {{ .Values.env.mongodb_url | quote }}
+        - name: MONGODB_PORT
+          value: {{ .Values.env.mongodb_port | quote }}
+        - name: MONGODB_DATABASE_NAME
+          value: {{ .Values.env.mongodb_database_name | quote }}
+        - name: DISABLE_LEARNER_SERVICE_ON_OFF
+          value: "OFF"
+        - name: MIGRATION_COLLECTION
+          value: {{ .Values.env.migration_collection | quote }}
+        - name: MIGRATION_DIR
+          value: {{ .Values.env.migration_dir | quote }}
+        - name: SLACK_COMMUNICATIONS_ON_OFF
+          value: "OFF"
+        - name: SLACK_EXCEPTION_LOG_URL
+          value: {{ .Values.env.slack_exception_log_url | quote }}
+        - name: SLACK_TOKEN
+          value: {{ .Values.env.slack_token | quote }}
+        - name: URL_PREFIX
+          value: {{ .Values.env.url_prefix | quote }}
+        - name: HEALTH_CHECK_URL
+          value: {{ .Values.env.health_check_url | quote }}
+        - name: LOGGER_DIRECTORY
+          value: {{ .Values.env.logger_directory | quote }}
+        - name: APIDOC_URL
+          value: {{ .Values.env.apidoc_url | quote }}
+        - name: DEFAULT_APIDOC_URL
+          value: {{ .Values.env.default_apidoc_url | quote }}
+        - name: APIDOC_PATH
+          value: {{ .Values.env.apidoc_path | quote }}
+        - name: BODY_PARSER_LIMIT
+          value: {{ .Values.env.body_parser_limit | quote }}
+        - name: PUBLIC_FOLDER_PATH
+          value: {{ .Values.env.public_folder_path | quote }}
+        - name: CSV_REPORTS_PATH
+          value: {{ .Values.env.csv_reports_path | quote }}
+        - name: CLOUD_STORAGE
+          value: {{ .Values.env.cloud_storage | quote }}
+        - name: BUCKET_NAME
+          value: {{ .Values.env.bucket_name | quote }}
+        - name: KENDRA_APPLICATION_ENDPOINT
+          value: {{ .Values.env.kendra_application_endpoint | quote }}
+        - name: KENDRA_BASE_URL
+          value: {{ .Values.env.kendra_base_url | quote }}
+        - name: SUNBIRD_SERIVCE_HOST
+          value: {{ .Values.env.sunbird_service_host | quote }}
+        - name: SUNBIRD_SERIVCE_BASE_URL
+          value: {{ .Values.env.sunbird_service_base_url | quote }}
+        - name: KAFKA_COMMUNICATIONS_ON_OFF
+          value: "ON"
+        - name: KAFKA_URL
+          value: {{ .Values.env.kafka_url | quote }}
+        - name: KAFKA_GROUP_ID
+          value: {{ .Values.env.kafka_group_id | quote }}
+        - name: NOTIFICATIONS_TOPIC
+          value: {{ .Values.env.notifications_topic | quote }}
+        - name: IMPROVEMENT_PROJECT_APP_TYPE
+          value: {{ .Values.env.improvement_project_app_type | quote }}
+        - name: IMPROVEMENT_PROJECT_APP_NAME
+          value: {{ .Values.env.improvement_project_app_name | quote }}
+        - name: IMPROVEMENT_PROJECT_NOTIFICATIONS_TOPIC
+          value: {{ .Values.env.improvement_project_notifications_topic | quote }}
+        - name: TOPIC_FOR_ALL_USERS
+          value: {{ .Values.env.topic_for_all_users | quote }}
+        - name: SUBMISSION_TOPIC
+          value: {{ .Values.env.submission_topic | quote }}
+        - name: DHITI_SERIVCE_HOST
+          value: {{ .Values.env.dhiti_serivce_host | quote }}
+        - name: DHITI_SERIVCE_BASE_URL
+          value: {{ .Values.env.dhiti_serivce_base_url | quote }}
+        - name: ASSESSMENT_APPLICATION_ENDPOINT
+          value: {{ .Values.env.assessment_application_endpoint | quote }}
+        - name: ASSESSMENT_BASE_URL
+          value: {{ .Values.env.assessment_base_url | quote }}
+        - name: VALIDATE_ACCESS_TOKEN_OFFLINE
+          value: "OFF"
+        - name: KEYCLOAK_PUBLIC_KEY_PATH
+          value: {{ .Values.env.keycloak_public_key_path | quote }}
+        - name: ROOT_ORGANISATION_ID
+          value: {{ .Values.env.root_organistion_id | quote }}
+        
+        
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 10 }}
+        {{- end }}
+        # volumeMounts:
+        #   - name: {{ .Chart.Name }}-config
+        #     mountPath: /home/sunbird/content-service-1.0-SNAPSHOT/config/application.conf
+        #     subPath: content-service_application.conf
+        #   - name: {{ .Chart.Name }}-xml-config
+        #     mountPath: /home/sunbird/content-service-1.0-SNAPSHOT/config/logback.xml
+        #     subPath: content-service_logback.xml
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  ports:
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network.targetport }}
+  selector:
+    app: {{ .Chart.Name }}
