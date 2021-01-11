@@ -1,0 +1,523 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+     rollingUpdate:
+        maxSurge: {{ .Values.strategy.maxsurge }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-service
+          configMap:
+            name: {{ .Chart.Name }}-config
+
+        - name: assessment-fcm-keystore
+          configMap:
+            name: assessment-fcm-keystore
+
+        - name: improvement-fcm-keystore
+          configMap:
+            name: improvement-fcm-keystore
+
+        - name: gcp
+          configMap:
+            name: gcp
+
+        - name: fcm-keystore
+          configMap:
+            name: fcm-keystore
+        
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        env:
+        - name: HOST
+          value: {{ .Values.env.host | quote }}
+        - name: PORT
+          value: {{ .Values.env.port | quote }}
+        - name: LOG
+          value: {{ .Values.env.log | quote }}
+        - name: NODE_ENV
+          value: {{ .Values.env.node_env | quote }}
+        - name: ENABLE_DEBUG_LOGGING
+          value: "ON"
+        - name: ENABLE_BUNYAN_LOGGING
+          value: "ON"
+        - name: DEFAULT_ENABLE_CONSOLE_LOGGING
+          value: "ON"
+        - name: DEFAULT_ENABLE_BUNYAN_LOGGING
+          value: "ON"
+        - name: APPLICATION_BASE_HOST
+          value: {{ .Values.env.application_base_host | quote }}
+        - name: APPLICATION_BASE_URL
+          value: {{ .Values.env.application_base_url | quote }}
+        - name: AUTHORIZATION
+          value: {{ .Values.env.authorization | quote }}
+        - name: MONGODB_URL
+          value: {{ .Values.env.mongodb_url | quote }}
+        - name: SHIKSHALOKAM_BASE_HOST
+          value: {{ .Values.env.shikshalokam_base_host | quote }}
+        - name: DB
+          value: {{ .Values.env.db | quote }}
+        - name: INTERNAL_ACCESS_TOKEN
+          value: {{ .Values.env.internal_access_token | quote }}
+        - name: MIGRATION_COLLECTION
+          value: {{ .Values.env.migration_collection | quote }}
+        - name: MIGRATION_DIR
+          value: {{ .Values.env.migration_dir | quote }}
+        - name: DISABLE_LEARNER_SERVICE_ON_OFF
+          value: "ON"
+        - name: SLACK_COMMUNICATIONS_ON_OFF
+          value: "OFF"
+        - name: SLACK_EXCEPTION_LOG_URL
+          value: {{ .Values.env.slack_exception_log_url | quote }}
+        - name: SLACK_TOKEN
+          value: {{ .Values.env.slack_token | quote }}
+        - name: RUBRIC_ERROR_MESSAGES_TO_SLACK
+          value: "ON"
+        - name: ELASTIC_SEARCH_ERROR_MESSAGE_TO_SLACK
+          value: {{ .Values.env.elastic_search_error_message_to_slack | quote }}
+        - name: ERROR_MESSAGE_TO_SLACK
+          value: "ON"
+        - name: KAFKA_COMMUNICATIONS_ON_OFF
+          value: "ON"
+        - name: KAFKA_URL
+          value: {{ .Values.env.kafka_url | quote }}
+        - name: NOTIFICATIONS_TOPIC
+          value: {{ .Values.env.notifications_topic | quote }}
+        - name: KAFKA_GROUP_ID
+          value: {{ .Values.env.kafka_group_id | quote }}
+        - name: KAFKA_ERROR_MESSAGES_TO_SLACK
+          value: "ON"
+        - name: ELASTICSEARCH_COMMUNICATIONS_ON_OFF
+          value: "ON"
+        - name: ELASTICSEARCH_HOST_URL
+          value: {{ .Values.env.elasticsearch_host_url | quote }}
+        - name: ELASTICSEARCH_SAMIKSHA_INDEX
+          value: {{ .Values.env.elasticsearch_samiksha_index | quote }}
+        - name: ELASTICSEARCH_UNNATI_INDEX
+          value: {{ .Values.env.elasticsearch_unnati_index | quote }}
+        - name: ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE
+          value: {{ .Values.env.elasticsearch_samiksha_notifications_type | quote }}
+        - name: ELASTICSEARCH_ERROR_MESSAGES_TO_SLACK
+          value: "ON"
+        - name: ELASTICSEARCH_APP_RELEASES_INDEX
+          value: {{ .Values.env.elasticsearch_app_releases_index | quote }}
+        - name: ELASTICSEARCH_SHIKSHALOKAM_INDEX
+          value: {{ .Values.env.elasticsearch_shikshalokam_index | quote }}
+        - name: ELASTICSEARCH_DICTIONARY_INDEX
+          value: {{ .Values.env.elasticsearch_dictionary_index | quote }}
+        - name: ELASTICSEARCH_DICTIONARY_INDEX_TYPE
+          value: {{ .Values.env.elasticsearch_dictionary_index_type | quote }}
+        - name: ELASTICSEARCH_BODH_CONTENT_INDEX
+          value: {{ .Values.env.elasticsearch_bodh_content_index | quote }}
+        - name: ELASTICSEARCH_BODH_CONTENT_INDEX_TYPE
+          value: {{ .Values.env.elasticsearch_bodh_content_index_type | quote }}
+        - name: ELASTICSEARCH_ENTITIES_INDEX
+          value: {{ .Values.env.elasticsearch_entities_index | quote }}
+        - name: FCM_KEY_PATH
+          value: {{ .Values.env.fcm_key_path | quote }}
+        - name: FCM_SERVER_KEY
+          value: {{ .Values.env.fcm_server_key | quote }}
+        - name: IMPROVEMENT_FCM_KEY_PATH
+          value: {{ .Values.env.improvement_fcm_key_path | quote }}
+        - name: ASSESSMENT_FCM_KEY_PATH
+          value: {{ .Values.env.assessment_fcm_key_path | quote }}
+        - name: SAMIKSHA_SERVICE_BASE_URL
+          value: {{ .Values.env.samiksha_service_base_url | quote }}
+        - name: USER_MANAGEMENT_HOST
+          value: {{ .Values.env.user_management_host | quote }}
+        - name: USER_MANAGEMENT_BASE_URL
+          value: {{ .Values.env.user_management_base_url | quote }}
+        - name: SCHEDULE_FOR_PENDING_ASSESSMENT
+          value: {{ .Values.env.schedule_for_pending_assessment | quote }}
+        - name: SCHEDULE_FOR_PENDING_OBSERVATION
+          value: {{ .Values.env.schedule_for_pending_observation | quote }}
+        - name: SCHEDULE_FOR_COMPLETED_ASSESSMENT
+          value: {{ .Values.env.schedule_for_completed_assessment | quote }}
+        - name: SCHEDULE_FOR_COMPLETED_OBSERVATION
+          value: {{ .Values.env.schedule_for_completed_observation | quote }}
+        - name: SCHEDULE_FOR_READ_NOTIFICATION
+          value: {{ .Values.env.schedule_for_read_notification | quote }}
+        - name: SCHEDULE_FOR_UNREAD_NOTIFICATION
+          value: {{ .Values.env.schedule_for_unread_notification | quote }}
+        - name: SAMIKSHA_THEME_COLOR
+          value: {{ .Values.env.samiksha_theme_color | quote }}
+        - name: SMTP_SERVICE_HOST
+          value: {{ .Values.env.smtp_service_host | quote }}
+        - name: SMTP_SERVICE_SECURE
+          value: {{ .Values.env.smtp_service_secure | quote }}
+        - name: SMTP_SERVICE_PORT
+          value: {{ .Values.env.smtp_service_port | quote }}
+        - name: SMTP_USER_NAME
+          value: {{ .Values.env.smtp_user_name | quote }}
+        - name: SMTP_USER_PASSWORD
+          value: {{ .Values.env.smtp_user_password | quote }}
+        - name: SMTP_GMAIL_PORT
+          value: {{ .Values.env.smtp_gmail_port | quote }}
+        - name: SMTP_GMAIL_HOST
+          value: {{ .Values.env.smtp_gmail_host | quote }}
+        - name: SLACK_ERROR_NAME
+          value: {{ .Values.env.slack_error_name | quote }}
+        - name: SLACK_ERROR_MESSAGE_COLOR
+          value: {{ .Values.env.slack_error_message_color | quote }}
+        - name: RED_COLOR
+          value: {{ .Values.env.red_color | quote }}
+        - name: URL_PREFIX
+          value: {{ .Values.env.url_prefix | quote }}
+        - name: VERSION
+          value: {{ .Values.env.version | quote }}
+        - name: appName
+          value: {{ .Values.env.appname | quote }}
+        - name: DEFAULT_REQUEST_TIMEOUT_FOR_REPORTS
+          value: {{ .Values.env.default_request_timeout_for_reports | quote }}
+        - name: DEFAULT_ENABLE_DEBUG_LOGGING
+          value: {{ .Values.env.default_enable_debug_logging | quote }}
+        - name: DEFAULT_ELASTIC_SEARCH_HOST
+          value: {{ .Values.env.default_elastic_search_host | quote }}
+        - name: DEFAULT_MONGODB_HOST
+          value: {{ .Values.env.default_mongodb_host | quote }}
+        - name: DEFAULT_MONGODB_DATABASE
+          value: {{ .Values.env.default_mongodb_database | quote }}
+        - name: DEFAULT_HOST
+          value: {{ .Values.env.default_host | quote }}
+        - name: DEFAULT_PORT
+          value: {{ .Values.env.default_port | quote }}
+        - name: DEFAULT_LOG
+          value: {{ .Values.env.default_log | quote }}
+        - name: DEFAULT_NOTIFICATIONS_TOPIC
+          value: {{ .Values.env.default_notifications_topic | quote }}
+        - name: DEFAULT_LANGUAGE_TOPIC
+          value: {{ .Values.env.default_language_topic | quote }}
+        - name: DEFAULT_EMAIL_TOPIC
+          value: {{ .Values.env.default_email_topic | quote }}
+        - name: DEFAULT_ELASTICSEARCH_SAMIKSHA_INDEX
+          value: {{ .Values.env.default_elasticsearch_samiksha_index | quote }}
+        - name: DEFAULT_ELASTICSEARCH_SAMIKSHA_NOTIFICATIONS_TYPE
+          value: {{ .Values.env.default_elasticsearch_samiksha_notifications_type | quote }}
+        - name: DEFAULT_ELASTICSEARCH_UNNATI_INDEX
+          value: {{ .Values.env.default_elasticsearch_unnati_index | quote }}
+        - name: DEFAULT_ELASTICSEARCH_APP_RELEASES_INDEX
+          value: {{ .Values.env.default_elasticsearch_app_releases_index | quote }}
+        - name: DEFAULT_FCM_KEY_PATH
+          value: {{ .Values.env.default_fcm_key_path | quote }}
+        - name: DEFAULT_FCM_SERVER_KEY
+          value: {{ .Values.env.default_fcm_server_key | quote }}
+        - name: DEFAULT_NODE_ENV
+          value: {{ .Values.env.default_node_env | quote }}
+        - name: DEFAULT_SAMIKSHA_THEME_COLOR
+          value: {{ .Values.env.default_samiksha_theme_color | quote }}
+        - name: DEFAULT_APPLICATION_BASE_URL
+          value: {{ .Values.env.default_application_base_url | quote }}
+        - name: DEFAULT_OBSERVATION_SUBMISSIONS_HTML_PATH
+          value: {{ .Values.env.default_observation_submissions_html_path | quote }}
+        - name: DEFAULT_REPORTS_PATH
+          value: {{ .Values.env.default_reports_path | quote }}
+        - name: DEFAULT_SAMIKSHA_LANGUAGE_INDEX
+          value: {{ .Values.env.default_samiksha_language_index | quote }}
+        - name: DEFAULT_SAMIKSHA_LANGUAGE_TYPE
+          value: {{ .Values.env.default_samiksha_language_type | quote }}
+        - name: DEFAULT_UNNATI_LANGUAGE_INDEX
+          value: {{ .Values.env.default_unnati_language_index | quote }}
+        - name: DEFAULT_UNNATI_LANGUAGE_TYPE
+          value: {{ .Values.env.default_unnati_language_type | quote }}
+        - name: HEALTH_CHECK_URL
+          value: {{ .Values.env.health_check_url | quote }}
+        - name: BODY_PARSER_LIMIT
+          value: {{ .Values.env.body_parser_limit | quote }}
+        - name: LOGGER_DIRECTORY
+          value: {{ .Values.env.logger_directory | quote }}
+        - name: APIDOC_PATH
+          value: {{ .Values.env.apidoc_path | quote }}
+        - name: APIDOC_URL
+          value: {{ .Values.env.apidoc_url | quote }}
+        - name: DEFAULT_APIDOC_URL
+          value: {{ .Values.env.default_apidoc_url | quote }}
+        - name: PUBLIC_FOLDER_PATH
+          value: {{ .Values.env.public_folder_path | quote }}
+        - name: ALL_ROUTES
+          value: {{ .Values.env.all_routes | quote }}
+        - name: PATH_TO_HTTP_STATUS_CODE
+          value: {{ .Values.env.path_to_http_status_code | quote }}
+        - name: PATH_TO_GENERICS_FILE
+          value: {{ .Values.env.path_to_generics_file | quote }}
+        - name: CONTROLLER_PATH
+          value: {{ .Values.env.controller_path | quote }}
+        - name: PATH_TO_MODELS
+          value: {{ .Values.env.path_to_models | quote }}
+        - name: PATH_TO_KAFKA_CONSUMERS
+          value: {{ .Values.env.path_to_kafka_consumers | quote }}
+        - name: LANGUAGE_PATH
+          value: {{ .Values.env.language_path | quote }}
+
+        - name: PATH_TO_KAFKA_CONFIG
+          value: {{ .Values.env.path_to_kafka_config | quote }}
+        - name: PATH_TO_ELASTIC_SEARCH_CONFIG
+          value: {{ .Values.env.path_to_elastic_search_config | quote }}
+        - name: PATH_TO_SMTP_CONFIG
+          value: {{ .Values.env.path_to_smtp_config | quote }}
+        - name: PATH_TO_DB_CONFIG
+          value: {{ .Values.env.path_to_db_config | quote }}
+        - name: PATH_TO_ABSTRACT_FILE
+          value: {{ .Values.env.path_to_abstract_file | quote }}
+        - name: GOOGLE_API_URL
+          value: {{ .Values.env.google_api_url | quote }}
+        - name: SAMIKSHA_PENDING_ASSESSMENTS
+          value: {{ .Values.env.samiksha_pending_assessments | quote }}
+        - name: SAMIKSHA_COMPLETED_ASSESSMENTS
+          value: {{ .Values.env.samiksha_completed_assessments | quote }}
+        - name: SAMIKSHA_PENDING_OBSERVATIONS
+          value: {{ .Values.env.samiksha_pending_observations | quote }}
+        - name: SAMIKSHA_COMPLETED_OBSERVATIONS
+          value: {{ .Values.env.samiksha_completed_observations | quote }}
+        - name: ELASTIC_SEARCH_REQUEST_TIMEOUT
+          value: {{ .Values.env.elastic_search_request_timeout | quote }}
+        - name: ELASTIC_SEARCH_MAX_RETRIES
+          value: {{ .Values.env.elastic_search_max_retries | quote }}
+        - name: ELASTIC_SEARCH_SNIFF_ON_START
+          value: {{ .Values.env.elastic_search_sniff_on_start | quote }}
+        - name: NOTIFICATIONS_APP_NAME
+          value: {{ .Values.env.notifications_app_name | quote }}
+        - name: ASSESSMENT_NOTIFICATION_TYPE
+          value: {{ .Values.env.assessment_notification_type | quote }}
+        - name: TOPIC_FOR_ALL_USERS
+          value: {{ .Values.env.topic_for_all_users | quote }}
+        - name: TOPIC_FOR_ANDROID_ALL_USERS
+          value: {{ .Values.env.topic_for_android_all_users | quote }}
+        - name: TOPIC_FOR_IOS_ALL_USERS
+          value: {{ .Values.env.topic_for_ios_all_users | quote }}
+        - name: SENDER
+          value: {{ .Values.env.sender | quote }}
+        - name: RECIPIENTS
+          value: {{ .Values.env.recipients | quote }}
+        - name: QR_GENERATOR_URL
+          value: {{ .Values.env.qr_generator_url | quote }}
+        - name: IMAGE_SIZE
+          value: {{ .Values.env.image_size | quote }}
+        - name: QR_CODE_PATH
+          value: {{ .Values.env.qr_code_path | quote }}
+        - name: GOTENBERG_HOST
+          value: {{ .Values.env.gotenberg_host | quote }}
+        - name: AWS_ACCESS_KEY_ID
+          value: {{ .Values.env.aws_access_key_id | quote }}
+        - name: AWS_BUCKET_ENDPOINT
+          value: {{ .Values.env.aws_bucket_endpoint | quote }}
+        - name: AWS_SECRET_ACCESS_KEY
+          value: {{ .Values.env.aws_secret_access_key | quote }}
+        - name: AWS_BUCKET_REGION
+          value: {{ .Values.env.aws_bucket_region | quote }}
+        - name: AWS_BUCKET_NAME
+          value: {{ .Values.env.aws_bucket_name | quote }}
+        - name: AZURE_ACCOUNT_NAME
+          value: {{ .Values.env.azure_account_name | quote }}
+        - name: AZURE_ACCOUNT_KEY
+          value: {{ .Values.env.azure_account_key | quote }}
+        - name: AZURE_STORAGE_CONTAINER
+          value: {{ .Values.env.azure_storage_container | quote }}
+        - name: AZURE_LINK_EXPIRY_TIME
+          value: {{ .Values.env.azure_link_expiry_time | quote }}
+        - name: QR_CODE_BUCKET_NAME
+          value: {{ .Values.env.qr_code_bucket_name | quote }}
+        - name: DEFAULT_BUCKET_NAME
+          value: {{ .Values.env.default_bucket_name | quote }}
+        - name: CLOUD_STORAGE
+          value: {{ .Values.env.cloud_storage | quote }}
+        - name: GCP_PATH
+          value: {{ .Values.env.gcp_path | quote }}
+        - name: BUCKET_NAME
+          value: {{ .Values.env.bucket_name | quote }}
+        - name: URL_PREFIX_FOR_STORAGE
+          value: {{ .Values.env.url_prefix_for_storage | quote }}
+        - name: SHIKSHALOKAM_PUBLISHER
+          value: {{ .Values.env.shikshalokam_publisher | quote }}
+        - name: SUNBIRD_ORGANISATION_ID
+          value: {{ .Values.env.sunbird_organisation_id | quote }}
+        - name: SUNBIRD_PUBLISHER_USERNAME
+          value: {{ .Values.env.sunbird_publisher_username | quote }}
+        - name: SUNBIRD_PUBLISHER_PASSWORD
+          value: {{ .Values.env.sunbird_publisher_password | quote }}
+        - name: SCHEDULE_FOR_PROFILE_PENDING_UPDATE_NOTIFICATION
+          value: {{ .Values.env.schedule_for_profile_pending_update_notification | quote }}
+        - name: AP_USERS_ORGANISATION_ID
+          value: {{ .Values.env.ap_users_organisation_id | quote }}
+        - name: CASSANDRA_HOST
+          value: {{ .Values.env.cassandra_host | quote }}
+        - name: CASSANDRA_PORT
+          value: {{ .Values.env.cassandra_port | quote }}
+        - name: CASSANDRA_DB
+          value: {{ .Values.env.cassandra_db | quote }}
+        - name: VALIDATE_ACCESS_TOKEN_OFFLINE
+          value: "ON"
+        - name: KEYCLOAK_PUBLIC_KEY_PATH
+          value: {{ .Values.env.keycloak_public_key_path | quote }}
+        - name: SUNBIRD_SERIVCE_HOST
+          value: {{ .Values.env.sunbird_service_host | quote }}
+        - name: SUNBIRD_SERIVCE_BASE_URL
+          value: {{ .Values.env.sunbird_service_base_url | quote }}
+        - name: ASSESSMENT_APP_TYPE
+          value: {{ .Values.env.assessment_app_type | quote }}
+        - name: IMPROVEMENT_APP_TYPE
+          value: {{ .Values.env.improvement_app_type | quote }}
+        - name: sunbird_keycloak_auth_server_url
+          value: {{ .Values.env.kendra_sunbird_keycloak_auth_server_url | quote }}
+        - name: sunbird_keycloak_realm
+          value: {{ .Values.env.kendra_sunbird_keycloak_realm | quote }}
+        - name: sunbird_keycloak_client_id
+          value: {{ .Values.env.kendra_sunbird_keycloak_client_id | quote }}
+        - name: sunbird_keycloak_grant_type
+          value: {{ .Values.env.kendra_sunbird_keycloak_grant_type | quote }}
+        - name: sunbird_url
+          value: {{ .Values.env.kendra_sunbird_url | quote }}
+        - name: sunbird_keycloak_default_user_creation_channel
+          value: {{ .Values.env.kendra_sunbird_keycloak_default_user_creation_channel | quote }}
+        - name: sunbird_keycloak_admin_username
+          value: {{ .Values.env.kendra_sunbird_keycloak_admin_username | quote }}
+        - name: sunbird_keycloak_admin_password
+          value: {{ .Values.env.kendra_sunbird_keycloak_admin_password | quote }}
+        - name: sunbird_keycloak_public
+          value: {{ .Values.env.kendra_sunbird_keycloak_public | quote }}
+        - name: sunbird_cache_store
+          value: {{ .Values.env.kendra_sunbird_cache_store | quote }}
+        - name: sunbird_cache_ttl
+          value: {{ .Values.env.kendra_sunbird_cache_ttl | quote }}
+        - name: sunbird_admin_cli
+          value: {{ .Values.env.kendra_sunbird_admin_cli | quote }}
+        - name: sunbird_grant_type
+          value: {{ .Values.env.kendra_sunbird_grant_type | quote }}
+        - name: ASSESSMENT_APPLICATION_APP_TYPE
+          value: {{ .Values.env.assessment_application_app_type | quote }}
+        - name: IMPROVEMENT_PROJECT_APPLICATION_APP_TYPE
+          value: {{ .Values.env.improvement_project_application_type | quote }} 
+        - name: TRANSFER_FROM_DB
+          value: {{ .Values.env.transfer_from_db | quote }}
+        - name: ELASTICSEARCH_ASSESSMENT_INDEX
+          value: {{ .Values.env.elasticsearch_assessment_index | quote }}
+        - name: ELASTICSEARCH_IMPROVEMENT_PROJECT_INDEX
+          value: {{ .Values.env.elasticsearch_improvement_project_index | quote }}
+        - name: ELASTICSEARCH_USER_NOTIFICATIONS_TYPE
+          value: {{ .Values.env.elasticsearch_user_notifications_type | quote }}
+        - name: ELASTICSEARCH_COMMON_LANGUAGE_INDEX
+          value: {{ .Values.env.elasticsearch_common_language_index | quote }}
+        - name: ELASTICSEARCH_COMMON_LANGUAGE_TYPE
+          value: {{ .Values.env.elasticsearch_common_language_type | quote }}
+        - name: ELASTICSEARCH_IMPROVEMENT_PROJECT_LANGUAGE_INDEX
+          value: {{ .Values.env.elasticsearch_improvement_project_language_index | quote }}
+        - name: ELASTICSEARCH_IMPROVEMENT_PROJECT_LANGUAGE_TYPE
+          value: {{ .Values.env.elasticsearch_improvement_project_language_type | quote }}
+        - name: DEFAULT_ELASTICSEARCH_COMMUNICATIONS_ON_OFF
+          value: "ON"
+        - name: DEFAULT_ELASTICSEARCH_HOST_URL
+          value: {{ .Values.env.default_elasticsearch_host_url | quote }}
+        - name: DEFAULT_ELASTICSEARCH_ASSESSMENT_INDEX
+          value: {{ .Values.env.default_elasticsearch_assessment_index | quote }}
+        - name: DEFAULT_ELASTICSEARCH_IMPROVEMENT_PROJECT_INDEX
+          value: {{ .Values.env.default_elasticsearch_improvement_project_index | quote }}
+        - name: DEFAULT_ELASTICSEARCH_USER_NOTIFICATIONS_TYPE
+          value: {{ .Values.env.default_elasticsearch_user_notifications_type | quote }}
+        - name: DEFAULT_ELASTICSEARCH_COMMON_LANGUAGE_INDEX
+          value: {{ .Values.env.default_elasticsearch_common_language_index | quote }}
+        - name: DEFAULT_ELASTICSEARCH_COMMON_LANGUAGE_TYPE
+          value: {{ .Values.env.default_elasticsearch_common_language_type | quote }}
+        - name: DEFAULT_ELASTICSEARCH_IMPROVEMENT_PROJECT_LANGUAGE_INDEX
+          value: {{ .Values.env.default_elasticsearch_improvement_project_language_index | quote }}
+        - name: DEFAULT_ELASTICSEARCH_IMPROVEMENT_PROJECT_LANGUAGE_TYPE
+          value: {{ .Values.env.default_elasticsearch_improvement_project_language_type | quote }}
+        - name: DEFAULT_ELASTICSEARCH_ERROR_MESSAGES_TO_SLACK
+          value: "ON"
+        - name: DEFAULT_ELASTICSEARCH_DICTIONARY_INDEX
+          value: {{ .Values.env.default_elasticsearch_dictionary_index  | quote }}
+        - name: DEFAULT_ELASTICSEARCH_DICTIONARY_INDEX_TYPE
+          value: {{ .Values.env.default_elasticsearch_dictionary_index_type  | quote }}
+        - name: DEFAULT_ELASTICSEARCH_BODH_CONTENT_INDEX
+          value: {{ .Values.env.default_elasticsearch_bodh_content_index | quote }}
+        - name: DEFAULT_ELASTICSEARCH_BODH_CONTENT_INDEX_TYPE
+          value: {{ .Values.env.default_elasticsearch_bodh_content_index_type | quote }}
+        - name: DEFAULT_ELASTIC_SEARCH_REQUEST_TIMEOUT
+          value: {{ .Values.env.default_elastic_search_request_timeout | quote }}
+        - name: DEFAULT_ELASTIC_SEARCH_MAX_RETRIES
+          value: {{ .Values.env.default_elastic_search_max_retries | quote }}
+        - name: DEFAULT_ELASTIC_SEARCH_SNIFF_ON_START
+          value: {{ .Values.env.default_elastic_search_sniff_on_start | quote }}
+        - name: WEB_URL
+          value: {{ .Values.env.web_url | quote}}
+        - name: BODH_AUTHORIZATION_TOKEN
+          value: {{ .Values.env.bodh_authoization_token | quote }}
+        - name: BODH_TOKEN_FOR_CONTENT
+          value: {{ .Values.env.bodh_token_for_content | quote }}
+        - name: ZIP_PATH
+          value: {{ .Values.env.zip_path | quote}}
+        - name: UPLOAD_PATH
+          value: {{ .Values.env.upload_path | quote}}
+        - name: IMPROVEMENT_PROJECT_NOTIFICATIONS_TOPIC
+          value: {{ .Values.env.improvement_project_notitfications_topic | quote }}
+        - name: UNNATI_APP_NAME
+          value: {{ .Values.env.unnati_app_name | quote }}
+        - name: NOTIFICATIONS_APP_TYPE_ASSESSMENT
+          value: {{ .Values.env.notifications_app_type_assessment | quote }}
+
+        
+        
+
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 10 }}
+        {{- end }}
+        volumeMounts:
+          - name: assessment-fcm-keystore
+            mountPath: /opt/kendra/config/credentials/assessment-fcm-keystore.json
+            subPath: assessment-fcm-keystore.json
+          - name: improvement-fcm-keystore
+            mountPath: /opt/kendra/config/credentials/improvement-fcm-keystore.json
+            subPath: improvement-fcm-keystore.json
+          - name: gcp
+            mountPath: /opt/kendra/config/credentials/gcp.json
+            subPath: gcp.json
+          - name: fcm-keystore
+            mountPath: /opt/kendra/config/credentials/fcm-keystore.json
+            subPath: fcm-keystore.json
+          
+          
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  ports:
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network.targetport }}
+  selector:
+    app: {{ .Chart.Name }}
