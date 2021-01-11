@@ -1,0 +1,210 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+     rollingUpdate:
+        maxSurge: {{ .Values.strategy.maxsurge }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-service
+          configMap:
+            name: {{ .Chart.Name }}-config
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        env:
+        - name: APPLICATION_PORT
+          value: {{ .Values.env.application_port | quote }}
+        - name: APPLICATION_ENV
+          value: {{ .Values.env.application_env | quote }}
+        - name: APPLICATION_BASE_HOST
+          value: {{ .Values.env.application_base_host | quote }}
+        - name: APPLICATION_BASE_URL
+          value: {{ .Values.env.application_base_url | quote }}
+        - name: ENABLE_CONSOLE_LOGGING
+          value: "OFF"
+        - name: ENABLE_FILE_LOGGING
+          value: "OFF"
+        - name: LOG
+          value: {{ .Values.env.log | quote }}
+        - name: AUTHORIZATION
+          value: {{ .Values.env.authorization | quote }}
+        - name: INTERNAL_ACCESS_TOKEN
+          value: {{ .Values.env.internal_access_token | quote }}
+        - name: TRANSFER_FROM_DB
+          value: {{ .Values.env.transfer_from_db | quote }}
+        - name: MONGODB_URL
+          value: {{ .Values.env.mongodb_url | quote }}
+        - name: MONGODB_PORT
+          value: {{ .Values.env.mongodb_port | quote }}
+        - name: MONGODB_DATABASE_NAME
+          value: {{ .Values.env.mongodb_database_name | quote }}
+        - name: CASSANDRA_HOST
+          value: {{ .Values.env.cassandra_host | quote }}
+        - name: CASSANDRA_PORT
+          value: {{ .Values.env.cassandra_port | quote }}
+        - name: CASSANDRA_DB
+          value: {{ .Values.env.cassandra_db | quote }}
+        - name: ELASTICSEARCH_HOST_URL
+          value: {{ .Values.env.elasticsearch_host_url | quote }}
+        - name: ELASTICSEARCH_DICTIONARY_INDEX
+          value: {{ .Values.env.elasticsearch_dictionary_index | quote }}
+        - name: ELASTICSEARCH_DICTIONARY_INDEX_TYPE
+          value: {{ .Values.env.elasticsearch_dictionary_index_type | quote }}
+        - name: ELASTICSEARCH_BODH_CONTENT_INDEX
+          value: {{ .Values.env.elasticsearch_bodh_content_index | quote }}
+        - name: ELASTICSEARCH_BODH_CONTENT_INDEX_TYPE
+          value: {{ .Values.env.elasticsearch_bodh_content_index_type | quote }}
+        - name: DISABLE_LEARNER_SERVICE_ON_OFF
+          value: "ON"
+        - name: MIGRATION_COLLECTION
+          value: {{ .Values.env.migration_collection | quote }}
+        - name: MIGRATION_DIR
+          value: {{ .Values.env.migration_dir | quote }}
+        - name: SUNBIRD_BASE_URL
+          value: {{ .Values.env.sunbird_base_url | quote }}
+        - name: SUNBIRD_KEYCLOAK_AUTH_ENDPOINT
+          value: {{ .Values.env.sunbird_keycloak_auth_endpoint | quote }}
+        - name: SUNBIRD_KEYCLOAK_REALM
+          value: {{ .Values.env.sunbird_keycloak_realm | quote }}
+        - name: SUNBIRD_KEYCLOAK_CLIENT_ID
+          value: {{ .Values.env.sunbird_keycloak_client_id| quote }}
+        - name: SUNBIRD_KEYCLOAK_PUBLIC
+          value: {{ .Values.env.sunbird_keycloak_public | quote }}
+        - name: SUNBIRD_CACHE_STORE
+          value: {{ .Values.env.sunbird_cache_store | quote }}
+        - name: SUNBIRD_CACHE_TTL
+          value: {{ .Values.env.sunbird_cache_ttl | quote }}
+        - name: SUNBIRD_ADMIN_CLI
+          value: {{ .Values.env.sunbird_admin_cli | quote }}
+        - name: SUNBIRD_GRANT_TYPE
+          value: {{ .Values.env.sunbird_grant_type | quote }}
+        - name: SUNBIRD_FRAMEWORK
+          value: {{ .Values.env.sunbird_framework | quote }}
+        - name: SUNBIRD_KEYCLOAK_GRANT_TYPE
+          value: {{ .Values.env.sunbird_keycloak_grant_type | quote }}
+        - name: SUNBIRD_KEYCLOAK_SESSION_SCOPE
+          value: {{ .Values.env.sunbird_keycloak_session_scope | quote }}
+        
+        - name: SLACK_COMMUNICATIONS_ON_OFF
+          value: "OFF"
+        - name: SLACK_EXCEPTION_LOG_URL
+          value: {{ .Values.env.slack_exception_log_url | quote }}
+        - name: SLACK_TOKEN
+          value: {{ .Values.env.slack_token | quote }}
+        - name: URL_PREFIX
+          value: {{ .Values.env.url_prefix | quote }}
+        - name: HEALTH_CHECK_URL
+          value: {{ .Values.env.health_check_url | quote }}
+        - name: LOGGER_DIRECTORY
+          value: {{ .Values.env.logger_directory | quote }}
+        - name: APIDOC_URL
+          value: {{ .Values.env.apidoc_url | quote }}
+        - name: DEFAULT_APIDOC_URL
+          value: {{ .Values.env.default_apidoc_url | quote }}
+        - name: ALL_ROUTES
+          value: "*"
+        - name: APIDOC_PATH
+          value: {{ .Values.env.apidoc_path | quote }}
+        - name: BODY_PARSER_LIMIT
+          value: {{ .Values.env.body_parser_limit | quote }}
+        - name: CLOUD_STORAGE
+          value: {{ .Values.env.cloud_storage | quote }}
+        - name: STORAGE_BUCKET
+          value: {{ .Values.env.storage_bucket | quote }}
+        - name: QR_CODE_BUCKET_NAME
+          value: {{ .Values.env.qr_code_bucket_name | quote }}
+        - name: GCP_PATH
+          value: {{ .Values.env.gcp_path | quote }}
+        - name: URL_PREFIX_FOR_STORAGE
+          value: {{ .Values.env.url_prefix_for_storage | quote }}
+        - name: AP_USERS_ORGANISATION_ID
+          value: {{ .Values.env.ap_users_organisation_id | quote }}
+        - name: KENDRA_SERVICE_HOST
+          value: {{ .Values.env.kendra_service_host | quote }}
+        - name: KENDRA_BASE_URL
+          value: {{ .Values.env.kendra_base_url | quote }}
+        - name: ZIP_PATH
+          value: {{ .Values.env.zip_path | quote }}
+        - name: QE_GENERATOR_URL
+          value: {{ .Values.env.qr_generator_url | quote }}
+        - name: IMAGE_SIZE
+          value: {{ .Values.env.image_size | quote }}
+        - name: QR_CODE_PATH
+          value: {{ .Values.env.qr_code_path | quote }}
+        - name: GOTENBURG_HOST
+          value: {{ .Values.env.gotenberg_host | quote }}
+        - name: SUNBIRD_OGANISATION_ID
+          value: {{ .Values.env.sunbird_organisation_id | quote }}
+        - name: SUNBIRD_PUBLISHER_USERNAME
+          value: {{ .Values.env.sunbird_publisher_username | quote }}
+        - name: SUNBIRD_PUBLISHER_PASSWORD
+          value: {{ .Values.env.sunbird_publisher_password | quote }}
+        - name: SHIKSHALOKAM_PUBLISHER
+          value: {{ .Values.env.shikshalokam_publisher | quote }}
+        - name: SUNBIRD_CHANNEL
+          value: {{ .Values.env.sunbird_channel | quote }}
+        - name: SUNBIRD_PROVIDER
+          value: {{ .Values.env.sunbird_provider | quote }}
+        - name: VALIDATE_ACCESS_TOKEN_OFFLINE
+          value: {{ .Values.env.validate_access_token_offline | quote }}
+        - name: KEYCLOAK_PUBLIC_KEY_PATH
+          value: {{ .Values.env.keycloak_public_key_path | quote }}
+        
+        
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 10 }}
+        {{- end }}
+        # volumeMounts:
+        #   - name: {{ .Chart.Name }}-config
+        #     mountPath: /home/sunbird/content-service-1.0-SNAPSHOT/config/application.conf
+        #     subPath: content-service_application.conf
+        #   - name: {{ .Chart.Name }}-xml-config
+        #     mountPath: /home/sunbird/content-service-1.0-SNAPSHOT/config/logback.xml
+        #     subPath: content-service_logback.xml
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  ports:
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network.targetport }}
+  selector:
+    app: {{ .Chart.Name }}
