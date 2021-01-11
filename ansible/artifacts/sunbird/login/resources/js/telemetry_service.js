@@ -2483,9 +2483,8 @@ if (window.location.origin.indexOf("diksha.gov.in") >= 0) {
 } else if (window.location.origin.indexOf("staging.sunbirded.org") >= 0) {
   pdataId = "staging.diksha.portal";
 } else if (window.location.origin.indexOf("dev.sunbirded.org") >= 0) {
-  pdataId = "dev.diksha.portal";
-}
-else {
+  pdataId = "dev.sunbird.portal";
+} else {
   pdataId = "preprod.diksha.portal";
 }
 
