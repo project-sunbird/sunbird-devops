@@ -1,0 +1,218 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+     rollingUpdate:
+        maxSurge: {{ .Values.strategy.maxsurge }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-config
+          configMap:
+            name: {{ .Chart.Name }}-config
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        env:
+        - name: APPLICATION_PORT_NUMBER
+          value: {{ .Values.env.application_port_number | quote }}
+        - name: APPLICATION_HOST_NAME
+          value: {{ .Values.env.application_host_name | quote }}
+        - name: APPLICATION_BASE_URL
+          value: {{ .Values.env.application_base_url | quote }}
+        - name: NODE_ENV
+          value: {{ .Values.env.node_env | quote }}
+        - name: APIDOC_URL
+          value: {{ .Values.env.apidoc_url | quote }}
+        - name: APIDOC_PATH
+          value: {{ .Values.env.apidoc_path |quote }}
+        - name: CLOUD_STORAGE
+          value: {{ .Values.env.cloud_storage | quote }}
+        - name: BUCKET_NAME
+          value: {{ .Values.env.bucket_name | quote }}
+        - name: CASSANDR_HOST
+          value: {{ .Values.env.cassandr_host | quote }}
+        - name: CASSANDRA_KEYSPACE
+          value: {{ .Values.env.cassandra_keyspace | quote }}
+        - name: CASSANDRA_PORT
+          value: {{ .Values.env.cassandra_port | quote }}
+        - name: CASSANDRA_TABLE
+          value: {{ .Values.env.cassandra_table | quote }}
+        - name: CASSANDRA_API_REQ_AND_RES_TABLE
+          value: {{ .Values.env.cassandra_api_req_and_res_table | quote }}
+        - name: CASSANDRA_ASSESSMENT_TABLE
+          value: {{ .Values.env.cassandra_assessment_table | quote }}
+        - name: MONGODB_HOST
+          value: {{ .Values.env.mongodb_host | quote }}
+        - name: MONGODB_PORT 
+          value: {{ .Values.env.mongodb_port | quote }}
+        - name: MONGODB_DATABASE 
+          value: {{ .Values.env.mongodb_database | quote }}
+        - name: MONGODB_MIGRATION_COLLECTION
+          value: {{ .Values.env.mongodb_migration_collection | quote }}
+        - name: MONGODB_MIGRATION_DIR 
+          value: {{ .Values.env.mongodb_migration_dir | quote }}
+        - name: DRUID_HOST 
+          value: {{ .Values.env.druid_host | quote }}
+        - name: DRUID_PORT 
+          value: {{ .Values.env.druid_port | quote }}
+        - name: OBSERVATION_DATASOURCE_NAME
+          value: {{ .Values.env.observation_datasource_name | quote }}
+        - name: ASSESSMENT_DATASOURCE_NAME 
+          value: {{ .Values.env.assessment_datasource_name | quote }}
+        - name: ENROLLMENT_DATASOURCE_NAME 
+          value: {{ .Values.env.enrollment_datasource_name | quote }}
+        - name: TELEMETRY_DATASOURCE_NAME 
+          value: {{ .Values.env.telemetry_datasource_name | quote }}
+        - name: EVIDENCE_DATASOURCE_NAME 
+          value: {{ .Values.env.evidence_datasource_name | quote }}
+        - name: SURVEY_DATASOURCE_NAME
+          value: {{ .Values.env.survey_datasource_name | quote }}
+        - name: SURVEY_EVIDENCE_DATASOURCE_NAME 
+          value: {{ .Values.env.survey_evidence_datasource_name | quote }}
+        - name: OBSERVATION_EVIDENCE_DATASOURCE_NAME
+          value: {{ .Values.env.observation_evidence_datasource_name | quote }}
+        - name: CONTENT_REPORT_THRESHOLD 
+          value: {{ .Values.env.content_report_threshold | quote }}
+        - name: ENTITY_SCORE_REPORT_THRESHOLD 
+          value: {{ .Values.env.entity_score_report_threshold | quote }}
+        - name: OBSERVATION_SCORE_REPORT_THRESHOLD
+          value: {{ .Values.env.observation_score_report_threshold | quote }}
+        - name: ASSESSMENT_SUBMISSION_REPORT_THRESHOLD
+          value: {{ .Values.env.assessment_submission_report_threshold | quote }}
+        - name: EVIDENCE_THRESHOLD
+          value: {{ .Values.env.evidence_threshold | quote }}
+        - name: sunbird_keycloak_auth_server_url
+          value: {{ .Values.env.sunbird_keycloak_auth_server_url | quote }}
+        - name: sunbird_keycloak_realm
+          value: {{ .Values.env.sunbird_keycloak_realm | quote }}
+        - name: sunbird_keycloak_client_id 
+          value: {{ .Values.env.sunbird_keycloak_client_id | quote }} 
+        - name: sunbird_keycloak_public
+          value: {{ .Values.env.sunbird_keycloak_public | quote }} 
+        - name: sunbird_cache_store 
+          value: {{ .Values.env.sunbird_cache_store | quote }}
+        - name: sunbird_cache_ttl
+          value: {{ .Values.env.sunbird_cache_ttl | quote }}
+        - name: URL_PREFIX 
+          value: {{ .Values.env.url_prefix | quote }}
+        - name: ASSESSMENT_SERVICE_APPLICATION_ENDPOINT
+          value: {{ .Values.env.assessment_service_application_endpoint}}
+        - name: ASSESSMENT_SERVICE_BASE_URL
+          value: {{ .Values.env.assessment_service_base_url}}
+        - name: KENDRA_APPLICATION_ENDPOINT 
+          value: {{ .Values.env.kendra_application_endpoint | quote }}
+        - name: KENDRA_BASE_URL 
+          value: {{ .Values.env.kendra_base_url | quote }}
+        - name: GOTENBERG_URL
+          value: {{ .Values.env.gotenberg_url | quote}}
+        - name: HIGHCHART_URL 
+          value: {{ .Values.env.highchart_url | quote }}
+        - name: USER_NEVER_LOGGED_IN 
+          value: {{ .Values.env.user_never_logged_in | quote}}
+        - name : UNIQUE_ACTIVE_USERS    
+          value: {{ .Values.env.unique_active_users | quote }}
+        - name: TOP_SCORE_QUIZ 
+          value: {{ .Values.env.top_score_quiz | quote }}
+        - name: CONTENT_RATINGS 
+          value: {{ .Values.env.content_ratings | quote }}
+        - name: MAP_DATA_RESOURCES
+          value: {{ .Values.env.map_data_resources | quote }}
+        - name: LOGIN_TREND 
+          value: {{ .Values.env.login_trend | quote }}
+        - name: LOGIN_PERCENTAGE 
+          value: {{ .Values.env.login_percentage | quote }}
+        - name: LEARNING_TOP_SCORE_QUIZ 
+          value: {{ .Values.env.learning_top_score_quiz | quote }}
+        - name: PARTICIPATION_PERCENTAGE
+          value: {{ .Values.env.participation_percentage | quote }}
+        - name: LAST_UPDATED_DATE 
+          value: {{ .Values.env.last_updated_date | quote }}
+        - name: DAILY_AVERAGE_GROWTH
+          value: {{ .Values.env.daily_average_growth | quote }}
+        - name: COUNT_CONTENT_RATING 
+          value: {{ .Values.env.count_content_rating | quote }}
+        - name: AVERAGE_TIME_SPENT 
+          value: {{ .Values.env.average_time_spent | quote }}
+        - name: AVERAGE_RATING_CONTENT 
+          value: {{ .Values.env.average_rating_content | quote }}
+        - name: APP_COUNT 
+          value: {{ .Values.env.app_count | quote }}
+        - name: ADOPTION_CONTENT
+          value: {{ .Values.env.adoption_content | quote }}
+        - name: MULTI_RESOURCE 
+          value: {{ .Values.env.multi_resource | quote }}
+        - name: MULTI_SELECTION 
+          value: {{ .Values.env.multi_section | quote }}
+        - name: AWS_ACCESS_KEY_ID 
+          value: {{ .Values.env.aws_access_key_id | quote }}
+        - name: AWS_SECRET_ACCESS_KEY
+          value:  {{ .Values.env.aws_secret_access_key | quote }}
+        - name: AWS_REGION 
+          value: {{ .Values.env.aws_region | quote }}
+        - name: AWS_SIGNED_URL_EXPIRE_SECONDS
+          value: {{ .Values.env.aws_signed_url_expire_seconds | quote }}
+        - name: AWS_BUCKET_NAME
+          value: {{ .Values.env.aws_bucket_name | quote }}
+        - name: STORE_PDF_REPORTS_IN_AWS_ON_OFF 
+          value: "ON"
+        - name: VALIDATE_ACCESS_TOKEN_OFFLINE
+          value: {{ .Values.env.validate_access_token_offline | quote }}
+        - name: KEYCLOAK_PUBLIC_KEY_PATH
+          value: {{ .Values.env.keycloak_public_key_path | quote}}
+          
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 10 }}
+        {{- end }}
+        # volumeMounts:
+        #   - name: {{ .Chart.Name }}-config
+        #     mountPath: /home/sunbird/content-service-1.0-SNAPSHOT/config/application.conf
+        #     subPath: content-service_application.conf
+        #   - name: {{ .Chart.Name }}-xml-config
+        #     mountPath: /home/sunbird/content-service-1.0-SNAPSHOT/config/logback.xml
+        #     subPath: content-service_logback.xml
+          
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  ports:
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network.targetport }}
+  selector:
+    app: {{ .Chart.Name }}
