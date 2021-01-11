@@ -2476,11 +2476,16 @@ if (typeof module != 'undefined') {
 }
 
 let pdataId = "";
-if(window.location.origin.indexOf("diksha.gov.in") >= 0){
+if (window.location.origin.indexOf("diksha.gov.in") >= 0) {
   pdataId = "prod.diksha.portal";
-}else if(window.location.origin.indexOf("staging.ntp.net.in") >= 0){
+} else if (window.location.origin.indexOf("staging.ntp.net.in") >= 0) {
   pdataId = "staging.diksha.portal";
-}else{
+} else if (window.location.origin.indexOf("staging.sunbirded.org") >= 0) {
+  pdataId = "staging.diksha.portal";
+} else if (window.location.origin.indexOf("dev.sunbirded.org") >= 0) {
+  pdataId = "dev.diksha.portal";
+}
+else {
   pdataId = "preprod.diksha.portal";
 }
 
@@ -2512,7 +2517,7 @@ if(client_id.toLowerCase() === 'android'){
     hostURL = url;
   }
   function OnLoad() {
-    tenantId = sessionStorage.getItem("tenantSlug");
+    tenantId = sessionStorage.getItem("tenantSlug") || 'sunbird';
     getOrgInfo(tenantId).done(function () {
       initTelemetryService();
       logLoginImpressionEvent("init");
