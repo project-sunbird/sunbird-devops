@@ -2476,6 +2476,7 @@ if (typeof module != 'undefined') {
 }
 
 let pdataId = "";
+let tenantSlug;
 if (window.location.origin.indexOf("diksha.gov.in") >= 0) {
   pdataId = "prod.diksha.portal";
 } else if (window.location.origin.indexOf("staging.ntp.net.in") >= 0) {
@@ -2484,6 +2485,7 @@ if (window.location.origin.indexOf("diksha.gov.in") >= 0) {
   pdataId = "staging.diksha.portal";
 } else if (window.location.origin.indexOf("dev.sunbirded.org") >= 0) {
   pdataId = "dev.sunbird.portal";
+  tenantSlug = "sunbird";
 } else {
   pdataId = "preprod.diksha.portal";
 }
@@ -2516,7 +2518,7 @@ if(client_id.toLowerCase() === 'android'){
     hostURL = url;
   }
   function OnLoad() {
-    tenantId = sessionStorage.getItem("tenantSlug") || 'sunbird';
+    tenantId = sessionStorage.getItem("tenantSlug") || tenantSlug;
     getOrgInfo(tenantId).done(function () {
       initTelemetryService();
       logLoginImpressionEvent("init");
@@ -2554,7 +2556,7 @@ if(client_id.toLowerCase() === 'android'){
       host: hostURL,
       uid: 'anonymous',
       sid: window.uuidv1(),
-      channel: orgInfo.hashTagId,
+      channel: orgInfo && orgInfo.hashTagId,
       env: 'public'
     }
   }
@@ -2569,13 +2571,13 @@ if(client_id.toLowerCase() === 'android'){
     var options = {
       context: {
         env: 'public',
-        channel: orgInfo.hashTagId,
+        channel: orgInfo && orgInfo.hashTagId,
         uid: 'anonymous',
         cdata: [],
-        rollup: getRollupData([orgInfo.hashTagId])
+        rollup: orgInfo && orgInfo.hashTagId && getRollupData([orgInfo.hashTagId])
       },
       object: {},
-      tags: [orgInfo.hashTagId]
+      tags: orgInfo && orgInfo.hashTagId && [orgInfo.hashTagId]
     };
     var edata = {
       type: "view",
@@ -2594,10 +2596,10 @@ if(client_id.toLowerCase() === 'android'){
         channel: orgInfo.hashTagId,
         uid: 'anonymous',
         cdata: [],
-        rollup: getRollupData([orgInfo.hashTagId])
+        rollup: orgInfo && orgInfo.hashTagId && getRollupData([orgInfo.hashTagId])
       },
       object: {},
-      tags: [orgInfo.hashTagId]
+      tags: orgInfo && orgInfo.hashTagId && [orgInfo.hashTagId]
     };
     var edata = {
       id: interactid,
