@@ -1,36 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+    <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
+
+    <!-- transaction-event-trigger START -->
+    <timestamp key="timestamp" datePattern="yyyy-MM-dd"/>
+    <!-- common transactions logs -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
-        </filter>
         <encoder>
-            <pattern>[%date{ISO8601}] [%level] %logger{0}:%line [%X{sourceThread}] [%mdc{msgId}] - %msg %n
-            </pattern>
-            <!--to print whole Mapped Diagnostic Context (MDC) properties( for eg: the actor’s path, the full address of the ActorSystem) in the logs  refer this link https://doc.akka.io/docs/akka/current/typed/logging.html#mdc-->
-            <!--[%mdc] will print all akka variables akkaSource, akkaAddress, akkaTags, sourceActorSystem. for more info refer this link https://doc.akka.io/docs/akka/current/typed/logging.html#mdc-values-->
+            <pattern>%d %msg%n</pattern>
         </encoder>
     </appender>
 
-
-    <!--   for async -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>app.log</file>
-        <immediateFlush>false</immediateFlush>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>app_%d{yyyy-MM-dd}.log</fileNamePattern>
-        </rollingPolicy>
-        <encoder>
-            <pattern>[%date{ISO8601}] [%level] %logger{0}:%line [%X{sourceThread}] [%mdc{msgId}] - %msg %n
-            </pattern>
-        </encoder>
+    <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STDOUT" />
     </appender>
 
-    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>8192</queueSize>
-        <neverBlock>true</neverBlock>
-        <appender-ref ref="FILE"/>
+    <appender name="queryLoggerAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+                <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSX</timestampFormat>
+                <timestampFormatTimezoneId>Etc/UTC</timestampFormatTimezoneId>
+                <fieldNames>
+                    <timestamp>timestamp</timestamp>
+                    <message>msg</message>
+                    <logger>lname</logger>
+                    <thread>tname</thread>
+                    <levelValue>[ignore]</levelValue>
+                    <version>[ignore]</version>
+                </fieldNames>
+            </layout>
+        </encoder>
     </appender>
 
     <appender name="defaultLoggerAppender" class="ch.qos.logback.core.ConsoleAppender">
@@ -56,12 +55,21 @@
         </encoder>
     </appender>
 
+
+    <logger name="play" level="INFO" />
+    <logger name="defaultLogger" level="INFO" />
+    <!-- Telemetry Loggers-->
+    <logger name="TelemetryEventLogger" level="INFO" />
+    <logger name="queryLogger" level="DEBUG">
+        <appender-ref ref="queryLoggerAppender" />
+    </logger>
+
     <logger name="org.sunbird" level="INFO">
         <appender-ref ref="defaultLoggerAppender" />
     </logger>
 
     <root level="INFO">
-        <appender-ref ref="STDOUT"/>
-        <appender-ref ref="ASYNC"/>
+        <appender-ref ref="ASYNCSTDOUT" />
     </root>
+
 </configuration>
