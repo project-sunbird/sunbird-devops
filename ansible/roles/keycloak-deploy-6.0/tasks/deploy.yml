@@ -1,0 +1,205 @@
+- name: Get the list of all the services running in our OS
+  become: yes
+  service_facts:
+
+- name: Stop the monit to ensure that it doesn't start keycloak
+  service: name=monit state=stopped
+  become: yes
+  when: ansible_facts.services.monit is defined
+
+- name: Status service
+  become: true
+  command: /etc/init.d/keycloak status
+  register: keycloak
+  poll: 5
+  async: 10
+
+- name: Stop service
+  become: true
+  command: /etc/init.d/keycloak stop && Pkill keycloak
+  when: "keycloak.stdout.find('running') != -1"
+  poll: 5
+  async: 10
+  ignore_errors: true
+
+- name: Adding ENV Vars to bashrc
+  lineinfile:
+    path: '/etc/environment'
+    line: '{{item.var}}={{item.value}}'
+    regexp: "{{ item.var }}.*"
+  with_items:
+    - {var: 'sunbird_lms_base_url', value: '{{ sunbird_lms_base_url }}'}
+    - {var: 'sunbird_authorization', value: '{{ sunbird_authorization }}'}
+    - {var: 'sunbird_encryption_key', value: '{{ sunbird_encryption_key }}'}
+    - {var: 'sunbird_sso_username', value: '{{ sunbird_sso_username }}'}
+    - {var: 'sunbird_sso_password', value: '{{ sunbird_sso_password }}'}
+    - {var: 'sunbird_sso_url', value: '{{ keycloak_auth_server_url }}/'}
+    - {var: 'sunbird_sso_realm', value: '{{ keycloak_realm }}'}
+    - {var: 'sunbird_sso_client_id', value: '{{ sunbird_sso_client_id }}'}
+    - {var: 'sunbird_cassandra_host', value: '{{ sunbird_cassandra_host }}'}
+    - {var: 'sunbird_user_service_base_url', value: '{{ sunbird_user_service_base_url }}'}
+
+- name: Remove keycloak
+  become: true
+  file:
+    path: "{{ keycloak_home }}"
+    state: absent
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_group }}"
+    force: true
+
+- name: Creating keycloak directory
+  become: true
+  file:
+    path: "{{ keycloak_home }}"
+    state: directory
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_group }}"
+
+- name: Extarct the folder
+  unarchive:
+    src: "{{ artifact_path }}"
+    dest: "{{ keycloak_home }}"
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_group }}"
+
+- name: Creating keycloak directory in proper structure
+  become: yes
+  shell: "cd {{ keycloak_home }} ; mv sunbird_auth_1.0v/* ./ ; rm -rf sunbird_auth_1.0v; chown -R keycloak:keycloak {{ keycloak_home }}"
+
+- name: Create required directories
+  file:
+    path: "{{ item.dest }}"
+    mode: "{{ item.mode }}"
+    state: directory
+  with_items:
+  - {dest: '{{ keycloak_home }}/providers', mode: '0755'}
+  - {dest: '{{ keycloak_home }}/modules/system/layers/keycloak/org/postgresql/main', mode: '0755'}
+  - {dest: '{{ keycloak_home }}/themes/{{ tenant_name }}/login/messages', mode: '0755'}
+  - {dest: '{{ keycloak_home }}/themes/{{ tenant_name }}/login/resources/css/fonts/notosans', mode: '0755'}
+  - {dest: '{{ keycloak_home }}/themes/{{ tenant_name }}/login/resources/css/themes/default/assets/fonts', mode: '0755'}
+  - {dest: '{{ keycloak_home }}/themes/{{ tenant_name }}/login/resources/img', mode: '0755'}
+  - {dest: '{{ keycloak_home }}/themes/{{ tenant_name }}/login/resources/js', mode: '0755'}
+  - {dest: '{{ keycloak_home }}/themes/{{ tenant_name }}/email/html', mode: '0755'}
+  - {dest: '{{ keycloak_home }}/themes/{{ tenant_name }}/email/messages', mode: '0755'}
+  - {dest: '{{ keycloak_home }}/themes/{{ tenant_name }}/email/text', mode: '0755'}
+
+- name: Copy login theme
+  copy:
+    src: "{{ login_theme }}/"
+    dest: "{{ keycloak_home }}/themes/{{ tenant_name }}/login/"
+    force: "yes"
+
+- name: Copy Custom Validation theme html to login theme
+  copy:
+    src: "../../../sunbird-auth/keycloak/sms-provider/templates/"
+    dest: "{{ keycloak_home }}/themes/{{ tenant_name }}/login/"
+    force: true
+
+- name: Copy email theme
+  copy:
+    src: "{{ email_theme }}/"
+    dest: "{{ keycloak_home }}/themes/{{ tenant_name }}/email/"
+    force: true
+
+- name: Create directory for sunbird auth package config
+  file:
+    path: sunbird_auth_{{ sunbird_auth_version }}.config
+    state: directory
+    mode: 0755
+    force: true
+
+- name: Keycloak configuration XML file - Multi-node keycloak
+  template:
+    src: "standalone-ha.xml"
+    dest: "sunbird_auth_{{ sunbird_auth_version }}.config/standalone-ha.xml"
+    mode: 0750
+  when: groups['keycloak'] | length > 1
+
+- name: Keycloak configuration XML file - Single node keycloak
+  template:
+    src: "standalone-ha-single.xml"
+    dest: "sunbird_auth_{{ sunbird_auth_version }}.config/standalone-ha.xml"
+    mode: 0750
+  when: groups['keycloak'] | length < 2
+
+- name: Postgresql Configuration- module.xml
+  template:
+    src: "roles/keycloak-deploy/templates/module.xml.j2"
+    dest: "sunbird_auth_{{ sunbird_auth_version }}.config/module.xml"
+    mode: 0750
+
+- name: SMS provider configuration file
+  template:
+    src: "roles/keycloak-deploy/templates/Msg91Creds.json.j2"
+    dest: "sunbird_auth_{{ sunbird_auth_version }}.config/Msg91Creds.json"
+    mode: 0755
+  when: "{{ msg_91_required|default(false) }}"
+  ignore_errors: true
+
+- name: Keycloak configuration XML file 
+  copy:
+    src: "sunbird_auth_{{ sunbird_auth_version }}.config/standalone-ha.xml"
+    dest: "{{ keycloak_home }}/standalone/configuration/standalone-ha.xml"
+    mode: 0750
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_group }}"
+    remote_src: true
+
+- name: Postgresql Configuration- module.xml
+  copy:
+    src: "sunbird_auth_{{ sunbird_auth_version }}.config/module.xml"
+    dest: "{{ keycloak_home }}/modules/system/layers/keycloak/org/postgresql/main/module.xml"
+    mode: 0750
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_group }}"
+    remote_src: true
+
+- name: Create a directory for SMS provider configuration
+  file:
+    path: "{{ keycloak_home }}/bin/sms-provider"
+    state: directory
+    mode: 0755
+  when: "{{ msg_91_required|default(false) }}"
+  ignore_errors: true
+
+- name: SMS provider configuration file
+  copy:
+    src: "sunbird_auth_{{ sunbird_auth_version }}.config/Msg91Creds.json"
+    dest: "{{ keycloak_home }}/bin/sms-provider/Msg91Creds.json"
+    owner: "{{ wildfly_user }}"
+    group: "{{ wildfly_group }}"
+    mode: 0755
+    remote_src: true
+  when: "{{ msg_91_required|default(false) }}"
+  ignore_errors: true
+
+- name: Remove the sunbird_auth_{{ sunbird_auth_version }}.config
+  become: true
+  file:
+    path: ./sunbird_auth_{{ sunbird_auth_version }}.config
+    state: absent
+    force: true
+
+- name: Overriding JAVA_HOME
+  become: true
+  lineinfile:
+    regexp: '^SERVER_OPTS=""'
+    insertafter: '^SERVER_OPTS=""'
+    line: 'JAVA_HOME=""'
+    path: "{{ keycloak_home }}/bin/standalone.sh"
+
+- name: Start service
+  become: true
+  command: /etc/init.d/keycloak start
+  poll: 5
+  async: 5
+
+- name: get the list of all services in the system
+  become: yes
+  service_facts:
+
+- name: After succesful migration and staring of keycloak, start back monit if installed
+  service: name=monit state=started
+  become: yes
+  when: ansible_facts.services.monit is defined

@@ -60,30 +60,6 @@ spec:
         job_id: kafka
         alertname: TooManyKafkaProcessRunning
 
-    - alert: secor_process_not_running_critical
-      expr: namedprocess_namegroup_states{groupname="secor",state="Sleeping"} != {{ .Values.secor_job_count }}
-      for: 1m
-      labels:
-        severity: critical
-        module: dp_process
-      annotations:
-        message: Number of running processes should be {{ .Values.secor_job_count }} but currently {{`{{$value}}`}} processes are running.
-        summary: Secor process is not running
-        job_id: secor
-        alertname: SecorJobNotRunning
-
-    - alert: secor_process_not_running_critical
-      expr: namedprocess_namegroup_states{groupname="processingsecor",state="Sleeping"} != {{ .Values.processingsecor_job_count }}
-      for: 1m
-      labels:
-        severity: critical
-        module: dp_process
-      annotations:
-        message: Number of running processes should be {{ .Values.secor_job_count }} but currently {{`{{$value}}`}} processes are running.
-        summary: Secor process is not running
-        job_id: secor
-        alertname: SecorJobNotRunning
-
     - alert: zookeeper_process_not_running_fatal
       expr: namedprocess_namegroup_states{groupname="zookeeper",state="Sleeping"} < 1
       for: 1m
@@ -217,6 +193,21 @@ spec:
         job_id: Druid-MiddleManager
         alertname: MiddleManagerProcessNotRunning
 
+    {{- if .Values.redis_process_names }}
+    {{- range $key, $value := .Values.redis_process_names }}
+    - alert: redisserver_process_not_running_fatal
+      expr: sum without(state) (namedprocess_namegroup_states{groupname={{ $value | quote }}}) == 0 
+      for: 5m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: The {{ $key }} redis process which runs on port {{ $value }} is not running.
+        summary: redis-server process is not running
+        job_id: Redis
+        alertname: RedisProcessNotRunning
+    {{- end }}
+    {{- end }}
 
     - alert: redisserver_process_not_running_fatal
       expr: sum without(state) (namedprocess_namegroup_states{groupname="redis-server"}) == 0

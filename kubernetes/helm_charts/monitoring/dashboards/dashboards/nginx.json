@@ -16,9 +16,9 @@
   },
   "editable": true,
   "gnetId": null,
-  "graphTooltip": 0,
-  "id": 36,
-  "iteration": 1595424666886,
+  "graphTooltip": 1,
+  "id": 81,
+  "iteration": 1605070117137,
   "links": [],
   "panels": [
     {
@@ -26,7 +26,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prom-fed",
+      "datasource": "Prometheus",
       "decimals": null,
       "fieldConfig": {
         "defaults": {
@@ -74,7 +74,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(nginx_http_requests_total{cluster=~\"$cluster\"}[5m]))",
+          "expr": "sum(rate(nginx_http_requests_total[5m]))",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -84,21 +84,21 @@
           "step": 2
         },
         {
-          "expr": "sum(rate(nginx_http_requests_total{cluster=~\"$cluster\", cache_status!~\"MISS|NONE\"}[5m]))",
+          "expr": "sum(rate(nginx_http_requests_total{cache_status!~\"MISS|NONE\"}[5m]))",
           "hide": false,
           "interval": "",
           "legendFormat": "Cached Response",
           "refId": "B"
         },
         {
-          "expr": "sum(rate(nginx_http_requests_total{cluster=~\"$cluster\"}[5m])) - sum(rate(nginx_http_requests_total{cluster=~\"$cluster\", cache_status!~\"MISS|NONE\"}[5m]))",
+          "expr": "sum(rate(nginx_http_requests_total[5m])) - sum(rate(nginx_http_requests_total{cache_status!~\"MISS|NONE\"}[5m]))",
           "hide": false,
           "interval": "",
           "legendFormat": "Not Cached Response",
           "refId": "C"
         },
         {
-          "expr": "sum(rate(nginx_http_requests_total{cluster=~\"$cluster\", status=\"345\"}[5m]))",
+          "expr": "sum(rate(nginx_http_requests_total{ status=\"444\"}[5m]))",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -156,7 +156,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prom-fed",
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -203,7 +203,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(sum(increase(nginx_http_requests_total{cluster=~\"$cluster\", status!~\"4..|5..\"}[5m])) / sum(increase(nginx_http_requests_total{cluster=~\"$cluster\"}[5m]))) * 100",
+          "expr": "(sum(increase(nginx_http_requests_total{ status!~\"4..|5..\"}[5m])) / sum(increase(nginx_http_requests_total[5m]))) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -212,7 +212,7 @@
           "step": 4
         },
         {
-          "expr": "(sum(increase(nginx_http_requests_total{cluster=~\"$cluster\", status!~\"4..|5..\"}[5m])) by (status) / ignoring(status,cache_status) group_left sum(increase(nginx_http_requests_total{cluster=~\"$cluster\"}[5m]))) * 100",
+          "expr": "(sum(increase(nginx_http_requests_total{ status!~\"4..|5..\"}[5m])) by (status) / ignoring(status,cache_status) group_left sum(increase(nginx_http_requests_total[5m]))) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -271,7 +271,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "prom-fed",
+      "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -318,7 +318,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "(sum(increase(nginx_http_requests_total{cluster=~\"$cluster\", status!~\"2..|3..\"}[5m]))/  sum(increase(nginx_http_requests_total{cluster=~\"$cluster\"}[5m]))) * 100",
+          "expr": "(sum(increase(nginx_http_requests_total{ status!~\"2..|3..\"}[5m]))/  sum(increase(nginx_http_requests_total[5m]))) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -327,7 +327,7 @@
           "step": 4
         },
         {
-          "expr": "(sum(increase(nginx_http_requests_total{cluster=~\"$cluster\", status!~\"2..|3..\"}[5m])) by (status) / ignoring(status,cache_status) group_left sum(increase(nginx_http_requests_total{cluster=~\"$cluster\"}[5m]))) * 100",
+          "expr": "(sum(increase(nginx_http_requests_total{ status!~\"2..|3..\"}[5m])) by (status) / ignoring(status,cache_status) group_left sum(increase(nginx_http_requests_total[5m]))) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -379,7 +379,7 @@
       }
     }
   ],
-  "refresh": "1m",
+  "refresh": "5m",
   "schemaVersion": 25,
   "style": "dark",
   "tags": [],
@@ -393,14 +393,14 @@
           "value": "$__all"
         },
         "datasource": "prom-fed",
-        "definition": "label_values(nginx_http_requests_total, cluster)",
+        "definition": "label_values(nginx_http_requests_total, sb_cluster)",
         "hide": 0,
         "includeAll": true,
         "label": null,
         "multi": false,
         "name": "cluster",
         "options": [],
-        "query": "label_values(nginx_http_requests_total, cluster)",
+        "query": "label_values(nginx_http_requests_total, sb_cluster)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -419,7 +419,6 @@
   },
   "timepicker": {
     "refresh_intervals": [
-      "5s",
       "10s",
       "30s",
       "1m",

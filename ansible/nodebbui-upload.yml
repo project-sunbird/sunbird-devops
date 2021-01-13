@@ -1,0 +1,19 @@
+- hosts: local
+  become: yes
+  gather_facts: no
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  environment:
+        AZURE_STORAGE_ACCOUNT: "{{ sunbird_public_storage_account_name }}"
+        AZURE_STORAGE_SAS_TOKEN: "{{ sunbird_public_storage_account_sas  }}"
+  tasks:
+    - name: delete batch
+      shell: |
+        azcopy rm "https://{{ sunbird_public_storage_account_name }}.blob.core.windows.net/{{ nodebbui_container_name }}{{sunbird_public_storage_account_sas}}" --recursive=true
+      async: 3600
+      poll: 10
+
+    - name: upload batch
+      command: "az storage blob upload-batch --destination {{ nodebbui_container_name }} --source {{ source_name }}"
+      async: 3600
+      poll: 10

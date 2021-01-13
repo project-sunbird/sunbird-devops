@@ -32,6 +32,9 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
         volumeMounts:
           - name: nodebb-config-json
             mountPath: /usr/src/app/config.json
@@ -46,27 +49,6 @@ spec:
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
         {{- end }}
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: nodebb-config-json
-data:
-  config.json: |-
-     {
-         "url": "{{ .Values.nodebb_url }}",
-         "secret": "100101",
-         "database": "redis",
-         "port": "4567",
-         "redis": {
-             "host": "{{ .Values.redis_nodebb_host }}",
-             "port": 6379,
-             "username": "",
-             "password": "",
-             "database": "0"
-         }
-     }
 
 ---
 apiVersion: v1

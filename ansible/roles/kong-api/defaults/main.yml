@@ -1,4 +1,3 @@
-
 ---
 # Guideline for PR Merging: https://project-sunbird.atlassian.net/wiki/spaces/DevOps/pages/1210777612/API+Manager+Kong+BEST+Practices+Documentation.
 
@@ -52,7 +51,6 @@ echo_service_prefix: /echo
 composite_service_prefix: /composite
 api_manager_perfix: /api-manager
 meta_service_prefix: /meta
-dashboard_service_prefix: /dashboard
 announcement_service_prefix: /announcement
 dialcode_service_prefix: /dialcode
 channel_service_prefix: /channel
@@ -77,6 +75,9 @@ object_category_definition_prefix: /object/category/definition
 dataset_service_prefix: /dataset
 asset_prefix: /asset
 collection_prefix: /collection
+discussions_prefix: /discussion
+question_prefix: /question
+questionset_prefix: /questionset
 
 
 # Service URLs
@@ -96,6 +97,8 @@ report_service_url: "http://report-service:3030"
 group_service_url: "http://groups-service:9000"
 analytics_api_service_url: "http://analytics-service:9000"
 taxonomy_service_url: "http://taxonomy-service:9000"
+discussions_mw_service_url: "http://discussionsmw-service:3002/discussion"
+assessment_service_url: "http://assessment-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -202,42 +205,6 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: addUserSkill
-    uris: "{{ user_service_prefix }}/v1/skill/add"
-    upstream_url: "{{ learning_service_url }}/v1/user/skill/add"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'userCreate '
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: addUserSkillEndorsement
-    uris: "{{ user_service_prefix }}/v1/skill/endorse/add"
-    upstream_url: "{{ learning_service_url }}/v1/user/skill/endorse/add"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'userCreate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
   - name: addUserToBatch
     uris: "{{ course_service_prefix }}/v1/batch/user/add"
@@ -543,42 +510,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: createAssertion
-    uris: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/create"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/badge/assertion/create"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeCreate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: createBadgeClass
-    uris: "{{ badge_service_prefix }}/v1/issuer/badge/create"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/badge/create"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeCreate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
   - name: createBatch
     uris: "{{ course_service_prefix }}/v1/batch/create"
     upstream_url: "{{ lms_service_url }}/v1/course/batch/create"
@@ -669,24 +600,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: createData
-    uris: "{{ data_service_prefix }}/v1/object/create"
-    upstream_url: "{{ learning_service_url }}/v1/object/create"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'objectCreate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ large_request_size_limit }}"
-
   - name: createForm
     uris: "{{ data_service_prefix }}/v1/form/create"
     upstream_url: "{{ player_service_url }}/plugin/v1/form/create"
@@ -755,42 +668,6 @@ kong_apis:
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ large_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: createissuer
-    uris: "{{ badge_service_prefix }}/v1/issuer/create"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/create"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeCreate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: createLocation
-    uris: "{{ org_service_prefix }}/v1/location/create"
-    upstream_url: "{{ learning_service_url }}/v1/notification/location/create"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'locationCreate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
@@ -1022,78 +899,6 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'userAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: deleteBadgeClass
-    uris: "{{ badge_service_prefix }}/v1/issuer/badge/delete"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/badge/delete"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: deleteData
-    uris: "{{ data_service_prefix }}/v1/object/delete"
-    upstream_url: "{{ learning_service_url }}/v1/object/delete"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'objectAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: deleteIssuer
-    uris: "{{ badge_service_prefix }}/v1/issuer/delete"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/delete"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: deleteLocation
-    uris: "{{ org_service_prefix }}/v1/location/delete"
-    upstream_url: "{{ learning_service_url }}/v1/notification/location/delete"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'locationAdmin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1367,114 +1172,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: getAllData
-    uris: "{{ data_service_prefix }}/v1/object/read/list"
-    upstream_url: "{{ learning_service_url }}/v1/object/read/list"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'objectAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: getAllIssuer
-    uris: "{{ badge_service_prefix }}/v1/issuer/list"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/list"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: getAssertion
-    uris: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/read"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/badge/assertion/read"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: getAssertionList
-    uris: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/search"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/badge/assertion/search"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: getAudienceCount
-    uris: "{{ data_service_prefix }}/v1/notification/audience"
-    upstream_url: "{{ learning_service_url }}/v1/notification/audience"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'announcementAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: getBadgeClass
-    uris: "{{ badge_service_prefix }}/v1/issuer/badge/read"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/badge/read"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
   - name: getBatch
     uris: "{{ course_service_prefix }}/v1/batch/read"
     upstream_url: "{{ lms_service_url }}/v1/course/batch/read"
@@ -1543,78 +1240,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: getData
-    uris: "{{ data_service_prefix }}/v1/object/read"
-    upstream_url: "{{ learning_service_url }}/v1/object/read"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'objectAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: getIssuerDetails
-    uris: "{{ badge_service_prefix }}/v1/issuer/read"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/read"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: getLocation
-    uris: "{{ org_service_prefix }}/v1/location/read"
-    upstream_url: "{{ learning_service_url }}/v1/notification/location/read"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'locationAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: getMediaTypes
-    uris: "{{ user_service_prefix }}/v1/mediatype/list"
-    upstream_url: "{{ learning_service_url }}/v1/user/mediatype/list"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'userAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
   - name: getPageSettings
     uris: "{{ data_service_prefix }}/v1/page/read"
     upstream_url: "{{ lms_service_url }}/v1/page/read"
@@ -1650,24 +1275,6 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: getSkills
-    uris: "{{ data_service_prefix }}/v1/skills"
-    upstream_url: "{{ learning_service_url }}/v1/skills"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'userAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
   - name: getSystemSettings
     uris: "{{ data_service_prefix }}/v1/system/settings/get"
@@ -1705,25 +1312,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: getUploadJobStatusLink
-    uris: "{{ data_service_prefix }}/v1/upload/statusDownloadLink"
-    upstream_url: "{{ learning_service_url }}/v1/upload/statusDownloadLink"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist: 
-        - 'orgSuperAdmin'
-        - 'userSuperAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
   - name: getUserByKey
     uris: "{{ user_service_prefix }}/v1/get"
     upstream_url: "{{ learning_service_url }}/v1/user/get"
@@ -1735,24 +1323,6 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'userAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: getUserConsumptionDasbhoard
-    uris: "{{ dashboard_service_prefix }}/v1/consumption/user"
-    upstream_url: "{{ learning_service_url }}/v1/dashboard/consumption/user"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'userAdmin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1795,24 +1365,6 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: getUserSkill
-    uris: "{{ user_service_prefix }}/v1/skill/read"
-    upstream_url: "{{ learning_service_url }}/v1/user/skill/read"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'userAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
   - name: getUserType
     uris: "{{ user_service_prefix }}/v1/type/list"
@@ -2284,24 +1836,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: metricsSearchData
-    uris: "{{ data_service_prefix }}/v1/object/metrics"
-    upstream_url: "{{ learning_service_url }}/v1/object/metrics"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'objectAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
   - name: orgAssignKeys
     uris: "{{ org_service_prefix }}/v1/assign/key"
     upstream_url: "{{ learning_service_url }}/v1/org/assign/key"
@@ -2547,42 +2081,6 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'userSuperAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: privateUserUpdate
-    uris: "{{ user_service_prefix }}/private/v1/update"
-    upstream_url: "{{ learning_service_url }}/private/user/v1/update"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'userSuperAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: profileVisibility
-    uris: "{{ user_service_prefix }}/v1/profile/visibility"
-    upstream_url: "{{ learning_service_url }}/v1/user/profile/visibility"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'userAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3016,7 +2514,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'desktopAdmin'
+        - 'desktopSuperAdmin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3034,7 +2532,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'desktopApp'
+        - 'desktopAdmin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3052,7 +2550,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'desktopApp'
+        - 'desktopAdmin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3179,6 +2677,24 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'mobileAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: registerPortalv2
+    uris: "{{ api_manager_perfix }}/v2/consumer/portal/credential/register"
+    upstream_url: "{{ am_util_url }}/v2/consumer/portal/credential/register"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'portalAdmin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3384,42 +2900,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: revokeAssertion
-    uris: "{{ badge_service_prefix }}/v1/issuer/badge/assertion/delete"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/badge/assertion/delete"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: searchBadgeClass
-    uris: "{{ badge_service_prefix }}/v1/issuer/badge/search"
-    upstream_url: "{{ learning_service_url }}/v1/issuer/badge/search"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'badgeAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
   - name: searchChannel
     uris: "{{ channel_service_prefix }}/v1/search"
     upstream_url: "{{ knowledge_mw_service_url }}/v1/channel/search"
@@ -3469,24 +2949,6 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: searchData
-    uris: "{{ data_service_prefix }}/v1/object/search"
-    upstream_url: "{{ learning_service_url }}/v1/object/search"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'objectAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ large_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
   - name: searchDialcodes
     uris: "{{ dialcode_service_prefix }}/v1/search"
@@ -3573,6 +3035,7 @@ kong_apis:
       config.limit_by: ip
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: searchOrg
     uris: "{{ org_service_prefix }}/v1/search"
     upstream_url: "{{ learning_service_url }}/v1/org/search"
@@ -3622,24 +3085,6 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: sendNotification
-    uris: "{{ data_service_prefix }}/v1/notification/send"
-    upstream_url: "{{ learning_service_url }}/v1/notification/send"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'appAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: submitContentForReview
     uris: "{{ content_prefix }}/v1/review"
@@ -3875,24 +3320,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: updateData
-    uris: "{{ data_service_prefix }}/v1/object/update"
-    upstream_url: "{{ learning_service_url }}/v1/object/update"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'objectUpdate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
   - name: updateDesktopApp
     uris: "{{ desktop_app_prefix }}/v1/update"
     upstream_url: "{{ player_service_url }}/v1/desktop/update"
@@ -3997,24 +3424,6 @@ kong_apis:
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ large_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: updateLocation
-    uris: "{{ org_service_prefix }}/v1/location/update"
-    upstream_url: "{{ learning_service_url }}/v1/notification/location/update"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'locationUpdate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
@@ -4180,24 +3589,6 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
-
-  - name: updateUserSkill
-    uris: "{{ user_service_prefix }}/v1/skill/update"
-    upstream_url: "{{ learning_service_url }}/v1/user/skill/update"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'userUpdate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: uploadContent
     uris: "{{ content_prefix }}/v1/upload"
@@ -5693,3 +5084,688 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getDiscussionTagsList
+    uris: "{{ discussions_prefix }}/tags"
+    upstream_url: "{{ discussions_mw_service_url }}/tags"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"      
+
+  - name: getDiscussionCategories
+    uris: "{{ discussions_prefix }}/categories"
+    upstream_url: "{{ discussions_mw_service_url }}/categories"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getDiscussionNotificationsList
+    uris: "{{ discussions_prefix }}/notifications"
+    upstream_url: "{{ discussions_mw_service_url }}/notifications"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getUserDetailsOfDiscussion
+    uris: "{{ discussions_prefix }}/user"
+    upstream_url: "{{ discussions_mw_service_url }}/user"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getCategoryDetailsOfDiscussion
+    uris: "{{ discussions_prefix }}/category"
+    upstream_url: "{{ discussions_mw_service_url }}/category"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getUnreadTopicsOfDiscussion
+    uris: "{{ discussions_prefix }}/unread"
+    upstream_url: "{{ discussions_mw_service_url }}/unread"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getRecentTopicsOfDiscussion
+    uris: "{{ discussions_prefix }}/recent"
+    upstream_url: "{{ discussions_mw_service_url }}/recent"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getPopularTopicsOfDiscussion
+    uris: "{{ discussions_prefix }}/popular"
+    upstream_url: "{{ discussions_mw_service_url }}/popular"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getTopTopicsOfDiscussion
+    uris: "{{ discussions_prefix }}/top"
+    upstream_url: "{{ discussions_mw_service_url }}/top"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getTopicsOfDiscussionById
+    uris: "{{ discussions_prefix }}/topic"
+    upstream_url: "{{ discussions_mw_service_url }}/topic"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getTotalUnreadTopicsOfDiscussion
+    uris: "{{ discussions_prefix }}/unread/total"
+    upstream_url: "{{ discussions_mw_service_url }}/unread/total"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getTopicsOfDiscussionByTeaserId
+    uris: "{{ discussions_prefix }}/topic/teaser"
+    upstream_url: "{{ discussions_mw_service_url }}/topic/teaser"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getTopicsPaginationByIdOfDiscussion
+    uris: "{{ discussions_prefix }}/topic/pagination"
+    upstream_url: "{{ discussions_mw_service_url }}/topic/pagination"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getGroupsListOfDiscussion
+    uris: "{{ discussions_prefix }}/groups"
+    upstream_url: "{{ discussions_mw_service_url }}/groups"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getRecentPostsByDateOfDiscussions
+    uris: "{{ discussions_prefix }}/recent/posts"
+    upstream_url: "{{ discussions_mw_service_url }}/recent/posts"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createTopicOfDiscussions
+    uris: "{{ discussions_prefix }}/v2/topics"
+    upstream_url: "{{ discussions_mw_service_url }}/v2/topics"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createCategoryOfDiscussion
+    uris: "{{ discussions_prefix }}/v2/categories"
+    upstream_url: "{{ discussions_mw_service_url }}/v2/categories"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createGroupsOfDiscussion
+    uris: "{{ discussions_prefix }}/v2/groups"
+    upstream_url: "{{ discussions_mw_service_url }}/v2/groups"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createNewPostOfDiscussion
+    uris: "{{ discussions_prefix }}/v2/posts"
+    upstream_url: "{{ discussions_mw_service_url }}/v2/posts"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: createNewUserOfDiscussion
+    uris: "{{ discussions_prefix }}/v2/users"
+    upstream_url: "{{ discussions_mw_service_url }}/v2/users"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getUserDetailsByUsername
+    uris: "{{ discussions_prefix }}/user/username"
+    upstream_url: "{{ discussions_mw_service_url }}/user/username"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getForumIdOfDiscussion
+    uris: "{{ discussions_prefix }}/forumId"
+    upstream_url: "{{ discussions_mw_service_url }}/forumId"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: addForumOfDiscussion
+    uris: "{{ discussions_prefix }}/forum"
+    upstream_url: "{{ discussions_mw_service_url }}/forum"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'discussionCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionCreate
+    uris: "{{ question_prefix }}/v1/create"
+    upstream_url: "{{ assessment_service_url }}/question/v4/create"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentCreate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionRead
+    uris: "{{ question_prefix }}/v1/read"
+    upstream_url: "{{ assessment_service_url }}/question/v4/read"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionUpdate
+    uris: "{{ question_prefix }}/v1/update"
+    upstream_url: "{{ assessment_service_url }}/question/v4/update"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentUpdate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionRetire
+    uris: "{{ question_prefix }}/v1/retire"
+    upstream_url: "{{ assessment_service_url }}/question/v4/retire"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAdmin'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionReview
+    uris: "{{ question_prefix }}/v1/review"
+    upstream_url: "{{ assessment_service_url }}/question/v4/review"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAdmin'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionPublish
+    uris: "{{ question_prefix }}/v1/publish"
+    upstream_url: "{{ assessment_service_url }}/question/v4/publish"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentCreate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionSetCreate
+    uris: "{{ questionset_prefix }}/v1/create"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/create"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentCreate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionSetRead
+    uris: "{{ questionset_prefix }}/v1/read"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/read"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionSetUpdate
+    uris: "{{ questionset_prefix }}/v1/update"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/update"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentUpdate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionSetRetire
+    uris: "{{ questionset_prefix }}/v1/retire"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/retire"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAdmin'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionSetReview
+    uris: "{{ questionset_prefix }}/v1/review"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/review"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAdmin'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionSetPublish
+    uris: "{{ questionset_prefix }}/v1/publish"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/publish"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAdmin'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionSetUpdateHierarchy
+    uris: "{{ questionset_prefix }}/v1/hierarchy/update"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/hierarchy/update"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentUpdate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionSetReadHierarchy
+    uris: "{{ questionset_prefix }}/v1/hierarchy"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/hierarchy"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionSetReject
+    uris: "{{ questionset_prefix }}/v1/reject"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/reject"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAdmin'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+

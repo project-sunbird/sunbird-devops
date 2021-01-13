@@ -1,0 +1,76 @@
+---
+- name: Copy the desktop assests folder from inside the private repo location to root location.
+  shell: "cp -r {{offline_repo_location}}/private/desktop-assets {{offline_repo_location}}/"
+
+- name: get the date and time for the artifact
+  set_fact:
+    time: "{{ lookup('pipe', 'date +\"%Y-%b-%d\"') }}-{{offline_installer_type}}"
+
+- name: create a directory to store artifacts
+  file:
+    path: "{{offline_repo_location}}/desktop_uploader_assets/{{time}}"
+    state: directory
+    recurse: yes
+
+- name: Get the environment name for the artifact name
+  shell: "cat {{offline_repo_location}}/desktop-assets/{{offline_target_env}}/appConfig.json | jq -r '.APP_NAME'"
+  register: env_name
+
+- name: Display the environment name of the installer
+  debug:
+    msg: "{{env_name.stdout}}"
+
+- name: Create a variable to inject environment name to upload to azure blob
+  set_fact:
+    environment_name: "{{ env_name.stdout }}"
+
+- name: Get the version from the package.json file
+  shell: "cat {{offline_repo_location}}/app_dist/package.json | jq -r '.version'"
+  register: version
+
+- name: Display the version number of the installer
+  debug:
+    msg: "{{version.stdout}}"
+
+- name: Create a variable to inject version in the template
+  set_fact:
+    installer_version: "{{ version.stdout }}"
+
+- name: copy the installer script file and build script for building offline installer
+  template:
+    src: "{{item}}.j2"
+    dest: "{{offline_repo_location}}/{{item}}"
+    mode: '0755'
+  with_items:
+    - build.sh
+    - envfile
+    - setupOfflineInstaller.sh
+
+- name: run the installer script
+  shell: "bash -x {{offline_repo_location}}/build.sh"
+
+- name: Ensure azure blob storage container exists
+  command: az storage container create  --name {{offline_installer_container_name}} --public-access blob
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_public_storage_account_name}}"
+    AZURE_STORAGE_KEY: "{{sunbird_public_storage_account_key}}"
+
+- name: Upload to azure blob storage
+  command: az storage blob upload-batch --destination {{offline_installer_container_name}} --source "desktop_uploader_assets"
+  args:
+    chdir: "{{offline_repo_location}}/"
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_public_storage_account_name}}"
+    AZURE_STORAGE_KEY: "{{sunbird_public_storage_account_key}}"
+  async: 60
+  poll: 10
+
+- name: Upload to latest.json file to blob
+  command: az storage blob upload-batch --destination "{{offline_installer_container_name}}/latest" --source "{{offline_repo_location}}/desktop_uploader_assets/{{time}}/"
+  args:
+    chdir: "{{offline_repo_location}}/"
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{sunbird_public_storage_account_name}}"
+    AZURE_STORAGE_KEY: "{{sunbird_public_storage_account_key}}"
+  async: 60
+  poll: 10

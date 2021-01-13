@@ -8,6 +8,38 @@
 fullnameOverride: "sunbird-monitoring"
 
 scrapeconfig:
+  # This scrape config will enable us to annotate any pod and that pod will get automonitored
+  #
+  # annotations:
+  #   prometheus.io/scrape: "true"
+  #   prometheus.io/port: "2020"
+  #   prometheus.io/path: /api/v1/metrics/prometheus
+  #
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+    - role: pod
+    relabel_configs:
+    - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+      action: keep
+      regex: true
+    - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+      action: replace
+      target_label: __metrics_path__
+      regex: (.+)
+    - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+      action: replace
+      regex: ([^:]+)(?::\d+)?;(\d+)
+      replacement: $1:$2
+      target_label: __address__
+    - action: labelmap
+      regex: __meta_kubernetes_pod_label_(.+)
+    - source_labels: [__meta_kubernetes_namespace]
+      action: replace
+      target_label: kubernetes_namespace
+    - source_labels: [__meta_kubernetes_pod_name]
+      action: replace
+      target_label: kubernetes_pod_name
+
   - job_name: 'Druid'
     metrics_path: /metrics/druid
     static_configs:
@@ -35,143 +67,6 @@ scrapeconfig:
     static_configs:
       - targets:  ["{{ groups['druid'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9108' ) | list | join("\", \"") }}"]  
 {% endif %}
-
-  
-  - job_name: 'helm-exporter'
-    static_configs:
-      - targets: ['helm-exporter.monitoring.svc.cluster.local:9571']
-  # Istio metrics
-  - job_name: istio-mesh
-    scrape_interval: 15s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    scheme: http
-    kubernetes_sd_configs:
-    - role: endpoints
-      namespaces:
-        names:
-        - istio-system
-    relabel_configs:
-    - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
-      separator: ;
-      regex: istio-telemetry;prometheus
-      replacement: $1
-      action: keep
-  - job_name: envoy-stats
-    scrape_interval: 15s
-    scrape_timeout: 10s
-    metrics_path: /stats/prometheus
-    scheme: http
-    kubernetes_sd_configs:
-    - role: pod
-    relabel_configs:
-    - source_labels: [__meta_kubernetes_pod_container_port_name]
-      separator: ;
-      regex: .*-envoy-prom
-      replacement: $1
-      action: keep
-    - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
-      separator: ;
-      regex: ([^:]+)(?::\d+)?;(\d+)
-      target_label: __address__
-      replacement: $1:15090
-      action: replace
-    - separator: ;
-      regex: __meta_kubernetes_pod_label_(.+)
-      replacement: $1
-      action: labelmap
-    - source_labels: [__meta_kubernetes_namespace]
-      separator: ;
-      regex: (.*)
-      target_label: namespace
-      replacement: $1
-      action: replace
-    - source_labels: [__meta_kubernetes_pod_name]
-      separator: ;
-      regex: (.*)
-      target_label: pod_name
-      replacement: $1
-      action: replace
-  - job_name: istio-policy
-    scrape_interval: 15s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    scheme: http
-    kubernetes_sd_configs:
-    - role: endpoints
-      namespaces:
-        names:
-        - istio-system
-    relabel_configs:
-    - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
-      separator: ;
-      regex: istio-policy;http-monitoring
-      replacement: $1
-      action: keep
-  - job_name: istio-telemetry
-    scrape_interval: 15s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    scheme: http
-    kubernetes_sd_configs:
-    - role: endpoints
-      namespaces:
-        names:
-        - istio-system
-    relabel_configs:
-    - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
-      separator: ;
-      regex: istio-telemetry;http-monitoring
-      replacement: $1
-      action: keep
-  - job_name: pilot
-    scrape_interval: 15s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    scheme: http
-    kubernetes_sd_configs:
-    - role: endpoints
-      namespaces:
-        names:
-        - istio-system
-    relabel_configs:
-    - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
-      separator: ;
-      regex: istio-pilot;http-monitoring
-      replacement: $1
-      action: keep
-  - job_name: galley
-    scrape_interval: 15s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    scheme: http
-    kubernetes_sd_configs:
-    - role: endpoints
-      namespaces:
-        names:
-        - istio-system
-    relabel_configs:
-    - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
-      separator: ;
-      regex: istio-galley;http-monitoring
-      replacement: $1
-      action: keep
-  - job_name: citadel
-    scrape_interval: 15s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    scheme: http
-    kubernetes_sd_configs:
-    - role: endpoints
-      namespaces:
-        names:
-        - istio-system
-    relabel_configs:
-    - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
-      separator: ;
-      regex: istio-citadel;http-monitoring
-      replacement: $1
-      action: keep
 
   - job_name: 'redis_exporter_targets'
     static_configs:
