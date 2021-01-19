@@ -2506,7 +2506,7 @@ if(client_id.toLowerCase() === 'android'){
     "telemetry": {
       "pdata": {
         "id": pdataId,
-        "ver": "3.5.0",
+        "ver": "3.6.0",
         "pid": "sunbird-portal"
       }
     }
@@ -3197,6 +3197,14 @@ var matchPassword = () => {
 			document.getElementById("login").disabled = true;
 		}
 	});
+}
+
+var backToApplication = () => {
+	var redirect_uri = getValueFromSession('redirect_uri');
+	if (redirect_uri) {
+		var updatedQuery = redirect_uri.split('?')[0];
+		window.location.href = updatedQuery;
+	}
 }
 
 //})();

@@ -64,14 +64,14 @@
                     </div>
                     <div class="forgot-password">
                       <#if realm.resetPasswordAllowed>
-                        <a id="fgtKeycloakFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:storeLocation(); javascript:makeDivUnclickable()" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
-                        <div id="fgtPortalFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:forgetPassword('/recover/identify/account');javascript:makeDivUnclickable()">${msg("doForgotPassword")}</div>
+                        <a id="fgtKeycloakFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:storeLocation(); javascript:makeDivUnclickable(); javascript:storeForgotPasswordLocation(event);" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
+                        <div id="fgtPortalFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:makeDivUnclickable(); javascript:createTelemetryEvent(event); javascript:forgetPassword('/recover/identify/account');">${msg("doForgotPassword")}</div>
                       </#if>
                     </div>
                     </div>
 
                     <div class="field mb-8">
-                        <button id="login" class="mt-24 sb-btn sb-btn-normal sb-btn-primary width-100">${msg("login")}</button>
+                        <button id="login" onclick="doLogin(event)" class="mt-24 sb-btn sb-btn-normal sb-btn-primary width-100">${msg("login")}</button>
                     </div>
                   <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??>
                     <div id="kc-registration" class="field">

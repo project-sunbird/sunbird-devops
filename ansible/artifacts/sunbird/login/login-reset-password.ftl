@@ -39,7 +39,7 @@
                         <input type="text" id="username" class="mt-8" name="username" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" autofocus/>
                     </div>
                     <div class="field">
-                        <button id="login" class="sb-btn sb-btn-normal sb-btn-primary width-100">
+                        <button id="login" onclick="javascript:makeDivUnclickable()" class="sb-btn sb-btn-normal sb-btn-primary width-100">
                         ${msg("doReset")}
                         </button>
                     </div>
