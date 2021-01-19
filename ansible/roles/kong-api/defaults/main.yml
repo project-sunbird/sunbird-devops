@@ -80,6 +80,7 @@ discussions_prefix: /discussion
 question_prefix: /question
 questionset_prefix: /questionset
 
+sl_assessments_prefix: /assessment
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -101,6 +102,15 @@ taxonomy_service_url: "http://taxonomy-service:9000"
 discussions_mw_service_url: "http://discussionsmw-service:3002/discussion"
 assessment_service_url: "http://assessment-service:9000"
 
+unnati_service_url: "http://unnati-service:4301"
+kendra_service_url: "http://kendra-service:4202"
+dhiti_service_ul: "http://dhiti-service:4700"
+sl_assessments_service_url: "http://sl-assessments-service:4201"
+sl_sunbird_service_url: "http://sl-sunbird-service:4551"
+sl_usermanagement_service_url: "http://sl-usermanagement-service:4101"
+highcharts_service_url: "http://highcharts-service:8080"
+gotenberg_service_url: "http://gotenberg-service:3000"
+
 premium_consumer_rate_limits:
   - api: createContent
     config.hour: "{{ premium_consumer_small_rate_limit_per_hour }}"
@@ -116,6 +126,24 @@ premium_consumer_rate_limits:
     config.policy: local
 
 kong_apis:
+
+- name: getStaticLinks
+    uris: "{{ sl_assessments_prefix }}/api/v2/staticLinks/list"
+    upstream_url: "{{ sl_assessments_service_url }}/api/v2/staticLinks/list"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: acceptContentFlag
     uris: "{{ content_prefix }}/v1/flag/accept"
