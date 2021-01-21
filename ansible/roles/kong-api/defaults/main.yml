@@ -164,8 +164,26 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: createAssessmentSolution
-    request_path: "{{ sl_assessments_prefix }}/api/v1/assessments/"
-    upstream_url: "{{ sl_assessments_service_url }}{{ sl_assessments_prefix }}/api/v1/assessments/"
+    request_path: "{{ sl_assessments_prefix }}/api/v1/assessments/create"
+    upstream_url: "{{ sl_assessments_service_url }}{{ sl_assessments_prefix }}/api/v1/assessments/create"
+    strip_request_path: true
+    plugins:
+    -  name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  
+  - name: detailedAssessments
+    request_path: "{{ sl_assessments_prefix }}/api/v2/assessments/details/"
+    upstream_url: "{{ sl_assessments_service_url }}{{ sl_assessments_prefix }}/api/v2/assessments/details/"
     strip_request_path: true
     plugins:
     -  name: jwt
@@ -218,6 +236,23 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: createQuestionsUpdate
+    request_path: "{{ sl_assessments_prefix }}/api/v1/criteria/update"
+    upstream_url: "{{ sl_assessments_service_url }}{{ sl_assessments_prefix }}/api/v1/criteria/update"
+    strip_request_path: true
+    plugins:
+    -  name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: uploadCriteria
     request_path: "{{ sl_assessments_prefix }}/api/v1/criteria/upload"
