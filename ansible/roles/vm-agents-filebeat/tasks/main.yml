@@ -35,6 +35,8 @@
   apt:
     name: "{{item}}"
     state: present
+    update_cache: yes
+    cache_valid_time: 3600
   with_items:
   - apt-transport-https
   - filebeat={{filebeat_version}}
@@ -55,3 +57,10 @@
   template:
     src: "filebeat.yml.j2"
     dest: "/etc/filebeat/filebeat.yml"
+
+- name: Enable and start filebeat as a daemon process
+  systemd:
+    name: filebeat
+    enabled: yes
+    state: started
+    daemon_reload: yes
