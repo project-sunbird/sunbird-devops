@@ -1,0 +1,61 @@
+#=========================== Filebeat inputs =============================
+filebeat.config.inputs:
+  enabled: true
+  path: /etc/filebeat/configs/*.yml
+
+#==================== Elasticsearch template setting ==========================
+setup.template.name: "filebeat"
+setup.template.pattern: "filebeat-*"
+setup.template.overwrite: false
+setup.template.settings:
+  index.number_of_shards: 3
+
+#================================ Outputs =====================================
+
+#-------------------------- Elasticsearch output ------------------------------
+output.elasticsearch:
+  # Array of hosts to connect to.
+  hosts: ["{{ groups['log-es']|join(':9200,')}}:9200"]
+  indices:
+  - index: "redis-dp-%{+yyyy.MM.dd}"
+    when.contains:
+      source: analytics/redis-stable/
+  - index: "redis-kp-%{+yyyy.MM.dd}"
+    when.contains:
+      source: learning/redis-stable/
+  - index: "spark-%{+yyyy.MM.dd}"
+    when.contains:
+      source: /mount/data/analytics/logs/
+  - index: "cassandra-%{+yyyy.MM.dd}"
+    when.contains:
+      source: cassandra
+  - index: "composite-es-%{+yyyy.MM.dd}"
+    when.contains:
+      source: elasticsearch/*cs-node*
+  - index: "lms-es-%{+yyyy.MM.dd}"
+    when.contains:
+      source: elasticsearch/*es*/
+  - index: "keycloak-%{+yyyy.MM.dd}"
+    when.contains:
+      source: /opt/keycloak/standalone/log/
+  - index: "neo4j-%{+yyyy.MM.dd}"
+    when.contains:
+      source: neo4j
+  - index: "logstash-%{+yyyy.MM.dd}"
+    when.contains:
+      source: logstash
+  - index: "learning-%{+yyyy.MM.dd}"
+    when.contains:
+      source: /data/logs/learning
+  - index: "kafka-%{+yyyy.MM.dd}"
+    when.contains:
+      source: kafka
+  - index: "zookeeper-%{+yyyy.MM.dd}"
+    when.contains:
+      source: zookeeper
+  - index: "syslogs-%{+yyyy.MM.dd}"
+
+#----------------------------- Logstash output --------------------------------
+#output.logstash:
+  # The Logstash hosts
+  #hosts: ["localhost:5044"]
