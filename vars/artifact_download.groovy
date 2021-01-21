@@ -7,8 +7,8 @@ def call(Map values) {
             String ANSI_RED = "\u001B[31m"
             String ANSI_YELLOW = "\u001B[33m"
 
-            if (params.artifact_source == "ArtifactRepo") {
-                println(ANSI_BOLD + ANSI_YELLOW + "Option chosen is ArtifactRepo - Downloading artifacts from remote source" + ANSI_NORMAL)
+            if (params.artifact_source == "ArtifactRepo" || values.ignore_job_parameter == true) {
+                println(ANSI_BOLD + ANSI_YELLOW + "Option chosen is ArtifactRepo or ignore_job_parameter is set - Downloading artifacts from remote source" + ANSI_NORMAL)
                 ansiblePlaybook = "${values.currentWs}/ansible/artifacts-download.yml"
                 ansibleExtraArgs = "--extra-vars \"artifact=${values.artifact} artifact_path=${values.currentWs}/${values.artifact}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                 values.put('ansiblePlaybook', ansiblePlaybook)
