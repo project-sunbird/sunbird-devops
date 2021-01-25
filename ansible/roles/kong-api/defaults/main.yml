@@ -81,6 +81,7 @@ question_prefix: /question
 questionset_prefix: /questionset
 
 sl_assessments_prefix: /assessment
+sl_kendra_prefix: /kendra
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -126,6 +127,24 @@ premium_consumer_rate_limits:
     config.policy: local
 
 kong_apis:
+
+  - name: userIsAllowed
+    request_path: "{{ sl_kendra_prefix }}/api/v1/bodh/abhyasa/userIsAllowed"
+    upstream_url: "{{ kendra_service_url }}{{ sl_kendra_prefix }}/api/v2/staticLinks/list"
+    strip_request_path: true
+    plugins:
+    -  name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: getStaticLinks
     request_path: "{{ sl_assessments_prefix }}/api/v2/staticLinks/list"
