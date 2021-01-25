@@ -1,0 +1,12 @@
+- hosts: mongo
+  become: yes
+  gather_facts: no
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  tasks:
+    - name: initialize db
+      shell: |
+        use nodebb
+        db.createUser( { user: "nodebb", pwd: "{{ nodebb_admin_password }}", roles: [ { role: "readWrite", db: "nodebb" }, { role: "clusterMonitor", db: "admin" } ] } )
+      tags:
+        - nodebb
