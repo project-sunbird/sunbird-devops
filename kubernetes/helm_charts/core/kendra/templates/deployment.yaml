@@ -490,16 +490,7 @@ spec:
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
         {{- end }}
-{{- $keys := .Files.Glob "keys/*" }}
-{{- if $keys }}
-        volumeMounts:
-        - mountPath: {{ .Values.sl_assessments_access_basepath }}
-          name: access-keys
-      volumes:
-      - name: access-keys
-        secret:
-          secretName: keycloak-public-keys
-{{ end }}
+
         volumeMounts:
           - name: assessment-fcm-keystore
             mountPath: /opt/kendra/config/credentials/assessment-fcm-keystore.json
@@ -513,6 +504,17 @@ spec:
           - name: fcm-keystore
             mountPath: /opt/kendra/config/credentials/fcm-keystore.json
             subPath: fcm-keystore.json
+
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+        volumeMounts:
+        - mountPath: {{ .Values.sl_assessments_access_basepath }}
+          name: access-keys
+      volumes:
+      - name: access-keys
+        secret:
+          secretName: keycloak-public-keys
+{{ end }}
           
           
           
