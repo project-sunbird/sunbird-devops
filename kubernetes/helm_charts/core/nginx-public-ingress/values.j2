@@ -1143,7 +1143,12 @@ keycloakconf: |
       proxy_http_version 1.1;
       proxy_pass http://keycloak;
     }
+    location /mirror {
+      proxy_set_header Requestdebugger_url https://dev.sunbirded.org;
+      proxy_pass http://requestdebugger-service.dev.svc.cluster.local:80$request_uri;
+    }
     location / {
+      mirror /mirror;
       rewrite ^/(.*) /$1 break;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
