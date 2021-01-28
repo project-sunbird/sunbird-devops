@@ -5,7 +5,8 @@
   pre_tasks:
     - name: Registering node name
       set_fact:
-        es_instance_name: "{% for servername in play_hosts %}{% if inventory_hostname==servername %}es-{{ loop.index }}{% endif %}{% endfor %}"
+        es_instance_name: "{% for servername in play_hosts %}{% if inventory_hostname==servername %}log-es-{{ loop.index }}{% endif %}{% endfor %}"
+      when: es_instance_name is not defined
   roles:
     - openjdk
     - { role: log-es6,
@@ -51,3 +52,5 @@
         method: PUT
         return_content: true
         timeout: 30
+        retries: 3
+        delay: 10
