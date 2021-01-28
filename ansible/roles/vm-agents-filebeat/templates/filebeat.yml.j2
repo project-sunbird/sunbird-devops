@@ -1,13 +1,78 @@
-filebeat:
-  prospectors:
-  - input_type: log
-    paths: [{{ filebeat_log_path }}]
-logging:
-  files: {keepfiles: 7, name: filebeat.log, path: /tmp/filebeat}
-  level: debug
-  to_files: true
-  to_syslog: false
-output:
-  logstash:
-    hosts: ['{{ filebeat_logstash_host }}:{{ filebeat_logstash_port }}']
-    timeout: 15
+#=========================== Filebeat inputs =============================
+filebeat.config.inputs:
+  enabled: true
+  path: "{{filebeat_config_directory}}/*.yml"
+
+#==================== Elasticsearch template setting ==========================
+setup.template.name: "filebeat"
+setup.template.pattern: "filebeat-*"
+setup.template.overwrite: false
+setup.template.settings:
+  index.number_of_shards: 3
+
+#================================ Outputs =====================================
+
+#-------------------------- Elasticsearch output ------------------------------
+output.elasticsearch:
+  # Array of hosts to connect to.
+  hosts: ["{{ groups['log-es']|join(':9200\", \"')}}:9200"]
+  indices:
+  - index: "redis-dp-%{+yyyy.MM.dd}"
+    when.contains:
+      source: analytics/redis-stable/
+  - index: "redis-kp-%{+yyyy.MM.dd}"
+    when.contains:
+      source: learning/redis-stable/
+  - index: "spark-%{+yyyy.MM.dd}"
+    when.contains:
+      source: /mount/data/analytics/logs/
+  - index: "cassandra-%{+yyyy.MM.dd}"
+    when.contains:
+      source: cassandra
+  - index: "composite-es-%{+yyyy.MM.dd}"
+    when.regexp:
+      source: elasticsearch/.*cs-node.*
+  - index: "log-es-%{+yyyy.MM.dd}"
+    when.regexp:
+      source: elasticsearch/.*log-es.*/
+  - index: "lms-es-%{+yyyy.MM.dd}"
+    when.regexp:
+      source: elasticsearch/.*es.*/
+  - index: "keycloak-%{+yyyy.MM.dd}"
+    when.contains:
+      source: /opt/keycloak/standalone/log/
+  - index: "neo4j-%{+yyyy.MM.dd}"
+    when.contains:
+      source: neo4j
+  - index: "dial-%{+yyyy.MM.dd}"
+    when.contains:
+      source: dial
+  - index: "logstash-vm-%{+yyyy.MM.dd}"
+    when.contains:
+      source: logstash
+  - index: "learning-%{+yyyy.MM.dd}"
+    when.contains:
+      source: /data/logs/learning
+  - index: "kafka-%{+yyyy.MM.dd}"
+    when.contains:
+      source: kafka
+  - index: "zookeeper-%{+yyyy.MM.dd}"
+    when.contains:
+      source: zookeeper
+  - index: "secor-%{+yyyy.MM.dd}"
+    when.contains:
+      source: secor
+  - index: "postgres-%{+yyyy.MM.dd}"
+    when.contains:
+      source: postgres
+  - index: "syslogs-%{+yyyy.MM.dd}"
+
+#----------------------------- Logstash output --------------------------------
+#output.logstash:
+  # The Logstash hosts
+  #hosts: ["localhost:5044"]
+
+#----------------------------- General --------------------------------
+max_procs: 1
+ignore_older: 24h
+close_inactive: 12h
