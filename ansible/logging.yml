@@ -1,36 +1,14 @@
 ---
-# You can use this tag to stop filebeat on the VM temporarily when you dont want to ingest logs for certain period
-- hosts: "{{ hosts }}"
-  become: yes
-  gather_facts: no
-  ignore_unreachable: yes
-  vars_files:
-    - "{{inventory_dir}}/secrets.yml"
-  roles:
-    - vm-agents-filebeat
-  tags:     
-    - stop-filebeat
-
-# You can use this tag to start filebeat on the VM in case you have stopped it temporarily
-- hosts: "{{ hosts }}"
-  become: yes
-  gather_facts: no
-  ignore_unreachable: yes
-  vars_files:
-    - "{{inventory_dir}}/secrets.yml"
-  roles:
-    - vm-agents-filebeat
-  tags:     
-    - start-filebeat
-
 # You can choose host names on jenkins and run the job. If you have custom host groups, you can add them to jenkins job and run
+# To start or stop filebeat, choose the tag on jenkins job
 - hosts: "{{ hosts }}"
   become: yes
   gather_facts: no
   ignore_unreachable: yes
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  roles:
-    - vm-agents-filebeat
-  tags:
-    - default
+  tasks:
+  - include_role:
+     name: vm-agents-filebeat
+    tags:
+    - "{{ tags }}"
