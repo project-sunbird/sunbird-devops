@@ -85,6 +85,7 @@ sl_kendra_prefix: /kendra
 sl_unnati_prefix: /improvement-project
 sl_sunbird_prefix: /sl-sunbird
 sl_usermanagement_prefix: /user-management
+sl_dhiti_prefix: /dhiti
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -130,6 +131,24 @@ premium_consumer_rate_limits:
     config.policy: local
 
 kong_apis:
+
+  - name: observationsInstance
+    request_path: "{{ sl_dhiti_prefix }}/api/v1/observations/instance"
+    upstream_url: "{{ dhiti_service_url }}{{ sl_dhiti_prefix }}/api/v1/observations/instance"
+    strip_request_path: true
+    plugins:
+    -  name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: bulkCreatePlatformUserRoles
     request_path: "{{ sl_usermanagement_prefix }}/api/v1/platformUserRoles/bulkCreate"
