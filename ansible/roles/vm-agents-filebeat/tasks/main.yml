@@ -2,34 +2,46 @@
 - name: Gather package facts
   package_facts:
     manager: auto
+  tags:
+   - default
 
 - name: Check the filebeat version if its already installed
   set_fact:
     filebeat_installed_version: "{{ansible_facts.packages['filebeat'][0].version}}"
   when: "ansible_facts.packages is defined and 'filebeat' in ansible_facts.packages and (ansible_facts.packages['filebeat'] | length) == 1"
+  tags:
+   - default
 
 - name: Remove filebeat package if it does not match the version which is being installed
   apt:
     name: filebeat
     state: absent
   when: filebeat_installed_version is defined and filebeat_installed_version != filebeat_version
+  tags:
+   - default
 
 - name: Remove filebeat registry directory if it does not match the version which is being installed
   file: 
     path: /var/lib/filebeat/registry
     state: absent
   when: filebeat_installed_version is defined and filebeat_installed_version != filebeat_version
+  tags:
+   - default
 
 - name: Add elastic gpg key
   apt_key:
     url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
     state: present
+  tags:
+   - default
 
 - name: Add elastic repository
   apt_repository:
     repo: deb https://artifacts.elastic.co/packages/6.x/apt stable main
     state: present
     filename: /etc/apt/sources.list.d/elastic-6.x.list
+  tags:
+   - default
 
 - name: Install the filebeat and required packages
   apt:
@@ -37,21 +49,29 @@
     state: present
     update_cache: yes
     cache_valid_time: 3600
+  tags:
+   - default
 
 - name: Create the filebeat configs directory
   file:
     path: "{{filebeat_config_directory}}"
     state: directory
+  tags:
+   - default
 
 - name: Copy the filebeat input config template(s)
   template:
     src: "filebeat-inputs.yml.j2"
     dest: "{{filebeat_config_directory}}/filebeat-inputs.yml"
+  tags:
+   - default
 
 - name: Copy the filebeat outout config template
   template:
     src: "filebeat.yml.j2"
     dest: "/etc/filebeat/filebeat.yml"
+  tags:
+   - default
 
 - name: Enable and start filebeat as a daemon process
   systemd:
@@ -59,3 +79,19 @@
     enabled: yes
     state: restarted
     daemon_reload: yes
+  tags:
+   - default
+
+- name: Stop filebeat
+  systemd:
+    name: filebeat
+    state: stopped
+  tags:
+   - stop-filebeat
+
+- name: Start filebeat
+  systemd:
+    name: filebeat
+    state: started
+  tags:
+   - start-filebeat
