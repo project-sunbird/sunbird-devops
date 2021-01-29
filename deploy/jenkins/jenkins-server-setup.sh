@@ -15,7 +15,7 @@ echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
 apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
 apt-get update
-apt-get install -y jenkins=2.190.2
+apt-get install -y jenkins=2.263.1
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
@@ -66,7 +66,7 @@ ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/gulp /usr/bin/gulp
 rm -rf node-v6.17.1-linux-x64*
 
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
-pip install ansible==2.5.2
+pip install ansible==2.7.18
 
 echo -e "\n\e[0;32m${bold}Installating azure cli${normal}"
 apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
@@ -127,6 +127,22 @@ touch /etc/apt/sources.list.d/kubernetes.list
 echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
 apt-get update
 apt-get install -y kubectl
+
+#Install yarn 
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+apt update && apt install yarn
+
+wget https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz
+tar -xf openjdk-11+28_linux-x64_bin.tar.gz
+mv jdk-11 java-11-openjdk-amd64
+cp -r java-11-openjdk-amd64 /usr/lib/jvm/
+rm -rf java-11-openjdk-amd64 openjdk-11+28_linux-x64_bin.tar.gz
+
+wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+tar -xf apache-maven-3.6.3-bin.tar.gz
+mv apache-maven-3.6.3/bin/mvn /opt/apache-maven-3.6.3/bin/mvn.3.6
+rm -rf apache-maven-3.6.3-bin.tar.gz
 
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove
