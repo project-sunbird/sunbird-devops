@@ -1,0 +1,39 @@
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+repository: {{proxy_repository|default('proxy')}}
+image_tag: {{ image_tag }}
+replicaCount: {{nginx_private_ingress_replicacount|default(1)}}
+nginx_private_ingress_type: {{ nginx_private_ingress_type | default('LoadBalancer') }}
+private_ingress_custom_annotations: {{ private_ingress_custom_annotations | d('false') | lower }}
+kube_dns_ip: {{kube_dns_ip}}
+
+{% if nginx_private_ingress_annotations is defined and nginx_private_ingress_annotations %}
+# you can define annotations in ansible for custom behaviour
+# eg:
+# nginx_private_ingress_annotations:
+#   cloud.google.com/load-balancer-type: "Internal"
+
+annotations: {{nginx_private_ingress_annotations|to_json}}
+{% endif %}
+
+private_ingress_annotation:
+  cloud_provider: 'service.beta.kubernetes.io/azure-load-balancer-internal: "true"'
+{% if private_ingressgateway_ip is defined and private_ingressgateway_ip %}
+nginx_private_ingress_ip: {{ private_ingressgateway_ip }}
+{% endif %}
+resources:
+  requests:
+    cpu: {{nginx_private_ingress_cpu_req | default('100m')}}
+    memory: {{nginx_private_ingress_mem_req | default('100Mi')}}
+  limits:
+    cpu: {{nginx_private_ingress_cpu_limit | default('500m')}}
+    memory: {{nginx_private_ingress_mem_limit | default('500Mi')}}
+
+autoscaling:
+  enabled: {{ nginx_private_ingress_autoscaling_enabled | default('false') }}
+  minReplicas: {{ nginx_private_ingress_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ nginx_private_ingress_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ nginx_private_ingress_autoscaling_targetCPUUtilizationPercentage|default(80) }}
+  targetMemoryUtilizationPercentage: {{ nginx_private_ingress_autoscaling_targetMemoryUtilizationPercentage|default('') }}
+

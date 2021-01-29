@@ -1,0 +1,7 @@
+---
+- name: Decrypt the data first
+  vars:
+    private_key_path: "{{private_key_path | regex_replace('^\\/|\\/$', '')}}"
+  shell: "ansible-vault decrypt {{ lookup('fileglob', '{{inventory_dir}}/{{private_key_path}}/{{private_key_prefix}}{{item}}') }} --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+  with_sequence: start={{private_key_sign_start}} end={{private_key_sign_start|int + private_key_sign_end|int - 1}} stride={{private_key_sign_incr}}
+  when: (private_key_sign_start|int + private_key_sign_end|int - 1) > 0

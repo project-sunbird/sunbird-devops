@@ -1,0 +1,156 @@
+elasticsearch:
+  hosts: {{groups['log-es']|join(':9200,')}}:9200
+  reloadOnFailure: true
+  logstash:
+    prefix: "{{ fluentd_index_prefix }}"
+
+configMaps:
+  useDefaults:
+    outputConf: false
+    containersInputConf: false
+
+
+extraConfigMaps:
+  output.conf: |-
+    # handle timeout log lines from concat plugin
+    <match **>
+      @type relabel
+      @label @NORMAL
+    </match>
+    <label @NORMAL>
+    <match **>
+      @id elasticsearch
+      @type "#{ENV['OUTPUT_TYPE']}"
+      @log_level "#{ENV['OUTPUT_LOG_LEVEL']}"
+      include_tag_key "#{ENV['OUTPUT_INCLUDE_TAG_KEY']}"
+      hosts "#{ENV['OUTPUT_HOSTS']}"
+      path "#{ENV['OUTPUT_PATH']}"
+      scheme "#{ENV['OUTPUT_SCHEME']}"
+      ssl_verify "#{ENV['OUTPUT_SSL_VERIFY']}"
+      ssl_version "#{ENV['OUTPUT_SSL_VERSION']}"
+      type_name "#{ENV['OUTPUT_TYPE_NAME']}"
+      logstash_format "#{ENV['LOGSTASH_FORMAT']}"
+      logstash_prefix "#{ENV['LOGSTASH_PREFIX']}"
+      reconnect_on_error "#{ENV['OUTPUT_RECONNECT_ON_ERROR']}"
+      reload_on_failure "#{ENV['OUTPUT_RELOAD_ON_FAILURE']}"
+      reload_connections "#{ENV['OUTPUT_RELOAD_CONNECTIONS']}"
+      request_timeout 10s
+      <buffer>
+        @type "#{ENV['OUTPUT_BUFFER_TYPE']}"
+        path "#{ENV['OUTPUT_BUFFER_PATH']}"
+        flush_mode "#{ENV['OUTPUT_BUFFER_FLUSH_MODE']}"
+        retry_type "#{ENV['OUTPUT_BUFFER_RETRY_TYPE']}"
+        flush_thread_count "#{ENV['OUTPUT_BUFFER_FLUSH_THREAD_TYPE']}"
+        flush_interval "#{ENV['OUTPUT_BUFFER_FLUSH_INTERVAL']}"
+        retry_forever "#{ENV['OUTPUT_BUFFER_RETRY_FOREVER']}"
+        retry_max_interval "#{ENV['OUTPUT_BUFFER_RETRY_MAX_INTERVAL']}"
+        chunk_limit_size "#{ENV['OUTPUT_BUFFER_CHUNK_LIMIT']}"
+        queue_limit_length "#{ENV['OUTPUT_BUFFER_QUEUE_LIMIT']}"
+        overflow_action "#{ENV['OUTPUT_BUFFER_OVERFLOW_ACTION']}"
+      </buffer>
+    </match>
+    </label>
+
+  containers.input.conf: |-
+    <source>
+      @id fluentd-containers.log
+      @type tail
+      path /var/log/containers/*.log
+      pos_file /var/log/containers.log.pos
+      tag raw.kubernetes.*
+      read_from_head true
+      <parse>
+        @type multi_format
+        <pattern>
+          format json
+          time_key time
+          time_format %Y-%m-%dT%H:%M:%S.%NZ
+        </pattern>
+        <pattern>
+          format /^(?<time>.+) (?<stream>stdout|stderr) [^ ]* (?<log>.*)$/
+          time_format %Y-%m-%dT%H:%M:%S.%N%:z
+        </pattern>
+      </parse>
+    </source>
+
+    # Detect exceptions in the log output and forward them as one log entry.
+    <match raw.kubernetes.**>
+      @id raw.kubernetes
+      @type detect_exceptions
+      remove_tag_prefix raw
+      message log
+      stream stream
+      multiline_flush_interval 5
+      max_bytes 500000
+      max_lines 1000
+    </match>
+
+    # Concatenate multi-line logs
+    <filter **>
+      @id filter_concat
+      @type concat
+      key message
+      multiline_end_regexp /\n$/
+      separator ""
+      timeout_label @NORMAL
+      flush_interval 5
+    </filter>
+
+    # Enriches records with Kubernetes metadata
+    <filter kubernetes.**>
+      @id filter_kubernetes_metadata
+      @type kubernetes_metadata
+    </filter>
+
+    # Fixes json fields in Elasticsearch
+    <filter kubernetes.**>
+      @id filter_parser
+      @type parser
+      key_name log
+      reserve_time true
+      reserve_data true
+      remove_key_name_field true
+      <parse>
+        @type multi_format
+        <pattern>
+          format json
+        </pattern>
+        <pattern>
+          format none
+        </pattern>
+      </parse>
+    </filter>
+
+    # To add filtering capability of the proxy logs
+    <filter kubernetes.var.log.containers.nginx-public-ingress-**.log>
+      @type parser
+      key_name message
+      reserve_time true
+      reserve_data true
+      remove_key_name_field false
+        <parse>
+          @type regexp
+          expression ^(?<cip>[^ ]*) (?<host>[^ ]*) (?<uid>[^ ]*) \[(?<time>[^\]]*)\] "(?<verb>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<rscode>[^ ]*) (?<rqsize>[^ ]*) (?<rssize>[^ ]*) (?<rqtime>[^ ]+) (?<rstime>[^ ]+) (?<pipe>\.*) (?:"(?<referer>[^\"]*)" "(?<agent>[^\"]*)" "(?<tid>[^\"]*)" "(?<did>[^\"]*)" "(?<cid>[^\"]*)" "(?<appid>[^\"]*)" "(?<app_ver>[^\"]*)" "(?<sess_id>[^\"]*)"(?:\s+(?<http_x_forwarded_for>[^ ]+))?)?$
+
+    # field mappings with nginx logs and kibana index as below;
+    # cip = remote, host = host, uid = user, time = time, verb = method, path = path, rscode = status, rqsize = request_size, rssize = response_size, rqtime = request_time, rstime = upstream_response_time, pipe = pipe, referer = referer, agent = agent, tid = traceid, did = deviceid, cid = channelid, appid = appid.
+
+          types rstime:float,rqtime:float,rssize:integer,rqsize:integer
+          time_format %d/%b/%Y:%H:%M:%S %z
+        </parse>
+    </filter>
+     
+    # To remove the unwanted fields 
+    <filter kubernetes.var.log.containers.nginx-public-ingress-**.log>
+      @type record_transformer
+      remove_keys uid,host,referer,agent,pipe,verb
+    </filter>
+
+    # to exclude the lines which has specific pattern
+    <filter kubernetes.**>
+      @type grep
+      <exclude>
+        key message
+        pattern /(Completed checkpoint|Triggering checkpoint)/
+      </exclude>
+    </filter>

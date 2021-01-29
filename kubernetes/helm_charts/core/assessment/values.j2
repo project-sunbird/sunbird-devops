@@ -1,0 +1,37 @@
+#jinja2:lstrip_blocks: True
+
+### Default variable file for assessment-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+env:
+  javaoptions: {{assesment_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{assessment_replicacount|default(1)}}
+repository: {{assessment_repository|default('assessment-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{assessment_cpu_req|default('50m')}}
+    memory: {{assessment_mem_req|default('50Mi')}}
+  limits:
+    cpu: {{assessment_cpu_limit|default('1')}}
+    memory: {{assessment_mem_limit|default('500Mi')}}
+network:
+  port: 9003
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ assessment_maxsurge|default('25%') }}
+  maxunavailable: {{ assessment_maxunavailable|default('25%') }}
+
+{{ assessment_liveness_readiness | to_nice_yaml }}
+
+autoscaling:
+  enabled: {{ assessment_autoscaling_enabled | default('false') }}
+  minReplicas: {{ assessment_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ assessment_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ assessment_autoscaling_targetCPUUtilizationPercentage|default(80) }}
+  targetMemoryUtilizationPercentage: {{ assessment_autoscaling_targetMemoryUtilizationPercentage|default('') }}

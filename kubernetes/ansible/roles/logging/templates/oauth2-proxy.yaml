@@ -1,0 +1,39 @@
+config:
+  clientID: "{{google_client_id}}"
+  clientSecret: "{{google_client_secret}}"
+  cookieSecret: "{{cookie_secret}}"
+  configFile: |-
+    redirect_url = "{{kibana_oauth_redirect_url}}"
+    upstreams = "http://{{ kibana_service }}"
+    email_domains = {{kibana_oauth_authenticated_email_domains_kube}}
+    authenticated_emails_file = "/etc/oauth2/auth-emails/authenticated_email.txt"
+    cookie_expire = "24h"
+    cookie_refresh = "4h"
+    cookie_secure = true
+    cookie_httponly = true
+    silence_ping_logging = true
+    skip_provider_button = true
+
+image:
+  repository: "sunbird/oauth2_proxy"
+  tag: "v1.0"
+  pullPolicy: "IfNotPresent"
+
+replicaCount: {{ oauth2_replicas | default(1) }}
+
+resources:
+   limits:
+     cpu: 500m
+     memory: 500Mi
+   requests:
+     cpu: 100m
+     memory: 108Mi
+
+authenticatedEmailsFile:
+  enabled: true
+  restricted_access: |-
+     {% for key in kibana_oauth_authenticated_email_ids %}
+      {{key}}
+     {% endfor %}
+
+fullnameOverride: "oauth2-proxy"

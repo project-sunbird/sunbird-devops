@@ -1,0 +1,44 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: portal-vs
+  namespace: {{ .Values.namespace }}
+spec:
+  gateways:
+  - public-gateway
+{{- if .Values.merge_domain_status }}
+  - merge-gateway
+{{- end }}
+  hosts:
+  - {{ .Values.domain_name }}
+{{- if .Values.merge_domain_status }}
+  - {{ .Values.merge_proxy_server_name }}
+{{- end }}
+  http:
+  - match:
+    - uri:
+        prefix: /thirdparty/
+    - uri:
+        prefix: /thirdparty
+    route:
+    - destination:
+        host: player
+      headers:
+        request:
+          add:
+            Cache-Control: public
+            Pragma: public
+  - match:
+    - uri:
+        prefix: /oauth2callback/
+    - uri:
+        prefix: /oauth2callback
+    route:
+    - destination:
+        host: player
+    fault:
+      abort:
+        httpStatus: 200    
+  - route:
+    - destination:
+        host: player

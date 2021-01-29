@@ -1,0 +1,244 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.prometheus_rule_selector_app }}
+    release: {{ .Values.prometheus_rule_selector_release }}
+  name: {{ .Values.fullnameOverride }}-process-rules
+  namespace: {{ .Values.namespace }}
+spec:
+  groups:
+  - name: alertrules.process
+    rules:
+    - alert: tomcat_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="tomcat",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`'Number of running processes are: {{$value}}'`}}
+        summary: tomcat process is not running
+    - alert: search_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="search",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`'Number of running processes are: {{$value}}'`}}
+        summary: search process is not running
+    - alert: neo4j_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="neo4j",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`'Number of running processes are: {{$value}}'`}}
+        summary: neo4j process is not running
+    - alert: kafka_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="kafka",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: kafka process not running. Check the same.
+        summary: Kafka process is not running
+        job_id: kafka
+        alertname: KafkaNotRunning
+
+    - alert: kafka_more_than_one_process_running_critical
+      expr: namedprocess_namegroup_num_procs{groupname="kafka"} > 1
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: {{`' Console consumer process still running in kafka node. Check the same. Number of running processes are: {{$value}}'`}}
+        summary: More than one process running
+        job_id: kafka
+        alertname: TooManyKafkaProcessRunning
+
+    - alert: zookeeper_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="zookeeper",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: The zokkeeper process is not running. Check the same.
+        summary: Zookeeper process is not running
+        job_id: Zookeeper
+        alertname: ZookeeperNotRunning
+
+    - alert: yarn_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="yarn",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`'Number of running processes are: {{$value}}'`}}
+        summary: YARN process is not running
+    - alert: cassandra_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="cassandra",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`'Number of running processes are: {{$value}}'`}}
+        summary: Cassandra process is not running
+    - alert: elasticsearch_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="elasticsearch",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`'Number of running processes are: {{$value}}'`}}
+        summary: Elasticsearch process is not running_critical
+    - alert: logstash_process_not_running_critical
+      expr: namedprocess_namegroup_states{groupname="logstash",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        message: {{`'Number of running processes are: {{$value}}'`}}
+        summary: Logstash process is not running
+
+    - alert: druid_zookeeper_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="druidzookeeper",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: The Druid zookeepr process is not running. Check the same.
+        summary: Druid zookeeper is not running.
+        job_id: Zookeeper
+        alertname: Druid-ZookeeperNotRunning
+
+    - alert: druid_postgres_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="druidpostgres",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: The Druid Postgres process not running. Check the same.
+        summary: Druid postgres is not running
+        job_id: Postgres
+        alertname: Druid-PostgresNotRunning
+
+    - alert: druid_overlord_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="overlord",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: Druid Overlord process not running. Check the same.
+        summary: Druid overlord process is not running
+        job_id: Druid-Overlord
+        alertname: OverlordProcessNotRunning
+
+
+    - alert: druid_coordinator_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="coordinator",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: Druid coordinator process is not running. Check the same.
+        summary: Druid coordinator process is not running
+        job_id: Druid-Coordinator
+        alertname: CoordinatorProcessNotRunning
+
+
+    - alert: druid_historical_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="historical",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: Druid historical process is not running. Check the same.
+        summary: Druid historical process is not running
+        job_id: Druid-historical
+        alertname: HistoricalProcessNotRunning
+
+
+    - alert: druid_broker_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="broker",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: Druid broker process is not running. Check the same.
+        summary: Druid broker process is not running
+        job_id: Druid-Broker
+        alertname: BrokerProcessNotRunning
+
+
+    - alert: druid_middleManager_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="middleManager",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: Druid middleManager process is not running. Check the same. 
+        summary: Druid middleManager process is not running
+        job_id: Druid-MiddleManager
+        alertname: MiddleManagerProcessNotRunning
+
+    {{- if .Values.redis_process_names }}
+    {{- range $key, $value := .Values.redis_process_names }}
+    - alert: redisserver_process_not_running_fatal
+      expr: sum without(state) (namedprocess_namegroup_states{groupname={{ $value | quote }}}) == 0 
+      for: 5m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: The {{ $key }} redis process which runs on port {{ $value }} is not running.
+        summary: redis-server process is not running
+        job_id: Redis
+        alertname: RedisProcessNotRunning
+    {{- end }}
+    {{- end }}
+
+    - alert: redisserver_process_not_running_fatal
+      expr: sum without(state) (namedprocess_namegroup_states{groupname="redis-server"}) == 0
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_process
+      annotations:
+        message: The redis process is not running. Check the same.
+        summary: redis-server process is not running
+        job_id: Redis
+        alertname: RedisProcessNotRunning
+
+    - alert: influxdb_process_not_running_fatal
+      expr: namedprocess_namegroup_states{groupname="influxd",state="Sleeping"} < 1
+      for: 1m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`'Number of running processes are: {{$value}}'`}}
+        summary: influxdb process is not running
+
+    - alert: druid_health_status_fatal
+      expr: http_druid_health_check_status < 99
+      for: 1m
+      labels:
+        severity: critical
+        module: dp_lag
+      annotations:
+        message: The Druid health for Datasource is less than 99%. 
+        summary: {{`'Druid health for Datasource is < {{ $value }}'`}}
+        lag: {{`({{ humanize $value }})`}}
+        job_id: Druid
+        alertname: DruidHealthStatus

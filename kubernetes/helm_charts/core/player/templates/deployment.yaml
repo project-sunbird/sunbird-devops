@@ -1,0 +1,87 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+     rollingUpdate:
+        maxSurge: {{ .Values.strategy.maxsurge }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 10 }}
+{{- end }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if or  .Values.sunbird_portal_player_cdn_enabled $keys }}
+        volumeMounts:
+{{- end }}
+{{- if .Values.sunbird_portal_player_cdn_enabled }}
+          - name: player-cdn-config
+            mountPath: /home/sunbird/app_dist/dist/index_cdn.ejs
+            subPath: index_cdn.ejs
+{{- end }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+          - mountPath: {{ .Values.player_access_basepath }}
+            name: access-keys
+{{- end }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if or  .Values.sunbird_portal_player_cdn_enabled $keys }}
+      volumes:
+{{- end }}
+{{- if .Values.sunbird_portal_player_cdn_enabled }}
+      - name: player-cdn-config
+        configMap:
+          name: player-cdn-config
+{{- end }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+      - name: access-keys
+        secret:
+          secretName: player-access-keys
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  ports:
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network.targetport }}
+  selector:
+    app: {{ .Chart.Name }}

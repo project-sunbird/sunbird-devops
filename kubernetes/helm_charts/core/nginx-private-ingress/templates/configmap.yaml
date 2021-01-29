@@ -1,0 +1,149 @@
+apiVersion: v1
+data:
+  nginx.conf: |
+    user  nginx;
+    worker_processes  1;
+
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+
+    events {
+        worker_connections  1024;
+    }
+
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      lua_load_resty_core off;
+      lua_package_path "/etc/nginx/lua_modules/?.lua";
+      log_format  main  '$remote_addr - $remote_user [$time_local] '
+                        '"$request" $status $request_length $body_bytes_sent'
+                        ' $request_time $upstream_response_time $pipe'
+                        ' "$http_referer" "$http_user_agent" "$sb_request_id"'
+                        ' "$http_x_device_id" "$http_x_channel_id" "$http_x_app_id"'
+                        ' "$http_x_app_ver" "$http_x_session_id"';
+    
+      # If the client send request_id it should be preffered over the default one
+      map $http_x_request_id $sb_request_id {
+        default  $http_x_request_id;
+        ''  $request_id;
+      }
+
+      access_log  /var/log/nginx/access.log  main;
+      include /etc/nginx/conf.d/*.conf;
+      sendfile        on;
+      client_max_body_size 60M;
+        
+      server {
+        listen 80;
+        listen [::]:80;
+    
+        resolver {{ .Values.kube_dns_ip }};
+    
+        location /learner/ {
+          set $target http://learner-service.{{ .Values.namespace }}.svc.cluster.local:9000;
+          rewrite ^/learner/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /api/ {
+          set $target http://kong.{{ .Values.namespace }}.svc.cluster.local:8000;
+          rewrite ^/api/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /grafana/ {
+          set $target http://prometheus-operator-grafana.monitoring.svc.cluster.local;
+          rewrite ^/grafana/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /admin-api/ {
+          set $target http://kong.{{ .Values.namespace }}.svc.cluster.local:8001;
+          rewrite ^/admin-api/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /player/ {
+          set $target http://player.{{ .Values.namespace }}.svc.cluster.local:3000;
+          rewrite ^/player/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /knowledgemw/ {
+          set $target http://knowledge-mw-service.{{ .Values.namespace }}.svc.cluster.local:5000;
+          rewrite ^/knowledgemw/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /content/ {
+          set $target http://content-service.{{ .Values.namespace }}.svc.cluster.local:9000;
+          rewrite ^/content/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /badger/ {
+          set $target http://badger-service.{{ .Values.namespace }}.svc.cluster.local:8004;
+          rewrite ^/badger/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /cert/ {
+          set $target http://cert-service.{{ .Values.namespace }}.svc.cluster.local:9000;
+          rewrite ^/cert/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /certreg/ {
+          set $target http://cert-registry-service.{{ .Values.namespace }}.svc.cluster.local:9000;
+          rewrite ^/certreg/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /print/ {
+          set $target http://print-service.{{ .Values.namespace }}.svc.cluster.local:5000;
+          rewrite ^/print/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /assessment/ {
+          set $target http://assessment-service.{{ .Values.namespace }}.svc.cluster.local:9000;
+          rewrite ^/assessment/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /notification/ {
+          set $target http://notification-service.{{ .Values.namespace }}.svc.cluster.local:9000;
+          rewrite ^/notification/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /report/ {
+          set $target http://report-service.{{ .Values.namespace }}.svc.cluster.local:3030;
+          rewrite ^/report/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /search/ {
+          set $target http://search-service.{{ .Values.namespace }}.svc.cluster.local:9000;
+          rewrite ^/search/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /lms/ {
+          set $target http://lms-service.{{ .Values.namespace }}.svc.cluster.local:9000;
+          rewrite ^/lms/(.*) /$1 break;
+          proxy_pass $target;
+        }
+
+        location /taxonomy/ {
+          set $target http://taxonomy-service.{{ .Values.namespace }}.svc.cluster.local:9000;
+          rewrite ^/taxonomy/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /analytics/ {
+          set $target http://analytics-service.{{ .Values.namespace }}.svc.cluster.local:9000;
+          rewrite ^/analytics/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /enc/ {
+          set $target http://enc-service.{{ .Values.namespace }}.svc.cluster.local:8013;
+          rewrite ^/enc/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /nodebb/ {
+          set $target http://nodebb-service.{{ .Values.namespace }}.svc.cluster.local:4567;
+          rewrite ^/enc/(.*) /$1 break;
+          proxy_pass $target;
+        }
+      }
+    }
+kind: ConfigMap
+metadata:
+  name: nginx-private-ingress.conf
+  namespace: {{ .Values.namespace }}

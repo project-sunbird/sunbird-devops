@@ -1,0 +1,35 @@
+---
+- name: Remove assessment-service
+  shell: "docker service rm assessment-service"
+  ignore_errors: yes
+  
+- name: Save configurations into an env file
+  become: yes
+  template: src=assessment-service_application.conf dest=/home/deployer/config/assessment-service.conf mode=0644
+
+- name: Save logback configuration into a env file
+  become: yes
+  template: src=assessment-service_logback.xml dest=/home/deployer/config/assessment-service_logback.xml mode=0644
+
+- name: Remove old assessment-service.conf docker config
+  become: yes
+  shell: "docker config rm assessment-service.conf"
+  ignore_errors: yes
+  
+- name: Save as docker config
+  become: yes
+  shell: "docker config create assessment-service.conf /home/deployer/config/assessment-service.conf"
+
+- name: Remove old logback.xml docker config
+  become: yes
+  shell: "docker config rm assessment-service_logback.xml"
+  ignore_errors: yes
+  
+- name: Copy new logback.xml
+  become: yes
+  shell: "docker config create assessment-service_logback.xml /home/deployer/config/assessment-service_logback.xml"
+
+- name: Deploy assessment-service
+  shell: "docker service create --with-registry-auth --replicas {{ assessment_service_replicas }} -p 9003:9000  --name assessment-service --hostname assessment-service --reserve-memory {{ assessment_service_reservation_memory }} --limit-memory {{ assessment_service_limit_memory }} --limit-cpu {{ assessment_service_limit_cpu }} --reserve-cpu {{ assessment_service_reservation_cpu }} --health-cmd 'wget -qO- assessment-service:9000/health || exit 1' --health-timeout 10s --health-retries 5  --network application_default --config source=assessment-service.conf,target=/home/sunbird/assessment-service-1.0-SNAPSHOT/config/application.conf,mode=0644  {{hub_org}}/{{image_name}}:{{image_tag}}"
+  args:
+    chdir: /home/deployer/stack

@@ -1,0 +1,117 @@
+<configuration>
+
+  <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
+
+  <!-- transaction-event-trigger START -->
+  <timestamp key="timestamp" datePattern="yyyy-MM-dd"/>
+  <!-- common transactions logs -->
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <layout class="net.logstash.logback.layout.LogstashLayout">
+        <fieldNames>
+          <timestamp>timestamp</timestamp>
+          <message>msg</message>
+          <logger>lname</logger>
+          <thread>tname</thread>
+          <levelValue>[ignore]</levelValue>
+          <version>[ignore]</version>
+          <stack_trace>exception</stack_trace>
+        </fieldNames>
+        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+          <maxDepthPerThrowable>30</maxDepthPerThrowable>
+          <maxLength>2048</maxLength>
+          <exclude>sun\.reflect\..*\.invoke.*</exclude>
+          <rootCauseFirst>true</rootCauseFirst>
+          <inlineHash>true</inlineHash>
+        </throwableConverter>
+      </layout>
+    </encoder>
+  </appender>
+
+  <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="STDOUT" />
+  </appender>
+
+  <appender name="queryLoggerAppender" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
+        <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSX</timestampFormat>
+        <timestampFormatTimezoneId>Etc/UTC</timestampFormatTimezoneId>
+        <fieldNames>
+          <timestamp>timestamp</timestamp>
+          <message>msg</message>
+          <logger>lname</logger>
+          <thread>tname</thread>
+          <levelValue>[ignore]</levelValue>
+          <version>[ignore]</version>
+        </fieldNames>
+      </layout>
+    </encoder>
+  </appender>
+
+  <appender name="defaultLoggerAppender" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <layout class="net.logstash.logback.layout.LogstashLayout">
+        <fieldNames>
+          <timestamp>timestamp</timestamp>
+          <message>msg</message>
+          <logger>lname</logger>
+          <thread>tname</thread>
+          <levelValue>[ignore]</levelValue>
+          <version>[ignore]</version>
+          <stack_trace>exception</stack_trace>
+        </fieldNames>
+        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+          <maxDepthPerThrowable>30</maxDepthPerThrowable>
+          <maxLength>2048</maxLength>
+          <exclude>sun\.reflect\..*\.invoke.*</exclude>
+          <rootCauseFirst>true</rootCauseFirst>
+          <inlineHash>true</inlineHash>
+        </throwableConverter>
+      </layout>
+    </encoder>
+  </appender>
+
+  <appender name="kafka-appender" class="com.github.danielwegener.logback.kafka.KafkaAppender">
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern>%msg</pattern>
+    </encoder>
+
+    <topic>${ENV_NAME}.telemetry.raw</topic>
+    <!-- ensure that every message sent by the executing host is partitioned to the same partition strategy -->
+    <keyingStrategy class="com.github.danielwegener.logback.kafka.keying.NoKeyKeyingStrategy" />
+    <!-- block the logging application thread if the kafka appender cannot keep up with sending the log messages -->
+    <deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy" />
+
+    <!-- each <producerConfig> translates to regular kafka-client config (format: key=value) -->
+    <!-- producer configs are documented here: https://kafka.apache.org/documentation.html#newproducerconfigs -->
+    <!-- bootstrap.servers is the only mandatory producerConfig -->
+    <producerConfig>bootstrap.servers=${SUNBIRD_KAFKA_URL}</producerConfig>
+    <!-- don't wait for a broker to ack the reception of a batch.  -->
+    <producerConfig>acks=0</producerConfig>
+    <!-- wait up to 1000ms and collect log messages before sending them as a batch -->
+    <producerConfig>linger.ms=15000</producerConfig>
+    <!-- even if the producer buffer runs full, do not block the application but start to drop messages -->
+    <producerConfig>max.block.ms=0</producerConfig>
+    <!-- define a client-id that you use to identify yourself against the kafka broker -->
+    <producerConfig>client.id=${HOSTNAME}-${CONTEXT_NAME}-logback-relaxed</producerConfig>
+
+    <!-- there is no fallback <appender-ref>. If this appender cannot deliver, it will drop its messages. -->
+
+  </appender>
+
+  <logger name="defaultLoggerAppender" level="INFO" />
+  <!-- Telemetry Loggers-->
+  <logger name="TelemetryEventLogger" level="INFO">
+    <appender-ref ref="kafka-appender" />
+  </logger>
+
+  <logger name="queryLogger" level="DEBUG">
+    <appender-ref ref="defaultLoggerAppender" />
+  </logger>
+
+  <root level="INFO">
+    <appender-ref ref="ASYNCSTDOUT" />
+  </root>
+
+</configuration>

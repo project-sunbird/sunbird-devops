@@ -1,3 +1,4 @@
+@Library('deploy-conf') _
 node {
     try {
         repositories = ['Sunbird-Ed/SunbirdEd-portal',
@@ -74,7 +75,8 @@ node {
 
                             if (latestBranch == '') {
                                 println(ANSI_BOLD + ANSI_RED + params.release_branch + " branch and its patterns do not exists" + ANSI_NORMAL)
-                                error 'Error: Release branch does not exists'
+                                println(ANSI_BOLD + ANSI_RED + "Error: Release branch does not exists.. Continuing.." + ANSI_NORMAL)
+                                return
                             }
 
                             withCredentials([usernamePassword(credentialsId: env.githubPassword, passwordVariable: 'gitpass', usernameVariable: 'gituser')]) {

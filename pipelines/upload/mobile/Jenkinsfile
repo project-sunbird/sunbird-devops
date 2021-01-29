@@ -1,0 +1,41 @@
+@Library('deploy-conf') _
+node() {
+    try {
+	stage('checkout public repo') {
+            folder = new File("$WORKSPACE/.git")
+            if (folder.exists())
+            {
+               println "Found .git folder. Clearing it.."
+               sh'git clean -fxd'
+            }
+            checkout scm
+        }
+        stage('Artifact Upload') {
+            envName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+            values = lp_dp_params()
+            currentWs = sh(returnStdout: true, script: 'pwd').trim()
+            artifact = values.artifact_name + ":" + values.artifact_version
+            if(params.artifact_source == "ArtifactRepo")
+            {
+                ansiblePlaybook = "${currentWs}/ansible/mobile_upload.yml"
+                ansibleExtraArgs = "--extra-vars \"env_name=${envName}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                values.put('currentWs', currentWs)
+                values.put('ansiblePlaybook', ansiblePlaybook)
+                values.put('ansibleExtraArgs', ansibleExtraArgs)
+                println values
+                ansible_playbook_run(values)
+            }
+            archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
+            archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
+            currentBuild.description = "Artifact: ${values.artifact_version}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
+        }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
+    }
+}

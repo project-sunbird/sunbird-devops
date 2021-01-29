@@ -1,0 +1,64 @@
+---
+- name: template values file
+  template:
+    src: "{{ chart_path }}/values.j2"
+    dest: "{{ chart_path }}/values.yaml"
+
+- name: template configmap file
+  template:
+    src: "configmap.j2"
+    dest: "{{ chart_path }}/templates/configmap.yaml"
+
+- name: helm install
+  shell: helm upgrade --install --atomic --timeout 10m {{ release_name }} {{ chart_path }} -n {{ namespace }}
+
+- name: Copying user creation template
+  template:
+    src: user.j2
+    dest: /tmp/user.sh
+    mode: 0755
+
+- pause:
+    seconds: 20
+
+- name: Copying user creation script to badger
+  shell: "kubectl cp /tmp/user.sh --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1):/tmp/user.sh"
+
+- name: Creating superuser
+  shell: "kubectl exec --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1) /tmp/user.sh"
+  no_log: true
+
+- name: Cleaning up secrets in container
+  shell: "kubectl exec --namespace={{namespace}} $(kubectl get pod --namespace={{namespace}} | grep badger-* | awk '{print $1}' | head -n1) rm /tmp/user.sh"
+
+- name: Deleting user.sh 
+  become: yes
+  file:
+    name: "/tmp/user.sh"
+    state: absent
+
+- name: Getting auth token
+  shell: curl -X POST 'http://{{private_ingressgateway_ip}}/badger' -d "username="{{badger_admin_user}}"&password={{badger_admin_password}}"
+  register: curl
+  no_log: true
+
+- name: Copy admin auth token to desktop
+  copy: content="{{curl.stdout}}" dest=~/badger_token.txt
+
+- name: Get the deployment rollout status
+  shell: "kubectl get deployments -A | grep -i {{ release_name }} | awk -F' ' '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'"
+  register: task_result
+  until: task_result.rc == 0
+  retries: 6
+  delay: 30
+
+- name: Get deployed image name
+  shell: kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[0].image | split("/")[1]'
+  register: deployed_image
+
+- set_fact:
+   metadata_image: "{{ image_name }}:{{ image_tag }}"
+
+- name: Compare deployed image and metadata_image
+  fail:
+  when: deployed_image.stdout != metadata_image

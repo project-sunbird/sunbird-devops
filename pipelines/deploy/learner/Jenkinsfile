@@ -2,7 +2,12 @@
 node() {
     try {
         stage('checkout public repo') {
-            cleanWs()
+            folder = new File("$WORKSPACE/.git")
+            if (folder.exists())
+            {
+               println "Found .git folder. Clearing it.."
+               sh'git clean -fxd'
+            }
             checkout scm
         }
 
@@ -18,7 +23,8 @@ node() {
             archiveArtifacts 'metadata.json'
             currentBuild.description = "Image: ${values.image_tag}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
         }
-    }
+        summary()
+     }
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err

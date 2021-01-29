@@ -3,7 +3,7 @@
 env: 
 proto: 
 domain_name: 
-ekstep_domain_name:
+ekstep_domain_name: # https://qa.ekstep.in if you're using dial service
 
 #bootstrap
 ssh_public_key_deployer:  
@@ -11,17 +11,48 @@ bootstrap_user:
 bootstrap_key_path:
 
 azure_public_container: 
-azure_account_name: 
 environment_id:    # Should be a number of 8 digit like 1000000. This should be unique per environment
-neo4j_zip: neo4j-enterprise-3.3.9-unix.tar.gz       # neo4j enterprise version.zip present in the artifacts folder
-neo4j_home: "{{learner_user_home}}/{{neo4j_dir}}/neo4j-enterprise-3.3.9"   # Change this path to the version of neo4j you will be using
-neo4j_enterprise: "true"
+neo4j_zip: neo4j-community-3.3.9-unix.tar.gz       # neo4j enterprise version.zip present in the artifacts folder
+neo4j_home: "{{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"   # Change this path to the version of neo4j you will be using
+neo4j_enterprise: false
 
-###########  Jenkinspipeline upload artifact ############
+###########  Storage Account variables ############
 artifacts_container: 
 
-## backup
-backup_azure_storage_account_name:
-backup_azure_storage_access_key: "{{lp_vault_azure_storage_secret}}"
+# public storage account with content conatiner.
+sunbird_public_storage_account_name: 
 
-swarm_manager_lb_ip:       # Enter the LB IP in case you are using a swarm manager load balancer OR Swarm manager's IP if not using a load balancer
+# used to store backups for or application DB's
+sunbird_management_storage_account_name: 
+
+# This account need to be private to store jenkins build artifacts which will be used commonly between environments.
+sunbird_artifact_storage_account_name: 
+
+##########################################################
+
+# Enable following if you're using kubernetes
+
+# Ip of nginx private ingress
+# Give Ip Address with which the private ingress should be created
+# For safety reason, give ip address from bottom range of cidr
+# for ex: if cidr is 11.2.1.0/24
+private_ingressgateway_ip: 11.2.1.220
+#
+learner_service_base_url: "http://{{private_ingressgateway_ip}}/learner"  ## lp samza jobs
+cert_service_base_url: "http://{{private_ingressgateway_ip}}/cert"    ### lp samza jobs
+kp_content_service_base_url: "http://{{private_ingressgateway_ip}}/content"
+cert_reg_service_base_url: "http://{{private_ingressgateway_ip}}/certreg"
+kp_search_service_base_url: "http://{{private_ingressgateway_ip}}/search"
+kp_print_service_base_url: "http://{{private_ingressgateway_ip}}/print"
+lms_service_base_url: "http://{{private_ingressgateway_ip}}/lms"
+
+
+kubeconfig_path: /var/lib/jenkins/secrets/k8s.yaml
+dockerhub: 
+docker_registry:      #### docker hub user
+sunbird_private_storage_account_name: 
+
+learningservice_ip:    ### learning vm or load balancer ip
+dialservice_ip:        ## dial service vm or loadbalancer ip
+dial_service_search_url: "http://{{dialservice_ip}}:9001/dialcode/v3/search"
+dial_service_generate_url: "http://{{dialservice_ip}}:9001/dialcode/v3/generate"

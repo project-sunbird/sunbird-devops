@@ -3,23 +3,17 @@
     <#if section = "title">
     ${message.summary}
     <#elseif section = "form">
-    <div class="ui raised shadow container segment fullpage-background-image">
-        <div class="ui three column grid stackable">
-            <div class="ui column tablet only computer only"></div>
-            <div class="ui column height-fix">
+    <div class="fullpage-background-image">
+        <div class="container-wrapper">
+            <div>
                 <div id="kc-info-message">
                     <p class="instruction">${message.summary}</p>
                     <#if skipLink??>
                     <#else>
-                        <#if pageRedirectUri??>
-                            <p><a href="${pageRedirectUri}">${msg("backToApplication")}</a></p>
-                        <#elseif client.baseUrl??>
-                            <p><a href="${client.baseUrl}">${msg("backToApplication")}</a></p>
-                        </#if>
+                    <p><a onclick="javascript:backToApplication()" class="sb-btn sb-btn-normal sb-btn-outline-primary mt-16 line-height-normal">${msg("backToApplication")}</a></p>
                     </#if>
                 </div>
             </div>
-            <div class="ui column tablet only computer only"></div>
         </div>
     </div>
     </#if>

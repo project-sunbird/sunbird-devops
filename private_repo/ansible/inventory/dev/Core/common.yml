@@ -4,34 +4,118 @@ env:                             #Name of the environment, e.g. dev, staging or 
 env_name: "{{ env }}"
 domain_name:                  #Domain on which the portal will be accessed. e.g. staging.{implementation-name}.org
 proto:                          # Protocol
-bootstrap_user: 
-bootstrap_key_path: 
-ssh_public_key_deployer: ""             # SSH Public key for deployer user, with which ansible will execute tasks
 
-ekstep_s3_env:                        # dev or qa or prod of ekstep for plugins
-learningservice_ip:                     # Load balancer IP for learning server
-searchservice_ip:                       # search service Load balancer IP
-analyticsapi_ip:                        # Analytics Service Load Balancer IP
-keycloak_url: ""                        # Keycloak Load balancer IP; eg http://10.10.10.10
+# External service ips
+# should be accessible from core containers
+learningservice_ip:                     # Load balancer IP for learning server or vm ip if its a single vm for learning service
+dialservice_ip:                         # dial service vm ip or Load balancer ip
+keycloak_url: ""                        # Keycloak Load balancer IP; eg http://10.10.10.10 
+# Ip Address of the keycloak without http
+# eg: 11.2.1.10
+keycloak_lb_ip: 
+
+# Sunbird Application name and framework name
 sunbird_default_channel:                # Organization channel name which portal will connect to
 sunbird_app_name:                       # By default app name will be sunbird
-azure_account_name:                     # Storage account name for blobs
-sunbird_content_azure_storage_container: # Conatainer store assets/public
-sunbird_swarm_manager_lb_ip:             # Swarm manager load balancer private IP. If you don't have a load swarm manager load balancer, you can use swarm manager private ip.
 
-# Blob where data analytics pushing content
-# Check same variable in DP common.yml
-dp_azure_account_name:
+# Cloud Account details
+
+sunbird_azure_public_storage_account_name:   # public storage account with content conatiner.
+sunbird_content_azure_storage_container: # where cntent is stored, it has to be created in pubic storage account, its valuse should be same as azure_public_container variable in kp/common.yml
+sunbird_private_storage_account_name:        ## Used to store the private contents of the storage account.
+sunbird_azure_private_storage_account_name:       
+sunbird_azure_management_storage_account_name:   # used to store backups for or application DB's
+sunbird_azure_artifact_storage_account_name:     # This account need to be private to store jenkins build artifacts which will be used commonly between environments.
+artifacts_container: ''                 # Azure blob container name to save built artifacts, default it can be artifacts
+
+#### Content-service ####
+environment_id: # value as to be as Knowledgeplatfom/common.yml environment_id
+graph_passport_key: "{{core_vault_graph_passport_key}}"   
+
+# Kubernetes variables
+namespace: "{{ env }}"
+imagepullsecrets: "{{ env }}registrysecret"
+# this willl be prepended to your image
+# for example, if you give
+# dockerhub: sunbird
+# kubernetes will try to download : sunbird/player:<tag>
+# so give proper value if you're using private registry
+dockerhub: 
+
+kubeconfig_path: "/var/lib/jenkins/secrets/k8s.yaml"
+kibana_oauth_authenticated_email_domains_kube: '["domain.com","domain1.com"]'
+sunbird_portal_player_cdn_enabled: false
+# Ip of nginx private ingress
+# Give Ip Address with which the private ingress should be created
+# For safety reason, give ip address from bottom range of cidr
+# for ex: if cidr is 11.2.1.0/24   
+private_ingressgateway_ip: 11.2.1.220    
+storage_class_name: ""
+private_ingress_custom_annotations: true
+
+default_org_hash_id: ""
+dataexhaust_super_admin_channel: sunbird
+
+postgres:
+  db_url: "{{ groups['postgres'][0] }}"
+  db_username: analytics
+  db_name: analytics
+  db_password: "{{core_vault_dp_pgdb_password}}"
+  db_table_name: "{{env}}_consumer_channel_mapping"
+  db_port: 5432
+  db_admin_user: postgres
+  db_admin_password: "{{core_vault_postgres_password}}"
 
 
-artifacts_container: ''                 # Azure blob container name to save built artifacts
+sunbird_google_captcha_site_key: 
+google_captcha_private_key: 
 
+# Admin util keys
+adminutil__access_keyprefix: "accessv1_key"
+adminutil__access_keystart: 1
+adminutil__access_keycount: 10
+
+
+######################### Optional ###################
 ## Mail config
 mail_server_host:
 mail_server_username: ""
 alerts_mailing_list : ""                # Comma separated mail list for Alerts; eg: user1@mail.com, user2@mail.com
 sunbird_mail_server_from_email:         # Email ID that should be as from address in mails
 sunbird_env_logo_url:                    # put public url for logo, this logo url will be used in email sending.
+
+# Certs related vars
+certs_badge_name: ""                 # Course Completion Certificate Name e.g value is "Course Completion Certificate"
+certs_badge_description: ""           # Descripton of course Completion e.g value is "Successfully completed course on Sunbird"
+certs_badge_image: ""                # Image of the certs badge e.g value is "sunbird"
+certs_badge_root_org_id: ""          # Root org ID for which the certs will be created e.g value is "0124229474659643111"
+certs_badge_issuer_name: ""          # The issuer of the certs name e.g value is "Government of karnataka"
+certs_badge_issuer_url:  ""          # Issuer organisation official URL e.g value is "https://testdomain.in"
+cert_service_cloud_storage_type: azure 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Not Manadatory Variables
 
 # Kibana oauth authorized domains; for accessing kibana dashboard
 kibana_oauth_authenticated_email_domains:
@@ -45,11 +129,12 @@ sunbird_msg_sender:                     # SMS from Address; exact 6 char
 sunbird_android_app_url: ""             # Playstore url of android app; default is subird.org
 
 # NOT MANDATORY VARS
+sunbird_public_storage_account_name: "{{sunbird_azure_public_storage_account_name}}"
 keycloak_api_management_user_email: "admin@sunbird.org"
 jenkins_url:                            # Jenkins urls to be accessed from slaves; eg "http://10.20.0.12:8080/jenkins" 
 sunbird_installation_email: "admin@sunbird.org" # fallback email for badger badge creation if the user doesn't have email address.
-upstream_url: "{{azure_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}" # Proxy url to get /assets/public
-
+upstream_url: "{{sunbird_azure_public_storage_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}" # Proxy url to get /assets/public
+ekstep_s3_env: ""                       # This variable is not used and leave the value as empty
 
 ############## Release-1.15.0 & 2.0.0 ##################
 #sunbird_cassandra_replication_strategy: '{"class":"NetworkTopologyStrategy","datacenter1":2}' # If using cluster give this value and choose datacenter and replication factor as required '{"class":"NetworkTopologyStrategy","datacenter1":2}' if not using cluster, leave this variable commented
@@ -60,9 +145,11 @@ cert_service_cloud_storage_type: azure                # can be updated if we are
 
 ### Modified for plugins - Release - 2.4.0 ###
 sunbird_ekstep_proxy_base_url: "{{proto}}://{{domain_name}}"
-upstream_url: "{{azure_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}" # Proxy url to get /assets/public
 plugin_upstream_url: "{{upstream_url}}"
-azure_plugin_storage_account_name: "{{azure_account_name}}"
-azure_plugin_storage_account_key: "{{core_vault_sunbird_azure_storage_key}}"
+azure_plugin_storage_account_name: "{{sunbird_azure_public_storage_account_name}}"
+azure_plugin_storage_account_key: "{{sunbird_public_storage_account_key}}"
 plugin_container_name: "{{sunbird_content_azure_storage_container}}"
 
+#freshDesk dummy variable
+# freshDesk_url: ""                   # Enble only if you have proper url
+freshDesk_token: ""

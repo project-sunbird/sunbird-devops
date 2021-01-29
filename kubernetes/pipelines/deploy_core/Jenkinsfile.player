@@ -1,0 +1,58 @@
+@Library('deploy-conf') _
+node() {
+    try {
+        ansiColor('xterm') {
+            String ANSI_GREEN = "\u001B[32m"
+            String ANSI_NORMAL = "\u001B[0m"
+            String ANSI_BOLD = "\u001B[1m"
+            String ANSI_RED = "\u001B[31m"
+            String ANSI_YELLOW = "\u001B[33m"
+
+            stage('checkout public repo') {
+                cleanWs()
+                checkout scm
+            }
+            stage('deploy') {
+                values = docker_params()
+                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim().toLowerCase()
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                cdn_file_exists = new File("$currentWs/index_cdn.ejs")
+                if (cdn_file_exists.exists()) {
+                   if (params.upload_cdn_assets == "true") {
+                        sh """mkdir cdn_assets"""
+                        sh """unzip cdn_assets.zip -d cdn_assets"""
+                        ansiblePlaybook = "$currentWs/ansible/assets-upload.yml"
+                        ansibleExtraArgs = "--extra-vars assets=$currentWs/cdn_assets/cdn_assets --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                        values.put('currentWs', currentWs)
+                        values.put('ansiblePlaybook', ansiblePlaybook)
+                        values.put('ansibleExtraArgs', ansibleExtraArgs)
+                        ansible_playbook_run(values)
+                     }   
+                  println(ANSI_BOLD + ANSI_GREEN + "Found index_cdn.ejs file. Deploying player with CDN.." + ANSI_NORMAL)
+                  ansibleExtraArgs = "--extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag image_name=$values.image_name cdn_file_path=$currentWs/index_cdn.ejs chart_path=${currentWs}/kubernetes/helm_charts/core/$jobName release_name=$jobName role_name=${params.role_name} sunbird_portal_player_cdn_enabled=true\" --vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                }
+                else {
+                    println(ANSI_BOLD + ANSI_YELLOW + "Could not find index_cdn.ejs file. Deploying player without CDN.." + ANSI_NORMAL)
+                    ansibleExtraArgs = "--extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag image_name=$values.image_name chart_path=${currentWs}/kubernetes/helm_charts/core/$jobName release_name=$jobName role_name=${params.role_name}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                }
+                ansiblePlaybook = "$currentWs/kubernetes/ansible/deploy_core_service.yml"
+                values.put('currentWs', currentWs)
+                values.put('ansiblePlaybook', ansiblePlaybook)
+                values.put('ansibleExtraArgs', ansibleExtraArgs)
+                ansible_playbook_run(values)
+                currentBuild.result = 'SUCCESS'
+                archiveArtifacts 'metadata.json'
+                currentBuild.description = "Image: ${values.image_tag}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
+            }
+        }
+         summary()
+     }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
+    }
+}

@@ -1,0 +1,35 @@
+### Default variable file for cert-registry-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+env:
+  javaoptions: {{certregistry_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{certregistry_replicacount|default(1)}}
+repository: {{certregistry_repository|default('cert_registry_service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{certregistry_cpu_req|default('100m')}}
+    memory: {{certregistry_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{certregistry_cpu_limit|default('1')}}
+    memory: {{certregistry_mem_limit|default('1024Mi')}}
+network:
+  port: 9013
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ certregistry_maxsurge|default('25%') }}
+  maxunavailable: {{ certregistry_maxunavailable|default('25%') }}
+
+{{ cert_liveness_readiness | to_nice_yaml }}
+
+autoscaling:
+  enabled: {{ certregistry_autoscaling_enabled | default('false') }}
+  minReplicas: {{ certregistry_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ certregistry_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ certregistry_autoscaling_targetCPUUtilizationPercentage|default(80) }}
+  targetMemoryUtilizationPercentage: {{ certregistry_autoscaling_targetMemoryUtilizationPercentage|default('') }}

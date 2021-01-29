@@ -9,7 +9,7 @@ wget https://codeload.github.com/openresty/luajit2/tar.gz/v2.1-20190626 -O luaji
 wget https://codeload.github.com/openresty/lua-nginx-module/tar.gz/v0.10.15 -O ngx_lua.tar.gz
 
 # Creating deps directory
-mkdir nginx_devel_kit luajit nginx_lua
+mkdir -p nginx_devel_kit luajit nginx_lua
 tar --strip-components=1 -xf ngx_devel_kit_0_3_0.tar.gz -C nginx_devel_kit
 tar --strip-components=1 -xf luajit_2_1.tar.gz -C luajit
 tar --strip-components=1 -xf ngx_lua.tar.gz -C nginx_lua

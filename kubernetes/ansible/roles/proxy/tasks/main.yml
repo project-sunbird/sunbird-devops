@@ -1,0 +1,49 @@
+---
+# Proxy config
+- name: Deleting domain ssl if present
+  shell: "kubectl get secrets ingress-cert -n istio-system && kubectl delete secrets ingress-cert -n istio-system"
+  ignore_errors: true
+
+- name: Creating domain sssl
+  no_log: true
+  shell: 
+    cmd: |
+      cat <<EOF | kubectl apply -f -
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ingress-cert
+        namespace: istio-system
+      type: kubernetes.io/tls
+      data:
+        ca.crt: ""
+        tls.crt: "{{ core_vault_proxy_site_crt | b64encode }}"
+        tls.key: "{{ core_vault_proxy_site_key | b64encode }}"
+      EOF
+
+- name: Creating domain sssl
+  no_log: true
+  shell:
+    cmd: |
+      cat <<EOF | kubectl apply -f -
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: ingress-merge-cert
+        namespace: istio-system
+      type: kubernetes.io/tls
+      data:
+        ca.crt: ""
+        tls.crt: "{{ proxymerge_site_crt | b64encode }}"
+        tls.key: "{{ proxymerge_site_key | b64encode }}"
+      EOF
+  when:  merge_proxy_server_name is not none
+
+- name: rename template
+  template:
+    src: "{{ chart_path }}/values.j2"
+    dest: "{{ chart_path }}/values.yaml"
+
+- name: helm install
+  shell: helm upgrade --install --atomic --timeout 10m --force {{ release_name }} {{ chart_path }} -n {{namespace}}
+

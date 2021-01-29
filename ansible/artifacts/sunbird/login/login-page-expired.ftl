@@ -3,16 +3,16 @@
     <#if section = "title">
         ${msg("pageExpiredTitle")}
     <#elseif section = "form">
-     <div class="ui raised shadow container segment fullpage-background-image">
-        <div class="ui three column grid stackable">
-            <div class="ui column tablet only computer only"></div>
-            <div class="ui column mt-127 height-fix">
-			<p id="instruction1" class="instruction">
-				${msg("pageExpiredMsg1")} <a id="loginRestartLink" href="${url.loginRestartFlowUrl}">${msg("doClickHere")}</a>.
-				${msg("pageExpiredMsg2")} <a id="loginContinueLink" href="${url.loginAction}">${msg("doClickHere")}</a>.
-			</p>
+     <div class="fullpage-background-image">
+        <div class="container-wrapper">
+			<div id="instruction1" class="instruction textCenter">
+            <p>${msg("pageExpiredMsg1")} <br>
+                <a id="loginRestartLink" class="sb-btn sb-btn-normal sb-btn-outline-primary mt-16 line-height-normal" href="${url.loginRestartFlowUrl}">${msg("doClickHere")}</a></p>
+				<p class="mt-16">
+                ${msg("pageExpiredMsg2")} <br>
+                <a id="loginContinueLink" class="sb-btn sb-btn-normal sb-btn-outline-primary mt-16 line-height-normal" href="${url.loginAction}">${msg("doClickHere")}</a>
+                </p>
 			</div>
-			<div class="ui column tablet only computer only"></div>
 		</div>
     </#if>
 </@layout.registrationLayout>

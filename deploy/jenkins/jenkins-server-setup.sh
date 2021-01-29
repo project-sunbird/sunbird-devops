@@ -15,7 +15,7 @@ echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
 apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
 apt-get update
-apt-get install -y jenkins=2.190.2
+apt-get install -y jenkins=2.263.1
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
@@ -46,27 +46,27 @@ apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io
 
 echo -e "\n\e[0;32m${bold}Installating node and npm modules"
-wget https://nodejs.org/download/release/v6.1.0/node-v6.1.0-linux-x64.tar.gz
-tar -xf node-v6.1.0-linux-x64.tar.gz
-rm -rf /usr/local/lib/node-v6.1.0-linux-x64
+wget https://nodejs.org/download/release/v6.17.1/node-v6.17.1-linux-x64.tar.gz
+tar -xf node-v6.17.1-linux-x64.tar.gz
+rm -rf /usr/local/lib/node-v6.17.1-linux-x64
 rm -rf /usr/bin/node
 rm -rf /usr/bin/npm
 rm -rf /usr/bin/grunt
 rm -rf /usr/bin/bower
 rm -rf /usr/bin/gulp
-mv node-v6.1.0-linux-x64 /usr/local/lib/
-ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/node /usr/bin/node
-ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/npm /usr/bin/npm
+mv node-v6.17.1-linux-x64 /usr/local/lib/
+ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/node /usr/bin/node
+ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/npm /usr/bin/npm
 npm install -g grunt-cli@1.2.0
-ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/grunt /usr/bin/grunt
+ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/grunt /usr/bin/grunt
 npm install -g bower@1.8.0
-ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/bower /usr/bin/bower
+ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/bower /usr/bin/bower
 npm install -g gulp@3.9.1
-ln -s /usr/local/lib/node-v6.1.0-linux-x64/bin/gulp /usr/bin/gulp
-rm -rf node-v6.1.0-linux-x64*
+ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/gulp /usr/bin/gulp
+rm -rf node-v6.17.1-linux-x64*
 
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
-pip install ansible==2.5.0
+pip install ansible==2.7.18
 
 echo -e "\n\e[0;32m${bold}Installating azure cli${normal}"
 apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
@@ -109,6 +109,40 @@ su jenkins bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.
 
 echo -e "\n\e[0;32m${bold}Installing jmespath${normal}"
 pip install jmespath
+
+#### Kubernetes Tools ####
+
+# Install Helm version 3.0.2
+echo -e "\n\e[0;32m${bold}Installating Helm${normal}"
+wget https://get.helm.sh/helm-v3.0.2-linux-386.tar.gz
+tar -xzvf helm-v3.0.2-linux-386.tar.gz
+rm -rf /usr/local/bin/helm
+cp linux-386/helm /usr/local/bin/helm
+rm -rf helm-v* linux-amd*
+
+# Install kubectl
+echo -e "\n\e[0;32m${bold}Installating kubectl${normal}"
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+touch /etc/apt/sources.list.d/kubernetes.list
+echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+apt-get update
+apt-get install -y kubectl
+
+#Install yarn 
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+apt update && apt install yarn
+
+wget https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz
+tar -xf openjdk-11+28_linux-x64_bin.tar.gz
+mv jdk-11 java-11-openjdk-amd64
+cp -r java-11-openjdk-amd64 /usr/lib/jvm/
+rm -rf java-11-openjdk-amd64 openjdk-11+28_linux-x64_bin.tar.gz
+
+wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
+tar -xf apache-maven-3.6.3-bin.tar.gz
+mv apache-maven-3.6.3/bin/mvn /opt/apache-maven-3.6.3/bin/mvn.3.6
+rm -rf apache-maven-3.6.3-bin.tar.gz
 
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove

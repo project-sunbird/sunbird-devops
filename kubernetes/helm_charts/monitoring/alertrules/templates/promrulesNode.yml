@@ -1,0 +1,118 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.prometheus_rule_selector_app }}
+    release: {{ .Values.prometheus_rule_selector_release }}
+  name: {{ .Values.fullnameOverride }}-node-rules
+  namespace: {{ .Values.namespace }}
+spec:
+  groups:
+  - name: alertrules.nodes
+    rules:
+    - alert: high_cpu_usage_on_node_warning
+      expr: (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode!="idle"}[5m])) * 100) >= {{ .Values.node_cpu_usage_percentage_threshold_Warning }} and (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode!="idle"}[5m])) * 100) < {{ .Values.node_cpu_usage_percentage_threshold_Critical }}
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        message: {{`'{{ $labels.instance }} is using a LOT of CPU. CPU usage is {{ humanize $value}}%.'`}}
+        summary: {{`'HIGH CPU USAGE warning ON {{ $labels.instance }}'`}}
+    - alert: high_cpu_usage_on_node_critical
+      expr: (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode!="idle"}[5m])) * 100) >= {{ .Values.node_cpu_usage_percentage_threshold_Critical }} and (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode!="idle"}[5m])) * 100) < {{ .Values.node_cpu_usage_percentage_threshold_Fatal }}
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        message: {{`'{{ $labels.instance }} is using a LOT of CPU. CPU usage is {{ humanize $value}}%.'`}}
+        summary: {{`'HIGH CPU USAGE warning ON {{ $labels.instance }}'`}}
+    - alert: high_cpu_usage_on_node_fatal
+      expr: (avg by (instance) (irate(node_cpu_seconds_total{job="vm-node-exporter",mode!="idle"}[5m])) * 100) >= {{ .Values.node_cpu_usage_percentage_threshold_Fatal }}
+      for: 1m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`'{{ $labels.instance }} is using a LOT of CPU. CPU usage is {{ humanize $value}}%.'`}}
+        summary: {{`'HIGH CPU USAGE warning ON {{ $labels.instance }}'`}}
+    - alert: high_memory_usage_on_node_warning
+      expr: sum by(nodename) ((((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) >= {{ .Values.node_memory_usage_percentage_threshold_Warning }} and (((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) < {{ .Values.node_memory_usage_percentage_threshold_Critical }} )
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        message: {{`'{{ $labels.nodename }} ({{ $labels.host }}) is using a LOT of MEMORY. MEMORY usage is over {{ humanize $value}}.'`}}
+        summary: {{`'HIGH MEMORY USAGE warning TASK ON {{ $labels.nodename }}'`}}
+    - alert: high_memory_usage_on_node_critical
+      expr: sum by(nodename) ((((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) >= {{ .Values.node_memory_usage_percentage_threshold_Critical }} and (((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) < {{ .Values.node_memory_usage_percentage_threshold_Fatal }} )
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        message: {{`'{{ $labels.nodename }} ({{ $labels.host }}) is using a LOT of MEMORY. MEMORY usage is over {{ humanize $value}}.'`}}
+        summary: {{`'HIGH MEMORY USAGE warning TASK ON {{ $labels.nodename }}'`}}
+    - alert: high_memory_usage_on_node_fatal
+      expr: sum by(nodename) (((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * on(instance) group_left(nodename) node_uname_info * 100) >= {{ .Values.node_memory_usage_percentage_threshold_Fatal }}
+      for: 1m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`'{{ $labels.nodename }} ({{ $labels.host }}) is using a LOT of MEMORY. MEMORY usage is over {{ humanize $value}}.'`}}
+        summary: {{`'HIGH MEMORY USAGE warning TASK ON {{ $labels.nodename }}'`}}
+    - alert: high_load_on_node_warning
+      expr: sum by(instance) ((node_load1{job="vm-node-exporter"} / count by (cluster, job, instance)(count by(cluster, job, instance, cpu)(node_cpu_seconds_total{job="vm-node-exporter"})) * 100) >= {{ .Values.node_load_avg_threshold_Warning }} and (node_load1{job="vm-node-exporter"} / count by (cluster, job, instance)(count by(cluster, job, instance, cpu)(node_cpu_seconds_total{job="vm-node-exporter"})) * 100) < {{ .Values.node_load_avg_threshold_Critical }})
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        message: {{`'{{ $labels.nodename }} ({{ $labels.host }}) has a high load average. Load average is {{ $value }}%.'`}}
+        summary: {{`'HIGH LOAD AVERAGE warning ON {{ $labels.nodename }}'`}}
+    - alert: high_load_on_node_critical
+      expr: sum by(instance) ((node_load1{job="vm-node-exporter"} / count by (cluster, job, instance)(count by(cluster, job, instance, cpu)(node_cpu_seconds_total{job="vm-node-exporter"})) * 100) >= {{ .Values.node_load_avg_threshold_Critical }} and (node_load1{job="vm-node-exporter"} / count by (cluster, job, instance)(count by(cluster, job, instance, cpu)(node_cpu_seconds_total{job="vm-node-exporter"})) * 100) < {{ .Values.node_load_avg_threshold_Fatal }})
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        message: {{`'{{ $labels.nodename }} ({{ $labels.host }}) has a high load average. Load average is {{ $value }}%.'`}}
+        summary: {{`'HIGH LOAD AVERAGE warning ON {{ $labels.nodename }}'`}}
+    - alert: high_load_on_node_fatal
+      expr: sum by(instance) ((node_load1{job="vm-node-exporter"} / count by (cluster, job, instance)(count by(cluster, job, instance, cpu)(node_cpu_seconds_total{job="vm-node-exporter"})) * 100) >= {{ .Values.node_load_avg_threshold_Fatal }})
+      for: 5m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`'{{ $labels.nodename }} ({{ $labels.host }}) has a high load average. Load average is {{ $value }}%.'`}}
+        summary: {{`'HIGH LOAD AVERAGE warning ON {{ $labels.nodename }}'`}}
+    - alert: node_exporter_down_critical
+      expr: up == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        message: {{`The node exporter '{{ $labels.job }}' is down.`}}
+        summary: {{`'NODE EXPORTER SERVICE critical: NODE ''{{ $labels.host }}'''`}}
+    - alert: node_running_out_of_disk_space_warning
+      expr: sum by(nodename) (((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) >= {{ .Values.node_disk_usage_percentage_threshold_Warning }} and ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) < {{ .Values.node_disk_usage_percentage_threshold_Critical }} )
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        message: {{`'Disk usage is {{ humanize $value }}%'`}}
+        summary: {{`'LOW DISK SPACE WARING: NODE {{ $labels.nodename }}'`}}
+    - alert: node_running_out_of_disk_space_warning
+      expr: sum by(nodename) (((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) >= {{ .Values.node_disk_usage_percentage_threshold_Critical }} and ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) < {{ .Values.node_disk_usage_percentage_threshold_Fatal }} )
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        message: {{`'Disk usage is {{ humanize $value }}%'`}}
+        summary: {{`'LOW DISK SPACE WARING: NODE {{ $labels.nodename }}'`}}
+    - alert: node_running_out_of_disk_space_fatal
+      expr: sum by(nodename) ((node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) * 100 / node_filesystem_size_bytes{mountpoint="/"} * on(instance) group_left(nodename) node_uname_info) >= {{ .Values.node_disk_usage_percentage_threshold_Fatal }}
+      for: 1m
+      labels:
+        severity: fatal
+      annotations:
+        message: {{`'Disk usage is {{ humanize $value }}%'`}}
+        summary: {{`'LOW DISK SPACE WARING: NODE {{ $labels.nodename }}'`}}

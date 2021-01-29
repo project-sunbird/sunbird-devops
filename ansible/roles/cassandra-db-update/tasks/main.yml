@@ -1,0 +1,28 @@
+- set_fact: timestamp="cqlsh_{{ansible_date_time.epoch}}"
+
+- name: Make sure cassandra is up and listening
+  wait_for:
+    port: 9042
+    timeout: 180
+    sleep: 10
+
+- name: Copy cql script
+  become: yes
+  template:
+    src: "{{cql_file}}"
+    dest: "/tmp/{{cql_file}}"
+    mode: 0755
+  
+- name: run cql 
+  become: yes
+  shell: 'cqlsh -f /tmp/{{cql_file}}'
+  async: 3600
+  poll: 10
+  ignore_errors: true
+
+- name: remove cql file
+  become: yes
+  file:
+    path: "/tmp/{{cql_file}}"
+    state: absent
+

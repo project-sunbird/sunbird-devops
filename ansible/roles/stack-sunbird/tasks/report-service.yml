@@ -1,0 +1,9 @@
+---
+- name: Remove report service
+  shell: "docker service rm report-service"
+  ignore_errors: yes
+
+- name: Deploy report service
+  shell: "docker service create --replicas {{ report_replicas }} -p 3030:3030  --name report-service --hostname report-service --reserve-memory {{ report_reservation_memory }} --reserve-cpu {{ report_reservation_cpu }} --limit-memory {{ report_limit_memory }} --limit-cpu {{ report_limit_cpu }}  --network application_default --env-file /home/deployer/env/sunbird_report-service.env  --with-registry-auth {{hub_org}}/{{image_name}}:{{image_tag}}"
+  args:
+    chdir: /home/deployer/stack

@@ -1,0 +1,37 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.prometheus_rule_selector_app }}
+    release: {{ .Values.prometheus_rule_selector_release }}
+  name: {{ .Values.fullnameOverride }}-appelasticsearch-rules
+  namespace: {{ .Values.namespace }}
+spec:
+  groups:
+  - name: alertrules.appes
+    rules:
+    - record: elasticsearch_filesystem_data_used_percent
+      expr: 100 * (elasticsearch_filesystem_data_size_bytes{job="elasticsearch-exporter"} - elasticsearch_filesystem_data_free_bytes{job="elasticsearch-exporter"})
+        / elasticsearch_filesystem_data_size_bytes{job="elasticsearch-exporter"}
+    - record: elasticsearch_filesystem_data_free_percent
+      expr: 100 - elasticsearch_filesystem_data_used_percent
+
+    - alert: elasticsearch_too_few_nodes_running_critical
+      annotations:
+        message: elasticsearch_cluster_health_number_of_nodes{job="elasticsearch-exporter"} < {{ .Values.app_es_server_count }}
+        summary: {{`"There are only {{$value}}`}} < {{ .Values.app_es_server_count }} {{` ElasticSearch nodes running"`}}
+      expr: elasticsearch_cluster_health_number_of_nodes{job="elasticsearch-exporter"} < {{ .Values.app_es_server_count }}
+      for: 5m
+      labels:
+        severity: critical
+    - alert: ElasticsearchHeapTooHigh
+      expr: elasticsearch_jvm_memory_used_bytes{job="elasticsearch-exporter", area="heap"} / elasticsearch_jvm_memory_max_bytes{job="elasticsearch-exporter", area="heap"}
+        > 0.9
+      for: 15m
+      labels:
+        severity: critical
+      annotations:
+        description: The heap usage is over 90% for 15m
+        summary: {{`"ElasticSearch node {{$labels.node}} heap usage is high"`}}

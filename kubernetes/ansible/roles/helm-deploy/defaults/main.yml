@@ -1,0 +1,134 @@
+---
+hub_org: sunbird
+nginx_per_ip_connection_limit: 400
+merge_proxy_server_name:
+merge_domain_status: false
+proxy_prometheus: false
+
+proxy_secrets:
+  - name: prom_admin_creds
+    value: "{{proxy_prometheus_admin_creds}}"
+  - name: site.key
+    value: "{{proxy_site_key}}"
+  - name: site.crt
+    value: "{{proxy_site_crt}}"
+
+merge_proxy_secrets:
+  - name: sitemerge.key
+    value: "{{proxymerge_site_key}}"
+  - name: sitemerge.crt
+    value: "{{proxymerge_site_crt}}"
+
+# These values should be overridden in inventory
+proxy_site_key:
+proxy_site_crt:
+proxymerge_site_key:
+proxymerge_site_crt:
+proxy_prometheus_admin_creds:
+prometheus_route_prefix: prometheus
+prometheus_alertmanager_route_prefix: alertmanager
+ekstep_s3_env: "{{sunbird_env}}"
+registry_url: "{{proto}}://{{proxy_server_name}}/registry"
+ep_es_host:
+proxy_custom_config:
+kibana_service: "{{swarm_dashboard}}:5601"
+
+upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
+plugin_upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
+sunbird_offline_azure_storage_account_url: "{{ sunbird_public_storage_account_name }}.blob.core.windows.net/{{ offline_installer_container_name }}"
+adminutils_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 4000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 4000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+
+api_managerecho_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /hello
+      port: 9595
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /hello
+      port: 9595
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 10
+    failureThreshold: 5
+
+adminutil__device_keyprefix: "device_key"
+adminutil__access_keyprefix: "access_key"
+adminutil__desktop_keyprefix: "desktop_key"
+adminutil__portal_keyprefix: "portal_key"
+adminutil__device_keystart: 0
+adminutil__device_keycount: 0
+adminutil__access_keystart: 0
+adminutil__access_keycount: 0
+adminutil__desktop_keystart: 0
+adminutil__desktop_keycount: 0
+adminutil__portal_keystart: 0
+adminutil__portal_keycount: 0
+
+adminutil_refresh_token_public_key_prefix: "refresh_token_public_key"
+adminutil_access_token_validity: 43200  # 12 hours access token validity
+adminutil_refresh_token_offline_validity: 15552000 # 180 days offline token validity
+adminutil_refresh_token_log_older_than: 30  # Write a log when the token is older than 30 days
+adminutil_refresh_token_preload: "true"
+
+adminutil_keys_values:
+- key_to_register: device
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__device_keyprefix }}"
+    keystart: "{{ adminutil__device_keystart|int }}"
+    keycount: "{{ adminutil__device_keycount|int }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml
+- key_to_register: access
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__access_keyprefix }}"
+    keystart: "{{ adminutil__access_keystart|int }}"
+    keycount: "{{ adminutil__access_keycount|int }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml
+- key_to_register: desktop
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__desktop_keyprefix }}"
+    keystart: "{{ adminutil__desktop_keystart|int }}"
+    keycount: "{{ adminutil__desktop_keycount|int }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml
+- key_to_register: portal
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__portal_keyprefix }}"
+    keystart: "{{ adminutil__portal_keystart|int }}"
+    keycount: "{{ adminutil__portal_keycount|int }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml

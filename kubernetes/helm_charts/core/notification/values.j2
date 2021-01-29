@@ -1,0 +1,71 @@
+### Default variable file for enc-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{notification_replicacount|default(1)}}
+repository: {{notification_repository|default('notification_service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{notification_cpu_req|default('50m')}}
+    memory: {{notification_mem_req|default('50Mi')}}
+  limits:
+    cpu: {{notification_cpu_limit|default('1')}}
+    memory: {{notification_mem_limit|default('500Mi')}}
+network:
+  port: 9012
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ notification_maxsurge|default('25%') }}
+  maxunavailable: {{ notification_maxunavailable|default('25%') }}
+
+notification:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+
+notification:
+  readinessprobe:
+    enabled: true
+  livenessprobe:
+    enabled: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+autoscaling:
+  enabled: {{ notification_autoscaling_enabled | default('false') }}
+  minReplicas: {{ notification_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ notification_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ notification_autoscaling_targetCPUUtilizationPercentage|default(80) }}
+  targetMemoryUtilizationPercentage: {{ notification_autoscaling_targetMemoryUtilizationPercentage|default('') }}

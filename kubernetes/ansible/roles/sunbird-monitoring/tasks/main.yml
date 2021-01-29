@@ -1,0 +1,21 @@
+---
+# tasks file for sunbird-monitoring
+- name: tempating variables
+  template:
+    src: "{{ item }}.yaml"
+    dest: "/tmp/{{item}}.yaml"
+  with_items: "{{ monitoring_stack }}"
+
+- name: Creating sunbird monitoring stack
+  shell: "helm upgrade --install --atomic --timeout 10m {{ item }} {{chart_path}}/{{ item }} --namespace monitoring -f /tmp/{{ item }}.yaml"
+  with_items: "{{ monitoring_stack }}"
+
+- name: Creating sunbird monitoring grafana dashboards
+  shell: "helm upgrade --install grafana-dashboards {{chart_path}}/dashboards --namespace monitoring"
+  tags:
+    - dashboards
+
+- name: Install statsd-exporter
+  shell: "helm upgrade --install statsd-exporter {{chart_path}}/statsd-exporter --namespace {{ namespace }}"
+  tags:
+    - statsd-exporter

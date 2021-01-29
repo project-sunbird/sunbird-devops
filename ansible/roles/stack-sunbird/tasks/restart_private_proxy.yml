@@ -1,0 +1,16 @@
+---
+- name: check if private proxy is running
+  shell: docker service ps private_proxy 
+  ignore_errors: yes
+  register: private_proxy_status
+    
+- name: Getting the list of proxy services host details
+  shell: "getent ahostsv4 $(docker service ps private_proxy | grep Runn | awk '{print $4}') | cut -d \" \" -f1 | uniq"
+  register: proxy_details
+  when: private_proxy_status.failed != true
+    
+- name: reload proxy containers configurations
+  shell: "docker ps | grep proxy_proxy | awk '{print $1}' | xargs -I % docker exec % nginx -s reload;"
+  delegate_to: "{{item}}"
+  with_items: "{{(proxy_details.stdout_lines)|list}}"
+  when: proxy_details.changed

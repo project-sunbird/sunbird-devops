@@ -9,8 +9,13 @@ node() {
             String ANSI_YELLOW = "\u001B[33m"
 
             stage('checkout public repo') {
-                cleanWs()
-                checkout scm
+            folder = new File("$WORKSPACE/.git")
+            if (folder.exists())
+            {
+               println "Found .git folder. Clearing it.."
+               sh'git clean -fxd'
+            }
+            checkout scm
             }
             stage('deploy') {
                 values = docker_params()
@@ -33,7 +38,8 @@ node() {
                 currentBuild.description = "Image: ${values.image_tag}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
             }
         }
-    }
+        summary()
+     }
     catch (err) {
         currentBuild.result = "FAILURE"
         throw err

@@ -39,7 +39,7 @@
     seconds: 40
 
 - name: Getting the list of proxy services host details
-  shell: "getent hosts $(docker service ps proxy_proxy | grep Runn | awk '{print $4}') | cut -d \" \" -f1 | grep -v f "
+  shell: "getent ahostsv4 $(docker service ps proxy_proxy | grep Runn | awk '{print $4}') | cut -d \" \" -f1 | uniq"
   register: proxy_details
 
 - name: reload proxy containers configurations
@@ -47,3 +47,13 @@
   delegate_to: "{{item}}"
   with_items: "{{(proxy_details.stdout_lines)|list}}"
   register: proxy_out
+
+- name: Getting the list of kong services host details
+  shell: "getent ahostsv4 $(docker service ps api-manager_kong | grep Runn | awk '{print $4}') | cut -d \" \" -f1 | uniq"
+  register: kong_details
+
+- name: reload kong container configurations
+  shell: "docker ps | grep api-manager_kong | awk '{print $1}' | xargs -I % docker exec % kong reload;"
+  delegate_to: "{{item}}"
+  with_items: "{{(kong_details.stdout_lines)|list}}"
+  register: kong_out

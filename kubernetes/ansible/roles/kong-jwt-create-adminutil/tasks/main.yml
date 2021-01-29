@@ -1,0 +1,21 @@
+---
+- name: Load role to decrypt private keys, generate public key and encrypt private keys
+  include_role:
+    name: mount-keys
+    tasks_from: "{{outer_item.1}}"
+  vars:
+    private_key_path: "{{ outer_item.0.values_to_pass.basepath }}"
+    private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
+    private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
+    private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount if outer_item.0.values_to_pass.keycount > '0' else '1'  }}"
+    kong_consumer: "{{ outer_item.0.values_to_pass.kong_consumer }}"
+  with_subelements:
+    - "{{kong_mount_roles_values}}"
+    - role_to_run
+  loop_control:
+    loop_var: outer_item
+
+- name: Remove the keys directory post onboarding install
+  include_role:
+    name: mount-keys
+    tasks_from: remove-keys-from-inventory.yml

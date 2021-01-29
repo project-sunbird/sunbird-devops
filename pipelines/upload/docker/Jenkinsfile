@@ -2,7 +2,12 @@
 node(){
     try {
         stage('checkout public repo') {
-            cleanWs()
+            folder = new File("$WORKSPACE/.git")
+            if (folder.exists())
+            {
+               println "Found .git folder. Clearing it.."
+               sh'git clean -fxd'
+            }
             checkout scm
         }
 
@@ -19,6 +24,10 @@ node(){
                 currentBuild.result = 'SUCCESS'
             }
             archiveArtifacts 'metadata.json'
+            cdn_file_exists = new File("$currentWs/index_cdn.ejs")
+            if (cdn_file_exists.exists()) {
+                archiveArtifacts "index_cdn.ejs, cdn_assets.zip"
+            }    
             currentBuild.description = "Image: ${values.image_tag}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
         }
     }

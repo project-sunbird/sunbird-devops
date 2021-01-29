@@ -6,12 +6,14 @@ services:
     image: sunbird/logstash:6.2.3
     command: /usr/share/logstash/bin/logstash -f /etc/logstash/conf.d/logstash.conf
     deploy:
-      replicas: {{ logger_logstash_replicas }}
+      mode: global
       resources:
         reservations:
           memory: "{{ logger_logstash_reservation_memory }}"
+          cpus: "{{ logger_logstash_reservation_cpu }}"
         limits:
           memory: "{{ logger_logstash_limit_memory }}"
+          cpus: "{{ logger_logstash_limit_cpu }}"
     environment:
       - LOGSPOUT=ignore
       - LS_HEAP_SIZE={{ logger_logstash_heap_size }}
@@ -27,12 +29,14 @@ services:
     image: sunbird/logstash:2.4.1
     command: logstash -f /conf/logstash.conf
     deploy:
-      replicas: {{ logger_logstash_replicas }}
+      mode: gloabl
       resources:
         reservations:
           memory: "{{ logger_logstash_reservation_memory }}"
+          cpus: "{{ logger_logspout_reservation_cpu }}"
         limits:
           memory: "{{ logger_logstash_limit_memory }}"
+          cpus: "{{ logger_logspout_limit_cpu }}"
     environment:
       - LOGSPOUT=ignore
       - LS_HEAP_SIZE={{ logger_logstash_heap_size }}
@@ -54,8 +58,10 @@ services:
       resources:
         reservations:
           memory: "{{ logger_logspout_reservation_memory }}"
+          cpus: "{{ logger_logspout_reservation_cpu }}"
         limits:
           memory: "{{ logger_logspout_limit_memory }}"
+          cpus: "{{ logger_logspout_limit_cpu }}"
     environment:
       - SYSLOG_FORMAT=rfc3164
       - INACTIVITY_TIMEOUT=1m

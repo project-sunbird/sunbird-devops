@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingressgateway-private
+  namespace: istio-system
+  annotations:
+    istio: ingressgateway-private
+{{- if .Values.private_ingress_custom_annotations }}
+    {{ .Values.private_ingress_annotation.cloud_provider }}
+{{- end }}
+spec:
+  type: {{ .Values.private_istio_ingress_type }}
+  selector:
+    app: istio-ingressgateway-private
+  ports:
+    - name: ingress-internal
+      port: 80
+      targetPort: 80
+      nodePort: 31480

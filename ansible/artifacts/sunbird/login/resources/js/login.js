@@ -88,10 +88,65 @@ window.onload = function(){
 	}
 	var autoMerge = getValueFromSession('automerge');
 	if (autoMerge === '1') {
+		var isValuePresent = (new URLSearchParams(window.location.search)).get('automerge');
+		if (isValuePresent) {
+			sessionStorage.removeItem('session_url');
+			initialize();
+		}
 		decoratePage('autoMerge');
 		storeValueForMigration();
 	}
 };
+
+var validatePassword = function () {
+	setTimeout(() => {
+		var textInput = document.getElementById("password-new").value;
+		var text2Input = document.getElementById("password-confirm").value;
+		var charRegex = new RegExp("^(?=.{8,})");
+		var lwcsRegex = new RegExp("^(?=.*[a-z])");
+		var spaceRegex = new RegExp('^\\S*$');
+		var upcsRegex = new RegExp("^(?=.*[A-Z])");
+		var numRegex = new RegExp("^(?=.*[0-9])");
+		var specRegex = new RegExp('^[!"#$%&\'()*+,-./:;<=>?@[^_`{|}~\]]');
+		var error_msg = document.getElementById('passwd-error-msg');
+		var match_error_msg = document.getElementById('passwd-match-error-msg');
+		if (charRegex.test(textInput) && spaceRegex.test(textInput) && lwcsRegex.test(textInput) && upcsRegex.test(textInput) && numRegex.test(textInput) && !specRegex.test(textInput)) {
+			error_msg.className = error_msg.className.replace("passwderr","passwdchk");
+			if (textInput === text2Input) {
+				match_error_msg.className = match_error_msg.className.replace("show","hide");
+				document.getElementById("login").disabled = false;
+			}
+		} else {
+			error_msg.className = error_msg.className.replace("passwdchk","passwderr");
+		}
+		if (textInput !== text2Input) {
+			document.getElementById("login").disabled = true;
+		}
+	});
+}
+
+var matchPassword = function () {
+	setTimeout(() => {
+		var textInput = document.getElementById("password-new").value;
+		var text2Input = document.getElementById("password-confirm").value;
+		var charRegex = new RegExp("^(?=.{8,})");
+		var spaceRegex = new RegExp('^\\S*$');
+		var lwcsRegex = new RegExp("^(?=.*[a-z])");
+		var upcsRegex = new RegExp("^(?=.*[A-Z])");
+		var numRegex = new RegExp("^(?=.*[0-9])");
+		var specRegex = new RegExp('^[!"#$%&\'()*+,-./:;<=>?@[^_`{|}~\]]');
+		var match_error_msg = document.getElementById('passwd-match-error-msg');
+		if (textInput === text2Input) {
+			if (charRegex.test(text2Input) && spaceRegex.test(textInput) && lwcsRegex.test(text2Input) && upcsRegex.test(text2Input) && numRegex.test(text2Input) && !specRegex.test(text2Input)) {
+				match_error_msg.className = match_error_msg.className.replace("show","hide");
+				document.getElementById("login").disabled = false;
+			}
+		} else {
+			match_error_msg.className = match_error_msg.className.replace("hide","show");
+			document.getElementById("login").disabled = true;
+		}
+	});
+}
 
 var storeValueForMigration = function () {
 	// storing values in sessionStorage for future references
@@ -100,6 +155,8 @@ var storeValueForMigration = function () {
 	sessionStorage.setItem('identifierValue', getValueFromSession('identifierValue'));
 	sessionStorage.setItem('identifierType', getValueFromSession('identifierType'));
 	sessionStorage.setItem('userId', getValueFromSession('userId'));
+	sessionStorage.setItem('tncAccepted', getValueFromSession('tncAccepted'));
+	sessionStorage.setItem('tncVersion', getValueFromSession('tncVersion'));
 };
 var getValueFromSession = function (valueId) {
 	var value = (new URLSearchParams(window.location.search)).get(valueId);
@@ -180,7 +237,8 @@ var handlePasswordFailure = function () {
 	sessionStorage.setItem('passwordFailCount', passwordFailCount);
 	if (passwordFailCount >= 2) {
 		const url = '/sign-in/sso/auth?status=error' + '&identifierType=' + getValueFromSession('identifierType');
-		const query = '&userId=' + getValueFromSession('userId') + '&identifierValue=' + getValueFromSession('identifierValue');
+		let query = '&userId=' + getValueFromSession('userId') + '&identifierValue=' + getValueFromSession('identifierValue');
+		query = query + '&tncAccepted=' + getValueFromSession('tncAccepted') + '&tncVersion=' + getValueFromSession('tncVersion');
 		window.location.href = window.location.protocol + '//' + window.location.host + url + query;
 	}
 };
@@ -322,7 +380,7 @@ var forgetPassword = (redirectUrlPath) => {
 		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
-			if(client_id === 'android'){
+			if(client_id === 'android' || client_id === 'desktop'){
 				window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
 			}
 			else{
@@ -337,6 +395,14 @@ var forgetPassword = (redirectUrlPath) => {
 	}
 }
 
+var backToApplication = () => {
+	var redirect_uri = getValueFromSession('redirect_uri');
+	if (redirect_uri) {
+		var updatedQuery = redirect_uri.split('?')[0];
+		window.location.href = updatedQuery;
+	}
+}
+
 var redirect  = (redirectUrlPath) => {
 	console.log('redirect', redirectUrlPath)
 	const curUrlObj = window.location;
@@ -348,7 +414,7 @@ var redirect  = (redirectUrlPath) => {
 		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
-			if (client_id === 'android') {
+			if (client_id === 'android' ||  client_id === 'desktop') {
 				window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
 			} else {
 				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
@@ -371,7 +437,7 @@ var handleSsoEvent  = () => {
 		const sessionUrlObj = new URL(sessionUrl);
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
-			if (client_id === 'android') {
+			if (client_id === 'android' ||  client_id === 'desktop') {
 				const ssoUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + ssoPath;
 				window.location.href = redirect_uri + '?ssoUrl=' + ssoUrl;
 			} else {
@@ -396,8 +462,12 @@ var handleGoogleAuthEvent = () => {
 		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
-			if (client_id === 'android') {
-				const googleRedirectUrl = sessionUrlObj.protocol + '//' + sessionUrlObj.host + googleAuthUrl;
+			if (client_id === 'android' ||  client_id === 'desktop') {
+				let host = sessionUrlObj.host;
+				if (host.indexOf("merge.") !== -1) {
+					host = host.slice(host.indexOf("merge.") + 6, host.length);
+				}
+				const googleRedirectUrl = sessionUrlObj.protocol + '//' + host + googleAuthUrl;
 				window.location.href = redirect_uri + '?googleRedirectUrl=' + googleRedirectUrl + updatedQuery;
 			} else {
 				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host + googleAuthUrl + updatedQuery;
@@ -419,7 +489,7 @@ var redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and sel
 		const updatedQuery = sessionUrlObj.search + '&error_callback=' + sessionUrlObj.href.split('?')[0];
 		if (redirect_uri) {
 			const redirect_uriLocation = new URL(redirect_uri);
-			if (client_id === 'android') {
+			if (client_id === 'android' ||  client_id === 'desktop') {
 				window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
 			} else {
 				window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +

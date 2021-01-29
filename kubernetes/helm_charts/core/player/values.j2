@@ -1,0 +1,36 @@
+### Default variable file for player-service ###
+  
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{player_replicacount|default(1)}}
+repository: {{player_repository|default('player')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{player_cpu_req|default('100m')}}
+    memory: {{player_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{player_cpu_limit|default('1')}}
+    memory: {{player_mem_limit|default('1024Mi')}}
+network:
+  port: 3000
+  targetport: 3000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ player_maxsurge|default('25%') }}
+  maxunavailable: {{ player_maxunavailable|default('25%') }}
+
+sunbird_portal_player_cdn_enabled: {{sunbird_portal_player_cdn_enabled|lower}}
+
+{{ player_liveness_readiness | to_nice_yaml }}
+
+player_access_basepath: {{ player_access_basepath | default('/home/sunbird/app_dist/keys/') }}
+
+autoscaling:
+  enabled: {{ player_autoscaling_enabled | default('false') }}
+  minReplicas: {{ player_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ player_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ player_autoscaling_targetCPUUtilizationPercentage|default(80) }}
+  targetMemoryUtilizationPercentage: {{ player_autoscaling_targetMemoryUtilizationPercentage|default('') }}

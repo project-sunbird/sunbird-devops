@@ -1,0 +1,69 @@
+
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{adminutil_replicacount|default(1)}}
+repository: {{adminutil_repository|default('adminutil')}}
+image_tag: {{image_tag}}
+resources:
+  requests:
+    cpu: {{adminutil_cpu_req|default('100m')}}
+    memory: {{adminutil_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{adminutil_cpu_limit|default('1000m')}}
+    memory: {{adminutil_memory_limit|default('1024Mi')}}
+network:
+  port: 4000
+  targetport: 4000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ adminutil_maxsurge|default('25%') }}
+  maxunavailable: {{ adminutil_maxunavailable|default('25%') }}
+
+{{ adminutils_liveness_readiness | to_nice_yaml }}
+
+adminutilenv:
+  JAVA_OPTS: "-Xms{{adminutil__initial_heap_size|default('256m')}} -Xmx{{adminutil__max_heap_size|default('256m')}}"
+  SERVER_PORT: '"{{adminutil__port|default('4000')}}"'
+  AM_ADMIN_API_ENDPOINT: "http://kong.{{namespace}}.svc.cluster.local:8001"
+  SPRING_PROFILES_ACTIVE: {{adminutil__spring_profile|default('production')}}
+  DEFAULT_CONSUMER_GROUP: {{adminutil__default_consumer_group|default('contentUser')}}
+  ENDPOINTS_HEALTH_ID: {{adminutil__health_id|default('apihealth')}}
+  ENDPOINTS_HEALTH_SENSITIVE: '"{{adminutil__is_health_sensitive|default('false')}}"'
+  ENDPOINTS_METRICS_ID: {{adminutil__metrics_id|default('metrics')}}
+  ENDPOINTS_METRICS_SENSITIVE: '"{{adminutil__is_metrics_sensitive|default('false')}}"'
+  AM_ADMIN_API_KEYS: "mobile_device,desktop_device,portal,access"
+  AM_ADMIN_API_MOBILE_DEVICE_BASEPATH: "/keys/"
+  AM_ADMIN_API_MOBILE_DEVICE_KEYPREFIX: '"{{ adminutil__device_keyprefix }}"'
+  AM_ADMIN_API_MOBILE_DEVICE_KEYSTART: '"{{ adminutil__device_keystart }}"'
+  AM_ADMIN_API_MOBILE_DEVICE_KEYCOUNT: '"{{ adminutil__device_keycount }}"'
+  AM_ADMIN_API_DESKTOP_DEVICE_BASEPATH: "/keys/"
+  AM_ADMIN_API_DESKTOP_DEVICE_KEYPREFIX: '"{{ adminutil__desktop_keyprefix }}"'
+  AM_ADMIN_API_DESKTOP_DEVICE_KEYSTART: '"{{ adminutil__desktop_keystart }}"'
+  AM_ADMIN_API_DESKTOP_DEVICE_KEYCOUNT: '"{{ adminutil__desktop_keycount }}"'
+  AM_ADMIN_API_PORTAL_BASEPATH: "/keys/"
+  AM_ADMIN_API_PORTAL_KEYPREFIX: '"{{ adminutil__portal_keyprefix }}"'
+  AM_ADMIN_API_PORTAL_KEYSTART: '"{{ adminutil__portal_keystart }}"'
+  AM_ADMIN_API_PORTAL_KEYCOUNT: '"{{ adminutil__portal_keycount }}"'
+  AM_ADMIN_API_ACCESS_BASEPATH: "/keys/"
+  AM_ADMIN_API_ACCESS_KEYPREFIX: '"{{ adminutil__access_keyprefix }}"'
+  AM_ADMIN_API_ACCESS_KEYSTART: '"{{ adminutil__access_keystart }}"'
+  AM_ADMIN_API_ACCESS_KEYCOUNT: '"{{ adminutil__access_keycount }}"'
+  REFRESH_TOKEN_PUBLIC_BASEPATH: "/keys/"
+  REFRESH_TOKEN_PUBLIC_KEYPREFIX: '"{{ adminutil_refresh_token_public_key_prefix }}"'
+  REFRESH_TOKEN_KID: '"{{ adminutil_refresh_token_public_key_kid }}"'
+  REFRESH_TOKEN_DOMAIN: '"{{ keycloak_auth_server_url }}/realms/{{ keycloak_realm }}"'
+  REFRESH_TOKEN_PRELOAD: '"{{ adminutil_refresh_token_preload }}"'
+  ACCESS_TOKEN_VALIDITY: '"{{ adminutil_access_token_validity }}"'
+  REFRESH_TOKEN_OFFLINE_VALIDITY: '"{{ adminutil_refresh_token_offline_validity }}"'
+  REFRESH_TOKEN_LOG_OLDER_THAN: '"{{  adminutil_refresh_token_log_older_than }}"'
+
+autoscaling:
+  enabled: {{ adminutils_autoscaling_enabled | default('false') }}
+  minReplicas: {{ adminutils_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ adminutils_autoscaling_maxReplicas|default(4) }}
+  targetCPUUtilizationPercentage: {{ adminutils_autoscaling_targetCPUUtilizationPercentage|default(80) }}
+  targetMemoryUtilizationPercentage: {{ adminutils_autoscaling_targetMemoryUtilizationPercentage|default('') }}

@@ -8,7 +8,12 @@ node() {
         String ANSI_YELLOW = "\u001B[33m"
 
         stage('checkout public repo') {
-            cleanWs()
+            folder = new File("$WORKSPACE/.git")
+            if (folder.exists())
+            {
+               println "Found .git folder. Clearing it.."
+               sh'git clean -fxd'
+            }
             checkout scm
         }
 
@@ -28,12 +33,7 @@ node() {
                        unzip -o collection-editor.zip -d collection-editor
                        mv collection-editor ansible
                     """
-                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
-                    ansibleExtraArgs = "--tags collection-editor --extra-vars \"folder_name=collection-editor source_name=${currentWs}/ansible/collection-editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
-                    values.put('ansiblePlaybook', ansiblePlaybook)
-                    values.put('ansibleExtraArgs', ansibleExtraArgs)
-                    println values
-                    ansible_playbook_run(values)
+                    
                     sh """
                        cd ansible/collection-editor
                        npm config set strict-ssl false
@@ -45,6 +45,18 @@ node() {
                        gulp injectrenamedfiles  # Inject the minified files to index.html
                        gulp package # Package the build
                     """  
+                    sh """
+                      mkdir iframe
+                      unzip ansible/collection-editor/dist/editor/collection-editor-iframe-latest.zip -d iframe/
+                    """
+
+                    ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
+                    ansibleExtraArgs = "--tags collection-editor --extra-vars \"folder_name=collection-editor source_name=${currentWs}/iframe\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+
                     ansiblePlaybook = "${currentWs}/ansible/deploy-plugins.yml"
                     ansibleExtraArgs = "--tags editor --extra-vars \"folder_name=artefacts/editor source_name=${currentWs}/ansible/collection-editor/dist/editor\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
                     values.put('ansiblePlaybook', ansiblePlaybook)
@@ -63,7 +75,8 @@ node() {
                     currentBuild.description = "Artifact: ${values.artifact_version}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
                 }
             }
-        }
+            summary()
+     }
     catch (err) {
         currentBuild.result = 'FAILURE'
         throw err

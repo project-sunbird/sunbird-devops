@@ -1,0 +1,9 @@
+---
+- name: Remove DruidProxyAPI service
+  shell: "docker service rm druid-proxy-api"
+  ignore_errors: yes
+
+- name: Deploy DruidProxyAPI service
+  shell: "docker service create --replicas {{ druid_proxy_replicas }} -p 8082:8082  --name druid-proxy-api --hostname druid-proxy-api --reserve-memory {{ druid_proxy_reservation_memory }} --limit-memory {{ druid_proxy_limit_memory }}  --network application_default --env-file /home/deployer/env/sunbird_druid-proxy-api.env  --with-registry-auth {{hub_org}}/{{image_name}}:{{image_tag}}"
+  args:
+    chdir: /home/deployer/stack

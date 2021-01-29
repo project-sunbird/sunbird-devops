@@ -1,0 +1,32 @@
+### Default variable file for enc-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{enc_replicacount|default(1)}}
+repository: {{enc_repository|default('enc_service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{enc_cpu_req|default('100m')}}
+    memory: {{enc_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{enc_cpu_limit|default('1')}}
+    memory: {{enc_mem_limit|default('1024Mi')}}
+network:
+  port: 9010
+  targetport: 8013
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ enc_maxsurge|default('25%') }}
+  maxunavailable: {{ enc_maxunavailable|default('25%') }}
+
+{{ enc_liveness_readiness | to_nice_yaml }}
+
+autoscaling:
+  enabled: {{ enc_autoscaling_enabled | default('false') }}
+  minReplicas: {{ enc_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ enc_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ enc_autoscaling_targetCPUUtilizationPercentage|default(80) }}
+  targetMemoryUtilizationPercentage: {{ enc_autoscaling_targetMemoryUtilizationPercentage|default('') }}

@@ -1,0 +1,25 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "kafka-lag-exporter.fullname" . }}
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+  labels:
+    {{- include "kafka-lag-exporter.labels" . | nindent 4 }}
+    {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
+spec:
+  endpoints:
+  - honorLabels: true
+    interval: 30s
+    path: /metrics
+    port: http
+    scheme: http
+    scrapeTimeout: 10s
+  jobLabel: kafka-lag-exporter
+  namespaceSelector:
+    matchNames:
+    - {{ default .Values.namespace .Release.Namespace  }}
+  selector:
+    matchLabels:
+    {{- include "kafka-lag-exporter.labels" . | nindent 6 }}
+{{- end }}
