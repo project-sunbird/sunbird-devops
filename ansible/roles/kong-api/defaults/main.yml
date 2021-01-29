@@ -602,7 +602,25 @@ kong_apis:
 
   - name: newsFeedReportDhiti
     request_path: "{{ sl_dhiti_prefix }}/api/v1/unnati/newsFeedReport"
-    upstream_url: "{{ dhiti_service_url }}{{ sl_dhiti_prefix }}/api/v1/improvement-project/entityReportunnati/newsFeedReport"
+    upstream_url: "{{ dhiti_service_url }}{{ sl_dhiti_prefix }}/api/v1/unnati/newsFeedReport"
+    strip_request_path: true
+    plugins:
+    -  name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: listAllEvidencesDhiti
+    request_path: "{{ sl_dhiti_prefix }}/api/v1/observations/listAllEvidences"
+    upstream_url: "{{ dhiti_service_url }}{{ sl_dhiti_prefix }}/api/v1/observations/listAllEvidences"
     strip_request_path: true
     plugins:
     -  name: jwt
@@ -657,24 +675,6 @@ kong_apis:
   - name: listImprovementProjectsDhiti
     request_path: "{{ sl_dhiti_prefix }}/api/v1/assessments/listImprovementProjects"
     upstream_url: "{{ dhiti_service_url }}{{ sl_dhiti_prefix }}/api/v1/assessments/listImprovementProjects"
-    strip_request_path: true
-    plugins:
-    -  name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'contentAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: scorePdfReportsByCriteriaDhiti
-    request_path: "{{ sl_dhiti_prefix }}/api/v1/observations/scorePdfReportsByCriteria"
-    upstream_url: "{{ dhiti_service_url }}{{ sl_dhiti_prefix }}/api/v1/observations/scorePdfReportsByCriteria"
     strip_request_path: true
     plugins:
     -  name: jwt
