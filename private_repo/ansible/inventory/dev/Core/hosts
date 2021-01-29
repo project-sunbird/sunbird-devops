@@ -1,70 +1,20 @@
-# Alert manager nodes which should be clustered
-# This values should be one of any manager node, if you've multinode cluster
-[alert-manager:children]
-# By default this value can be swarm-manager-1 or 2 or n; but for a single 
-# cluster it should be one value.
-# If you have multiple cluster you can list all ips below one by one
-swarm-manager-1
 
-[swarm-manager-1] 
-18.0.0.15 swarm_master=true
-
-# This host will make sure prometheus for all stateful services 
-# will run on a single node, as it has storage dependancy
-# By default this host is same as docker swarm prometheus
-[swarm-agent-for-prometheus-stateful:children]
-swarm-agent-for-prometheus
-
-[swarm-manager:children]
-swarm-manager-1
-
-[swarm-node-1]
-11.3.0.27
-
-[swarm-worker:children]
-swarm-node-1
 
 [keycloak-1]
-18.0.0.9
+18.3.1.6
 
 [keycloak:children]
 keycloak-1
 
 [log-es-2]
-18.0.0.15 es_instance_name=log-es-2 node_name=log-es-2 es_etc_node_master=true es_etc_node_data=true
+18.3.1.6 es_instance_name=log-es-2 node_name=log-es-2 es_etc_node_master=true es_etc_node_data=true
 
 [log-es:children]
 log-es-2
 
-[swarm-agent-for-prometheus-1]
-18.0.0.15
-
-[swarm-agent-for-prometheus:children]
-swarm-agent-for-prometheus-1
-
-[swarm-agent-for-prometheus-stateful:children]
-swarm-agent-for-prometheus
-
-[swarm-dashboard-1]
-18.0.0.15
-
-[swarm-dashboard:children]
-swarm-dashboard-1
-
-[swarm-agent-dashboard-1]
-18.0.0.15
-
-[swarm-agent-dashboard:children]
-swarm-agent-dashboard-1
-
-[alertmanager_stateful:children]
-swarm-agent-dashboard
-
-[swarm-agent-for-alertmanager-1]
-18.0.0.15
 
 [es-1]
-18.0.0.9 es_instance_name=es-1 es_etc_node_master=true es_etc_node_data=true
+18.3.0.4 es_instance_name=es-1 es_etc_node_master=true es_etc_node_data=true
 
 [es-backup:children]
 es-1
@@ -76,19 +26,22 @@ log-es-2
 es-1
 
 [cassandra-1]
-18.0.0.9
+18.3.0.4
 
 [cassandra:children]
 cassandra-1
 
 [postgresql-master-1]
-18.0.0.9
+18.3.0.4
 
 [postgresql-master:children]
 postgresql-master-1
 
 [postgresql-slave-1]
-18.0.0.9
+18.3.0.4
+
+[swarm-manager]
+0.0.0.0    #### keep as it is
 
 [postgresql-slave:children]
 postgresql-slave-1
@@ -98,22 +51,28 @@ postgresql-slave
 postgresql-master
 
 [kafka-1]
-18.0.0.13 kafka_id=1
+18.3.1.5 kafka_id=1
 
 [processing-cluster-kafka]
-18.0.0.13
+18.3.1.5
 
 [kafka:children]
 kafka-1
 
 [processing-cluster-zookeepers]
-18.0.0.50              # Zookeeper IP of processing cluster in Data pipeline
+18.3.1.5            # Zookeeper IP of processing cluster in Data pipeline
+
+[ingestion-cluster-kafka]
+18.3.0.5
 
 [zookeeper:children]
 processing-cluster-zookeepers
 
 [lp-redis]
-18.0.0.51              # Redis master IP of Knowledge platform
+18.3.1.5            # Redis master IP of Knowledge platform
+
+[dp-redis]
+18.3.1.5
 
 [lp-redis-ps:children]
 lp-redis             
@@ -125,43 +84,36 @@ lp-redis-ps
 lp-redis
 
 [learning-neo4j-node1]
-15.0.2.9             # Neo4j ip of Knowledge platform
+18.3.0.4            # Neo4j ip of Knowledge platform
 
 [lp-cassandra]
-18.0.0.9             # cassandra ip of Knowledge platform
+18.3.0.4             # cassandra ip of Knowledge platform
 
 [dp-cassandra]
-18.0.0.9             # cassandra ip of Datapipeline
+18.3.0.4             # cassandra ip of Datapipeline
 
 [local]
-localhost
+localhost ansible_connection=local
 
 [raw-broker]        #Druid Broker IP
 localhost
 
-[swarm-agent-for-alertmanager:children]
-swarm-agent-for-alertmanager-1
-
 [kong-api]
 localhost
 
-[swarm-bootstrap-manager:children]
-swarm-manager
-
-[swarm-nodes:children]
-swarm-manager
-swarm-bootstrap-manager
-swarm-agent-for-prometheus
-swarm-agent-for-alertmanager
-
-[node-exporter:children]
-swarm-manager
-
-[log-forwarder:children]
-swarm-manager
-
 [composite-search-cluster]
-15.0.2.6
+18.3.0.4
+
+[yarn-master]
+18.3.1.8
+
+[yarn-slave]
+18.3.1.8     #yarn master
+18.3.1.9
+
+[yarn:children]
+yarn-master
+yarn-slave
 
 [core:children]
 es
@@ -169,23 +121,21 @@ log-es
 cassandra
 postgresql-master
 postgresql-slave
-swarm-nodes
-swarm-manager
 kafka
 keycloak
-swarm-dashboard
-swarm-agent-dashboard
 composite-search-cluster
+processing-cluster-kafka
+yarn
 
 [env:children]
 core
 local
 
-[log-forwarder:children]
-swarm-manager
-
 [dp-druid-broker]
-11.3.0.3                # Druid broker IP for druid proxy api
+0.0.0.0                # Druid broker IP for druid proxy api
+
+[raw-coordinator]
+0.0.0.0
 
 [all:vars]
 # If you want to tag your prometheus data with unique cluster ids
