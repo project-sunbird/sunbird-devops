@@ -1,66 +1,97 @@
 ---
-- debug:
-    msg: "Installing on {{ansible_os_family}}"
+- name: Gather package facts
+  package_facts:
+    manager: auto
+  tags:
+   - default
 
-- include: redhat.yml
-  when: ansible_os_family == 'RedHat'
+- name: Check the filebeat version if its already installed
+  set_fact:
+    filebeat_installed_version: "{{ansible_facts.packages['filebeat'][0].version}}"
+  when: "ansible_facts.packages is defined and 'filebeat' in ansible_facts.packages and (ansible_facts.packages['filebeat'] | length) == 1"
+  tags:
+   - default
 
-- include: debian.yml
-  when: ansible_os_family == 'Debian'
+- name: Remove filebeat package if it does not match the version which is being installed
+  apt:
+    name: filebeat
+    state: absent
+  when: filebeat_installed_version is defined and filebeat_installed_version != filebeat_version
+  tags:
+   - default
 
-- include: darwin.yml
-  when: ansible_os_family == 'Darwin'
+- name: Remove filebeat registry directory if it does not match the version which is being installed
+  file: 
+    path: /var/lib/filebeat/registry
+    state: absent
+  when: filebeat_installed_version is defined and filebeat_installed_version != filebeat_version
+  tags:
+   - default
 
-- name: list
-  debug:
-    msg: "{{ filebeat_log_path }}"
+- name: Add elastic gpg key
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+  tags:
+   - default
 
-- name: create filebeat.yml
+- name: Add elastic repository
+  apt_repository:
+    repo: deb https://artifacts.elastic.co/packages/6.x/apt stable main
+    state: present
+    filename: /etc/apt/sources.list.d/elastic-6.x.list
+  tags:
+   - default
+
+- name: Install the filebeat and required packages
+  apt:
+    name: ['apt-transport-https', 'filebeat={{filebeat_version}}']
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  tags:
+   - default
+
+- name: Create the filebeat configs directory
+  file:
+    path: "{{filebeat_config_directory}}"
+    state: directory
+  tags:
+   - default
+
+- name: Copy the filebeat input config template(s)
   template:
-    src: filebeat.yml.j2
-    dest: "{{filebeat.base_path}}/filebeat.yml"
-  notify:
-    - restart filebeat
+    src: "filebeat-inputs.yml.j2"
+    dest: "{{filebeat_config_directory}}/filebeat-inputs.yml"
+  tags:
+   - default
 
-- name: copy ca certificate if required
-  copy:
-    content: "{{ filebeat_ca_cert }}"
-    dest: "{{ filebeat_ca_path }}"
-    owner: root
-    group: root
-    mode: 0400
-  when: filebeat_ca_cert != None
+- name: Copy the filebeat outout config template
+  template:
+    src: "filebeat.yml.j2"
+    dest: "/etc/filebeat/filebeat.yml"
+  tags:
+   - default
 
-- name: copy ssl certificate if required
-  copy:
-    content: "{{ filebeat_ssl_cert }}"
-    dest: "{{ filebeat_ssl_cert_path }}"
-    owner: root
-    group: root
-    mode: 0400
-  when: filebeat_ssl_cert != None
+- name: Enable and start filebeat as a daemon process
+  systemd:
+    name: filebeat
+    enabled: yes
+    state: restarted
+    daemon_reload: yes
+  tags:
+   - default
 
-- name: copy ssl key if required
-  copy:
-    content: "{{ filebeat_ssl_key }}"
-    dest: "{{ filebeat_ssl_key_path }}"
-    owner: root
-    group: root
-    mode: 0400
-  when: filebeat_ssl_key != None
+- name: Stop filebeat
+  systemd:
+    name: filebeat
+    state: stopped
+  tags:
+   - stop-filebeat
 
-- name: flush handlers to prevent start then restart
-  meta: flush_handlers
-
-- name: start and enable filebeat
-  service:
+- name: Start filebeat
+  systemd:
     name: filebeat
     state: started
-#    enabled: true
-  when: ansible_os_family == 'RedHat' or ansible_os_family == 'Debian'
-
-- name: start and enable filebeat
-  command: ./filebeat -c filebeat.yml -d "publish"
-  args:
-    chdir: "{{filebeat.base_path}}"
-  when: ansible_os_family == 'Darwin'
+  tags:
+   - start-filebeat
