@@ -1,0 +1,49 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.serviceMonitorLabels.release }}
+    release: {{ .Values.serviceMonitorLabels.release }}
+  name: {{ include "json-path-exporter.fullname" . }}-alertrule
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+spec:
+  groups:
+  - name: alertrules.service.healthcheck
+    rules:
+    - alert: ServiceHealthCheck Failed
+      expr: service_health_status{service_name="learning-service"} == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        message: The learning service overall healthcheck is failing. Please check.
+        summary: The learning service overall healthcheck is failing. Please check.
+
+    - alert: ServiceHealthCheck Failed
+      expr: service_health_status{service_name="analytics-service"} == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        message: The analytics service overall healthcheck is failing. Please check.
+        summary: The analytics service overall healthcheck is failing. Please check.
+
+    - alert: ServiceHealthCheck Failed
+      expr: service_health_status{service_name="knowledgemw-service"} == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        message: The knowledgemw service overall healthcheck is failing. Please check.
+        summary: The knowledgemw service overall healthcheck is failing. Please check.
+
+    - alert: ServiceHealthCheck Failed
+      expr: service_health_status{service_name="search-service"} == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        message: The search service overall healthcheck is failing. Please check.
+        summary: The search service overall healthcheck is failing. Please check.
