@@ -16,12 +16,9 @@ spec:
         {{- include "json-path-exporter.selectorLabels" . | nindent 8 }}
     spec:
       volumes:
-        - name: flink-config-volume
+        - name: json-exporter-config-volume
           configMap:
             name: {{ .Release.Name }}-config
-            items:
-            - key: config.yml 
-              path: config.yml
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -30,6 +27,8 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --config.file /config.yml
           ports:
             - name: http
               containerPort: 7979
@@ -38,6 +37,6 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
           - name: json-exporter-config-volume
-            mountPath: config.yml
+            mountPath: /config.yml
             subPath: config.yml
  
