@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "json-path-exporter.fullname" . }}
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
   labels:
     {{- include "json-path-exporter.labels" . | nindent 4 }}
 spec:
@@ -14,17 +15,19 @@ spec:
       labels:
         {{- include "json-path-exporter.selectorLabels" . | nindent 8 }}
     spec:
+      volumes:
+        - name: flink-config-volume
+          configMap:
+            name: {{ .Release.Name }}-config
+            items:
+            - key: config.yml 
+              path: config.yml
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
     {{- end }}
-      serviceAccountName: {{ include "json-path-exporter.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
@@ -33,3 +36,8 @@ spec:
               protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: json-exporter-config-volume
+            mountPath: config.yml
+            subPath: config.yml
+ 
