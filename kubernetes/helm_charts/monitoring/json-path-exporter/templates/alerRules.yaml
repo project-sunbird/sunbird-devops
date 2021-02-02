@@ -12,38 +12,13 @@ spec:
   groups:
   - name: alertrules.service.healthcheck
     rules:
+    {{ range $key := .Values.service_health_checks }}
     - alert: ServiceHealthCheck Failed
-      expr: service_health_status{service_name="learning-service"} == 0
+      expr: service_health_status{service_name={{ . | quote }}} == 0
       for: 5m
       labels:
         severity: critical
       annotations:
-        message: The learning service overall healthcheck is failing. Please check.
-        summary: The learning service overall healthcheck is failing. Please check.
-
-    - alert: ServiceHealthCheck Failed
-      expr: service_health_status{service_name="analytics-service"} == 0
-      for: 5m
-      labels:
-        severity: critical
-      annotations:
-        message: The analytics service overall healthcheck is failing. Please check.
-        summary: The analytics service overall healthcheck is failing. Please check.
-
-    - alert: ServiceHealthCheck Failed
-      expr: service_health_status{service_name="knowledgemw-service"} == 0
-      for: 5m
-      labels:
-        severity: critical
-      annotations:
-        message: The knowledgemw service overall healthcheck is failing. Please check.
-        summary: The knowledgemw service overall healthcheck is failing. Please check.
-
-    - alert: ServiceHealthCheck Failed
-      expr: service_health_status{service_name="search-service"} == 0
-      for: 5m
-      labels:
-        severity: critical
-      annotations:
-        message: The search service overall healthcheck is failing. Please check.
-        summary: The search service overall healthcheck is failing. Please check.
+        message: The {{ . }} service overall healthcheck is failing. Please check.
+        summary: The {{ . }} service overall healthcheck is failing. Please check.
+    {{- end }}

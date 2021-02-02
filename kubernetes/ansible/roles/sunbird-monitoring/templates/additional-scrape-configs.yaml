@@ -99,15 +99,16 @@ scrapeconfig:
         replacement: blackbox-exporter-prometheus-blackbox-exporter:9115
         {% endfor %}
 
-  - job_name: 'availability_service_learning'
+  {% for item in service_health_checks %}
+  - job_name: 'availability_service_{{ item.service_name }}'
     metrics_path: /probe
     params:
       jsonpath: [$.result]
     static_configs:
     - targets:
-        - http://{{ learningservice_ip }}:8080/learning-service/health
+        - {{ item.targets }}
       labels:
-        "service_name": "learning"
+        "service_name": "{{ item.service_name }}"
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
@@ -115,54 +116,4 @@ scrapeconfig:
         target_label: instance
       - target_label: __address__
         replacement: json-path-exporter.monitoring.svc.cluster.local:7979
-
-  - job_name: 'availability_service_search'
-    metrics_path: /probe
-    params:
-      jsonpath: [$.result]
-    static_configs:
-    - targets:
-        - http://{{ private_ingressgateway_ip }}/search/health
-      labels:
-        "service_name": "search"
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: json-path-exporter.monitoring.svc.cluster.local:7979
-
-  - job_name: 'availability_service_knowledgemw'
-    metrics_path: /probe
-    params:
-      jsonpath: [$.result]
-    static_configs:
-    - targets:
-        -  http://{{ private_ingressgateway_ip }}/knowledgemw/health
-      labels:
-        "service_name": "knowledgemw"
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: json-path-exporter.monitoring.svc.cluster.local:7979
-
-  - job_name: 'availability_service_analytics'
-    metrics_path: /probe
-    params:
-      jsonpath: [$.result]
-    static_configs:
-    - targets:
-        -  http://{{ private_ingressgateway_ip }}/analytics/health
-      labels:
-        "service_name": "analytics"
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: json-path-exporter.monitoring.svc.cluster.local:7979
+        {% endfor %}
