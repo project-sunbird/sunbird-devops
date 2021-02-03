@@ -22,7 +22,7 @@ data:
                         ' "$http_referer" "$http_user_agent" "$sb_request_id"'
                         ' "$http_x_device_id" "$http_x_channel_id" "$http_x_app_id"'
                         ' "$http_x_app_ver" "$http_x_session_id"';
-    
+
       # If the client send request_id it should be preffered over the default one
       map $http_x_request_id $sb_request_id {
         default  $http_x_request_id;
@@ -33,13 +33,13 @@ data:
       include /etc/nginx/conf.d/*.conf;
       sendfile        on;
       client_max_body_size 60M;
-        
+
       server {
         listen 80;
         listen [::]:80;
-    
+
         resolver {{ .Values.kube_dns_ip }};
-    
+
         location /learner/ {
           set $target http://learner-service.{{ .Values.namespace }}.svc.cluster.local:9000;
           rewrite ^/learner/(.*) /$1 break;
@@ -134,6 +134,12 @@ data:
         location /enc/ {
           set $target http://enc-service.{{ .Values.namespace }}.svc.cluster.local:8013;
           rewrite ^/enc/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /prometheus/ {
+          # This endpoint is for prometheus endpoint access
+          set $target http://sunbird-monitoring-prometheus.monitoring.svc.cluster.local:9090;
+          rewrite ^/prometheus/(.*) /$1 break;
           proxy_pass $target;
         }
         location /nodebb/ {
