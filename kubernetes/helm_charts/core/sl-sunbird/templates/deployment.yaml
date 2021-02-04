@@ -28,6 +28,15 @@ spec:
         - name: {{ .Chart.Name }}-service
           configMap:
             name: {{ .Chart.Name }}-config
+        - name: gcp
+          configMap:
+            name: gcp
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+        - name: access-keys
+          secret:
+            secretName: keycloak-public-keys-assessment
+{{ end }}
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
@@ -186,15 +195,15 @@ spec:
 {{ toYaml .Values.readinessProbe | indent 10 }}
         {{- end }}
 
+        volumeMounts:
+          - name: gcp
+            mountPath: /opt/sunbird/generics/helpers/credentials/sl-dev-storage.json
+            subPath: sl-dev-storage.json
+
 {{- $keys := .Files.Glob "keys/*" }}
 {{- if $keys }}
-        volumeMounts:
         - mountPath: {{ .Values.sl_sunbird_access_basepath }}
           name: access-keys
-      volumes:
-      - name: access-keys
-        secret:
-          secretName: keycloak-public-keys-sl-sunbird
 {{ end }}
           
 ---
