@@ -1,0 +1,28 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+
+replicaCount: {{sl_usermanagement_replicacount|default(1)}}
+repository: {{sl_usermanagement_repository|default('usermanagement-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{sl_usermanagement_cpu_req|default('100m')}}
+    memory: {{sl_usermanagement_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{sl_usermanagement_cpu_limit|default('1')}}
+    memory: {{sl_usermanagement_mem_limit|default('1024Mi')}}
+network:
+  port: 4101
+  targetport: 4101
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ sl_usermanagement_maxsurge|default('25%') }}
+  maxunavailable: {{ sl_usermanagement_maxunavailable|default('25%') }}
+  
+{{ sl_usermanagement_liveness_readiness | to_nice_yaml }}
+
+sl_usermanagement_access_basepath : {{ sl_usermanagement_access_basepath | default('/opt/usermanagement/keycloak-public-keys/') }}
