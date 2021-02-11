@@ -23,6 +23,7 @@ setupJobs(){
       find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type f -name config.xml -exec sed -i "s#Deploy/dev/#Deploy/${arr[0]}/#g" {} \;
    fi
    find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type d -path "*Summary*" -prune -o -name config.xml -exec sed -i 's/<upstreamProjects>.*//g' {} \;
+   find $JENKINS_TMP/Build/jobs -type f -name config.xml -exec sed -i 's/refs/heads/${public_repo_branch}/refs/tags/${public_repo_branch}/g' {} \;
    echo -e "\e[0;33m${bold}Jobs created for ${arr[0]}${normal}"
 
    for key in "${!arr[@]}"; do
