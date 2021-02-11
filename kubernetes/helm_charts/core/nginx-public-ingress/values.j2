@@ -163,14 +163,14 @@ proxyconfig: |-
     location ~ /auth/(resources/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css))|welcome-content/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css))) {
       # Enabling caching
       proxy_cache_key $proxy_host$request_uri;
-      proxy_cache proxy_cache;
+      proxy_cache {{proxy_cache_path.small_cache.keys_zone.split(':') | first}};
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 43200;
+      proxy_cache_valid 200 {{proxy_cache_valid.long_validity}};
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -190,7 +190,7 @@ proxyconfig: |-
       # Enabling caching
       # caching include Accept-Encoding header also, to provide gziped or plain content as per request
       proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
-      proxy_cache framework_cache;
+      proxy_cache {{proxy_cache_path.medium_cache.keys_zone.split(':') | first}};
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
@@ -198,7 +198,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 43200;
+      proxy_cache_valid 200 {{proxy_cache_valid.long_validity}};
       proxy_set_header Connection "";
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -218,7 +218,7 @@ proxyconfig: |-
       # Enabling caching
       # caching include Accept-Encoding header also, to provide gziped or plain content as per request
       proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
-      proxy_cache content_cache;
+      proxy_cache {{proxy_cache_path.large_cache.keys_zone.split(':') | first}};
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
@@ -226,7 +226,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 14400s;
+      proxy_cache_valid 200 {{proxy_cache_valid.medium_validity}};
       # Increasing the proxy buffer size
       proxy_buffer_size 16k;
       proxy_busy_buffers_size 16k;
@@ -248,7 +248,7 @@ proxyconfig: |-
       # Enabling caching
       # caching include Accept-Encoding header also, to provide gziped or plain content as per request
       proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
-      proxy_cache content_cache;
+      proxy_cache {{proxy_cache_path.large_cache.keys_zone.split(':') | first}};
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
@@ -256,7 +256,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 14400s;
+      proxy_cache_valid 200 {{proxy_cache_valid.medium_validity}};
       # Increasing the proxy buffer size
       proxy_buffer_size 16k;
       proxy_busy_buffers_size 16k;
@@ -278,7 +278,7 @@ proxyconfig: |-
       # Enabling caching
       # caching include Accept-Encoding header also, to provide gziped or plain content as per request
       proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
-      proxy_cache framework_cache;
+      proxy_cache {{proxy_cache_path.medium_cache.keys_zone.split(':') | first}};
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
@@ -286,7 +286,7 @@ proxyconfig: |-
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 43200;
+      proxy_cache_valid 200 {{proxy_cache_valid.long_validity}};
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -306,14 +306,14 @@ proxyconfig: |-
       # Enabling caching
       # caching include Accept-Encoding header also, to provide gziped or plain content as per request
       proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
-      proxy_cache framework_cache;
+      proxy_cache {{proxy_cache_path.medium_cache.keys_zone.split(':') | first}};
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 43200;
+      proxy_cache_valid 200 {{proxy_cache_valid.long_validity}};
       rewrite ^/api/(.*) /$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -748,22 +748,22 @@ proxyconfig: |-
          proxy_set_header X-Request-ID $sb_request_id;
          proxy_pass             https://$offline_bucket/$url_full;
   }
-    # compression for svg certs download                      
-    location /api/certreg/v2/certs/download {                 
-      rewrite ^/api/(.*) /$1 break;                           
+    # compression for svg certs download
+    location /api/certreg/v2/certs/download {
+      rewrite ^/api/(.*) /$1 break;
       include /etc/nginx/defaults.d/compression.conf;
-      proxy_set_header Connection "";                         
-      proxy_set_header Host $host;                            
-      proxy_set_header X-Real-IP $remote_addr;                
-      proxy_set_header X-Scheme $scheme;                      
-      proxy_set_header    X-Forwarded-For   $remote_addr;     
-      proxy_connect_timeout 5;                                
-      proxy_send_timeout 60;                                  
-      proxy_read_timeout 70;                                  
-      proxy_http_version 1.1;                                 
-      proxy_set_header X-Request-ID $sb_request_id;           
-      proxy_pass http://kong;                                 
-    }                                                         
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header    X-Forwarded-For   $remote_addr;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass http://kong;
+    }
     location /learner/certreg/v2/certs/download {
       # Compression
       gzip on;
@@ -851,14 +851,14 @@ proxyconfig: |-
       # Enabling caching
       # caching include Accept-Encoding header also, to provide gziped or plain content as per request
       proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
-      proxy_cache framework_cache;
+      proxy_cache {{proxy_cache_path.medium_cache.keys_zone.split(':') | first}};
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 43200;
+      proxy_cache_valid 200 {{proxy_cache_valid.long_validity}};
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
       proxy_set_header X-Scheme $scheme;
@@ -873,14 +873,14 @@ proxyconfig: |-
       # Enabling caching
       # caching include Accept-Encoding header also, to provide gziped or plain content as per request
       proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
-      proxy_cache framework_cache;
+      proxy_cache {{proxy_cache_path.medium_cache.keys_zone.split(':') | first}};
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 43200;
+      proxy_cache_valid 200 {{proxy_cache_valid.long_validity}};
       rewrite ^/api/channel/v1/read/(.*) /channel/v1/read/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -914,7 +914,7 @@ proxyconfig: |-
     }
     {# Including custom configuration #}
     {{ proxy_custom_config }}}
-  
+
 nginxconfig: |
   user  nginx;
   worker_processes  {{nginx_worker_processes | d("auto")}};
@@ -1020,7 +1020,7 @@ nginxconfig: |
       #################
       # Caching Block #
       #################
-      # 
+      #
       # Keywords
       #
       # proxy_cache_path: path to store the cache content
@@ -1031,16 +1031,10 @@ nginxconfig: |
       # use_temp_path: do we have to write the cache to a temp path first? This will reduce the performance.
       #
       # caching for images and files
-      proxy_cache_path /tmp/proxy_cache levels=1:2 keys_zone=tmp_cache:5m max_size=10m inactive=300m use_temp_path=off;
-      # caching for apis
-      proxy_cache_path /tmp/api_cache levels=1:2 keys_zone=proxy_cache:5m max_size=600m inactive=1400m use_temp_path=off;
-      # cache framework
-      proxy_cache_path /tmp/framework_cache levels=1:2 keys_zone=framework_cache:5m max_size=700m inactive=300m use_temp_path=off;
-      # cache content
-      proxy_cache_path /tmp/content_cache levels=1:2 keys_zone=content_cache:100m max_size=3000m inactive=600m use_temp_path=off;
-      # cache content metadata
-      proxy_cache_path /tmp/content_metadata levels=1:2 keys_zone=content_metadata:100m max_size=1000m inactive=300m use_temp_path=off;
-      
+      {% for key,value in proxy_cache_path.items() %}
+      proxy_cache_path {{value['path']}} levels={{value['levels']}} keys_zone={{value['keys_zone']}} max_size={{value['max_size']}} inactive={{value['inactive']}} use_temp_path=off;
+      {% endfor %}
+
      server {
        listen 9145;
        location /metrics {
@@ -1126,14 +1120,14 @@ keycloakconf: |
       # Enabling caching
       # caching include Accept-Encoding header also, to provide gziped or plain content as per request
       proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
-      proxy_cache proxy_cache;
+      proxy_cache {{proxy_cache_path.small_cache.keys_zone.split(':') | first}};
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
-      proxy_cache_valid 200 14400;
+      proxy_cache_valid 200 {{proxy_cache_valid.long_validity}};
       rewrite ^/auth/(.*) /auth/$1 break;
       proxy_set_header Connection "";
       proxy_set_header Host $host;
@@ -1163,33 +1157,33 @@ keycloakconf: |
   }
 
 compressionConfig: |-
-  # Compression                                           
-  gzip on;                                                
-  gzip_comp_level    5;                                   
+  # Compression
+  gzip on;
+  gzip_comp_level    5;
   gzip_min_length    256; # 256Bytes
-  gzip_proxied       any;                                 
-  gzip_vary          on;                                  
-  # Content types for compression                         
-  gzip_types                                              
-  application/atom+xml                                    
-  application/javascript                                  
-  application/json                                        
-  application/ld+json                                     
-  application/manifest+json                               
-  application/rss+xml                                     
-  application/vnd.geo+json                                
-  application/vnd.ms-fontobject                           
-  application/x-font-ttf                                  
-  application/x-web-app-manifest+json                     
-  application/xhtml+xml                                   
-  application/xml                                         
-  font/opentype                                           
-  image/bmp                                               
-  image/svg+xml                                           
-  image/x-icon                                            
-  text/cache-manifest                                     
-  text/css                                                
-  text/plain                                              
+  gzip_proxied       any;
+  gzip_vary          on;
+  # Content types for compression
+  gzip_types
+  application/atom+xml
+  application/javascript
+  application/json
+  application/ld+json
+  application/manifest+json
+  application/rss+xml
+  application/vnd.geo+json
+  application/vnd.ms-fontobject
+  application/x-font-ttf
+  application/x-web-app-manifest+json
+  application/xhtml+xml
+  application/xml
+  font/opentype
+  image/bmp
+  image/svg+xml
+  image/x-icon
+  text/cache-manifest
+  text/css
+  text/plain
   ;
 
 serviceMonitor:
