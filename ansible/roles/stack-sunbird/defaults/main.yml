@@ -204,6 +204,13 @@ taxonomy_service_limit_memory: 512M
 taxonomy_service_reservation_cpu: 0
 taxonomy_service_limit_cpu: 1
 
+# Dial Service Config
+dial_service_replicas: 1
+dial_service_reservation_memory: 256M
+dial_service_limit_memory: 512M
+dial_service_reservation_cpu: 0
+dial_service_limit_cpu: 1
+
 ############################ kube vars #######################
 hub_org: sunbird
 nginx_per_ip_connection_limit: 400
@@ -290,6 +297,9 @@ service_env:
   discussionsmw: ../../../../ansible/roles/stack-sunbird/templates/sunbird_discussions-mw-service.env
 
   dhiti: ../../../../ansible/roles/stack-sunbird/templates/dhiti-service.env
+  dial:
+    - ../../../../ansible/roles/stack-sunbird/templates/dial-service_application.conf
+    - ../../../../ansible/roles/stack-sunbird/templates/dial-service_logback.xml
 
 sunbird_portal_player_cdn_enabled: false
 
@@ -744,6 +754,26 @@ report_liveness_readiness:
     failureThreshold: 5
 
 analytics_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+
+dial_liveness_readiness:
   healthcheck: true
   readinessProbe:
     httpGet:
