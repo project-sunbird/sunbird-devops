@@ -18,8 +18,16 @@ node() {
         }
 
         stage('clone chatbot config repo') {
-            sh("rm -rf sunbird-bot")
-            sh("git clone https://github.com/project-sunbird/sunbird-bot.git -b ${params.bot_repo_branch}")
+            if (params.bot_repo == "https://github.com/project-sunbird/sunbird-bot.git") {
+                sh("rm -rf sunbird-bot")
+                sh("git clone ${params.bot_repo} -b ${params.bot_repo_branch}")
+            }
+            else {
+                sh("rm -rf private-bot-repo")
+                dir('private-bot-repo') {
+                    checkout([$class: 'GitSCM', branches: [[name: "refs/remotes/origin/$params.bot_repo_branch"]], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', depth: 0, noTags: false, reference: '', shallow: true]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'private_repo_credentials', url: "$params.bot_repo"]]])
+                }
+            }    
         }
 
         ansiColor('xterm') {
@@ -47,3 +55,4 @@ node() {
         throw err
     }
 }
+
