@@ -43,7 +43,6 @@ content_prefix: /content
 tickets_prefix: /tickets
 course_service_prefix: /course
 itemset_prefix: /itemset
-assessment_prefix: /assessment
 user_service_prefix: /user
 data_service_prefix: /data
 notes_service_prefix: /notes
@@ -1407,24 +1406,6 @@ kong_apis:
   - name: ItemSetAPIs
     uris: "{{ itemset_prefix }}/v1"
     upstream_url: "{{ knowledge_mw_service_url }}/itemset/v1"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'itemSetAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: AssessmentItemAPIs
-    uris: "{{ assessment_prefix }}/v1/items"
-    upstream_url: "{{ knowledge_mw_service_url }}/assessment/v1/items"
     strip_uri: true
     plugins:
     - name: jwt
