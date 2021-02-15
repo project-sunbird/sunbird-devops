@@ -1,6 +1,7 @@
 <#macro registrationLayout bodyClass="" displayInfo=false displayMessage=true>
 <!DOCTYPE html>
 <html class="${properties.kcHtmlClass!}">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -37,7 +38,7 @@
 </head>
 
 <body class="${properties.kcBodyClass!}">
-    <div id="kc-logo"><a href="${properties.kcLogoLink!'#'}"><div id="kc-logo-wrapper"></div></a></div>
+    <div id="kc-logo"><a href="${properties.kcLogoLink!'#'}"><div id="kc-logo-wrapper"></div><span class="hide">kc-logo</span></a></div>
 
     <div id="kc-container" class="${properties.kcContainerClass!}">
         <div id="kc-container-wrapper" class="${properties.kcContainerWrapperClass!}">

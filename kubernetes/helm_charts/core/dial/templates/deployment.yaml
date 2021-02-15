@@ -1,0 +1,76 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+     rollingUpdate:
+        maxSurge: {{ .Values.strategy.maxsurge }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-config
+          configMap:
+            name: {{ .Chart.Name }}-config
+        - name: {{ .Chart.Name }}-xml-config
+          configMap:
+            name: {{ .Chart.Name }}-xml-config
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        env:
+        - name: JAVA_OPTIONS
+          value: {{ .Values.env.javaoptions | quote }}
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 10 }}
+        {{- end }}
+        volumeMounts:
+          - name: {{ .Chart.Name }}-config
+            mountPath: /home/sunbird/sunbird-dial-service-1.0-SNAPSHOT/config/application.conf
+            subPath: dial-service_application.conf
+          - name: {{ .Chart.Name }}-xml-config
+            mountPath: /home/sunbird/sunbird-dial-service-1.0-SNAPSHOT/config/logback.xml
+            subPath: dial-service_logback.xml
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  ports:
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network.targetport }}
+  selector:
+    app: {{ .Chart.Name }}
