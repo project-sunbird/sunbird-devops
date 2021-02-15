@@ -57,21 +57,33 @@
     </appender>
 
     <appender name="customLoggerAppender" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-            <customFields>{"application":"log-odyssey"}</customFields>
-            <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
-                <timestampFormat>yyyy-MM-dd'T'HH:mm:ss.SSSX</timestampFormat>
-                <timestampFormatTimezoneId>Etc/UTC</timestampFormatTimezoneId>
-                <jsonFormatter class="ch.qos.logback.contrib.jackson.JacksonJsonFormatter">
-                    <prettyPrint>true</prettyPrint>
-                </jsonFormatter>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <provider class="net.logstash.logback.composite.loggingevent.ArgumentsJsonProvider"/>
+            <layout class="net.logstash.logback.layout.LogstashLayout">
+                <fieldNames>
+                    <timestampFormat>yyyy-MM-dd' 'HH:mm:ss.SSS</timestampFormat>
+                    <timestamp>[ignore]</timestamp>
+                    <message>[ignore]</message>
+                    <logger>[ignore]</logger>
+                    <thread>[ignore]</thread>
+                    <levelValue>[ignore]</levelValue>
+                    <version>[ignore]</version>
+                    <stack_trace>exception</stack_trace>
+                </fieldNames>
             </layout>
         </encoder>
     </appender>
 
     <logger name="org.sunbird" level="INFO">
-        <appender-ref ref="defaultLoggerAppender" />
-        <appender-ref ref="defaultLoggerAppender" />
+        <appender-ref ref="defaultLoggerAppender"/>
+        <appender-ref ref="customLoggerAppender"/>
+    </logger>
+
+    <logger name="org.sunbird" level="DEBUG">
+        <appender-ref ref="customLoggerAppender"/>
+    </logger>
+
+    <logger name="org.sunbird" level="WARN">
         <appender-ref ref="customLoggerAppender"/>
     </logger>
 
