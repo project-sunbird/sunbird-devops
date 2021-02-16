@@ -40,7 +40,7 @@ seed_provider:
       parameters:
           # seeds is actually a comma-delimited list of addresses.
           # Ex: "<ip1>,<ip2>,<ip3>"
-{% if groups['cassandra-2'] is defined %}
+{% if (cassandra_cluster_size | int) > 1 %}
           - seeds: "{{groups['cassandra'][0]}},{{groups['cassandra'][1]}}"
 {% else %}
           - seeds: {{cassandra_seeds}}
@@ -56,7 +56,7 @@ trickle_fsync: false
 trickle_fsync_interval_in_kb: 10240
 storage_port: 7000
 ssl_storage_port: 7001
-{% if groups['cassandra-2'] is defined %}
+{% if (cassandra_cluster_size | int) > 1 %}
 listen_address: {{hostvars[inventory_hostname]['ansible_default_ipv4']['address']}}
 broadcast_address: {{hostvars[inventory_hostname]['ansible_default_ipv4']['address']}}
 broadcast_rpc_address: {{hostvars[inventory_hostname]['ansible_default_ipv4']['address']}}
@@ -89,7 +89,7 @@ cas_contention_timeout_in_ms: 1000
 truncate_request_timeout_in_ms: 60000
 request_timeout_in_ms: 10000
 cross_node_timeout: false
-{% if groups['cassandra-2'] is defined %}
+{% if (cassandra_cluster_size | int) > 1 %}
 endpoint_snitch: GossipingPropertyFileSnitch
 {% else %}
 endpoint_snitch: SimpleSnitch
