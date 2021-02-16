@@ -4,13 +4,13 @@ normal=$(tput sgr0)
 
 if [[ ! -d /var/lib/jenkins/.m2 ]]; then
 echo -e "\n\e[0;32m${bold}Downloading and copying m2 directory to Jenkins ${normal}"
-wget https://sunbirdpublic.blob.core.windows.net/installation/m2.tar
-tar -xf m2.tar
+wget https://sunbirdpublic.blob.core.windows.net/installation/m2-slim.tar
+tar -xf m2-slim.tar
 mv .m2 /var/lib/jenkins
 chown -R jenkins:jenkins /var/lib/jenkins/.m2
 else
-wget https://sunbirdpublic.blob.core.windows.net/installation/m2.tar    
-tar -xf m2.tar  
+wget https://sunbirdpublic.blob.core.windows.net/installation/m2-slim.tar
+tar -xf m2-slim.tar
 cp -rf .m2/* /var/lib/jenkins/.m2/
 chown -R jenkins:jenkins /var/lib/jenkins/.m2
 fi

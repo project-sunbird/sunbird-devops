@@ -29,15 +29,91 @@
         <hudson.model.StringParameterDefinition>
           <name>absolute_job_path</name>
           <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Do not change this value! The metadata.json will be copied from this job.&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue>ArtifactUpload/dev/Core/Badger</defaultValue>
+          <defaultValue>ArtifactUpload/dev/KnowledgePlatform/KnowledgePlatform</defaultValue>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>image_tag</name>
-          <description>&lt;font color=red size=2&gt;&lt;b&gt;CAUTION: If the value is blank, image tag will be taken from the latest metadata.json.&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue></defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.2.1">
+          <name>artifact_source</name>
+          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;
+ArtifactRepo - Download the artifact from azure blob, JenkinsJob - Use the atrifact from Jenkins job.&lt;/b&gt;&lt;/font&gt;</description>
+          <randomName>choice-parameter-14760318274338</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.66">
+              <script>return[
+&apos;JenkinsJob&apos;,
+&apos;ArtifactRepo&apos;
+]</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.66">
+              <script></script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>Search</projectName>
+          <projectFullName>Deploy/dev/KnowledgePlatform/Search</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters></referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.2.1">
+          <name>build_number</name>
+          <description></description>
+          <randomName>choice-parameter-14760320375443</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.66">
+              <script>if (artifact_source.equals(&quot;JenkinsJob&quot;)) {
+return &quot;&quot;&quot;&lt;input name=&quot;value&quot; value=&quot;lastSuccessfulBuild&quot; class=&quot;setting-input&quot;  type=&quot;text&quot;&gt;&lt;br&gt; &lt;font color=darkgreen size=2&gt;&lt;b&gt;OPTIONAL: Specify the build number of ArtifactUpload job from which the artifact will be copied and deployed.&lt;/b&gt;&lt;/font&gt;&quot;&quot;&quot;
+}
+else
+{ 
+return &quot;&lt;b&gt;Not Applicable&lt;/b&gt;&quot;
+}</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.66">
+              <script></script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>Search</projectName>
+          <projectFullName>Deploy/dev/KnowledgePlatform/Search</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>artifact_source</referencedParameters>
+          <choiceType>ET_FORMATTED_HTML</choiceType>
+          <omitValueField>true</omitValueField>
+        </org.biouno.unochoice.DynamicReferenceParameter>
+        <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.2.1">
+          <name>artifact_version</name>
+          <description></description>
+          <randomName>choice-parameter-14760322347747</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.66">
+              <script>if (artifact_source.equals(&quot;ArtifactRepo&quot;)) {
+return &quot;&quot;&quot;&lt;input name=&quot;value&quot; value=&quot;&quot; class=&quot;setting-input&quot;  type=&quot;text&quot;&gt; &lt;br&gt; &lt;font color=red size=2&gt;&lt;b&gt;CAUTION: If the value is blank, artifact version will be taken from the latest metadata.json.&lt;/b&gt;&lt;/font&gt;&quot;&quot;&quot;
+} 
+else {
+return &quot;&lt;b&gt;Not Applicable&lt;/b&gt;&quot;
+}</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.66">
+              <script></script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>Search</projectName>
+          <projectFullName>Deploy/dev/KnowledgePlatform/Search</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>artifact_source</referencedParameters>
+          <choiceType>ET_FORMATTED_HTML</choiceType>
+          <omitValueField>true</omitValueField>
+        </org.biouno.unochoice.DynamicReferenceParameter>
         <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.2.1">
           <name>private_branch</name>
           <description></description>
@@ -57,8 +133,8 @@ return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quo
               <sandbox>false</sandbox>
             </secureFallbackScript>
           </script>
-          <projectName>Badger</projectName>
-          <projectFullName>Deploy/dev/Kubernetes/Badger</projectFullName>
+          <projectName>Search</projectName>
+          <projectFullName>Deploy/dev/KnowledgePlatform/Search</projectFullName>
           <parameters class="linked-hash-map"/>
           <referencedParameters></referencedParameters>
           <choiceType>ET_FORMATTED_HTML</choiceType>
@@ -72,7 +148,7 @@ return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quo
           <script class="org.biouno.unochoice.model.GroovyScript">
             <secureScript plugin="script-security@1.66">
               <script>if (override_public_branch.equals(&quot;true&quot;)) {
-return &quot;&quot;&quot;&lt;input name=&quot;value&quot; value=&quot;&quot; class=&quot;setting-input&quot;  type=&quot;text&quot;&gt;&lt;br&gt; &lt;font color=dimgray size=2&gt;&lt;b&gt;Provide the tag or branch name to checkout the Jenkinsfile and codebase.&lt;br&gt;Note: The tag or branch name for this job should be taken from &lt;a href=&quot;https://github.com/project-sunbird/sunbird-devops&quot;&gt;project-sunbird/sunbird-devops&lt;/a&gt;&lt;/b&gt;&lt;/font&gt;&lt;/b&gt;&lt;/font&gt;&quot;&quot;&quot;;
+return &quot;&quot;&quot;&lt;input name=&quot;value&quot; value=&quot;&quot; class=&quot;setting-input&quot;  type=&quot;text&quot;&gt;&lt;br&gt; &lt;font color=dimgray size=2&gt;&lt;b&gt;Provide the tag or branch name to checkout the Jenkinsfile and codebase.&lt;br&gt;Note: The tag or branch name for this job should be taken from &lt;a href=&quot;https://github.com/project-sunbird/sunbird-learning-platform&quot;&gt;project-sunbird/sunbird-learning-platform&lt;/a&gt;&lt;/b&gt;&lt;/font&gt;&lt;/b&gt;&lt;/font&gt;&quot;&quot;&quot;;
 
 }
 else
@@ -84,19 +160,13 @@ return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quo
               <sandbox>false</sandbox>
             </secureFallbackScript>
           </script>
-          <projectName>Badger</projectName>
-          <projectFullName>Deploy/dev/Kubernetes/Badger</projectFullName>
+          <projectName>Search</projectName>
+          <projectFullName>Deploy/dev/KnowledgePlatform/Search</projectFullName>
           <parameters class="linked-hash-map"/>
           <referencedParameters></referencedParameters>
           <choiceType>ET_FORMATTED_HTML</choiceType>
           <omitValueField>true</omitValueField>
         </org.biouno.unochoice.DynamicReferenceParameter>
-        <hudson.model.StringParameterDefinition>
-          <name>role_name</name>
-          <description></description>
-          <defaultValue>deploy-badger</defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
@@ -112,7 +182,7 @@ return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quo
       <triggers>
         <jenkins.triggers.ReverseBuildTrigger>
           <spec></spec>
-          <upstreamProjects>ArtifactUpload/dev/Core/Badger</upstreamProjects>
+          <upstreamProjects>ArtifactUpload/dev/KnowledgePlatform/KnowledgePlatform</upstreamProjects>
           <threshold>
             <name>SUCCESS</name>
             <ordinal>0</ordinal>
@@ -128,7 +198,7 @@ return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quo
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
-          <url>https://github.com/project-sunbird/sunbird-devops.git</url>
+          <url>https://github.com/project-sunbird/sunbird-learning-platform.git</url>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
       <branches>
@@ -148,7 +218,7 @@ return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quo
         </hudson.plugins.git.extensions.impl.CloneOption>
       </extensions>
     </scm>
-    <scriptPath>kubernetes/pipelines/deploy_core/Jenkinsfile</scriptPath>
+    <scriptPath>pipelines/deploy/search/Jenkinsfile</scriptPath>
     <lightweight>false</lightweight>
   </definition>
   <triggers/>
