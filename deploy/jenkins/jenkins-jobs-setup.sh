@@ -22,7 +22,8 @@ setupJobs(){
       find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type f -name config.xml -exec sed -i "s#ArtifactUpload/dev/#ArtifactUpload/${arr[0]}/#g" {} \;
       find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type f -name config.xml -exec sed -i "s#Deploy/dev/#Deploy/${arr[0]}/#g" {} \;
    fi
-   find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type d -path "*Summary*" -prune -o -name config.xml -exec sed -i 's/<upstreamProjects>.*//g' {} \;
+   find $JENKINS_TMP/Deploy/jobs/${arr[0]} -type d -path "*Summary*" -prune -o -name config.xml -exec sed -i 's#<upstreamProjects>.*##g' {} \;
+   find $JENKINS_TMP/Build/jobs -type f -name config.xml -exec sed -i 's#refs/heads/${public_repo_branch}#refs/tags/${public_repo_branch}#g' {} \;
    echo -e "\e[0;33m${bold}Jobs created for ${arr[0]}${normal}"
 
    for key in "${!arr[@]}"; do
@@ -33,19 +34,19 @@ setupJobs(){
       cp -r $JENKINS_TMP/OpsAdministration/jobs/${arr[0]} $JENKINS_TMP/OpsAdministration/jobs/${arr[$key]}
       cp -r $JENKINS_TMP/Deploy/jobs/${arr[0]} $JENKINS_TMP/Deploy/jobs/${arr[$key]}
       find $JENKINS_TMP/Deploy/jobs/${arr[$key]} -type f -name config.xml -exec bash -c 'configPath=$0; jobPath=$(dirname $configPath); jobName=$(basename $jobPath); modulePath=${jobPath%/*/*}; moduleName=$(basename $modulePath); sed -i "s#ArtifactUpload/$1/$moduleName/.*<#Deploy/$2/$moduleName/$jobName<#g" $0' {} ${arr[0]} ${arr[$(($key - 1))]} \;
-      find $JENKINS_TMP/Deploy/jobs/${arr[$key]} -type d -path "*Summary*" -prune -o -name config.xml -exec sed -i 's/<upstreamProjects>.*//g' {} \;
+      find $JENKINS_TMP/Deploy/jobs/${arr[$key]} -type d -path "*Summary*" -prune -o -name config.xml -exec sed -i 's#<upstreamProjects>.*##g' {} \;
       find $JENKINS_TMP/Deploy/jobs/${arr[$key]}/jobs/Summary/jobs/DeployedVersions -type f -name config.xml -exec sed -i "s#Deploy/${arr[0]}/#Deploy/${arr[$key]}/#g" {} \;
       echo -e "\e[0;33m${bold}Jobs created for ${arr[$key]}${normal}"
    done
    echo -e "\e[0;36m${bold}Do you want to disable auto trigger of build jobs based on new commits?${normal}"
    read -p 'y/n: ' choice
    if [[ $choice == "y" ]]; then
-      find $JENKINS_TMP/Build -type f -name config.xml -exec sed -i 's/<spec>.*<\/spec>/<spec><\/spec>/g' {} \;
+      find $JENKINS_TMP/Build -type f -name config.xml -exec sed -i 's#<spec>.*</spec>#<spec></spec>#g' {} \;
    fi
    echo -e "\e[0;36m${bold}Do you want to disable daily backup jobs (Ex: DB backups)?${normal}"
    read -p 'y/n: ' choice
    if [[ $choice == "y" ]]; then
-      find $JENKINS_TMP/OpsAdministration -type f -name config.xml -exec sed -i 's/<spec>.*<\/spec>/<spec><\/spec>/g' {} \;
+      find $JENKINS_TMP/OpsAdministration -type f -name config.xml -exec sed -i 's#<spec>.*</spec>#<spec></spec>#g' {} \;
    fi
    diffs=$(colordiff -r --suppress-common-lines --no-dereference -x 'nextBuildNumber' -x 'builds' -x 'last*' /var/lib/jenkins/jobs $JENKINS_TMP | wc -l)
    if [[ $diffs -eq 0 ]]; then
