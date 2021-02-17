@@ -1,0 +1,38 @@
+---
+- hosts: local
+  tasks:
+  - name: Update apt-get repo and cache
+    apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
+  - name: Install default-jdk  (state=present is optional)
+    apt:
+      name: default-jdk
+      state: present
+  - name: Add an Apt signing key, uses whichever key is at the URL
+    apt_key:
+      url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      state: present
+  - name: Add specified repository into sources list
+    apt_repository:
+      repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+      state: present
+  - name: Install elasticsearch  (state=present is optional)
+    apt:
+      name: elasticsearch
+      state: present
+  - name: Start service
+    service:
+            name: elasticsearch
+            state: started
+            enabled: yes
+  - name: Change bindIp to 0.0.0.0 in /etc/elasticsearch/elasticsearch.yml
+    replace:
+      path: /etc/elasticsearch/elasticsearch.yml
+      regexp: "{{ item.existing }}"
+      replace: "{{ item.replacing }}"
+    loop:
+            - { existing: '#network.host: 192.168.0.1', replacing: 'network.host: 0.0.0.0' }
+            - { existing: '#discovery.seed_hosts: \["host1", "host2"\]', replacing: 'discovery.seed_hosts: []' }
+  - name: Restart service
+    service:
+            name: elasticsearch
+            state: restarted
