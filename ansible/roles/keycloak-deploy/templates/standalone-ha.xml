@@ -329,7 +329,7 @@
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jgroups:7.0">
             <channels default="ee">
-                <channel name="ee" stack="udp" cluster="ejb"/>
+                <channel name="ee" stack="tcp" cluster="ejb"/>
             </channels>
             <stacks>
                 <stack name="udp">
@@ -348,8 +348,11 @@
                     <protocol type="FRAG3"/>
                 </stack>
                 <stack name="tcp">
-                    <transport type="TCP" socket-binding="jgroups-tcp"/>
-                    <socket-protocol type="MPING" socket-binding="jgroups-mping"/>
+		    <transport type="TCP" socket-binding="jgroups-tcp"/>
+               	    <protocol type="TCPPING">
+		      <property name="initial_hosts">{{groups['keycloak']|join('[7600],')}}[7600]</property>
+		      <property name="port_range">1</property>
+		    </protocol>
                     <protocol type="MERGE3"/>
                     <socket-protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
                     <protocol type="FD_ALL"/>
