@@ -349,10 +349,23 @@
                 </stack>
                 <stack name="tcp">
 		    <transport type="TCP" socket-binding="jgroups-tcp"/>
+<!--
                	    <protocol type="TCPPING">
 		      <property name="initial_hosts">{{groups['keycloak']|join('[7600],')}}[7600]</property>
 		      <property name="port_range">1</property>
 		    </protocol>
+-->
+                    <protocol type="JDBC_PING">
+                      <property name="datasource_jndi_name">java:jboss/datasources/KeycloakDS</property>
+                      <property name="initialize_sql">
+                        CREATE TABLE IF NOT EXISTS JGROUPSPING (
+                        own_addr varchar(200) NOT NULL,
+                        cluster_name varchar(200) NOT NULL,
+                        ping_data BYTEA,
+                        PRIMARY KEY (own_addr, cluster_name)
+                        );
+                      </property>
+                    </protocol>
                     <protocol type="MERGE3"/>
                     <socket-protocol type="FD_SOCK" socket-binding="jgroups-tcp-fd"/>
                     <protocol type="FD_ALL"/>
