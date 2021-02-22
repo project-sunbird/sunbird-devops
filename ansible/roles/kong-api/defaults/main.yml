@@ -5945,6 +5945,24 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+      
+  - name: printCollection
+    request_path: "{{ program_service_prefix }}/v1/print/pdf"
+    upstream_url: "{{ program_service_url }}/program/v1/print/pdf"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'programAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
   - name: questionCreate
     request_path: "{{ question_prefix }}/v1/create"
