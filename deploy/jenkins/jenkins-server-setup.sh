@@ -15,7 +15,7 @@ echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
 apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
 apt-get update
-apt-get install -y jenkins=2.263.1
+apt-get install -y jenkins=2.263.4
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
@@ -66,7 +66,7 @@ ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/gulp /usr/bin/gulp
 rm -rf node-v6.17.1-linux-x64*
 
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
-pip install ansible==2.7.18
+pip install ansible==2.5.2
 
 echo -e "\n\e[0;32m${bold}Installating azure cli${normal}"
 apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
