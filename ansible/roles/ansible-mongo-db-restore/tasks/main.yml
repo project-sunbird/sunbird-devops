@@ -1,0 +1,18 @@
+---
+# tasks file for ansible-MONGO-db-restore
+- name: COPY THE FOLDER localhost server to MONGO
+  copy:
+    src: "{{ SOURCE_FILE_LOCATION }}"
+    dest: "{{ DEST_FILE_LOCATION }}"
+    remote_src: yes
+
+
+- name: RESTORE THE MONGO DOCUMENTS
+  shell:  "MONGOrestore --gzip --db={{ MONGO_DBNAME }} --username={{ MONGO_USERNAME }}  --password={{ MONGO_PASSWORD }} {{ MONGO_DIR }}"   
+  register: _RESTORE_LOCALHOST_RESULT
+  when: MONGO_RESTORE_FROM_LOCALHOST_SERVER
+
+- name: DEBUG THE RESULT
+  debug:
+    msg: "{{ _RESTORE_LOCALHOST_RESULT }}"
+  when: MONGO_RESTORE_FROM_LOCALHOST_SERVER
