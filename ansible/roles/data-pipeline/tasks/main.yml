@@ -1,0 +1,186 @@
+---
+# tasks file for data-pipeline
+- name: CREATE THE USER
+  user:
+    name: "{{ USER }}"
+    state: present
+    home: "/home/{{ USER }}"
+    shell: /bin/bash
+
+- name: UPDATE THE REPOS
+  apt:
+    update_cache: yes
+
+- name: INSTALL THE PACKGES
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - software-properties-common
+
+- name: ADD THE REPOSITORY
+  shell: sudo apt-add-repository universe
+
+- name: INSTALL THE PACKGES
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - python3-pip 
+    - python3.6-dev 
+    - python3.6-venv 
+    - python-virtualenv 
+    - zip 
+    - unzip
+
+- name: Unarchive a file that is already on the remote machine
+  unarchive:
+    src: "{{ BASEPATH }}/source.zip"
+    dest: "{{ BASEPATH }}"
+    remote_src: yes
+
+- name: CHANGE THE OWNERSHIP FOR THIS {{ BASEPATH }} DIRECTORY
+  file:
+    path: "{{ BASEPATH }}"
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+
+- name: CREATE THE DIRECTORY
+  file:
+    path: "{{ WORKDIR }}"
+    state: directory
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+
+- name: Change user and create working directory under opt dir and install python virtual environment
+  shell: |
+    "sudo -u {{ USER }} bash -c 'cd {{ WORKDIR }} && virtualenv --python=python3.6 spark_venv'"
+
+- name: Create necessary logs folders for pipeline
+  shell: |
+    "sudo -u {{ USER }} bash -c 'cd {{ WORKDIR }} && mkdir -p source logs/assessment/reports logs/observation/status logs/observation_evidence logs/project logs/survey logs/survey_evidence'"
+
+- name: copying file with owner and permissions
+  copy:
+    src: "{{ BASEPATH }}/source"
+    dest: "{{ WORKDIR }}"
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+    
+- name: Activate python environment and install required pip modules
+  Ashell: |
+    'sudo -u  {{ USER }} bash -c 'source {{ WORKDIR }}/spark_venv/bin/activate && pip install -r {{ WORKDIR }}/source/requirements.txt'"
+
+- name: create the directory
+  file:
+    path:  "{{ WORKDIR }}/faust_as_service"
+    state: directory
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+
+- name: Creating a faust service shell file in executable mode
+  copy:
+    dest: "{{ WORKDIR }}/faust_as_service/faust.sh"
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+    mode: 0777
+    content: |
+      #!/bin/sh
+      export LANG=C.UTF-8
+      export LC_ALL=C.UTF-8
+      /opt/sparkjobs/spark_venv/bin/python /opt/sparkjobs/source/\$1.py --workdir /opt/sparkjobs/source/\$2 worker -l info
+
+  - name: CREATION THE SYSTEMD faust_assessment FILE
+    copy:
+      dest: "{{ SYSTEMDDIR }}/faust_assessment.service"
+      content: |
+        [Unit]
+        Description=Faust Assessment Service
+        [Service]
+        User=data-pipeline
+        Group=data-pipeline
+        Restart=on-failure
+        Type=simple
+        ExecStart=/opt/sparkjobs/faust_as_service/faust.sh  assessment/assessment_streaming assessment/ assessment/
+        [Install]
+        WantedBy=multi-user.target
+
+  - name: CREATION THE SYSTEMD faust_observation FILE
+    copy:
+      dest: "{{ SYSTEMDDIR }}/faust_observation.service"
+      content: |
+        [Unit]
+        Description=Faust Observations Service
+        [Service]
+        User=data-pipeline
+        Group=data-pipeline
+        Restart=on-failure
+        Type=simple
+        ExecStart=/opt/sparkjobs/faust_as_service/faust.sh  observations/observation_streaming observations/
+        [Install]
+        WantedBy=multi-user.target
+
+  - name: CREATION THE SYSTEMD faust_observation_evidence FILE
+    copy:
+      dest: "{{ SYSTEMDDIR }}/faust_observation_evidence.service"
+      content: |
+        [Unit]
+        Description=Faust Observations Evidence Service
+        [Service]
+        User=data-pipeline
+        Group=data-pipeline
+        Restart=on-failure
+        Type=simple
+        ExecStart=/opt/sparkjobs/faust_as_service/faust.sh  observations/observation_evidence_streaming observations/
+        [Install]
+        WantedBy=multi-user.target
+
+  - name: CREATION THE SYSTEMD faust_survey FILE
+    copy:
+      dest: "{{ SYSTEMDDIR }}/faust_survey.service"
+      content: |
+        [Unit]
+        Description=Faust Survey Service
+        [Service]
+        User=data-pipeline
+        Group=data-pipeline
+        Restart=on-failure
+        Type=simple
+        ExecStart=/opt/sparkjobs/faust_as_service/faust.sh  survey/sl_py_survey_streaming survey/
+        [Install]
+        WantedBy=multi-user.target
+
+  - name: CREATION THE SYSTEMD faust_survey_evidence FILE
+    copy:
+      dest: "{{ SYSTEMDDIR }}/faust_survey_evidence.service"
+      content: |
+        [Unit]
+        Description=Faust Survey Evidence Service
+        [Service]
+        User=data-pipeline
+        Group=data-pipeline
+        Restart=on-failure
+        Type=simple
+        ExecStart=/opt/sparkjobs/faust_as_service/faust.sh  survey/evidence/sl_py_survey_evidence_streaming survey/evidence/
+        [Install]
+        WantedBy=multi-user.target
+
+- name: SYSTEMD DAEMON-RELOAD
+  systemd:
+    daemon_reload: yes
+
+- name: START AND ENABLE THE SERVICE
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  loop:
+    - faust_assessment.service 
+    - faust_observation.service 
+    - faust_observation_evidence.service 
+    - faust_survey.service 
+    - faust_survey_evidence.service
+
+- name: CREATE THE CRON JOB
+  shell: |
+    "sudo -u {{ USER }} bash -c '(crontab -l 2>/dev/null; echo '30 18 * * * . /opt/sparkjobs/source/spark_batch_jobs_run.sh >> /tmp/batch.log') | crontab -'"
