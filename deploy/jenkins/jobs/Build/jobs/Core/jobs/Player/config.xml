@@ -1,6 +1,6 @@
-<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.38">
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.40">
   <actions>
-    <org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction plugin="workflow-multibranch@2.21">
+    <org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction plugin="workflow-multibranch@2.22">
       <jobPropertyDescriptors>
         <string>hudson.model.ParametersDefinitionProperty</string>
         <string>com.sonyericsson.rebuild.RebuildSettings</string>
@@ -27,27 +27,14 @@
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>github_release_tag</name>
-          <description>&lt;font color=red size=2&gt;&lt;b&gt;CAUTION: If the value is blank, latest code will be built. Specify github tag name to build from a tag.&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue/>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>sunbird_content_editor_artifact_url</name>
-          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Blob URL for content editor zip file&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue>https://sunbirddev.blob.core.windows.net/sunbird-content-dev/artefacts/editor/content-editor-iframe-3.0.0.zip</defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>sunbird_collection_editor_artifact_url</name>
-          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Blob URL for collection editor zip file&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue>https://sunbirddev.blob.core.windows.net/sunbird-content-dev/artefacts/editor/collection-editor-iframe-3.0.0.zip</defaultValue>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>sunbird_generic_editor_artifact_url</name>
-          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Blob URL for generic editor zip file&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue>https://sunbirddev.blob.core.windows.net/sunbird-content-dev/artefacts/editor/generic-editor-iframe-2.9.0.zip</defaultValue>
-          <trim>false</trim>
+          <description>&lt;font style="color:dimgray;font-size:14px;"&gt;&lt;b&gt;
+&lt;li&gt;To build from a tag, use refs/tags/github_tag&lt;/li&gt;
+&lt;li&gt;To build from a branch, use refs/heads/github_branch&lt;/li&gt;
+&lt;li&gt;The default value of ${public_repo_branch} will be the release / tag version set in global configuration&lt;/li&gt;
+&lt;li&gt;To build from a differnt branch, replace the ${public_repo_branch} with your branch&lt;/li&gt;
+&lt;/b&gt;&lt;/font&gt;</description>
+          <defaultValue>refs/heads/${public_repo_branch}</defaultValue>
+          <trim>true</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.ChoiceParameterDefinition>
           <name>buildDockerImage</name>
@@ -77,7 +64,9 @@
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.2">
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.3">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
       <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
       <throttleEnabled>false</throttleEnabled>
       <throttleOption>project</throttleOption>
@@ -86,15 +75,20 @@
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
     
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-      <triggers/>
+      <triggers>
+        <hudson.triggers.SCMTrigger>
+          <spec>H/15 * * * *</spec>
+          <ignorePostCommitHooks>false</ignorePostCommitHooks>
+        </hudson.triggers.SCMTrigger>
+      </triggers>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.80">
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.2.2">
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.87">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.5.0">
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
-          <url>https://github.com/Sunbird-Ed/SunbirdEd-portal</url>
+          <url>https://github.com/Sunbird-Ed/SunbirdEd-portal.git</url>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
       <branches>
@@ -104,15 +98,7 @@
       </branches>
       <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
       <submoduleCfg class="list"/>
-      <extensions>
-        <hudson.plugins.git.extensions.impl.CloneOption>
-          <shallow>true</shallow>
-          <noTags>false</noTags>
-          <reference/>
-          <depth>0</depth>
-          <honorRefspec>false</honorRefspec>
-        </hudson.plugins.git.extensions.impl.CloneOption>
-      </extensions>
+      <extensions/>
     </scm>
     <scriptPath>Jenkinsfile</scriptPath>
     <lightweight>false</lightweight>

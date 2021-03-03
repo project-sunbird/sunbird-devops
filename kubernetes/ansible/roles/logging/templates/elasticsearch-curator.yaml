@@ -1,0 +1,38 @@
+---
+cronjob:
+  # At mid night every day of system time
+  schedule: "00 00 * * *"
+  jobRestartPolicy: Never
+  failedJobsHistoryLimit: 1
+  successfulJobsHistoryLimit: 1
+
+image:
+  repository: untergeek/curator
+  tag: 5.8.1
+  pullPolicy: IfNotPresent
+
+configMaps:
+  # Delete indices older than 2 days
+  action_file_yml: |-
+    ---
+    actions:
+      1:
+        action: delete_indices
+        description: "Clean up ES by deleting old indices"
+        options:
+          timeout_override:
+          continue_if_exception: False
+          disable_action: False
+          ignore_empty_list: True
+        filters:
+        - filtertype: age
+          source: name
+          direction: older
+          timestring: '%Y.%m.%d'
+          unit: days
+          unit_count: {{ curator_delete_indices_older_than }}
+  config_yml: |-
+    ---
+    client:
+      hosts: ["{{ groups['log-es'] | join('", "') }}"]
+      port: 9200
