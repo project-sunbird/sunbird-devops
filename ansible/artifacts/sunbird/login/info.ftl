@@ -16,8 +16,8 @@
                <#if pageRedirectUri??>
                  <p><a href="${pageRedirectUri}" class="sb-btn sb-btn-normal sb-btn-outline-primary mt-16 line-height-normal">${kcSanitize(msg("backToApplication"))?no_esc}</a></p>
                <#elseif actionUri??>
-                 <p><a id="click-here-to-proceed" href="${actionUri}">${kcSanitize(msg("proceedWithAction"))?no_esc}</a></p>
-                 <#-- <p><a href="${actionUri}">${kcSanitize(msg("proceedWithAction"))?no_esc}</a></p> -->
+            <#-- <p><a id="click-here-to-proceed" href="${actionUri}">${kcSanitize(msg("proceedWithAction"))?no_esc}</a></p> -->
+                 <p><a href="${actionUri}">${kcSanitize(msg("proceedWithAction"))?no_esc}</a></p> 
                <#elseif client.baseUrl??>
                  <p><a href="${client.baseUrl}" class="sb-btn sb-btn-normal sb-btn-outline-primary mt-16 line-height-normal">${kcSanitize(msg("backToApplication"))?no_esc}</a></p>
                </#if>
