@@ -7,7 +7,7 @@
 
 - name: Stop service
   become: true
-  command: /etc/init.d/keycloak stop && Pkill keycloak
+  command: /etc/init.d/keycloak stop || pkill keycloak
   when: "keycloak.stdout.find('running') != -1"
   poll: 5
   async: 10
@@ -203,3 +203,12 @@
   command: /etc/init.d/keycloak start
   poll: 5
   async: 5
+ 
+- name: Wait for keycloak to be accessible, maximum timeout of 15m
+  uri:
+    url: "http://{{ inventory_hostname }}:8080/auth/"
+    method: GET
+  register: _result
+  until: _result.status == 200
+  delay: 30
+  retries: 30
