@@ -18,7 +18,10 @@ apt-get update
 apt-get install -y jenkins=2.263.4
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
-apt-get install -y python-pip
+udo apt update 
+sudo apt install python2
+curl https://bootstrap.pypa.io/2.7/get-pip.py --output get-pip.py
+sudo python2 get-pip.py
 
 echo -e "\n\e[0;32m${bold}Installating Maven${normal}"
 apt-get install -y maven
@@ -141,7 +144,7 @@ rm -rf java-11-openjdk-amd64 openjdk-11+28_linux-x64_bin.tar.gz
 
 wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
 tar -xf apache-maven-3.6.3-bin.tar.gz
-mv apache-maven-3.6.3/bin/mvn /opt/apache-maven-3.6.3/bin/mvn.3.6
+mv apache-maven-3.6.3/bin/mvn /opt/apache-maven-3.6.3/bin/mvn3.6
 rm -rf apache-maven-3.6.3-bin.tar.gz
 
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
