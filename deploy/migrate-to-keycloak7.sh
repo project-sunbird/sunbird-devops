@@ -48,6 +48,9 @@ psql -h $PG_HOST -U $PG_USER -p 5432 -d ${PG_DB}7 -c "truncate offline_user_sess
 psql -h $PG_HOST -U $PG_USER -p 5432 -d ${PG_DB}7 -c "truncate offline_client_session"
 psql -h $PG_HOST -U $PG_USER -p 5432 -d ${PG_DB}7 -c "truncate jgroupsping" || true
 
+echo "Get the current VM IP"
+ip="$(ifconfig | grep -A 1 'eth0' | tail -1 | cut -d ':' -f 2 | cut -d ' ' -f 1)"
+
 echo "Migrate the DB to keycloak 7"
 cd keycloak-7.0.1
-bin/standalone.sh -b=$(hostname -i) -bprivate=$(hostname -i) --server-config standalone-ha.xml
+bin/standalone.sh -b=$ip -bprivate=$ip --server-config standalone-ha.xml
