@@ -22,7 +22,7 @@ echo "Extract keycloak package"
 tar -xf keycloak-7.0.1.tar.gz
 
 echo "Get the postgres jar"
-wget https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
+wget -q https://jdbc.postgresql.org/download/postgresql-9.4.1212.jar
 
 echo "Copy standalone-ha.xml, postgres jar and module.xml file to keycloak package"
 cp standalone-ha.xml keycloak-7.0.1/standalone/configuration
