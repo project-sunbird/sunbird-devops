@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu -o pipefail
+
 echo "Get the standalone-ha.xml template file and module.xml"
 curl -sS https://raw.githubusercontent.com/keshavprasadms/sunbird-devops/kc-7.0.1/ansible/roles/keycloak-deploy/templates/standalone-ha.xml --output standalone-ha.xml
 curl -sS https://raw.githubusercontent.com/keshavprasadms/sunbird-devops/kc-7.0.1/ansible/roles/keycloak-deploy/templates/module.xml.j2 --output module.xml
