@@ -6,12 +6,15 @@ echo "Get the standalone-ha.xml template file and module.xml"
 curl -sS https://raw.githubusercontent.com/project-sunbird/sunbird-devops/keycloak7/ansible/roles/keycloak-deploy/templates/standalone-ha.xml --output standalone-ha.xml
 curl -sS https://raw.githubusercontent.com/project-sunbird/sunbird-devops/keycloak7/ansible/roles/keycloak-deploy/templates/module.xml.j2 --output module.xml
 
+echo "Get the current VM IP"
+ip="$(ifconfig | grep -A 1 'eth0' | tail -1 | cut -d ':' -f 2 | cut -d ' ' -f 1)"
+
 echo "Replace ansible variables with postgres details"
 sed -i "s/{{keycloak_postgres_host}}/$PG_HOST/g" standalone-ha.xml
 sed -i "s/{{keycloak_postgres_database}}/${PG_DB}7/g" standalone-ha.xml
 sed -i "s/{{keycloak_postgres_user}}/$PG_USER/g" standalone-ha.xml
 sed -i "s/{{keycloak_postgres_password}}/$PGPASSWORD/g" standalone-ha.xml
-sed -i "s/{{ansible_default_ipv4.address}}/$(hostname -i)/g" standalone-ha.xml
+sed -i "s/{{ansible_default_ipv4.address}}/$ip/g" standalone-ha.xml
 sed -i "s/8080/8081/g" standalone-ha.xml
 sed -i "s/\"900\"/\"3600\"/g" standalone-ha.xml
 
@@ -47,9 +50,6 @@ psql -h $PG_HOST -U $PG_USER -p 5432 -d ${PG_DB}7 -c "delete from public.WEB_ORI
 psql -h $PG_HOST -U $PG_USER -p 5432 -d ${PG_DB}7 -c "truncate offline_user_session"
 psql -h $PG_HOST -U $PG_USER -p 5432 -d ${PG_DB}7 -c "truncate offline_client_session"
 psql -h $PG_HOST -U $PG_USER -p 5432 -d ${PG_DB}7 -c "truncate jgroupsping" || true
-
-echo "Get the current VM IP"
-ip="$(ifconfig | grep -A 1 'eth0' | tail -1 | cut -d ':' -f 2 | cut -d ' ' -f 1)"
 
 echo "Migrate the DB to keycloak 7"
 cd keycloak-7.0.1
