@@ -3,8 +3,8 @@
 set -eu -o pipefail
 
 echo "Get the standalone-ha.xml template file and module.xml"
-curl -sS https://raw.githubusercontent.com/keshavprasadms/sunbird-devops/kc-7.0.1/ansible/roles/keycloak-deploy/templates/standalone-ha.xml --output standalone-ha.xml
-curl -sS https://raw.githubusercontent.com/keshavprasadms/sunbird-devops/kc-7.0.1/ansible/roles/keycloak-deploy/templates/module.xml.j2 --output module.xml
+curl -sS https://raw.githubusercontent.com/project-sunbird/sunbird-devops/keycloak7/ansible/roles/keycloak-deploy/templates/standalone-ha.xml --output standalone-ha.xml
+curl -sS https://raw.githubusercontent.com/project-sunbird/sunbird-devops/keycloak7/ansible/roles/keycloak-deploy/templates/module.xml.j2 --output module.xml
 
 echo "Replace ansible variables with postgres details"
 sed -i "s/{{keycloak_postgres_host}}/$PG_HOST/g" standalone-ha.xml
