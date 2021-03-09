@@ -5625,6 +5625,24 @@ kong_apis:
       - name: request-size-limiting
         config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
+  - name: questionList
+    uris: "{{ question_prefix }}/v1/list"
+    upstream_url: "{{ content_service_url }}/v1/question/list"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"      
+
   - name: questionSetCreate
     uris: "{{ questionset_prefix }}/v1/create"
     upstream_url: "{{ assessment_service_url }}/questionset/v4/create"
