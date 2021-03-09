@@ -1,5 +1,5 @@
 <?xml version='1.1' encoding='UTF-8'?>
-<flow-definition plugin="workflow-job@2.33">
+<flow-definition plugin="workflow-job@2.36">
   <actions>
     <org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction plugin="workflow-multibranch@2.21">
       <jobPropertyDescriptors>
@@ -14,9 +14,9 @@
     <jenkins.model.BuildDiscarderProperty>
       <strategy class="hudson.tasks.LogRotator">
         <daysToKeep>-1</daysToKeep>
-        <numToKeep>-1</numToKeep>
+        <numToKeep>10</numToKeep>
         <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>10</artifactNumToKeep>
+        <artifactNumToKeep>1</artifactNumToKeep>
       </strategy>
     </jenkins.model.BuildDiscarderProperty>
     <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.31">
@@ -27,9 +27,14 @@
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>github_release_tag</name>
-          <description>&lt;font color=red size=2&gt;&lt;b&gt;CAUTION: If the value is blank, latest code will be built. Specify github tag name to build from a tag.&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue></defaultValue>
-          <trim>false</trim>
+          <description>&lt;font style="color:dimgray;font-size:14px;"&gt;&lt;b&gt;
+&lt;li&gt;To build from a tag, use refs/tags/github_tag&lt;/li&gt;
+&lt;li&gt;To build from a branch, use refs/heads/github_branch&lt;/li&gt;
+&lt;li&gt;The default value of ${public_repo_branch} will be the release / tag version set in global configuration&lt;/li&gt;
+&lt;li&gt;To build from a differnt branch, replace the ${public_repo_branch} with your branch&lt;/li&gt;
+&lt;/b&gt;&lt;/font&gt;</description>
+          <defaultValue>refs/heads/${public_repo_branch}</defaultValue>
+          <trim>true</trim>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
@@ -51,8 +56,8 @@
       </triggers>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.73">
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@3.11.0">
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.75">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.0.0">
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>

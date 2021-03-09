@@ -1,4 +1,4 @@
-{% if groups['cassandra-2'] is defined %}
+{% if (cassandra_cluster_size | int) > 1 %}
 CREATE KEYSPACE portal
 WITH REPLICATION = { 'class' : 'NetworkTopologyStrategy', 'datacenter1' : 2 };
 USE portal;

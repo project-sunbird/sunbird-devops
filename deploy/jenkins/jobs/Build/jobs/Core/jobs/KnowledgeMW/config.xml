@@ -1,15 +1,14 @@
-<?xml version='1.1' encoding='UTF-8'?>
-<flow-definition plugin="workflow-job@2.36">
+<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.40">
   <actions/>
-  <description></description>
+  <description/>
   <keepDependencies>false</keepDependencies>
   <properties>
     <jenkins.model.BuildDiscarderProperty>
       <strategy class="hudson.tasks.LogRotator">
         <daysToKeep>-1</daysToKeep>
-        <numToKeep>-1</numToKeep>
+        <numToKeep>10</numToKeep>
         <artifactDaysToKeep>-1</artifactDaysToKeep>
-        <artifactNumToKeep>10</artifactNumToKeep>
+        <artifactNumToKeep>1</artifactNumToKeep>
       </strategy>
     </jenkins.model.BuildDiscarderProperty>
     <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
@@ -21,21 +20,27 @@
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>github_release_tag</name>
-          <description>&lt;font color=red size=2&gt;&lt;b&gt;CAUTION: If the value is blank, latest code will be built. Specify github tag name to build from a tag.&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue></defaultValue>
-          <trim>false</trim>
+          <description>&lt;font style="color:dimgray;font-size:14px;"&gt;&lt;b&gt;
+&lt;li&gt;To build from a tag, use refs/tags/github_tag&lt;/li&gt;
+&lt;li&gt;To build from a branch, use refs/heads/github_branch&lt;/li&gt;
+&lt;li&gt;The default value of ${public_repo_branch} will be the release / tag version set in global configuration&lt;/li&gt;
+&lt;li&gt;To build from a differnt branch, replace the ${public_repo_branch} with your branch&lt;/li&gt;
+&lt;/b&gt;&lt;/font&gt;</description>
+          <defaultValue>refs/heads/${public_repo_branch}</defaultValue>
+          <trim>true</trim>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.3">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
       <maxConcurrentTotal>0</maxConcurrentTotal>
       <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
       <throttleEnabled>false</throttleEnabled>
       <throttleOption>project</throttleOption>
       <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
-      <paramsToUseForLimit></paramsToUseForLimit>
+      <paramsToUseForLimit/>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+    
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers>
         <hudson.triggers.SCMTrigger>
@@ -45,12 +50,12 @@
       </triggers>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.75">
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.0.0">
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.87">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.5.0">
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
-          <url>https://github.com/project-sunbird/sunbird-content-service.git</url>
+          <url>https://github.com/project-sunbird/knowledge-mw-service.git</url>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
       <branches>
@@ -58,17 +63,6 @@
           <name>${github_release_tag}</name>
         </hudson.plugins.git.BranchSpec>
       </branches>
-      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-      <submoduleCfg class="list"/>
-      <extensions>
-        <hudson.plugins.git.extensions.impl.CloneOption>
-          <shallow>true</shallow>
-          <noTags>false</noTags>
-          <reference></reference>
-          <depth>0</depth>
-          <honorRefspec>false</honorRefspec>
-        </hudson.plugins.git.extensions.impl.CloneOption>
-      </extensions>
     </scm>
     <scriptPath>Jenkinsfile</scriptPath>
     <lightweight>false</lightweight>

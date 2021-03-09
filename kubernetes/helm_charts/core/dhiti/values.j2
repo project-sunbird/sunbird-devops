@@ -1,0 +1,28 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+
+replicaCount: {{dhiti_replicacount|default(1)}}
+repository: {{dhiti_repository|default('dhiti-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{dhiti_cpu_req|default('100m')}}
+    memory: {{dhiti_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{dhiti_cpu_limit|default('1')}}
+    memory: {{dhiti_mem_limit|default('1024Mi')}}
+network:
+  port: 4700
+  targetport: 4700
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ dhiti_maxsurge|default('25%') }}
+  maxunavailable: {{ dhiti_maxunavailable|default('25%') }}
+  
+{{ dhiti_liveness_readiness | to_nice_yaml }}
+dhiti_access_basepath: {{ dhiti_access_basepath | default('/opt/dhiti/keycloak-public-keys/') }}
+
