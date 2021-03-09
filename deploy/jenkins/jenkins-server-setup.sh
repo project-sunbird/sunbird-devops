@@ -18,7 +18,7 @@ apt-get update
 apt-get install -y jenkins=2.263.4
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
-udo apt update 
+sudo apt update 
 sudo apt install python2
 curl https://bootstrap.pypa.io/2.7/get-pip.py --output get-pip.py
 sudo python2 get-pip.py
