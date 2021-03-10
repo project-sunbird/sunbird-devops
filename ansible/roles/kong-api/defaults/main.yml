@@ -38,7 +38,6 @@ freshDesk_url: "http://dummy.freshDesk.url"
 # Default service prefixes
 learner_private_route_prefix: /private
 private_content_prefix: /private/content
-private_assessment_prefix: /private/assessment
 device_prefix: /v3/device
 content_prefix: /content
 tickets_prefix: /tickets
@@ -1415,24 +1414,6 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'itemSetAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: AssessmentItemAPIs
-    uris: "{{ private_assessment_prefix }}/v3/items"
-    upstream_url: "{{ vm_learning_service_url }}/assessment/v3/items"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'itemSetSuperAdmin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
