@@ -83,6 +83,9 @@ alertmanager:
       group_interval: 5m
       repeat_interval: 4h
       routes:
+      - match_re:
+         alertname: ^(AlertmanagerConfigInconsistent|AlertmanagerFailedReload|AlertmanagerMembersInconsistent|etcdGRPCRequestsSlow|etcdHTTPRequestsSlow|etcdHighCommitDurations|etcdHighFsyncDurations|etcdHighNumberOfFailedGRPCRequests|etcdHighNumberOfFailedHTTPRequests|etcdHighNumberOfFailedProposals|etcdHighNumberOfLeaderChanges|etcdInsufficientMembers|etcdMemberCommunicationSlow|etcdNoLeader|KubeControllerManagerDown|KubeSchedulerDown|KubeAPIDown|KubeStateMetricsDown)
+        receiver: "null"
       - match:
           module: dp_process
         receiver: dp-process_slack
@@ -207,6 +210,7 @@ alertmanager:
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
               subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+      - name: 'null'
 
       {% for item in alert_teams %}
       # Comment to ensure proper indentation while templating
