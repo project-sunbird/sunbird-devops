@@ -8,8 +8,8 @@
         </#if>
     <#elseif section = "form">
         <div class="fullpage-background-image">
-            <div class="container-wrapper">
-          <div id="kc-info-message">
+          <div class="container-wrapper">
+            <div id="kc-info-message">
 <!--           <p class="instruction">${message.summary}<#if requiredActions??><#list requiredActions>: <b><#items as reqActionItem>${msg("requiredAction.${reqActionItem}")}<#sep>, </#items></b></#list><#else></#if></p> -->
              <#if skipLink??>
              <#else>
@@ -38,6 +38,6 @@
              </#if>
           </div>
         </div>
-    </div>
+      </div>
     </#if>
 </@layout.registrationLayout>
