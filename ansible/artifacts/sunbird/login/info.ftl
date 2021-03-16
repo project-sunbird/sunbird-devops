@@ -16,11 +16,7 @@
                <#if pageRedirectUri??>
                  <p><a href="${pageRedirectUri}" class="sb-btn sb-btn-normal sb-btn-outline-primary mt-16 line-height-normal">${kcSanitize(msg("backToApplication"))?no_esc}</a></p>
                <#elseif actionUri??>
-                 <div class="ui">
-                   <div class="ui active inverted dimmer">
-                     <div class="ui text loader">Loading.. Please wait..</div>
-                    </div>
-                 </div>
+                 <div class="ui text active centered inline loader">Loading.. Please wait..</div>
                  <div id="kc-info-message-hide" style="display:none">
                    <p><a id="click-here-to-proceed" href="${actionUri}">${kcSanitize(msg("proceedWithAction"))?no_esc}</a></p>
                    <script type="text/javascript">
