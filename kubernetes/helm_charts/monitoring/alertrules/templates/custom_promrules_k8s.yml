@@ -24,7 +24,6 @@ spec:
     - alert: KubeHpaMaxedOut
       annotations:
         message: HPA {{`{{`}} $labels.namespace {{`}}`}}/{{`{{`}} $labels.hpa {{`}}`}} has been running at max replicas for longer than 15 minutes.
-        runbook_url: {{ .Values.defaultRules.runbookUrl }}alert-name-kubehpamaxedout
       expr: |-
         kube_hpa_status_current_replicas{job="kube-state-metrics", namespace=~".*"}
           ==
@@ -37,7 +36,6 @@ spec:
     - alert: KubeJobFailed
       annotations:
         message: Job {{`{{`}} $labels.namespace {{`}}`}}/{{`{{`}} $labels.job_name {{`}}`}} failed to complete.
-        runbook_url: {{ .Values.defaultRules.runbookUrl }}alert-name-kubejobfailed
       expr: kube_job_failed{job="kube-state-metrics", namespace=~".*"}  > 0
       for: 15m
       labels:
@@ -57,7 +55,6 @@ spec:
     - alert: KubeNodeUnreachable
       annotations:
         message: '{{`{{`}} $labels.node {{`}}`}} is unreachable and some workloads may be rescheduled.'
-        runbook_url: {{ .Values.defaultRules.runbookUrl }}alert-name-kubenodeunreachable
       expr: kube_node_spec_taint{job="kube-state-metrics",key="node.kubernetes.io/unreachable",effect="NoSchedule"} == 1
       for: 2m
       labels:
@@ -67,7 +64,6 @@ spec:
     - alert: KubeletTooManyPods
       annotations:
         message: Kubelet '{{`{{`}} $labels.node {{`}}`}}' is running at {{`{{`}} $value | humanizePercentage {{`}}`}} of its Pod capacity.
-        runbook_url: {{ .Values.defaultRules.runbookUrl }}alert-name-kubelettoomanypods
       expr: max(max(kubelet_running_pod_count{job="kubelet", metrics_path="/metrics"}) by(instance) * on(instance) group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"}) by(node) / max(kube_node_status_capacity_pods{job="kube-state-metrics"} != 1) by(node) > 0.95
       for: 15m
       labels:
