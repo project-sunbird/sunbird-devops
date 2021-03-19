@@ -12,7 +12,7 @@
 - name: add entry in hosts file
   become: yes
   lineinfile:
-    line: "127.0.0.1 {{hostnameOfCql.stdout}}"   
+    line: "127.0.0.1 {{hostnameOfCql.stdout}}"
     path: /etc/hosts
 
 - name: debian | Adding Cassandra Debian Repo Key
@@ -37,7 +37,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
-  when: groups['cassandra-2'] is defined
+  when: ( cassandra_cluster_size | int ) > 1
 
 - name: copying the customized logback file
   template:
@@ -61,8 +61,8 @@
     seconds: 10
 
 - name: Restart Cassandra now
-  service: 
-    name: cassandra 
+  service:
+    name: cassandra
     state: restarted
 
 - name: wait for cassandra to be up and running
