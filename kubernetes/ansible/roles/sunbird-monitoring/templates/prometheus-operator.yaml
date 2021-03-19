@@ -84,7 +84,7 @@ alertmanager:
       repeat_interval: 4h
       routes:
       - match_re:
-         alertname: "{{ '^(' + (ignore_alert_list + igonore_alert_list_custom) | join('|') + ')' }}" 
+         alertname: "{{ '^(' + (ignore_alert_list + igonore_alert_list_custom) | join('|') + ')' }}"
         receiver: "null"
       - match:
           module: dp_process
@@ -119,7 +119,15 @@ alertmanager:
       - match:
           owner:
         receiver: {{env}}_devops_team
-
+    ## To inhibit the alerts. This will inhibit the warning alerts and fire only critical alerts where alert name is same and has the label `notify: inhibit` in critical alerts.
+    inhibit_rules:
+    - source_match:
+        severity: 'critical'
+        notify: inhibit
+      target_match:
+        severity: 'warning'
+      equal: ['alertname']
+    
     receivers:
       - name: 'slack'
         slack_configs:
