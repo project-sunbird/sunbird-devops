@@ -1,13 +1,14 @@
 - name: checking for last failed migration
   shell: cqlsh -e 'SELECT version from sunbird.cassandra_migration_version where success=false ALLOW FILTERING ;' | tail -n +4 | head -n -2 | sort | tail -n1 | xargs
   register: version
+  run_once: true
 
 - name: Dropping failed migration {{ version.stdout }}
   shell: cqlsh -e "delete from sunbird.cassandra_migration_version where version='{{version.stdout}}';"
   when: version.stdout
   run_once: true
 
-- name: Copy Data Products
+- name: Copy the migration jar
   copy:
     src: "{{cassandra_jar_path}}cassandra-migration-0.0.1-SNAPSHOT-jar-with-dependencies.jar"
     dest: "/home/{{ansible_ssh_user}}/"

@@ -206,24 +206,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: addUserToBatch
-    uris: "{{ course_service_prefix }}/v1/batch/user/add"
-    upstream_url: "{{ lms_service_url }}/v1/course/batch/users/add"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'courseCreate'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
   - name: assemblePage
     uris: "{{ data_service_prefix }}/v1/page/assemble"
     upstream_url: "{{ lms_service_url }}/v1/page/assemble"
@@ -2803,24 +2785,6 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'orgAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: removeUserFromBatch
-    uris: "{{ course_service_prefix }}/v1/batch/user/remove"
-    upstream_url: "{{ lms_service_url }}/v1/course/batch/users/remove"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'courseAdmin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -5540,16 +5504,12 @@ kong_apis:
     upstream_url: "{{ assessment_service_url }}/question/v4/read"
     strip_uri: true
     plugins:
-      - name: jwt
       - name: cors
       - "{{ statsd_pulgin }}"
-      - name: acl
-        config.whitelist:
-          - 'contentAccess'
       - name: rate-limiting
         config.policy: local
         config.hour: "{{ medium_rate_limit_per_hour }}"
-        config.limit_by: credential
+        config.limit_by: ip
       - name: request-size-limiting
         config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
@@ -5630,16 +5590,10 @@ kong_apis:
     upstream_url: "{{ knowledge_mw_service_url }}/v1/question/list"
     strip_uri: true
     plugins:
-      - name: jwt
-      - name: cors
-      - "{{ statsd_pulgin }}"
-      - name: acl
-        config.whitelist:
-          - 'contentAccess'
       - name: rate-limiting
         config.policy: local
         config.hour: "{{ medium_rate_limit_per_hour }}"
-        config.limit_by: credential
+        config.limit_by: ip
       - name: request-size-limiting
         config.allowed_payload_size: "{{ medium_request_size_limit }}"      
 
@@ -5666,16 +5620,12 @@ kong_apis:
     upstream_url: "{{ assessment_service_url }}/questionset/v4/read"
     strip_uri: true
     plugins:
-      - name: jwt
       - name: cors
       - "{{ statsd_pulgin }}"
-      - name: acl
-        config.whitelist:
-          - 'contentAccess'
       - name: rate-limiting
         config.policy: local
         config.hour: "{{ medium_rate_limit_per_hour }}"
-        config.limit_by: credential
+        config.limit_by: ip
       - name: request-size-limiting
         config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
