@@ -4,11 +4,11 @@
   template:
     src: "{{ item }}.yaml"
     dest: "/tmp/{{item}}.yaml"
-  with_items: "{{ monitoring_stack }}"
+  with_items: "{{ monitoring_stack + monitoring_stack_additional_charts }}"
 
 - name: Creating sunbird monitoring stack
-  shell: "helm upgrade --install --atomic --timeout 10m {{ item }} {{chart_path}}/{{ item }} --namespace monitoring -f /tmp/{{ item }}.yaml"
-  with_items: "{{ monitoring_stack }}"
+  shell: helm upgrade --install --atomic --timeout {{helm_install_timeout | d("10m")}} {{ item }} {{chart_path}}/{{ item }} --namespace monitoring -f /tmp/{{ item }}.yaml
+  with_items: "{{ monitoring_stack + monitoring_stack_additional_charts }}"
 
 - name: Creating sunbird monitoring grafana dashboards
   shell: "helm upgrade --install grafana-dashboards {{chart_path}}/dashboards --namespace monitoring"
