@@ -50,6 +50,17 @@ spec:
               command:
               - kong
               - quit
+{{- if .Values.enable_apiproxyvalidator }}
+      - name: proxyvalidator
+        image: "{{ .Values.dockerhub }}/{{ .Values.proxyvalidatorrepository }}:{{ .Values.proxyvalidatorimage_tag }}"
+        imagePullPolicy: Always
+        envFrom:
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.proxyvalidatornetwork.port }}
+          name: proxyvalidatornetwork
+{{- end}}
 
 ---
 apiVersion: v1
@@ -64,7 +75,11 @@ spec:
   - name: http-{{ .Chart.Name }}
     protocol: TCP
     port: {{ .Values.network.port }}
+{{- if .Values.enable_apiproxyvalidator }}
+    targetPort: {{ .Values.proxyvalidatornetwork.targetport A}}
+{{- else }}
     targetPort: {{ .Values.network.targetport }}
+{{- end }}
   - name: http-admin-{{ .Chart.Name }}
     protocol: TCP
     port: {{ .Values.service.port }}
