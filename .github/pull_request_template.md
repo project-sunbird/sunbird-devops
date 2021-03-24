@@ -1,7 +1,5 @@
 Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
 
-Fixes # (project-sunbird jira issue link which starts with https://project-sunbird.atlassian.net/) 
-
 ### Type of change
 
 Please choose appropriate options.
