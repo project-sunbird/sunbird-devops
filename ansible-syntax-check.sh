@@ -17,3 +17,5 @@ INVENTORY_DIR=$1
 for playbook_yaml in $SUNBIRD_DEVOPS_FOLDER/ansible/*.yml; do
   ansible-playbook -i $INVENTORY_DIR $playbook_yaml --syntax-check -e "hosts=dummy"
 done
+
+# Test integration
