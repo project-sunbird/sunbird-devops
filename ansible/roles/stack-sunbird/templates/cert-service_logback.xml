@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>[%date{ISO8601}] [%level] %logger{0}:%line [%X{sourceThread}] [%mdc{msgId}] - %msg %n
+            </pattern>
+            <!--to print whole Mapped Diagnostic Context (MDC) properties( for eg: the actor’s path, the full address of the ActorSystem) in the logs  refer this link https://doc.akka.io/docs/akka/current/typed/logging.html#mdc-->
+            <!--[%mdc] will print all akka variables akkaSource, akkaAddress, akkaTags, sourceActorSystem. for more info refer this link https://doc.akka.io/docs/akka/current/typed/logging.html#mdc-values-->
+        </encoder>
+    </appender>
+
+
+    <!--   for async -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>app.log</file>
+        <immediateFlush>false</immediateFlush>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>app_%d{yyyy-MM-dd}.log</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <pattern>[%date{ISO8601}] [%level] %logger{0}:%line [%X{sourceThread}] [%mdc{msgId}] - %msg %n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>8192</queueSize>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="FILE"/>
+    </appender>
+
+    <appender name="defaultLoggerAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <layout class="net.logstash.logback.layout.LogstashLayout">
+                <fieldNames>
+                    <timestamp>timestamp</timestamp>
+                    <message>msg</message>
+                    <logger>lname</logger>
+                    <thread>tname</thread>
+                    <levelValue>[ignore]</levelValue>
+                    <version>[ignore]</version>
+                    <stack_trace>exception</stack_trace>
+                </fieldNames>
+                <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                    <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                    <maxLength>2048</maxLength>
+                    <exclude>sun\.reflect\..*\.invoke.*</exclude>
+                    <rootCauseFirst>true</rootCauseFirst>
+                    <inlineHash>true</inlineHash>
+                </throwableConverter>
+            </layout>
+        </encoder>
+    </appender>
+
+    <appender name="customLoggerAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder"/>
+    </appender>
+
+    <logger name="org.sunbird" level="INFO">
+        <appender-ref ref="customLoggerAppender"/>
+    </logger>
+
+    <logger name="org.sunbird" level="DEBUG">
+        <appender-ref ref="customLoggerAppender"/>
+    </logger>
+
+    <logger name="org.sunbird" level="WARN">
+        <appender-ref ref="customLoggerAppender"/>
+    </logger>
+
+    <logger name="org.sunbird" level="ERROR">
+        <appender-ref ref="customLoggerAppender"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="ASYNC"/>
+    </root>
+</configuration>

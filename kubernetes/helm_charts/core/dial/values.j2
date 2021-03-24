@@ -1,0 +1,35 @@
+### Default variable file for dial-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+env:
+  javaoptions: {{dial_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{dial_replicacount|default(1)}}
+repository: {{dial_repository|default('sunbird-dial-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{dial_cpu_req|default('100m')}}
+    memory: {{dial_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{dial_cpu_limit|default('1')}}
+    memory: {{dial_mem_limit|default('1024Mi')}}
+network:
+  port: 9001
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ dial_maxsurge|default('25%') }}
+  maxunavailable: {{ dial_maxunavailable|default('25%') }}
+
+{{ dial_liveness_readiness | to_nice_yaml }}
+
+autoscaling:
+  enabled: {{ dial_autoscaling_enabled | default('false') }}
+  minReplicas: {{ dial_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ dial_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ dial_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ dial_autoscaling_targetMemoryUtilizationPercentage|default('') }}

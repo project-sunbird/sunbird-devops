@@ -2506,7 +2506,7 @@ if(client_id.toLowerCase() === 'android'){
     "telemetry": {
       "pdata": {
         "id": pdataId,
-        "ver": "3.6.0",
+        "ver": "3.7.0",
         "pid": "sunbird-portal"
       }
     }
@@ -2618,13 +2618,22 @@ if(client_id.toLowerCase() === 'android'){
   }
 
   function doLogin(e) {
-    e.preventDefault();
-    logInteractEvent("login");
-    logLoginImpressionEvent("pageexit");
-    setTimeout(function () {
-      $("#kc-form-login").submit();
-    }, 500);
-    return false;
+    clearSession().done(function () {
+      e.preventDefault();
+      logInteractEvent("login");
+      logLoginImpressionEvent("pageexit");
+      setTimeout(function () {
+        $("#kc-form-login").submit();
+      }, 500);
+      return false;
+    });
+  }
+
+  function clearSession () {
+   return $.ajax({
+      method: "GET",
+      url: hostURL + "/logoff"
+    }).done(function (response) {});
   }
 
   $("body").ready(function ($) {
@@ -2904,8 +2913,13 @@ var addVersionToURL = function (version){
   var makeDivUnclickable = function() {
     var otpForm = document.getElementById("kc-totp-login-form");
     var resetPswdForm = document.getElementById("kc-reset-password-form");
+    var resetPswUpdateForm = document.getElementById("kc-passwd-update-form");
     if(resetPswdForm!==null){
       logInteractEvent("reset-password-submit");
+      logLoginImpressionEvent("pageexit");
+    }
+    if(resetPswUpdateForm!==null){
+      logInteractEvent("reset-password-update");
       logLoginImpressionEvent("pageexit");
     }
     if(otpForm!==null){

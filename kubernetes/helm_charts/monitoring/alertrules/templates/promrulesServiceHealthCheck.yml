@@ -1,0 +1,24 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.prometheus_rule_selector_app }} 
+    release: {{ .Values.prometheus_rule_selector_release }} 
+  name: service-healthcheck-alertrules
+  namespace: {{ .Values.namespace }} 
+spec:
+  groups:
+  - name: alertrules.service.healthcheck
+    rules:
+    {{ range $key := .Values.service_health_checks }}
+    - alert: ServiceHealthCheck Failed
+      expr: service_health_status{service_name={{ .service_name | quote }}} == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        message: The {{ .service_name }} service overall healthcheck is failing. Please check.
+        summary: The {{ .service_name }} service overall healthcheck is failing. Please check.
+    {{- end }}

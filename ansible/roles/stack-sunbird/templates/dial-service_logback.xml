@@ -1,0 +1,60 @@
+<configuration>
+
+	<conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
+
+	<!-- transaction-event-trigger START -->
+	<timestamp key="timestamp" datePattern="yyyy-MM-dd"/>
+	<!-- common transactions logs -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%d %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="STDOUT" />
+	</appender>
+
+
+	<logger name="play" level="INFO" />
+	<logger name="DefaultPlatformLogger" level="INFO" />
+	<!-- Telemetry Loggers-->
+	<root level="INFO">
+		<appender-ref ref="ASYNCSTDOUT" />
+	</root>
+
+
+	<appender name="kafka-appender" class="com.github.danielwegener.logback.kafka.KafkaAppender">
+		<encoder class="com.github.danielwegener.logback.kafka.encoding.LayoutKafkaMessageEncoder">
+			<layout class="ch.qos.logback.classic.PatternLayout">
+				<pattern>%msg</pattern>
+			</layout>
+		</encoder>
+
+		<topic>{{env_name}}.telemetry.raw</topic>
+		<!-- we don't care how the log messages will be partitioned  -->
+		<keyingStrategy class="com.github.danielwegener.logback.kafka.keying.RoundRobinKeyingStrategy" />
+		<!-- use async delivery. the application threads are not blocked by logging -->
+		<deliveryStrategy class="com.github.danielwegener.logback.kafka.delivery.AsynchronousDeliveryStrategy" />
+
+		<!-- each <producerConfig> translates to regular kafka-client config (format: key=value) -->
+		<!-- producer configs are documented here: https://kafka.apache.org/documentation.html#newproducerconfigs -->
+		<!-- bootstrap.servers is the only mandatory producerConfig -->
+        <producerConfig>bootstrap.servers={{lp_kafka_url}}</producerConfig>
+        <!-- don't wait for a broker to ack the reception of a batch.  -->
+		<producerConfig>acks=0</producerConfig>
+		<!-- wait up to 1000ms and collect log messages before sending them as a batch -->
+		<producerConfig>linger.ms=1000</producerConfig>
+		<!-- even if the producer buffer runs full, do not block the application but start to drop messages -->
+		<producerConfig>block.on.buffer.full=false</producerConfig>
+		<!-- define a client-id that you use to identify yourself against the kafka broker -->
+		<producerConfig>client.id=${HOSTNAME}-${CONTEXT_NAME}-logback-relaxed</producerConfig>
+		<!-- there is no fallback <appender-ref>. If this appender cannot deliver, it will drop its messages. -->
+
+	</appender>
+
+	<logger name="TelemetryEventLogger" level="INFO">
+		<appender-ref ref="kafka-appender" />
+	</logger>
+
+</configuration> 
