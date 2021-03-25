@@ -2618,22 +2618,13 @@ if(client_id.toLowerCase() === 'android'){
   }
 
   function doLogin(e) {
-    clearSession().done(function () {
-      e.preventDefault();
-      logInteractEvent("login");
-      logLoginImpressionEvent("pageexit");
-      setTimeout(function () {
-        $("#kc-form-login").submit();
-      }, 500);
-      return false;
-    });
-  }
-
-  function clearSession () {
-   return $.ajax({
-      method: "GET",
-      url: hostURL + "/logoff"
-    }).done(function (response) {});
+    e.preventDefault();
+    logInteractEvent("login");
+    logLoginImpressionEvent("pageexit");
+    setTimeout(function () {
+      $("#kc-form-login").submit();
+    }, 500);
+    return false;
   }
 
   $("body").ready(function ($) {
