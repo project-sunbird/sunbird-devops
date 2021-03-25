@@ -102,7 +102,7 @@
                         </div>
                     </div>
                 </form>
-                <a id="goBack" class="textCenter sb-btn sb-btn-normal sb-btn-outline-primary mt-16 line-height-normal">${kcSanitize(msg("backToApplication"))}</a>
+                <a id="goBack" class="textCenter mt-16 hide cursor-pointer">${msg("goBack")}</a>
             <!-- <button id="goBack" class="sb-btn sb-btn-normal sb-btn-link sb-btn-link-primary back-btn hide" type="button">
             <img src="${url.resourcesPath}/img/arrow_back.png" width="12" /> <span class="ml-4">${msg("goBack")}</span>
                 </button> -->
