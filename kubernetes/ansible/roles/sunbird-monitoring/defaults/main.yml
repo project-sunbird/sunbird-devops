@@ -12,6 +12,7 @@ monitoring_stack:
   - kafka-topic-exporter
   - prometheus-redis-exporter
   - processing-kafka-exporter
+  - json-path-exporter
 
 # Variable to add additional charts in monitoring.
 # eg:
@@ -220,3 +221,48 @@ redis_process_names: ""
 
 vault_azure_spark_cluster_http_password: ""
 azure_spark_cluster_http_password: "{{ vault_azure_spark_cluster_http_password }}"
+ignore_alert_list: #### This is the var being used to skip the list of alerts.
+  - AlertmanagerConfigInconsistent
+  - AlertmanagerFailedReload
+  - AlertmanagerMembersInconsistent
+  - etcdGRPCRequestsSlow
+  - etcdHTTPRequestsSlow
+  - etcdHighCommitDurations
+  - etcdHighFsyncDurations
+  - etcdHighNumberOfFailedGRPCRequests
+  - etcdHighNumberOfFailedHTTPRequests
+  - etcdHighNumberOfFailedProposals
+  - etcdHighNumberOfLeaderChanges
+  - etcdInsufficientMembers
+  - etcdMemberCommunicationSlow
+  - etcdNoLeader
+  - KubeControllerManagerDown
+  - KubeSchedulerDown
+  - KubeAPIDown
+  - KubeStateMetricsDown
+igonore_alert_list_custom: [] #### This var can be used for custom related. For example if an adopter want to add any alerts to be skipped then those list can be added here instead of taking entire list and overriding the same by adding in the private repo.
+
+# for example refer the below snippet:
+
+#igonore_alert_list_custom:
+  #- alertname1
+  #- alertname2
+  #- alertname3
+
+service_health_checks:
+  - service_name: 'analytics'
+    targets: "http://analytics-service.{{ namespace }}.svc.cluster.local:9000/health"
+  - service_name: 'learning-service'
+    targets: "http://{{ learningservice_ip }}:8080/learning-service/health"
+  - service_name: 'player'
+    targets: "http://player.{{ namespace }}.svc.cluster.local:3000/health"
+  - service_name: 'search'
+    targets: "http://search-service.{{ namespace }}.svc.cluster.local:9000/health"
+  - service_name: 'knowledgemw'
+    targets: "http://knowledge-mw-service.{{ namespace }}.svc.cluster.local:5000/health"
+  - service_name: 'content'
+    targets: "http://content-service.{{ namespace }}.svc.cluster.local:9000/health"
+  - service_name: 'lms'
+    targets: "http://lms-service.{{ namespace }}.svc.cluster.local:9000/health"
+  - service_name: 'learner'
+    targets: "http://learner-service.{{ namespace }}.svc.cluster.local:9000/health"

@@ -1,0 +1,13 @@
+---
+- name: Check if plugin already installed or not
+  shell: "curl -s localhost:9200/_cat/plugins | awk '{print $2}' |head -1"
+  register: plugin_output
+
+- name: check the output
+  debug:
+    var: plugin_output
+
+- name: Install plugin
+  shell: |
+    echo 'y' | /usr/share/elasticsearch/bin/elasticsearch-plugin install repository-azure
+  when: plugin_output.stdout != "repository-azure"
