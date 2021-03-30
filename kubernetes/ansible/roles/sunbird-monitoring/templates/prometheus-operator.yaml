@@ -167,7 +167,8 @@ alertmanager:
             to: '{{ default_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              #subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
 
       - name: 'dp-lag_slack_warning'
         slack_configs:
@@ -192,7 +193,8 @@ alertmanager:
             to: '{{ default_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              #subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
 
       - name: 'dp-lag_slack_critical'
         slack_configs:
@@ -217,7 +219,8 @@ alertmanager:
             to: '{{ default_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              #subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
       - name: 'null'
 
       {% for item in alert_teams %}
@@ -228,7 +231,8 @@ alertmanager:
             to: '{{ item.alerts_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              #subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
       {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
       {% for filter in item.severity_mailing_filter %}
       # Comment to ensure proper indentation while templating
@@ -238,7 +242,8 @@ alertmanager:
             to: '{{ filter.alerts_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              #subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
       {% endfor %}
       {% endif %}
       {% endfor %}
@@ -249,8 +254,13 @@ alertmanager:
             to: '{{ default_mailing_list }}'
             html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              #subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
+  templateFiles:
+    sunbird_email.tmpl: |-
+      {{ define "__subjectline" }}[{{ .Status | toUpper }}] [{{ .CommonLabels.severity }}] [{{ .CommonLabels.env }}] [{{ .CommonLabels.alertname }}] [{{ .CommonLabels.nodename }}] [{{ .CommonLabels.instance }}] {{ end }}
 
+      {{ define "email.sunbird.subject" }}{{ template "__subjectline" . }}{{ end }}
   # Adding alertmanager custom spec overrides 
   # Refrencing alert manager yaml anchor
   <<: *alertmanager_spec_overrides
