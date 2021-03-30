@@ -2627,6 +2627,20 @@ if(client_id.toLowerCase() === 'android'){
     return false;
   }
 
+  function clearSession () {
+   return $.ajax({
+      method: "GET",
+      url: hostURL + "/logoff"
+    }).done(function (response) {});
+  }
+
+  function clearSession () {
+   return $.ajax({
+      method: "GET",
+      url: hostURL + "/logoff"
+    }).done(function (response) {});
+  }
+
   $("body").ready(function ($) {
     $(".loginButton").click(function (e) {
       e.preventDefault();
