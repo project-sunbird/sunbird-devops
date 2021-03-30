@@ -31,11 +31,33 @@ data:
         # annotaions:
         #   fluentbit.io/exclude: true
         K8S-Logging.Exclude On
+
     [FILTER]
         # Discard all health debug and info logs
         Name grep
         Match kube.*
         exclude message /^.*(?:debug|info|GET (\/service)?\/health).*$
+
+    [FILTER]
+        Name          nest
+        Match         kube.*
+        Operation     lift
+        Nested_under  kubernetes
+        Add_prefix    kubernetes_
+
+    [FILTER]
+        Name          nest
+        Match         kube.*
+        Operation     lift
+        Nested_under  kubernetes_labels
+        Add_prefix    kubernetes_labels_
+
+   [FILTER]
+        Name          nest
+        Match         kube.*
+        Operation     lift
+        Nested_under  kubernetes_annotations
+        Add_prefix    kubernetes_annotations_
 
   fluent-bit.conf: |
     [SERVICE]
@@ -61,7 +83,7 @@ data:
         Name              tail
         Tag               kube.*
         Path              /var/log/containers/*.log
-        Parser            docker
+        Parser            cri
         DB                /mnt/log/flb_kube.db
         Mem_Buf_Limit     120MB
         # Set the initial buffer size to read files data.
@@ -138,6 +160,14 @@ data:
         Time_Key    time
         Time_Format %Y-%m-%dT%H:%M:%S.%L
         Time_Keep   On
+
+    [PARSER]
+        Name        cri
+        Format      regex
+        Regex       ^(?<time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<log>.*)$
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+
     [PARSER]
         Name        nginx2
         Format      regex
@@ -153,11 +183,11 @@ data:
         Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
         Time_Key    time
         Time_Format %b %d %H:%M:%S
+
     [PARSER]
         Name    catchall
         Format  regex
         Regex   ^(?<message>.*)$
-
 kind: ConfigMap
 metadata:
   name: fluent-bit-config
