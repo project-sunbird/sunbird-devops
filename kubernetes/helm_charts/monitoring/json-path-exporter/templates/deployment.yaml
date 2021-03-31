@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "json-path-exporter.fullname" . }}
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+  labels:
+    {{- include "json-path-exporter.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "json-path-exporter.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "json-path-exporter.selectorLabels" . | nindent 8 }}
+    spec:
+      volumes:
+        - name: json-exporter-config-volume
+          configMap:
+            name: {{ .Release.Name }}-config
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --config.file=/config.yml
+          ports:
+            - name: http
+              containerPort: 7979
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: json-exporter-config-volume
+            mountPath: /config.yml
+            subPath: config.yml
+ 
