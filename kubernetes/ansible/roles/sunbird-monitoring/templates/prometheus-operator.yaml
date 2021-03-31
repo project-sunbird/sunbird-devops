@@ -165,7 +165,7 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ default_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
               subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
 
@@ -190,7 +190,7 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ default_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
               subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
 
@@ -215,7 +215,7 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ default_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
               subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
       - name: 'null'
@@ -226,7 +226,7 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ item.alerts_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
               subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
       {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
@@ -236,7 +236,7 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ filter.alerts_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
               subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
       {% endfor %}
@@ -247,12 +247,14 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ default_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
               subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
   templateFiles:
-    sunbird_email.tmpl: |-
+    sunbird_alert_subject.tmpl: |-
 {% raw %}        {{ define "email.sunbird.subject" }}[{{ .Status | toUpper }}] [{{ .CommonLabels.severity }}] [{{ .CommonLabels.env }}] [{{ .CommonLabels.alertname }}] [{{ .CommonLabels.nodename }}] [{{ .CommonLabels.instance }}] {{ end }}{% endraw %}
+    sunbird_alert_html.tmpl: |-
+       "{{ lookup('file', 'sunbird_alert_html.tmpl') | indent( width=5) }}"
   # Adding alertmanager custom spec overrides 
   # Refrencing alert manager yaml anchor
   <<: *alertmanager_spec_overrides
