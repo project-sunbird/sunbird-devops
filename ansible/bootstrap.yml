@@ -1,4 +1,4 @@
-- hosts: 'all'
+- hosts: "{{ hosts| default("all") }}"
   become: yes
   gather_facts: no
   pre_tasks:
@@ -13,6 +13,7 @@
     - bootstrap_any
   tags:
     - bootstrap_any
+    - all
 
 - hosts: "{{hosts}}"
   gather_facts: no
@@ -23,3 +24,14 @@
     - role: azure-cli
   tags:
     - azure_cli
+
+- hosts: "{{ hosts| default("all") }}"
+  become: yes
+  gather_facts: no
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  roles:
+    - vm-agents-nodeexporter
+  tags:
+    - node-exporter
+    - all
