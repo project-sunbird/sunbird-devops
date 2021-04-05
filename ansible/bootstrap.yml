@@ -1,12 +1,18 @@
 - hosts: "{{ hosts| default("all") }}"
   become: yes
-  ignore_unreachable: yes
   gather_facts: no
-  pre_tasks:
-    - name: Python predependency
-      raw: sudo apt update && sudo apt install -y  python python-pkg-resources python-pip
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
+  pre_tasks:
+    - name: Python predependency
+      raw: bash -c "test -e /usr/bin/python" || (sudo apt update && sudo apt install -y  python)
+    - name: Installing other packages
+      apt:
+        state: present
+        name: "{{ item }}"
+      with_items:
+        - python-pkg-resources
+        - python-pip
   vars:
     ansible_ssh_user: "{{bootstrap_user}}"
     ansible_ssh_private_key_file: "{{bootstrap_key_path}}"
