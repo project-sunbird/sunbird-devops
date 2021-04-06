@@ -3,6 +3,7 @@
   vars:
     mongodb_version: "4.0"
     mongodb_replication_replset: graylog
+    mongodb_net_bindip: "127.0.0.1,{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
     graylog_version: "4.0"
     mongodb_login_host: "{{ groups['graylog'][0] }}"
     host_name: "{{ groups['graylog'][0] }}"
@@ -16,15 +17,12 @@
     graylog_transport_email_use_ssl: "false"
     graylog_http_bind_address: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}:9000"
     graylog_http_publish_uri: "http://{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}:9000"
+    graylog_http_external_uri: "http://{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}:9000"
   pre_tasks:
     - name: Register mongodb replica set variable
       set_fact:
-        mongodb_replication_params: "{% for server in groups['graylog'] %}
-        - {
-            host_name: {{server}},
-            host_port: {{mongodb_net_port}},
-            host_type: replica,
-          }{% endfor %}"
+        mongodb_replication_params: "{{ lookup('template', 'roles/graylog/templates/mongodb_replication_params.js') | from_yaml }}"
+      run_once: true
       tags: mongodb-cluster
   roles:
     - role: openjdk
