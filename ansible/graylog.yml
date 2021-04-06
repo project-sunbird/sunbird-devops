@@ -1,0 +1,32 @@
+- hosts: graylog
+  become: yes
+  vars:
+    mongodb_version: "4.0"
+    mongodb_replication_replset: graylog
+    graylog_version: "4.0"
+    mongodb_login_host: "{{ groups['graylog'][0] }}"
+    host_name: "{{ groups['graylog'][0] }}"
+    graylog_install_elasticsearch: false
+    graylog_install_mongodb: false
+    graylog_install_nginx: false
+    graylog_install_java: false
+    graylog_elasticsearch_hosts: "{{ ['http://'] | product(groups['log-es']) | map('join') | list | join(':9200,')}}:9200"
+    graylog_mongodb_uri: "mongodb://{{ groups['graylog'] | map('join') | list | join(':27017,')}}:27017/graylog?replicaSet=graylog"
+    graylog_root_timezone: "Asia/Kolkata"
+    graylog_transport_email_use_ssl: "false"
+  pre_tasks:
+    - name: Register mongodb replica set variable
+      set_fact:
+        mongodb_replication_params: "{% for server in groups['graylog'] %}
+        - {
+            host_name: {{server}},
+            host_port: {{mongodb_net_port}},
+            host_type: replica,
+          }{% endfor %}"
+  roles:
+    - role: mongodb-cluster
+      tags:
+        - "mongodb-cluster"
+    - role: graylog
+      tags:
+        - "graylog"
