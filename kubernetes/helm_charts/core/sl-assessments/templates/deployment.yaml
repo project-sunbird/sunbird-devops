@@ -24,13 +24,10 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
 {{- end }}
-{{- $keys := .Files.Glob "keys/*" }}
-{{- if $keys }}
       volumes:
-        - name: access-keys
-          secret:
-            secretName: sl-assessments-access-keys
-{{ end }}
+        - name: {{ .Chart.Name }}-config
+          configMap:
+            name: {{ .Chart.Name }}-config
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
@@ -51,8 +48,13 @@ spec:
         volumeMounts:
 {{- $keys := .Files.Glob "keys/*" }}
 {{- if $keys }}
-          - mountPath: {{ .Values.sl_assessments_access_basepath }}
-            name: access-keys
+        volumeMounts:
+        - mountPath: {{ .Values.sl_assessments_access_basepath }}
+          name: access-keys
+        volumes:
+        - name: access-keys
+          secret:
+            secretName: sl-assessments-access-keys
 {{ end }}
 ---
 apiVersion: v1
