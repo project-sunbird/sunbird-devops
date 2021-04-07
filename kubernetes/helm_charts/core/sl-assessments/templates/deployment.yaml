@@ -27,6 +27,9 @@ spec:
 {{- $keys := .Files.Glob "keys/*" }}
 {{- if $keys }}
       volumes:
+        - name: {{ .Chart.Name }}-config
+          configMap:
+            name: {{ .Chart.Name }}-config
         - name: access-keys
           secret:
             secretName: sl-assessments-access-keys
@@ -35,6 +38,9 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
