@@ -24,15 +24,9 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
 {{- end }}
-      volumes:
-        - name: {{ .Chart.Name }}-config
-          configMap:
-            name: {{ .Chart.Name }}-config
-        - name: gcp
-          configMap:
-            name: gcp     
 {{- $keys := .Files.Glob "keys/*" }}
 {{- if $keys }}
+      volumes:
         - name: access-keys
           secret:
             secretName: sl-assessments-access-keys
@@ -41,7 +35,6 @@ spec:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
         imagePullPolicy: Always
-       
         envFrom:
         - configMapRef:
             name: {{ .Chart.Name }}-config
@@ -55,20 +48,12 @@ spec:
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
         {{- end }}
-
         volumeMounts:
-          - name: gcp
-            mountPath: /opt/assessment/generics/helpers/credentials/sl-dev-storage.json
-            subPath: gcp.json
-
 {{- $keys := .Files.Glob "keys/*" }}
 {{- if $keys }}
           - mountPath: {{ .Values.sl_assessments_access_basepath }}
             name: access-keys
 {{ end }}
-
-
-          
 ---
 apiVersion: v1
 kind: Service
