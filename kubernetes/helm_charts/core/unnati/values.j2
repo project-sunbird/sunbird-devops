@@ -1,0 +1,26 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{unnati_replicacount|default(1)}}
+repository: {{unnati_repository|default('unnati-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{unnati_cpu_req|default('100m')}}
+    memory: {{unnati_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{unnati_cpu_limit|default('1')}}
+    memory: {{unnati_mem_limit|default('1024Mi')}}
+network:
+  port: 4301
+  targetport: 4301
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ unnati_maxsurge|default('25%') }}
+  maxunavailable: {{ unnati_maxunavailable|default('25%') }}
+  
+{{ unnati_liveness_readiness | to_nice_yaml }}
+unnati_access_basepath : {{ unnati_access_basepath | default('/opt/unnati/keycloak-public-keys/') }}
