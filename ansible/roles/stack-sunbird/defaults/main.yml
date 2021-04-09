@@ -288,7 +288,9 @@ service_env:
   nodebb: ../../../../ansible/roles/stack-sunbird/templates/sunbird_nodebb.env
   analytics: ../../../../ansible/roles/stack-sunbird/templates/analytics_api_service.conf
   discussionsmw: ../../../../ansible/roles/stack-sunbird/templates/sunbird_discussions-mw-service.env
-
+  dial:
+    - ../../../../ansible/roles/stack-sunbird/templates/dial-service_application.conf
+    - ../../../../ansible/roles/stack-sunbird/templates/dial-service_logback.xml
   dhiti: ../../../../ansible/roles/stack-sunbird/templates/dhiti-service.env
   unnati: ../../../../ansible/roles/stack-sunbird/templates/unnati-service.env
 
@@ -319,6 +321,26 @@ unnati_liveness_readiness:
     httpGet:
       path: /ping
       port: 4301
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+
+dial_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
     initialDelaySeconds: 30
     periodSeconds: 30
     timeoutSeconds: 10
