@@ -175,7 +175,6 @@ print_service_limit_memory: 512M
 print_service_reservation_cpu: 0.1
 print_service_limit_cpu: 0.5
 
-
 ############################ kube vars #######################
 hub_org: sunbird
 nginx_per_ip_connection_limit: 400
@@ -235,12 +234,8 @@ service_env:
     - ../../../../ansible/roles/stack-sunbird/templates/lms-service_logback.xml
   knowledgemw: ../../../../ansible/roles/stack-sunbird/templates/sunbird_knowledge-mw-service.env
   apimanager: ../../../../ansible/roles/stack-api-manager/templates/api-manager.env
-  cert:
-    - ../../../../ansible/roles/stack-sunbird/templates/sunbird_cert-service.env
-    - ../../../../ansible/roles/stack-sunbird/templates/cert-service_logback.xml
-  certregistry:
-    - ../../../../ansible/roles/stack-sunbird/templates/sunbird_cert-registry-service.env
-    - ../../../../ansible/roles/stack-sunbird/templates/cert-registry_logback.xml
+  cert: ../../../../ansible/roles/stack-sunbird/templates/sunbird_cert-service.env
+  certregistry: ../../../../ansible/roles/stack-sunbird/templates/sunbird_cert-registry-service.env
   content:
     - ../../../../ansible/roles/stack-sunbird/templates/content-service_application.conf
     - ../../../../ansible/roles/stack-sunbird/templates/content-service_logback.xml
@@ -269,6 +264,8 @@ service_env:
   dial:
     - ../../../../ansible/roles/stack-sunbird/templates/dial-service_application.conf
     - ../../../../ansible/roles/stack-sunbird/templates/dial-service_logback.xml
+  
+  ml-survey: ../../../../ansible/roles/stack-sunbird/templates/ml-survey-service.env
 
 sunbird_portal_player_cdn_enabled: false
 
@@ -281,6 +278,26 @@ kong_limit_memory: 256M
 kibana_oauth_authenticated_email_domains: []
 
 ##### livenessprobe and readinessprobe #######
+
+ml_survey_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /ping
+      port: 4201
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+  livenessProbe:
+    httpGet:
+      path: /ping
+      port: 4201
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
 
 dhiti_liveness_readiness:
   healthcheck: false
