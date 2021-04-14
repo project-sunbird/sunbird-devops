@@ -1,0 +1,64 @@
+@Library('deploy-conf') _
+node(){
+    try {
+        stage('checkout public repo') {
+            folder = new File("$WORKSPACE/.git")
+            if (folder.exists())
+            {
+               println "Found .git folder. Clearing it.."
+               sh'git clean -fxd'
+            }
+            checkout scm
+        }
+
+        stage('Artifact Upload') {
+            //values = docker_params()
+            envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+            module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+            jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+
+            values = [:]
+            copyArtifacts projectName: params.absolute_job_path, flatten: true
+            image_name = sh(returnStdout: true, script: 'jq -r .image_name proxyvalidatormetadata.json').trim()
+            agent = sh(returnStdout: true, script: 'jq -r .proxyvalidator_node_name proxyvalidatormetadata.json').trim()
+
+            if (params.image_tag == "") {
+                println(ANSI_BOLD + ANSI_YELLOW + '''\
+                image_tag not specified, using the image_tag specified in proxyvalidatormetadata.json.
+                '''.stripIndent().replace("\n", " ") + ANSI_NORMAL)
+                image_tag = sh(returnStdout: true, script: 'jq -r .proxyvalidator_image_tag proxyvalidatormetadata.json').trim()
+            } else
+                image_tag = params.proxyvalidator_image_tag
+
+            values.put('env', envDir)
+            values.put('module', module)
+            values.put('jobName', jobName)
+            values.put('absolute_job_path', params.absolute_job_path)
+            values.put('agent', agent)
+            values.put('image_name', image_name)
+            values.put('image_tag', image_tag)
+
+            if(params.artifact_source == "ArtifactRepo") {
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                ansiblePlaybook = "$currentWs/ansible/docker_image_push.yml"
+                ansibleExtraArgs = "--extra-vars \"hub_org=${hub_org} image_name=${values.image_name} image_tag=${values.image_tag}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                values.put('currentWs', currentWs)
+                values.put('ansiblePlaybook', ansiblePlaybook)
+                values.put('ansibleExtraArgs', ansibleExtraArgs)
+                ansible_playbook_run(values)
+                currentBuild.result = 'SUCCESS'
+            }
+            archiveArtifacts 'proxyvalidatormetadata.json'
+            currentBuild.description = "Image: ${values.image_tag}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
+        }
+    }
+
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
+    }
+}
