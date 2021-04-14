@@ -5683,8 +5683,8 @@ kong_apis:
         - name: request-size-limiting
           config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
-  - name: ManagedUserV1
-      uris: "{{ user_service_prefix }}/v1/create"
+  - name: managedUserV1
+      uris: "{{ user_service_prefix }}/v1/managed/create"
       upstream_url: "{{ learning_service_url }}/v1/manageduser/create"
       strip_uri: true
       plugins:
@@ -5693,7 +5693,7 @@ kong_apis:
         - "{{ statsd_pulgin }}"
         - name: acl
           config.whitelist:
-            - 'ManagedUserCreate'
+            - 'userAccess'
         - name: rate-limiting
           config.policy: local
           config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -5701,8 +5701,8 @@ kong_apis:
         - name: request-size-limiting
           config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
-  - name: SSOUserV1
-      uris: "{{ user_service_prefix }}/v1/create"
+  - name: ssoUserV1
+      uris: "{{ user_service_prefix }}/v1/sso/create"
       upstream_url: "{{ learning_service_url }}/v1/ssouser/create"
       strip_uri: true
       plugins:
@@ -5711,7 +5711,7 @@ kong_apis:
         - "{{ statsd_pulgin }}"
         - name: acl
           config.whitelist:
-            - 'SSOUserCreate'
+            - 'userCreate'
         - name: rate-limiting
           config.policy: local
           config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -5719,7 +5719,7 @@ kong_apis:
         - name: request-size-limiting
           config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
-  - name: SSUUserV2
+  - name: ssuUserV2
       uris: "{{ user_service_prefix }}/v2/signup"
       upstream_url: "{{ learning_service_url }}/v2/user/signup"
       strip_uri: true
@@ -5729,10 +5729,60 @@ kong_apis:
         - "{{ statsd_pulgin }}"
         - name: acl
           config.whitelist:
-            - 'SSUUserCreate'
+            - 'userCreate'
         - name: rate-limiting
           config.policy: local
           config.hour: "{{ medium_rate_limit_per_hour }}"
           config.limit_by: credential
         - name: request-size-limiting
           config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: getUserProfileV4
+    uris: "{{ user_service_prefix }}/v4/read"
+    upstream_url: "{{ learning_service_url }}/v4/user/read"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'userAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: searchUserV2
+    uris: "{{ user_service_prefix }}/v2/search"
+    upstream_url: "{{ learning_service_url }}/v2/user/search"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'userTempAdmin'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: searchOrgV2
+    uris: "{{ org_service_prefix }}/v2/search"
+    upstream_url: "{{ learning_service_url }}/v2/org/search"
+    strip_uri: true
+    plugins:
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: ip
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ small_request_size_limit }}"
