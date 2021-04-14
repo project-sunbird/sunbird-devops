@@ -6,7 +6,9 @@ dockerhub: {{ dockerhub }}
 
 replicaCount: {{api_manager_replicacount|default(1)}}
 repository: {{api_manager_repository|default('kong')}}
+proxyvalidatorrepository: {{proxyvalidator_image_name|default('proxyvalidator')}}
 image_tag: {{ image_tag }}
+proxyvalidator_image_tag: {{proxyvalidator_image_tag|default('11.101')}}
 resources:
   requests:
     cpu: {{api_manager_cpu_req|default('100m')}}
@@ -25,10 +27,22 @@ strategy:
   maxsurge: {{ apimanager_maxsurge|default('25%') }}
   maxunavailable: {{ apimanager_maxunavailable|default('25%') }}
 
+enable_apiproxyvalidator: {{ enable_apiproxyvalidator }}
+proxynetwork:
+  port: 9090
+  targetport: 9090
+proxyvalidatorresources:
+  requests:
+    cpu: {{proxyvalidator_cpu_req|default('100m')}}
+    memory: {{proxyvalidator_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{proxyvalidator_cpu_limit|default('1000m')}}
+    memory: {{proxyvalidator_memory_limit|default('1024Mi')}}
+
 {{ apimanager_liveness_readiness | to_nice_yaml }}
 
 autoscaling:
-  enabled: {{ apimanager_autoscaling_enabled | default('false') }}
+  enabled: {{ apimanager_autoscaling_enabled | default('true') }}
   minReplicas: {{ apimanager_autoscaling_minReplicas|default(1) }}
   maxReplicas: {{ apimanager_autoscaling_maxReplicas|default(2) }}
   targetCPUUtilizationPercentage: {{ apimanager_autoscaling_targetCPUUtilizationPercentage|default(60) }}
