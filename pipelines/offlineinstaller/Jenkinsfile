@@ -26,18 +26,21 @@ node() {
                     artifact_download(values)
                     sh """
                        unzip ${artifact}
-                       tar -xvzf app_dist.tar.gz
+                       tar -xzf app_dist.tar.gz
                     """
                 }
                 stage('Install the offline desktop Application') {
-                      ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
-                      ansibleExtraArgs = " --extra-vars \"offline_repo_location=$currentWs offline_installer_type=${offline_installer_type}\" -vv"
-                      values.put('ansiblePlaybook', ansiblePlaybook)
-                      values.put('ansibleExtraArgs', ansibleExtraArgs)
-                      println values
-                      ansible_playbook_run(values)
+                    ansiblePlaybook = "${currentWs}/ansible/offline-installer.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+                    ansibleExtraArgs = "--extra-vars \"offline_repo_location=$currentWs offline_installer_type=${offline_installer_type}\" -v"
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+                    currentBuild.result = 'SUCCESS'
+                    archiveArtifacts artifacts: "${artifact}", fingerprint: true, onlyIfSuccessful: true
+                    archiveArtifacts artifacts: 'metadata.json', onlyIfSuccessful: true
+                    currentBuild.description = "Artifact: ${values.artifact_version}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
                 }
-
             }
         summary()
      }
