@@ -4256,6 +4256,20 @@ kong_apis:
      - name: request-size-limiting
        config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: "publicDataExhaust"
+    uris: "{{ dataset_service_prefix }}/get"
+    upstream_url: "{{ analytics_api_service_url }}/public/dataset/get"
+    strip_uri: true
+    plugins:
+     - name: cors
+     - "{{ statsd_pulgin }}"
+     - name: rate-limiting
+       config.policy: local
+       config.hour: "{{ medium_rate_limit_per_hour }}"
+       config.limit_by: credential
+     - name: request-size-limiting
+       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: "submitDataExhaustRequest"
     uris: "{{ dataset_service_prefix }}/v1/request/submit"
     upstream_url: "{{ analytics_api_service_url }}/request/submit"
