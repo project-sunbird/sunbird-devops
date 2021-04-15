@@ -2,9 +2,16 @@
 - name: start service
   become: true
   command: /etc/init.d/keycloak start
-  poll: 5
-  async: 5
   ignore_errors: true
+
+- name: Wait for keycloak to be accessible, maximum timeout of 15m
+  uri:
+    url: "http://{{ inventory_hostname }}:8080/auth/"
+    method: GET
+  register: _result
+  until: _result.status == 200
+  delay: 30
+  retries: 30
 
 - name: Create admin user
   become_user: "{{ wildfly_user }}"
@@ -20,13 +27,18 @@
   poll: 5
   async: 10
 
-- name: stop service
+- name: Stop service
   become: true
-  command: /etc/init.d/keycloak stop && Pkill keycloak
-  when: "keycloak.stdout.find('running') != -1"
-  poll: 5
-  async: 10
+  command: /etc/init.d/keycloak stop
   ignore_errors: true
+
+- name: Wait for keycloak to stop completely
+  wait_for:
+    port: 8080
+    state: stopped
+    delay: 5
+    sleep: 5
+    timeout: 60
 
 - name: start service
   become: true
@@ -34,11 +46,14 @@
   poll: 5
   async: 5
 
-- name: Waiting Until Keycloak is fully functional
-  wait_for:
-    host: "{{ inventory_hostname }}"
-    port: 8080
-    delay: 5
+- name: Wait for keycloak to be accessible, maximum timeout of 15m
+  uri:
+    url: "http://{{ inventory_hostname }}:8080/auth/"
+    method: GET
+  register: _result
+  until: _result.status == 200
+  delay: 30
+  retries: 30
 
 - name: Install dependencies for keycloak
   apt:
