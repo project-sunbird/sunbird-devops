@@ -2506,7 +2506,7 @@ if(client_id.toLowerCase() === 'android'){
     "telemetry": {
       "pdata": {
         "id": pdataId,
-        "ver": "3.7.0",
+        "ver": "3.8.0",
         "pid": "sunbird-portal"
       }
     }
@@ -2618,15 +2618,13 @@ if(client_id.toLowerCase() === 'android'){
   }
 
   function doLogin(e) {
-    clearSession().done(function () {
-      e.preventDefault();
-      logInteractEvent("login");
-      logLoginImpressionEvent("pageexit");
-      setTimeout(function () {
-        $("#kc-form-login").submit();
-      }, 500);
-      return false;
-    });
+    e.preventDefault();
+    logInteractEvent("login");
+    logLoginImpressionEvent("pageexit");
+    setTimeout(function () {
+      $("#kc-form-login").submit();
+    }, 500);
+    return false;
   }
 
   function clearSession () {
