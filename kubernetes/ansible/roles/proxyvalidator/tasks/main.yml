@@ -1,13 +1,19 @@
 ---
 - name: copy the template file
   template:
-    src: proxyvalidator.j2
-    dest: /tmp/proxyvalidator.yml
+    src: "{{item}}.j2"
+    dest: "/tmp/{{item}}"
     mode: 0755
+  with_items:
+    - proxyvalidatorDeployment.yml
+    - proxyvalidatorService.yml
   when: enable_proxyvalidator == true
 
 - name: inject the proxyvalidator into apimanager pod
-  shell: kubectl patch deployments.apps -n "{{namespace}}" apimanager --patch="$(cat /tmp/proxyvalidator.yml)"
+  shell: kubectl patch deployments.apps -n "{{namespace}}" apimanager --patch="$(cat /tmp/{{item}})"
+  with_items:
+    - proxyvalidatorDeployment.yml
+    - proxyvalidatorService.yml
   when: enable_proxyvalidator == true
 
 - name: delete the proxyvalidator
