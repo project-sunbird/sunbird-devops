@@ -1,0 +1,15 @@
+---
+- name: copy the template file
+  template:
+    src: proxyvalidator.j2
+    dest: /tmp/proxyvalidator.yml
+    mode: 0755
+  when: enable_proxyvalidator == true
+
+- name: inject the proxyvalidator into apimanager pod
+  shell: kubectl patch deployments.apps -n "{{namespace}}" apimanager --patch="$(cat /tmp/proxyvalidator.yml)"
+  when: enable_proxyvalidator == true
+
+- name: delete the proxyvalidator
+  shell: kubectl patch deployment -n "{{namespace}}" apimanager --type json -p='[{"op": "remove", "path": "/spec/template/spec/containers/0"}]'
+  when: enable_proxyvalidator == false
