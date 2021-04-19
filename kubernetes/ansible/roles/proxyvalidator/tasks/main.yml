@@ -1,0 +1,35 @@
+---
+- name: copy the template file
+  template:
+    src: "{{item}}.j2"
+    dest: "/tmp/{{item}}"
+    mode: 0755
+  with_items:
+    - proxyvalidatorDeployment.yml
+    - proxyvalidatorService.yml
+  when: enable_proxyvalidator == "yes"
+
+- name: inject the proxyvalidator into apimanager pod
+  shell: kubectl patch deployments.apps -n "{{namespace}}" apimanager --patch="$(cat /tmp/proxyvalidatorDeployment.yml)"
+  when: enable_proxyvalidator == "yes"
+
+- name: change the proxyvalidator service reference
+  shell: kubectl patch svc kong -n "{{namespace}}" --patch "$(cat /tmp/proxyvalidatorService.yml)"
+  when: enable_proxyvalidator == "yes"
+
+- name: copy the template file
+  template:
+    src: "{{item}}.j2"
+    dest: "/tmp/{{item}}"
+    mode: 0755
+  with_items:
+    - proxyvalidatorServiceRevert.yml
+  when: enable_proxyvalidator == "no"
+
+- name: delete the proxyvalidator container
+  shell: "kubectl patch deployment -n \"{{namespace}}\" apimanager --type json -p='[{\"op\": \"remove\", \"path\": \"/spec/template/spec/containers/0\"}]'"
+  when: enable_proxyvalidator == "no"
+
+- name: revert the proxyvalidator service reference
+  shell: kubectl patch svc kong -n "{{namespace}}" --patch "$(cat /tmp/proxyvalidatorServiceRevert.yml)"
+  when: enable_proxyvalidator == "no"

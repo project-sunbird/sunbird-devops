@@ -175,7 +175,6 @@ print_service_limit_memory: 512M
 print_service_reservation_cpu: 0.1
 print_service_limit_cpu: 0.5
 
-
 ############################ kube vars #######################
 hub_org: sunbird
 nginx_per_ip_connection_limit: 400
@@ -264,11 +263,10 @@ service_env:
   nodebb: ../../../../ansible/roles/stack-sunbird/templates/sunbird_nodebb.env
   analytics: ../../../../ansible/roles/stack-sunbird/templates/analytics_api_service.conf
   discussionsmw: ../../../../ansible/roles/stack-sunbird/templates/sunbird_discussions-mw-service.env
-
-  dhiti: ../../../../ansible/roles/stack-sunbird/templates/dhiti-service.env
   dial:
     - ../../../../ansible/roles/stack-sunbird/templates/dial-service_application.conf
     - ../../../../ansible/roles/stack-sunbird/templates/dial-service_logback.xml
+  ml-survey-service: ../../../../ansible/roles/stack-sunbird/templates/ml-survey-service.env
 
 sunbird_portal_player_cdn_enabled: false
 
@@ -282,12 +280,12 @@ kibana_oauth_authenticated_email_domains: []
 
 ##### livenessprobe and readinessprobe #######
 
-dhiti_liveness_readiness:
-  healthcheck: false
+ml_survey_liveness_readiness:
+  healthcheck: true
   readinessProbe:
     httpGet:
       path: /ping
-      port: 4700
+      port: 3000
     initialDelaySeconds: 30
     periodSeconds: 30
     timeoutSeconds: 10
@@ -296,11 +294,31 @@ dhiti_liveness_readiness:
   livenessProbe:
     httpGet:
       path: /ping
-      port: 4700
+      port: 3000
     initialDelaySeconds: 30
     periodSeconds: 30
     timeoutSeconds: 10
     failureThreshold: 5
+
+dial_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5
+    successThreshold: 2
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 9000
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 5    
 
 groups_liveness_readiness:
   healthcheck: true
@@ -801,3 +819,7 @@ exhaust_api_consumer_ids: ["273f3b18-5dda-4a27-984a-060c7cd398d3"] # being used 
 user_profile_read_url: "http://learner-service:9000/v1/user/read/" # being used in analytics api to get user details
 org_search_url: "http://learner-service:9000/v1/org/search" # being used in analytics api to get mhrd tenant id
 dataexhaust_super_admin_channel: "sunbird" # being used in analytics api for authorizing user with super admin channel
+
+#### public exhausts
+public_data_exhaust_bucket: datasets
+public_exhaust_datasets: ["public-data-exhaust"]

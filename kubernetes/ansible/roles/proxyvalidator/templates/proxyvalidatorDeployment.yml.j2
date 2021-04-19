@@ -1,0 +1,30 @@
+{% if enable_proxyvalidator == "yes" %}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: apimanager
+  name: apimanager
+  namespace: {{namespace}}
+spec:
+  selector:
+    matchLabels:
+      app: apimanager
+  template:
+    metadata:
+      annotations:
+      labels:
+        app: apimanager
+    spec:
+      containers:
+      - image: {{dockerhub}}/{{image_name}}:{{image_tag}}
+        imagePullPolicy: Always
+        name: proxyvalidator
+        ports:
+        - containerPort: 9090
+          name: proxyvalidator
+          protocol: TCP
+      imagePullSecrets:
+      - name: {{imagepullsecrets}}
+      restartPolicy: Always
+{% endif %}

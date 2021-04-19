@@ -2506,7 +2506,7 @@ if(client_id.toLowerCase() === 'android'){
     "telemetry": {
       "pdata": {
         "id": pdataId,
-        "ver": "3.7.0",
+        "ver": "3.8.0",
         "pid": "sunbird-portal"
       }
     }
@@ -2625,13 +2625,6 @@ if(client_id.toLowerCase() === 'android'){
       $("#kc-form-login").submit();
     }, 500);
     return false;
-  }
-
-  function clearSession () {
-   return $.ajax({
-      method: "GET",
-      url: hostURL + "/logoff"
-    }).done(function (response) {});
   }
 
   function clearSession () {
