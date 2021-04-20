@@ -84,7 +84,7 @@ alertmanager:
       repeat_interval: 4h
       routes:
       - match_re:
-         alertname: "{{ '^(' + (ignore_alert_list + igonore_alert_list_custom) | join('|') + ')' }}" 
+         alertname: "{{ '^(' + (ignore_alert_list + igonore_alert_list_custom) | join('|') + ')' }}"
         receiver: "null"
       - match:
           module: dp_process
@@ -119,7 +119,15 @@ alertmanager:
       - match:
           owner:
         receiver: {{env}}_devops_team
-
+    ## To inhibit the alerts. This will inhibit the warning alerts and fire only critical alerts where alert name is same and has the label `notify: inhibit` in critical alerts.
+    inhibit_rules:
+    - source_match:
+        severity: 'critical'
+        notify: inhibit
+      target_match:
+        severity: 'warning'
+      equal: ['alertname']
+    
     receivers:
       - name: 'slack'
         slack_configs:
@@ -127,6 +135,8 @@ alertmanager:
             api_url: "{{ monitor_alerts_slack_url }}"
             username: 'Monitor - Alerter'
             channel: "{{ monitor_alerts_slack_channel }}"
+            title_link: ""
+            title: '{% raw %}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]{% endraw %}'
             text: |-
                   {{ "{{" }} range .Alerts {{ "}}" }}
                     *Alert:* {{ "{{" }} .Annotations.message {{ "}}" }} - `{{ "{{" }} .Labels.severity {{ "}}" }}`
@@ -157,9 +167,9 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ default_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
 
       - name: 'dp-lag_slack_warning'
         slack_configs:
@@ -182,9 +192,9 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ default_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
 
       - name: 'dp-lag_slack_critical'
         slack_configs:
@@ -207,9 +217,9 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ default_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
       - name: 'null'
 
       {% for item in alert_teams %}
@@ -218,9 +228,9 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ item.alerts_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
       {% if item.severity_mailing_filter is defined and item.severity_mailing_filter|length %}
       {% for filter in item.severity_mailing_filter %}
       # Comment to ensure proper indentation while templating
@@ -228,9 +238,9 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ filter.alerts_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
       {% endfor %}
       {% endif %}
       {% endfor %}
@@ -239,10 +249,16 @@ alertmanager:
         email_configs:
           - send_resolved: true
             to: '{{ default_mailing_list }}'
-            html: '{% raw %}{{ template "email.default.html" . }}{% endraw %}'
+            html: '{% raw %}{{ template "email.sunbird.html" . }}{% endraw %}'
             headers:
-              subject: '[{{ kubernetes_cluster_name }}] {% raw %}{{ .GroupLabels.alertname }}{% endraw %}'
-
+              subject: '{% raw %}{{ template "email.sunbird.subject" . }}{% endraw %}'
+    templates:
+      - '/etc/alertmanager/config/*.tmpl'
+  templateFiles:
+    sunbird_alert_subject.tmpl: |-
+{% raw %}        {{ define "email.sunbird.subject" }}[{{ .Status | toUpper }}] [{{ .CommonLabels.severity }}] [{{ .CommonLabels.env }}] [{{ .CommonLabels.alertname }}] {{ end }}{% endraw %}{''}
+    sunbird_alert_html.tmpl: |-
+       "{{ lookup('file', '../files/sunbird_alert_html.tmpl') | indent( width=8) }}"
   # Adding alertmanager custom spec overrides 
   # Refrencing alert manager yaml anchor
   <<: *alertmanager_spec_overrides
