@@ -3,21 +3,6 @@
     src: "{{ chart_path }}/values.j2"
     dest: "{{ chart_path }}/values.yaml"
 
-- name: copy and template env file from swarm role
-  template:
-    src: "{{item}}"
-    dest: "{{role_path}}/templates/"
-  with_items: "{{service_env[release_name]}}"
-
-- name: create env configmap
-  shell: find "{{role_path}}/templates/" -iname "*.env" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-config --from-env-file={} -n {{namespace}} --dry-run -o=yaml | kubectl apply -f - " \;
-
-- name: create aplication configmap
-  shell: find "{{role_path}}/templates/" -iname "*.conf" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-config --from-file={} -n {{namespace}} --dry-run -o=yaml | kubectl apply -f - " \;
-
-- name: create xml configmap
-  shell: find "{{role_path}}/templates/" -iname "*.xml" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-xml-config --from-file={} -n {{namespace}} --dry-run -o=yaml | kubectl apply -f - " \;
-
 - name: Load role to decrypt private keys, copy to helm chart and encrypt private keys
   include_role:
     name: mount-keys
@@ -27,7 +12,7 @@
     private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
     private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
     private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount if outer_item.0.values_to_pass.keycount > '0' else '1'  }}"
-  when: release_name == "learner" or release_name == "lms" or release_name == "groups" or release_name == "knowledgemw" or release_name == "dhiti"
+  when: release_name == "learner" or release_name == "lms" or release_name == "groups" or release_name == "knowledgemw" or release_name == "ml-report-service" or release_name == "ml-survey-service" or release_name == "ml-project-service" or release_name == "ml-core-service" or release_name == "gotenberg"
   with_subelements:
     - "{{adminutil_access_values}}"
     - role_to_run
@@ -40,14 +25,8 @@
     content: "{{ core_vault_sunbird_sso_publickey }}"
   when: release_name == "learner" or release_name == "lms" or release_name == "groups" or release_name == "knowledgemw"
 
-- name: Create the token pubic key file for ML Services
-  copy:
-    dest: "{{ chart_path }}/keys/{{ adminutil_refresh_token_public_key_kid }}"
-    content: "{{ core_vault_sunbird_sso_publickey_ml_services }}"
-  when: release_name == "dhiti"
-
 - name: helm upgrade
-  shell: helm upgrade --install --atomic --timeout {{helm_install_timeout | d("10m")}} {{ release_name }} {{ chart_path }} -n {{namespace}}
+  shell: helm upgrade --install --atomic --timeout {{helm_install_timeout | d('10m')}} {{ release_name }} {{ chart_path }} -n {{namespace}}
 
 - name: Clean up keys
   include_role:
