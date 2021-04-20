@@ -27,6 +27,23 @@ from sys import exit
 from time import strftime
 import concurrent.futures
 import errno
+import socket
+
+'''
+Returns the ip address of current host machine
+'''
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+    except Exception:
+        print("Couldn't get the correct, please pass the current node's cassandra ip address using flag '--host <ip address>'")
+        raise
+    finally:
+        s.close()
+    return  str(IP)
 
 # Create temporary directory to copy data
 default_snapshot_name = "cassandra_backup" + strftime("%Y-%m-%d-%H%M%S")
@@ -46,6 +63,7 @@ parser.add_argument("-w", "--workers", metavar="workers",
                     default=cpu_count(), help="Number of workers to use. Default same as cpu cores {}".format(cpu_count()))
 parser.add_argument("--disablesnapshot", action="store_true",
                     help="disable taking snapshot, snapshot name can be given via -s flag")
+parser.add_argument("--host", default=get_ip(), metavar="< Default: "+get_ip()+" >", help="ip address of cassandra instance. Used to take the token ring info. If the ip address is not correct, Please update the ip address, else your token ring won't be correct.")
 args = parser.parse_args()
 
 tmpdir = args.snapshotdirectory
@@ -94,6 +112,15 @@ if rc != 0:
     exit(1)
 print("Schema backup completed. saved in {}/cassandra_backup/db_schema.sql".format(tmpdir))
 
+# Backing up tokenring
+command = """ nodetool ring | grep """ + get_ip() + """ | awk '{print $NF ","}' | xargs | tee -a """ + tmpdir + """/cassandra_backup/tokenring.txt """ #.format(args.host, tmpdir)
+print(command)
+rc = system(command)
+if rc != 0:
+    print("Couldn't backup tokenring, exiting...")
+    exit(1)
+print("Token ring backup completed. saved in {}/cassandra_backup/tokenring.txt".format(tmpdir))
+
 # Creating snapshots
 if not args.disablesnapshot:
     # Cleaning all old snapshots
@@ -131,4 +158,3 @@ if args.tardirectory:
     # Cleaning up backup directory
     rmtree(tmpdir)
     print("Cassandra backup completed and stored in {}/{}.tar.gz".format(args.tardirectory, args.snapshotname))
-

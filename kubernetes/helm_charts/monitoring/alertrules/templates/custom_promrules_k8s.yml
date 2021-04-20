@@ -1,0 +1,70 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.prometheus_rule_selector_app }}
+    release: {{ .Values.prometheus_rule_selector_release }}
+  name: {{ .Values.fullnameOverride }}-custom-rule-k8s
+  namespace: {{ .Values.namespace }}
+spec:
+  groups:
+  - name: alertrules.custom.k8s
+    rules:
+    - alert: TargetDown
+      annotations:
+        message: '{{`{{`}} printf "%.4g" $value {{`}}`}}% of the {{`{{`}} $labels.job {{`}}`}}/{{`{{`}} $labels.service {{`}}`}} targets in {{`{{`}} $labels.namespace {{`}}`}} namespace are down.'
+      expr: 100 * (count(up == 0) BY (job, namespace, service) / count(up) BY (job, namespace, service)) > 10
+      for: 10m
+      labels:
+        severity: critical
+        notify: inhibit
+
+    - alert: KubeHpaMaxedOut
+      annotations:
+        message: HPA {{`{{`}} $labels.namespace {{`}}`}}/{{`{{`}} $labels.hpa {{`}}`}} has been running at max replicas for longer than 15 minutes.
+      expr: |-
+        kube_hpa_status_current_replicas{job="kube-state-metrics", namespace=~".*"}
+          ==
+        kube_hpa_spec_max_replicas{job="kube-state-metrics", namespace=~".*"}
+      for: 15m
+      labels:
+        severity: critical
+        notify: inhibit
+
+    - alert: KubeJobFailed
+      annotations:
+        message: Job {{`{{`}} $labels.namespace {{`}}`}}/{{`{{`}} $labels.job_name {{`}}`}} failed to complete.
+      expr: kube_job_failed{job="kube-state-metrics", namespace=~".*"}  > 0
+      for: 15m
+      labels:
+        severity: critical
+        notify: inhibit
+
+    - alert: KubeNodeNotReady
+      annotations:
+        message: '{{`{{`}} $labels.node {{`}}`}} has been unready for more than 15 minutes.'
+      expr: kube_node_status_condition{job="kube-state-metrics",condition="Ready",status="true"} == 0
+      for: 15m
+      labels:
+        severity: critical
+        notify: inhibit
+
+    - alert: KubeNodeUnreachable
+      annotations:
+        message: '{{`{{`}} $labels.node {{`}}`}} is unreachable and some workloads may be rescheduled.'
+      expr: kube_node_spec_taint{job="kube-state-metrics",key="node.kubernetes.io/unreachable",effect="NoSchedule"} == 1
+      for: 2m
+      labels:
+        severity: critical
+        notify: inhibit
+
+    - alert: KubeletTooManyPods
+      annotations:
+        message: Kubelet '{{`{{`}} $labels.node {{`}}`}}' is running at {{`{{`}} $value | humanizePercentage {{`}}`}} of its Pod capacity.
+      expr: max(max(kubelet_running_pod_count{job="kubelet", metrics_path="/metrics"}) by(instance) * on(instance) group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"}) by(node) / max(kube_node_status_capacity_pods{job="kube-state-metrics"} != 1) by(node) > 0.95
+      for: 15m
+      labels:
+        severity: critical
+        notify: inhibit
