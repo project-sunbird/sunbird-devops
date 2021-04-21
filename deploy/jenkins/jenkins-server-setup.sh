@@ -61,6 +61,8 @@ npm install -g grunt-cli@1.2.0
 ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/grunt /usr/bin/grunt
 npm install -g bower@1.8.0
 ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/bower /usr/bin/bower
+npm install -g @alexlafroscia/yaml-merge
+ln -s /var/lib/jenkins/.nvm/versions/node/v12.16.1/bin/yaml-merge /usr/bin/yaml-merge
 npm install -g gulp@3.9.1
 ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/gulp /usr/bin/gulp
 rm -rf node-v6.17.1-linux-x64*
