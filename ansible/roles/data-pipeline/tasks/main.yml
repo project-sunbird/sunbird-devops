@@ -10,7 +10,21 @@
 - name: UPDATE THE REPOS
   apt:
     update_cache: yes
+ 
+- name: Ensure the locale exists
+  locale_gen:
+    name: en_US.UTF-8
+    state: present
 
+- name: set as default locale
+  command: locale-gen en_US.UTF-8
+    
+- name: install OpenJDK Java
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items: openjdk-8-jdk
+  
 - name: INSTALL THE PACKGES
   apt:
     name: software-properties-common
@@ -52,7 +66,7 @@
 - name: Create necessary logs folders for pipeline
   become_user: "{{ USER }}"
   become: yes
-  shell: "cd {{ WORKDIR }} && mkdir -p source logs/assessment/reports logs/observation/status logs/observation_evidence logs/project logs/survey logs/survey_evidence"
+  shell: "cd {{ WORKDIR }} && mkdir -p source logs/observation/status logs/observation_evidence logs/project logs/survey logs/survey_evidence"
     
 - name: copying file with owner and permissions
   copy:
@@ -79,28 +93,13 @@
   copy:
     dest: "{{ WORKDIR }}/faust_as_service/faust.sh"
     owner: "{{ USER }}"
-    group: "{{ USER }}"
+    group: "{{ USER }}"	
     mode: 0777
     content: |
       #!/bin/sh
       export LANG=C.UTF-8
       export LC_ALL=C.UTF-8
       /opt/sparkjobs/spark_venv/bin/python /opt/sparkjobs/source/\$1.py --workdir /opt/sparkjobs/source/\$2 worker -l info
-
-- name: CREATION THE SYSTEMD faust_assessment FILE
-  copy:
-    dest: "{{ SYSTEMDDIR }}/faust_assessment.service"
-    content: |
-      [Unit]
-      Description=Faust Assessment Service
-      [Service]
-      User=data-pipeline
-      Group=data-pipeline
-      Restart=on-failure
-      Type=simple
-      ExecStart=/opt/sparkjobs/faust_as_service/faust.sh  assessment/assessment_streaming assessment/ assessment/
-      [Install]
-      WantedBy=multi-user.target
 
 - name: CREATION THE SYSTEMD faust_observation FILE
   copy:
@@ -172,7 +171,6 @@
     enabled: yes
     state: started
   loop:
-    - faust_assessment.service 
     - faust_observation.service 
     - faust_observation_evidence.service 
     - faust_survey.service 
