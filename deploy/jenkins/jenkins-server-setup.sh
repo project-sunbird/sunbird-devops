@@ -68,7 +68,7 @@ ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/gulp /usr/bin/gulp
 rm -rf node-v6.17.1-linux-x64*
 
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
-pip install ansible==2.7.18
+pip install ansible==2.8.19
 
 echo -e "\n\e[0;32m${bold}Installating azure cli${normal}"
 apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
