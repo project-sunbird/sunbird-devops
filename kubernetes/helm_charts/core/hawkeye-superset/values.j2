@@ -1,5 +1,6 @@
 replicaCount: 1
 
+
 image:
   repository: {{ dockerhub }}/hawkeye
   tag: {{ image_tag }}
@@ -57,3 +58,13 @@ init:
     - "/bin/sh"
     - "-c"
     - "superset db upgrade && superset init && superset fab create-admin --username admin --firstname Superset --lastname Admin --email admin@superset.com --password admin"
+
+# Using the same nginx variables as this also needs to be private LB.
+{% if nginx_private_ingress_annotations is defined and nginx_private_ingress_annotations %}
+# you can define annotations in ansible for custom behaviour
+# eg:
+# nginx_private_ingress_annotations:
+#   cloud.google.com/load-balancer-type: "Internal"
+
+annotations: {{nginx_private_ingress_annotations|to_json}}
+{% endif %}

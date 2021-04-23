@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    {{- include "json-path-exporter.labels" . | nindent 6 }}
+    {{ toYaml .Values.serviceMonitorLabels | nindent 6 }}
+  name: {{ include "json-path-exporter.fullname" . }}
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+spec:
+  endpoints:
+  - honorLabels: true
+    port: metrics
+    relabelings:
+    - action: labeldrop
+      regex: ^pod$
+  namespaceSelector:
+    matchNames:
+    - monitoring
+  selector:
+    matchLabels:
+    {{- include "json-path-exporter.labels" . | nindent 6 }}
