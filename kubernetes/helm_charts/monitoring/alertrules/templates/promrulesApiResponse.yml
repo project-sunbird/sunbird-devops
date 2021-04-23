@@ -1,0 +1,29 @@
+## description: This is the alertrules to trigger the alert if there is upward trend in avg response time.
+
+---
+{{- $api_response_upward_trend_threshold := .Values.api_response_upward_trend_threshold -}}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    role: alert-rules
+    app: {{ .Values.prometheus_rule_selector_app }}
+    release: {{ .Values.prometheus_rule_selector_release }}
+  name: {{ .Values.fullnameOverride }}-api-response-rules
+  namespace: {{ .Values.namespace }}
+spec:
+  groups:
+  - name: alertrules.api.response
+    rules:
+    {{- if .Values.api_names }}
+    ## druid segment unavailable count alert
+    {{ range $key := .Values.api_names }}
+    - alert: api_response_upward_trend {{ . }}
+      expr: irate(kong_upstream_latency_time_sum{api={{ . | quote }} }[5m]) > {{ $api_response_upward_trend_threshold }}
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        message: There is an upward trend in this api {{ . }} avg response time.
+    {{- end }}
+    {{- end }} 
