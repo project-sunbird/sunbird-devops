@@ -3,6 +3,7 @@ filebeat.config.inputs:
   enabled: true
   path: "{{filebeat_config_directory}}/*.yml"
 
+{% if send_logs_to_graylog is false %}
 #==================== Elasticsearch template setting ==========================
 setup.template.name: "filebeat"
 setup.template.pattern: "filebeat-*"
@@ -51,12 +52,8 @@ output.elasticsearch:
     when.contains:
       source: logstash
   - index: "learning-%{+yyyy.MM.dd}"
-    when:
-      or:
-      - contains:
-          source: /data/logs/learning
-      - contains:
-          source: /home/learning/apache-tomcat-8.0.36
+    when.contains:
+      source: /data/logs/learning
   - index: "kafka-%{+yyyy.MM.dd}"
     when.contains:
       source: kafka
@@ -70,11 +67,11 @@ output.elasticsearch:
     when.contains:
       source: postgres
   - index: "syslogs-%{+yyyy.MM.dd}"
-
+{% else %}
 #----------------------------- Logstash output --------------------------------
-#output.logstash:
-  # The Logstash hosts
-  #hosts: ["localhost:5044"]
-
+output.logstash:
+  hosts: ["{{ groups['graylog']|join(':5044\", \"')}}:5044"]
+  loadbalance: true
+{% endif %}
 #----------------------------- General --------------------------------
 max_procs: 1
