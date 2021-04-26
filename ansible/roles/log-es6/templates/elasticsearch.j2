@@ -5,29 +5,27 @@
 # Elasticsearch home directory
 ES_HOME={{es_home}}
 
+# Elasticsearch temp directory
+ES_TMPDIR={{ es_tmp_dir }}
+
 # Elasticsearch Java path
-#JAVA_HOME=
+{% if es_java_home | length > 0 %}
+ES_JAVA_HOME={{ es_java_home }}
+{% else %}
+#ES_JAVA_HOME=
+{% endif %}
 
 # Elasticsearch configuration directory
-CONF_DIR={{conf_dir}}
-ES_PATH_CONF={{conf_dir}}
-
-# Elasticsearch data directory
-DATA_DIR={{ data_dirs | array_to_str }}
-
-# Elasticsearch logs directory
-LOG_DIR={{log_dir}}
+ES_PATH_CONF={{ es_conf_dir }}
 
 # Elasticsearch PID directory
-PID_DIR={{pid_dir}}
+PID_DIR={{ es_pid_dir }}
 
-ES_JVM_OPTIONS={{conf_dir}}/jvm.options
+# Additional Java OPTS
+ES_JAVA_OPTS="{% if es_proxy_host is defined and es_proxy_host != '' %}-Dhttp.proxyHost={{ es_proxy_host }} -Dhttp.proxyPort={{ es_proxy_port }} -Dhttps.proxyHost={{ es_proxy_host }} -Dhttps.proxyPort={{ es_proxy_port }}{% endif %}"
 
 # Configure restart on package upgrade (true, every other setting will lead to not restarting)
-#ES_RESTART_ON_UPGRADE=true
-
-# Path to the GC log file
-#ES_GC_LOG_FILE=/var/log/elasticsearch/gc.log
+#RESTART_ON_UPGRADE=true
 
 ################################
 # Elasticsearch service
@@ -35,14 +33,6 @@ ES_JVM_OPTIONS={{conf_dir}}/jvm.options
 
 # SysV init.d
 #
-# When executing the init script, this user will be used to run the elasticsearch service.
-# The default value is 'elasticsearch' and is declared in the init.d file.
-# Note that this setting is only used by the init script. If changed, make sure that
-# the configured user can read and write into the data, work, plugins and log directories.
-# For systemd service, the user is usually configured in file /usr/lib/systemd/system/elasticsearch.service
-ES_USER={{es_user}}
-ES_GROUP={{es_group}}
-
 # The number of seconds to wait before checking if Elasticsearch started successfully as a daemon process
 ES_STARTUP_SLEEP_TIME=5
 
@@ -53,17 +43,17 @@ ES_STARTUP_SLEEP_TIME=5
 # Specifies the maximum file descriptor number that can be opened by this process
 # When using Systemd, this setting is ignored and the LimitNOFILE defined in
 # /usr/lib/systemd/system/elasticsearch.service takes precedence
+#MAX_OPEN_FILES=65535
 {% if es_max_open_files is defined %}
-#MAX_OPEN_FILES
 MAX_OPEN_FILES={{es_max_open_files}}
 {% endif %}
 
 # The maximum number of bytes of memory that may be locked into RAM
 # Set to "unlimited" if you use the 'bootstrap.memory_lock: true' option
-# in elasticsearch.yml
-# When using Systemd, the LimitMEMLOCK property must be set
-# in /usr/lib/systemd/system/elasticsearch.service
-#MAX_LOCKED_MEMORY=
+# in elasticsearch.yml.
+# When using systemd, LimitMEMLOCK must be set in a unit file such as
+# /etc/systemd/system/elasticsearch.service.d/override.conf.
+#MAX_LOCKED_MEMORY=unlimited
 {% if m_lock_enabled %}
 MAX_LOCKED_MEMORY=unlimited
 {% endif %}
@@ -74,10 +64,4 @@ MAX_LOCKED_MEMORY=unlimited
 #MAX_MAP_COUNT=262144
 {% if es_max_map_count is defined %}
 MAX_MAP_COUNT={{es_max_map_count}}
-{% endif %}
-
-# Specifies the maximum number of threads that can be started.
-# Elasticsearch requires a minimum of 2048.
-{% if es_max_threads is defined %}
-MAX_THREADS={{ es_max_threads }}
 {% endif %}
