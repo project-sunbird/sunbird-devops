@@ -14,3 +14,12 @@
   systemd:
     name: graylog-server
     state: restarted
+
+- name: Wait for graylog to startup
+  uri:
+    url: "http://{{ inventory_hostname }}:9000"
+    method: GET
+  register: _result
+  until: _result.status == 200
+  delay: 15
+  retries: 15
