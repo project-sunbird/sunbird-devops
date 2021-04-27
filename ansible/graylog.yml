@@ -19,11 +19,14 @@
     graylog_http_publish_uri: "http://{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}:9000"
     graylog_http_external_uri: "http://{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}:9000/"
   pre_tasks:
-    - name: Register mongodb replica set variable
+    - name: register mongodb replica set variable
       set_fact:
         mongodb_replication_params: "{{ lookup('template', 'roles/graylog/templates/mongodb_replication_params.js') | from_yaml }}"
       run_once: true
       tags: mongodb-cluster
+    - name: set sysctl values for SO_RCVBUF
+      shell: sysctl --write net.core.rmem_max=524288 && sysctl --write net.core.wmem_max=524288
+      tags: graylog
   roles:
     - role: openjdk
       tags: openjdk
