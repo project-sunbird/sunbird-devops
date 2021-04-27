@@ -21,7 +21,15 @@ net:
   {% endif %}
 
 processManagement:
-  fork: false
+  fork: {{ mongodb_processmanagement_fork | to_nice_json}}
+  {% if mongodb_pidfile_path is defined and mongodb_pidfile_path != '' -%}
+  pidFilePath: {{ mongodb_pidfile_path }}
+  {%- endif %}
+  {%- if mongodb_config['processManagement'] is defined and mongodb_config['processManagement'] is iterable %}
+  {%- for item in mongodb_config['processManagement'] -%}
+  {{ item }}
+  {% endfor %}
+  {% endif %}
 
 {% if mongodb_replication_replset -%}
 replication:
