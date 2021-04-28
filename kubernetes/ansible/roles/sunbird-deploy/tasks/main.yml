@@ -2,7 +2,22 @@
   template:
     src: "{{ chart_path }}/values.j2"
     dest: "{{ chart_path }}/values.yaml"
-  
+
+- name: copy and template env file from swarm role
+  template:
+    src: "{{item}}"
+    dest: "{{role_path}}/templates/"
+  with_items: "{{service_env[release_name]}}"
+
+- name: create env configmap
+  shell: find "{{role_path}}/templates/" -iname "*.env" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-config --from-env-file={} -n {{namespace}} --dry-run -o=yaml | kubectl apply -f - " \;
+
+- name: create aplication configmap
+  shell: find "{{role_path}}/templates/" -iname "*.conf" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-config --from-file={} -n {{namespace}} --dry-run -o=yaml | kubectl apply -f - " \;
+
+- name: create xml configmap
+  shell: find "{{role_path}}/templates/" -iname "*.xml" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-xml-config --from-file={} -n {{namespace}} --dry-run -o=yaml | kubectl apply -f - " \;
+
 - name: Load role to decrypt private keys, copy to helm chart and encrypt private keys
   include_role:
     name: mount-keys
