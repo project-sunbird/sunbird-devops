@@ -1,107 +1,161 @@
-# This variable will get injected to nginx resolver config
-# There is no native helm way to do this. So it's 
-# kind of a workaround
-- name: getting kube dns ip
-  shell: kubectl get service --namespace kube-system kube-dns -o jsonpath="{.spec.clusterIP}"
-  register: kube_dns_ip
+---
+hub_org: sunbird
+nginx_per_ip_connection_limit: 400
+merge_proxy_server_name:
+merge_domain_status: false
+proxy_prometheus: false
 
-- name: setting variable
-  set_fact:
-    kube_dns_ip: "{{ kube_dns_ip.stdout }}"
+proxy_secrets:
+  - name: prom_admin_creds
+    value: "{{proxy_prometheus_admin_creds}}"
+  - name: site.key
+    value: "{{proxy_site_key}}"
+  - name: site.crt
+    value: "{{proxy_site_crt}}"
 
-- name: rename template
-  template:
-    src: "{{ chart_path }}/values.j2"
-    dest: "{{ chart_path }}/values.yaml"
+merge_proxy_secrets:
+  - name: sitemerge.key
+    value: "{{proxymerge_site_key}}"
+  - name: sitemerge.crt
+    value: "{{proxymerge_site_crt}}"
 
-- name: Load role to decrypt private keys, copy to helm chart and encrypt private keys
-  include_role:
-    name: mount-keys
-    tasks_from: "{{outer_item.1}}"
-  vars:
-    private_key_path: "{{ outer_item.0.values_to_pass.basepath }}"
-    private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
-    private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
-    private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount if outer_item.0.values_to_pass.keycount > '0' else '1'  }}"
-  when: release_name == "adminutils"
-  with_subelements:
-    - "{{adminutil_keys_values}}"
-    - role_to_run
-  loop_control:
-    loop_var: outer_item
+# These values should be overridden in inventory
+proxy_site_key:
+proxy_site_crt:
+proxymerge_site_key:
+proxymerge_site_crt:
+proxy_prometheus_admin_creds:
+prometheus_route_prefix: prometheus
+prometheus_alertmanager_route_prefix: alertmanager
+ekstep_s3_env: "{{sunbird_env}}"
+registry_url: "{{proto}}://{{proxy_server_name}}/registry"
+ep_es_host:
+proxy_custom_config:
+kibana_service: "{{swarm_dashboard}}:5601"
 
-- name: Create the token pubic key file
-  copy:
-    dest: "{{ chart_path }}/keys/{{ adminutil_refresh_token_public_key_prefix }}"
-    content: "{{ core_vault_sunbird_sso_publickey }}"
-  when: release_name == "adminutils"
+upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
+plugin_upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
+discussion_upstream_url: "{{ sunbird_public_storage_account_name  }}.blob.core.windows.net"
+sunbird_offline_azure_storage_account_url: "{{ sunbird_public_storage_account_name }}.blob.core.windows.net/{{ offline_installer_container_name }}"
 
-- name: helm install
-  shell: helm upgrade --install --atomic --timeout {{helm_install_timeout | d("10m")}} {{ release_name }} {{ chart_path }} -n {{namespace}}
+proxy_cache_path:
+  large_cache:
+    path: /tmp/large_cache
+    levels: "1:2"
+    keys_zone: large_cache:3m
+    max_size: 100m
+    inactive: 10m
+  medium_cache:
+    path: /tmp/medium_cache
+    levels: "1:2"
+    keys_zone: medium_cache:2m
+    max_size: 50m
+    inactive: 10m
+  small_cache:
+    path: /tmp/small_cache
+    levels: "1:2"
+    keys_zone: small_cache:1m
+    max_size: 10m
+    inactive: 10m
 
-- name: Clean up keys
-  include_role:
-    name: mount-keys
-    tasks_from: "{{item}}"
-  when: release_name == "adminutils"
-  with_items:
-    - remove-from-helm.yml
-    - remove-keys-from-inventory.yml
+proxy_cache_valid:
+  long_validity: 5m
+  medium_validity: 4m
+  short_validity: 3m
 
-- name: Get the deployment rollout status
-  shell: "kubectl get deployments -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"
-  args:
-    executable: /bin/bash
-  register: deployment_result
-  ignore_errors: yes
+adminutils_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 4000
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 4000
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
 
-- name: Get deployed image name - deployments
-  shell: "kubectl get deployments {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
-  register: image
+api_managerecho_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /hello
+      port: 9595
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /hello
+      port: 9595
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
 
-- set_fact:
-   deployed_image: "{{ image }}"
+adminutil__device_keyprefix: "device_key"
+adminutil__access_keyprefix: "access_key"
+adminutil__desktop_keyprefix: "desktop_key"
+adminutil__portal_keyprefix: "portal_key"
+adminutil__device_keystart: 0
+adminutil__device_keycount: 0
+adminutil__access_keystart: 0
+adminutil__access_keycount: 0
+adminutil__desktop_keystart: 0
+adminutil__desktop_keycount: 0
+adminutil__portal_keystart: 0
+adminutil__portal_keycount: 0
 
-- name: Get the daemonset rollout status
-  shell: "kubectl get daemonsets -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"
-  args:
-    executable: /bin/bash
-  register: daemonset_result
-  ignore_errors: yes
+adminutil_refresh_token_public_key_prefix: "refresh_token_public_key"
+adminutil_access_token_validity: 43200  # 12 hours access token validity
+adminutil_refresh_token_offline_validity: 15552000 # 180 days offline token validity
+adminutil_refresh_token_log_older_than: 30  # Write a log when the token is older than 30 days
+adminutil_refresh_token_preload: "true"
 
-- name: Get deployed image name - daemonsets
-  shell: "kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
-  register: image 
-
-- set_fact:
-   deployed_image: "{{ image if image.stdout_lines | length > 0 else deployed_image }}"
-
-- name: Get the statefulset rollout status
-  shell: "kubectl get statefulsets -A | grep -i {{ release_name }} | if [[ $(wc -l) > 0 ]]; then awk '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'; else exit 1; fi"
-  args:
-    executable: /bin/bash
-  register: statefulset_result
-  ignore_errors: yes
-
-- name: Get deployed image name - statefulsets
-  shell: "kubectl get statefulsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
-  register: image
-
-- set_fact:
-   deployed_image: "{{ image if image.stdout_lines | length > 0 else deployed_image }}"
-
-- name: fail when deployment or daemonset or statefulset are not successful
-  fail:
-    msg: "Unable to get success status for any of these - deployment, daemonset, statefulset"
-  when: statefulset_result.rc != 0 and daemonset_result.rc != 0 and deployment_result.rc != 0
-
-- set_fact:
-   metadata_image: "{{ image_name }}:{{ image_tag }}"
-
-- debug: 
-    msg: "deployed image: {{ deployed_image.stdout }}"
-
-- name: Compare deployed image and metadata_image
-  fail:
-    msg: "Image version from Jenkins job and actual deployed image version do not match"
-  when: deployed_image.stdout != metadata_image
+adminutil_keys_values:
+- key_to_register: device
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__device_keyprefix }}"
+    keystart: "{{ adminutil__device_keystart|int }}"
+    keycount: "{{ adminutil__device_keycount|int }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml
+- key_to_register: access
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__access_keyprefix }}"
+    keystart: "{{ adminutil__access_keystart|int }}"
+    keycount: "{{ adminutil__access_keycount|int }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml
+- key_to_register: desktop
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__desktop_keyprefix }}"
+    keystart: "{{ adminutil__desktop_keystart|int }}"
+    keycount: "{{ adminutil__desktop_keycount|int }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml
+- key_to_register: portal
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__portal_keyprefix }}"
+    keystart: "{{ adminutil__portal_keystart|int }}"
+    keycount: "{{ adminutil__portal_keycount|int }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml
