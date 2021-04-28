@@ -303,25 +303,6 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
     }
-    # Oauth2 config
-    location /oauth2/ {
-      set $target http://oauth2-proxy.logging.svc.cluster.local;
-      proxy_set_header Host                    $host;
-      proxy_set_header X-Real-IP               {{ nginx_client_public_ip_header | d('$remote_addr') }};
-      proxy_set_header X-Scheme                $scheme;
-      proxy_set_header X-Auth-Request-Redirect $request_uri;
-      proxy_pass http://oauth2-proxy-service.logging.svc.cluster.local;
-    }
-    location = /oauth2/auth {
-      set $target http://oauth2-proxy.logging.svc.cluster.local;
-      proxy_set_header Host             $host;
-      proxy_set_header X-Real-IP        {{ nginx_client_public_ip_header | d('$remote_addr') }};
-      proxy_set_header X-Scheme         $scheme;
-      # nginx auth_request includes headers but not body
-      proxy_set_header Content-Length   "";
-      proxy_pass_request_body           off;
-      proxy_pass http://oauth2-proxy-service.logging.svc.cluster.local;
-    }
     location /dashboard/ {
       auth_request /oauth2/auth;
       error_page 401 = /oauth2/sign_in;
