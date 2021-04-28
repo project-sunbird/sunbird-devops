@@ -34,39 +34,5 @@
   loop_control:
     loop_var: outer_item
 
-- name: Create the token pubic key file
-  copy:
-    dest: "{{ chart_path }}/keys/{{ adminutil_refresh_token_public_key_kid }}"
-    content: "{{ core_vault_sunbird_sso_publickey }}"
-  when: release_name == "learner" or release_name == "lms" or release_name == "groups" or release_name == "knowledgemw" 
-
-- name: Create the token pubic key file for ML Services
-  copy:
-    dest: "{{ chart_path }}/keys/{{ adminutil_refresh_token_public_key_kid }}"
-    content: "{{ core_vault_sunbird_sso_publickey_ml_services }}"
-  when: release_name == "ml-survey-service" or release_name == "ml-report-service" or release_name == "ml-core-service" or release_name == "ml-project-service"
-
-- name: helm upgrade
-  shell: helm upgrade --install --timeout {{helm_install_timeout | d('10m')}} {{ release_name }} {{ chart_path }} -n {{namespace}}
-
-- name: Clean up keys
-  include_role:
-    name: mount-keys
-    tasks_from: "{{item}}"
-  when: release_name == "learner" or release_name == "lms" or release_name == "groups" or release_name == "knowledgemw"
-  with_items:
-    - remove-from-helm.yml
-    - remove-keys-from-inventory.yml
-
-- name: Get the deployment rollout status
-  shell: "kubectl get deployments -A | grep -i {{ release_name }} | awk -F' ' '{print $3}' | awk -F/ '{if ($1 ~ $2){exit 0} else {exit 1}}'"
-  register: task_result
-  until: task_result.rc == 0
-  retries: 6
-  delay: 30
-
-- name: Get deployed image name
-  shell: kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[0].image | split("/")[1]'
-  register: deployed_image
 
 
