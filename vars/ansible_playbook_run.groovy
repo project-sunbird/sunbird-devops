@@ -33,7 +33,7 @@ def call(Map pipelineParams) {
                         if [ -f ${pipelineParams.currentWs}/ansible/inventory/env/kubernetes.yaml ]; then
                             cat ${pipelineParams.currentWs}/ansible/inventory/env/kubernetes.yaml >> ${pipelineParams.currentWs}/ansible/inventory/env/common.yml
                         fi
-                        ansible-playbook -i ${inventory_path} $pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
+                        ansible-playbook -i ${inventory_path}/hosts $pipelineParams.ansiblePlaybook $pipelineParams.ansibleExtraArgs
                      """
             }
         }
