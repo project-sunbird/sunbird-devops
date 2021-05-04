@@ -5,22 +5,15 @@ daemonset:
   filebeatConfig:
     filebeat.yml: |
       filebeat.inputs:
-      #==== Flink jobs input config ====#
+      #==== Flink cluster input config ====#
       - type: container
         paths:
           - /var/log/containers/*-jobmanager-*.log
           - /var/log/containers/*-taskmanager-*.log
-        multiline.type: pattern
-        multiline.pattern: '^[[:space:]]+(at|\.{3})[[:space:]]+\b|^Caused by:|ERROR'
-        multiline.negate: false
-        multiline.match: after
-      #==== Secor jobs input config ====#
-      - type: container
-        paths:
           - /var/log/containers/*-secor-*.log
         multiline.type: pattern
-        multiline.pattern: '^[[:space:]]+(at|\.{3})[[:space:]]+\b|^Caused by:|ERROR'
-        multiline.negate: false
+        multiline.pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}' 
+        multiline.negate: true
         multiline.match: after
       - type: container
         paths:
