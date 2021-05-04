@@ -378,25 +378,8 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass $target;
     }
-    location /dashboard/ {
-      auth_request /oauth2/auth;
-      error_page 401 = /oauth2/sign_in;
-      # Setting target url
-      auth_request_set $target http://{{ kibana_service }};
-      # pass information via X-User and X-Email headers to backend,
-      # requires running with --set-xauthrequest flag
-      auth_request_set $user   $upstream_http_x_auth_request_user;
-      auth_request_set $email  $upstream_http_x_auth_request_email;
-      proxy_set_header X-User  $user;
-      proxy_set_header X-Email $email;
-      # if you enabled --cookie-refresh, this is needed for it to work with auth_request
-      auth_request_set $auth_cookie $upstream_http_set_cookie;
-      add_header Set-Cookie $auth_cookie;
-      proxy_set_header X-Request-ID $sb_request_id;
-      proxy_pass $target;
-    }
 {% if graylog_open_to_public is true %}
-    location /graylog/ {
+    location /dashboard/ {
       auth_request /oauth2/auth;
       error_page 401 = /oauth2/sign_in;
       # Setting target url
@@ -411,7 +394,13 @@ proxyconfig: |-
       auth_request_set $auth_cookie $upstream_http_set_cookie;
       add_header Set-Cookie $auth_cookie;
       proxy_set_header X-Request-ID $sb_request_id;
+      proxy_set_header Host $host;
+      proxy_set_header X-Forwarded-Host $host;
+      proxy_set_header X-Forwarded-Server $host;
+      proxy_set_header X-Scheme $scheme;
       proxy_set_header Graylog-User viewer;
+      proxy_set_header X-Graylog-Server-URL {{proto}}://{{ proxy_server_name }}/dashboard/;
+      rewrite  ^/dashboard/(.*)$  /$1  break;
       proxy_pass $target;
     }
 {% endif %}
