@@ -1,7 +1,17 @@
 - hosts: graylog
   become: yes
+  pre_tasks:
+    - name: stop graylog
+      systemd:
+        name: graylog-server
+        state: stopped
   roles:
     - graylog-mongodb-import
   tags:
     - graylog-mongodb-import
   run_once: true
+  post_tasks:
+    - name: start graylog
+      systemd:
+        name: graylog-server
+        state: started
