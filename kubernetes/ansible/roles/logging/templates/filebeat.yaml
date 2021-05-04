@@ -5,6 +5,16 @@ daemonset:
   filebeatConfig:
     filebeat.yml: |
       filebeat.inputs:
+      #==== Flink cluster input config ====#
+      - type: container
+        paths:
+          - /var/log/containers/*-jobmanager-*.log
+          - /var/log/containers/*-taskmanager-*.log
+          - /var/log/containers/*-secor-*.log
+        multiline.type: pattern
+        multiline.pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}' 
+        multiline.negate: true
+        multiline.match: after
       - type: container
         paths:
           - /var/log/containers/*.log
