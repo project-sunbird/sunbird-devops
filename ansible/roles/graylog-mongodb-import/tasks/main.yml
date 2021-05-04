@@ -1,0 +1,27 @@
+---
+- name: fail when the host is not a mongo master
+  fail:
+    msg: >
+        Ensure the first host in the group graylog is the mongo master ip
+        groups['graylog'][0] is not a mongo master
+  when: hostvars[groups['graylog'][0]].mongodb_master is not true
+
+- name: create the directory on remote to copy the json files
+  file: path={{ mongo_json_data }} state=directory
+
+- name: template and copy the json input data
+  template:
+    src: "{{ item }}.json"
+    dest: "{{ mongo_json_data }}"
+  with_items:
+  - "{{ graylog_mongo_collections }}"
+
+- name: restore the data to mongodb
+  shell: "mongoimport --db={{ graylog_mongo_db }} --collection={{ item }} --file={{ mongo_json_data }}/{{ item }}.json"
+  with_items:
+  - "{{ graylog_mongo_collections }}"
+
+- name: clean up
+  file:
+    path: "{{ mongo_json_data }}"
+    state: absent
