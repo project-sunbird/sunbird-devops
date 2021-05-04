@@ -9,8 +9,15 @@
   with_items:
   - "{{ graylog_mongo_collections }}"
 
-- name: restore the data to mongodb
+- name: drop and restore the data to mongodb
   shell: "mongoimport --drop --db={{ graylog_mongo_db }} --collection={{ item }} --file={{ mongo_json_data }}/{{ item }}.json"
+  when: graylog_mongo_collections_drop is true
+  with_items:
+  - "{{ graylog_mongo_collections }}"
+
+- name: restore the data to mongodb
+  shell: "mongoimport --db={{ graylog_mongo_db }} --collection={{ item }} --file={{ mongo_json_data }}/{{ item }}.json"
+  when: graylog_mongo_collections_drop is false
   with_items:
   - "{{ graylog_mongo_collections }}"
 
