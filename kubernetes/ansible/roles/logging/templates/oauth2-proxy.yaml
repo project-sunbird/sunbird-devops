@@ -3,7 +3,11 @@ config:
   clientSecret: "{{ google_client_secret }}"
   cookieSecret: "{{ cookie_secret }}"
   configFile: |-
+{% if graylog_open_to_public is false %}
+    redirect_url = "http://{{ oauth2_proxy_lb_ip }}.nip.io/oauth2/callback"
+{% else %}
     redirect_url = "{{ oauth2_proxy_redirect_url }}"
+{% endif %}
 {% if graylog_open_to_public is true %}
     upstreams = "http://graylog.logging.svc.cluster.local"
 {% else %}
@@ -13,8 +17,10 @@ config:
     authenticated_emails_file = "/etc/oauth2/auth-emails/authenticated_email.txt"
     cookie_expire = "24h"
     cookie_refresh = "4h"
+{% if graylog_open_to_public is false %}
     cookie_secure = true
     cookie_httponly = true
+{% endif %}
     silence_ping_logging = true
     skip_provider_button = true
 
@@ -41,3 +47,20 @@ authenticatedEmailsFile:
      {% endfor %}
 
 fullnameOverride: "oauth2-proxy"
+
+{% if graylog_open_to_public is false %}
+service:
+  type: LoadBalancer
+  loadBalancerIP: {{ oauth2_proxy_lb_ip }}
+  port: 80
+{% if nginx_private_ingress_annotations is defined and nginx_private_ingress_annotations %}
+# you can define annotations in ansible for custom behaviour
+# eg:
+# nginx_private_ingress_annotations:
+#   cloud.google.com/load-balancer-type: "Internal"
+  annotations: {{nginx_private_ingress_annotations|to_json}}
+{% else %}
+  annotations:
+    cloud_provider: 'service.beta.kubernetes.io/azure-load-balancer-internal: "true"'
+{% endif %}
+{% endif %}
