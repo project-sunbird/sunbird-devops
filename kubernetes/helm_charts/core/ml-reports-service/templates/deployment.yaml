@@ -27,10 +27,14 @@ spec:
       volumes:
         - name: access-keys
           secret:
-            secretName: ml-report-access-keys
+            secretName: ml-reports-access-keys
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always          
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-service-config
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
@@ -45,12 +49,12 @@ spec:
 {{- $keys := .Files.Glob "keys/*" }}
 {{- if $keys }}
         volumeMounts:
-        - mountPath: {{ .Values.ml_report_access_basepath }}
+        - mountPath: {{ .Values.ml_reports_access_basepath }}
           name: access-keys
       volumes:
       - name: access-keys
         secret:
-          secretName: ml-report-access-keys
+          secretName: ml-reports-access-keys
 {{ end }}
           
 ---
