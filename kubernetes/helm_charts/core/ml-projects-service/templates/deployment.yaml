@@ -27,10 +27,14 @@ spec:
       volumes:
         - name: access-keys
           secret:
-            secretName: ml-project-access-keys
+            secretName: ml-projects-access-keys
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always          
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-service-config
         resources:
 {{ toYaml .Values.resources | indent 10 }}
         ports:
@@ -45,12 +49,12 @@ spec:
 {{- $keys := .Files.Glob "keys/*" }}
 {{- if $keys }}
         volumeMounts:
-        - mountPath: {{ .Values.ml_project_access_basepath }}
+        - mountPath: {{ .Values.ml_projects_access_basepath }}
           name: access-keys
       volumes:
       - name: access-keys
         secret:
-          secretName: ml-project-access-keys
+          secretName: ml-projects-access-keys
 {{ end }}
         
 ---
