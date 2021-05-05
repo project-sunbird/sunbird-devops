@@ -3,22 +3,21 @@ apiVersion: v1
 kind: Service
 metadata:
   name: graylog
-  namespace: logging
 spec:
   ports:
     - protocol: TCP
       port: 80
       targetPort: 9000
+      name: web
     - protocol: TCP
       port: 5044
       targetPort: 5044
-
+      name: beats
 ---
 apiVersion: v1
 kind: Endpoints
 metadata:
   name: graylog
-  namespace: logging
 subsets:
   - addresses:
     {{- range .Values.graylog.hosts }}
@@ -26,3 +25,8 @@ subsets:
     {{- end }}
     ports:
       - port: 9000
+        protocol: TCP
+        name: web
+      - port: 5044
+        protocol: TCP
+        name: beats
