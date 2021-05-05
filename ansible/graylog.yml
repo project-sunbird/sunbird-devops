@@ -1,0 +1,36 @@
+- hosts: graylog
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  vars:
+    mongodb_version: "4.0"
+    mongodb_replication_replset: graylog
+    mongodb_net_bindip: "127.0.0.1,{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
+    graylog_version: "4.0"
+    mongodb_login_host: "{{ groups['graylog'][0] }}"
+    host_name: "{{ groups['graylog'][0] }}"
+    graylog_install_elasticsearch: false
+    graylog_install_mongodb: false
+    graylog_install_nginx: false
+    graylog_install_java: false
+    graylog_elasticsearch_hosts: "{{ ['http://'] | product(groups['log-es']) | map('join') | list | join(':9200,')}}:9200"
+    graylog_mongodb_uri: "mongodb://{{ groups['graylog'] | map('join') | list | join(':27017,')}}:27017/graylog?replicaSet=graylog"
+    graylog_http_bind_address: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}:9000"
+    graylog_http_publish_uri: "http://{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}:9000"
+    graylog_http_external_uri: "http://{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}:9000/"
+  pre_tasks:
+    - name: register mongodb replica set variable
+      set_fact:
+        mongodb_replication_params: "{{ lookup('template', 'roles/graylog/templates/mongodb_replication_params.js') | from_yaml }}"
+      run_once: true
+      tags: mongodb-cluster
+    - name: set sysctl values for SO_RCVBUF
+      shell: sysctl --write net.core.rmem_max=524288 && sysctl --write net.core.wmem_max=524288
+      tags: graylog
+  roles:
+    - role: openjdk
+      tags: openjdk
+    - role: mongodb-cluster
+      tags: mongodb-cluster
+    - role: graylog
+      tags: graylog

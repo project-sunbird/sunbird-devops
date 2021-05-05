@@ -1,5 +1,23 @@
 - hosts: log-es
   become: yes
+  vars:
+    es_version: "6.8.10"
+    es_etc_discovery_zen_ping_unicast_hosts: "{{ groups['log-es'] }}"
+    es_etc_cluster_name: "{{ node_name }}"
+    log_es_heap_size: "1g"
+    es_heap_size: "{{ log_es_heap_size }}"
+    es_plugins_reinstall: true
+    es_plugins:
+      - plugin: "repository-azure"
+    es_config:
+      cluster.name: "{{ log_es_etc_cluster_name }}"
+      discovery.zen.ping.unicast.hosts: "{{ groups['log-es'] }}"
+      http.port: 9200
+      transport.tcp.port: 9300
+      node.data: "{{ es_etc_node_data | default('true') }}"
+      node.master: "{{ es_etc_node_master | default('true') }}"
+      bootstrap.memory_lock: true
+      network.host: 0.0.0.0
   vars_files:
     - ['{{inventory_dir}}/secrets.yml']
   pre_tasks:
@@ -9,28 +27,8 @@
       when: es_instance_name is not defined
   roles:
     - openjdk
-    - { role: log-es6,
-        es_config: {
-          cluster.name: "{{ log_es_etc_cluster_name }}",
-          discovery.zen.ping.unicast.hosts: "{{ groups['log-es'] }}",
-          http.port: 9200,
-          transport.tcp.port: 9300,
-          node.data: "{{ es_etc_node_data | default('true') }}",
-          node.master: "{{ es_etc_node_master | default('true') }}",
-          bootstrap.memory_lock: true,
-        },
-        es_etc_discovery_zen_ping_unicast_hosts: "{{ groups['log-es'] }}",
-        es_etc_cluster_name: "{{ node_name }}"
-      }
+    - log-es6
   post_tasks:
-    # This will make some performance tuning
-    # Ref: https://aws.amazon.com/premiumsupport/knowledge-center/elasticsearch-indexing-performance/
-    #
-    # Number of replicas: 0  # this is make sure that there is no backup and hence, no disk write. Good for logging indices
-    # refresh_interval: 60s  # Refresh interval is the setting which make sure the latest indexed data will be available for search.
-    #                        # But refresh is a heavy resource intensive operation, which can be run once in a minute than once in a second
-    #                        # https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html
-    #
     - name: Changing log es index replica to zero
       uri:
         url: "http://{{groups['log-es'][0]}}:9200/_template/logstash"

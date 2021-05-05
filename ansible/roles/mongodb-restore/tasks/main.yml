@@ -1,0 +1,24 @@
+---
+- name: Create mongo restore directory
+  file: path={{ mongo_restore_dir }} state=directory
+
+- name: Copy the mongo backup file to mongo master
+  copy:
+    src: "files/{{ mongo_backup_file_name }}"
+    dest: "{{mongo_restore_dir}}"
+
+- name: Unarchive the mongo backup file
+  unarchive:
+    src: "{{ mongo_restore_dir }}/{{ mongo_backup_file_name }}"
+    dest: "{{ mongo_restore_dir }}"
+    remote_src: yes
+
+- name: Restore the mongo backup db data
+  shell: mongorestore dump
+  args:
+    chdir: "{{ mongo_restore_dir }}/{{ mongo_backup_file_name.split('.')[0] }}"
+
+- name: clean up
+  file: 
+    path: "{{ mongo_restore_dir }}"
+    state: absent

@@ -1,0 +1,59 @@
+---
+
+- name: "Graylog repository package should be downloaded"
+  get_url:
+    url: "{{ graylog_apt_deb_url }}"
+    dest: "/tmp/graylog_{{ graylog_version }}_repository.deb"
+  when: graylog_manage_apt_repo
+
+- name: "Package 'apt-transport-https' should be installed"
+  apt:
+    name: "apt-transport-https"
+    state: present
+
+- name: "Graylog repository package should be installed"
+  apt:
+    deb: "/tmp/graylog_{{ graylog_version }}_repository.deb"
+    state: present
+    dpkg_options: "force-all"
+  when: graylog_manage_apt_repo
+  register: "install_repo"
+
+- name: "APT cache should be updated"
+  apt:
+    update_cache: True
+  when: install_repo.changed
+
+- name: "Graylog server package should be installed"
+  apt:
+    name: "graylog-server{% if graylog_full_version is defined %}={{ graylog_full_version }}{% endif %}"
+    state: "{{ graylog_package_state }}"
+  notify: "restart graylog-server"
+
+- name: "setup-Debian.yml | Set elasticsearch priority to {{ graylog_es_debian_pin_version }} apt_preferences"
+  template:
+    src: "apt_preferences.d/debian_elasticsearch.j2"
+    dest: "/etc/apt/preferences.d/elasticsearch"
+    owner: "root"
+    mode: 0644
+
+- name: "Installing graylog-enterprise-plugins"
+  apt:
+    name: "graylog-enterprise-plugins{% if graylog_full_version is defined %}={{ graylog_full_version }}{% endif %}"
+    state: "{{ graylog_package_state }}"
+  when: graylog_install_enterprise_plugins
+  notify: restart graylog-server
+
+- name: "Installing graylog-integrations-plugins"
+  apt:
+    name: "graylog-integrations-plugins{% if graylog_full_version is defined %}={{ graylog_full_version }}{% endif %}"
+    state: "{{ graylog_package_state }}"
+  when: graylog_install_integrations_plugins
+  notify: restart graylog-server
+
+- name: "Installing graylog-enterprise-integrations-plugins"
+  apt:
+    name: "graylog-enterprise-integrations-plugins{% if graylog_full_version is defined %}={{ graylog_full_version }}{% endif %}"
+    state: "{{ graylog_package_state }}"
+  when: graylog_install_enterprise_integrations_plugins
+  notify: restart graylog-server

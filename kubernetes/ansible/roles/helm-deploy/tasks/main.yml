@@ -23,7 +23,7 @@
     private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
     private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
     private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount if outer_item.0.values_to_pass.keycount > '0' else '1'  }}"
-  when: release_name == "adminutils"
+  when: release_name == "adminutils" or release_name == "gotenberg"
   with_subelements:
     - "{{adminutil_keys_values}}"
     - role_to_run
@@ -35,6 +35,12 @@
     dest: "{{ chart_path }}/keys/{{ adminutil_refresh_token_public_key_prefix }}"
     content: "{{ core_vault_sunbird_sso_publickey }}"
   when: release_name == "adminutils"
+
+- name: Create the token pubic key file for ML Services
+  copy:
+    dest: "{{ chart_path }}/keys/{{ adminutil_refresh_token_public_key_kid }}"
+    content: "{{ core_vault_sunbird_sso_publickey_ml_services }}"
+  when: release_name == "gotenberg"
 
 - name: helm install
   shell: helm upgrade --install --atomic --timeout {{helm_install_timeout | d("10m")}} {{ release_name }} {{ chart_path }} -n {{namespace}}

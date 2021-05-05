@@ -1,0 +1,59 @@
+@Library('deploy-conf') _
+node() {
+    try {
+        String ANSI_GREEN = "\u001B[32m"
+        String ANSI_NORMAL = "\u001B[0m"
+        String ANSI_BOLD = "\u001B[1m"
+        String ANSI_RED = "\u001B[31m"
+        String ANSI_YELLOW = "\u001B[33m"
+
+        stage('checkout public repo') {
+            folder = new File("$WORKSPACE/.git")
+            if (folder.exists())
+            {
+               println "Found .git folder. Clearing it.."
+               sh'git clean -fxd'
+            }
+            checkout scm
+        }
+            ansiColor('xterm') {
+                values = [:]
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+                artifact = params.mongo_backup_file_name
+                values.put('currentWs', currentWs)
+                values.put('env', envDir)
+                values.put('module', module)
+                values.put('jobName', jobName)
+                values.put('artifact', artifact)
+                values.put('ignore_job_parameter', true)
+                
+                stage('get artifact') {
+                    artifact_download(values)
+                }
+
+                stage('deploy artifact') {
+                    sh "mv ${artifact} ansible/roles/mongodb-restore/files/"
+                    ansiblePlaybook = "${currentWs}/ansible/mongodb-restore.yml"
+                    ansibleExtraArgs = "--extra-vars \"hosts=${params.hosts} mongo_backup_file_name=${artifact}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+                    currentBuild.result = 'SUCCESS'
+                    currentBuild.description = "Artifact: ${artifact}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
+                }
+            }
+        summary()
+     }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
+    }
+}
