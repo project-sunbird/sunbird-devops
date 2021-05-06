@@ -8,13 +8,7 @@ config:
 {% else %}
     redirect_url = "{{ oauth2_proxy_redirect_url }}"
 {% endif %}
-{% if send_logs_to_graylog is defined and send_logs_to_graylog is true %}
-    upstreams = "http://graylog.logging.svc.cluster.local"
-{% else %}
-    upstreams = "http://{{ kibana_service }}"
-{% endif %}
     email_domains = {{ kibana_oauth_authenticated_email_domains_kube }}
-    authenticated_emails_file = "/etc/oauth2/auth-emails/authenticated_email.txt"
     cookie_expire = "24h"
     cookie_refresh = "4h"
 {% if (graylog_open_to_public is defined and graylog_open_to_public is true) or (send_logs_to_graylog is not defined or send_logs_to_graylog is false) %}
@@ -27,9 +21,45 @@ config:
     silence_ping_logging = true
     skip_provider_button = true
 
+alphaConfigFile:
+  upstreams:
+  - flushInterval: 1s
+    id: /
+    passHostHeader: true
+    path: /
+    proxyWebSockets: true
+{% if send_logs_to_graylog is defined and send_logs_to_graylog is true %}
+    uri: "http://graylog.logging.svc.cluster.local"
+{% else %}
+    uri: "http://{{ kibana_service }}"
+{% endif %}
+  server:
+    BindAddress: 0.0.0.0:4180
+  injectRequestHeaders:
+  - name: X-Forwarded-Groups
+    values:
+    - claim: groups
+  - name: X-Forwarded-User
+    values:
+    - claim: user
+  - name: X-Forwarded-Email
+    values:
+    - claim: email
+  - name: X-Forwarded-Preferred-Username
+    values:
+    - claim: preferred_username
+{% if (graylog_open_to_public is not defined or graylog_open_to_public is false) and (send_logs_to_graylog is defined and send_logs_to_graylog is true) and (graylog_open_to_private is defined and graylog_open_to_private is true) %}
+  - name: Graylog-User
+    values:
+    - value: "{{ viewer | b64encode }}"
+  - name: X-Graylog-Server-URL
+    values:
+    - value: "{{ http://{{ oauth2_proxy_lb_ip }}.nip.io | b64encode }}"
+{% endif %}
+
 image:
   repository: "quay.io/oauth2-proxy/oauth2-proxy"
-  tag: "v7.1.2"
+  tag: "v7.1.3"
   pullPolicy: "IfNotPresent"
 
 replicaCount: {{ oauth2_replicas | default(1) }}
