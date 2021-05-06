@@ -1,6 +1,4 @@
 config:
-  clientID: "{{ google_client_id }}"
-  clientSecret: "{{ google_client_secret }}"
   cookieSecret: "{{ cookie_secret }}"
   configFile: |-
 {% if (graylog_open_to_public is not defined or graylog_open_to_public is false) and (send_logs_to_graylog is defined and send_logs_to_graylog is true) and (graylog_open_to_private is defined and graylog_open_to_private is true) %}
@@ -21,40 +19,46 @@ config:
     silence_ping_logging = true
     skip_provider_button = true
 
-alphaConfigFile:
-  upstreams:
-  - flushInterval: 1s
-    id: /
-    passHostHeader: true
-    path: /
-    proxyWebSockets: true
+  alphaConfigFile: |-
+    server:
+      BindAddress: 0.0.0.0:4180
+    providers:
+    - approvalPrompt: force
+      clientID: "{{ google_client_id }}"
+      clientSecret: "{{ google_client_secret }}"
+      id: "google={{ google_client_id }}"
+      provider: google
+    upstreams:
+    - flushInterval: 1s
+      id: /
+      passHostHeader: true
+      path: /
+      proxyWebSockets: true
 {% if send_logs_to_graylog is defined and send_logs_to_graylog is true %}
-    uri: "http://graylog.logging.svc.cluster.local"
+      uri: "http://graylog.logging.svc.cluster.local"
 {% else %}
-    uri: "http://{{ kibana_service }}"
+      uri: "http://{{ kibana_service }}"
 {% endif %}
-  server:
-    BindAddress: 0.0.0.0:4180
-  injectRequestHeaders:
-  - name: X-Forwarded-Groups
-    values:
-    - claim: groups
-  - name: X-Forwarded-User
-    values:
-    - claim: user
-  - name: X-Forwarded-Email
-    values:
-    - claim: email
-  - name: X-Forwarded-Preferred-Username
-    values:
-    - claim: preferred_username
+    injectRequestHeaders:
+    - name: X-Forwarded-Groups
+      values:
+      - claim: groups
+    - name: X-Forwarded-User
+      values:
+      - claim: user
+    - name: X-Forwarded-Email
+      values:
+      - claim: email
+    - name: X-Forwarded-Preferred-Username
+      values:
+      - claim: preferred_username
 {% if (graylog_open_to_public is not defined or graylog_open_to_public is false) and (send_logs_to_graylog is defined and send_logs_to_graylog is true) and (graylog_open_to_private is defined and graylog_open_to_private is true) %}
-  - name: Graylog-User
-    values:
-    - value: "{{ viewer | b64encode }}"
-  - name: X-Graylog-Server-URL
-    values:
-    - value: "{{ http://{{ oauth2_proxy_lb_ip }}.nip.io | b64encode }}"
+    - name: Graylog-User
+      values:
+      - value: "{{ graylog_auto_login_user | default('viewer') | b64encode }}"
+    - name: X-Graylog-Server-URL
+      values:
+      - value: "{{ graylog_proxy_server_url | default('http://{{ oauth2_proxy_lb_ip }}.nip.io') | b64encode }}"
 {% endif %}
 
 image:

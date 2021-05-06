@@ -52,7 +52,7 @@ spec:
           - --config=/etc/oauth2_proxy/oauth2_proxy.cfg
         {{- end }}
         {{- if or .Values.config.existingConfig .Values.config.alphaConfigFile }}
-          - --config=/etc/oauth2_proxy_alpha/oauth2_proxy.yaml
+          - --alpha-config=/etc/oauth2_proxy/oauth2_proxy.yaml
         {{- end }}
         {{- if .Values.authenticatedEmailsFile.enabled }}
         {{- if .Values.authenticatedEmailsFile.template }}
@@ -72,16 +72,6 @@ spec:
         {{- end }}
         {{- if .Values.proxyVarsAsSecrets }}
         env:
-        - name: OAUTH2_PROXY_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name:  {{ template "oauth2-proxy.secretName" . }}
-              key: client-id
-        - name: OAUTH2_PROXY_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name:  {{ template "oauth2-proxy.secretName" . }}
-              key: client-secret
         - name: OAUTH2_PROXY_COOKIE_SECRET
           valueFrom:
             secretKeyRef:
@@ -129,10 +119,6 @@ spec:
         - mountPath: /etc/oauth2_proxy
           name: configmain
 {{- end }}
-{{- if or .Values.config.existingConfig .Values.config.alphaConfigFile }}
-        - mountPath: /etc/oauth2_proxy_alpha
-          name: configalpha
-{{- end }}
 {{- if .Values.authenticatedEmailsFile.enabled }}
         - mountPath: /etc/oauth2-proxy
           name: configaccesslist
@@ -170,12 +156,6 @@ spec:
           defaultMode: 420
           name: {{ if .Values.config.existingConfig }}{{ .Values.config.existingConfig }}{{ else }}{{ template "oauth2-proxy.fullname" . }}{{ end }}
         name: configmain
-{{- end }}
-{{- if or .Values.config.existingConfig .Values.config.alphaConfigFile }}
-      - configMap:
-          defaultMode: 420
-          name: {{ if .Values.config.existingConfig }}{{ .Values.config.existingConfig | join "-alpha" }}{{ else }}{{ template "oauth2-proxy.fullname" . | join "-alpha" }}{{ end }}
-        name: configalpha
 {{- end }}
 {{- if ne (len .Values.extraVolumes) 0 }}
 {{ toYaml .Values.extraVolumes | indent 6 }}
