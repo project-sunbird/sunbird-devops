@@ -141,8 +141,9 @@ rm -rf java-11-openjdk-amd64 openjdk-11+28_linux-x64_bin.tar.gz
 
 wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
 tar -xf apache-maven-3.6.3-bin.tar.gz
+mv apache-maven-3.6.3 /opt/
 mv apache-maven-3.6.3/bin/mvn /opt/apache-maven-3.6.3/bin/mvn.3.6
-rm -rf apache-maven-3.6.3-bin.tar.gz apache-maven-3.6.3
+rm -rf apache-maven-3.6.3-bin.tar.gz
 
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove
