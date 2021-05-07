@@ -20,14 +20,22 @@
   postgresql_db:
     login_user: "{{ application_postgres_user }}"
     login_password: "{{ application_postgres_password }}"
+    login_unix_socket: "{{ postgresql_unix_socket_directories[0] }}"
     name: "{{ application_postgres_database }}"
     state: restore
     target: "/tmp/tables_postgres.sql"
+  become_user: "{{ application_postgres_user }}"
+  vars:
+    ansible_ssh_pipelining: true
 
 - name: Create the schema for enc service db
   postgresql_db:
     login_user: "{{ enc_postgres_user }}"
     login_password: "{{ enc_postgres_password }}"
+    login_unix_socket: "{{ postgresql_unix_socket_directories[0] }}"
     name: "{{ enc_postgres_database }}"
     state: restore
     target: "/tmp/enc_postgres.sql"
+  become_user: "{{ enc_postgres_user }}"
+  vars:
+    ansible_ssh_pipelining: true
