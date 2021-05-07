@@ -47,6 +47,7 @@ setupJobs(){
    read -p 'y/n: ' choice
    if [[ $choice == "y" ]]; then
       find $JENKINS_TMP/Build -type f -name config.xml -exec sed -i 's#<spec>.*</spec>#<spec></spec>#g' {} \;
+      find $JENKINS_TMP/Deploy -type f -name config.xml -exec sed -i 's#<spec>.*</spec>#<spec></spec>#g' {} \;
    fi
    echo -e "\e[0;36m${bold}Do you want to disable daily backup jobs (Ex: DB backups)?${normal}"
    read -p 'y/n: ' choice
