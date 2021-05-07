@@ -3,12 +3,6 @@
     name: python-psycopg2
     state: present
 
-- name: Verifying db users are present else creating them
-  include: databases.yml
-
-- name: creating database
-  include: users.yml
-
 - name: Copy the templates
   become: yes
   template: src={{item}} dest=/tmp/{{item}}
@@ -22,7 +16,7 @@
     state: present
     update_cache: yes
 
-- name: Dump api manager database to a file
+- name:  Create the schema for quartz db
   postgresql_db:
     login_user: "{{ application_postgres_user }}"
     login_password: "{{ application_postgres_password }}"
@@ -31,7 +25,7 @@
     state: restore
     target: "/tmp/tables_postgres.sql"
 
-- name: Create the schema for encryption service
+- name: Create the schema for enc service db
   postgresql_db:
     login_user: "{{ enc_postgres_user }}"
     login_password: "{{ enc_postgres_password }}"

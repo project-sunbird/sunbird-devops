@@ -63,22 +63,15 @@ sunbird_portal_user_upload_ref_link: http://www.sunbird.org/features-documentati
 content_service_whitelisted_channels: ""
 content_service_blacklisted_channels: ""
 
-# Badger
-badger_url: http://azureaccountname.blob.core.windows.net/ # Is it a dummy var?
-badger_file_storage: storages.backends.azure_storage.AzureStorage
-badger_admin_email:
-
 ## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
 sunbird_pg_user: "{{core_vault_postgres_username}}"
 application_postgres_user: "{{core_vault_postgres_username}}"
 application_postgres_password: "{{core_vault_postgres_password}}"
 keycloak_postgres_user: "{{core_vault_postgres_username}}"
 keycloak_postgres_password: "{{core_vault_postgres_password}}"
-badger_postgres_password: "{{core_vault_postgres_password}}"
 kong_postgres_user: "{{core_vault_postgres_username}}"
 kong_postgres_password: "{{core_vault_postgres_password}}"
 enc_postgres_user: "{{core_vault_postgres_username}}"
-badger_postgres_user: "{{core_vault_postgres_username}}"
 user_org_service_postgres_user: "{{core_vault_postgres_username}}"
 ansible_vault_password: "{{ core_vault_ansible_vault_password }}"
 jenkins_admin_username: "{{core_vault_jenkins_admin_username}}"
@@ -102,7 +95,6 @@ kong_host: kong
 application_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 enc_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 user_org_service_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
-badger_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 keycloak_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 kong_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 sunbird_cassandra_host: "{{groups['cassandra']|join(',')}}"  #Private IP of Cassandra server
@@ -270,13 +262,6 @@ monitor_alerts_mail_server_port: "{{ mail_server_port }}"
 monitor_alerts_mail_server_username: "{{ mail_server_username }}"
 monitor_alerts_mail_server_password: "{{ core_vault_mail_server_password }}"
 
-#badger
-badger_admin_password: "{{core_vault_badger_admin_password}}"
-badger_postgres_database: badger
-badger_host: "{{ groups['postgresql-master'][0]}}"
-badger_container: badgr
-sunbird_http_orgin: "{{proto}}://{{proxy_server_name}}/badging"
-
 #enc-service
 enc_postgres_database: "{{env}}-keys"
 
@@ -380,12 +365,6 @@ postgresql_users:
     db: "{{application_postgres_database}}"
     login_user: "{{application_postgres_user}}"
     priv: "ALL"
-  - name: "{{badger_postgres_user}}"
-    login_password: "{{badger_postgres_password}}"
-    password: "{{postgres_password}}"
-    login_user: "{{badger_postgres_user}}"
-    db: "{{badger_postgres_database}}"
-    priv: "ALL"
   - name: "{{user_org_service_postgres_user}}"
     login_password: "{{user_org_service_postgres_password}}"
     password: "{{user_org_service_postgres_password}}"
@@ -412,10 +391,6 @@ postgresql_databases:
     login_password: "{{application_postgres_password}}"
     owner: "{{application_postgres_user}}"
     login_user: "{{application_postgres_user}}"
-  - name: "{{badger_postgres_database}}"
-    login_password: "{{badger_postgres_password}}"
-    owner: "{{badger_postgres_user}}"
-    login_user: "{{badger_postgres_user}}"
   - name: "{{user_org_service_postgres_database}}"
     login_password: "{{user_org_service_postgres_password}}"
     owner: "{{user_org_service_postgres_user}}"
