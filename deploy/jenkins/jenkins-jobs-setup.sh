@@ -53,6 +53,7 @@ setupJobs(){
    if [[ $choice == "y" ]]; then
       find $JENKINS_TMP/OpsAdministration -type f -name config.xml -exec sed -i 's#<spec>.*</spec>#<spec></spec>#g' {} \;
    fi
+   find $JENKINS_TMP/Build -type f -name config.xml -exec sed -i 's#<upstreamProjects>.*##g' {} \;
    diffs=$(colordiff -r --suppress-common-lines --no-dereference -x 'nextBuildNumber' -x 'builds' -x 'last*' /var/lib/jenkins/jobs $JENKINS_TMP | wc -l)
    if [[ $diffs -eq 0 ]]; then
       echo -e "\e[0;33m${bold}No changes detected. Exiting...${normal}"
