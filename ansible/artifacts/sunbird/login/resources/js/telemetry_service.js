@@ -2506,7 +2506,7 @@ if(client_id.toLowerCase() === 'android'){
     "telemetry": {
       "pdata": {
         "id": pdataId,
-        "ver": "3.8.0",
+        "ver": "3.9.0",
         "pid": "sunbird-portal"
       }
     }
