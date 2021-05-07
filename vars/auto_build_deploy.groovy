@@ -27,10 +27,6 @@ def call(){
 //                    module2 = "Kubernetes2"
                 }
                 
-                if (jobName == "KnowledgePlatform") {
-                    jobName = "Learning"
-                } 
-                
                 
                 if (jobName == "DataPipeline") {
                     jobName = "Yarn"
