@@ -154,6 +154,10 @@ rm -rf apache-maven-3.6.3-bin.tar.gz
 echo -e "\n\e[0;32m${bold}Installating python-psycopg2${normal}"
 apt install -y python-psycopg2
 
+#Install libpng-dev - Ubuntu 18 and above fix for plugin builds
+echo -e "\n\e[0;32m${bold}Installating libpng-dev${normal}"
+apt install -y libpng-dev
+
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove
 
