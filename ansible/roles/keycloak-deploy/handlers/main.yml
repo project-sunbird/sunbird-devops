@@ -1,18 +1,4 @@
 ---
-- name: start service
-  become: true
-  command: /etc/init.d/keycloak start
-  ignore_errors: true
-
-- name: wait for keycloak to start
-  uri:
-    url: "http://{{ inventory_hostname }}:8080/auth/"
-    method: GET
-  register: _result
-  until: _result.status == 200
-  delay: 30
-  retries: 30
-
 - name: stop service
   become: true
   command: /etc/init.d/keycloak stop
@@ -26,3 +12,17 @@
     delay: 5
     sleep: 5
     timeout: 60
+
+- name: start service
+  become: true
+  command: /etc/init.d/keycloak start
+  ignore_errors: true
+
+- name: wait for keycloak to start
+  uri:
+    url: "http://{{ inventory_hostname }}:8080/auth/"
+    method: GET
+  register: _result
+  until: _result.status == 200
+  delay: 30
+  retries: 30

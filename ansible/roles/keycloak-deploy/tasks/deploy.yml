@@ -1,22 +1,11 @@
-- name: Status service
-  become: true
-  command: /etc/init.d/keycloak status
-  register: keycloak
-  poll: 5
-  async: 10
+- name: stop keycloak service
+  debug: msg="stopping keycloak"
+  notify:
+    - stop service
+    - wait for keycloak to stop
+  changed_when: true
 
-- name: Stop service
-  become: true
-  command: /etc/init.d/keycloak stop
-  ignore_errors: true
-
-- name: Wait for keycloak to stop completely
-  wait_for:
-    port: 8080
-    state: stopped
-    delay: 5
-    sleep: 5
-    timeout: 60
+- meta: flush_handlers
 
 - name: Adding ENV Vars to bashrc
   lineinfile:
@@ -197,17 +186,11 @@
     line: 'JAVA_HOME=""'
     path: "{{ keycloak_home }}/bin/standalone.sh"
 
-- name: Start service
-  become: true
-  command: /etc/init.d/keycloak start
-  poll: 5
-  async: 5
- 
-- name: Wait for keycloak to be accessible, maximum timeout of 15m
-  uri:
-    url: "http://{{ inventory_hostname }}:8080/auth/"
-    method: GET
-  register: _result
-  until: _result.status == 200
-  delay: 30
-  retries: 30
+- name: start keycloak service
+  debug: msg="starting keycloak"
+  notify:
+    - start service
+    - wait for keycloak to start
+  changed_when: true
+
+- meta: flush_handlers
