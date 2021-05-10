@@ -1,20 +1,5 @@
 - name: create topics
-  command: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic {{env}}.{{item.name}} --partitions {{ item.num_of_partitions }} --replication-factor {{ item.replication_factor }}
-  with_items: "{{ingestion_kafka_topics}}"
-  ignore_errors: true
-  when: kafka_id=="1"
-  tags:
-    - ingestion-kafka
-
-- name: override retention time
-  command: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --alter --topic {{env}}.{{item.name}} --config retention.ms={{ item.retention_time }}
-  with_items: "{{ingestion_kafka_overriden_topics}}"
-  when: kafka_id=="1" and item.retention_time is defined
-  tags:
-    - ingestion-kafka
-
-- name: create topics
-  command: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic {{env}}.{{item.name}} --partitions {{ item.num_of_partitions }} --replication-factor {{ item.replication_factor }}
+  command: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic {{env_name}}.{{item.name}} --partitions {{ item.num_of_partitions }} --replication-factor {{ item.replication_factor }}
   with_items: "{{processing_kafka_topics}}"
   ignore_errors: true
   when: kafka_id=="1"
@@ -22,29 +7,16 @@
     - processing-kafka
 
 - name: override retention time
-  command: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --alter --topic {{env}}.{{item.name}} --config retention.ms={{ item.retention_time }}
+  command: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --alter --topic {{env_name}}.{{item.name}} --config retention.ms={{ item.retention_time }}
   with_items: "{{processing_kafka_overriden_topics}}"
   when: kafka_id=="1" and item.retention_time is defined  
   tags:
     - processing-kafka
 
-- name: overriding default partition size
-  shell: "/opt/kafka_2.12-1.1.0/bin/kafka-topics.sh  --zookeeper localhost:2181 --alter --topic {{item}} --config max.message.bytes={{kafka_partition_override_size}}"
-  with_items:
-    - "{{env}}.telemetry.ingest"
-    - "{{env}}.telemetry.extractor.failed"
-
-- name: overriding data pipeline downstream topic size
-  shell: "/opt/kafka/bin/kafka-topics.sh  --zookeeper localhost:2181 --alter --topic {{item}} --config max.message.bytes={{dp_downstream_kafka_max_message_bytes}}"
-  with_items:
-    - "{{env}}.telemetry.valid"
-    - "{{env}}.telemetry.unique"
-    - "{{env}}.telemetry.duplicate"
-    - "{{env}}.telemetry.sink"
-    - "{{env}}.telemetry.with_location"
-    - "{{env}}.telemetry.denorm"
-    - "{{env}}.telemetry.denorm.valid"
-    - "{{env}}.telemetry.log"
-    - "{{env}}.events.telemetry"
-    - "{{env}}.events.summary"
-    - "{{env}}.events.log"
+- name: create topics
+  command: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic {{env_name}}.{{item.name}} --partitions {{ item.num_of_partitions }} --replication-factor {{ item.replication_factor }}
+  with_items: "{{ml_service_topics}}"
+  ignore_errors: true
+  when: kafka_id=="1"
+  tags:
+    - ml-service-topics
