@@ -3,11 +3,10 @@
   debug: msg="starting keycloak"
   notify:
     - start service
-    - wait for keycloak to be accessible, maximum timeout of 15m
+    - wait for keycloak to start
   changed_when: true
 
-- name: flush handlers
-  meta: flush_handlers
+- meta: flush_handlers
 
 - name: Create admin user
   become_user: "{{ wildfly_user }}"
@@ -19,19 +18,20 @@
 - name: stop keycloak service
   debug: msg="stopping keycloak"
   notify:
-    - status service
     - stop service
-    - wait for keycloak to stop completely
+    - wait for keycloak to stop
   changed_when: true
 
-- name: flush handlers
-  meta: flush_handlers
+- meta: flush_handlers
 
 - name: start keycloak with script upload feature temporarily
-  shell: "nohup sh ./standalone.sh -Dkeycloak.profile.feature.upload_scripts=enabled -b={{ansible_default_ipv4.address}} -bprivate={{ansible_default_ipv4.address}} --server-config standalone-ha.xml 0<&- 1>>$LOGOUT 2>>$LOGERR &"
+  shell: "{{keycloak_home}}/bin/standalone.sh -Dkeycloak.profile.feature.upload_scripts=enabled -b={{ansible_default_ipv4.address}} -bprivate={{ansible_default_ipv4.address}} --server-config standalone-ha.xml"
   become: yes
   become_user: "{{ wildfly_user }}"
   run_once: true
+  notify: wait for keycloak to start
+
+- meta: flush_handlers
 
 - name: Install dependencies for keycloak
   apt:
@@ -88,6 +88,6 @@
   run_once: true
   notify:
     - stop service
-    - wait for keycloak to stop completely
+    - wait for keycloak to stop
     - start service
-    - wait for keycloak to be accessible, maximum timeout of 15m
+    - wait for keycloak to start
