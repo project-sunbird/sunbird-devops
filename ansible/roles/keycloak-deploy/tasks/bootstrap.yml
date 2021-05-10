@@ -1,17 +1,11 @@
 ---
-- name: start service
-  become: true
-  command: /etc/init.d/keycloak start
-  ignore_errors: true
+- name: start keycloak service
+  notify:
+    - start service
+    - wait for keycloak to be accessible, maximum timeout of 15m
 
-- name: Wait for keycloak to be accessible, maximum timeout of 15m
-  uri:
-    url: "http://{{ inventory_hostname }}:8080/auth/"
-    method: GET
-  register: _result
-  until: _result.status == 200
-  delay: 30
-  retries: 30
+- name: flush handlers
+  meta: flush_handlers
 
 - name: Create admin user
   become_user: "{{ wildfly_user }}"
@@ -20,40 +14,20 @@
         keycloak_management_password is defined
   ignore_errors: true
 
-- name: status service
-  become: true
-  command: /etc/init.d/keycloak status
-  register: keycloak
-  poll: 5
-  async: 10
+- name: stop keycloak service
+  notify:
+    - status service
+    - stop service
+    - wait for keycloak to stop completely
 
-- name: Stop service
-  become: true
-  command: /etc/init.d/keycloak stop
-  ignore_errors: true
+- name: flush handlers
+  meta: flush_handlers
 
-- name: Wait for keycloak to stop completely
-  wait_for:
-    port: 8080
-    state: stopped
-    delay: 5
-    sleep: 5
-    timeout: 60
-
-- name: start service
-  become: true
-  command: /etc/init.d/keycloak start
-  poll: 5
-  async: 5
-
-- name: Wait for keycloak to be accessible, maximum timeout of 15m
-  uri:
-    url: "http://{{ inventory_hostname }}:8080/auth/"
-    method: GET
-  register: _result
-  until: _result.status == 200
-  delay: 30
-  retries: 30
+- name: start keycloak with script upload feature temporarily
+  shell: "nohup sh ./standalone.sh -b={{ansible_default_ipv4.address}} -bprivate={{ansible_default_ipv4.address}} --server-config standalone-ha.xml 0<&- 1>>$LOGOUT 2>>$LOGERR &"
+  become: yes
+  become_user: "{{ wildfly_user }}"
+  run_once: true
 
 - name: Install dependencies for keycloak
   apt:
@@ -62,37 +36,44 @@
   with_items:
     - python-pip
     - python-setuptools
+  run_once: true
 
 - name: Copying python libraries
   copy:
     src: "{{ role_path }}/files/python-keycloak-0.12.0"
     dest: /tmp/
+  run_once: true
 
 - name: Initialize python library to run keycloak bootstrap script
   shell: cd /tmp/python-keycloak-0.12.0 && python setup.py install
+  run_once: true
 
 - name: Save keycalok vars to json
   template:
     src: "keycloak-bootstrap.conf.j2"
     dest: "/tmp/keycloak-bootstrap.conf.json"
     mode: "0644"
+  run_once: true
 
 - name: Copy realm json file to tmp location
   template:
     src: "keycloak-realm.j2"
     dest: "/tmp/keycloak-realm.json"
     mode: "0644"
+  run_once: true
 
 - name: Copy user manager roles file to tmp location
   copy:
     src: "files/python-keycloak-0.12.0/roles.json"
     dest: "/tmp/roles.json"
     mode: "0644"
+  run_once: true
 
 - name: Copy the keycloak bootstrap script
   copy:
     src: "{{ role_path }}/files/python-keycloak-0.12.0/keycloak"
     dest: /tmp
+  run_once: true
 
 - name: Run the keycloak bootstrap script
   shell: cd /tmp/keycloak/ && python keycloak_main.py /tmp/keycloak-bootstrap.conf.json
@@ -100,3 +81,9 @@
   until: '"404" not in out.stderr'
   retries: 2
   delay: 10
+  run_once: true
+  notify:
+    - stop service
+    - wait for keycloak to stop completely
+    - start service
+    - wait for keycloak to be accessible, maximum timeout of 15m
