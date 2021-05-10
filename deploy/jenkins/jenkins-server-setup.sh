@@ -88,8 +88,9 @@ cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
 rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
 ###
 
-echo -e "\n\e[0;32m${bold}Installating Docker-py${normal}"
-pip install docker-py
+echo -e "\n\e[0;32m${bold}Removed docker-py and install pip docker${normal}"
+pip uninstall docker-py
+pip uninstall docker
 
 echo -e "\n\e[0;32m${bold}Installating colordiff${normal}"
 apt-get install -y colordiff
