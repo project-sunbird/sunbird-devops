@@ -1,33 +1,28 @@
-- hosts: 'all'
+- hosts: "{{ hosts| default('all') }}"
   become: yes
   gather_facts: no
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
   pre_tasks:
     - name: Python predependency
-      raw: sudo apt update && sudo apt install -y  python python-pkg-resources python-pip
-  vars_files:
-    - "{{inventory_dir}}/secrets.yml"
-  vars:
-    ansible_ssh_user: "{{bootstrap_user}}"
-    ansible_ssh_private_key_file: "{{bootstrap_key_path}}"
+      raw: bash -c "test -e /usr/bin/python" || (sudo apt update && sudo apt install -y  python)
+    - name: Installing other packages
+      apt:
+        state: present
+        name: "{{ item }}"
+      with_items:
+        - python-pkg-resources
+        - python-pip
   roles:
     - bootstrap_any
   tags:
     - bootstrap_any
+    - all
 
 - hosts: "{{hosts}}"
   gather_facts: no
   become: yes
-  vars_files:
-    - "{{inventory_dir}}/secrets.yml"
-  roles:
-    - role: bootstrap_swarm
-      when: swarm_master
-  tags:
-    - bootstrap_swarm
-
-- hosts: "{{hosts}}"
-  gather_facts: no
-  become: yes
+  ignore_unreachable: yes
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
   roles:
@@ -35,3 +30,14 @@
   tags:
     - azure_cli
 
+- hosts: "{{ hosts| default('all') }}"
+  become: yes
+  gather_facts: no
+  ignore_unreachable: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  roles:
+    - vm-agents-nodeexporter
+  tags:
+    - node_exporter
+    - all

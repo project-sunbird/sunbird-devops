@@ -81,7 +81,7 @@ node {
                                 }
                                 else {
                                     returnCode = sh(script: "git diff --exit-code refs/remotes/origin/${params.release_branch} tags/$tagRefBranch > /dev/null", returnStatus: true)
-                                    if (returnCode == 0) {
+                                    if (returnCode == 0 && repo != "project-sunbird/sunbird-nodebb") {
                                         println(ANSI_BOLD + ANSI_GREEN + "No commit changes found. Skipping creating tag" + ANSI_NORMAL)
                                         tagName = tagRefBranch
                                     }

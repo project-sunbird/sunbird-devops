@@ -1,0 +1,30 @@
+---
+- name: Unarchive the geoip mmdb compressed file to graylog machines
+  unarchive:
+    src: "files/{{ graylog_geoip_compressed_file_name }}"
+    dest: "/tmp/"
+
+- name: Copy the geoip mmdb file to coorect path on graylog machines
+  copy:
+    src: "/tmp/{{ graylog_geoip_compressed_file_name.split('.')[0] }}/{{ graylog_geoip_file_name }}"
+    dest: "{{ graylog_geo_ip_file_name }}"
+    remote_src: yes
+
+- name: restart graylog machines post mmdb file updates
+  systemd:
+    name: graylog-server
+    state: restarted
+
+- name: Wait for graylog to startup
+  uri:
+    url: "http://{{ inventory_hostname }}:9000"
+    method: GET
+  register: _result
+  until: _result.status == 200
+  delay: 15
+  retries: 15
+
+- name: clean up 
+  file: 
+    path: "/tmp/{{ graylog_geoip_compressed_file_name.split('.')[0] }}"
+    state: absent
