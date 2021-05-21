@@ -272,13 +272,13 @@ proxyconfig: |-
       proxy_pass http://kong;
     }
     # This is Caching mechanism for POST requests
-    location ~ /api/org/v1/search|/api/data/v1/(form/read|location/search) {
+    location ~ /api/data/v1/form/read {
       # Enabling compression
       include /etc/nginx/defaults.d/compression.conf;
       # Enabling caching
       # caching include Accept-Encoding header also, to provide gziped or plain content as per request
       proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
-      proxy_cache {{proxy_cache_path.medium_cache.keys_zone.split(':') | first}};
+      proxy_cache {{proxy_cache_path.small_cache.keys_zone.split(':') | first}};
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
@@ -300,7 +300,7 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
     }
-    location ~ /api/(framework/v1/read|data/v1/system/settings/get) {
+    location ~ /api/(framework/v1/read|data/v1/system/settings/get|org/v1/search|org/v2/search|data/v1/location/search) {
       # Enabling compression
       include /etc/nginx/defaults.d/compression.conf;
       # Enabling caching
@@ -310,6 +310,7 @@ proxyconfig: |-
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_methods GET HEAD POST;
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
