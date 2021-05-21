@@ -17,11 +17,6 @@ env_short_name: "{{env}}"
 sunbird_env: "{{env}}"                   #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
 sunbird_app_name: "{{env}}"
 
-#artifact upload
-
-
-#plugins
-
 # Keycloak
 keycloak_api_management_user_first_name: "admin"
 keycloak_api_management_user_last_name: "admin"
@@ -41,17 +36,6 @@ sunbird_keycloak_required_action_link_expiration_seconds: 2592000
 sunbird_es_port: 9300
 mail_server_port: 587
 upstream_url: "{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}"
-
-## Mailing list
-# !! Override for specific alert groups; Default will be alerts_mailing_list
-# Enable below override below variables in common.yml for team specific alerts
-
-# monitor_alerts_slack_channel: ""
-# app_alerts_mailing_list: ""
-# devops_alerts_mailing_list: ""
-# site_alerts_mailing_list: ""
-# keycloak_alerts_mailing_list: ""
-# api_manager_alerts_mailing_list: ""
 
 # Learner
 sunbird_user_profile_field_default_visibility: private
@@ -125,7 +109,7 @@ sunbird_auth_version: 1.0v
 
 ## Content Repo configuration
 sunbird_api_auth_token: "{{ core_vault_sunbird_api_auth_token }}" #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
-sunbird_ekstep_api_key: "{{ core_vault_sunbird_api_auth_token }}" #Authorization key (JWT) to access Ekstep APIs. Steps to generate this are documented on {{proto}}://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs
+sunbird_ekstep_api_key: "{{ core_vault_sunbird_api_auth_token }}"
 sunbird_plugin_repo_api_key: "{{ core_vault_sunbird_api_auth_token }}"
 sunbird_trampoline_secret: "{{ core_vault_sunbird_trampoline_secret }}"
 
@@ -144,7 +128,6 @@ cassandra_rpc_address: 0.0.0.0
 cassandra_restore_dir: /home/deployer/
 cassandra_backup_azure_container_name: cassandra-backup
 cassandra_backup_dir: /data/cassandra/backup
-
 
 keycloak_realm: sunbird
 sunbird_content_player_url: "http://kong:8000/"
@@ -206,7 +189,6 @@ jenkins_replicas: 2
 postgres_replication_user_name: "{{ core_vault_postgres_username }}"
 postgres_password: "{{ core_vault_postgres_password }}"
 
-
 postgresql_hba_entries:
   - { type: local, database: all, user: postgres, auth_method: peer }
   - { type: local, database: all, user: all, auth_method: peer }
@@ -214,7 +196,7 @@ postgresql_hba_entries:
   - { type: host, database: all, user: all, address: '::1/128', auth_method: md5 }
   - { type: host, database: replication, user: "{{ postgres_replication_user_name }}", address: '{{ postgres_address_space }}', auth_method: md5 }
   - { type: host, database: all, user: all, address: '{{ keycloak_address_space }}', auth_method: md5 }
-
+  - { type: host, database: all, user: all, address: '0.0.0.0/0', auth_method: md5 }
 
 proxy_prometheus_admin_creds: "{{ core_vault_proxy_prometheus_admin_creds }}"
 vault_docker_registry_url: "{{core_vault_docker_registry_url}}"
@@ -227,7 +209,6 @@ prometheus_data_dir: /var/dockerdata/prometheus/data
 
 logger_es_host: "{{ groups['log-es'][0] }}"
 logger_es_port: 9200
-#kibana_image: kibana:5.4.3
 
 kibana_oauth_redirect_url: "{{proto}}://{{proxy_server_name}}/oauth2/callback"
 keycloak: True
@@ -314,7 +295,6 @@ kong_version: 1.5.0-gold
 # Data pipeline vars
 learning_analytics_service_url: 'http://{{learningservice_ip}}:9000'
 
-
 #encryption Service
 sunbird_allowed_login:
 sunbird_course_batch_notification_enabled: 'true'
@@ -329,7 +309,6 @@ sunbird_qrimage_topic: "{{env}}.qrimage.request"
 
 
 sunbird_azure_report_container_name: reports
-
 sunbird_google_captcha_site_key: "{{core_vault_sunbird_google_captcha_site_key_portal}}"
 sunbird_google_oauth_clientId: "{{core_vault_sunbird_google_oauth_clientId_portal}}"
 sunbird_google_oauth_clientSecret: "{{core_vault_sunbird_google_oauth_clientSecret_portal}}"
@@ -402,14 +381,11 @@ postgresql_databases:
 ##########################################################
 
 ####### App ES ########
-
-
 app_es_etc_cluster_name: "{{env}}"
 app_es_etc_discovery_zen_minimum_master_nodes: "{{groups['es']| length | int}}"
 app_es_snapshot_host: "{{ groups['es'][0] }}"
 app_es_restore_host: "{{ groups['es'][0] }}"
 app_es_snapshot_base_path: application
-
 
 #######Log Es
 log_es_etc_cluster_name: "{{env}}-log"
@@ -453,8 +429,6 @@ vault_sms_method_type: "{{core_vault_sms_method_type}}"
 # telemetry
 default_channel_id: "in.ekstep"
 
-##
-
 es_api_host: "{{inventory_hostname}}"
 sunbird_linked_content_base_url: "{{proto}}://{{proxy_server_name}}/play/content/"
 enc_postgres_password: "{{core_vault_postgres_password}}"
@@ -464,10 +438,6 @@ sunbird_config_service_url:
 config_refresh_interval: 10
 config_service_enabled: false
 config_cache_ttl: 600
-
-#### backup storage secret
-#backup_azure_storage_access_key: "{{core_vault_sunbird_azure_storage_key}}"
-#backup_azure_storage_account_name: "{{azure_account_name}}"
 
 #es-backup
 app_es_snapshot_host: "{{ groups['es'][0] }}"
@@ -501,7 +471,6 @@ zookeepers: "{{groups['zookeeper']|join(':2181,')}}:2181"
 kafka_brokers: "{{groups['processing-cluster-kafka']|join(':9092,')}}:9092"
 __lms_host__: "http://{{private_ingressgateway_ip}}/learner"
 sunbird_redis_host: "{{ groups['lp-redis'][0] }}"
-
 
 ### Release 2.1.0 ###
 sunbird_portal_offline_tenant: ""
@@ -565,7 +534,6 @@ language_read_elb_url: bolt://{{ groups['learning-neo4j-node1'][0] }}:8687
 language_write_elb_url: bolt://{{ groups['learning-neo4j-node1'][0] }}:8687
 mw_shard_id: 1
 sunbird_lp_redis_host: "{{groups['lp-redis-ps'][0]}}"
-#lp_azure_account_name: "{{azure_account_name}}"
 
 #Druid Proxy APi service
 druid_proxy_replicas: 1
@@ -578,10 +546,6 @@ lp_cassandra_keyspace_prefix: "{{ env }}"
 lp_kafka_url: "{{sunbird_processing_kafka_host}}"
 content_import_required_props: '["name","code","mimeType","primaryCategory","artifactUrl","framework"]'
 content_import_remove_props: '["downloadUrl","variants","previewUrl","streamingUrl","itemSets","level1Name","level1Concept","level2Name","level2Concept","level3Name","level3Concept","me_totalPlaySessionCount","me_totalTimeSpentInSec","me_totalSessionsCount","me_totalTimespent","me_totalInteractions","me_creationSessions","me_creationTimespent","me_averageInteractionsPerMin","me_averageSessionsPerDevice","me_totalDevices","me_averageTimespentPerSession","me_averageRating","me_totalDownloads","me_totalSideloads","me_totalRatings","me_totalComments","me_totalDialcode","me_totalDialcodeLinkedToContent","me_totalDialcodeAttached","me_hierarchyLevel","origin","originData","contentPolicyCheck","questions"]'
-
-# Print Service
-#kp_sunbird_account_name: "{{azure_account_name}}"
-#kp_sunbird_account_key: "{{core_vault_sunbird_azure_storage_key}}"
 
 #Sunbird-Portal release-2.6.5 #
 sunbird_portal_updateLoginTimeEnabled: false
