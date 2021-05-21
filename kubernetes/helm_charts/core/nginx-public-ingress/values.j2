@@ -272,13 +272,13 @@ proxyconfig: |-
       proxy_pass http://kong;
     }
     # This is Caching mechanism for POST requests
-    location ~ /api/org/v1/search|/api/data/v1/(form/read|location/search) {
+    location ~ /api/data/v1/form/read {
       # Enabling compression
       include /etc/nginx/defaults.d/compression.conf;
       # Enabling caching
       # caching include Accept-Encoding header also, to provide gziped or plain content as per request
       proxy_cache_key "$http_accept_encoding|$request_uri|$request_body";
-      proxy_cache {{proxy_cache_path.medium_cache.keys_zone.split(':') | first}};
+      proxy_cache {{proxy_cache_path.small_cache.keys_zone.split(':') | first}};
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
@@ -300,7 +300,7 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://kong;
     }
-    location ~ /api/(framework/v1/read|data/v1/system/settings/get) {
+    location ~ /api/(framework/v1/read|data/v1/system/settings/get|org/v1/search|org/v2/search|data/v1/location/search) {
       # Enabling compression
       include /etc/nginx/defaults.d/compression.conf;
       # Enabling caching
@@ -310,6 +310,7 @@ proxyconfig: |-
       add_header X-Proxy-Cache $upstream_cache_status;
       add_header X-Proxy-Cache-Date $upstream_http_date;
       proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+      proxy_cache_methods GET HEAD POST;
       proxy_cache_revalidate on;
       proxy_cache_background_update on;
       proxy_cache_lock on;
@@ -378,6 +379,35 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass $target;
     }
+{% if graylog_open_to_public is true %}
+    location /graylog/ {
+      auth_request /oauth2/auth;
+      error_page 401 = /oauth2/sign_in;
+      # Setting target url
+      auth_request_set $target http://graylog.logging.svc.cluster.local;
+      # pass information via X-User and X-Email headers to backend,
+      # requires running with --set-xauthrequest flag
+      auth_request_set $user   $upstream_http_x_auth_request_user;
+      auth_request_set $email  $upstream_http_x_auth_request_email;
+      proxy_set_header X-User  $user;
+      proxy_set_header X-Email $email;
+      # if you enabled --cookie-refresh, this is needed for it to work with auth_request
+      auth_request_set $auth_cookie $upstream_http_set_cookie;
+      add_header Set-Cookie $auth_cookie;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_set_header Host $host;
+      proxy_set_header X-Forwarded-Host $host;
+      proxy_set_header X-Forwarded-Server $host;
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header Graylog-User viewer;
+      proxy_set_header X-Graylog-Server-URL {{proto}}://{{ proxy_server_name }}/graylog/;
+      rewrite  ^/graylog/(.*)$  /$1  break;
+      proxy_pass $target;
+    }
+    location /dashboard/ {
+      return 301 /graylog/;
+    }
+{% else %}
     location /dashboard/ {
       auth_request /oauth2/auth;
       error_page 401 = /oauth2/sign_in;
@@ -395,6 +425,7 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass $target;
     }
+{% endif %}
     location /grafana/ {
       include /etc/nginx/defaults.d/compression.conf;
       set $target http://prometheus-operator-grafana.monitoring.svc.cluster.local;
