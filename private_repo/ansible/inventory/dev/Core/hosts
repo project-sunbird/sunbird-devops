@@ -1,40 +1,14 @@
-# Alert manager nodes which should be clustered
-# This values should be one of any manager node, if you've multinode cluster
-[alert-manager:children]
-# By default this value can be swarm-manager-1 or 2 or n; but for a single
-# cluster it should be one value.
-# If you have multiple cluster you can list all ips below one by one
-swarm-manager-1
-
-[swarm-manager-1]
-18.0.0.15 swarm_master=true
-
-# This host will make sure prometheus for all stateful services
-# will run on a single node, as it has storage dependancy
-# By default this host is same as docker swarm prometheus
-[swarm-agent-for-prometheus-stateful:children]
-swarm-agent-for-prometheus
-
-[swarm-manager:children]
-swarm-manager-1
-
-[swarm-node-1]
-11.3.0.27
-
-[swarm-worker:children]
-swarm-node-1
-
 [keycloak-1]
 18.3.1.6
 
 [keycloak:children]
 keycloak-1
 
-[log-es-2]
-18.3.1.6 es_instance_name=log-es-2 node_name=log-es-2 es_etc_node_master=true es_etc_node_data=true
+[log-es-1]
+18.3.1.6 es_instance_name=log-es-1 node_name=log-es-1 es_etc_node_master=true es_etc_node_data=true
 
 [log-es:children]
-log-es-2
+log-es-1
 
 [mongo_master]
 11.2.3.75 mongodb_master=True
@@ -45,33 +19,6 @@ log-es-2
 mongo_master
 mongo_replicas
 
-[swarm-agent-for-prometheus-1]
-18.0.0.15
-
-[swarm-agent-for-prometheus:children]
-swarm-agent-for-prometheus-1
-
-[swarm-agent-for-prometheus-stateful:children]
-swarm-agent-for-prometheus
-
-[swarm-dashboard-1]
-18.0.0.15
-
-[swarm-dashboard:children]
-swarm-dashboard-1
-
-[swarm-agent-dashboard-1]
-18.0.0.15
-
-[swarm-agent-dashboard:children]
-swarm-agent-dashboard-1
-
-[alertmanager_stateful:children]
-swarm-agent-dashboard
-
-[swarm-agent-for-alertmanager-1]
-18.0.0.15
-
 [es-1]
 18.3.0.4 es_instance_name=es-1 es_etc_node_master=true es_etc_node_data=true
 
@@ -79,17 +26,15 @@ swarm-agent-dashboard
 es-1
 
 [log-es-backup:children]
-log-es-2
+log-es-1
 
 [es:children]
 es-1
-
 
 [es7-1]
 10.10.10.15 es_instance_name=es7-1 es_etc_node_master=true es_etc_node_data=true
 [es7:children]
 es7-1
-
 
 [cassandra-1]
 18.3.0.4
@@ -103,17 +48,7 @@ cassandra-1
 [postgresql-master:children]
 postgresql-master-1
 
-[postgresql-slave-1]
-18.3.0.4
-
-[swarm-manager]
-0.0.0.0    #### keep as it is
-
-[postgresql-slave:children]
-postgresql-slave-1
-
 [postgres:children]
-postgresql-slave
 postgresql-master
 
 [kafka-1]
@@ -161,8 +96,8 @@ lp-redis
 [local]
 localhost ansible_connection=local
 
-[raw-broker]        #Druid Broker IP
-localhost
+[raw-broker]        #Druid host IP
+18.3.0.15
 
 [kong-api]
 localhost
@@ -181,6 +116,15 @@ localhost
 yarn-master
 yarn-slave
 
+[node-exporter]
+# Add all your VM IP's under this group
+18.3.1.8
+18.3.1.9
+18.3.0.4
+
+[process-exporter:children]
+node-exporter
+
 [core:children]
 es
 log-es
@@ -192,6 +136,7 @@ keycloak
 composite-search-cluster
 processing-cluster-kafka
 yarn
+process-exporter
 
 [env:children]
 core
@@ -201,14 +146,8 @@ local
 0.0.0.0                # Druid broker IP for druid proxy api
 
 [raw-coordinator]
-0.0.0.0
+0.0.0.0                # Druid coordinator IP for druid proxy api
 
 [all:vars]
-# If you want to tag your prometheus data with unique cluster ids
-# useful in case of prometheus federation
-#
-# cluster_name=DC1
-#
 ansible_ssh_user=deployer
 ansible_ssh_private_key_file=/var/lib/jenkins/secrets/deployer_ssh_key
-logger_es6_host="{{ groups['log-es-2'][0] }}"

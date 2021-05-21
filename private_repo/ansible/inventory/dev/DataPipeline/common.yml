@@ -1,28 +1,24 @@
-###### Release 1.14.0 and 2.0.0 #######
+# ------------------------------------------------------------------------------------------------------------ #
+# Mandatorty variables - DO NOT LEAVE ANYTHING BLANK #
+env:                  # some name like dev, preprod etc
+proto:                # http or https, preferably https
+domain_name:          # your domain name like example.com
 
-env: 
-proto: 
-domain_name: 
-ssh_public_key_deployer:  
-bootstrap_user: 
-bootstrap_key_path: 
+# Note - You can use the same azure account for the below variables or have separate azure accounts
+sunbird_private_storage_account_name:         # Azure account name for storing private data (like reports, telemetry data)
+sunbird_public_storage_account_name:          # Azure account name for storing public data (like contents)
+sunbird_druid_storage_account_name:           # Azure account name for storing druid data (like query results)
+sunbird_artifact_storage_account_name:        # Azure account name for storing artifacts data (like jenkins build zip files)
+sunbird_management_storage_account_name:      # Azure account name for storing backup data (like cassandra backups)
 
-secor_azure_container_name: ""
-secor_alerts_slack_channel: ""
+# docker hub details
+dockerhub:      # docker hub username or url incase of private registry
+private_ingressgateway_ip:    # your private kubernetes load balancer ip
 
-sunbird_private_storage_account_name: # Azure account name for analytics api contents
-sunbird_artifact_storage_account_name: # Azure stroage account name used for artifact upload
-sunbird_public_storage_account_name:
-
-default_org_hash_id: "" # channel id of the organization
-
-# Data products monitoring web hooks
-data_exhaust_webhook_url: ""   ## Slack webhook
-data_exhaust_Channel: ""      ## salck channel for data products alerts
-data_exhaust_name:   
-stream_base_url: ""
-
-# Media content
+# ------------------------------------------------------------------------------------------------------------ #
+# Optional variables - Can be left blank if you dont plan to use the intended features
+# Azure media streaming service
+stream_base_url: "" # Media service streaming url
 media_service_azure_tenant: "" # value have to be defined
 media_service_azure_tenant: ""
 media_service_azure_subscription_id: ""
@@ -31,19 +27,13 @@ media_service_azure_resource_group_name: ""
 media_service_azure_token_client_key: ""
 media_service_azure_token_client_secret: ""
 
-# kafka topic required by core #
-# Please do not change this #
-ingestion_kafka_topics:
-  - name: telemetry.ingestion
-    num_of_partitions: 4
-    replication_factor: 1
-    retention_time: 604800000
-  - name: telemetry.ingest
-    num_of_partitions: 4
-    replication_factor: 1
-# Geo location related var
-maxmind_db_license_key:
+# data exhaust alerts
+data_exhaust_webhook_url: ""   # Slack webhook url
+data_exhaust_Channel: ""      # Slack channel for data products alerts
 
+# ------------------------------------------------------------------------------------------------------------ #
+# Sensible defaults which you need not change - But if you would like to change, you are free to do so
+data_exhaust_name: "datapipeline-monitoring"  # Slack notification name
 postgres:
   db_url: "{{ groups['postgres'][0] }}"
   db_username: analytics
@@ -53,20 +43,145 @@ postgres:
   db_port: 5432
   db_admin_user: postgres
   db_admin_password: "{{dp_vault_pgdb_admin_password}}"
-  
+
+druid_postgres_user: druid # Do not change this
 sunbird_private_azure_report_container_name: 'reports'
 sunbird_public_azure_report_container_name: 'public-reports'
-sunbird_druid_storage_account_name: 
+imagepullsecrets: "{{env}}registrysecret"                  # kubernetes imagePullSecrets
+kubeconfig_path: /var/lib/jenkins/secrets/k8s.yaml         # kubeconfig file path on jenkins
+core_kubeconfig_path: "{{ kubeconfig_path }}"              # kubeconfig file path on jenkins for core kube cluster, change this if you use separate kube cluster for core and KP + DP
 
-dialservice_ip:    ### dial vm ip
-dialcode_host: "http://{{dialservice_ip}}:9001"
-dialcode_endpoint: "dialcode/v3/read/"
+# The below sets the kafka topics retention time to 1 day, if you use the defaults from the public repo, it will be 7 days
+# If you want to retain the topics for 7 days, remove the below sections completely
+# Ensure you have atleast 1 TB of disk to retain data for 7 days
+ingestion_kafka_overriden_topics:
+  - name: telemetry.ingest
+    retention_time: 86400000
+    replication_factor: 1
+    max_message_bytes: 5242880
 
-# docker hub details
-dockerhub: 
-docker_registry:    ## user
-imagepullsecrets: {{env}}-registry-secret
-
-kubeconfig_path: /var/lib/jenkins/secrets/k8s.yaml
-private_ingressgateway_ip: 
-
+processing_kafka_overriden_topics:
+  - name: telemetry.raw
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.valid
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.unique
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.duplicate
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.sink
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.with_location
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.audit
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.denorm
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.denorm.valid
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.de_normalized
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.log
+    retention_time: 86400000
+    replication_factor: 1
+  - name: analytics.job_queue
+    retention_time: 86400000
+    replication_factor: 1
+  - name: learning.graph.events
+    retention_time: 86400000
+    replication_factor: 1
+  - name: pipeline_metrics
+    retention_time: 86400000
+    replication_factor: 1
+  - name: prom.monitoring.metrics
+    retention_time: 86400000
+    replication_factor: 1
+  - name: metrics
+    retention_time: 86400000
+    replication_factor: 1
+  - name: learning.graph.events.fail
+    retention_time: 86400000
+    replication_factor: 1
+  - name: analytics_metrics
+    retention_time: 86400000
+    replication_factor: 1
+  - name: learning.job.request
+    retention_time: 86400000
+    replication_factor: 1
+  - name: learning.job.request.fail
+    retention_time: 86400000
+    replication_factor: 1
+  - name: learning.republish.job.request
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.derived
+    retention_time: 86400000
+    replication_factor: 1
+  - name: events.telemetry
+    retention_time: 86400000
+    replication_factor: 1
+  - name: events.summary
+    retention_time: 86400000
+    replication_factor: 1
+  - name: events.log
+    retention_time: 86400000
+  - name: events.error
+    retention_time: 86400000
+  - name: telemetry.assess
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.assess.redact
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.assess.raw
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.derived.unique
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.failed
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.malformed
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.extractor.failed
+    retention_time: 86400000
+    replication_factor: 1
+  - name: events.deviceprofile
+    retention_time: 86400000
+    replication_factor: 1
+  - name: system.command
+    retention_time: 86400000
+    replication_factor: 1
+  - name: lms.audit.events
+    retention_time: 86400000
+    replication_factor: 1
+  - name: lms.sso.events
+    retention_time: 86400000
+    replication_factor: 1
+  - name: lms.user.account.merge
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.metrics
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.assess.failed
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.share
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.error
+    retention_time: 86400000
+    replication_factor: 1

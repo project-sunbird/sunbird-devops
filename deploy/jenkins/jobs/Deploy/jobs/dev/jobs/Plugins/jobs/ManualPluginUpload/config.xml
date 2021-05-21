@@ -1,0 +1,201 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.40">
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+      <autoRebuild>false</autoRebuild>
+      <rebuildDisabled>false</rebuildDisabled>
+    </com.sonyericsson.rebuild.RebuildSettings>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>absolute_job_path</name>
+          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Do not change this value! The metadata.json will be copied from this job.&lt;/b&gt;&lt;/font&gt;</description>
+          <defaultValue>ArtifactUpload/dev/Plugins/ContentPlugins</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.5.6">
+          <name>artifact_source</name>
+          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;
+ArtifactRepo - Download the artifact from azure blob, JenkinsJob - Use the atrifact from Jenkins job.&lt;/b&gt;&lt;/font&gt;</description>
+          <randomName>choice-parameter-620062284617427</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.76">
+              <script>return[
+&apos;JenkinsJob&apos;,
+&apos;ArtifactRepo&apos;
+]</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.76">
+              <script></script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>org_sunbird_questionunit_quml</projectName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters></referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.5.6">
+          <name>build_number</name>
+          <description></description>
+          <randomName>choice-parameter-620062286335119</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.76">
+              <script>if (artifact_source.equals(&quot;JenkinsJob&quot;)) {
+return &quot;&quot;&quot;&lt;input name=&quot;value&quot; value=&quot;lastSuccessfulBuild&quot; class=&quot;setting-input&quot;  type=&quot;text&quot;&gt;&lt;br&gt; &lt;font color=darkgreen size=2&gt;&lt;b&gt;OPTIONAL: Specify the build number of ArtifactUpload job from which the artifact will be copied and deployed.&lt;/b&gt;&lt;/font&gt;&quot;&quot;&quot;
+}
+else
+{ 
+return &quot;&lt;b&gt;Not Applicable&lt;/b&gt;&quot;
+}</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.76">
+              <script></script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>org_sunbird_questionunit_quml</projectName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>artifact_source</referencedParameters>
+          <choiceType>ET_FORMATTED_HTML</choiceType>
+          <omitValueField>true</omitValueField>
+        </org.biouno.unochoice.DynamicReferenceParameter>
+        <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.5.6">
+          <name>artifact_version</name>
+          <description></description>
+          <randomName>choice-parameter-620062288387509</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.76">
+              <script>if (artifact_source.equals(&quot;ArtifactRepo&quot;)) {
+return &quot;&quot;&quot;&lt;input name=&quot;value&quot; value=&quot;&quot; class=&quot;setting-input&quot;  type=&quot;text&quot;&gt; &lt;br&gt; &lt;font color=red size=2&gt;&lt;b&gt;CAUTION: If the value is blank, artifact version will be taken from the latest metadata.json.&lt;/b&gt;&lt;/font&gt;&quot;&quot;&quot;
+} 
+else {
+return &quot;&lt;b&gt;Not Applicable&lt;/b&gt;&quot;
+}</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.76">
+              <script></script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>org_sunbird_questionunit_quml</projectName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>artifact_source</referencedParameters>
+          <choiceType>ET_FORMATTED_HTML</choiceType>
+          <omitValueField>true</omitValueField>
+        </org.biouno.unochoice.DynamicReferenceParameter>
+        <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.5.6">
+          <name>private_branch</name>
+          <description></description>
+          <randomName>choice-parameter-2544395024638227</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.76">
+              <script>if (override_private_branch.equals(&quot;true&quot;)) {
+return &quot;&quot;&quot;&lt;input name=&quot;value&quot; value=&quot;${private_repo_branch}&quot; class=&quot;setting-input&quot;  type=&quot;text&quot;&gt;&lt;br&gt; &lt;font color=dimgray size=2&gt;&lt;b&gt;Change this value to checkout a different branch from private repository.&lt;/b&gt;&lt;/font&gt;&quot;&quot;&quot;
+}
+else
+return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quot;&quot;</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.76">
+              <script>return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quot;&quot;</script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>org_sunbird_questionunit_quml</projectName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters></referencedParameters>
+          <choiceType>ET_FORMATTED_HTML</choiceType>
+          <omitValueField>true</omitValueField>
+        </org.biouno.unochoice.DynamicReferenceParameter>
+        <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.5.6">
+          <name>branch_or_tag</name>
+          <description></description>
+          <randomName>choice-parameter-2620434998790477</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.76">
+              <script>if (override_public_branch.equals(&quot;true&quot;)) {
+return &quot;&quot;&quot;&lt;input name=&quot;value&quot; value=&quot;${public_repo_branch}&quot; class=&quot;setting-input&quot;  type=&quot;text&quot;&gt;&lt;br&gt; &lt;font color=dimgray size=2&gt;&lt;b&gt;Change this value to checkout Jenkinsfile from a different tag or branch.&lt;br&gt;Note: Ideally this value should be same as the branch or tag from which the corresponding Build job was run.&lt;/b&gt;&lt;/font&gt;&lt;/b&gt;&lt;/font&gt;&quot;&quot;&quot;;
+}
+else
+return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quot;&quot;</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.76">
+              <script>return &quot;&quot;&quot;&lt;b&gt;This parameter is not used&lt;/b&gt;&quot;&quot;&quot;</script>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>org_sunbird_questionunit_quml</projectName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters></referencedParameters>
+          <choiceType>ET_FORMATTED_HTML</choiceType>
+          <omitValueField>true</omitValueField>
+        </org.biouno.unochoice.DynamicReferenceParameter>
+        <hudson.model.StringParameterDefinition>
+          <name>plugin_name</name>
+          <description></description>
+          <defaultValue>org.sunbird.questionunit.quml-1.0</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.2">
+      <maxConcurrentPerNode>0</maxConcurrentPerNode>
+      <maxConcurrentTotal>0</maxConcurrentTotal>
+      <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
+      <throttleEnabled>false</throttleEnabled>
+      <throttleOption>project</throttleOption>
+      <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
+      <paramsToUseForLimit></paramsToUseForLimit>
+      <configVersion>1</configVersion>
+    </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers/>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.90">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+      <configVersion>2</configVersion>
+      <userRemoteConfigs>
+        <hudson.plugins.git.UserRemoteConfig>
+          <url>https://github.com/project-sunbird/sunbird-devops.git</url>
+        </hudson.plugins.git.UserRemoteConfig>
+      </userRemoteConfigs>
+      <branches>
+        <hudson.plugins.git.BranchSpec>
+          <name>${branch_or_tag}</name>
+        </hudson.plugins.git.BranchSpec>
+      </branches>
+      <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+      <submoduleCfg class="list"/>
+      <extensions>
+        <hudson.plugins.git.extensions.impl.CloneOption>
+          <shallow>true</shallow>
+          <noTags>false</noTags>
+          <reference></reference>
+          <depth>0</depth>
+          <honorRefspec>false</honorRefspec>
+        </hudson.plugins.git.extensions.impl.CloneOption>
+      </extensions>
+    </scm>
+    <scriptPath>pipelines/deploy/org_sunbird_questionunit_quml/Jenkinsfile</scriptPath>
+    <lightweight>false</lightweight>
+  </definition>
+  <triggers/>
+  <disabled>true</disabled>
+</flow-definition>
