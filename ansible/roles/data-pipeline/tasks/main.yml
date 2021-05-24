@@ -48,6 +48,8 @@
 - name: CHANGE THE OWNERSHIP FOR THIS {{ BASEPATH }} DIRECTORY
   file:
     path: "{{ BASEPATH }}"
+    mode: "0777"
+    recurse: yes
     owner: "{{ USER }}"
     group: "{{ USER }}"
 
@@ -67,14 +69,12 @@
   become_user: "{{ USER }}"
   become: yes
   shell: "cd {{ WORKDIR }} && mkdir -p source logs/observation/status logs/observation_evidence logs/project logs/survey logs/survey_evidence"
-    
-- name: copying file with owner and permissions
-  copy:
-    src: "{{ BASEPATH }}/source"
-    dest: "{{ WORKDIR }}"
-    owner: "{{ USER }}"
-    group: "{{ USER }}"
-    remote_src: yes
+
+- name: create requirements.txt
+  file:
+    path: /opt/sparkjobs/source/requirements.txt
+    state: touch
+    mode: '0777'
 
 - name: Initiate virtualenv
   pip: 
