@@ -19,6 +19,7 @@ apt-get install -y jenkins=2.263.4
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
+apt-get install -y python3-pip
 
 echo -e "\n\e[0;32m${bold}Installating Maven${normal}"
 apt-get install -y maven
@@ -92,7 +93,8 @@ rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
 ###
 
 echo -e "\n\e[0;32m${bold}Installating Docker-py${normal}"
-pip install docker-py
+pip uninstall -y docker-py
+pip3 install docker-py
 
 echo -e "\n\e[0;32m${bold}Installating colordiff${normal}"
 apt-get install -y colordiff
@@ -111,7 +113,8 @@ echo -e "\n\e[0;32m${bold}Installing nvm${normal}"
 su jenkins bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash"
 
 echo -e "\n\e[0;32m${bold}Installing jmespath${normal}"
-pip install jmespath
+pip uninstall jmespath
+pip3 install -y jmespath
 
 #### Kubernetes Tools ####
 
