@@ -1,0 +1,37 @@
+- name: check if tables are existing in kong postgres database
+  docker_container:
+    name: postgres
+    image: postgres
+    command: 'psql -h {{ kong_postgres_host }} -U postgres -d {{ kong_postgres_database }} -p 5432 -c "\dt"'
+    detach: false
+    cleanup: yes
+    env:
+      POSTGRES_PASSWORD: "{{ kong_postgres_password }}"
+      PGPASSWORD: "{{ kong_postgres_password }}"
+  register: docker_container_output
+  when: release_name == "apimanager"
+
+- name: run kong migrations for first run if tables are empty
+  docker_container:
+    name: kong_migrations
+    image: kong:0.14.1
+    command: kong migrations up --v
+    detach: false
+    cleanup: yes
+    env:
+      KONG_DATABASE: "postgres"
+      KONG_PG_DATABASE: "{{ kong_postgres_database }}"
+      KONG_PG_HOST: "{{ kong_postgres_host }}"
+      KONG_PG_PASSWORD: "{{ kong_postgres_password }}"
+      KONG_PG_USER: "{{ kong_postgres_user }}"
+      KONG_PROXY_ACCESS_LOG: "/dev/stdout"
+      KONG_ADMIN_ACCESS_LOG: "/dev/stdout"
+      KONG_PROXY_ERROR_LOG: "/dev/stderr"
+      KONG_ADMIN_ERROR_LOG: "/dev/stderr"
+  register: kong_migration_output
+  when: docker_container_output.ansible_facts.docker_container.Output == "Did not find any relations.\n"  and release_name =="apimanager"
+
+- name: fail when migration failed
+  fail:
+    msg: Kong migration failed. Aborting!
+  when: docker_container_output.ansible_facts.docker_container.Output == "Did not find any relations.\n" and release_name == "apimanager" and kong_migration_output.ansible_facts.docker_container.Output is not search("migrations up to date")
