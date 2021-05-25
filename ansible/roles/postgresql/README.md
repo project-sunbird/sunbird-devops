@@ -1,6 +1,6 @@
 # Ansible Role: PostgreSQL
 
-[![Build Status](https://travis-ci.org/geerlingguy/ansible-role-postgresql.svg?branch=master)](https://travis-ci.org/geerlingguy/ansible-role-postgresql)
+[![CI](https://github.com/geerlingguy/ansible-role-postgresql/workflows/CI/badge.svg?event=push)](https://github.com/geerlingguy/ansible-role-postgresql/actions?query=workflow%3ACI)
 
 Installs and configures PostgreSQL server on RHEL/CentOS or Debian/Ubuntu servers.
 
@@ -21,6 +21,10 @@ Available variables are listed below, along with default values (see `defaults/m
 
 (RHEL/CentOS only) You can set a repo to use for the PostgreSQL installation by passing it in here.
 
+    postgresql_restarted_state: "restarted"
+
+Set the state of the service when configuration changes are made. Recommended values are `restarted` or `reloaded`.
+
     postgresql_python_library: python-psycopg2
 
 Library used by Ansible to communicate with PostgreSQL. If you are using Python 3 (e.g. set via `ansible_python_interpreter`), you should change this to `python3-psycopg2`.
@@ -34,6 +38,11 @@ The user and group under which PostgreSQL will run.
       - /var/run/postgresql
 
 The directories (usually one, but can be multiple) where PostgreSQL's socket will be created.
+
+    postgresql_service_state: started
+    postgresql_service_enabled: true
+
+Control the state of the postgresql service and whether it should start at boot time.
 
     postgresql_global_config_options:
       - option: unix_socket_directories
@@ -76,6 +85,7 @@ If overriding, make sure you copy all of the existing entries from `defaults/mai
         login_user: # defaults to 'postgresql_user'
         login_unix_socket: # defaults to 1st of postgresql_unix_socket_directories
         port: # defaults to not set
+        owner: # defaults to postgresql_user
         state: # defaults to 'present'
 
 A list of databases to ensure exist on the server. Only the `name` is required; all other properties are optional.
@@ -83,6 +93,7 @@ A list of databases to ensure exist on the server. Only the `name` is required; 
     postgresql_users:
       - name: jdoe #required; the rest are optional
         password: # defaults to not set
+        encrypted: # defaults to not set
         priv: # defaults to not set
         role_attr_flags: # defaults to not set
         db: # defaults to not set
@@ -95,6 +106,10 @@ A list of databases to ensure exist on the server. Only the `name` is required; 
 
 A list of users to ensure exist on the server. Only the `name` is required; all other properties are optional.
 
+    postgres_users_no_log: true
+
+Whether to output user data (which may contain sensitive information, like passwords) when managing users.
+
     postgresql_version: [OS-specific]
     postgresql_data_dir: [OS-specific]
     postgresql_bin_path: [OS-specific]
@@ -102,7 +117,7 @@ A list of users to ensure exist on the server. Only the `name` is required; all 
     postgresql_daemon: [OS-specific]
     postgresql_packages: [OS-specific]
 
-OS-specific variables that are set by include files in this role's `vars` directory. These shouldn't be overridden unless you're using a verison of PostgreSQL that wasn't installed using system packages.
+OS-specific variables that are set by include files in this role's `vars` directory. These shouldn't be overridden unless you're using a version of PostgreSQL that wasn't installed using system packages.
 
 ## Dependencies
 

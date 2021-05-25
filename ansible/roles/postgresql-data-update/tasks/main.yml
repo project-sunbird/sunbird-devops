@@ -2,12 +2,11 @@
   package:
     name: python-psycopg2
     state: present
-
-- name: Verifying db users are present else creating them
-  include: databases.yml
-
-- name: creating database
-  include: users.yml
+ 
+# Configure PostgreSQL.
+- import_tasks: users.yml
+- import_tasks: databases.yml
+- import_tasks: users_props.yml
 
 - name: Copy the templates
   become: yes
@@ -22,20 +21,26 @@
     state: present
     update_cache: yes
 
-- name: Dump api manager database to a file
+- name:  Create the schema for quartz db
   postgresql_db:
     login_user: "{{ application_postgres_user }}"
     login_password: "{{ application_postgres_password }}"
-    login_host: "{{ application_postgres_host }}"
+    login_unix_socket: "{{ postgresql_unix_socket_directories[0] }}"
     name: "{{ application_postgres_database }}"
     state: restore
     target: "/tmp/tables_postgres.sql"
+  become_user: "{{ application_postgres_user }}"
+  vars:
+    ansible_ssh_pipelining: true
 
-- name: Create the schema for encryption service
+- name: Create the schema for enc service db
   postgresql_db:
     login_user: "{{ enc_postgres_user }}"
     login_password: "{{ enc_postgres_password }}"
-    login_host: "{{ enc_postgres_host }}"
+    login_unix_socket: "{{ postgresql_unix_socket_directories[0] }}"
     name: "{{ enc_postgres_database }}"
     state: restore
     target: "/tmp/enc_postgres.sql"
+  become_user: "{{ enc_postgres_user }}"
+  vars:
+    ansible_ssh_pipelining: true
