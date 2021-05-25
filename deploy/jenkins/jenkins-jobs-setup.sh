@@ -47,12 +47,15 @@ setupJobs(){
    read -p 'y/n: ' choice
    if [[ $choice == "y" ]]; then
       find $JENKINS_TMP/Build -type f -name config.xml -exec sed -i 's#<spec>.*</spec>#<spec></spec>#g' {} \;
+      find $JENKINS_TMP/Deploy -type f -name config.xml -exec sed -i 's#<spec>.*</spec>#<spec></spec>#g' {} \;
    fi
    echo -e "\e[0;36m${bold}Do you want to disable daily backup jobs (Ex: DB backups)?${normal}"
    read -p 'y/n: ' choice
    if [[ $choice == "y" ]]; then
       find $JENKINS_TMP/OpsAdministration -type f -name config.xml -exec sed -i 's#<spec>.*</spec>#<spec></spec>#g' {} \;
    fi
+   find $JENKINS_TMP/Build -type f -name config.xml -exec sed -i 's#<upstreamProjects>.*##g' {} \;
+   find $JENKINS_TMP -type f -name config.xml -exec sed -i 's#<sandbox>false</sandbox>#<sandbox>true</sandbox>#g' {} \;
    diffs=$(colordiff -r --suppress-common-lines --no-dereference -x 'nextBuildNumber' -x 'builds' -x 'last*' /var/lib/jenkins/jobs $JENKINS_TMP | wc -l)
    if [[ $diffs -eq 0 ]]; then
       echo -e "\e[0;33m${bold}No changes detected. Exiting...${normal}"

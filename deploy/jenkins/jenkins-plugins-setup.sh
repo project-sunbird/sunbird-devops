@@ -28,4 +28,7 @@ cp -rf plugins/* /var/lib/jenkins/plugins/
 chown -R jenkins:jenkins /var/lib/jenkins/plugins
 fi
 
+echo -e "\n\e[0;32m${bold}Clean up${normal}"
+rm -rf plugins.tar plugins m2-slim.tar
+
 echo -e "\n\e[0;32m${bold}Go to manage jenkins -> Plugin manager -> Update center -> Check status of installation OR Check the list of installed plugins${normal}"
