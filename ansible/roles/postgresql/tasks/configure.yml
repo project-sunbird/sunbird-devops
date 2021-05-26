@@ -5,18 +5,19 @@
     regexp: "^#?{{ item.option }}.+$"
     line: "{{ item.option }} = '{{ item.value }}'"
     state: "{{ item.state | default('present') }}"
+    mode: 0644
   with_items: "{{ postgresql_global_config_options }}"
   notify: restart postgresql
 
 - name: Configure host based authentication (if entries are configured).
   template:
-    src: "templates/pg_hba.conf.j2"
+    src: "pg_hba.conf.j2"
     dest: "{{ postgresql_config_path }}/pg_hba.conf"
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
     mode: 0600
   notify: restart postgresql
-  when: postgresql_hba_entries
+  when: postgresql_hba_entries | length > 0
 
 - name: Ensure PostgreSQL unix socket dirs exist.
   file:
@@ -24,5 +25,5 @@
     state: directory
     owner: "{{ postgresql_user }}"
     group: "{{ postgresql_group }}"
-    mode: 02775
+    mode: "{{ postgresql_unix_socket_directories_mode }}"
   with_items: "{{ postgresql_unix_socket_directories }}"

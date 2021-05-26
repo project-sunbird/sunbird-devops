@@ -1,7 +1,7 @@
 config:
   cookieSecret: "{{ cookie_secret }}"
   configFile: |-
-{% if (graylog_open_to_public is not defined or graylog_open_to_public is false) and (send_logs_to_graylog is defined and send_logs_to_graylog is true) and (graylog_open_to_private is defined and graylog_open_to_private is true) %}
+{% if (not graylog_open_to_public) and send_logs_to_graylog and graylog_open_to_private %}
     redirect_url = "http://{{ oauth2_proxy_lb_ip }}.nip.io/oauth2/callback"
 {% else %}
     redirect_url = "{{ oauth2_proxy_redirect_url }}"
@@ -9,7 +9,7 @@ config:
     email_domains = {{ kibana_oauth_authenticated_email_domains_kube }}
     cookie_expire = "24h"
     cookie_refresh = "4h"
-{% if (graylog_open_to_public is defined and graylog_open_to_public is true) or (send_logs_to_graylog is not defined or send_logs_to_graylog is false) %}
+{% if graylog_open_to_public or not send_logs_to_graylog %}
     cookie_secure = true
     cookie_httponly = true
 {% else %}
@@ -34,7 +34,7 @@ config:
       passHostHeader: true
       path: /
       proxyWebSockets: true
-{% if send_logs_to_graylog is defined and send_logs_to_graylog is true %}
+{% if send_logs_to_graylog %}
       uri: "http://graylog.logging.svc.cluster.local"
 {% else %}
       uri: "http://{{ kibana_service }}"
@@ -52,7 +52,7 @@ config:
     - name: X-Forwarded-Preferred-Username
       values:
       - claim: preferred_username
-{% if (graylog_open_to_public is not defined or graylog_open_to_public is false) and (send_logs_to_graylog is defined and send_logs_to_graylog is true) and (graylog_open_to_private is defined and graylog_open_to_private is true) %}
+{% if (not graylog_open_to_public) and send_logs_to_graylog and graylog_open_to_private %}
     - name: Graylog-User
       values:
       - value: "{{ graylog_auto_login_user | default('viewer') | b64encode }}"
@@ -85,7 +85,7 @@ authenticatedEmailsFile:
 
 fullnameOverride: "oauth2-proxy"
 
-{% if (graylog_open_to_public is not defined or graylog_open_to_public is false) and (send_logs_to_graylog is defined and send_logs_to_graylog is true) and (graylog_open_to_private is defined and graylog_open_to_private is true) %}
+{% if (not graylog_open_to_public) and send_logs_to_graylog and graylog_open_to_private %}
 service:
   type: LoadBalancer
   loadBalancerIP: {{ oauth2_proxy_lb_ip }}
