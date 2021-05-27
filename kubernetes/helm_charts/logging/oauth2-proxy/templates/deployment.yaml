@@ -41,7 +41,6 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         args:
-          - --http-address=0.0.0.0:4180
         {{- range $key, $value := .Values.extraArgs }}
           {{- if $value }}
           - --{{ $key }}={{ $value }}
@@ -51,6 +50,9 @@ spec:
         {{- end }}
         {{- if or .Values.config.existingConfig .Values.config.configFile }}
           - --config=/etc/oauth2_proxy/oauth2_proxy.cfg
+        {{- end }}
+        {{- if or .Values.config.existingConfig .Values.config.alphaConfigFile }}
+          - --alpha-config=/etc/oauth2_proxy/oauth2_proxy.yaml
         {{- end }}
         {{- if .Values.authenticatedEmailsFile.enabled }}
         {{- if .Values.authenticatedEmailsFile.template }}
@@ -70,16 +72,6 @@ spec:
         {{- end }}
         {{- if .Values.proxyVarsAsSecrets }}
         env:
-        - name: OAUTH2_PROXY_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name:  {{ template "oauth2-proxy.secretName" . }}
-              key: client-id
-        - name: OAUTH2_PROXY_CLIENT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name:  {{ template "oauth2-proxy.secretName" . }}
-              key: client-secret
         - name: OAUTH2_PROXY_COOKIE_SECRET
           valueFrom:
             secretKeyRef:

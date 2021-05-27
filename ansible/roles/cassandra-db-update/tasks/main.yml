@@ -9,22 +9,26 @@
 - name: Copy cql script
   become: yes
   template:
-    src: "{{cql_file}}"
-    dest: "/tmp/{{cql_file}}"
+    src: "{{ item }}"
+    dest: "/tmp/{{ item }}"
     mode: 0755
-  run_once: true
+  with_items:
+    - "{{ cql_file.split(',') }}"
   
 - name: run cql 
   become: yes
-  shell: 'cqlsh -f /tmp/{{cql_file}}'
+  shell: 'cqlsh -f /tmp/{{ item }}'
   async: 3600
   poll: 10
   ignore_errors: true
   run_once: true
+  with_items:
+    - "{{ cql_file.split(',') }}"
 
 - name: remove cql file
   become: yes
   file:
-    path: "/tmp/{{cql_file}}"
+    path: "/tmp/{{ item }}"
     state: absent
-  run_once: true
+  with_items:
+    - "{{ cql_file.split(',') }}"
