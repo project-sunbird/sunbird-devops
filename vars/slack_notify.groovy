@@ -37,7 +37,7 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                         return
                     }
 
-                    if(release_tag == null && params.github_release_tag != "") {
+                    if((release_tag == null || release_tag == "") && params.github_release_tag != null && params.github_release_tag != "") {
                         release_tag = params.github_release_tag
                     }
                     else {
@@ -63,22 +63,13 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find env specific Slack channel. Check for global slack channel.." + ANSI_NORMAL
                 }
 
-                if(env.GLOBAL_NOTIFY_SLACK_CHANNEL != null)
-                    if (release_tag != null && jobName != null && buildNumber != 0 && jobUrl != null)
-                    {
-                        slackSend(
-                                channel: "${env.GLOBAL_NOTIFY_SLACK_CHANNEL}",
-                                color: slack_status,
-                                message: "Build ${build_status} for ${release_tag} - Job: $JOB_NAME, Build Number: $BUILD_NUMBER, Logs: (<${JOB_URL}|Open>)",
-                        )
-                    }
-                    else {
-                        slackSend(
-                                channel: "${env.GLOBAL_NOTIFY_SLACK_CHANNEL}",
-                                color: slack_status,
-                                message: "Build ${build_status} for ${release_tag} - Job: $JOB_NAME, Build Number: $BUILD_NUMBER, Logs: (<${JOB_URL}|Open>)",
-                        )
-                    }
+                if(env.GLOBAL_NOTIFY_SLACK_CHANNEL != null) {
+                    slackSend(
+                            channel: "${env.GLOBAL_NOTIFY_SLACK_CHANNEL}",
+                            color: slack_status,
+                            message: "Build ${build_status} for ${release_tag} - Job: $JOB_NAME, Build Number: $BUILD_NUMBER, Logs: (<${JOB_URL}|Open>)",
+                    )
+                }
                 else
                     println ANSI_YELLOW + ANSI_BOLD + "Could not find slack environment variable. Skipping slack notification.." + ANSI_NORMAL
             }
