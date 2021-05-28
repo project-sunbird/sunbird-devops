@@ -15,10 +15,11 @@ echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
 apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
 apt-get update
-apt-get install -y jenkins=2.263.4
+apt-get install -y jenkins=2.277.4
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
+apt-get install -y python3-pip
 
 echo -e "\n\e[0;32m${bold}Installating Maven${normal}"
 apt-get install -y maven
@@ -68,7 +69,8 @@ ln -s /usr/local/lib/node-v6.17.1-linux-x64/bin/gulp /usr/bin/gulp
 rm -rf node-v6.17.1-linux-x64*
 
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
-pip install ansible==2.7.18
+pip uninstall -y ansible
+pip3 install ansible==2.8.19
 
 echo -e "\n\e[0;32m${bold}Installating azure cli${normal}"
 apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
@@ -92,6 +94,11 @@ rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
 
 echo -e "\n\e[0;32m${bold}Installating Docker-py${normal}"
 pip install docker-py
+pip3 install docker-py
+
+echo -e "\n\e[0;32m${bold}Installating pip docker${normal}"
+pip install docker
+pip3 install docker
 
 echo -e "\n\e[0;32m${bold}Installating colordiff${normal}"
 apt-get install -y colordiff
@@ -110,7 +117,8 @@ echo -e "\n\e[0;32m${bold}Installing nvm${normal}"
 su jenkins bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash"
 
 echo -e "\n\e[0;32m${bold}Installing jmespath${normal}"
-pip install jmespath
+pip uninstall jmespath
+pip3 install -y jmespath
 
 #### Kubernetes Tools ####
 
@@ -130,21 +138,35 @@ echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/a
 apt-get update
 apt-get install -y kubectl
 
-#Install yarn 
+#Install yarn
+echo -e "\n\e[0;32m${bold}Installating yarn${normal}"
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-apt update && apt install yarn
+apt update && apt install -y yarn
 
+#Install openjdk
+echo -e "\n\e[0;32m${bold}Installating openjdk 11${normal}"
 wget https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz
 tar -xf openjdk-11+28_linux-x64_bin.tar.gz
 mv jdk-11 java-11-openjdk-amd64
 cp -r java-11-openjdk-amd64 /usr/lib/jvm/
 rm -rf java-11-openjdk-amd64 openjdk-11+28_linux-x64_bin.tar.gz
 
+#Install maven 3.6.3
+echo -e "\n\e[0;32m${bold}Installating maven 3.6.3${normal}"
 wget https://downloads.apache.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
 tar -xf apache-maven-3.6.3-bin.tar.gz
-mv apache-maven-3.6.3/bin/mvn /opt/apache-maven-3.6.3/bin/mvn.3.6
+mv apache-maven-3.6.3 /opt/
+mv /opt/apache-maven-3.6.3/bin/mvn /opt/apache-maven-3.6.3/bin/mvn3.6
 rm -rf apache-maven-3.6.3-bin.tar.gz
+
+#Install python-psycopg2
+echo -e "\n\e[0;32m${bold}Installating python-psycopg2${normal}"
+apt install -y python-psycopg2
+
+#Install libpng-dev - Ubuntu 18 and above fix for plugin builds
+echo -e "\n\e[0;32m${bold}Installating libpng-dev${normal}"
+apt install -y libpng-dev
 
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove

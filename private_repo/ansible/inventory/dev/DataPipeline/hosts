@@ -1,5 +1,4 @@
 ################ Core #########################
-
 [core-cassandra]
 18.3.0.4
 
@@ -15,8 +14,7 @@ core-es-1
 [log-es:children]
 log-es-1
 
-################# LP ##########################
-
+################# KP ##########################
 [learning]
 18.3.1.5
 
@@ -32,9 +30,9 @@ log-es-1
 [lp-redis]
 18.3.1.5
 
-################# LPA #########################
-[analytics-api]
-18.3.1.7
+################# DP #########################
+[report-cassandra:children]
+core-cassandra
 
 [secor]
 18.3.1.7
@@ -53,7 +51,6 @@ spark
 secor
 analytics-api
 cassandra
-########################### DP #############################
 
 [kafka-indexer]
 18.3.1.7
@@ -73,25 +70,23 @@ redis
 [processing-cluster-zookeepers]
 18.3.1.5
 
+[ingestion-cluster-kafka:children]
+processing-cluster-kafka
+
+[ingestion-cluster-zookeeper:children]
+processing-cluster-zookeepers
 
 [zookeeper:children]
 processing-cluster-zookeepers
-
-[yarn-master]
-18.3.1.8
-
-[yarn-slave]
-18.3.1.9
-
-[yarn:children]
-yarn-master
-yarn-slave
 
 [local]
 localhost ansible_connection=local
 
 [druid-postgres]
 18.3.1.10
+
+[rollup-coordinator]
+raw-coordinator
 
 [raw-coordinator]
 18.3.1.10
@@ -114,7 +109,6 @@ localhost ansible_connection=local
 [raw-zookeeper]
 18.3.1.10
 
-
 [druid-raw:children]
 raw-coordinator
 raw-overlord
@@ -124,14 +118,14 @@ raw-middlemanager
 raw-graphite
 raw-zookeeper
 
+[druid-raw:vars]
+cluster=raw
+
 [broker]
-0.0.0.0 #### its required for data products deploy
+18.3.1.10
 
 [coordinator]
-0.0.0.0 #### its required for analytics deploy
-
-[telemetry-search-cluster-kibana-node]
-0.0.0.0
+18.3.1.10
 
 [dp:children]
 local
@@ -139,21 +133,16 @@ processing-cluster-kafka
 processing-cluster-zookeepers
 zookeeper
 postgres
-yarn
 kafka-indexer
 influxdb
 lpa
 druid-raw
 druid-postgres
+broker
+coordinator
 
 [env:children]
 dp
-
-[env:vars]
-ansible_ssh_user=deployer
-ansible_ssh_private_key_file=/var/lib/jenkins/secrets/deployer_ssh_key
-
-
 
 [all:vars]
 ansible_ssh_user=deployer

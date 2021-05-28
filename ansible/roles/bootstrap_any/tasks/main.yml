@@ -1,38 +1,18 @@
-- name: Create group deployer
-  group: name=deployer state=present
-
-- name: Create user deployer
-  user: name=deployer comment="deployer" group=deployer groups=sudo shell=/bin/bash
-
-- name: Giving access to sudo without password
-  lineinfile:
-    path: /etc/sudoers
-    line: 'deployer ALL=(ALL) NOPASSWD:ALL'
-    state: present
-
-- name: Add ssh public key deployer
-  authorized_key: user=deployer key='{{ssh_public_key_deployer}}'
-
-- name: Create ulimit configuration
-  template:
-    src: limits.conf.j2
-    dest: "{{ ulimit_config_location }}"
-    
 - name: system-wide BASH runtime config file
   lineinfile:
     path: /etc/bash.bashrc
     insertafter: EOF
     line: "export PROMPT_COMMAND='RETRN_VAL=$?;logger -p local6.debug \"$(whoami) [$$]: $(history 1 | sed \"s/^[ ]*[0-9]\\+[ ]*//\" ) [$RETRN_VAL]\"'"
 
-- name: system-wide BASH runtime config file                                                                                                  
-  lineinfile:                                                                                                                                 
-    path: /etc/rsyslog.d/bash.conf                                                                                                            
-    insertafter: EOF                                                                                                                          
-    state: present                                                                                                                            
-    create: yes                                                                                                                               
+- name: system-wide BASH runtime config file
+  lineinfile:
+    path: /etc/rsyslog.d/bash.conf
+    insertafter: EOF
+    state: present
+    create: yes
     line: "local6.*    /var/log/commands.log"
 
 - name: Restart service rsyslog
   service:
     name: rsyslog
-    state: restarted    
+    state: restarted

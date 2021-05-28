@@ -77,7 +77,6 @@ sunbird_container_name:
 sunbird_portal_cdn_url:
 sunbird_dataservice_url:
 sunbird_background_actor_port:
-sunbird_fcm_account_key:
 sunbird_app_url:
 sunbird_image_storage_url:
 sunbird_telemetry_dispatchers: kafka
@@ -267,9 +266,9 @@ service_env:
     - ../../../../ansible/roles/stack-sunbird/templates/dial-service_application.conf
     - ../../../../ansible/roles/stack-sunbird/templates/dial-service_logback.xml
   ml-survey-service: ../../../../ansible/roles/stack-sunbird/templates/ml-survey-service.env
-  ml-report-service: ../../../../ansible/roles/stack-sunbird/templates/ml-report-service.env
+  ml-reports-service: ../../../../ansible/roles/stack-sunbird/templates/ml-reports-service.env
   ml-core-service: ../../../../ansible/roles/stack-sunbird/templates/ml-core-service.env
-  ml-project-service: ../../../../ansible/roles/stack-sunbird/templates/ml-project-service.env
+  ml-projects-service: ../../../../ansible/roles/stack-sunbird/templates/ml-projects-service.env
 
 sunbird_portal_player_cdn_enabled: false
 
@@ -283,11 +282,11 @@ kibana_oauth_authenticated_email_domains: []
 
 ##### livenessprobe and readinessprobe #######
 
-ml_project_liveness_readiness:
+ml_survey_liveness_readiness:
   healthcheck: true
   readinessProbe:
     httpGet:
-      path: /ping
+      path: /healthCheckStatus
       port: 3000
     initialDelaySeconds: 30
     periodSeconds: 30
@@ -296,7 +295,7 @@ ml_project_liveness_readiness:
     successThreshold: 2
   livenessProbe:
     httpGet:
-      path: /ping
+      path: /healthCheckStatus
       port: 3000
     initialDelaySeconds: 30
     periodSeconds: 30
@@ -307,7 +306,7 @@ ml_core_liveness_readiness:
   healthcheck: true
   readinessProbe:
     httpGet:
-      path: /ping
+      path: /healthCheckStatus
       port: 3000
     initialDelaySeconds: 30
     periodSeconds: 30
@@ -316,38 +315,38 @@ ml_core_liveness_readiness:
     successThreshold: 2
   livenessProbe:
     httpGet:
-      path: /ping
+      path: /healthCheckStatus
       port: 3000
     initialDelaySeconds: 30
     periodSeconds: 30
     timeoutSeconds: 10
     failureThreshold: 5
 
-ml_survey_liveness_readiness:
-  healthcheck: true
-  readinessProbe:
-    httpGet:
-      path: /ping
-      port: 3000
-    initialDelaySeconds: 30
-    periodSeconds: 30
-    timeoutSeconds: 10
-    failureThreshold: 5
-    successThreshold: 2
-  livenessProbe:
-    httpGet:
-      path: /ping
-      port: 3000
-    initialDelaySeconds: 30
-    periodSeconds: 30
-    timeoutSeconds: 10
-    failureThreshold: 5
-
-ml_report_liveness_readiness:
+ml_reports_liveness_readiness:
   healthcheck: false
   readinessProbe:
     httpGet:
-      path: /ping
+      path: /healthCheckStatus
+      port: 3000
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 5
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /healthCheckStatus
+      port: 3000
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+
+ml_projects_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /healthCheckStatus
       port: 3000
     initialDelaySeconds: 30
     periodSeconds: 30
@@ -356,7 +355,7 @@ ml_report_liveness_readiness:
     successThreshold: 2
   livenessProbe:
     httpGet:
-      path: /ping
+      path: /healthCheckStatus
       port: 3000
     initialDelaySeconds: 30
     periodSeconds: 30
@@ -743,7 +742,7 @@ taxonomy_liveness_readiness:
     failureThreshold: 2
 
 report_liveness_readiness:
-  healthcheck: true
+  healthcheck: false
   readinessProbe:
     httpGet:
       path: /health
@@ -823,7 +822,6 @@ cassandra:
   keyspace_prefix: "{{ env_name }}_"
 
 default_channel_id: "in.ekstep"
-default_channel: "{{default_org_hash_id}}"
 channel_data_exhaust_bucket: dev-data-store
 metadata_redis_host: "{{ groups['dp-redis'][0] }}"
 device_db_redis_port: 6379
@@ -834,6 +832,7 @@ geo_location_city_ipv4: "{{ env_name }}_geo_location_city_ipv4"
 report_config: "{{ env_name }}_report_config"
 job_request: "{{ env_name }}_job_request"
 experiment_definition: "{{ env_name }}_experiment_definition"
+dataset_metadata: "{{ env_name }}_dataset_metadata"
 
 #### Exhuats API consumer
 exhaust_api_consumer_ids: ["273f3b18-5dda-4a27-984a-060c7cd398d3"] # being used in analytics api to access the analytics exhaust api
@@ -845,3 +844,5 @@ dataexhaust_super_admin_channel: "sunbird" # being used in analytics api for aut
 #### public exhausts
 public_data_exhaust_bucket: datasets
 public_exhaust_datasets: ["public-data-exhaust"]
+
+data_exhaust_batch_limit: 20

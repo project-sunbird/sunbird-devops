@@ -1,0 +1,70 @@
+replicaCount: 1
+
+
+image:
+  repository: {{ dockerhub }}/hawkeye
+  tag: {{ image_tag }}
+  pullPolicy: Always
+
+imagepullsecrets: {{ imagepullsecrets }}
+
+service:
+  type: NodePort
+  port: 8088
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+envvar:
+  PG_USER: "{{ dp_postgres_username }}"
+  PG_PASS: "{{ dp_postgres_password }}"
+  PG_HOST: "{{ dp_postgres_host }}"
+  PORTAL_HOST: "{{ proto }}://{{ domain_name }}"
+  PORTAL_API_HOST: "{{ proto }}://{{ domain_name }}/api/data/v1/report-service"
+  PORTAL_API_KEY: {{ core_vault_sunbird_api_auth_token }}
+  ANALYTICS_API_KEY: {{ core_vault_sunbird_api_auth_token }}
+  ANALYTICS_API_HOST: "http://analytics-service.{{ namespace }}.svc.cluster.local:9000"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+init:
+  command:
+    - "/bin/sh"
+    - "-c"
+    - "superset db upgrade && superset init && superset fab create-admin --username admin --firstname Superset --lastname Admin --email admin@superset.com --password admin"
+
+# Using the same nginx variables as this also needs to be private LB.
+{% if nginx_private_ingress_annotations is defined and nginx_private_ingress_annotations %}
+# you can define annotations in ansible for custom behaviour
+# eg:
+# nginx_private_ingress_annotations:
+#   cloud.google.com/load-balancer-type: "Internal"
+
+annotations: {{nginx_private_ingress_annotations|to_json}}
+{% endif %}

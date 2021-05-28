@@ -25,13 +25,15 @@
     - name: Creating namespace
       shell: "kubectl create namespace {{ item }} "
       with_items:
-        - "{{ namespace }}"
+        - "{{ bootstrap_namespace.split(',') }}"
         - monitoring
         - logging
       ignore_errors: yes
     - name: Creating docker secrets
-      shell: "kubectl create secret docker-registry {{ imagepullsecrets }} --namespace {{ namespace }} --docker-server {{ vault_docker_registry_url }} --docker-username {{ vault_docker_registry_user }} --docker-password {{ vault_docker_registry_password }} --dry-run -o=yaml | kubectl apply -f -"
+      shell: "kubectl create secret docker-registry {{ imagepullsecrets }} --namespace {{ item }} --docker-server {{ vault_docker_registry_url }} --docker-username {{ vault_docker_registry_user }} --docker-password {{ vault_docker_registry_password }} --dry-run -o=yaml | kubectl apply -f -"
       when: imagepullsecrets|length > 0
+      with_items:
+        - "{{ bootstrap_namespace.split(',') }}"
     - name: Creating domain ssl
       shell: 
         cmd: |
@@ -40,7 +42,7 @@
           kind: Secret
           metadata:
             name: ingress-cert
-            namespace: "{{ namespace }}"
+            namespace: "{{ bootstrap_namespace.split(',')[0] }}"
           data:
             ca.crt: ""
             site.crt: "{{ core_vault_proxy_site_crt | b64encode }}"
@@ -54,7 +56,7 @@
           kind: Secret
           metadata:
             name: ingress-merge-cert
-            namespace: "{{ namespace }}"
+            namespace: "{{ bootstrap_namespace.split(',')[0] }}"
           type: kubernetes.io/tls
           data:
             ca.crt: ""
@@ -64,4 +66,6 @@
       when:  merge_proxy_server_name is not none and proxymerge_site_crt is defined and proxymerge_site_key is defined
 
     - name: Installing reloader for configmaps reload
-      shell: helm upgrade --install --atomic reloader "{{ playbook_dir }}"/../helm_charts/core/reloader --namespace "{{ namespace }}" -f "{{ helm_file.path }}"
+      shell: helm upgrade --install --atomic reloader "{{ playbook_dir }}"/../helm_charts/core/reloader --namespace "{{ item }}" -f "{{ helm_file.path }}"
+      with_items:
+        - "{{ bootstrap_namespace.split(',') }}"
