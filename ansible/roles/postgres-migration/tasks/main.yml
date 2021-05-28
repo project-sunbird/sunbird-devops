@@ -1,0 +1,11 @@
+---
+# tasks file for postgres-migration
+- name: Templating flyway env file
+  template:
+    src: flyway.env
+    dest: "{{role_path}}/flyway.env"
+- name: Starting flyway for migration
+  become: yes
+  shell: "docker run --env-file={{role_path}}/flyway.env --network=host --rm -v {{ role_path }}/files/{{ item }}:/flyway/sql flyway/flyway -url=jdbc:postgresql://{{postgresql_migration_endpoint}}/{{item}} -user={{postgresql_migration_user}} migrate"
+  with_items:
+    - "{{ databases }}"
