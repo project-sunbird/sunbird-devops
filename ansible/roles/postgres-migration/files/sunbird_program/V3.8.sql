@@ -30,6 +30,7 @@ CREATE TABLE program
     updatedon timestamp with time zone DEFAULT timezone('utc'::text, now()),
     guidelines_url text COLLATE pg_catalog."default",
     rolemapping json,
+    targetprimarycategories jsonb,
     CONSTRAINT pk_program_id PRIMARY KEY (program_id)
 );
 
@@ -48,6 +49,7 @@ CREATE TABLE nomination
     createdon timestamp with time zone DEFAULT timezone('utc'::text, now()),
     updatedby character varying COLLATE pg_catalog."default",
     updatedon timestamp with time zone,
+    targetprimarycategories jsonb,
     CONSTRAINT pk_id PRIMARY KEY (id)
 );
 
