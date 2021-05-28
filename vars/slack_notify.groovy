@@ -41,9 +41,14 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                         release_tag = params.github_release_tag
                     }
                     else {
-                        commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                        branch_name = sh(script: 'git name-rev --name-only HEAD | rev | cut -d "/" -f1| rev', returnStdout: true).trim()
-                        release_tag = branch_name + "_" + commit_hash
+                        folder = new File("$WORKSPACE/.git")
+                        if (folder.exists()) {
+                            commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                            branch_name = sh(script: 'git name-rev --name-only HEAD | rev | cut -d "/" -f1| rev', returnStdout: true).trim()
+                            release_tag = branch_name + "_" + commit_hash
+                        }
+                        else
+                            release_tag = jobName
                     }
 
                     envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
