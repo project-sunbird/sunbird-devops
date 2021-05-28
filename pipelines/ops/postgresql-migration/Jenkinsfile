@@ -18,11 +18,17 @@ node() {
 
         ansiColor('xterm') {
             stage('deploy') {
-                sleep 30
+                values = [:]
                 currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                ansiblePlaybook = "$currentWs/ansible/postgreql-migrate.yml"
+                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+                ansiblePlaybook = "$currentWs/ansible/postgresql-migrate.yaml"
                 ansibleExtraArgs = " --extra-vars \"migration_databses=$params.databases\"  --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                 values.put('currentWs', currentWs)
+                values.put('env', envDir)
+                values.put('module', module)
+                values.put('jobName', jobName)
                 values.put('ansiblePlaybook', ansiblePlaybook)
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 ansible_playbook_run(values)
