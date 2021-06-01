@@ -17,3 +17,9 @@
 - name: Run the application
   shell: java -cp "cassandra-migration-0.0.1-SNAPSHOT-jar-with-dependencies.jar" com.contrastsecurity.cassandra.migration.utils.MigrationScriptEntryPoint
   run_once: true
+  register: migration_status
+
+- name: Check the migraion status
+  fail:
+    msg: "Failed migration: {{ migration_status.stdout_lines }}"
+  when: '"ERROR: Migration of keyspace" in  (migration_status.stdout_lines|join("|"))'
