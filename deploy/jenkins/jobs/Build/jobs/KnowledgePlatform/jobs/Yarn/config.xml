@@ -1,4 +1,5 @@
-<?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.40">
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.40">
   <actions>
     <org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction plugin="workflow-multibranch@2.23">
       <jobPropertyDescriptors>
@@ -7,7 +8,7 @@
       </jobPropertyDescriptors>
     </org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction>
   </actions>
-  <description/>
+  <description></description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <jenkins.model.BuildDiscarderProperty>
@@ -27,11 +28,13 @@
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>github_release_tag</name>
-          <description>&lt;font style="color:dimgray;font-size:14px;"&gt;&lt;b&gt;
-&lt;li&gt;To build from a tag, specify the github tag&lt;/li&gt;
-&lt;li&gt;To build from a branch, specify the github branch&lt;/li&gt;
+          <description>&lt;font style=&quot;color:dimgray;font-size:14px;&quot;&gt;&lt;b&gt;
+&lt;li&gt;To build from a tag, use refs/tags/github_tag&lt;/li&gt;
+&lt;li&gt;To build from a branch, use refs/heads/github_branch&lt;/li&gt;
+&lt;li&gt;The default value of ${public_repo_branch} will be the release / tag version set in global configuration&lt;/li&gt;
+&lt;li&gt;To build from a differnt branch, replace the ${public_repo_branch} with your branch&lt;/li&gt;
 &lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue/>
+          <defaultValue>refs/heads/${public_repo_branch}</defaultValue>
           <trim>true</trim>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
@@ -43,13 +46,23 @@
       <throttleEnabled>false</throttleEnabled>
       <throttleOption>project</throttleOption>
       <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
-      <paramsToUseForLimit/>
+      <paramsToUseForLimit></paramsToUseForLimit>
+      <configVersion>1</configVersion>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
-    
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers>
+        <jenkins.triggers.ReverseBuildTrigger>
+          <spec></spec>
+          <upstreamProjects>Learning</upstreamProjects>
+          <threshold>
+            <name>SUCCESS</name>
+            <ordinal>0</ordinal>
+            <color>BLUE</color>
+            <completeBuild>true</completeBuild>
+          </threshold>
+        </jenkins.triggers.ReverseBuildTrigger>
         <hudson.triggers.SCMTrigger>
-          <spec/>
+          <spec>H/15 * * * *</spec>
           <ignorePostCommitHooks>false</ignorePostCommitHooks>
         </hudson.triggers.SCMTrigger>
       </triggers>
@@ -69,7 +82,7 @@
         </hudson.plugins.git.BranchSpec>
       </branches>
       <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
-      <submoduleCfg class="empty-list"/>
+      <submoduleCfg class="list"/>
       <extensions/>
     </scm>
     <scriptPath>pipelines/build/yarn/Jenkinsfile</scriptPath>
