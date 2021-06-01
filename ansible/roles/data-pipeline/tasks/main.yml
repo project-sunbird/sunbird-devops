@@ -82,63 +82,13 @@
 
 - name: CREATION THE SYSTEMD faust_observation FILE
   copy:
-    dest: "{{ SYSTEMDDIR }}/faust_observation.service"
-    content: |
-      [Unit]
-      Description=Faust Observations Service
-      [Service]
-      User=data-pipeline
-      Group=data-pipeline
-      Restart=on-failure
-      Type=simple
-      ExecStart=/opt/sparkjobs/faust_as_service/faust.sh  observations/observation_streaming observations/
-      [Install]
-      WantedBy=multi-user.target
-
-- name: CREATION THE SYSTEMD faust_observation_evidence FILE
-  copy:
-    dest: "{{ SYSTEMDDIR }}/faust_observation_evidence.service"
-    content: |
-      [Unit]
-      Description=Faust Observations Evidence Service
-      [Service]
-      User=data-pipeline
-      Group=data-pipeline
-      Restart=on-failure
-      Type=simple
-      ExecStart=/opt/sparkjobs/faust_as_service/faust.sh  observations/observation_evidence_streaming observations/
-      [Install]
-      WantedBy=multi-user.target
-
-- name: CREATION THE SYSTEMD faust_survey FILE
-  copy:
-    dest: "{{ SYSTEMDDIR }}/faust_survey.service"
-    content: |
-      [Unit]
-      Description=Faust Survey Service
-      [Service]
-      User=data-pipeline
-      Group=data-pipeline
-      Restart=on-failure
-      Type=simple
-      ExecStart=/opt/sparkjobs/faust_as_service/faust.sh  survey/sl_py_survey_streaming survey/
-      [Install]
-      WantedBy=multi-user.target
-
-- name: CREATION THE SYSTEMD faust_survey_evidence FILE
-  copy:
-    dest: "{{ SYSTEMDDIR }}/faust_survey_evidence.service"
-    content: |
-      [Unit]
-      Description=Faust Survey Evidence Service
-      [Service]
-      User=data-pipeline
-      Group=data-pipeline
-      Restart=on-failure
-      Type=simple
-      ExecStart=/opt/sparkjobs/faust_as_service/faust.sh  survey/evidence/sl_py_survey_evidence_streaming survey/evidence/
-      [Install]
-      WantedBy=multi-user.target
+    src: files/{{ item }}
+    dest: "{{ SYSTEMDDIR }}"
+  with_items:
+    - faust_observation.service
+    - faust_observation_evidence.service
+    - faust_survey.service
+    - faust_survey_evidence.service
 
 - name: SYSTEMD DAEMON-RELOAD
   systemd:
