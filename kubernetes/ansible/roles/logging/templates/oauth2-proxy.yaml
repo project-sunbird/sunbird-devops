@@ -1,22 +1,69 @@
 config:
-  clientID: "{{google_client_id}}"
-  clientSecret: "{{google_client_secret}}"
-  cookieSecret: "{{cookie_secret}}"
+  cookieSecret: "{{ cookie_secret }}"
   configFile: |-
-    redirect_url = "{{kibana_oauth_redirect_url}}"
-    upstreams = "http://{{ kibana_service }}"
-    email_domains = {{kibana_oauth_authenticated_email_domains_kube}}
-    authenticated_emails_file = "/etc/oauth2/auth-emails/authenticated_email.txt"
+{% if (not graylog_open_to_public) and send_logs_to_graylog and graylog_open_to_private %}
+    redirect_url = "http://{{ oauth2_proxy_lb_ip }}.nip.io/oauth2/callback"
+{% else %}
+    redirect_url = "{{ oauth2_proxy_redirect_url }}"
+{% endif %}
+    email_domains = {{ kibana_oauth_authenticated_email_domains_kube }}
     cookie_expire = "24h"
     cookie_refresh = "4h"
+{% if graylog_open_to_public or not send_logs_to_graylog %}
     cookie_secure = true
     cookie_httponly = true
+{% else %}
+    cookie_secure = false
+    cookie_httponly = false
+{% endif %}
     silence_ping_logging = true
     skip_provider_button = true
 
+  alphaConfigFile: |-
+    server:
+      BindAddress: 0.0.0.0:4180
+    providers:
+    - approvalPrompt: force
+      clientID: "{{ google_client_id }}"
+      clientSecret: "{{ google_client_secret }}"
+      id: "google={{ google_client_id }}"
+      provider: google
+    upstreams:
+    - flushInterval: 1s
+      id: /
+      passHostHeader: true
+      path: /
+      proxyWebSockets: true
+{% if send_logs_to_graylog %}
+      uri: "http://graylog.logging.svc.cluster.local"
+{% else %}
+      uri: "http://{{ kibana_service }}"
+{% endif %}
+    injectRequestHeaders:
+    - name: X-Forwarded-Groups
+      values:
+      - claim: groups
+    - name: X-Forwarded-User
+      values:
+      - claim: user
+    - name: X-Forwarded-Email
+      values:
+      - claim: email
+    - name: X-Forwarded-Preferred-Username
+      values:
+      - claim: preferred_username
+{% if (not graylog_open_to_public) and send_logs_to_graylog and graylog_open_to_private %}
+    - name: Graylog-User
+      values:
+      - value: "{{ graylog_auto_login_user | default('viewer') | b64encode }}"
+    - name: X-Graylog-Server-URL
+      values:
+      - value: "{{ ('http://' + oauth2_proxy_lb_ip + '.nip.io') | b64encode }}"
+{% endif %}
+
 image:
-  repository: "sunbird/oauth2_proxy"
-  tag: "v1.0"
+  repository: "quay.io/oauth2-proxy/oauth2-proxy"
+  tag: "v7.1.3"
   pullPolicy: "IfNotPresent"
 
 replicaCount: {{ oauth2_replicas | default(1) }}
@@ -37,3 +84,11 @@ authenticatedEmailsFile:
      {% endfor %}
 
 fullnameOverride: "oauth2-proxy"
+
+{% if (not graylog_open_to_public) and send_logs_to_graylog and graylog_open_to_private %}
+service:
+  type: LoadBalancer
+  loadBalancerIP: {{ oauth2_proxy_lb_ip }}
+  port: 80
+  annotations: {{ nginx_private_ingress_annotations|to_json }}
+{% endif %}

@@ -2,16 +2,16 @@
 
 mongodb_package: mongodb-org
 mongodb_package_state: present
-mongodb_version: "4.2"
-mongodb_apt_keyserver: hkp://keyserver.ubuntu.com:80 
+mongodb_version: "4.4"
+mongodb_apt_keyserver: keyserver.ubuntu.com
 mongodb_apt_key_id:
-  "3.4": "0C49F3730359A14518585931BC711F9BA15703C6"
   "3.6": "2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5"
   "4.0": "9DA31620334BD75D9DCB49F368818C72E52529D4"
-  "4.2": "4B7C549A058F8B6B"
+  "4.2": "E162F504A20CDF15827F718D4B7C549A058F8B6B"
+  "4.4": "20691eec35216c63caf66ce1656408e390cfb1f5"
 
 mongodb_pymongo_from_pip: true                   # Install latest PyMongo via PIP or package manager
-mongodb_pymongo_pip_version: 3.7.1
+mongodb_pymongo_pip_version: 3.11.3
 
 mongodb_user_update_password: "on_create"        # MongoDB user password update default policy
 mongodb_manage_service: true
@@ -29,7 +29,7 @@ mongodb_gid:
 mongodb_daemon_name: "{{ 'mongod' if ('mongodb-org' in mongodb_package) else 'mongodb' }}"
 
 ## net Options
-mongodb_net_bindip: 0.0.0.0                    # Comma separated list of ip addresses to listen on
+mongodb_net_bindip: 127.0.0.1                    # Comma separated list of ip addresses to listen on
 mongodb_net_http_enabled: false                  # Enable http interface
 mongodb_net_ipv6: false                          # Enable IPv6 support (disabled by default)
 mongodb_net_maxconns: 65536                      # Max number of simultaneous connections
@@ -42,7 +42,7 @@ mongodb_net_ssl_host: ""                         # Valid ssl hostname
 ## processManagement Options
 # Fork server process
 # Enabled by default for RedHat as the init scripts assume forking is enabled.
-mongodb_processmanagement_fork: false 
+mongodb_processmanagement_fork: "{{ 'RedHat' == ansible_os_family }}"
 
 ## security Options
 # Disable or enable security. Possible values: 'disabled', 'enabled'
@@ -82,7 +82,7 @@ mongodb_operation_profiling_mode: "off"
 mongodb_cloud_monitoring_free_state: "runtime"
 
 ## replication Options
-mongodb_replication_replset: "mongors"                # Enable replication
+mongodb_replication_replset: ""                   # Enable replication
 mongodb_replication_replindexprefetch: "all"      # specify index prefetching behavior (if secondary) [none|_id_only|all]
 mongodb_replication_oplogsize: 1024               # specifies a maximum size in megabytes for the replication operation log
 
@@ -91,11 +91,6 @@ mongodb_mms_agent_pkg: https://cloud.mongodb.com/download/agent/monitoring/mongo
 mongodb_mms_group_id: ""
 mongodb_mms_api_key: ""
 mongodb_mms_base_url: https://mms.mongodb.com
-
-#master configuration
-
-mongodb_login_host: "{{ groups['mongo_master'][0] }}"
-host_name: "{{ groups['mongo_master'][0] }}" 
 
 # password for inter-process authentication
 # please regenerate this file on production environment with command 'openssl rand -base64 741'
@@ -117,16 +112,15 @@ mongodb_keyfile_content: |
   T+c73exupZFxItXs1Bnhe3djgE3MKKyYvxNUIbcTJoe7nhVMrwO/7lBSpVLvC4p3
   wR700U0LDaGGQpslGtiE56SemgoP
 
-
 # names and passwords for administrative users
-mongodb_user_admin_name: 
-mongodb_user_admin_password:  
+mongodb_user_admin_name: siteUserAdmin
+mongodb_user_admin_password: passw0rd
 
-mongodb_root_admin_name: 
-mongodb_root_admin_password:  
+mongodb_root_admin_name: siteRootAdmin
+mongodb_root_admin_password: passw0rd
 
-mongodb_root_backup_name: 
-mongodb_root_backup_password:  
+mongodb_root_backup_name: backupuser
+mongodb_root_backup_password: passw0rd
 
 # setParameter config
 mongodb_set_parameters:

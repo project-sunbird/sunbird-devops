@@ -1,0 +1,26 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{ml_projects_replicacount|default(1)}}
+repository: {{ml_projects_repository|default('ml-projects-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{ml_projects_cpu_req|default('100m')}}
+    memory: {{ml_projects_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{ml_projects_cpu_limit|default('1')}}
+    memory: {{ml_projects_mem_limit|default('1024Mi')}}
+network:
+  port: 3000
+  targetport: 3000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ ml_projects_maxsurge|default('25%') }}
+  maxunavailable: {{ ml_projects_maxunavailable|default('25%') }}
+  
+{{ ml_projects_liveness_readiness | to_nice_yaml }}
+ml_projects_access_basepath : {{ ml_projects_access_basepath | default('/opt/core/keycloak-public-keys/') }}

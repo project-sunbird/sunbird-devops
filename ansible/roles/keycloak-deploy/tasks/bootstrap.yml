@@ -1,10 +1,12 @@
 ---
-- name: start service
-  become: true
-  command: /etc/init.d/keycloak start
-  poll: 5
-  async: 5
-  ignore_errors: true
+- name: start keycloak service
+  debug: msg="starting keycloak"
+  notify:
+    - start service
+    - wait for keycloak to start
+  changed_when: true
+
+- meta: flush_handlers
 
 - name: Create admin user
   become_user: "{{ wildfly_user }}"
@@ -13,32 +15,23 @@
         keycloak_management_password is defined
   ignore_errors: true
 
-- name: status service
-  become: true
-  command: /etc/init.d/keycloak status
-  register: keycloak
-  poll: 5
-  async: 10
+- name: stop keycloak service
+  debug: msg="stopping keycloak"
+  notify:
+    - stop service
+    - wait for keycloak to stop
+  changed_when: true
 
-- name: stop service
-  become: true
-  command: /etc/init.d/keycloak stop && Pkill keycloak
-  when: "keycloak.stdout.find('running') != -1"
-  poll: 5
-  async: 10
-  ignore_errors: true
+- meta: flush_handlers
 
-- name: start service
-  become: true
-  command: /etc/init.d/keycloak start
-  poll: 5
-  async: 5
+- name: start keycloak with script upload feature temporarily
+  shell: "nohup {{keycloak_home}}/bin/standalone.sh -Dkeycloak.profile.feature.upload_scripts=enabled -b={{ansible_default_ipv4.address}} -bprivate={{ansible_default_ipv4.address}} --server-config standalone-ha.xml &"
+  become: yes
+  become_user: "{{ wildfly_user }}"
+  run_once: true
+  notify: wait for keycloak to start
 
-- name: Waiting Until Keycloak is fully functional
-  wait_for:
-    host: "{{ inventory_hostname }}"
-    port: 8080
-    delay: 5
+- meta: flush_handlers
 
 - name: Install dependencies for keycloak
   apt:
@@ -47,41 +40,44 @@
   with_items:
     - python-pip
     - python-setuptools
+  run_once: true
 
 - name: Copying python libraries
   copy:
     src: "{{ role_path }}/files/python-keycloak-0.12.0"
     dest: /tmp/
+  run_once: true
 
 - name: Initialize python library to run keycloak bootstrap script
   shell: cd /tmp/python-keycloak-0.12.0 && python setup.py install
+  run_once: true
 
-- name: Save keycalok vars to json
+- name: Save keycloak vars to json
   template:
     src: "keycloak-bootstrap.conf.j2"
     dest: "/tmp/keycloak-bootstrap.conf.json"
     mode: "0644"
+  run_once: true
 
 - name: Copy realm json file to tmp location
   template:
     src: "keycloak-realm.j2"
     dest: "/tmp/keycloak-realm.json"
     mode: "0644"
+  run_once: true
 
 - name: Copy user manager roles file to tmp location
   copy:
     src: "files/python-keycloak-0.12.0/roles.json"
     dest: "/tmp/roles.json"
     mode: "0644"
-
-- name: Pausing for 60 seconds sometime for keycloak to run completely
-  pause:
-    seconds: 60
+  run_once: true
 
 - name: Copy the keycloak bootstrap script
   copy:
     src: "{{ role_path }}/files/python-keycloak-0.12.0/keycloak"
     dest: /tmp
+  run_once: true
 
 - name: Run the keycloak bootstrap script
   shell: cd /tmp/keycloak/ && python keycloak_main.py /tmp/keycloak-bootstrap.conf.json
@@ -89,3 +85,15 @@
   until: '"404" not in out.stderr'
   retries: 2
   delay: 10
+  run_once: true
+
+- name: stop keycloak service
+  debug: msg="restarting keycloak"
+  notify:
+    - stop service
+    - wait for keycloak to stop
+    - start service
+    - wait for keycloak to start
+  changed_when: true
+
+- meta: flush_handlers

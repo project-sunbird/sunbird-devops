@@ -1,0 +1,20 @@
+- hosts: localhost
+  become: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  vars:
+    container_name: "{{ blob_container }}"
+    destination_path: "{{ blob_container }}"
+  environment:
+    AZURE_STORAGE_ACCOUNT: "{{ sunbird_public_storage_account_name }}"
+    AZURE_STORAGE_KEY: "{{ sunbird_public_storage_account_key }}"
+  tasks:
+    - name: upload files
+      include_role:
+        name: upload-batch
+      vars:
+        source_path: "{{ playbook_dir }}/../utils/{{ item }}"
+      with_items:
+        - "{{ source_folder.split(',') }}"
+  tags:
+    - upload-faqs

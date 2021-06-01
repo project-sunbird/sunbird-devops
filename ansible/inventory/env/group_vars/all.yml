@@ -16,11 +16,7 @@ sunbird_instance: "{{env}}"
 env_short_name: "{{env}}"
 sunbird_env: "{{env}}"                   #Ekstep environment to connect to. Use `qa` for non-prod deployments, and `prod` for prod deployment.
 sunbird_app_name: "{{env}}"
-
-#artifact upload
-
-
-#plugins
+env_prefix: "{{env}}"
 
 # Keycloak
 keycloak_api_management_user_first_name: "admin"
@@ -30,6 +26,7 @@ keycloak_api_management_username: "{{core_vault_sunbird_sso_username}}"
 keycloak_api_management_user_password: "{{core_vault_sunbird_sso_password}}"
 keycloak_management_user: "admin"
 keycloak_management_password: "{{core_vault_keycloak_password}}"
+tenant_name: sunbird
 
 ## Learner service
 sunbird_url_shortner_access_token: "{{vault_core_url_shortner_access_token}}"
@@ -40,17 +37,6 @@ sunbird_keycloak_required_action_link_expiration_seconds: 2592000
 sunbird_es_port: 9300
 mail_server_port: 587
 upstream_url: "{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}"
-
-## Mailing list
-# !! Override for specific alert groups; Default will be alerts_mailing_list
-# Enable below override below variables in common.yml for team specific alerts
-
-# monitor_alerts_slack_channel: ""
-# app_alerts_mailing_list: ""
-# devops_alerts_mailing_list: ""
-# site_alerts_mailing_list: ""
-# keycloak_alerts_mailing_list: ""
-# api_manager_alerts_mailing_list: ""
 
 # Learner
 sunbird_user_profile_field_default_visibility: private
@@ -63,31 +49,22 @@ sunbird_portal_user_upload_ref_link: http://www.sunbird.org/features-documentati
 content_service_whitelisted_channels: ""
 content_service_blacklisted_channels: ""
 
-# Badger
-badger_url: http://azureaccountname.blob.core.windows.net/ # Is it a dummy var?
-badger_file_storage: storages.backends.azure_storage.AzureStorage
-badger_admin_email:
-
 ## Below passwords are used by DB install scripts when creating databases. Please use strong passwords.
 sunbird_pg_user: "{{core_vault_postgres_username}}"
 application_postgres_user: "{{core_vault_postgres_username}}"
 application_postgres_password: "{{core_vault_postgres_password}}"
 keycloak_postgres_user: "{{core_vault_postgres_username}}"
 keycloak_postgres_password: "{{core_vault_postgres_password}}"
-badger_postgres_password: "{{core_vault_postgres_password}}"
 kong_postgres_user: "{{core_vault_postgres_username}}"
 kong_postgres_password: "{{core_vault_postgres_password}}"
 enc_postgres_user: "{{core_vault_postgres_username}}"
-badger_postgres_user: "{{core_vault_postgres_username}}"
 user_org_service_postgres_user: "{{core_vault_postgres_username}}"
 ansible_vault_password: "{{ core_vault_ansible_vault_password }}"
 jenkins_admin_username: "{{core_vault_jenkins_admin_username}}"
 jenkins_admin_password: "{{core_vault_jenkins_admin_password}}"
-vault_badging_authorization_key: "{{core_vault_badging_authorization_key}}"
 vault_postgres_exporter_password: "{{core_vault_postgres_password}}"
 
 ## Postgres configuration
-swarm_address_space: "{{groups['swarm-manager'][0].split(\".\")[0]}}.0.0.0/8"  #Application server address space (e.g. 10.3.0.0/24), also the agentpublicSubnet if using Azure scripts provided
 keycloak_address_space: "{{groups['keycloak'][0].split(\".\")[0]}}.0.0.0/8"
 postgres_address_space: "{{groups['postgresql-master'][0].split(\".\")[0]}}.0.0.0/8"
 
@@ -103,7 +80,6 @@ kong_host: kong
 application_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 enc_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 user_org_service_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
-badger_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 keycloak_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 kong_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 sunbird_cassandra_host: "{{groups['cassandra']|join(',')}}"  #Private IP of Cassandra server
@@ -134,8 +110,8 @@ sunbird_auth_version: 1.0v
 
 ## Content Repo configuration
 sunbird_api_auth_token: "{{ core_vault_sunbird_api_auth_token }}" #Authorization key (JWT) to access Sunbird APIs. This will be in the output of deploy-apis.sh script, extracting it out is documented in the deployment wiki.
-sunbird_ekstep_api_key: "{{ core_vault_sunbird_ekstep_api_key }}" #Authorization key (JWT) to access Ekstep APIs. Steps to generate this are documented on {{proto}}://github.com/project-sunbird/sunbird-commons/wiki/Obtaining-API-token-for-accessing-ekstep-APIs
-sunbird_plugin_repo_api_key: "{{ core_vault_sunbird_ekstep_api_key }}"
+sunbird_ekstep_api_key: "{{ core_vault_sunbird_api_auth_token }}"
+sunbird_plugin_repo_api_key: "{{ core_vault_sunbird_api_auth_token }}"
 sunbird_trampoline_secret: "{{ core_vault_sunbird_trampoline_secret }}"
 
 # ADVANCED CONFIGURATIONS
@@ -150,10 +126,9 @@ cassandra_root_dir: '/etc/cassandra'
 cassandra_version: '3.9'
 cassandra_port: 9042
 cassandra_rpc_address: 0.0.0.0
-cassandra_restore_dir: /home/deployer/
+cassandra_restore_dir: "/home/{{ ansible_ssh_user }}/"
 cassandra_backup_azure_container_name: cassandra-backup
 cassandra_backup_dir: /data/cassandra/backup
-
 
 keycloak_realm: sunbird
 sunbird_content_player_url: "http://kong:8000/"
@@ -177,7 +152,6 @@ sunbird_keycloak_public: true
 sunbird_cache_store: "memory"
 sunbird_portal_title_name: "{{sunbird_app_name}}"
 sunbird_sso_publickey: "{{core_vault_sunbird_sso_publickey}}"
-sunbird_fcm_account_key: "{{core_vault_sunbird_fcm_account_key}}"
 sunbird_msg_91_auth: "{{core_vault_msg_91_auth_key}}"
 sunbird_telemetry_pdata_id: "{{env}}.sunbird.learning.service"
 sunbird_encryption_key: "{{ core_vault_sunbird_encryption_key }}"
@@ -190,12 +164,12 @@ keycloak_password: "{{core_vault_keycloak_password}}"
 
 #Content Service Vars
 sunbird_content_repo_api_base_url: "http://{{learningservice_ip}}:8080/learning-service"
-sunbird_content_repo_api_key: "{{ core_vault_sunbird_ekstep_api_key }}"
-sunbird_search_service_api_key: "{{ core_vault_sunbird_ekstep_api_key }}"
-sunbird_dial_repo_api_key: "{{ core_vault_sunbird_ekstep_api_key }}"
+sunbird_content_repo_api_key: "{{ core_vault_sunbird_api_auth_token }}"
+sunbird_search_service_api_key: "{{ core_vault_sunbird_api_auth_token }}"
+sunbird_dial_repo_api_key: "{{ core_vault_sunbird_api_auth_token }}"
 sunbird_plugin_repo_api_base_url: "{{ sunbird_search_service_api_base_url }}"
 sunbird_data_service_api_base_url: "{{sunbird_ekstep_api_base_url}}"
-sunbird_data_service_api_key: "{{ core_vault_sunbird_ekstep_api_key }}"
+sunbird_data_service_api_key: "{{ core_vault_sunbird_api_auth_token }}"
 sunbird_content_service_api_base_url: "http://content-service.{{namespace}}.svc.cluster.local:9000"
 sunbird_user_service_api_base_url: "http://learner-service.{{namespace}}.svc.cluster.local:9000"
 sunbird_group_service_api_base_url: "http://groups-service:9000"
@@ -216,17 +190,14 @@ jenkins_replicas: 2
 postgres_replication_user_name: "{{ core_vault_postgres_username }}"
 postgres_password: "{{ core_vault_postgres_password }}"
 
-
 postgresql_hba_entries:
   - { type: local, database: all, user: postgres, auth_method: peer }
   - { type: local, database: all, user: all, auth_method: peer }
   - { type: host, database: all, user: all, address: '127.0.0.1/32', auth_method: md5 }
   - { type: host, database: all, user: all, address: '::1/128', auth_method: md5 }
-  - { type: host, database: all, user: "{{ postgres_exporter_user }}", address: '{{ swarm_address_space }}', auth_method: md5 }
   - { type: host, database: replication, user: "{{ postgres_replication_user_name }}", address: '{{ postgres_address_space }}', auth_method: md5 }
-  - { type: host, database: all, user: all, address: '{{ swarm_address_space }}', auth_method: md5 }
   - { type: host, database: all, user: all, address: '{{ keycloak_address_space }}', auth_method: md5 }
-
+  - { type: host, database: all, user: all, address: '0.0.0.0/0', auth_method: md5 }
 
 proxy_prometheus_admin_creds: "{{ core_vault_proxy_prometheus_admin_creds }}"
 vault_docker_registry_url: "{{core_vault_docker_registry_url}}"
@@ -239,9 +210,8 @@ prometheus_data_dir: /var/dockerdata/prometheus/data
 
 logger_es_host: "{{ groups['log-es'][0] }}"
 logger_es_port: 9200
-#kibana_image: kibana:5.4.3
 
-kibana_oauth_redirect_url: "{{proto}}://{{proxy_server_name}}/oauth2/callback"
+oauth2_proxy_redirect_url: "{{proto}}://{{proxy_server_name}}/oauth2/callback"
 keycloak: True
 
 api__host: "{{proxy_server_name}}"
@@ -272,13 +242,6 @@ monitor_alerts_mail_server_host: "{{ mail_server_host }}"
 monitor_alerts_mail_server_port: "{{ mail_server_port }}"
 monitor_alerts_mail_server_username: "{{ mail_server_username }}"
 monitor_alerts_mail_server_password: "{{ core_vault_mail_server_password }}"
-
-#badger
-badger_admin_password: "{{core_vault_badger_admin_password}}"
-badger_postgres_database: badger
-badger_host: "{{ groups['postgresql-master'][0]}}"
-badger_container: badgr
-sunbird_http_orgin: "{{proto}}://{{proxy_server_name}}/badging"
 
 #enc-service
 enc_postgres_database: "{{env}}-keys"
@@ -322,7 +285,7 @@ sunbird_open_saber_bridge_enable: 'false'
 
 # --- Content service specific ENV vars --- #
 sunbird_content_service_enable_logging: 'true'
-sunbird_language_service_api_key: "{{core_vault_sunbird_ekstep_api_key}}"
+sunbird_language_service_api_key: "{{core_vault_sunbird_api_auth_token}}"
 sunbird_installation_display_name: "{{sunbird_app_name}} {{env}}"
 sunbird_ekstep_proxy_base_url: "https://{{ekstep_s3_env}}.ekstep.in"  #Base URL of the Ekstep environment. Use `https://qa.ekstep.in/` for non-prod deployments, and `https://community.ekstep.in/` for prod deployment.
 sunbird_ekstep_api_base_url: "{{sunbird_ekstep_proxy_base_url}}/api"   #API base URL of the Ekstep environment. Use `https://qa.ekstep.in/api` for non-prod deployments, and use `https://api.ekstep.in/` for prod deployment.
@@ -332,7 +295,6 @@ kong_version: 1.5.0-gold
 
 # Data pipeline vars
 learning_analytics_service_url: 'http://{{learningservice_ip}}:9000'
-
 
 #encryption Service
 sunbird_allowed_login:
@@ -348,7 +310,6 @@ sunbird_qrimage_topic: "{{env}}.qrimage.request"
 
 
 sunbird_azure_report_container_name: reports
-
 sunbird_google_captcha_site_key: "{{core_vault_sunbird_google_captcha_site_key_portal}}"
 sunbird_google_oauth_clientId: "{{core_vault_sunbird_google_oauth_clientId_portal}}"
 sunbird_google_oauth_clientSecret: "{{core_vault_sunbird_google_oauth_clientSecret_portal}}"
@@ -361,82 +322,59 @@ grafana_admin_password: "{{core_vault_grafana_admin_password}}"
 grafana_editor_password: "{{core_vault_grafana_editor_password}}"
 grafana_dashboards_git_repo_url_with_credentails: "{{core_vault_grafana_dashboards_git_repo_url_with_credentails}}"
 monitor_alerts_slack_url: "{{core_vault_monitor_alerts_slack_url}}"
-kong__test_jwt: "{{core_vault_kong__test_jwt}}"
+kong__test_jwt: "{{ core_vault_sunbird_api_auth_token  }}"
 
 ############# Postgres users and databases ###############
 postgresql_users:
   - name: "{{kong_postgres_user}}"
-    login_host: "{{kong_postgres_host}}"
     login_password: "{{kong_postgres_password}}"
     password: "{{postgres_password}}"
     db: "{{kong_postgres_database}}"
     login_user: "{{kong_postgres_user}}"
     priv: "ALL"
   - name: "{{keycloak_postgres_user}}"
-    login_host: "{{keycloak_postgres_host}}"
     login_password: "{{keycloak_postgres_password}}"
     password: "{{postgres_password}}"
     db: "{{keycloak_postgres_database}}"
     login_user: "{{keycloak_postgres_user}}"
     priv: "ALL"
   - name: "{{application_postgres_user}}"
-    login_host: "{{application_postgres_host}}"
     login_password: "{{application_postgres_password}}"
     password: "{{postgres_password}}"
     db: "{{application_postgres_database}}"
     login_user: "{{application_postgres_user}}"
     priv: "ALL"
-  - name: "{{badger_postgres_user}}"
-    login_host: "{{badger_postgres_host}}"
-    login_password: "{{badger_postgres_password}}"
-    password: "{{postgres_password}}"
-    login_user: "{{badger_postgres_user}}"
-    db: "{{badger_postgres_database}}"
-    priv: "ALL"
   - name: "{{user_org_service_postgres_user}}"
-    login_host: "{{user_org_service_postgres_host}}"
     login_password: "{{user_org_service_postgres_password}}"
     password: "{{user_org_service_postgres_password}}"
     db: "{{user_org_service_postgres_database}}"
     login_user: "{{user_org_service_postgres_user}}"
     priv: "ALL"
   - name: "{{enc_postgres_user}}"
-    login_host: "{{enc_postgres_host}}"
     login_password: "{{enc_postgres_password}}"
     password: "{{enc_postgres_password}}"
     db: "{{enc_postgres_database}}"
     login_user: "{{enc_postgres_user}}"
     priv: "ALL"
 
-
 postgresql_databases:
   - name: "{{kong_postgres_database}}"
-    login_host: "{{kong_postgres_host}}"
     login_password: "{{kong_postgres_password}}"
     owner: "{{kong_postgres_user}}"
     login_user: "{{kong_postgres_user}}"
   - name: "{{keycloak_postgres_database}}"
-    login_host: "{{keycloak_postgres_host}}"
     login_password: "{{keycloak_postgres_password}}"
     owner: "{{keycloak_postgres_user}}"
     login_user: "{{keycloak_postgres_user}}"
   - name: "{{application_postgres_database}}"
-    login_host: "{{application_postgres_host}}"
     login_password: "{{application_postgres_password}}"
     owner: "{{application_postgres_user}}"
     login_user: "{{application_postgres_user}}"
-  - name: "{{badger_postgres_database}}"
-    login_host: "{{badger_postgres_host}}"
-    login_password: "{{badger_postgres_password}}"
-    owner: "{{badger_postgres_user}}"
-    login_user: "{{badger_postgres_user}}"
   - name: "{{user_org_service_postgres_database}}"
-    login_host: "{{user_org_service_postgres_host}}"
     login_password: "{{user_org_service_postgres_password}}"
     owner: "{{user_org_service_postgres_user}}"
     login_user: "{{user_org_service_postgres_user}}"
   - name: "{{enc_postgres_database}}"
-    login_host: "{{enc_postgres_host}}"
     login_password: "{{enc_postgres_password}}"
     owner: "{{enc_postgres_user}}"
     login_user: "{{enc_postgres_user}}"
@@ -444,14 +382,11 @@ postgresql_databases:
 ##########################################################
 
 ####### App ES ########
-
-
 app_es_etc_cluster_name: "{{env}}"
 app_es_etc_discovery_zen_minimum_master_nodes: "{{groups['es']| length | int}}"
 app_es_snapshot_host: "{{ groups['es'][0] }}"
 app_es_restore_host: "{{ groups['es'][0] }}"
 app_es_snapshot_base_path: application
-
 
 #######Log Es
 log_es_etc_cluster_name: "{{env}}-log"
@@ -495,9 +430,6 @@ vault_sms_method_type: "{{core_vault_sms_method_type}}"
 # telemetry
 default_channel_id: "in.ekstep"
 
-##
-
-trampoline_secret: "{{core_vault_trampoline_secret}}"
 es_api_host: "{{inventory_hostname}}"
 sunbird_linked_content_base_url: "{{proto}}://{{proxy_server_name}}/play/content/"
 enc_postgres_password: "{{core_vault_postgres_password}}"
@@ -507,10 +439,6 @@ sunbird_config_service_url:
 config_refresh_interval: 10
 config_service_enabled: false
 config_cache_ttl: 600
-
-#### backup storage secret
-#backup_azure_storage_access_key: "{{core_vault_sunbird_azure_storage_key}}"
-#backup_azure_storage_account_name: "{{azure_account_name}}"
 
 #es-backup
 app_es_snapshot_host: "{{ groups['es'][0] }}"
@@ -544,7 +472,6 @@ zookeepers: "{{groups['zookeeper']|join(':2181,')}}:2181"
 kafka_brokers: "{{groups['processing-cluster-kafka']|join(':9092,')}}:9092"
 __lms_host__: "http://{{private_ingressgateway_ip}}/learner"
 sunbird_redis_host: "{{ groups['lp-redis'][0] }}"
-
 
 ### Release 2.1.0 ###
 sunbird_portal_offline_tenant: ""
@@ -608,7 +535,6 @@ language_read_elb_url: bolt://{{ groups['learning-neo4j-node1'][0] }}:8687
 language_write_elb_url: bolt://{{ groups['learning-neo4j-node1'][0] }}:8687
 mw_shard_id: 1
 sunbird_lp_redis_host: "{{groups['lp-redis-ps'][0]}}"
-#lp_azure_account_name: "{{azure_account_name}}"
 
 #Druid Proxy APi service
 druid_proxy_replicas: 1
@@ -621,10 +547,6 @@ lp_cassandra_keyspace_prefix: "{{ env }}"
 lp_kafka_url: "{{sunbird_processing_kafka_host}}"
 content_import_required_props: '["name","code","mimeType","primaryCategory","artifactUrl","framework"]'
 content_import_remove_props: '["downloadUrl","variants","previewUrl","streamingUrl","itemSets","level1Name","level1Concept","level2Name","level2Concept","level3Name","level3Concept","me_totalPlaySessionCount","me_totalTimeSpentInSec","me_totalSessionsCount","me_totalTimespent","me_totalInteractions","me_creationSessions","me_creationTimespent","me_averageInteractionsPerMin","me_averageSessionsPerDevice","me_totalDevices","me_averageTimespentPerSession","me_averageRating","me_totalDownloads","me_totalSideloads","me_totalRatings","me_totalComments","me_totalDialcode","me_totalDialcodeLinkedToContent","me_totalDialcodeAttached","me_hierarchyLevel","origin","originData","contentPolicyCheck","questions"]'
-
-# Print Service
-#kp_sunbird_account_name: "{{azure_account_name}}"
-#kp_sunbird_account_key: "{{core_vault_sunbird_azure_storage_key}}"
 
 #Sunbird-Portal release-2.6.5 #
 sunbird_portal_updateLoginTimeEnabled: false
@@ -639,10 +561,6 @@ search_index_host: "{{ groups['composite-search-cluster']|join(':9200,')}}:9200"
 compositesearch_index_name: "compositesearch"
 sunbird_report_service_url: "http://kong:8000/data/v1/report-service"
 
-
-# Datapipeline
-dp_play_http_secret_key: "mysecretdpplaysecretkey"
-
 # LMS Service vars
 group_activity_agg_cache_ttl: 3600
 group_activity_agg_cache_enable: false
@@ -650,8 +568,7 @@ group_activity_agg_cache_enable: false
 # nodebb variables
 mongo_nodebb_host: "{{ groups['mongo'] | join(',')}}"
 sunbird_nodebb_storage_key: "{{ core_vault_sunbird_nodebb_storage_key }}"
-kibana_service: "http://kibana.logging.svc.cluster.local:5601"
-sunbird_dial_repo_api_base_url: "http://{{dialservice_ip}}:9001"
+kibana_service: "kibana.logging.svc.cluster.local:5601"
 
 #report service
 dp_postgres_host: "{{ groups['postgres'][0] }}"
@@ -666,3 +583,9 @@ cassandra_cluster_size: "{{ groups['cassandra'] | length }}"
 # This value is constant for sendgrid api authentication.
 # If you're using any other mail server provider, override this value in common.yaml.
 mail_server_username: "apikey"
+bootstrap_namespace: "{{ env }},flink-{{ env }},flink-kp-{{ env }}"
+
+# Graylog vars shared across multiple roles
+graylog_open_to_public: false
+send_logs_to_graylog: false
+graylog_open_to_private: false

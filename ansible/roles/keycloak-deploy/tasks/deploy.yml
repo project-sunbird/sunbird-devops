@@ -1,17 +1,11 @@
-- name: Status service
-  become: true
-  command: /etc/init.d/keycloak status
-  register: keycloak
-  poll: 5
-  async: 10
+- name: stop keycloak service
+  debug: msg="stopping keycloak"
+  notify:
+    - stop service
+    - wait for keycloak to stop
+  changed_when: true
 
-- name: Stop service
-  become: true
-  command: /etc/init.d/keycloak stop && Pkill keycloak
-  when: "keycloak.stdout.find('running') != -1"
-  poll: 5
-  async: 10
-  ignore_errors: true
+- meta: flush_handlers
 
 - name: Adding ENV Vars to bashrc
   lineinfile:
@@ -98,12 +92,6 @@
     src: "{{ login_theme }}/"
     dest: "{{ keycloak_home }}/themes/{{ tenant_name }}/login/"
     force: "yes"
-
-- name: Copy Custom Validation theme html to login theme
-  copy:
-    src: "../../../sunbird-auth/keycloak/sms-provider/templates/"
-    dest: "{{ keycloak_home }}/themes/{{ tenant_name }}/login/"
-    force: true
 
 - name: Copy email theme
   copy:
@@ -198,8 +186,11 @@
     line: 'JAVA_HOME=""'
     path: "{{ keycloak_home }}/bin/standalone.sh"
 
-- name: Start service
-  become: true
-  command: /etc/init.d/keycloak start
-  poll: 5
-  async: 5
+- name: start keycloak service
+  debug: msg="starting keycloak"
+  notify:
+    - start service
+    - wait for keycloak to start
+  changed_when: true
+
+- meta: flush_handlers

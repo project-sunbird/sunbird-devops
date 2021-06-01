@@ -40,13 +40,6 @@ scrapeconfig:
       action: replace
       target_label: kubernetes_pod_name
 
-  - job_name: 'Druid'
-    metrics_path: /metrics/druid
-    static_configs:
-      - targets: ["{{analyticsapi_ip}}:9000"]
-        labels:
-          "service_name": "druid"
-
   - job_name: 'vm-node-exporter'
     static_configs:
       - targets: ["{{ groups['node-exporter'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9100') | list | join("\", \"") }}"]
@@ -97,4 +90,24 @@ scrapeconfig:
         target_label: instance
       - target_label: __address__
         replacement: blackbox-exporter-prometheus-blackbox-exporter:9115
-  {% endfor %}
+        {% endfor %}
+
+  {% for item in service_health_checks %}
+  # This empty line ensures indentation is correct after ansible jinja2 template is materialized
+  - job_name: 'availability_service_{{ item.service_name }}'
+    metrics_path: /probe
+    params:
+      jsonpath: [$.result]
+    static_configs:
+    - targets:
+        - {{ item.targets }}
+      labels:
+        "service_name": "{{ item.service_name }}"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: json-path-exporter.monitoring.svc.cluster.local:7979
+        {% endfor %}

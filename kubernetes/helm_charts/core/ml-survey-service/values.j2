@@ -1,0 +1,28 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{ml_survey_replicacount|default(1)}}
+repository: {{ml_survey_repository|default('ml-survey-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{ml_survey_cpu_req|default('100m')}}
+    memory: {{ml_survey_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{ml_survey_cpu_limit|default('1')}}
+    memory: {{ml_survey_mem_limit|default('1024Mi')}}
+network:
+  port: 3000
+  targetport: 3000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ ml_survey_maxsurge|default('25%') }}
+  maxunavailable: {{ ml_survey_maxunavailable|default('25%') }}
+  
+{{ ml_survey_liveness_readiness | to_nice_yaml }}
+ml_survey_access_basepath: {{ ml_survey_access_basepath | default('/opt/core/keycloak-public-keys/') }}
+
+

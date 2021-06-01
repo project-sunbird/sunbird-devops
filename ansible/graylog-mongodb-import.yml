@@ -1,0 +1,39 @@
+- hosts: graylog
+  become: yes
+  pre_tasks:
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+    - name: stop graylog
+      systemd:
+        name: graylog-server
+        state: stopped
+      when: "'graylog-server' in ansible_facts.services"
+
+    - name: wait for graylog to stop completely
+      wait_for:
+        port: 9000
+        state: stopped
+        delay: 5
+        sleep: 5
+        timeout: 60
+  roles:
+    - role: graylog-mongodb-import
+      run_once: true
+  tags:
+    - graylog-mongodb-import
+  post_tasks:
+    - name: start graylog
+      systemd:
+        name: graylog-server
+        state: started
+      when: "'graylog-server' in ansible_facts.services"
+
+    - name: Wait for graylog to startup
+      uri:
+        url: "http://{{ inventory_hostname }}:9000"
+        method: GET
+      register: _result
+      until: _result.status == 200
+      delay: 15
+      retries: 15
+      when: "'graylog-server' in ansible_facts.services"

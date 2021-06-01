@@ -12,3 +12,11 @@
   when: kafka_id=="1" and item.retention_time is defined  
   tags:
     - processing-kafka
+
+- name: create topics
+  command: /opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic {{env_name}}.{{item.name}} --partitions {{ item.num_of_partitions }} --replication-factor {{ item.replication_factor }}
+  with_items: "{{ml_service_topics}}"
+  ignore_errors: true
+  when: kafka_id=="1" and ml_kafka_topic_create
+  tags:
+    - processing-kafka
