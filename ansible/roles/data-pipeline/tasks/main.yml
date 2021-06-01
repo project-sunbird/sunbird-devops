@@ -22,8 +22,13 @@
   command: locale-gen en_US.UTF-8
 
 - name: ADD THE REPOSITORY
-  shell: sudo apt-add-repository universe
- 
+  apt_repository:
+    repo: "{{ item }}"
+  loop:
+    - "deb http://archive.ubuntu.com/ubuntu/ bionic universe"
+    - "deb http://archive.ubuntu.com/ubuntu/ bionic-updates universe"
+    - "deb http://security.ubuntu.com/ubuntu/ bionic-security universe"
+
 - name: INSTALL THE PACKGES
   apt:  
     update_cache: yes
@@ -58,9 +63,19 @@
   become_user: "{{ USER }}"
 
 - name: Create necessary logs folders for pipeline
-  become_user: "{{ USER }}"
   become: yes
-  shell: "cd {{ WORKDIR }} && mkdir -p logs/observation/status logs/observation_evidence logs/project logs/survey logs/survey_evidence"
+  file: 
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+    mode: "0755"
+  loop: 
+    - "{{ WORKDIR }}/logs/observation/status"
+    - "{{ WORKDIR }}/logs/observation_evidence"
+    - "{{ WORKDIR }}/logs/project"
+    - "{{ WORKDIR }}/logs/survey"
+    - "{{ WORKDIR }}/logs/survey_evidence"
 
 - name: Initiate virtualenv
   pip:
@@ -70,16 +85,12 @@
 
 - name: Creating a faust service shell file in executable mode
   copy:
+    src: files/faust.sh
     dest: "{{ WORKDIR }}/faust_as_service/faust.sh"
     owner: "{{ USER }}"
     group: "{{ USER }}"	
     mode: 0777
-    content: |
-      #!/bin/sh
-      export LANG=C.UTF-8
-      export LC_ALL=C.UTF-8
-      /opt/sparkjobs/spark_venv/bin/python /opt/sparkjobs/source/\$1.py --workdir /opt/sparkjobs/source/\$2 worker -l info
-
+  
 - name: CREATION THE SYSTEMD faust_observation FILE
   copy:
     src: files/{{ item }}
