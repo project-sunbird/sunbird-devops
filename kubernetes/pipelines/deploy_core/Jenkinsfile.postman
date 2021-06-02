@@ -6,7 +6,7 @@ node() {
         String ANSI_BOLD = "\u001B[1m"
         String ANSI_RED = "\u001B[31m"
         String ANSI_YELLOW = "\u001B[33m"
-
+    ansiColor('xterm') {
         stage('checkout public repo') {
             folder = new File("$WORKSPACE/.git")
             if (folder.exists())
@@ -21,6 +21,10 @@ node() {
             values = [:]
             jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim().toLowerCase()
             currentWs = sh(returnStdout: true, script: 'pwd').trim()
+            envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+            module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+            jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+
             dir("postmanRepo")
             {
                 git branch: "${postman_repo_branch}",
@@ -28,6 +32,9 @@ node() {
             }
             ansiblePlaybook = "$currentWs/kubernetes/ansible/postmantestcases.yml"
             ansibleExtraArgs = "--extra-vars \"postman_repo_location=${currentWs}/postmanRepo\" --vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+            values.put('env', envDir)
+            values.put('module', module)
+            values.put('jobName', jobName)
             values.put('currentWs', currentWs)
             values.put('ansiblePlaybook', ansiblePlaybook)
             values.put('ansibleExtraArgs', ansibleExtraArgs)
@@ -39,8 +46,10 @@ node() {
             archiveArtifacts "postmanRepo/newman/*"
             currentBuild.description = "${build_tag}"
         }
+}
     } catch (err) {
         currentBuild.result = "FAILURE"
         throw err
     }
 }
+
