@@ -22,3 +22,16 @@ do
         curl  -X PUT http://localhost:9200/${file}/_mapping/_doc -H 'Content-Type: application/json' -d @${file}-mapping.json
 done
 
+#### Adding ingest pipeline for newly created indices:
+
+echo "#################################################"
+
+cd ../pipelines
+#mapping_files=$(ls -l | awk 'NR>1{print $9}' | awk -F"-" '{print $1}' | tr "\n" " ")
+pipeline_files=$(ls -l | awk 'NR>1{print $9}' | awk -F"." '{print $1}' | tr "\n" " " | sed 's/-ingest-pipeline//g')
+
+for file in ${pipeline_files[@]}
+do
+        curl  -X PUT http://localhost:9200/_ingest/pipeline/${file}-ingest-pipeline -H 'Content-Type: application/json' -d @${file}-ingest-pipeline.json
+done
+
