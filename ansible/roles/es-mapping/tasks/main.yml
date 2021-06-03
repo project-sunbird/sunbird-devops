@@ -3,6 +3,7 @@
   with_items:
     - "{{ indices_dir }}"
     - "{{ mapping_dir }}"
+    - "{{ pipeline_dir }}"
 
 - name: Copy indices file
   copy: src="files/indices/{{ item }}.json" dest="{{ indices_dir }}"
@@ -11,6 +12,11 @@
 
 - name: Copy mapping file
   copy: src="files/mappings/{{ item }}-mapping.json" dest="{{ mapping_dir }}"
+  with_items: "{{ indices_name.split(',')|list }}"
+  when: ansible_tag == 'run_single_index_and_mapping'
+
+- name: Copy ingest-pipeline file
+  copy: src="files/pipelines/{{ item }}-ingest-pipeline.json" dest="{{ pipeline_dir }}"
   with_items: "{{ indices_name.split(',')|list }}"
   when: ansible_tag == 'run_single_index_and_mapping'
 

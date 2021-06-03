@@ -1,7 +1,7 @@
 <?xml version='1.1' encoding='UTF-8'?>
-<flow-definition plugin="workflow-job@2.40">
+<flow-definition plugin="workflow-job@2.31">
   <actions>
-    <org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction plugin="workflow-multibranch@2.23">
+    <org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction plugin="workflow-multibranch@2.20">
       <jobPropertyDescriptors>
         <string>hudson.model.ParametersDefinitionProperty</string>
         <string>com.sonyericsson.rebuild.RebuildSettings</string>
@@ -20,7 +20,7 @@
       </strategy>
     </jenkins.model.BuildDiscarderProperty>
     <org.jenkinsci.plugins.workflow.job.properties.DisableConcurrentBuildsJobProperty/>
-    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.32">
+    <com.sonyericsson.rebuild.RebuildSettings plugin="rebuild@1.29">
       <autoRebuild>false</autoRebuild>
       <rebuildDisabled>false</rebuildDisabled>
     </com.sonyericsson.rebuild.RebuildSettings>
@@ -28,16 +28,18 @@
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
           <name>github_release_tag</name>
-          <description>&lt;font style=&quot;color:dimgray;font-size:14px;&quot;&gt;&lt;b&gt;
-&lt;li&gt;To build from a tag, specify the github tag&lt;/li&gt;
-&lt;li&gt;To build from a branch, specify the github branch&lt;/li&gt;
+          <description>&lt;font style="color:dimgray;font-size:14px;"&gt;&lt;b&gt;
+&lt;li&gt;To build from a tag, use refs/tags/github_tag&lt;/li&gt;
+&lt;li&gt;To build from a branch, use refs/heads/github_branch&lt;/li&gt;
+&lt;li&gt;The default value of ${public_repo_branch} will be the release / tag version set in global configuration&lt;/li&gt;
+&lt;li&gt;To build from a differnt branch, replace the ${public_repo_branch} with your branch&lt;/li&gt;
 &lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue></defaultValue>
+          <defaultValue>refs/heads/${public_repo_branch}</defaultValue>
           <trim>true</trim>
         </hudson.model.StringParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
-    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.2">
+    <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.0.1">
       <maxConcurrentPerNode>0</maxConcurrentPerNode>
       <maxConcurrentTotal>0</maxConcurrentTotal>
       <categories class="java.util.concurrent.CopyOnWriteArrayList"/>
@@ -45,19 +47,18 @@
       <throttleOption>project</throttleOption>
       <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
       <paramsToUseForLimit></paramsToUseForLimit>
-      <configVersion>1</configVersion>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
       <triggers>
         <hudson.triggers.SCMTrigger>
-          <spec></spec>
+          <spec>H/15 * * * *</spec>
           <ignorePostCommitHooks>false</ignorePostCommitHooks>
         </hudson.triggers.SCMTrigger>
       </triggers>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
-  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.90">
-    <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.63">
+    <scm class="hudson.plugins.git.GitSCM" plugin="git@3.9.3">
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
@@ -85,5 +86,5 @@
     <lightweight>false</lightweight>
   </definition>
   <triggers/>
-  <disabled>true</disabled>
+  <disabled>false</disabled>
 </flow-definition>
