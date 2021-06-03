@@ -1,0 +1,47 @@
+@Library('deploy-conf')_
+node() {
+    try {
+        String ANSI_GREEN = "\u001B[32m"
+        String ANSI_NORMAL = "\u001B[0m"
+        String ANSI_BOLD = "\u001B[1m"
+        String ANSI_RED = "\u001B[31m"
+        String ANSI_YELLOW = "\u001B[33m"
+        ansiColor('xterm') {
+                stage('Checkout') {
+                    cleanWs()
+                    checkout scm
+                    commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    build_tag = sh(script: "echo " + params.github_release_tag.split('/')[-1] + "_" + commit_hash + "_" + env.BUILD_NUMBER, returnStdout: true).trim()
+                    echo "build_tag: " + build_tag
+                }
+                stage('Clone the lms functional test repo') {
+                  dir("lmsRepo")
+                  {
+                      git branch: "${lms_repo_branch}",
+                      url: "${lms_repo_url}"
+                  }
+                }
+                stage('deploy') {
+                    values = [:]
+                    envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+                    module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+                    jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+                    currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                    ansiblePlaybook = "$currentWs/kubernetes/ansible/lms-ft.yml"
+                    values.put('currentWs', currentWs)
+                    values.put('env', envDir)
+                    values.put('module', module)
+                    values.put('jobName', jobName)
+                    values.put('ansiblePlaybook', ansiblePlaybook)
+                    values.put('ansibleExtraArgs', ansibleExtraArgs)
+                    println values
+                    ansible_playbook_run(values)
+                    currentBuild.result = 'SUCCESS'
+                    currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
+                }
+        }
+    } catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+}
