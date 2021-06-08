@@ -4,7 +4,7 @@
   git:
     repo: 'https://github.com/Sunbird-Ed/ml-analytics-service.git'
     dest: "/opt/sparkjobs/ml-analytics-service"
-    version: main
+    version: "{{ ml_analytics_version|default('main') }}"
 
 - name: CREATE THE USER
   user:
@@ -12,22 +12,6 @@
     state: present
     home: "/home/{{ USER }}"
     shell: /bin/bash
-
-- name: Ensure the locale exists
-  locale_gen:
-    name: en_US.UTF-8
-    state: present
-
-- name: set as default locale
-  command: locale-gen en_US.UTF-8
-
-- name: ADD THE REPOSITORY
-  apt_repository:
-    repo: "{{ item }}"
-  loop:
-    - "deb http://archive.ubuntu.com/ubuntu/ bionic universe"
-    - "deb http://archive.ubuntu.com/ubuntu/ bionic-updates universe"
-    - "deb http://security.ubuntu.com/ubuntu/ bionic-security universe"
 
 - name: INSTALL THE PACKGES
   apt:  
@@ -89,7 +73,7 @@
     dest: "{{ WORKDIR }}/faust_as_service/faust.sh"
     owner: "{{ USER }}"
     group: "{{ USER }}"	
-    mode: 0755
+    mode: 0777
   
 - name: CREATION THE SYSTEMD faust_observation FILE
   copy:
@@ -100,6 +84,11 @@
     - faust_observation_evidence.service
     - faust_survey.service
     - faust_survey_evidence.service
+
+- name: Template config.sample to config.ini
+  template:
+    src: "{{ config_path }}/config.sample"
+    dest: "{{ config_path }}/config.ini"
 
 - name: SYSTEMD DAEMON-RELOAD
   systemd:
