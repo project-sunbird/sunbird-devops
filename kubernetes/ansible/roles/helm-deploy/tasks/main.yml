@@ -1,5 +1,5 @@
 # This variable will get injected to nginx resolver config
-# There is no native helm way to do this. So it's 
+# There is no native helm way to do this. So it's
 # kind of a workaround
 - name: getting kube dns ip
   shell: kubectl get service --namespace kube-system kube-dns -o jsonpath="{.spec.clusterIP}"
@@ -39,7 +39,7 @@
 - name: Create the token pubic key file for ML Services
   copy:
     dest: "{{ chart_path }}/keys/{{ adminutil_refresh_token_public_key_kid }}"
-    content: "{{ core_vault_sunbird_sso_publickey_ml_services }}"
+    content: "{{ core_vault_sunbird_sso_publickey }}"
   when: release_name == "gotenberg"
 
 - name: helm install
@@ -77,7 +77,7 @@
 
 - name: Get deployed image name - daemonsets
   shell: "kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
-  register: image 
+  register: image
 
 - set_fact:
    deployed_image: "{{ image if image.stdout_lines | length > 0 else deployed_image }}"
@@ -104,7 +104,7 @@
 - set_fact:
    metadata_image: "{{ image_name }}:{{ image_tag }}"
 
-- debug: 
+- debug:
     msg: "deployed image: {{ deployed_image.stdout }}"
 
 - name: Compare deployed image and metadata_image
