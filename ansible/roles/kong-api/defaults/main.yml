@@ -6426,3 +6426,39 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}" 
+
+  - name: platformPrograms
+    uris: "{{ user_extension_prefix }}/v1/user-extension/programsByPlatformRoles"
+    upstream_url: "{{ ml_core_service_url }}/v1/user-extension/programsByPlatformRoles"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'platformProgramsAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}" 
+      
+  - name: platformSolutions
+    uris: "{{ user_extension_prefix }}/v1/user-extension/solutions"
+    upstream_url: "{{ ml_core_service_url }}/v1/user-extension/solutions"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'platformSolutionsAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
