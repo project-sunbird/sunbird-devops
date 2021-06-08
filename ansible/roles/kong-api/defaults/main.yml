@@ -4969,6 +4969,42 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
+      
+  - name: collectionImport
+    uris: "{{ collection_prefix }}/v1/import"
+    upstream_url: "{{ content_service_url }}/collection/v4/import"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: collectionExport
+    uris: "{{ textbook_service_prefix }}/v1/export"
+    upstream_url: "{{ content_service_url }}/collection/v4/export"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
   - name: getDiscussionTagsList
     uris: "{{ discussions_prefix }}/tags"
