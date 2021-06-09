@@ -15,17 +15,9 @@ node() {
                 values = lp_dp_params()
                 stage('get artifact') {
                     currentWs = sh(returnStdout: true, script: 'pwd').trim()
-                    artifact = values.artifact_name + ":" + values.artifact_version
                     values.put('currentWs', currentWs)
-                    values.put('artifact', artifact)
-                    artifact_download(values)
                 }
-                stage('deploy artifact') {
-                    sh """
-                       unzip ${artifact}
-                       mv learning-service.war ansible
-                    """
-
+                    sh 'echo "${currentWs} is this"'
                     ansiblePlaybook = "${currentWs}/ansible/ml-data-pipeline.yml"
                     ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass"
                     values.put('ansiblePlaybook', ansiblePlaybook)
