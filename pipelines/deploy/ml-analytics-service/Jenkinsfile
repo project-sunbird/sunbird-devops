@@ -15,17 +15,25 @@ node() {
                 values = lp_dp_params()
                 stage('get artifact') {
                     currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                    artifact = values.artifact_name + ":" + values.artifact_version
                     values.put('currentWs', currentWs)
+                    values.put('artifact', artifact)
+                    artifact_download(values)
                 }
-                    sh 'echo "${currentWs} is this"'
-                    ansiblePlaybook = "${currentWs}/ansible/ml-data-pipeline.yml"
+                stage('deploy artifact') {
+                    sh """
+                       unzip ${artifact}
+                       mv learning-service.war ansible
+                    """
+
+                    ansiblePlaybook = "${currentWs}/ansible/lp_learning_deploy.yml"
                     ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass"
                     values.put('ansiblePlaybook', ansiblePlaybook)
                     values.put('ansibleExtraArgs', ansibleExtraArgs)
                     println values
                     ansible_playbook_run(values)
 
-                    ansiblePlaybook = "${currentWs}/ansible/ml-data-pipeline.yml"
+                    ansiblePlaybook = "${currentWs}/ansible/lp_logstash_deploy.yml"
                     ansibleExtraArgs = "--extra-vars \"remote=learningall\" --vault-password-file /var/lib/jenkins/secrets/vault-pass"
                     values.put('ansiblePlaybook', ansiblePlaybook)
                     values.put('ansibleExtraArgs', ansibleExtraArgs)
