@@ -73,10 +73,21 @@
   pause:
     seconds: 10
 
-- name: Restart Cassandra now
+- name: Restart Cassandra seeds
   service:
     name: cassandra
     state: restarted
+  delegate_to: "{{ item }}"
+  # ansible won't throw index out of bound exception.
+  with_items: groups[cassandra[:3]
+
+- name: Restart Cassandra nodes
+  service:
+    name: cassandra
+    state: restarted
+  delegate_to: "{{ item }}"
+  with_items: groups[cassandra[3:]
+  when: groups['cassandra'] | length > 2
 
 - name: wait for cassandra to be up and running
   wait_for:
