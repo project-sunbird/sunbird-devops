@@ -42,6 +42,13 @@
     name: "cassandra"
     state: "present"
 
+- name: Make sure cassandra home is present
+  file:
+    name: "{{ cassandra_home_directory }}"
+    state: directory
+    owner: cassandra
+    group: cassandra
+
 - name: copying the rack and datacenter config file if we are having cluster
   template:
     src: "cassandra-rackdc.properties.j2"
@@ -81,4 +88,7 @@
     state: restarted
 
 - name: wait for cassandra to be up and running
-  wait_for: host={{inventory_hostname}} port=9042 delay=30
+  wait_for:
+    host: "{{inventory_hostname}}"
+    port: 9042
+    delay: 30
