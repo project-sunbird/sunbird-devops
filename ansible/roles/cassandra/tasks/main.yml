@@ -72,9 +72,12 @@
     name: cassandra
     state: stopped
 
-- name: wait for cassandra to stop
-  pause:
-    seconds: 10
+- name: Wait for cassandra to stop
+  wait_for:
+    state: stopped
+    port: 9042
+    delay: 10
+    sleep: 5
 
 - name: Restart Cassandra seeds
   service:
@@ -85,9 +88,16 @@
   with_items: "{{ groups['cassandra'][:2] }}"
   run_once: true
 
-- name: wait for cassandra seeds to be up
-  pause:
-    seconds: 10
+- name: Wait for cassandra seeds to start
+  wait_for:
+    state: started
+    port: 9042
+    delay: 10
+    sleep: 5
+  delegate_to: "{{ item }}"
+  # ansible won't throw index out of bound exception.
+  with_items: "{{ groups['cassandra'][:2] }}"
+  run_once: true
 
 - name: Restart Cassandra nodes
   service:
