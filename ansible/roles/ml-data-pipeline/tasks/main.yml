@@ -61,7 +61,7 @@
     - "{{ WORKDIR }}/logs/survey"
     - "{{ WORKDIR }}/logs/survey_evidence"
 
-- name: Initiate virtualenv
+- name: Install packages from requirement.txt
   pip:
     virtualenv: "{{WORKDIR }}/spark_venv"
     virtualenv_python: python3.6
@@ -108,8 +108,9 @@
     - faust_survey_evidence.service
 
 - name: CREATE THE CRON
-  shell: |
-    crontab -l 2>/dev/null
-    echo '30 18 * * * . /opt/sparkjobs/source/spark_batch_jobs_run.sh >> /tmp/batch.log' | crontab -
-  become_user: "{{ USER }}"
-  become: yes
+  cron:
+    name: "Ensure a job that runs 18:30"
+    minute: "30"
+    hour: "18"
+    job: "/opt/sparkjobs/source/spark_batch_jobs_run.sh >> /tmp/batch.log'"
+
