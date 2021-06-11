@@ -120,15 +120,6 @@ def create_schema(schema_file):
         tmpline = line.split("|")
         keyspaces_schema_dict[tmpline[0].strip()] = {"durable_writes": tmpline[1].strip(),"replication": tmpline[2].strip()}
 
-    # Creating keyspace schema
-    for keyspace in ignore_keyspace_names:
-        print("removing keyspace from schema backup: ", keyspace)
-        keyspaces_schema_dict.pop(keyspace)
-    with open(schema_file, 'w') as f:
-        for k in keyspaces_schema_dict:
-            # CREATE KEYSPACE sunbirdplugin WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': '2'}  AND durable_writes = true;
-            f.writelines("CREATE KEYSPACE {} WITH replication = {}  AND durable_writes = {};\n"
-                    .format(k,keyspaces_schema_dict[k]["replication"],keyspaces_schema_dict[k]["durable_writes"]))
     # Creating table schema
     for root, _, files in walk(tmpdir):
         for file in files:
