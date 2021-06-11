@@ -87,7 +87,7 @@ def copy():
     Copying the data sanpshots to the target directory
     '''
     root_levels = args.datadirectory.rstrip('/').count(sep)
-    ignore_list = compile(tmpdir+sep+"cassandra_backup"+sep+'(system|system|systemtauth|system_traces|system_schema|system_distributed|lock_db)')
+    ignore_list = compile(tmpdir+sep+"cassandra_backup"+sep+'(system|system|systemtauth|system_traces|system_distributed|lock_db)')
     # List of the threds running in background
     futures = []
     try:
