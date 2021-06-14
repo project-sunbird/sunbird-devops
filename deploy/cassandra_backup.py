@@ -87,17 +87,22 @@ def copy():
     Copying the data sanpshots to the target directory
     '''
     root_levels = args.datadirectory.rstrip('/').count(sep)
-    ignore_list = compile(tmpdir+sep+"cassandra_backup"+sep+'(system|system|systemtauth|system_traces|system_distributed|lock_db)')
+    # List of system keyspaces, which we don't need.
+    # We need system_schema keyspace, as it has all the keyspace,trigger,types information.
+    ignore_keyspaces = ["system", "system_auth", "system_traces", "system_distributed", "lock_db"]
+    #  ignore_list = compile('^'+tmpdir+sep+"cassandra_backup"+sep+'(system|system_auth|system_traces|system_distributed|lock_db)/.*$')
+    ignore_list = compile('^'+tmpdir+sep+"cassandra_backup"+sep+"("+"|".join(ignore_keyspaces)+')/.*$')
     # List of the threds running in background
     futures = []
     try:
         with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
             for root, _, _ in walk(args.datadirectory):
                 keyspace = sep+sep.join(root.split(sep)[root_levels+1:-2])
+                # We don't need tables and other inner directories for keyspace.
+                if len(keyspace.split('/')) != 3:
+                    continue
                 root_target_dir = tmpdir+sep+"cassandra_backup"+keyspace
                 if match(ignore_list, root_target_dir):
-                    if len(keyspace.split('/')) == 2:
-                        ignore_keyspace_names.append(keyspace.strip('/'))
                     continue
                 if root.split(sep)[-1] == args.snapshotname:
                     # Keeping copy operation in background with threads
@@ -125,10 +130,21 @@ def create_schema(schema_file):
         for file in files:
             if file.endswith(".cql"):
                 with open(path.join(root, file),'r') as f:
-                    with open("{}/cassandra_backup/db_schema.cql".format(tmpdir),'a') as w:
+                    with open(schema_file,'a') as w:
                         w.write(f.read())
                         w.write('\n')
 
+# Creating complete schema
+# For `ALTER DROP COLUMN`,
+# This schema will have issues.
+# So you'll have to create and drop the column.
+# For details about that table/column, look at snapshot_table_schema.sql
+command = "cqlsh -e 'DESC SCHEMA' > {}/cassandra_backup/complete_db_schema.cql".format(tmpdir)
+rc = system(command)
+if rc != 0:
+    print("Couldn't backup schema, exiting...")
+    exit(1)
+print("Schema backup completed. saved in {}/cassandra_backup/complete_db_schema.sql".format(tmpdir))
 
 # Backing up tokenring
 command = """ nodetool ring | grep """ + get_ip() + """ | awk '{print $NF ","}' | xargs | tee -a """ + tmpdir + """/cassandra_backup/tokenring.txt """ #.format(args.host, tmpdir)
@@ -160,7 +176,7 @@ copy()
 ## deduplicating Ignore Keyspace list
 ignore_keyspace_names = list(dict.fromkeys(ignore_keyspace_names))
 # Creating schema for keyspaces.
-create_schema("{}/cassandra_backup/db_schema.cql".format(tmpdir))
+create_schema("{}/cassandra_backup/snapshot_table_schema.cql".format(tmpdir))
 
 # Clearing the snapshot.
 # We've the data now available in the copied directory.
