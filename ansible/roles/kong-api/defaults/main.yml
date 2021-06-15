@@ -235,6 +235,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: assignRoleV2
+    uris: "{{ user_service_prefix }}/v2/role/assign"
+    upstream_url: "{{ learning_service_url }}/v2/user/assign/role"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: batchBulkEnrolment
     uris: "{{ course_service_prefix }}/v1/batch/bulk/enrollment"
     upstream_url: "{{ lms_service_url }}/v1/batch/bulk/enrollment"
@@ -5783,9 +5801,45 @@ kong_apis:
       - name: request-size-limiting
         config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: getUserProfileV5
+    uris: "{{ user_service_prefix }}/v5/read"
+    upstream_url: "{{ learning_service_url }}/v5/user/read"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'userAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: searchUserV2
     uris: "{{ user_service_prefix }}/v2/search"
     upstream_url: "{{ learning_service_url }}/v2/user/search"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'userTempAdmin'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: searchUserV3
+    uris: "{{ user_service_prefix }}/v3/search"
+    upstream_url: "{{ learning_service_url }}/v3/user/search"
     strip_uri: true
     plugins:
       - name: jwt
