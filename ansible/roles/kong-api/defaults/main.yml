@@ -5996,8 +5996,8 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"      
       
   - name: getProjectDetails
-    uris: "{{ userProjects_service_prefix }}/v2/userProjects/details"
-    upstream_url: "{{ ml_core_service_url }}/v2/userProjects/details"
+    uris: "{{ userProjects_service_prefix }}/v1/userProjects/details"
+    upstream_url: "{{ ml_core_service_url }}/v1/userProjects/details"
     strip_uri: true
     plugins:
     - name: jwt
@@ -6032,8 +6032,8 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"       
 
   - name: getProjectDetailReport
-    uris: "{{ reports_service_prefix }}/v2/reports/detailView"
-    upstream_url: "{{ ml_project_service_url }}/v2/reports/detailView"
+    uris: "{{ reports_service_prefix }}/v1/reports/detailView"
+    upstream_url: "{{ ml_project_service_url }}/v1/reports/detailView"
     strip_uri: true
     plugins:
     - name: jwt
@@ -6212,8 +6212,8 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: observationQuestionList
-    uris: "{{ observations_service_prefix }}/v2/observations/assessment"
-    upstream_url: "{{ ml_survey_service_url }}/v2/observations/assessment"
+    uris: "{{ observations_service_prefix }}/v1/observations/assessment"
+    upstream_url: "{{ ml_survey_service_url }}/v1/observations/assessment"
     strip_uri: true
     plugins:
     - name: jwt
@@ -6266,8 +6266,8 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
       
   - name: searchLocationEntities
-    uris: "{{ observations_service_prefix }}/v2/observations/searchEntities"
-    upstream_url: "{{ ml_survey_service_url }}/v2/observations/searchEntities"
+    uris: "{{ observations_service_prefix }}/v1/observations/searchEntities"
+    upstream_url: "{{ ml_survey_service_url }}/v1/observations/searchEntities"
     strip_uri: true
     plugins:
     - name: jwt
@@ -6320,8 +6320,8 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: surveyQuestionList
-    uris: "{{ surveys_service_prefix }}/v3/surveys/details"
-    upstream_url: "{{ ml_survey_service_url }}/v3/surveys/details"
+    uris: "{{ surveys_service_prefix }}/v1/surveys/details"
+    upstream_url: "{{ ml_survey_service_url }}/v1/surveys/details"
     strip_uri: true
     plugins:
     - name: jwt
@@ -6462,3 +6462,39 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}" 
+
+  - name: listPlatformPrograms
+    uris: "{{ user_extension_prefix }}/v1/user-extension/programsByPlatformRoles"
+    upstream_url: "{{ ml_core_service_url }}/v1/user-extension/programsByPlatformRoles"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'programAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}" 
+      
+  - name: listPlatformSolutions
+    uris: "{{ user_extension_prefix }}/v1/user-extension/solutions"
+    upstream_url: "{{ ml_core_service_url }}/v1/user-extension/solutions"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'solutionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
