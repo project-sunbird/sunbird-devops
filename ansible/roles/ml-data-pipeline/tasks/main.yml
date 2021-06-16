@@ -1,0 +1,116 @@
+---
+# tasks file for data-pipeline
+- name: Git checkout
+  git:
+    repo: 'https://github.com/Sunbird-Ed/ml-analytics-service.git'
+    dest: "{{ BASEPATH }}/ml-analytics-service"
+    version: "{{ ml_analytics_version }}"
+    depth: "1"
+
+- name: CREATE THE USER
+  user:
+    name: "{{ USER }}"
+    state: present
+    home: "/home/{{ USER }}"
+    shell: /bin/bash
+
+- name: INSTALL THE PACKGES
+  apt:  
+    update_cache: yes
+    name: 
+      - openjdk-8-jdk
+      - software-properties-common
+      - python3-pip
+      - python3.6-dev
+      - python3.6-venv
+      - python-virtualenv
+      - zip
+      - unzip
+    state: present
+
+- name: CHANGE THE OWNERSHIP FOR THIS {{ BASEPATH }} DIRECTORY
+  file:
+    path: "{{ item }}"
+    mode: "0755"
+    recurse: yes
+    state: directory
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+  loop:
+    - "{{ BASEPATH }}"
+    - "{{ WORKDIR }}"
+    - "{{ WORKDIR }}/faust_as_service"
+
+- name: Change user and create working directory under opt dir and install python virtual environment
+  shell: "cd {{ WORKDIR }} && virtualenv --python=python3.6 spark_venv"
+  become: yes
+  become_user: "{{ USER }}"
+
+- name: Create necessary logs folders for pipeline
+  become: yes
+  file: 
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+    mode: "0755"
+  loop: 
+    - "{{ WORKDIR }}/logs/observation/status"
+    - "{{ WORKDIR }}/logs/observation_evidence"
+    - "{{ WORKDIR }}/logs/project"
+    - "{{ WORKDIR }}/logs/survey"
+    - "{{ WORKDIR }}/logs/survey_evidence"
+
+- name: Install packages from requirement.txt
+  pip:
+    virtualenv: "{{WORKDIR }}/spark_venv"
+    virtualenv_python: python3.6
+    requirements: "{{ WORKDIR }}/ml-analytics-service/requirements.txt"
+
+- name: Creating a faust service shell file in executable mode
+  copy:
+    src: files/faust.sh
+    dest: "{{ WORKDIR }}/faust_as_service/faust.sh"
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+    backup: yes 
+    mode: 0777
+  
+- name: CREATION THE SYSTEMD faust_observation FILE
+  copy:
+    src: files/{{ item }}
+    dest: "{{ SYSTEMDDIR }}"
+  with_items:
+    - faust_observation.service
+    - faust_observation_evidence.service
+    - faust_survey.service
+    - faust_survey_evidence.service
+
+- name: Template config.sample to config.ini
+  template:
+    src: "{{ config_path }}/config.sample"
+    dest: "{{ config_path }}/config.ini"
+    backup: yes
+
+- name: SYSTEMD DAEMON-RELOAD
+  systemd:
+    daemon_reload: yes
+
+- name: START AND ENABLE THE SERVICE
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    state: started
+  loop:
+    - faust_observation.service 
+    - faust_observation_evidence.service 
+    - faust_survey.service 
+    - faust_survey_evidence.service
+
+- name: CREATE THE CRON
+  cron:
+    name: "Run Batch Ingestion Job" 
+    user: "{{ USER }}"
+    minute: "30"
+    hour: "18"
+    job: "{{ BASEPATH }}/ml-analytics-service/run.sh"
