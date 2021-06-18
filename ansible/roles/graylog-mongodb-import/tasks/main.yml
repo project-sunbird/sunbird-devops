@@ -9,15 +9,8 @@
   with_items:
   - "{{ graylog_mongo_collections.split(',') }}"
 
-- name: drop and restore the data to mongodb
-  shell: "mongoimport --drop --db={{ graylog_mongo_db }} --collection={{ item }} --file={{ mongo_json_data }}/{{ item }}.json"
-  when: graylog_mongo_collections_drop
-  with_items:
-  - "{{ graylog_mongo_collections.split(',') }}"
-
-- name: restore the data to mongodb
-  shell: "mongoimport --db={{ graylog_mongo_db }} --collection={{ item }} --file={{ mongo_json_data }}/{{ item }}.json"
-  when: not graylog_mongo_collections_drop
+- name: insert/upsert the data to mongodb
+  shell: "mongoimport --mode upsert --db={{ graylog_mongo_db }} --collection={{ item }} --file={{ mongo_json_data }}/{{ item }}.json"
   with_items:
   - "{{ graylog_mongo_collections.split(',') }}"
 
