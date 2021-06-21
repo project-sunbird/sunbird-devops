@@ -15,9 +15,9 @@
     shell: /bin/bash
 
 - name: INSTALL THE PACKGES
-  apt:  
+  apt:
     update_cache: yes
-    name: 
+    name:
       - openjdk-8-jdk
       - software-properties-common
       - python3-pip
@@ -48,13 +48,13 @@
 
 - name: Create necessary logs folders for pipeline
   become: yes
-  file: 
+  file:
     path: "{{ item }}"
     state: directory
     owner: "{{ USER }}"
     group: "{{ USER }}"
     mode: "0755"
-  loop: 
+  loop:
     - "{{ WORKDIR }}/logs/observation/status"
     - "{{ WORKDIR }}/logs/observation_evidence"
     - "{{ WORKDIR }}/logs/project"
@@ -73,9 +73,9 @@
     dest: "{{ WORKDIR }}/faust_as_service/faust.sh"
     owner: "{{ USER }}"
     group: "{{ USER }}"
-    backup: yes 
+    backup: yes
     mode: 0777
-  
+
 - name: CREATION THE SYSTEMD faust_observation FILE
   copy:
     src: files/{{ item }}
@@ -102,14 +102,14 @@
     enabled: yes
     state: started
   loop:
-    - faust_observation.service 
-    - faust_observation_evidence.service 
-    - faust_survey.service 
+    - faust_observation.service
+    - faust_observation_evidence.service
+    - faust_survey.service
     - faust_survey_evidence.service
 
 - name: CREATE THE CRON
   cron:
-    name: "Run Batch Ingestion Job" 
+    name: "Run Batch Ingestion Job"
     user: "{{ USER }}"
     minute: "30"
     hour: "18"
