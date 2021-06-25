@@ -17,15 +17,15 @@ def call(String buildStatus, String release_tag=null, String jobName=null, int b
                     build_status = "Succeded"
                 }
 
+                if (jobName == null)
+                    jobName = env.JOB_NAME
+                if (buildNumber == 0)
+                    buildNumber = env.BUILD_NUMBER
+                if (jobUrl == null)
+                    jobUrl = env.JOB_URL
+
                 try {
                     if(env.automated_slack_channel != "" && release_tag != null) {
-                        if (jobName == null)
-                            jobName = env.JOB_NAME
-                        if (buildNumber == 0)
-                            buildNumber = env.BUILD_NUMBER
-                        if (jobUrl == null)
-                            jobUrl = env.JOB_URL
-
                         slackSend (
                                 channel: env.automated_slack_channel,
                                 color: slack_status,
