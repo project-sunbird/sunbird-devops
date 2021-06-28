@@ -21,13 +21,13 @@ orgadmin=""
 
 cassandra_forms(){
     # Import the forms into cassandra
-    printf "\n\n"
+    printf "\n"
     echo -e "\e[0;32m${bold}Install cqlsh ${normal}"
     pip install -U cqlsh
-    printf "\n\n"
+    printf "\n"
     echo -e "\e[0;32m${bold}Download forms ${normal}"
     wget "$forms"
-    printf "\n\n"
+    printf "\n"
     echo -e "\e[0;32m${bold}Import forms ${normal}"
     /var/lib/jenkins/.local/bin/cqlsh $cassandra 9042 -e "COPY qmzbm_form_service.form_data FROM 'forms.csv' WITH HEADER = true AND CHUNKSIZE = 1;"
     rm forms.csv
@@ -42,6 +42,7 @@ get_x_authenticated_token(){
     --data-urlencode 'client_id=lms' \
     --data-urlencode "client_secret=${core_vault_sunbird_sso_client_secret}" \
     --data-urlencode 'grant_type=client_credentials' | jq -r .access_token)
+    echo "x_authenticated_token: ${x_authenticated_token}"
 }
 
 create_organisation(){
@@ -61,6 +62,7 @@ create_organisation(){
            "isTenant": true
        }
     }' | jq -r .result.organisationId)
+    echo "organisationId: ${organisationId}"
 }
 
 create_users(){
@@ -81,6 +83,7 @@ create_users(){
   		   "phoneVerified": true
        }
     }' | jq -r .result.userId)
+    echo "creator userid: ${creator}"
 
     reviewer=$(curl -sS -XPOST "${proto}://${domain_name}/api/user/v1/signup" -H 'Accept: application/json' -H 'Content-Type: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -96,6 +99,7 @@ create_users(){
   		   "phoneVerified": true
        }
     }' | jq -r .result.userId)
+    echo "reviewer userid: ${reviewer}"
 
     orgadmin=$(curl -sS -XPOST "${proto}://${domain_name}/api/user/v1/signup" -H 'Accept: application/json' -H 'Content-Type: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -111,6 +115,7 @@ create_users(){
   		   "phoneVerified": true
        }
     }' | jq -r .result.userId)
+    echo "orgadmin userid: ${orgadmin}"
 }
 
 assign_roles(){
@@ -246,6 +251,7 @@ create_other_categories(){
     sed -i "s#curl#curl -sS#g" *
     while read -r line; do printf "\n\n" >> /tmp/all_category_create.sh && cat $line >> /tmp/all_category_create.sh; done <<< $(ls)
     bash -x /tmp/all_category_create.sh
+    rm /tmp/all_category_create.sh
 }
 
 system_settings(){
@@ -634,7 +640,7 @@ bold=$(tput bold)
 normal=$(tput sgr0)
 
 echo -e "\e[0;32m${bold}User provided inputs ${normal}"
-printf "\n\n"
+printf "\n"
 echo -e "\e[0;90m${bold}proto: $proto ${normal}"
 echo -e "\e[0;90m${bold}domain_name: $domain_name ${normal}"
 echo -e "\e[0;90m${bold}core_vault_sunbird_api_auth_token: $core_vault_sunbird_api_auth_token ${normal}"
