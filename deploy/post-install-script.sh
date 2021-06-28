@@ -62,7 +62,7 @@ create_organisation(){
            "isTenant": true
        }
     }' | jq -r .result.organisationId)
-    echo "organisationId: ${organisationId}"
+    echo "organisationId: ${organisation}"
 }
 
 create_users(){
