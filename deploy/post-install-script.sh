@@ -457,8 +457,8 @@ create_framework_categories(){
     -d '{
        "request": {
          "category": {
-           "name": "Board",
-           "code": "board"
+           "name": "Subject",
+           "code": "subject"
          }
        }
     }'
