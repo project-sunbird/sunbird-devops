@@ -232,6 +232,7 @@ create_other_categories(){
     git clone https://github.com/project-sunbird/knowledge-platform.git -b ${knowledge_platform_tag}
     cd knowledge-platform/definition-scripts
     sed -i "s#{{host}}#http://${private_ingressgateway_ip}/taxonomy#g" *
+    sed -i "s#curl#curl -sS#g" *
     while read -r line; do printf "\n\n" >> /tmp/all_category_create.sh && cat $line >> /tmp/all_category_create.sh; done <<< $(ls)
     bash -x /tmp/all_category_create.sh
 }
