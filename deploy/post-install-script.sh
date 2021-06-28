@@ -228,6 +228,7 @@ create_default_channel_license(){
 
 create_other_categories(){
     # Create other category schema
+    echo ""
     echo -e "\e[0;32m${bold}Create other categories ${normal}"
     git clone https://github.com/project-sunbird/knowledge-platform.git -b ${knowledge_platform_tag}
     cd knowledge-platform/definition-scripts
@@ -239,6 +240,7 @@ create_other_categories(){
 
 system_settings(){
     # System settings to insert into cassandra
+    echo ""
     echo -e "\e[0;32m${bold}Initialize the system settings table ${normal}"
     curl -sS -XPOST "${proto}://${domain_name}/api/data/v1/system/settings/set" -H 'Accept: application/json' -H 'Content-Type: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -375,6 +377,7 @@ system_settings(){
 
 create_framework(){
     # Create the default NCF framework
+    echo ""
     echo -e "\e[0;32m${bold}Create default NCF framework ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/framework/v1/create" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -395,6 +398,7 @@ create_framework(){
 
 create_framework_categories(){
     # Create framework categories
+    echo ""
     echo -e "\e[0;32m${bold}Create framework categories ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -447,6 +451,7 @@ create_framework_categories(){
 
 create_framework_terms(){
     # Create framework terms
+    echo ""
     echo -e "\e[0;32m${bold}Create framework terms ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF&category=board" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -499,6 +504,7 @@ create_framework_terms(){
 
 publish_framework(){
     # Publish the framework
+    echo ""
     echo -e "\e[0;32m${bold}Publish framework ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/framework/v1/publish/NCF" -H 'Content-Type: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -509,6 +515,7 @@ publish_framework(){
 
 tenant_preference(){
     # Create tenant certificate and user preference
+    echo ""
     echo -e "\e[0;32m${bold}Create tenant certificate and user preference ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/org/v2/preferences/create" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -587,6 +594,7 @@ tenant_preference(){
 
 create_location(){
     # Create default location
+    echo ""
     echo -e "\e[0;32m${bold}Create a default location ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/data/v1/location/create" -H 'Content-Type: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
