@@ -161,8 +161,8 @@ create_master_categories(){
     echo -e "\e[0;32m${bold}Creating master categories for board, medium, subject, gradeLevel, topic ${normal}"
     curl -XPOST "http://${learningservice_ip}:8080/learning-service/framework/v3/category/master/create" -H 'Content-Type: application/json' -H "X-Channel-Id: ${organisation}" --data-raw '{"request": {"category": {"name": "board","code": "board"}}}'
     curl -XPOST "http://${learningservice_ip}:8080/learning-service/framework/v3/category/master/create" -H 'Content-Type: application/json' -H "X-Channel-Id: ${organisation}" --data-raw '{"request": {"category": {"name": "medium","code": "medium"}}}'
-    curl -XPOST "http://${learningservice_ip}:8080/learning-service/framework/v3/category/master/create" -H 'Content-Type: application/json' -H "X-Channel-Id: ${organisation}" --data-raw '{"request": {"category": {"name": "topic","subject": "subject"}}}'
-    curl -XPOST "http://${learningservice_ip}:8080/learning-service/framework/v3/category/master/create" -H 'Content-Type: application/json' -H "X-Channel-Id: ${organisation}" --data-raw '{"request": {"category": {"name": "topic","gradeLevel": "gradeLevel"}}}'
+    curl -XPOST "http://${learningservice_ip}:8080/learning-service/framework/v3/category/master/create" -H 'Content-Type: application/json' -H "X-Channel-Id: ${organisation}" --data-raw '{"request": {"category": {"name": "subject","code": "subject"}}}'
+    curl -XPOST "http://${learningservice_ip}:8080/learning-service/framework/v3/category/master/create" -H 'Content-Type: application/json' -H "X-Channel-Id: ${organisation}" --data-raw '{"request": {"category": {"name": "gradeLevel","code": "gradeLevel"}}}'
     curl -XPOST "http://${learningservice_ip}:8080/learning-service/framework/v3/category/master/create" -H 'Content-Type: application/json' -H "X-Channel-Id: ${organisation}" --data-raw '{"request": {"category": {"name": "topic","code": "topic"}}}'
 }
 
@@ -445,8 +445,8 @@ create_framework_categories(){
     -d '{
        "request": {
          "category": {
-           "name": "GradeLevel",
-           "code": "gradeLevel"
+           "name": "Subject",
+           "code": "subject"
          }
        }
     }'
@@ -457,8 +457,8 @@ create_framework_categories(){
     -d '{
        "request": {
          "category": {
-           "name": "Subject",
-           "code": "subject"
+           "name": "GradeLevel",
+           "code": "gradeLevel"
          }
        }
     }'
