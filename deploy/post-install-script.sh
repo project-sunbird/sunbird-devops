@@ -12,8 +12,8 @@ core_vault_sunbird_google_captcha_site_key_portal=$7
 sunbird_azure_public_storage_account_name=$8
 cassandra=$9
 
-cassandra_forms(){
-
+cassandra_forms(){  
+  echo "OK"
 }
 
 echo "User provided inputs"
