@@ -228,7 +228,7 @@ create_default_channel_license(){
 
 create_other_categories(){
     # Create other category schema
-    echo ""
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Create other categories ${normal}"
     git clone https://github.com/project-sunbird/knowledge-platform.git -b ${knowledge_platform_tag}
     cd knowledge-platform/definition-scripts
@@ -240,7 +240,7 @@ create_other_categories(){
 
 system_settings(){
     # System settings to insert into cassandra
-    echo ""
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Initialize the system settings table ${normal}"
     curl -sS -XPOST "${proto}://${domain_name}/api/data/v1/system/settings/set" -H 'Accept: application/json' -H 'Content-Type: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -377,7 +377,7 @@ system_settings(){
 
 create_framework(){
     # Create the default NCF framework
-    echo ""
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Create default NCF framework ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/framework/v1/create" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -398,7 +398,7 @@ create_framework(){
 
 create_framework_categories(){
     # Create framework categories
-    echo ""
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Create framework categories ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -451,7 +451,7 @@ create_framework_categories(){
 
 create_framework_terms(){
     # Create framework terms
-    echo ""
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Create framework terms ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF&category=board" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -504,7 +504,7 @@ create_framework_terms(){
 
 publish_framework(){
     # Publish the framework
-    echo ""
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Publish framework ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/framework/v1/publish/NCF" -H 'Content-Type: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -515,7 +515,7 @@ publish_framework(){
 
 tenant_preference(){
     # Create tenant certificate and user preference
-    echo ""
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Create tenant certificate and user preference ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/org/v2/preferences/create" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -594,7 +594,7 @@ tenant_preference(){
 
 create_location(){
     # Create default location
-    echo ""
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Create a default location ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/data/v1/location/create" -H 'Content-Type: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -652,10 +652,14 @@ publish_framework
 tenant_preference
 create_location
 
+printf "\n\n"
 echo -e "\e[0;31m${bold}Please verify all the API calls are successful. If there are any failures, check the script / output and fix the issues${normal}"
 
+printf "\n\n"
 echo -e "\e[0;31m${bold}All the API's must be successful to ensure Sunbird works as expected! ${normal}"
 
+printf "\n\n"
 echo -e "\e[0;32m${bold}If all the API's are succcessful, you can login to Sunbird using the username and password created above ${normal}"
 
+printf "\n\n"
 echo -e "\e[0;32m${bold}If you need more info on the API, refer to Sunbird API documentation ${normal}"
