@@ -1,0 +1,3 @@
+echo "OK"
+env
+printenv
