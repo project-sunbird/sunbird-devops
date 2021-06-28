@@ -21,10 +21,13 @@ orgadmin=""
 
 cassandra_forms(){
     # Import the forms into cassandra
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Install cqlsh ${normal}"
     pip install -U cqlsh
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Download forms ${normal}"
     wget "$forms"
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Import forms ${normal}"
     /var/lib/jenkins/.local/bin/cqlsh $cassandra 9042 -e "COPY qmzbm_form_service.form_data FROM 'forms.csv' WITH HEADER = true AND CHUNKSIZE = 1;"
     rm forms.csv
@@ -32,6 +35,7 @@ cassandra_forms(){
 
 get_x_authenticated_token(){
     # Keycloak access token
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Get x-authenticated-user-token${normal}"
     x_authenticated_token=$(curl -sS -XPOST "${proto}://${domain_name}/auth/realms/sunbird/protocol/openid-connect/token" \
     --header 'Content-Type: application/x-www-form-urlencoded' \
@@ -42,6 +46,7 @@ get_x_authenticated_token(){
 
 create_organisation(){
     # Create one organisation as default
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Creating default organisation ${normal}"
     organisation=$(curl -sS -XPOST "${proto}://${domain_name}/api/org/v1/create" -H 'Accept: application/json' -H 'Content-Type: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -60,6 +65,7 @@ create_organisation(){
 
 create_users(){
     # Create 3 users - Content Creator, Content Reviewer, Org Admin 
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Creating default users for Content Creator, Content Reviewer and Org Admin ${normal}"
     creator=$(curl -sS -XPOST "${proto}://${domain_name}/api/user/v1/signup" -H 'Accept: application/json' -H 'Content-Type: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -109,6 +115,7 @@ create_users(){
 
 assign_roles(){
     # Assign roles to user - Content Creator, Content Reviewer, Org Admin
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Assign roles for default users -  Content Creator, Content Reviewer and Org Admin ${normal}"
     curl -sS -XPOST "${proto}://${domain_name}/api/user/v1/role/assign" -H 'Accept: application/json' -H 'Content-Type: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
@@ -146,6 +153,7 @@ assign_roles(){
 
 create_master_categories(){
     # Create the 5 master categories
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Creating master categories for board, medium, subject, gradeLevel, topic ${normal}"
     curl -XPOST "http://${learningservice_ip}:8080/learning-service/framework/v3/category/master/create" -H 'Content-Type: application/json' -H "X-Channel-Id: ${organisation}" --data-raw '{"request": {"category": {"name": "board","code": "board"}}}'
     curl -XPOST "http://${learningservice_ip}:8080/learning-service/framework/v3/category/master/create" -H 'Content-Type: application/json' -H "X-Channel-Id: ${organisation}" --data-raw '{"request": {"category": {"name": "medium","code": "medium"}}}'
@@ -156,6 +164,7 @@ create_master_categories(){
 
 create_default_licenses(){
     # Create default licenses in the system
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Create default licenses ${normal}"
     curl -XPOST "http://${private_ingressgateway_ip}/content/license/v3/create" -H 'Content-Type: application/json' \
     -d '{
@@ -215,6 +224,7 @@ create_default_licenses(){
 
 create_default_channel_license(){
     # Choosing a random license from which was created in create_default_licenses()
+    printf "\n\n"
     echo -e "\e[0;32m${bold}Assign a random default license for the organisation ${normal}"
     curl -XPATCH "http://${learningservice_ip}:8080/learning-service/channel/v3/update/${organisation}" -H 'Content-Type: application/json' \
     -d '{
@@ -624,6 +634,7 @@ bold=$(tput bold)
 normal=$(tput sgr0)
 
 echo -e "\e[0;32m${bold}User provided inputs ${normal}"
+printf "\n\n"
 echo -e "\e[0;90m${bold}proto: $proto ${normal}"
 echo -e "\e[0;90m${bold}domain_name: $domain_name ${normal}"
 echo -e "\e[0;90m${bold}core_vault_sunbird_api_auth_token: $core_vault_sunbird_api_auth_token ${normal}"
@@ -634,6 +645,7 @@ echo -e "\e[0;90m${bold}core_vault_sunbird_google_captcha_site_key_portal: $core
 echo -e "\e[0;90m${bold}sunbird_azure_public_storage_account_name: $sunbird_azure_public_storage_account_name ${normal}"
 echo -e "\e[0;90m${bold}cassandra-1: $cassandra ${normal}"
 echo -e "\e[0;90m${bold}knowledge-platform-tag: $knowledge_platform_tag ${normal}"
+printf "\n\n"
 
 cassandra_forms
 get_x_authenticated_token
