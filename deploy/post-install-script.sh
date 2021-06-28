@@ -21,7 +21,6 @@ orgadmin=""
 
 cassandra_forms(){
     # Import the forms into cassandra
-    printf "\n"
     echo -e "\e[0;32m${bold}Install cqlsh ${normal}"
     pip install -U cqlsh
     printf "\n"
