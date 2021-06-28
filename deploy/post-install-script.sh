@@ -11,7 +11,7 @@ core_vault_sunbird_sso_client_secret=$6
 core_vault_sunbird_google_captcha_site_key_portal=$7
 sunbird_azure_public_storage_account_name=$8
 cassandra=$9
-knowledge_platform_tag=$10
+knowledge_platform_tag=${10}
 forms=https://sunbirdpublic.blob.core.windows.net/installation/forms.csv
 x_authenticated_token=""
 organisation=""
@@ -216,13 +216,11 @@ create_default_licenses(){
 create_default_channel_license(){
     # Choosing a random license from which was created in create_default_licenses()
     echo -e "\e[0;32m${bold}Assign a random default license for the organisation ${normal}"
-    curl -XPOST "http://${private_ingressgateway_ip}/content/channel/v3/update/${organisation}" -H 'Content-Type: application/json' \
+    curl -XPATCH "http://${learningservice_ip}:8080/learning-service/channel/v3/update/${organisation}" -H 'Content-Type: application/json' \
     -d '{
        "request":{
-           "license":{
-               "name": "Standard YouTube License",
-               "description": "This license is Creative Commons Attribution-NonCommercial-ShareAlike",
-               "url": "https://www.youtube.com/"
+           "channel":{
+               "defaultLicense":"Standard YouTube License"
            }
         }
     }'
@@ -234,7 +232,7 @@ create_other_categories(){
     git clone https://github.com/project-sunbird/knowledge-platform.git -b ${knowledge_platform_tag}
     cd knowledge-platform/definition-scripts
     sed -i "s#{{host}}#http://${private_ingressgateway_ip}/taxonomy#g" *
-    while read -r line; do printf "\n\n" >> /tmp/all_category_create.sh && cat $line >> /tmp/master_category_create; done <<< $(ls)
+    while read -r line; do printf "\n\n" >> /tmp/all_category_create.sh && cat $line >> /tmp/all_category_create.sh; done <<< $(ls)
     bash -x /tmp/all_category_create.sh
 }
 
@@ -281,7 +279,7 @@ system_settings(){
        "request":{
   		   "id": "sunbird",
 		   "field": "sunbird",
-		   "value": "{\"helpCenterLink\":""'"${proto}"'"://"'"{$domain_name}"'"/faq","helpdeskEmail":"support@"'"${domain_name}"'""}"
+		   "value": "{\"helpCenterLink\":\"'${proto}':\/\/'${domain_name}'\/faq\",\"helpdeskEmail\":\"support@'${domain_name}'\"}"
        }
     }'
 
@@ -292,7 +290,7 @@ system_settings(){
        "request":{
   		   "id": "googleReCaptcha",
 		   "field": "googleReCaptcha",
-		   "value": "{\"key\":"'"${core_vault_sunbird_google_captcha_site_key_portal}"'" , \"isEnabled\":true}"
+		   "value": "{\"key\":\"'${core_vault_sunbird_google_captcha_site_key_portal}'\", \"isEnabled\":true}"
        }
     }'
 
@@ -303,7 +301,7 @@ system_settings(){
        "request":{
   		   "id": "tncConfig",
 		   "field": "tncConfig",
-		   "value": "{\"latestVersion\":\"latest\",\"latest\":{\"url\":\""'"${proto}"'":\/\/"'"${sunbird_azure_public_storage_account_name}"'".blob.core.windows.net\/termsandcondtions\/terms-and-conditions-v9.html#termsOfUse\"}}"
+		   "value": "{\"latestVersion\":\"latest\",\"latest\":{\"url\":\"'${proto}':\/\/'${sunbird_azure_public_storage_account_name}'.blob.core.windows.net\/terms-and-conditions\/terms-and-conditions-v9.html#termsOfUse\"}}"
        }
     }'
 
@@ -314,7 +312,7 @@ system_settings(){
        "request":{
   		   "id": "orgAdminTnc",
 		   "field": "orgAdminTnc",
-		   "value": "{\"latestVersion\":\"latest\",\"latest\":{\"url\":\""'"${proto}"'":\/\/"'"${sunbird_azure_public_storage_account_name}"'".blob.core.windows.net\/termsandcondtions\/terms-and-conditions-v9.html#administratorGuidelines\"}}"
+		   "value": "{\"latestVersion\":\"latest\",\"latest\":{\"url\":\"'${proto}':\/\/'${sunbird_azure_public_storage_account_name}'.blob.core.windows.net\/terms-and-conditions\/terms-and-conditions-v9.html#administratorGuidelines\"}}"
        }
     }'
 
@@ -325,7 +323,7 @@ system_settings(){
        "request":{
   		   "id": "groupsTnc",
 		   "field": "groupsTnc",
-		   "value": "{\"latestVersion\":\"latest\",\"latest\":{\"url\":\""'"${proto}"'":\/\/"'"${sunbird_azure_public_storage_account_name}"'".blob.core.windows.net\/termsandcondtions\/terms-and-conditions-v9.html#groupGuidelines\"}}"
+		   "value": "{\"latestVersion\":\"latest\",\"latest\":{\"url\":\"'${proto}':\/\/'${sunbird_azure_public_storage_account_name}'.blob.core.windows.net\/terms-and-conditions\/terms-and-conditions-v9.html#groupGuidelines\"}}"
        }
     }'
 
@@ -336,7 +334,7 @@ system_settings(){
        "request":{
   		   "id": "portalFaqURL",
 		   "field": "portalFaqURL",
-		   "value": "https://"'"${sunbird_azure_public_storage_account_name}"'".blob.core.windows.net/public/portal-faq/resources/res"
+		   "value": "https://'${sunbird_azure_public_storage_account_name}'.blob.core.windows.net/public/portal-faq/resources/res"
        }
     }'
 
@@ -644,3 +642,7 @@ create_framework_terms
 publish_framework
 tenant_preference
 create_location
+
+echo -e "\e[0;31m${bold}Please verify all the API calls are successful. If there are any failures, check the script / output and fix the issue. All the API's must be successful to ensure Sunbird works as expected! ${normal}"
+
+echo -e "\e[0;32m${bold}If all the API's are succcessful, you can login to Sunbird using the username and password created above. ${normal}"
