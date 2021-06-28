@@ -643,6 +643,10 @@ publish_framework
 tenant_preference
 create_location
 
-echo -e "\e[0;31m${bold}Please verify all the API calls are successful. If there are any failures, check the script / output and fix the issue. All the API's must be successful to ensure Sunbird works as expected! ${normal}"
+echo -e "\e[0;31m${bold}Please verify all the API calls are successful. If there are any failures, check the script / output and fix the issues${normal}"
 
-echo -e "\e[0;32m${bold}If all the API's are succcessful, you can login to Sunbird using the username and password created above. ${normal}"
+echo -e "\e[0;31m${bold}All the API's must be successful to ensure Sunbird works as expected! ${normal}"
+
+echo -e "\e[0;32m${bold}If all the API's are succcessful, you can login to Sunbird using the username and password created above ${normal}"
+
+echo -e "\e[0;32m${bold}If you need more info on the API, refer to Sunbird API documentation ${normal}"
