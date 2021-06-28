@@ -625,8 +625,8 @@ echo -e "\e[0;90m${bold}learningservice_ip: $learningservice_ip ${normal}"
 echo -e "\e[0;90m${bold}core_vault_sunbird_sso_client_secret: $core_vault_sunbird_sso_client_secret ${normal}"
 echo -e "\e[0;90m${bold}core_vault_sunbird_google_captcha_site_key_portal: $core_vault_sunbird_google_captcha_site_key_portal ${normal}"
 echo -e "\e[0;90m${bold}sunbird_azure_public_storage_account_name: $sunbird_azure_public_storage_account_name ${normal}"
-echo -e "\e[0;90m${bold}cassandra-1: $cassandra"
-echo -e "\e[0;90m${bold}knowledge-platform-tag: $knowledge_platform_tag"
+echo -e "\e[0;90m${bold}cassandra-1: $cassandra ${normal}"
+echo -e "\e[0;90m${bold}knowledge-platform-tag: $knowledge_platform_tag ${normal}"
 
 cassandra_forms
 get_x_authenticated_token
