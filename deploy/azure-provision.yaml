@@ -1,0 +1,256 @@
+# Notes:
+# Have to create SP for kubernetes cluster
+# Command: az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/xxx-xxx-xxxx-xxx" --name install-testing-3-9
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    # Mandatory to change
+    version: "3.9"
+    sp_client_id: ""
+    sp_client_secret: ""
+    # optional
+    rg_name: "sunbird-installation-test-{{ version }}"
+    location: centralindia
+    vnet_name: "installation-test-{{ version }}"
+    subnet_name: "installation-test-subnet-{{ version }}"
+    storage_account_name: "sbinstallation{{ version | regex_replace('\\.|-', '') }}"
+    vm_names:
+      - jenkins
+      - kp
+      - dp
+      - yarn
+      - db
+      - others
+    ssh_public_key_file_location: ./deployer.pub
+    vm_size: Standard_D4s_v4
+    # To get correct verions, run
+    # az aks get-versions -l centralindia -o table
+    aks_version: 1.20.7
+    #
+    # In common.yaml, you can update the values like following
+    #
+    # sunbird_content_azure_storage_container: contents        # Azure container name for storing public data (like contents), should be same as azure_public_container defined in KP common.yml
+    # sunbird_public_storage_account_name: contents         # Azure account name for storing public data (like contents)
+    # sunbird_private_storage_account_name: private           # Azure account name for storing private data (like reports, telemetry data)
+    # sunbird_artifact_storage_account_name: artifacts          # Azure account name for storing artifacts data (like jenkins build zip files)
+    # sunbird_management_storage_account_name: management        # Azure account name for storing backup data (like cassandra backups)
+    private_containers:
+      - private
+      - artifacts
+      - management
+      - results
+      - backups
+      - label
+    public_containers:
+      - contents
+      - public
+  tasks:
+    - name: Creating resource group - "{{ rg_name }}"
+      azure_rm_resourcegroup:
+        name: "{{ rg_name }}"
+        location: "{{ location }}"
+      register: rg
+    - debug:
+        var: rg
+    - name: Create virtual network
+      azure_rm_virtualnetwork:
+        resource_group: "{{ rg_name }}"
+        name: "{{ vnet_name }}"
+        address_prefixes: "10.0.0.0/16"
+    - name: Add subnet
+      azure_rm_subnet:
+        resource_group: "{{ rg_name }}"
+        name: "{{ subnet_name }}"
+        address_prefix: "10.0.1.0/24"
+        virtual_network: "{{ vnet_name }}"
+    - name: Creating public ip for jenkins
+      azure_rm_publicipaddress:
+        resource_group: "{{ rg_name }}"
+        name: jenkins-ip
+        allocation_method: static
+    - name: Creating Nics
+      azure_rm_networkinterface:
+        name: "{{ item }}"
+        resource_group: "{{ rg_name }}"
+        virtual_network: "{{ vnet_name }}"
+        subnet_name: "{{ subnet_name }}"
+      with_items: "{{vm_names}}"
+    - name: Assinging public ip for jenkins
+      azure_rm_networkinterface:
+        name: jenkins
+        resource_group: "{{ rg_name }}"
+        virtual_network: "{{ vnet_name }}"
+        subnet_name: "{{ subnet_name }}"
+        public_ip_name: jenkins-ip
+    - name: Creating vm {{ name }}
+      azure_rm_virtualmachine:
+        resource_group: "{{ rg_name }}"
+        name: "{{ item }}"
+        vm_size: "{{ vm_size }}"
+        admin_username: deployer
+        ssh_password_enabled: false
+        public_ip_allocation_method: Disabled
+        managed_disk_type: Standard_LRS
+        os_disk_size_gb: 250
+        network_interfaces: "{{ item }}"
+        ssh_public_keys:
+          - path: /home/deployer/.ssh/authorized_keys
+            key_data: "{{ lookup('file', ssh_public_key_file_location) }}"
+        # To get image:
+        # az vm image list -o table --publisher Canonical
+        image:
+          offer: UbuntuServer
+          publisher: Canonical
+          sku: '18.04-LTS'
+          version: latest
+      with_items: "{{ vm_names }}"
+    # Note: to download the aks kubeconfig
+    # az aks get-credentials --resource-group sunbird-installation-test-3.9 --name sb-installation-3-9
+    - name: Create a managed Azure Container Services (AKS) cluster
+      azure_rm_aks:
+        name: "{{ storage_account_name }}"
+        location: "{{ location }}"
+        resource_group: "{{ rg_name }}"
+        kubernetes_version: "{{aks_version}}"
+        dns_prefix:  "{{ storage_account_name }}"
+        linux_profile:
+          admin_username: "deployer"
+          ssh_key: "{{  lookup('file', ssh_public_key_file_location)  }}"
+        service_principal:
+          client_id: "{{ sp_client_id }}"
+          client_secret: "{{ sp_client_secret }}"
+        agent_pool_profiles:
+          - name: default
+            count: 4
+            vm_size: Standard_D4s_v4
+        tags:
+          Environment: installation
+      tags:
+        - k8s
+    - name: create an account with blob CORS
+      block:
+        - name: Creating storage account
+          azure_rm_storageaccount:
+            resource_group: "{{ rg_name }}"
+            # names should only have alphanumerics
+            name: "{{ storage_account_name }}"
+            type: Standard_RAGRS
+            blob_cors:
+              - allowed_origins:
+                  - '*'
+                allowed_methods:
+                  - GET
+                  - HEAD
+                  - OPTIONS
+                  - PUT
+                allowed_headers:
+                  - Access-Control-Allow-Origin
+                  - Access-Control-Allow-Method
+                  - Origin
+                  - x-ms-meta-qq
+                  - x-ms-blob-type
+                  - x-ms-blob-content-type
+                  - Content-Type
+                exposed_headers:
+                  - Access-Control-Allow-Origin
+                  - Access-Control-Allow-Methods
+                max_age_in_seconds: 200
+          retries: 3
+          delay: 30
+          register: result
+          until: result is not failed
+        - name: Create private containers
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: "{{ item }}"
+          with_items: "{{ private_containers }}"
+        - name: Create public containers
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: "{{ item }}"
+            public_access: container
+          with_items: "{{ public_containers }}"
+        - name: Creating a dummy folder for creation
+          file:
+            path: /tmp/dummy.txt
+            state: touch
+        - name: Creating folder structurue in blob
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: contents
+            blob: "{{ item }}/dummy.txt"
+            src: /tmp/dummy.txt
+            public_access: container
+            content_type: 'text/plain'
+          with_items:
+            - collection-editor
+            - generic-editor
+            - content-edition
+            - v3/preview
+            - terms-and-conditions
+        - name: Downloading terms-and-conditions
+          get_url:
+            url: https://sunbirdpublic.blob.core.windows.net/installation/terms-and-conditions/terms-and-conditions-v9.html
+            dest: /tmp/terms-and-conditions-v9.html
+            mode: '0440'
+          with_items:
+            - { name: "content-plugins.zip" ,url: "https://sunbirdpublic.blob.core.windows.net/installation/content-plugins.zip" }
+        - name: Uploading T&C
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: contents
+            public_access: container
+            blob: "terms-and-conditions/terms-and-conditions-v9.html"
+            src: /tmp/terms-and-conditions-v9.html
+            content_type: 'text/plain'
+        - name: Uploading labels
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: label
+            blob: "labels/{{ item.split('/labels/')[1] }}"
+            src: "../utils/portal/labels/{{ item.split('/labels/')[1] }}"
+          with_fileglob:
+          - ../utils/portal/labels/*
+        - name: Unarchive plugins
+          unarchive:
+            src: "https://sunbirdpublic.blob.core.windows.net/installation/content-plugins.zip"
+            dest: /tmp/
+            creates: /tmp/content-plugins
+            remote_src: yes
+          tags:
+            - plugins
+        - name: Get facts for storage account
+          azure_rm_storageaccount_info:
+            resource_group: "{{ rg_name }}"
+            name: "{{ storage_account_name }}"
+            show_connection_string: yes
+          register: storage_account_info
+          tags:
+            - plugins
+        - name: Show the strorage account info
+          debug:
+            msg: "Storage account key: {{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
+          tags:
+            - plugins
+        - name: Uploading plugins
+          shell: az storage blob upload-batch --destination contents/content-plugins --source /tmp/content-plugins --account-name "{{ storage_account_name }}" --account-key "{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
+          tags:
+            - plugins
+      tags:
+        - storage
+    - name: Creating containier registry
+      azure_rm_containerregistry:
+        name: "{{ storage_account_name }}"
+        location: "{{ location }}"
+        resource_group: "{{ rg_name }}"
+        admin_user_enabled: true
+        sku: Basic
+        tags:
+          Environment: installation
