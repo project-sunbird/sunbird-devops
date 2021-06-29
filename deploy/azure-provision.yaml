@@ -6,11 +6,22 @@
   connection: local
   gather_facts: false
   vars:
-    # Mandatory to change
+    # ##############################################################
+    # MANDATORY TO CHANGE
+    # ##############################################################
     version: "3.9"
     sp_client_id: ""
     sp_client_secret: ""
-    # optional
+    ssh_public_key_file_location: ./deployer.pub
+    ############### Maxmind licence key ###########################
+    # To create license key
+    # Goto: https://www.maxmind.com/en/accounts/current/license-key
+    # Click: Generate a new license key.
+    # ##############################################################
+    geoip_licence_key: ""
+    # ##############################################################
+    # OPTIONAL
+    # ##############################################################
     rg_name: "sunbird-installation-test-{{ version }}"
     location: centralindia
     vnet_name: "installation-test-{{ version }}"
@@ -23,7 +34,6 @@
       - yarn
       - db
       - others
-    ssh_public_key_file_location: ./deployer.pub
     vm_size: Standard_D4s_v4
     # To get correct verions, run
     # az aks get-versions -l centralindia -o table
@@ -198,8 +208,6 @@
             url: https://sunbirdpublic.blob.core.windows.net/installation/terms-and-conditions/terms-and-conditions-v9.html
             dest: /tmp/terms-and-conditions-v9.html
             mode: '0440'
-          with_items:
-            - { name: "content-plugins.zip" ,url: "https://sunbirdpublic.blob.core.windows.net/installation/content-plugins.zip" }
         - name: Uploading T&C
           azure_rm_storageblob:
             resource_group: "{{ rg_name }}"
@@ -209,6 +217,24 @@
             blob: "terms-and-conditions/terms-and-conditions-v9.html"
             src: /tmp/terms-and-conditions-v9.html
             content_type: 'text/plain'
+        - name: Downloading GeoIP2
+          get_url:
+            url: "https://download.maxmind.com/app/geoip_download?edition_id={{ item.type }}&license_key={{ geoip_licence_key }}&suffix={{ item.prefix }}"
+            dest: "/tmp/geoip2_db.{{ item.prefix }}"
+            mode: '0440'
+          with_items:
+            - {type: 'GeoLite2-City-CSV', prefix: 'zip' }
+            - {type: 'GeoLite2-City', prefix: 'tar.gz'}
+        - name: Uploading GeoIP2 to artifacts
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: artifacts
+            blob: "geoip2_db.{{ item }}"
+            src: "/tmp/geoip2_db.{{ item }}"
+          with_items:
+            - zip
+            - tar.gz
         - name: Uploading labels
           azure_rm_storageblob:
             resource_group: "{{ rg_name }}"
