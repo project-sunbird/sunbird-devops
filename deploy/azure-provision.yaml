@@ -10,15 +10,11 @@
     # MANDATORY TO CHANGE
     # ##############################################################
     version: "3.9"
-    sp_client_id: ""
-    sp_client_secret: ""
-    ssh_public_key_file_location: ./deployer.pub
     ############### Maxmind licence key ###########################
     # To create license key
     # Goto: https://www.maxmind.com/en/accounts/current/license-key
     # Click: Generate a new license key.
     # ##############################################################
-    geoip_licence_key: ""
     # ##############################################################
     # OPTIONAL
     # ##############################################################
@@ -69,17 +65,26 @@
         resource_group: "{{ rg_name }}"
         name: "{{ vnet_name }}"
         address_prefixes: "10.0.0.0/16"
+      tags:
+        - network
     - name: Add subnet
       azure_rm_subnet:
         resource_group: "{{ rg_name }}"
         name: "{{ subnet_name }}"
         address_prefix: "10.0.1.0/24"
         virtual_network: "{{ vnet_name }}"
+      register: subnet
+      tags:
+        - always
+        - network
     - name: Creating public ip for jenkins
       azure_rm_publicipaddress:
         resource_group: "{{ rg_name }}"
         name: jenkins-ip
         allocation_method: static
+      register: public_ip
+      tags:
+        - always
     - name: Creating Nics
       azure_rm_networkinterface:
         name: "{{ item }}"
@@ -105,6 +110,8 @@
         managed_disk_type: Standard_LRS
         os_disk_size_gb: 250
         network_interfaces: "{{ item }}"
+        state: present
+        allocated: "{{ allocate | d(true) }}"
         ssh_public_keys:
           - path: /home/deployer/.ssh/authorized_keys
             key_data: "{{ lookup('file', ssh_public_key_file_location) }}"
@@ -116,6 +123,8 @@
           sku: '18.04-LTS'
           version: latest
       with_items: "{{ vm_names }}"
+      tags:
+        - vm
     # Note: to download the aks kubeconfig
     # az aks get-credentials --resource-group sunbird-installation-test-3.9 --name sb-installation-3-9
     - name: Create a managed Azure Container Services (AKS) cluster
@@ -131,10 +140,18 @@
         service_principal:
           client_id: "{{ sp_client_id }}"
           client_secret: "{{ sp_client_secret }}"
+        network_profile:
+          network_plugin: kubenet
+          pod_cidr: 192.168.0.0/16
+          docker_bridge_cidr: 172.17.0.1/16
+          dns_service_ip: 10.233.0.10
+          service_cidr: 10.233.0.0/16
         agent_pool_profiles:
           - name: default
             count: 4
             vm_size: Standard_D4s_v4
+            type: VirtualMachineScaleSets
+            vnet_subnet_id: "{{ subnet.state.id }}"
         tags:
           Environment: installation
       tags:
@@ -240,10 +257,18 @@
             resource_group: "{{ rg_name }}"
             storage_account_name: "{{ storage_account_name }}"
             container: label
-            blob: "labels/{{ item.split('/labels/')[1] }}"
-            src: "../utils/portal/labels/{{ item.split('/labels/')[1] }}"
-          with_fileglob:
-          - ../utils/portal/labels/*
+            batch_upload_dst: "labels/"
+            batch_upload_src: "../utils/portal/labels/"
+            state: present
+        - name: Get facts for storage account
+          azure_rm_storageaccount_info:
+            resource_group: "{{ rg_name }}"
+            name: "{{ storage_account_name }}"
+            show_connection_string: yes
+          register: storage_account_info
+          tags:
+            - always
+            - info
         - name: Unarchive plugins
           unarchive:
             src: "https://sunbirdpublic.blob.core.windows.net/installation/content-plugins.zip"
@@ -252,21 +277,14 @@
             remote_src: yes
           tags:
             - plugins
-        - name: Get facts for storage account
-          azure_rm_storageaccount_info:
-            resource_group: "{{ rg_name }}"
-            name: "{{ storage_account_name }}"
-            show_connection_string: yes
-          register: storage_account_info
-          tags:
-            - plugins
-        - name: Show the strorage account info
-          debug:
-            msg: "Storage account key: {{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
-          tags:
-            - plugins
         - name: Uploading plugins
-          shell: az storage blob upload-batch --destination contents/content-plugins --source /tmp/content-plugins --account-name "{{ storage_account_name }}" --account-key "{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: contents
+            batch_upload_dst: "rajesh-plugins/"
+            batch_upload_src: "/tmp/content-plugins/"
+            state: present
           tags:
             - plugins
       tags:
@@ -280,3 +298,25 @@
         sku: Basic
         tags:
           Environment: installation
+    - name: Get instance of Registry
+      azure_rm_containerregistry_info:
+        resource_group: "{{ rg_name }}"
+        retrieve_credentials: true
+        name: "{{ storage_account_name }}"
+      register: registry
+      tags:
+        - always
+        - info
+    - name: Showing resources info
+      debug:
+        msg:
+          - Jenkins public ip: "{{ public_ip.state.ip_address }}"
+          - ACR password: "{{ registry.registries[0].credentials.password }}"
+          - ACR registry server: "{{ registry.registries[0].login_server }}"
+          - ACR username: "{{ registry.registries[0].name }}"
+          - Storage account name: "{{ storage_account_name }}"
+          - Storage account key: "{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
+          - Storage account endpoint: "{{ storage_account_info.storageaccounts[0].primary_endpoints.blob.endpoint }}"
+      tags:
+        - always
+        - info
