@@ -10,11 +10,15 @@
     # MANDATORY TO CHANGE
     # ##############################################################
     version: "3.9"
+    sp_client_id: ""
+    sp_client_secret: ""
+    ssh_public_key_file_location: /home/rajesh_r/deployer.pub
     ############### Maxmind licence key ###########################
     # To create license key
     # Goto: https://www.maxmind.com/en/accounts/current/license-key
     # Click: Generate a new license key.
     # ##############################################################
+    geoip_licence_key: ""
     # ##############################################################
     # OPTIONAL
     # ##############################################################
@@ -77,6 +81,8 @@
       tags:
         - always
         - network
+        - k8s
+        - info
     - name: Creating public ip for jenkins
       azure_rm_publicipaddress:
         resource_group: "{{ rg_name }}"
@@ -84,7 +90,8 @@
         allocation_method: static
       register: public_ip
       tags:
-        - always
+        - network
+        - info
     - name: Creating Nics
       azure_rm_networkinterface:
         name: "{{ item }}"
@@ -92,6 +99,8 @@
         virtual_network: "{{ vnet_name }}"
         subnet_name: "{{ subnet_name }}"
       with_items: "{{vm_names}}"
+      tags:
+        - network
     - name: Assinging public ip for jenkins
       azure_rm_networkinterface:
         name: jenkins
@@ -99,6 +108,8 @@
         virtual_network: "{{ vnet_name }}"
         subnet_name: "{{ subnet_name }}"
         public_ip_name: jenkins-ip
+      tags:
+        - network
     - name: Creating vm {{ name }}
       azure_rm_virtualmachine:
         resource_group: "{{ rg_name }}"
@@ -260,15 +271,6 @@
             batch_upload_dst: "labels/"
             batch_upload_src: "../utils/portal/labels/"
             state: present
-        - name: Get facts for storage account
-          azure_rm_storageaccount_info:
-            resource_group: "{{ rg_name }}"
-            name: "{{ storage_account_name }}"
-            show_connection_string: yes
-          register: storage_account_info
-          tags:
-            - always
-            - info
         - name: Unarchive plugins
           unarchive:
             src: "https://sunbirdpublic.blob.core.windows.net/installation/content-plugins.zip"
@@ -305,18 +307,76 @@
         name: "{{ storage_account_name }}"
       register: registry
       tags:
-        - always
         - info
-    - name: Showing resources info
-      debug:
-        msg:
-          - Jenkins public ip: "{{ public_ip.state.ip_address }}"
-          - ACR password: "{{ registry.registries[0].credentials.password }}"
-          - ACR registry server: "{{ registry.registries[0].login_server }}"
-          - ACR username: "{{ registry.registries[0].name }}"
-          - Storage account name: "{{ storage_account_name }}"
-          - Storage account key: "{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
-          - Storage account endpoint: "{{ storage_account_info.storageaccounts[0].primary_endpoints.blob.endpoint }}"
+    - name: Get facts for storage account
+      azure_rm_storageaccount_info:
+        resource_group: "{{ rg_name }}"
+        name: "{{ storage_account_name }}"
+        show_connection_string: yes
+      register: storage_account_info
       tags:
-        - always
+        - info
+    - name: Get instance ips
+      azure_rm_networkinterface_info:
+        resource_group: "{{ rg_name }}"
+        name: "{{ item }}"
+      with_items: "{{vm_names}}"
+      register: nics
+      tags:
+        - info
+    - block:
+      - name: Generating SAS token
+        shell: |
+          sas_expire_time=`date +'%Y-%m-%dT%H:%m:%SZ' -d '+1 year'`
+          sas_token=?`az storage account generate-sas --account-name "{{ storage_account_name }}" --account-key "{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}" --expiry $sas_expire_time --https-only --permissions acdlpruw --resource-types sco --services bfqt | xargs`
+          echo $sas_token
+        register: sas_token
+      - name: Showing resources info
+        debug:
+          msg:
+            - Jenkins public ip: "{{ public_ip.state.ip_address }}"
+            - ACR password: "{{ registry.registries[0].credentials.password }}"
+            - ACR registry server: "{{ registry.registries[0].login_server }}"
+            - ACR username: "{{ registry.registries[0].name }}"
+            - Storage account name: "{{ storage_account_name }}"
+            - Storage account key: "{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
+            - Storage account endpoint: "{{ storage_account_info.storageaccounts[0].primary_endpoints.blob.endpoint }}"
+            - Storage account sas token: "{{ sas_token.stdout }}"
+      - name: Showing instance ips
+        debug:
+          msg:
+            "{{ item.networkinterfaces[0].name }}: {{ item.networkinterfaces[0].ip_configurations[0].private_ip_address }}"
+        with_items: "{{ nics.results }}"
+        # Else the item dict is very big
+        loop_control:
+          label: "{{  item.networkinterfaces[0].name  }}"
+      tags:
+        - info
+    - block:
+      - name: Writing resource info to azure-resources.txt
+        copy:
+          dest: azure-resources.txt
+          content: |-
+            ================================================================
+            jenkins_public_ip="{{ public_ip.state.ip_address }}"
+            acr_password="{{ registry.registries[0].credentials.password }}"
+            acr_registry_server="{{ registry.registries[0].login_server }}"
+            acr_username="{{ registry.registries[0].name }}"
+            storage_account_name="{{ storage_account_name }}"
+            storage_account_key="{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
+            storage_account_endpoint="{{ storage_account_info.storageaccounts[0].primary_endpoints.blob.endpoint }}"
+            storage_account_sas_token="{{ sas_token.stdout }}"
+      - name: Writing machine ips to azure-resources.txt
+        lineinfile: 
+          state: present
+          insertbefore: EOF
+          dest: azure-resources.txt
+          line: "{{ item.networkinterfaces[0].name }}={{ item.networkinterfaces[0].ip_configurations[0].private_ip_address }}"
+        with_items: "{{ nics.results }}"
+        # Else the item dict is very big
+        loop_control:
+          label: "{{  item.networkinterfaces[0].name  }}"
+      - debug:
+          msg: ansible variable values to update for the installation is stored in "sunbird-devops/deploy/azure-resources.txt"
+      tags:
         - info
