@@ -92,10 +92,6 @@ cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
 rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
 ###
 
-echo -e "\n\e[0;32m${bold}Installating Docker-py${normal}"
-pip install docker-py
-pip3 install docker-py
-
 echo -e "\n\e[0;32m${bold}Installating pip docker${normal}"
 pip install docker
 pip3 install docker
