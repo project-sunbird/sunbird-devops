@@ -9,9 +9,9 @@ metadata:
 spec:
   replicas: {{ .Values.replicaCount }}
   strategy:
-    rollingUpdate:
-      maxSurge: {{ .Values.strategy.maxsurge }}
-      maxUnavailable: {{ .Values.strategy.maxunavailable }}
+     rollingUpdate:
+        maxSurge: {{ .Values.strategy.maxsurge }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
   selector:
     matchLabels:
       app: {{ .Chart.Name }}
@@ -20,48 +20,48 @@ spec:
       labels:
         app: {{ .Chart.Name }}
     spec:
-  {{- if .Values.imagepullsecrets }}
-imagePullSecrets:
-  - name: {{ .Values.imagepullsecrets }}
-  {{- end }}
-volumes:
-  - name: {{ .Chart.Name }}-config
-    configMap:
-      name: {{ .Chart.Name }}-config
-containers:
-  - name: {{ .Chart.Name }}
-    image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
-    imagePullPolicy: Always
-    env:
-      - name: JAVA_OPTIONS
-        value: {{ .Values.env.javaoptions | quote }}
-    envFrom:
-      - configMapRef:
-          name: {{ .Chart.Name }}-config
-    resources:
-  {{ toYaml .Values.resources | indent 10 }}
-ports:
-  - containerPort: {{ .Values.network.port }}
-  {{- if .Values.healthcheck }}
-livenessProbe:
-  {{ toYaml .Values.livenessProbe | indent 10 }}
-readinessProbe:
-  {{ toYaml .Values.readinessProbe | indent 10 }}
-  {{- end }}
-volumeMounts:
-  - name: {{ .Chart.Name }}-config
-    mountPath: /home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/application.properties
-    subPath: inbound.env
-  - name: { { .Chart.Name } }-config
-    mountPath: /home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/application-adapter.properties
-    subPath: uci-adapter.env
-  - name: { { .Chart.Name } }-config
-    mountPath: /home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/application-messagerosa.properties
-    subPath: uci-messagerosa.env
-  - name: { { .Chart.Name } }-config
-    mountPath: /home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/dao-application.properties
-    subPath: uci-dao.env
-
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-config
+          configMap:
+            name: {{ .Chart.Name }}-config
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        env:
+        - name: JAVA_OPTIONS
+          value: {{ .Values.env.javaoptions | quote }}
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 10 }}
+        {{- end }}
+        volumeMounts:
+          - name: {{ .Chart.Name }}-config
+            mountPath: /home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/application.properties
+            subPath: inbound.env
+          - name: { { .Chart.Name } }-config
+            mountPath: /home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/application-adapter.properties
+            subPath: uci-adapter.env
+          - name: { { .Chart.Name } }-config
+            mountPath: /home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/application-messagerosa.properties
+            subPath: uci-messagerosa.env
+          - name: { { .Chart.Name } }-config
+            mountPath: /home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/dao-application.properties
+            subPath: uci-dao.env
+          
 ---
 apiVersion: v1
 kind: Service
@@ -72,8 +72,8 @@ metadata:
     app: {{ .Chart.Name }}
 spec:
   ports:
-    - name: http-{{ .Chart.Name }}
-      protocol: TCP
-      port: {{ .Values.network.targetport }}
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network.targetport }}
   selector:
     app: {{ .Chart.Name }}
