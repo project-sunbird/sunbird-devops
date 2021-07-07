@@ -16,46 +16,7 @@
   become: yes
   shell: "docker config create uci-inbound.conf /home/deployer/config/uci-inbound.conf"
 
-- name: Save uci-adapter configurations into an env file
-  become: yes
-  template: src=uci-adapter.env dest=/home/deployer/config/uci-adapter.conf mode=0644
-
-- name: Remove old uci-adapter docker config
-  become: yes
-  shell: "docker config rm uci-adapter.conf"
-  ignore_errors: yes
-
-- name: Save as uci-adapter docker config
-  become: yes
-  shell: "docker config create uci-adapter.conf /home/deployer/config/uci-adapter.conf"
-
-- name: Save uci-messagerosa configurations into an env file
-  become: yes
-  template: src=uci-messagerosa.env dest=/home/deployer/config/uci-messagerosa.conf mode=0644
-
-- name: Remove old uci-messagerosa docker config
-  become: yes
-  shell: "docker config rm uci-messagerosa.conf"
-  ignore_errors: yes
-
-- name: Save as uci-messagerosa docker config
-  become: yes
-  shell: "docker config create uci-messagerosa.conf /home/deployer/config/uci-messagerosa.conf"
-
-- name: Save uci-dao configurations into an env file
-  become: yes
-  template: src=uci-dao.env dest=/home/deployer/config/uci-dao.conf mode=0644
-
-- name: Remove old uci-dao docker config
-  become: yes
-  shell: "docker config rm uci-dao.conf"
-  ignore_errors: yes
-
-- name: Save as uci-dao docker config
-  become: yes
-  shell: "docker config create uci-dao.conf /home/deployer/config/uci-dao.conf"
-
 - name: Deploy uci-inbound
-  shell: "docker service create --with-registry-auth --replicas {{ uci_inbound_replicas }} -p 8085:8085  --name uci-inbound --hostname uci-inbound --reserve-memory {{ uci_inbound_reservation_memory }} --limit-memory {{ uci_inbound_limit_memory }} --limit-cpu {{ uci_inbound_limit_cpu }} --reserve-cpu {{ uci_inbound_reservation_cpu }} --health-cmd 'wget -qO- uci-inbound:8085/health || exit 1' --health-timeout 10s --health-retries 5  --network application_default --env JAVA_OPTIONS={{ uci_inbound_java_mem_limit }} --config source=uci-inbound.conf,target=/home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/application.properties,mode=0644  --config source=uci-adapter.conf,target=/home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/application-adapter.properties,mode=0644 --config source=uci-messagerosa.conf,target=/home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/application-messagerosa.properties,mode=0644 --config source=uci-dao.conf,target=/home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/dao-application.properties,mode=0644 {{hub_org}}/{{image_name}}:{{image_tag}}"
+  shell: "docker service create --with-registry-auth --replicas {{ uci_inbound_replicas }} -p 8085:8085  --name uci-inbound --hostname uci-inbound --reserve-memory {{ uci_inbound_reservation_memory }} --limit-memory {{ uci_inbound_limit_memory }} --limit-cpu {{ uci_inbound_limit_cpu }} --reserve-cpu {{ uci_inbound_reservation_cpu }} --health-cmd 'wget -qO- uci-inbound:8085/health || exit 1' --health-timeout 10s --health-retries 5  --network application_default --env JAVA_OPTIONS={{ uci_inbound_java_mem_limit }} --config source=uci-inbound.conf,target=/home/sunbird/inbound-0.0.1-SNAPSHOT/src/main/resources/application.properties,mode=0644 {{hub_org}}/{{image_name}}:{{image_tag}}"
   args:
     chdir: /home/deployer/stack
