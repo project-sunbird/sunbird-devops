@@ -269,6 +269,9 @@ service_env:
   ml-reports-service: ../../../../ansible/roles/stack-sunbird/templates/ml-reports-service.env
   ml-core-service: ../../../../ansible/roles/stack-sunbird/templates/ml-core-service.env
   ml-projects-service: ../../../../ansible/roles/stack-sunbird/templates/ml-projects-service.env
+  transformer:
+    - ../../../../ansible/roles/stack-sunbird/templates/transformer.env
+    - ../../../../ansible/roles/stack-sunbird/templates/transformer_industry_feedback.xml
 
 sunbird_portal_player_cdn_enabled: false
 
@@ -796,6 +799,26 @@ dial_liveness_readiness:
     httpGet:
       path: /health
       port: 9000
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+
+uci_transformer_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /service/health
+      port: 8080
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 8080
     initialDelaySeconds: 15
     periodSeconds: 15
     timeoutSeconds: 5
