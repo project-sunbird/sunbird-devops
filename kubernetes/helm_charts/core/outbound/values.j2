@@ -1,0 +1,35 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+env:
+  javaoptions: {{uci_outbound_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{uci_outbound_replicacount|default(1)}}
+repository: {{uci_outbound_repository|default('uci-outbound')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{uci_outbound_cpu_req|default('100m')}}
+    memory: {{uci_outbound_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{uci_outbound_cpu_limit|default('1')}}
+    memory: {{uci_outbound_mem_limit|default('1024Mi')}}
+network:
+  port: 9090
+  targetport: 9090
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ uci_outbound_maxsurge|default('25%') }}
+  maxunavailable: {{ uci_outbound_maxunavailable|default('25%') }}
+
+{{ uci_outbound_liveness_readiness | to_nice_yaml }}
+
+autoscaling:
+  enabled: {{ uci_outbound_autoscaling_enabled | default('false') }}
+  minReplicas: {{ uci_outbound_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ uci_outbound_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ uci_outbound_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ uci_outbound_autoscaling_targetMemoryUtilizationPercentage|default('') }}
