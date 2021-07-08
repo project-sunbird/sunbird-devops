@@ -16,7 +16,20 @@
   become: yes
   shell: "docker config create uci-outbound.env /home/deployer/config/uci-outbound.env"
 
+- name: Save logback configuration into a env file
+  become: yes
+  template: src=outbound_logback.xml dest=/home/deployer/config/outbound_logback.xml mode=0644
+
+- name: Remove old logback.xml docker config
+  become: yes
+  shell: "docker config rm outbound_logback.xml"
+  ignore_errors: yes
+
+- name: Copy new logback.xml
+  become: yes
+  shell: "docker config create outbound_logback.xml /home/deployer/config/outbound_logback.xml"
+
 - name: Deploy uci-outbound
-  shell: "docker service create --with-registry-auth --replicas {{ uci_outbound_replicas }} -p 9090:9090  --name uci-outbound --hostname uci-outbound --reserve-memory {{ uci_outbound_reservation_memory }} --limit-memory {{ uci_outbound_limit_memory }} --limit-cpu {{ uci_outbound_limit_cpu }} --reserve-cpu {{ uci_outbound_reservation_cpu }} --health-cmd 'wget -qO- uci-outbound:8085/health || exit 1' --health-timeout 10s --health-retries 5  --network application_default --env JAVA_OPTIONS={{ uci_outbound_java_mem_limit }} --config source=uci-outbound.env,target=/home/sunbird/outbound/config/application.properties,mode=0644 {{hub_org}}/{{image_name}}:{{image_tag}}"
+  shell: "docker service create --with-registry-auth --replicas {{ uci_outbound_replicas }} -p 9090:9090  --name uci-outbound --hostname uci-outbound --reserve-memory {{ uci_outbound_reservation_memory }} --limit-memory {{ uci_outbound_limit_memory }} --limit-cpu {{ uci_outbound_limit_cpu }} --reserve-cpu {{ uci_outbound_reservation_cpu }} --health-cmd 'wget -qO- uci-outbound:9090/health || exit 1' --health-timeout 10s --health-retries 5  --network application_default --env JAVA_OPTIONS={{ uci_outbound_java_mem_limit }} --config source=uci-outbound.env,target=/home/sunbird/outbound/config/application.properties,mode=0644 --config source=outbound_logback.xml,target=/home/sunbird/outbound/config/logback-spring.xml,mode=0644 {{hub_org}}/{{image_name}}:{{image_tag}}"
   args:
     chdir: /home/deployer/stack
