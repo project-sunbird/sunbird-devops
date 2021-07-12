@@ -269,9 +269,13 @@ service_env:
   ml-reports-service: ../../../../ansible/roles/stack-sunbird/templates/ml-reports-service.env
   ml-core-service: ../../../../ansible/roles/stack-sunbird/templates/ml-core-service.env
   ml-projects-service: ../../../../ansible/roles/stack-sunbird/templates/ml-projects-service.env
+  inbound: ../../../../ansible/roles/stack-sunbird/templates/inbound.env
+  outbound:
+    - ../../../../ansible/roles/stack-sunbird/templates/outbound.env
+    - ../../../../ansible/roles/stack-sunbird/templates/outbound_logback.xml
   transformer:
     - ../../../../ansible/roles/stack-sunbird/templates/transformer.env
-    - ../../../../ansible/roles/stack-sunbird/templates/transformer_industry_feedback.xml
+    - ../../../../ansible/roles/stack-sunbird/templates/transformer_industry_feedback.xml   
 
 sunbird_portal_player_cdn_enabled: false
 
@@ -799,6 +803,46 @@ dial_liveness_readiness:
     httpGet:
       path: /health
       port: 9000
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+
+uci_inbound_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /service/health
+      port: 8085
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 8085
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+    
+uci_outbound_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /service/health
+      port: 9090
+    initialDelaySeconds: 15
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /service/health
+      port: 9090
     initialDelaySeconds: 15
     periodSeconds: 15
     timeoutSeconds: 5
