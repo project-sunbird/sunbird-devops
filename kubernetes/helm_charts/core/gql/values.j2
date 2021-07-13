@@ -1,0 +1,46 @@
+# Default values for federation-service.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{gql_replicacount|default(1)}}
+repository: {{gql_repository|default('gql')}}
+image_tag: {{image_tag}}
+
+resources:
+  requests:
+    cpu: {{gql_cpu_req|default('100m')}}
+    memory: {{gql_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{gql_cpu_limit|default('1000m')}}
+    memory: {{gql_memory_limit|default('1024Mi')}}
+network:
+  port: 8080
+  targetport: 8080
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ gql_maxsurge|default('25%') }}
+  maxunavailable: {{ gql_maxunavailable|default('25%') }}
+
+gql:
+  ENV: {{ env }}
+  DATABASE_DEBUG: "true"
+  HASURA_GRAPHQL_ADMIN_SECRET: {{ uci_gql_admin_secret }}
+  HASURA_GRAPHQL_DATABASE_URL: {{ uci_gqp_db_url }}
+  HASURA_GRAPHQL_ENABLED_LOG_TYPES: {{ uci_gqp_enable_log_types }}
+  HASURA_GRAPHQL_ENABLE_CONSOLE: {{ uci_gqp_enable_console }}
+  KAFKA_HOST: {{ kafka_host }}
+  KAFKA_PASS: {{ kafka_pass }}
+  KAFKA_PORT: {{ kafka_port }}
+  KAFKA_USER: {{ kafka_user }}
+  POSTGRES_DB: {{ uci_postgres_db }}
+  POSTGRES_PASSWORD: {{ uci_postgres_passwd }}
+  POSTGRES_USER: {{ uci_postgres_user }}
+  PSQL_DB_URL: {{ uci_postgres_host }}
+  PSQL_DB_URL_DEV: {{ uci_postgres_url_dev }}
+  REDIS_HOST: {{ redis_host }}
+  REDIS_PASS: {{ redis_pass }}
+  REDIS_PORT: {{ redis_port }}
+  UCI_CORE_BASE_URL: {{ uci_core_base_url }}
