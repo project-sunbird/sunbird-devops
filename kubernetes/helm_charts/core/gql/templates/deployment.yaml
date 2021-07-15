@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -7,44 +8,48 @@ metadata:
     reloader.stakater.com/auto: "true"
 spec:
   replicas: {{ .Values.replicaCount }}
-  trategy:
+  strategy:
      rollingUpdate:
         maxSurge: {{ .Values.strategy.maxsurge }}
         maxUnavailable: {{ .Values.strategy.maxunavailable }}
   selector:
     matchLabels:
-      {{ .Chart.Name }}
+      app: {{ .Chart.Name }}
   template:
     metadata:
       labels:
         app: {{ .Chart.Name }}
     spec:
-    {{- if .Values.imagePullSecrets }}
+{{- if .Values.imagepullsecrets }}
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
-    {{- end }}
+{{- end }}
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
-          envFrom:
-          - configMapRef:
-              name: {{ .Chart.Name }}-config
-          ports:
-          - containerPort: {{ .Values.network.port }}
-          {{- if .Values.healthcheck }}
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        env:
+        - name: JAVA_OPTIONS
+          value: {{ .Values.env.javaoptions | quote }}
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network.port }}
+        {{- if .Values.healthcheck }}
         livenessProbe:
 {{ toYaml .Values.livenessProbe | indent 10 }}
         readinessProbe:
 {{ toYaml .Values.readinessProbe | indent 10 }}
         {{- end }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-
+          
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: federation-service
+  name: {{ .Chart.Name }}-service
   namespace: {{ .Values.namespace }}
   labels:
     app: {{ .Chart.Name }}
