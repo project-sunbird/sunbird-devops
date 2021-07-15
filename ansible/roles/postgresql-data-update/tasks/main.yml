@@ -51,16 +51,22 @@
   postgresql_db:
     login_user: "{{ uci_postgres_user }}"
     login_password: "{{ uci_postgres_password }}"
-    login_host: "{{ uci_postgres_host }}"
+    login_unix_socket: "{{ postgresql_unix_socket_directories[0] }}"
     name: "{{ uci_forms_postgres_database }}"
     state: restore
     target: "/tmp/uci_transformer_postgres.sql"
+  become_user: "{{ uci_postgres_user }}"
+  vars:
+    ansible_ssh_pipelining: true
 
 - name: Create the schema for uci odk
   postgresql_db:
     login_user: "{{ uci_postgres_user }}"
     login_password: "{{ uci_postgres_password }}"
-    login_host: "{{ uci_postgres_host }}"
+    login_unix_socket: "{{ postgresql_unix_socket_directories[0] }}"
     name: "{{ uci_odk_postgres_database }}"
     state: restore
     target: "/tmp/uci_odk_postgres.sql"
+  become_user: "{{ uci_postgres_user }}"
+  vars:
+    ansible_ssh_pipelining: true
