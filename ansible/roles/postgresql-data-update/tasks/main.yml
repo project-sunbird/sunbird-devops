@@ -14,6 +14,8 @@
   with_items:
     - tables_postgres.sql
     - enc_postgres.sql
+    - uci_odk_postgres.sql
+    - uci_transformer_postgres.sql
 
 - name: Install postgres client to create schema from file
   apt:
@@ -44,3 +46,21 @@
   become_user: "{{ enc_postgres_user }}"
   vars:
     ansible_ssh_pipelining: true
+
+- name: Create the schema for uci transformer-service
+  postgresql_db:
+    login_user: "{{ uci_postgres_user }}"
+    login_password: "{{ uci_postgres_password }}"
+    login_host: "{{ uci_postgres_host }}"
+    name: "{{ uci_forms_postgres_database }}"
+    state: restore
+    target: "/tmp/uci_transformer_postgres.sql"
+
+- name: Create the schema for uci odk
+  postgresql_db:
+    login_user: "{{ uci_postgres_user }}"
+    login_password: "{{ uci_postgres_password }}"
+    login_host: "{{ uci_postgres_host }}"
+    name: "{{ uci_odk_postgres_database }}"
+    state: restore
+    target: "/tmp/uci_odk_postgres.sql"
