@@ -1,0 +1,33 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+env:
+  javaoptions: {{odk_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{odk_replicacount|default(1)}}
+repository: {{odk_repository|default('odk')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{odk_cpu_req|default('100m')}}
+    memory: {{odk_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{odk_cpu_limit|default('1')}}
+    memory: {{odk_mem_limit|default('1024Mi')}}
+network:
+  port: 8080
+  targetport: 8080
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ odk_maxsurge|default('25%') }}
+  maxunavailable: {{ odk_maxunavailable|default('25%') }}
+
+autoscaling:
+  enabled: {{ odk_autoscaling_enabled | default('false') }}
+  minReplicas: {{ odk_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ odk_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ odk_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ odk_autoscaling_targetMemoryUtilizationPercentage|default('') }}
