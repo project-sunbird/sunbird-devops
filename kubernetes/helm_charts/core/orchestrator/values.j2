@@ -1,0 +1,35 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+env:
+  javaoptions: {{uci_orchestrator_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{uci_orchestrator_replicacount|default(1)}}
+repository: {{uci_orchestrator_repository|default('uci-orchestrator')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{uci_orchestrator_cpu_req|default('100m')}}
+    memory: {{uci_orchestrator_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{uci_orchestrator_cpu_limit|default('1')}}
+    memory: {{uci_orchestrator_mem_limit|default('1024Mi')}}
+network:
+  port: 8686
+  targetport: 8686
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ uci_orchestrator_maxsurge|default('25%') }}
+  maxunavailable: {{ uci_orchestrator_maxunavailable|default('25%') }}
+
+{{ uci_orchestrator_liveness_readiness | to_nice_yaml }}
+
+autoscaling:
+  enabled: {{ uci_orchestrator_autoscaling_enabled | default('false') }}
+  minReplicas: {{ uci_orchestrator_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ uci_orchestrator_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ uci_orchestrator_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ uci_orchestrator_autoscaling_targetMemoryUtilizationPercentage|default('') }}
