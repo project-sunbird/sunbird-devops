@@ -91,6 +91,8 @@ observationSubmissions_service_prefix: /observationSubmissions
 surveys_service_prefix: /surveys
 user_extension_prefix: /user-extension
 uci_admin_prefix: /uci
+uci_registry_prefix: /uci/registry
+uci_gql_prefix: /uci/gql
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -118,6 +120,8 @@ ml_core_service_url: "http://ml-core-service:3000"
 uci_inbound_service_url: "http://inbound-service:8085"
 uci_transformer_service_url: "http://trasnformer-service:9091"
 uci_admin_service_url: "http://federation-service:9999"
+uci_gql_service_url: "http://gql-service:8080"
+uci_registry_service_url: "http://fusionauth-service:8080"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -7119,6 +7123,42 @@ kong_apis:
   - name: gqlLocationUCI
     uris: "{{ uci_admin_prefix }}/v1/graphql"
     upstream_url: "{{ uci_admin_service_url }}/v1/graphql"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'solutionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: gqlLocationUCI
+    uris: "{{ uci_admin_prefix }}/uci-api/gql"
+    upstream_url: "{{ uci_admin_service_url }}/"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'solutionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: registryUCI
+    uris: "{{ uci_admin_prefix }}/registry"
+    upstream_url: "{{ uci_gql_service_url }}/"
     strip_uri: true
     plugins:
     - name: jwt
