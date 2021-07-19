@@ -145,7 +145,7 @@ data:
         location /dial/ {
           set $target http://dial-service.{{ .Values.namespace }}.svc.cluster.local:9000;
           rewrite ^/dial/(.*) /$1 break;
-          proxy_pass $target;
+        proxy_pass $target;
         }
         location /inbound-service/ {
           set $target http://inbound-service.{{ .Values.namespace }}.svc.cluster.local:8085;
@@ -172,9 +172,14 @@ data:
           rewrite ^/federation-service/(.*) /$1 break;
           proxy_pass $target;
         }
+        location /odk-service/ {
+          set $target http://odk-service.{{ .Values.namespace }}.svc.cluster.local:8080;
+          rewrite ^/odk-service/(.*) /$1 break;
+          proxy_pass $target;
+        }
       }
     }
 kind: ConfigMap
 metadata:
   name: nginx-private-ingress.conf
-  namespace: {{ .Values.namespace }}
+  namespace: { { .Values.namespace } }
