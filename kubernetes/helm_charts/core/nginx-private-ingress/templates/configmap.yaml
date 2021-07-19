@@ -168,7 +168,7 @@ data:
           proxy_pass $target;
         }
         location /federation-service/ {
-          set $target http://federation-service.{{ .Values.namespace }}.svc.cluster.local:9999;
+          set $target http://uci_api-service.{{ .Values.namespace }}.svc.cluster.local:9999;
           rewrite ^/federation-service/(.*) /$1 break;
           proxy_pass $target;
         }
@@ -177,9 +177,19 @@ data:
           rewrite ^/odk-service/(.*) /$1 break;
           proxy_pass $target;
         }
+         location /gql-service/ {
+          set $target http://gql-service.{{ .Values.namespace }}.svc.cluster.local:8080;
+          rewrite ^/odk-service/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /fusionauth-service/ {
+          set $target http://fusionauth-service.{{ .Values.namespace }}.svc.cluster.local:9011;
+          rewrite ^/odk-service/(.*) /$1 break;
+          proxy_pass $target;
+        }
       }
     }
 kind: ConfigMap
 metadata:
   name: nginx-private-ingress.conf
-  namespace: {{ .Values.namespace }}
+  namespace: { { .Values.namespace } }
