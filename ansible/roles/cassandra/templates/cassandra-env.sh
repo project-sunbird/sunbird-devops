@@ -234,7 +234,7 @@ fi
 # jmx: metrics and administration interface
 #
 # add this if you're having trouble connecting:
-JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname={{hostvars[inventory_hostname]['ansible_default_ipv4']['address']}}"
+JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname={{hostvars[inventory_hostname]['ansible_hostname']}}"
 #
 # see
 # https://blogs.oracle.com/jmxetc/entry/troubleshooting_connection_problems_in_jconsole
