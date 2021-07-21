@@ -234,7 +234,7 @@ fi
 # jmx: metrics and administration interface
 #
 # add this if you're having trouble connecting:
-# JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<public name>"
+JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname={{hostvars[inventory_hostname]['ansible_default_ipv4']['address']}}"
 #
 # see
 # https://blogs.oracle.com/jmxetc/entry/troubleshooting_connection_problems_in_jconsole
@@ -248,12 +248,13 @@ fi
 #if [ "x$LOCAL_JMX" = "x" ]; then
 #    LOCAL_JMX=yes
 #fi
-LOCAL_JMX=no
 # Specifies the default port over which Cassandra will be available for
 # JMX connections.
 # For security reasons, you should not expose this port to the internet.  Firewall it if needed.
 
 JMX_PORT="7199"
+
+LOCAL_JMX=no
 
 if [ "$LOCAL_JMX" = "yes" ]; then
   JVM_OPTS="$JVM_OPTS -Dcassandra.jmx.local.port=$JMX_PORT"
