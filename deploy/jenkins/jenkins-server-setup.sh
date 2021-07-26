@@ -93,6 +93,8 @@ rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
 ###
 
 echo -e "\n\e[0;32m${bold}Installating pip docker${normal}"
+pip uninstall docker-py --yes
+pip3 uninstall docker-py --yes
 pip install docker
 pip3 install docker
 
