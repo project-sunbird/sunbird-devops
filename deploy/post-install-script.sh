@@ -396,6 +396,7 @@ create_framework(){
     echo -e "\e[0;32m${bold}Create default NCF framework ${normal}"
     curl -XPOST "${proto}://${domain_name}/api/framework/v1/create" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
+    -H "X-Channel-Id: ${organisation}" \
     -H "Authorization: Bearer ${core_vault_sunbird_api_auth_token}" \
     -d '{
       "request": 
@@ -415,8 +416,9 @@ create_framework_categories(){
     # Create framework categories
     printf "\n\n"
     echo -e "\e[0;32m${bold}Create framework categories ${normal}"
-    curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF" -H 'Content-Type: application/json' -H 'accept: application/json' \
+    curl -XPOST "${proto}://${domain_name}/api/framework/v1/category/create?framework=NCF" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
+    -H "X-Channel-Id: ${organisation}" \
     -H "Authorization: Bearer ${core_vault_sunbird_api_auth_token}" \
     -d '{
        "request": {
@@ -427,8 +429,9 @@ create_framework_categories(){
        }
     }'
 
-    curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF" -H 'Content-Type: application/json' -H 'accept: application/json' \
+    curl -XPOST "${proto}://${domain_name}/api/framework/v1/category/create?framework=NCF" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
+    -H "X-Channel-Id: ${organisation}" \
     -H "Authorization: Bearer ${core_vault_sunbird_api_auth_token}" \
     -d '{
        "request": {
@@ -439,8 +442,9 @@ create_framework_categories(){
        }
     }'
 
-    curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF" -H 'Content-Type: application/json' -H 'accept: application/json' \
+    curl -XPOST "${proto}://${domain_name}/api/framework/v1/category/create?framework=NCF" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
+    -H "X-Channel-Id: ${organisation}" \
     -H "Authorization: Bearer ${core_vault_sunbird_api_auth_token}" \
     -d '{
        "request": {
@@ -451,8 +455,9 @@ create_framework_categories(){
        }
     }'
 
-    curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF" -H 'Content-Type: application/json' -H 'accept: application/json' \
+    curl -XPOST "${proto}://${domain_name}/api/framework/v1/category/create?framework=NCF" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
+    -H "X-Channel-Id: ${organisation}" \
     -H "Authorization: Bearer ${core_vault_sunbird_api_auth_token}" \
     -d '{
        "request": {
@@ -468,8 +473,9 @@ create_framework_terms(){
     # Create framework terms
     printf "\n\n"
     echo -e "\e[0;32m${bold}Create framework terms ${normal}"
-    curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF&category=board" -H 'Content-Type: application/json' -H 'accept: application/json' \
+    curl -XPOST "${proto}://${domain_name}/api/framework/v1/term/create?framework=NCF&category=board" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
+    -H "X-Channel-Id: ${organisation}" \
     -H "Authorization: Bearer ${core_vault_sunbird_api_auth_token}" \
     -d '{
        "request": {
@@ -480,8 +486,9 @@ create_framework_terms(){
        }
     }'
 
-    curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF&category=medium" -H 'Content-Type: application/json' -H 'accept: application/json' \
+    curl -XPOST "${proto}://${domain_name}/api/framework/v1/term/create?framework=NCF&category=medium" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
+    -H "X-Channel-Id: ${organisation}" \
     -H "Authorization: Bearer ${core_vault_sunbird_api_auth_token}" \
     -d '{
        "request": {
@@ -492,8 +499,9 @@ create_framework_terms(){
        }
     }'
 
-    curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF&category=subject" -H 'Content-Type: application/json' -H 'accept: application/json' \
+    curl -XPOST "${proto}://${domain_name}/api/framework/v1/term/create?framework=NCF&category=subject" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
+    -H "X-Channel-Id: ${organisation}" \
     -H "Authorization: Bearer ${core_vault_sunbird_api_auth_token}" \
     -d '{
        "request": {
@@ -504,8 +512,9 @@ create_framework_terms(){
        }
     }'
 
-    curl -XPOST "${proto}://${domain_name}/api/framework/v1/create?framework=NCF&category=gradeLevel" -H 'Content-Type: application/json' -H 'accept: application/json' \
+    curl -XPOST "${proto}://${domain_name}/api/framework/v1/term/create?framework=NCF&category=gradeLevel" -H 'Content-Type: application/json' -H 'accept: application/json' \
     -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
+    -H "X-Channel-Id: ${organisation}" \
     -H "Authorization: Bearer ${core_vault_sunbird_api_auth_token}" \
     -d '{
        "request": {
