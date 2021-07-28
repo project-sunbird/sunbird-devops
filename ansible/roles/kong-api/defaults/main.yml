@@ -115,6 +115,11 @@ ml_reports_service_url: "http://ml-reports-service:3000"
 ml_survey_service_url: "http://ml-survey-service:3000"
 ml_project_service_url: "http://ml-projects-service:3000"
 ml_core_service_url: "http://ml-core-service:3000"
+uci_inbound_service_url: "http://inbound-service:8085"
+uci_transformer_service_url: "http://trasnformer-service:9091"
+uci_gql_service_url: "http://gql-service:8080"
+uci_registry_service_url: "http://fusionauth-service:9011"
+uci_admin_service_url: "http://uci_api-service:9999"
 
 
 premium_consumer_rate_limits:
@@ -6999,7 +7004,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'solutionAccess'
+        - 'userAdmin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -7053,7 +7058,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'solutionAccess'
+        - 'userAdmin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -7136,24 +7141,6 @@ kong_apis:
   - name: gqlUCI
     uris: "{{ uci_admin_prefix }}/uci-api/gql"
     upstream_url: "{{ uci_admin_service_url }}/"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'userAdmin'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
-
-  - name: registryUCI
-    uris: "{{ uci_admin_prefix }}/registry"
-    upstream_url: "{{ uci_gql_service_url }}/"
     strip_uri: true
     plugins:
     - name: jwt
