@@ -62,6 +62,21 @@ create_organisation(){
        }
     }' | jq -r .result.organisationId)
     echo "organisationId: ${organisation}"
+
+    echo -e "\e[0;32m${bold}Creating ntp organisation for login page ${normal}"
+    curl -sS -XPOST "${proto}://${domain_name}/api/org/v1/create" -H 'Accept: application/json' -H 'Content-Type: application/json' \
+    -H "X-Authenticated-User-Token: ${x_authenticated_token}" \
+    -H "Authorization: Bearer ${core_vault_sunbird_api_auth_token}" \
+    -d '{
+       "request":{
+           "orgName":"NTP",
+           "description":"NTP Organisation for Sunbird",
+           "isRootOrg": true,
+           "channel": "ntp",
+           "organisationType": "board",
+           "isTenant": true
+       }
+    }'
 }
 
 create_users(){
@@ -78,7 +93,6 @@ create_users(){
   		   "password": "Pass@123",
   		   "phone": "9999911111",
   		   "userName": "creator",
-  		   "channel": "sunbird",
   		   "phoneVerified": true
        }
     }' | jq -r .result.userId)
@@ -94,7 +108,6 @@ create_users(){
   		   "password": "Pass@123",
   		   "phone": "9999911112",
   		   "userName": "reviewer",
-  		   "channel": "sunbird",
   		   "phoneVerified": true
        }
     }' | jq -r .result.userId)
@@ -110,7 +123,6 @@ create_users(){
   		   "password": "Pass@123",
   		   "phone": "9999911113",
   		   "userName": "orgadmin",
-  		   "channel": "sunbird",
   		   "phoneVerified": true
        }
     }' | jq -r .result.userId)
@@ -664,13 +676,13 @@ printf "\n\n"
 cassandra_forms
 get_x_authenticated_token
 create_organisation
-create_users
 assign_roles
 create_master_categories
 create_default_licenses
 create_default_channel_license
 create_other_categories
 system_settings
+create_users
 create_framework
 create_framework_categories
 create_framework_terms
