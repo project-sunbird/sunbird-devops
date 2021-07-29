@@ -2532,7 +2532,7 @@ if(client_id.toLowerCase() === 'android'){
       data: JSON.stringify({
         request: {
           filters: {
-            isRootOrg: true,
+            isTenant: true,
             slug: id || 'ntp'
           }
         }
