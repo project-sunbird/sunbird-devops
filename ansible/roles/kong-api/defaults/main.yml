@@ -90,6 +90,7 @@ observations_service_prefix: /observations
 observationSubmissions_service_prefix: /observationSubmissions
 surveys_service_prefix: /surveys
 user_extension_prefix: /user-extension
+uci_admin_prefix: /uci
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -114,6 +115,12 @@ ml_reports_service_url: "http://ml-reports-service:3000"
 ml_survey_service_url: "http://ml-survey-service:3000"
 ml_project_service_url: "http://ml-projects-service:3000"
 ml_core_service_url: "http://ml-core-service:3000"
+uci_inbound_service_url: "http://inbound-service:8085"
+uci_transformer_service_url: "http://trasnformer-service:9091"
+uci_gql_service_url: "http://gql-service:8080"
+uci_registry_service_url: "http://fusionauth-service:9011"
+uci_admin_service_url: "http://uci_api-service:9999"
+
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -6546,6 +6553,566 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'solutionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+
+# UCI Related
+  - name: getUserSegmentsUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/get"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/get"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createUserSegmentsUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/create"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateUserSegmentsUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/update"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: deleteUserSegmentsUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/delete"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/delete"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: searchUserSegmentsUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/search"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/search"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createAdapterUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/adapter/create"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/adapter/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAllAdapterUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/adapter/all"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/adapter/all"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAdapterUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/adapter/get"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/adapter/get"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: deleteAdapterUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/adapter/delete"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/adapter/delete"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateAdapterUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/adapter/update"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/adapter/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAllTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/transformer/all"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/transformer/all"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/transformer/create"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/transformer/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/transformer/get"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/transformer/get"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/transformer/update"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/transformer/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getFormsTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/transformer/getForms"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/transformer/getForms"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: uploadFormsTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/forms/upload"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/forms/upload"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createConversationLogicUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/conversationLogic/create"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/conversationLogic/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAllConversationLogicUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/conversationLogic/all"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/conversationLogic/all"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getConversationLogicUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/conversationLogic/get"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/conversationLogic/get"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: deleteConversationLogicUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/conversationLogic/delete"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/conversationLogic/delete"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateConversationLogicUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/conversationLogic/update"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/conversationLogic/delete"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/create"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAllBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/all"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/all"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/get"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/get"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: startBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/start"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/start"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: pauseBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/pause"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/pause"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: searchBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/search"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/search"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: deleteBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/delete"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/delete"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/update"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAllUserForBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/getAllUsers"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/getAllUsers"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: gqlUCI
+    uris: "{{ uci_admin_prefix }}/uci-api/gql"
+    upstream_url: "{{ uci_admin_service_url }}/v1/graphql"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
