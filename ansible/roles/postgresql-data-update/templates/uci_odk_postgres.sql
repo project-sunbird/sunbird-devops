@@ -1,0 +1,2 @@
+CREATE SCHEMA aggregate;
+commit;
