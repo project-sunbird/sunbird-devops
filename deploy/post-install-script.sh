@@ -676,13 +676,13 @@ printf "\n\n"
 cassandra_forms
 get_x_authenticated_token
 create_organisation
-assign_roles
 create_master_categories
 create_default_licenses
 create_default_channel_license
 create_other_categories
 system_settings
 create_users
+assign_roles
 create_framework
 create_framework_categories
 create_framework_terms
