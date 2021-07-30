@@ -6416,6 +6416,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: updateSurveySubmission
+    uris: "{{ surveys_service_prefix }}/v1/surveySubmissions/update"
+    upstream_url: "{{ ml_survey_service_url }}/v1/surveySubmissions/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'surveyUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: observationListEvidences
     uris: "{{ observations_service_prefix }}/mlsurvey/v1/listAllEvidences"
     upstream_url: "{{ ml_survey_service_url }}/v1/observations/listAllEvidences"
