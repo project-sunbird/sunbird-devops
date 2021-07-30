@@ -1,0 +1,71 @@
+# Copy this file to /var/lib/jenkins/jenkins.yaml
+# Install configuration as code plugin
+# Open configurtion page
+# http://jenkins-ip:8080/configuration-as-code/
+# check the file is already loaded, else give the path
+# Then apply the config
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: github-cred
+              username: "${GH_USERNAME}"
+              # This is the api token for GH private repo access.
+              # 1. open https://github.com/settings/tokens/new
+              # 2. Select repo checkbox
+              # 3. Give a proper note, for ex: Sunbird Jenkins
+              password: "${GH_PASSWORD}"
+security:
+  scriptApproval:
+    approvedSignatures:
+      - method java.io.File exists
+      - new java.io.File java.lang.String
+jenkins:
+  systemMessage: "Project Sunbird Jenkins configured automatically by Jenkins Configuration as Code plugin\n\n"
+  numExecutors: 8
+  labelString: "build-slave ops-slave"
+  markupFormatter: "rawHtml"
+  globalNodeProperties:
+  - envVars:
+      env:
+      - key: ANSIBLE_FORCE_COLOR
+        value: true
+      - key: ANSIBLE_HOST_KEY_CHECKING
+        value: false
+      - key: ANSIBLE_STDOUT_CALLBACK
+        value: debug
+      - key: hub_org
+        value: "${DOCKER_REGISTRY_URL}"
+      - key: private_repo_branch
+        value: "${GH_PRIVATE_REPO_BRANCH}"
+      - key: private_repo_credentials
+        value: "github-cred"
+      - key: private_repo_url
+        value: "${GH_PRIVATE_REPO_URL}"
+      - key: public_repo_branch
+        value: "${GH_PUBLIC_REPO_BRANCH}"
+      - key: override_private_branch
+        value: "true"
+      - key: override_public_branch
+        value: "true"
+      - key: java11_home
+        value: "/usr/lib/jvm/java-11-openjdk-amd64/"
+unclassified:
+  globalLibraries:
+    libraries:
+      - defaultVersion: "heads/shared-lib"
+        name: "deploy-conf"
+        retriever:
+          modernSCM:
+            scm:
+              git:
+                id: "pipeline-shared-lib"
+                remote: "https://github.com/project-sunbird/sunbird-devops.git"
+                traits:
+                - cloneOptionTrait:
+                    extension:
+                      depth: 1
+                      noTags: true
+                      shallow: true

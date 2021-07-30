@@ -92,10 +92,6 @@ cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
 rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
 ###
 
-echo -e "\n\e[0;32m${bold}Installating Docker-py${normal}"
-pip install docker-py
-pip3 install docker-py
-
 echo -e "\n\e[0;32m${bold}Installating pip docker${normal}"
 pip install docker
 pip3 install docker
@@ -117,8 +113,7 @@ echo -e "\n\e[0;32m${bold}Installing nvm${normal}"
 su jenkins bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash"
 
 echo -e "\n\e[0;32m${bold}Installing jmespath${normal}"
-pip uninstall jmespath
-pip3 install -y jmespath
+sudo apt install -y python3-jmespath
 
 #### Kubernetes Tools ####
 
