@@ -91,6 +91,7 @@ observationSubmissions_service_prefix: /observationSubmissions
 surveys_service_prefix: /surveys
 user_extension_prefix: /user-extension
 uci_admin_prefix: /uci
+notification_service_prefix: /notification
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -120,7 +121,7 @@ uci_transformer_service_url: "http://trasnformer-service:9091"
 uci_gql_service_url: "http://gql-service:8080"
 uci_registry_service_url: "http://fusionauth-service:9011"
 uci_admin_service_url: "http://uci_api-service:9999"
-
+notification_service_url: "http://notification-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -7131,6 +7132,60 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: sendNotification
+    uris: "{{ notification_service_prefix }}/v2/notification/send"
+    upstream_url: "{{ notification_service_url }}/v2/notification/send"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'sendNotification'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: readNotificationFeed
+    uris: "{{ notification_service_prefix }}/v2/notification/feed/read"
+    upstream_url: "{{ notification_service_url }}/v2/notification/feed/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'readNotificationFeed'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateNotificationFeed
+    uris: "{{ notification_service_prefix }}/v2/notification/feed/update"
+    upstream_url: "{{ notification_service_url }}/v2/notification/feed/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'updateNotificationFeed'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
