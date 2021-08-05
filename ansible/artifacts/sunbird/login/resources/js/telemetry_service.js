@@ -3159,6 +3159,10 @@ var redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and sel
             const redirect_uriLocation = new URL(redirect_uri);
             if (client_id === 'android' || client_id === 'desktop') {
                 window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
+            } else if(client_id === 'portal' && 
+            redirectUrlPath === '/sign-in/sso/select-org' && 
+            (redirect_uri.includes('dock.sunbirded.org') || redirect_uri.includes('dockstaging.sunbirded.org'))) {
+                window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
             } else {
                 window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
                     redirectUrlPath + updatedQuery;
