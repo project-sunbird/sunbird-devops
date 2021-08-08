@@ -1,0 +1,380 @@
+# Notes:
+# How To Run:
+#   Easy way: 
+#     Open azure portal -> cloudshell -> Clone the repo -> `ansible-playbook -c azure-provision.yaml`
+#   Manual way:
+#     Ref: https://docs.microsoft.com/en-us/azure/developer/ansible/install-on-linux-vm?tabs=azure-cli#install-ansible-on-the-virtual-machine
+# Prerequisites: 
+#   Have to create SP for kubernetes cluster
+#     Command: az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/xxx-xxx-xxxx-xxx" --name install-testing-3-9
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    # ##############################################################
+    # MANDATORY TO CHANGE
+    # ##############################################################
+    version: "3.9"
+    sp_client_id: ""
+    sp_client_secret: ""
+    ssh_public_key_file_location: /home/rajesh_r/deployer.pub
+    ############### Maxmind licence key ###########################
+    # To create license key
+    # Goto: https://www.maxmind.com/en/accounts/current/license-key
+    # Click: Generate a new license key.
+    # ##############################################################
+    geoip_licence_key: ""
+    # ##############################################################
+    # OPTIONAL
+    # ##############################################################
+    rg_name: "sunbird-installation-test-{{ version }}"
+    location: centralindia
+    vnet_name: "installation-test-{{ version }}"
+    subnet_name: "installation-test-subnet-{{ version }}"
+    storage_account_name: "sbinstallation{{ version | regex_replace('\\.|-', '') }}"
+    vm_names:
+      - jenkins
+      - kp
+      - dp
+      - yarn
+      - db
+      - others
+    vm_size: Standard_D4s_v4
+    # To get correct verions, run
+    # az aks get-versions -l centralindia -o table
+    aks_version: 1.20.7
+    private_containers:
+      - private
+      - artifacts
+      - management
+      - results
+      - backups
+      - label
+    public_containers:
+      - contents
+      - public
+  tasks:
+    - name: Creating resource group - "{{ rg_name }}"
+      azure_rm_resourcegroup:
+        name: "{{ rg_name }}"
+        location: "{{ location }}"
+      register: rg
+    - debug:
+        var: rg
+    - name: Create virtual network
+      azure_rm_virtualnetwork:
+        resource_group: "{{ rg_name }}"
+        name: "{{ vnet_name }}"
+        address_prefixes: "10.0.0.0/16"
+      tags:
+        - network
+    - name: Add subnet
+      azure_rm_subnet:
+        resource_group: "{{ rg_name }}"
+        name: "{{ subnet_name }}"
+        address_prefix: "10.0.1.0/24"
+        virtual_network: "{{ vnet_name }}"
+      register: subnet
+      tags:
+        - always
+        - network
+        - k8s
+        - info
+    - name: Creating public ip for jenkins
+      azure_rm_publicipaddress:
+        resource_group: "{{ rg_name }}"
+        name: jenkins-ip
+        allocation_method: static
+      register: public_ip
+      tags:
+        - network
+        - info
+    - name: Creating Nics
+      azure_rm_networkinterface:
+        name: "{{ item }}"
+        resource_group: "{{ rg_name }}"
+        virtual_network: "{{ vnet_name }}"
+        subnet_name: "{{ subnet_name }}"
+      with_items: "{{vm_names}}"
+      tags:
+        - network
+    - name: Assinging public ip for jenkins
+      azure_rm_networkinterface:
+        name: jenkins
+        resource_group: "{{ rg_name }}"
+        virtual_network: "{{ vnet_name }}"
+        subnet_name: "{{ subnet_name }}"
+        public_ip_name: jenkins-ip
+      tags:
+        - network
+    - name: Creating vm {{ name }}
+      azure_rm_virtualmachine:
+        resource_group: "{{ rg_name }}"
+        name: "{{ item }}"
+        vm_size: "{{ vm_size }}"
+        admin_username: deployer
+        ssh_password_enabled: false
+        public_ip_allocation_method: Disabled
+        managed_disk_type: Standard_LRS
+        os_disk_size_gb: 250
+        network_interfaces: "{{ item }}"
+        state: present
+        allocated: "{{ allocate | d(true) }}"
+        ssh_public_keys:
+          - path: /home/deployer/.ssh/authorized_keys
+            key_data: "{{ lookup('file', ssh_public_key_file_location) }}"
+        # To get image:
+        # az vm image list -o table --publisher Canonical
+        image:
+          offer: UbuntuServer
+          publisher: Canonical
+          sku: '18.04-LTS'
+          version: latest
+      with_items: "{{ vm_names }}"
+      tags:
+        - vm
+    # Note: to download the aks kubeconfig
+    # az aks get-credentials --resource-group sunbird-installation-test-3.9 --name sb-installation-3-9
+    - name: Create a managed Azure Container Services (AKS) cluster
+      azure_rm_aks:
+        name: "{{ storage_account_name }}"
+        location: "{{ location }}"
+        resource_group: "{{ rg_name }}"
+        kubernetes_version: "{{aks_version}}"
+        dns_prefix:  "{{ storage_account_name }}"
+        linux_profile:
+          admin_username: "deployer"
+          ssh_key: "{{  lookup('file', ssh_public_key_file_location)  }}"
+        service_principal:
+          client_id: "{{ sp_client_id }}"
+          client_secret: "{{ sp_client_secret }}"
+        network_profile:
+          network_plugin: kubenet
+          pod_cidr: 192.168.0.0/16
+          docker_bridge_cidr: 172.17.0.1/16
+          dns_service_ip: 10.233.0.10
+          service_cidr: 10.233.0.0/16
+        agent_pool_profiles:
+          - name: default
+            count: 4
+            vm_size: Standard_D4s_v4
+            type: VirtualMachineScaleSets
+            vnet_subnet_id: "{{ subnet.state.id }}"
+        tags:
+          Environment: installation
+      tags:
+        - k8s
+    - name: create an account with blob CORS
+      block:
+        - name: Creating storage account
+          azure_rm_storageaccount:
+            resource_group: "{{ rg_name }}"
+            # names should only have alphanumerics
+            name: "{{ storage_account_name }}"
+            type: Standard_RAGRS
+            blob_cors:
+              - allowed_origins:
+                  - '*'
+                allowed_methods:
+                  - GET
+                  - HEAD
+                  - OPTIONS
+                  - PUT
+                allowed_headers:
+                  - Access-Control-Allow-Origin
+                  - Access-Control-Allow-Method
+                  - Origin
+                  - x-ms-meta-qq
+                  - x-ms-blob-type
+                  - x-ms-blob-content-type
+                  - Content-Type
+                exposed_headers:
+                  - Access-Control-Allow-Origin
+                  - Access-Control-Allow-Methods
+                max_age_in_seconds: 200
+          retries: 3
+          delay: 30
+          register: result
+          until: result is not failed
+        - name: Create private containers
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: "{{ item }}"
+          with_items: "{{ private_containers }}"
+        - name: Create public containers
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: "{{ item }}"
+            public_access: container
+          with_items: "{{ public_containers }}"
+        - name: Creating a dummy folder for creation
+          file:
+            path: /tmp/dummy.txt
+            state: touch
+        - name: Creating folder structurue in blob
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: contents
+            blob: "{{ item }}/dummy.txt"
+            src: /tmp/dummy.txt
+            public_access: container
+            content_type: 'text/plain'
+          with_items:
+            - collection-editor
+            - generic-editor
+            - content-edition
+            - v3/preview
+            - terms-and-conditions
+        - name: Downloading terms-and-conditions
+          get_url:
+            url: https://sunbirdpublic.blob.core.windows.net/installation/terms-and-conditions/terms-and-conditions-v9.html
+            dest: /tmp/terms-and-conditions-v9.html
+            mode: '0440'
+        - name: Uploading T&C
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: contents
+            public_access: container
+            blob: "terms-and-conditions/terms-and-conditions-v9.html"
+            src: /tmp/terms-and-conditions-v9.html
+            content_type: 'text/plain'
+        - name: Downloading GeoIP2
+          get_url:
+            url: "https://download.maxmind.com/app/geoip_download?edition_id={{ item.type }}&license_key={{ geoip_licence_key }}&suffix={{ item.prefix }}"
+            dest: "/tmp/geoip2_db.{{ item.prefix }}"
+            mode: '0440'
+          with_items:
+            - {type: 'GeoLite2-City-CSV', prefix: 'zip' }
+            - {type: 'GeoLite2-City', prefix: 'tar.gz'}
+        - name: Uploading GeoIP2 to artifacts
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: artifacts
+            blob: "geoip2_db.{{ item }}"
+            src: "/tmp/geoip2_db.{{ item }}"
+          with_items:
+            - zip
+            - tar.gz
+        - name: Uploading labels
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: label
+            batch_upload_dst: "labels/"
+            batch_upload_src: "../utils/portal/labels/"
+            state: present
+        - name: Unarchive plugins
+          unarchive:
+            src: "https://sunbirdpublic.blob.core.windows.net/installation/content-plugins.zip"
+            dest: /tmp/
+            creates: /tmp/content-plugins
+            remote_src: yes
+          tags:
+            - plugins
+        - name: Uploading plugins
+          azure_rm_storageblob:
+            resource_group: "{{ rg_name }}"
+            storage_account_name: "{{ storage_account_name }}"
+            container: contents
+            batch_upload_dst: "rajesh-plugins/"
+            batch_upload_src: "/tmp/content-plugins/"
+            state: present
+          tags:
+            - plugins
+      tags:
+        - storage
+    - name: Creating containier registry
+      azure_rm_containerregistry:
+        name: "{{ storage_account_name }}"
+        location: "{{ location }}"
+        resource_group: "{{ rg_name }}"
+        admin_user_enabled: true
+        sku: Basic
+        tags:
+          Environment: installation
+    - name: Get instance of Registry
+      azure_rm_containerregistry_info:
+        resource_group: "{{ rg_name }}"
+        retrieve_credentials: true
+        name: "{{ storage_account_name }}"
+      register: registry
+      tags:
+        - info
+    - name: Get facts for storage account
+      azure_rm_storageaccount_info:
+        resource_group: "{{ rg_name }}"
+        name: "{{ storage_account_name }}"
+        show_connection_string: yes
+      register: storage_account_info
+      tags:
+        - info
+    - name: Get instance ips
+      azure_rm_networkinterface_info:
+        resource_group: "{{ rg_name }}"
+        name: "{{ item }}"
+      with_items: "{{vm_names}}"
+      register: nics
+      tags:
+        - info
+    - block:
+      - name: Generating SAS token
+        shell: |
+          sas_expire_time=`date +'%Y-%m-%dT%H:%m:%SZ' -d '+1 year'`
+          sas_token=?`az storage account generate-sas --account-name "{{ storage_account_name }}" --account-key "{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}" --expiry $sas_expire_time --https-only --permissions acdlpruw --resource-types sco --services bfqt | xargs`
+          echo $sas_token
+        register: sas_token
+      - name: Showing resources info
+        debug:
+          msg:
+            - Jenkins public ip: "{{ public_ip.state.ip_address }}"
+            - ACR password: "{{ registry.registries[0].credentials.password }}"
+            - ACR registry server: "{{ registry.registries[0].login_server }}"
+            - ACR username: "{{ registry.registries[0].name }}"
+            - Storage account name: "{{ storage_account_name }}"
+            - Storage account key: "{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
+            - Storage account endpoint: "{{ storage_account_info.storageaccounts[0].primary_endpoints.blob.endpoint }}"
+            - Storage account sas token: "{{ sas_token.stdout }}"
+      - name: Showing instance ips
+        debug:
+          msg:
+            "{{ item.networkinterfaces[0].name }}: {{ item.networkinterfaces[0].ip_configurations[0].private_ip_address }}"
+        with_items: "{{ nics.results }}"
+        # Else the item dict is very big
+        loop_control:
+          label: "{{  item.networkinterfaces[0].name  }}"
+      tags:
+        - info
+    - block:
+      - name: Writing resource info to azure-resources.txt
+        copy:
+          dest: azure-resources.txt
+          content: |-
+            ================================================================
+            jenkins_public_ip="{{ public_ip.state.ip_address }}"
+            acr_password="{{ registry.registries[0].credentials.password }}"
+            acr_registry_server="{{ registry.registries[0].login_server }}"
+            acr_username="{{ registry.registries[0].name }}"
+            storage_account_name="{{ storage_account_name }}"
+            storage_account_key="{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
+            storage_account_endpoint="{{ storage_account_info.storageaccounts[0].primary_endpoints.blob.endpoint }}"
+            storage_account_sas_token="{{ sas_token.stdout }}"
+      - name: Writing machine ips to azure-resources.txt
+        lineinfile: 
+          state: present
+          insertbefore: EOF
+          dest: azure-resources.txt
+          line: "{{ item.networkinterfaces[0].name }}={{ item.networkinterfaces[0].ip_configurations[0].private_ip_address }}"
+        with_items: "{{ nics.results }}"
+        # Else the item dict is very big
+        loop_control:
+          label: "{{  item.networkinterfaces[0].name  }}"
+      - debug:
+          msg: ansible variable values to update for the installation is stored in "sunbird-devops/deploy/azure-resources.txt"
+      tags:
+        - info
