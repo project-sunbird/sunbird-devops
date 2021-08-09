@@ -82,6 +82,7 @@ object_category_definition_prefix: /object/category/definition
 dataset_service_prefix: /dataset
 question_prefix: /question
 questionset_prefix: /questionset
+assessment_prefix: /assessment
 
 
 # Service URLs
@@ -6251,6 +6252,60 @@ kong_apis:
       - name: acl
         config.whitelist:
           - 'contentAdmin'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: assessmentItemSetRead
+    request_path: "{{ content_prefix }}/v1/hierarchy"
+    upstream_url: "{{ content_service_url }}/content/v3/hierarchy"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: assessmentItemRead
+    request_path: "{{ assessment_prefix }}/v1/items/read"
+    upstream_url: "{{ learning_service_url }}/assessment/v3/items/read"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: assessmentItemSetRead
+    request_path: "{{ itemset_prefix }}/v1/read"
+    upstream_url: "{{ learning_service_url }}/itemset/v3/read"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAccess'
       - name: rate-limiting
         config.policy: local
         config.hour: "{{ medium_rate_limit_per_hour }}"
