@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 
 # Author: Rajesh Rajendran <rjshrjndrn@gmail.com>
@@ -19,15 +20,16 @@ eg: ./cassandra_backup.py
 for help ./cassandra_backup.py -h
 '''
 
-from os import walk, sep, system, getcwd, makedirs, cpu_count, link, path, makedirs
 from argparse import ArgumentParser
-from shutil import rmtree, ignore_patterns, copytree
-from re import match, compile
+import concurrent.futures
+from os import cpu_count, getcwd, link, makedirs, makedirs, sep, system, walk, path
+from re import compile, match
+from shutil import copytree, ignore_patterns, rmtree
+import socket
+from subprocess import check_output
 from sys import exit
 from time import strftime
-import concurrent.futures
-import errno
-import socket
+
 
 '''
 Returns the ip address of current host machine
@@ -77,18 +79,29 @@ def customCopy(root, root_target_dir):
     print("copying {} to {}".format(root, root_target_dir))
     copytree(src=root, dst=root_target_dir, copy_function=link, ignore=ignore_patterns('.*'))
 
+# Names of the keyspaces to take schema backup
+ignore_keyspace_names = []
+
 def copy():
     '''
     Copying the data sanpshots to the target directory
     '''
     root_levels = args.datadirectory.rstrip('/').count(sep)
-    ignore_list = compile(tmpdir+sep+"cassandra_backup"+sep+'(system|system|systemtauth|system_traces|system_schema|system_distributed)')
+    # List of system keyspaces, which we don't need.
+    # We need system_schema keyspace, as it has all the keyspace,trigger,types information.
+    ignore_keyspaces = ["system", "system_auth", "system_traces", "system_distributed", "lock_db"]
+    #  ignore_list = compile('^'+tmpdir+sep+"cassandra_backup"+sep+'(system|system_auth|system_traces|system_distributed|lock_db)/.*$')
+    ignore_list = compile('^'+tmpdir+sep+"cassandra_backup"+sep+"("+"|".join(ignore_keyspaces)+')/.*$')
     # List of the threds running in background
     futures = []
     try:
         with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
-            for root, dirs, files in walk(args.datadirectory):
-                root_target_dir = tmpdir+sep+"cassandra_backup"+sep+sep.join(root.split(sep)[root_levels+1:-2])
+            for root, _, _ in walk(args.datadirectory):
+                keyspace = sep+sep.join(root.split(sep)[root_levels+1:-2])
+                # We don't need tables and other inner directories for keyspace.
+                if len(keyspace.split('/')) != 3:
+                    continue
+                root_target_dir = tmpdir+sep+"cassandra_backup"+keyspace
                 if match(ignore_list, root_target_dir):
                     continue
                 if root.split(sep)[-1] == args.snapshotname:
@@ -104,13 +117,34 @@ def copy():
         except Exception as e:
             print(e)
 
-# Creating schema
-command = "cqlsh -e 'DESC SCHEMA' > {}/cassandra_backup/db_schema.cql".format(tmpdir)
+keyspaces_schema_dict = {}
+def create_schema(schema_file):
+    cmd = "cqlsh -e 'SELECT * from system_schema.keyspaces;' | tail -n +4 | head -n -2"
+    output = check_output('{}'.format(cmd), shell=True).decode().strip()
+    for line in output.split('\n'):
+        tmpline = line.split("|")
+        keyspaces_schema_dict[tmpline[0].strip()] = {"durable_writes": tmpline[1].strip(),"replication": tmpline[2].strip()}
+
+    # Creating table schema
+    for root, _, files in walk(tmpdir):
+        for file in files:
+            if file.endswith(".cql"):
+                with open(path.join(root, file),'r') as f:
+                    with open(schema_file,'a') as w:
+                        w.write(f.read())
+                        w.write('\n')
+
+# Creating complete schema
+# For `ALTER DROP COLUMN`,
+# This schema will have issues.
+# So you'll have to create and drop the column.
+# For details about that table/column, look at snapshot_table_schema.sql
+command = "cqlsh -e 'DESC SCHEMA' > {}/cassandra_backup/complete_db_schema.cql".format(tmpdir)
 rc = system(command)
 if rc != 0:
     print("Couldn't backup schema, exiting...")
     exit(1)
-print("Schema backup completed. saved in {}/cassandra_backup/db_schema.sql".format(tmpdir))
+print("Schema backup completed. saved in {}/cassandra_backup/complete_db_schema.sql".format(tmpdir))
 
 # Backing up tokenring
 command = """ nodetool ring | grep """ + get_ip() + """ | awk '{print $NF ","}' | xargs | tee -a """ + tmpdir + """/cassandra_backup/tokenring.txt """ #.format(args.host, tmpdir)
@@ -134,8 +168,15 @@ if not args.disablesnapshot:
         exit(1)
     print("Snapshot taken.")
 
-# Copying the snapshot to proper folder structure, this is not a copy but a hard link
+# Copying the snapshot to proper folder structure, this is not a copy but a hard link.
 copy()
+
+# Dropping unwanted keyspace schema
+# Including system schemas
+## deduplicating Ignore Keyspace list
+ignore_keyspace_names = list(dict.fromkeys(ignore_keyspace_names))
+# Creating schema for keyspaces.
+create_schema("{}/cassandra_backup/snapshot_table_schema.cql".format(tmpdir))
 
 # Clearing the snapshot.
 # We've the data now available in the copied directory.
@@ -144,7 +185,6 @@ print("Clearing snapshot {} ...".format(args.snapshotname))
 rc = system(command)
 if rc != 0:
     print("Clearing snapshot {} failed".format(args.snapshotname))
-    raise
     exit(1)
 
 # Creating tarball

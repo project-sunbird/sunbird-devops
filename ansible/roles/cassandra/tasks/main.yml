@@ -1,26 +1,9 @@
-- name: Cassandra | Make sure the ansible required dependencies are installed
-  become: yes
-  apt: pkg={{ item }} state=present
-  with_items:
-    - python-pycurl
-    - python-pip
-
-- name: install cassandra driver
-  become: yes
-  pip: name=cassandra-driver state=present
-
-- name: export cqlsh variable
-  become: yes
-  lineinfile:
-    dest: /etc/environment
-    line: 'CQLSH_NO_BUNDLED=TRUE'
-    state: present
-    create: yes
-
 - name: Cassandra | Update the cassandra env configuration
   become: yes
-  template: src=cassandra-env.sh dest=/etc/cassandra
-  notify: "restart cassandra"
+  template:
+    src: cassandra-env.sh
+    dest: /etc/cassandra
+    backup: true
   tags:
     - provision
 
@@ -49,6 +32,13 @@
     name: "cassandra"
     state: "present"
 
+- name: Make sure cassandra home is present
+  file:
+    name: "{{ cassandra_home_directory }}"
+    state: directory
+    owner: cassandra
+    group: cassandra
+
 - name: copying the rack and datacenter config file if we are having cluster
   template:
     src: "cassandra-rackdc.properties.j2"
@@ -56,6 +46,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
+    backup: true
   when: ( cassandra_cluster_size | int ) > 1
 
 - name: copying the customized logback file
@@ -65,6 +56,7 @@
     owner: "root"
     group: "root"
     mode: "0644"
+    backup: true
 
 - name: config | Configuring Cassandra
   template:
@@ -73,16 +65,51 @@
     owner: "root"
     group: "root"
     mode: 0644
-  notify: "restart cassandra"
+    backup: true
 
-- name: wait for cassandra to gossip with seed nodes
-  pause:
-    seconds: 10
+- name: Stop cassandra nodes if started
+  service:
+    name: cassandra
+    state: stopped
 
-- name: Restart Cassandra now
+- name: Wait for cassandra to stop
+  wait_for:
+    state: stopped
+    port: 9042
+    delay: 10
+    sleep: 5
+
+- name: Restart Cassandra seeds
   service:
     name: cassandra
     state: restarted
+  delegate_to: "{{ item }}"
+  # ansible won't throw index out of bound exception.
+  with_items: "{{ groups['cassandra'][:2] }}"
+  run_once: true
+
+- name: Wait for cassandra seeds to start
+  wait_for:
+    state: started
+    port: 9042
+    delay: 10
+    sleep: 5
+  delegate_to: "{{ item }}"
+  # ansible won't throw index out of bound exception.
+  with_items: "{{ groups['cassandra'][:2] }}"
+  run_once: true
+
+- name: Restart Cassandra nodes
+  service:
+    name: cassandra
+    state: restarted
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['cassandra'][2:] }}"
+  when: groups['cassandra'] | length > 2
+  run_once: true
 
 - name: wait for cassandra to be up and running
-  wait_for: host={{inventory_hostname}} port=9042 delay=30
+  wait_for:
+    host: "{{inventory_hostname}}"
+    port: 9042
+    delay: 30
