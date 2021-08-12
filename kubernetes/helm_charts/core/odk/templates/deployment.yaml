@@ -76,3 +76,24 @@ spec:
     port: {{ .Values.network.targetport }}
   selector:
     app: {{ .Chart.Name }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-frontend
+  labels:
+    app: {{ .Chart.Name }}
+  {{- if .Values.odk_frontend.annotations }}
+  annotations:
+{{ .Values.odk_frontend.annotations | toYaml | indent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.odk_frontend.type }}
+  ports:
+    - port: {{ .Values.network.targetport }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Chart.Name }}
