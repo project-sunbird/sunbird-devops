@@ -1,9 +1,9 @@
 #jinja2:lstrip_blocks: True
 {#
-# This name is used to define the 
+# This name is used to define the
 # additionalScrapeConfigs name
 # {{ fullnameOverride }}-prometheus-scrape-confg
-# If you change this, make sure to update the value in 
+# If you change this, make sure to update the value in
 # additionalScrapeConfigs/defautls/main.yaml
 #}
 fullnameOverride: sunbird-monitoring
@@ -11,7 +11,7 @@ fullnameOverride: sunbird-monitoring
 # This is to override/add configurations of prometheusSpec by user
 # you can add this variable in common.yaml and that will get merged / preferred
 # over the below variables.
- 
+
 # for example:
 #
 # prometheus_spec_overrides:
@@ -39,14 +39,14 @@ prometheus_spec_overrides: &prometheus_spec_overrides
 #     type: LoadBalancer
 #     # make sure this ip is in valid ip range
 #     # For aws this won't work, as aws will only give domain_name
-#     loadBalancerIP: "10.0.0.10" 
+#     loadBalancerIP: "10.0.0.10"
 
 # Yaml anchor for alertmanager
 alertmanager_spec_overrides: &alertmanager_spec_overrides
   {{ alertmanager_spec_overrides | to_yaml | indent( width=2) }}
 
 
-# Enabling external prometheus scrape config 
+# Enabling external prometheus scrape config
 prometheus:
   prometheusSpec:
     thanos:
@@ -61,7 +61,7 @@ prometheus:
 {% if prometheus_storage_spec is defined and prometheus_storage_spec %}
     storageSpec: {{ prometheus_storage_spec|to_json }}
 {% endif %}
-    # Adding prometeus custom spec overrides 
+    # Adding prometeus custom spec overrides
     # Refering promtheus sepc override yaml anchor
     <<: *prometheus_spec_overrides
 {% if prometheus_service is defined and prometheus_service %}
@@ -127,7 +127,7 @@ alertmanager:
       target_match:
         severity: 'warning'
       equal: ['alertname']
-    
+
     receivers:
       - name: 'slack'
         slack_configs:
@@ -154,7 +154,7 @@ alertmanager:
             username: 'Monitor - Alerter'
             channel: "{{ dp_monitor_alerts_critical_slack_channel }}"
             title_link: ""
-            title: '{% raw %}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]{% endraw %}' 
+            title: '{% raw %}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]{% endraw %}'
             text: |-
                   {{ "{{" }} range .Alerts {{ "}}" }}
                      *Alert:* {{ "{{" }} .Annotations.alertname {{ "}}" }}
@@ -163,7 +163,7 @@ alertmanager:
                     *Details:* {{ "{{" }} .Annotations.message {{ "}}" }}
                   {{ "{{" }} end {{ "}}" }}
             icon_emoji: ':dart:'
-    
+
         email_configs:
           - send_resolved: true
             to: '{{ default_mailing_list }}'
@@ -178,7 +178,7 @@ alertmanager:
             username: 'Monitor - Alerter'
             channel: "{{ dp_monitor_alerts_warning_slack_channel }}"
             title_link: ""
-            title: '{% raw %}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]{% endraw %}' 
+            title: '{% raw %}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]{% endraw %}'
             text: |-
                   {{ "{{" }} range .Alerts {{ "}}" }}
                      *Alert:* {{ "{{" }} .Annotations.alertname {{ "}}" }}
@@ -188,7 +188,7 @@ alertmanager:
                     *Details:* {{ "{{" }} .Annotations.message {{ "}}" }}
                     {{ "{{" }} end {{ "}}" }}
             icon_emoji: ':dart:'
-            
+
         email_configs:
           - send_resolved: true
             to: '{{ default_mailing_list }}'
@@ -203,7 +203,7 @@ alertmanager:
             username: 'Monitor - Alerter'
             channel: "{{ dp_monitor_alerts_critical_slack_channel }}"
             title_link: ""
-            title: '{% raw %}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]{% endraw %}' 
+            title: '{% raw %}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}]{% endraw %}'
             text: |-
                   {{ "{{" }} range .Alerts {{ "}}" }}
                      *Alert:* {{ "{{" }} .Annotations.alertname {{ "}}" }}
@@ -213,7 +213,7 @@ alertmanager:
                     *Details:* {{ "{{" }} .Annotations.message {{ "}}" }}
                     {{ "{{" }} end {{ "}}" }}
             icon_emoji: ':dart:'
-            
+
         email_configs:
           - send_resolved: true
             to: '{{ default_mailing_list }}'
@@ -259,12 +259,14 @@ alertmanager:
 {% raw %}        {{ define "email.sunbird.subject" }}[{{ .Status | toUpper }}] [{{ .CommonLabels.severity }}] [{{ .CommonLabels.env }}] [{{ .CommonLabels.alertname }}] {{ end }}{% endraw %}{''}
     sunbird_alert_html.tmpl: |-
        "{{ lookup('file', '../files/sunbird_alert_html.tmpl') | indent( width=8) }}"
-  # Adding alertmanager custom spec overrides 
+  # Adding alertmanager custom spec overrides
   # Refrencing alert manager yaml anchor
   <<: *alertmanager_spec_overrides
 
 
 grafana:
+  deploymentStrategy:
+    type: Recreate
   image:
     repository: grafana/grafana
     tag: 7.0.6
@@ -285,7 +287,7 @@ grafana:
 
 # Override anything from common.yaml
 # This will override the entire dictionary which we define above
-# Means if you define a key which define above, you'll have to redifine 
+# Means if you define a key which define above, you'll have to redifine
 # entire dictionary here
 {% if prometheus_additional_configs is defined and prometheus_additional_configs %}
 {{ ( prometheus_additional_configs | to_yaml ) }}
