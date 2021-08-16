@@ -51,6 +51,12 @@ data:
           proxy_pass $target;
         }
         location /grafana/ {
+          auth_basic "Restricted";
+          auth_basic_user_file /etc/nginx/.htpasswd;
+          proxy_set_header Authorization  "";
+          proxy_set_header Host $host;
+          proxy_set_header {{ .Values.grafana_admin_user_http_header }} admin;
+          proxy_set_header X-Real-IP $remote_addr;
           set $target http://prometheus-operator-grafana.monitoring.svc.cluster.local;
           rewrite ^/grafana/(.*) /$1 break;
           proxy_pass $target;
