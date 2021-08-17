@@ -1,0 +1,33 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+env:
+  javaoptions: {{gql_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{gql_replicacount|default(1)}}
+repository: {{gql_repository|default('graphql-engine')}}
+image_tag: {{image_tag}}
+resources:
+  requests:
+    cpu: {{gql_cpu_req|default('100m')}}
+    memory: {{gql_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{gql_cpu_limit|default('1')}}
+    memory: {{gql_mem_limit|default('1024Mi')}}
+network:
+  port: 8080
+  targetport: 8080
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ gql_maxsurge|default('25%') }}
+  maxunavailable: {{ gql_maxunavailable|default('25%') }}
+
+autoscaling:
+  enabled: {{ gql_autoscaling_enabled | default('false') }}
+  minReplicas: {{ gql_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ gql_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ gql_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ gql_autoscaling_targetMemoryUtilizationPercentage|default('') }}
