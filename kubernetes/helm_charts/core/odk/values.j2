@@ -1,0 +1,41 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+odk_frontend:
+  # service.type -- Type of Kubernetes service to create
+  type: {{ nginx_private_ingress_type | default('LoadBalancer') }}
+  # service.annotations -- Extra annotations to add to service object
+  annotations: {{nginx_private_ingress_annotations|to_json}}
+
+env:
+  javaoptions: {{uci_odk_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{uci_odk_replicacount|default(1)}}
+repository: {{uci_odk_repository|default('odk')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{uci_odk_cpu_req|default('100m')}}
+    memory: {{uci_odk_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{uci_odk_cpu_limit|default('1')}}
+    memory: {{uci_odk_mem_limit|default('1024Mi')}}
+network:
+  port: 8080
+  targetport: 8080
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ uci_odk_maxsurge|default('25%') }}
+  maxunavailable: {{ uci_odk_maxunavailable|default('25%') }}
+
+{{ uci_odk_liveness_readiness | to_nice_yaml }}
+
+autoscaling:
+  enabled: {{ uci_odk_autoscaling_enabled | default('false') }}
+  minReplicas: {{ uci_odk_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ uci_odk_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ uci_odk_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ uci_odk_autoscaling_targetMemoryUtilizationPercentage|default('') }}

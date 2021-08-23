@@ -90,6 +90,8 @@ observations_service_prefix: /observations
 observationSubmissions_service_prefix: /observationSubmissions
 surveys_service_prefix: /surveys
 user_extension_prefix: /user-extension
+uci_admin_prefix: /uci
+notification_service_prefix: /notification
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -114,6 +116,12 @@ ml_reports_service_url: "http://ml-reports-service:3000"
 ml_survey_service_url: "http://ml-survey-service:3000"
 ml_project_service_url: "http://ml-projects-service:3000"
 ml_core_service_url: "http://ml-core-service:3000"
+uci_inbound_service_url: "http://inbound-service:8085"
+uci_transformer_service_url: "http://trasnformer-service:9091"
+uci_gql_service_url: "http://gql-service:8080"
+uci_registry_service_url: "http://fusionauth-service:9011"
+uci_admin_service_url: "http://uci_api-service:9999"
+notification_service_url: "http://notification-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -5942,7 +5950,7 @@ kong_apis:
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
   
   - name: getUsersPrograms
-    uris: "{{ users_service_prefix }}/v1/users/programs"
+    uris: "{{ users_service_prefix }}/mlcore/v1/programs"
     upstream_url: "{{ ml_core_service_url }}/v1/users/programs"
     strip_uri: true
     plugins:
@@ -5960,7 +5968,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
       
   - name: getUsersSolutions
-    uris: "{{ users_service_prefix }}/v1/users/solutions"
+    uris: "{{ users_service_prefix }}/mlcore/v1/solutions"
     upstream_url: "{{ ml_core_service_url }}/v1/users/solutions"
     strip_uri: true
     plugins:
@@ -5978,7 +5986,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
       
   - name: getTargetedSolutions
-    uris: "{{ solutions_service_prefix }}/v1/solutions/targetedSolutions"
+    uris: "{{ solutions_service_prefix }}/mlcore/v1/targetedSolutions"
     upstream_url: "{{ ml_core_service_url }}/v1/solutions/targetedSolutions"
     strip_uri: true
     plugins:
@@ -5993,11 +6001,29 @@ kong_apis:
       config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"      
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+      
+  - name: userLocationScope
+    uris: "{{ entities_service_prefix }}/mlcore/v1/subEntityListBasedOnRoleAndLocation"
+    upstream_url: "{{ ml_core_service_url }}/v1/entities/subEntityListBasedOnRoleAndLocation"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'registryAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
       
   - name: mandatoryUserProfileFields
-    uris: "{{ entities_service_prefix }}/v1/entities/subEntityListBasedOnRoleAndLocation"
-    upstream_url: "{{ ml_core_service_url }}/v1/entities/subEntityListBasedOnRoleAndLocation"
+    uris: "{{ entities_service_prefix }}/mlcore/v1/entityTypesByLocationAndRole"
+    upstream_url: "{{ ml_core_service_url }}/v1/users/entityTypesByLocationAndRole"
     strip_uri: true
     plugins:
     - name: jwt
@@ -6013,8 +6039,26 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"      
       
+  - name: observationListEvidences
+    uris: "{{ observations_service_prefix }}/mlreports/v1/listAllEvidences"
+    upstream_url: "{{ ml_reports_service_url }}/v1/observations/listAllEvidences"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'observationAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+      
   - name: locationListing
-    uris: "{{ entities_service_prefix }}/v1/entities/subEntityList"
+    uris: "{{ entities_service_prefix }}/mlcore/v1/subEntityList"
     upstream_url: "{{ ml_core_service_url }}/v1/entities/subEntityList"
     strip_uri: true
     plugins:
@@ -6032,7 +6076,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"       
           
   - name: getTargetedEntity
-    uris: "{{ users_service_prefix }}/v1/users/targetedEntity"
+    uris: "{{ users_service_prefix }}/mlcore/v1/targetedEntity"
     upstream_url: "{{ ml_core_service_url }}/v1/users/targetedEntity"
     strip_uri: true
     plugins:
@@ -6050,7 +6094,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"      
       
   - name: getProjectDetails
-    uris: "{{ userProjects_service_prefix }}/v1/userProjects/details"
+    uris: "{{ userProjects_service_prefix }}/mlprojects/v1/details"
     upstream_url: "{{ ml_project_service_url }}/v1/userProjects/details"
     strip_uri: true
     plugins:
@@ -6068,7 +6112,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"      
       
   - name: getProjectEntities
-    uris: "{{ reports_service_prefix }}/v1/reports/entity"
+    uris: "{{ reports_service_prefix }}/mlprojects/v1/entity"
     upstream_url: "{{ ml_project_service_url }}/v1/reports/entity"
     strip_uri: true
     plugins:
@@ -6086,7 +6130,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"       
 
   - name: getProjectDetailReport
-    uris: "{{ reports_service_prefix }}/v1/reports/detailView"
+    uris: "{{ reports_service_prefix }}/mlprojects/v1/detailView"
     upstream_url: "{{ ml_project_service_url }}/v1/reports/detailView"
     strip_uri: true
     plugins:
@@ -6104,7 +6148,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"       
 
   - name: getProjectPrograms
-    uris: "{{ reports_service_prefix }}/v1/reports/getProgramsByEntity"
+    uris: "{{ reports_service_prefix }}/mlprojects/v1/getProgramsByEntity"
     upstream_url: "{{ ml_project_service_url }}/v1/reports/getProgramsByEntity"
     strip_uri: true
     plugins:
@@ -6122,7 +6166,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"      
       
   - name: updateProject
-    uris: "{{ userProjects_service_prefix }}/v1/userProjects/sync"
+    uris: "{{ userProjects_service_prefix }}/mlprojects/v1/sync"
     upstream_url: "{{ ml_project_service_url }}/v1/userProjects/sync"
     strip_uri: true
     plugins:
@@ -6140,7 +6184,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"   
       
   - name: createProject
-    uris: "{{ userProjects_service_prefix }}/v1/userProjects/add"
+    uris: "{{ userProjects_service_prefix }}/mlprojects/v1/add"
     upstream_url: "{{ ml_project_service_url }}/v1/userProjects/add"
     strip_uri: true
     plugins:
@@ -6158,7 +6202,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"      
       
   - name: getProjectSolutionDetails
-    uris: "{{ userProjects_service_prefix }}/v1/userProjects/solutionDetails"
+    uris: "{{ userProjects_service_prefix }}/mlprojects/v1/solutionDetails"
     upstream_url: "{{ ml_project_service_url }}/v1/userProjects/solutionDetails"
     strip_uri: true
     plugins:
@@ -6176,7 +6220,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"      
       
   - name: getProjectStatus
-    uris: "{{ userProjects_service_prefix }}/v1/userProjects/tasksStatus"
+    uris: "{{ userProjects_service_prefix }}/mlprojects/v1/tasksStatus"
     upstream_url: "{{ ml_project_service_url }}/v1/userProjects/tasksStatus"
     strip_uri: true
     plugins:
@@ -6194,7 +6238,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"      
       
   - name: shareProject
-    uris: "{{ userProjects_service_prefix }}/v1/userProjects/share"
+    uris: "{{ userProjects_service_prefix }}/mlprojects/v1/share"
     upstream_url: "{{ ml_project_service_url }}/v1/userProjects/share"
     strip_uri: true
     plugins:
@@ -6212,7 +6256,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"      
       
   - name: getProjectTemplatesDetails
-    uris: "{{ project_service_prefix }}/v1/project/templates/details"
+    uris: "{{ project_service_prefix }}/mlprojects/v1/templates/details"
     upstream_url: "{{ ml_project_service_url }}/v1/project/templates/details"
     strip_uri: true
     plugins:
@@ -6230,7 +6274,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"       
       
   - name: listObservationEntities
-    uris: "{{ observations_service_prefix }}/v1/observations/entities"
+    uris: "{{ observations_service_prefix }}/mlsurvey/v1/entities"
     upstream_url: "{{ ml_survey_service_url }}/v1/observations/entities"
     strip_uri: true
     plugins:
@@ -6248,7 +6292,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"       
       
   - name: observationSubmissionsList
-    uris: "{{ observationSubmissions_service_prefix }}/v1/observationSubmissions/list"
+    uris: "{{ observationSubmissions_service_prefix }}/mlsurvey/v1/list"
     upstream_url: "{{ ml_survey_service_url }}/v1/observationSubmissions/list"
     strip_uri: true
     plugins:
@@ -6266,7 +6310,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: observationQuestionList
-    uris: "{{ observations_service_prefix }}/v1/observations/assessment"
+    uris: "{{ observations_service_prefix }}/mlsurvey/v1/assessment"
     upstream_url: "{{ ml_survey_service_url }}/v1/observations/assessment"
     strip_uri: true
     plugins:
@@ -6284,7 +6328,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: updateObservationSubmission
-    uris: "{{ observationSubmissions_service_prefix }}/v1/observationSubmissions/update"
+    uris: "{{ observationSubmissions_service_prefix }}/mlsurvey/v1/update"
     upstream_url: "{{ ml_survey_service_url }}/v1/observationSubmissions/update"
     strip_uri: true
     plugins:
@@ -6302,7 +6346,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: createObservationSubmission
-    uris: "{{ observationSubmissions_service_prefix }}/v1/observationSubmissions/create"
+    uris: "{{ observationSubmissions_service_prefix }}/mlsurvey/v1/create"
     upstream_url: "{{ ml_survey_service_url }}/v1/observationSubmissions/create"
     strip_uri: true
     plugins:
@@ -6320,7 +6364,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
       
   - name: searchLocationEntities
-    uris: "{{ observations_service_prefix }}/v1/observations/searchEntities"
+    uris: "{{ observations_service_prefix }}/mlsurvey/v1/searchEntities"
     upstream_url: "{{ ml_survey_service_url }}/v1/observations/searchEntities"
     strip_uri: true
     plugins:
@@ -6338,7 +6382,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: addObservationEntity
-    uris: "{{ observations_service_prefix }}/v1/observations/updateEntities"
+    uris: "{{ observations_service_prefix }}/mlsurvey/v1/updateEntities"
     upstream_url: "{{ ml_survey_service_url }}/v1/observations/updateEntities"
     strip_uri: true
     plugins:
@@ -6356,7 +6400,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: observationSolutionList
-    uris: "{{ observationSubmissions_service_prefix }}/v1/observationSubmissions/solutionList"
+    uris: "{{ observationSubmissions_service_prefix }}/mlsurvey/v1/solutionList"
     upstream_url: "{{ ml_survey_service_url }}/v1/observationSubmissions/solutionList"
     strip_uri: true
     plugins:
@@ -6374,7 +6418,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: surveyQuestionList
-    uris: "{{ surveys_service_prefix }}/v1/surveys/details"
+    uris: "{{ surveys_service_prefix }}/mlsurvey/v1/details"
     upstream_url: "{{ ml_survey_service_url }}/v1/surveys/details"
     strip_uri: true
     plugins:
@@ -6392,7 +6436,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: solutionsVerifyLink
-    uris: "{{ solutions_service_prefix }}/v1/solutions/verifyLink"
+    uris: "{{ solutions_service_prefix }}/mlsurvey/v1/verifyLink"
     upstream_url: "{{ ml_survey_service_url }}/v1/solutions/verifyLink"
     strip_uri: true
     plugins:
@@ -6409,8 +6453,26 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: updateSurveySubmission
+    uris: "{{ surveys_service_prefix }}/v1/surveySubmissions/update"
+    upstream_url: "{{ ml_survey_service_url }}/v1/surveySubmissions/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'surveyUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: observationListEvidences
-    uris: "{{ observations_service_prefix }}/v1/observations/listAllEvidences"
+    uris: "{{ observations_service_prefix }}/mlsurvey/v1/listAllEvidences"
     upstream_url: "{{ ml_survey_service_url }}/v1/observations/listAllEvidences"
     strip_uri: true
     plugins:
@@ -6428,7 +6490,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
  
   - name: observationReports
-    uris: "{{ reports_service_prefix }}/v1/reports/fetch"
+    uris: "{{ reports_service_prefix }}/mlreports/v1/fetch"
     upstream_url: "{{ ml_reports_service_url }}/v1/reports/fetch"
     strip_uri: true
     plugins:
@@ -6446,7 +6508,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: surveyListEvidences
-    uris: "{{ surveys_service_prefix }}/v1/surveys/listAllEvidences"
+    uris: "{{ surveys_service_prefix }}/mlreports/v1/listAllEvidences"
     upstream_url: "{{ ml_reports_service_url }}/v1/surveys/listAllEvidences"
     strip_uri: true
     plugins:
@@ -6464,7 +6526,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: surveyReport
-    uris: "{{ surveys_service_prefix }}/v1/surveys/getAllResponsesOfQuestion"
+    uris: "{{ surveys_service_prefix }}/mlreports/v1/getAllResponsesOfQuestion"
     upstream_url: "{{ ml_reports_service_url }}/v1/surveys/getAllResponsesOfQuestion"
     strip_uri: true
     plugins:
@@ -6482,7 +6544,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: observationSubmissionCount
-    uris: "{{ observations_service_prefix }}/v1/observations/submissionsCount"
+    uris: "{{ observations_service_prefix }}/mlreports/v1/submissionsCount"
     upstream_url: "{{ ml_reports_service_url }}/v1/observations/submissionsCount"
     strip_uri: true
     plugins:
@@ -6500,7 +6562,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: getFileUploadUrls
-    uris: "{{ cloud_service_prefix }}/v1/cloud-services/files/preSignedUrls"
+    uris: "{{ cloud_service_prefix }}/mlcore/v1/files/preSignedUrls"
     upstream_url: "{{ ml_core_service_url }}/v1/cloud-services/files/preSignedUrls"
     strip_uri: true
     plugins:
@@ -6518,7 +6580,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}" 
 
   - name: listPlatformPrograms
-    uris: "{{ user_extension_prefix }}/v1/user-extension/programsByPlatformRoles"
+    uris: "{{ user_extension_prefix }}/mlcore/v1/programsByPlatformRoles"
     upstream_url: "{{ ml_core_service_url }}/v1/user-extension/programsByPlatformRoles"
     strip_uri: true
     plugins:
@@ -6536,7 +6598,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}" 
       
   - name: listPlatformSolutions
-    uris: "{{ user_extension_prefix }}/v1/user-extension/solutions"
+    uris: "{{ user_extension_prefix }}/mlcore/v1/solutions"
     upstream_url: "{{ ml_core_service_url }}/v1/user-extension/solutions"
     strip_uri: true
     plugins:
@@ -6546,6 +6608,619 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'solutionAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+
+# UCI Related
+  - name: getUserSegmentsUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/get"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/get"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createUserSegmentsUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/create"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateUserSegmentsUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/update"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: deleteUserSegmentsUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/delete"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/delete"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: searchUserSegmentsUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/search"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/search"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createAdapterUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/adapter/create"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/adapter/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAllAdapterUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/adapter/all"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/adapter/all"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAdapterUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/adapter/get"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/adapter/get"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: deleteAdapterUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/adapter/delete"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/adapter/delete"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateAdapterUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/adapter/update"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/adapter/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAllTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/transformer/all"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/transformer/all"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/transformer/create"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/transformer/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/transformer/get"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/transformer/get"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/transformer/update"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/transformer/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getFormsTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/transformer/getForms"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/transformer/getForms"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: uploadFormsTransformerUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/forms/upload"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/forms/upload"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createConversationLogicUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/conversationLogic/create"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/conversationLogic/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAllConversationLogicUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/conversationLogic/all"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/conversationLogic/all"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getConversationLogicUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/conversationLogic/get"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/conversationLogic/get"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: deleteConversationLogicUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/conversationLogic/delete"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/conversationLogic/delete"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateConversationLogicUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/conversationLogic/update"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/conversationLogic/delete"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/create"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAllBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/all"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/all"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/get"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/get"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: startBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/start"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/start"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: pauseBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/pause"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/pause"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: searchBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/search"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/search"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: deleteBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/delete"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/delete"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/update"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getAllUserForBotUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/bot/getAllUsers"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/bot/getAllUsers"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: gqlUCI
+    uris: "{{ uci_admin_prefix }}/uci-api/gql"
+    upstream_url: "{{ uci_admin_service_url }}/v1/graphql"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: sendNotification
+    uris: "{{ notification_service_prefix }}/v2/send"
+    upstream_url: "{{ notification_service_url }}/v2/notification/send"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'sendNotification'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+      
+  - name: readNotificationFeed
+    uris: "{{ notification_service_prefix }}/v1/feed/read"
+    upstream_url: "{{ notification_service_url }}/v1/notification/feed/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'readNotificationFeed'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateNotificationFeed
+    uris: "{{ notification_service_prefix }}/v1/feed/update"
+    upstream_url: "{{ notification_service_url }}/v1/notification/feed/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'updateNotificationFeed'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
