@@ -122,6 +122,7 @@ uci_gql_service_url: "http://gql-service:8080"
 uci_registry_service_url: "http://fusionauth-service:9011"
 uci_admin_service_url: "http://uci_api-service:9999"
 notification_service_url: "http://notification-service:9000"
+program_service_url: "http://program-service:6000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -7191,3 +7192,39 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+      
+  - name: questionBulkUpload
+    uris: "{{ question_prefix }}/v1/bulkUpload"
+    upstream_url: "{{ program_service_url }}/question/v1/bulkUpload"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentCreate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionBulkUploadStatus
+    uris: "{{ question_prefix }}/v1/bulkUploadStatus"
+    upstream_url: "{{ program_service_url }}/question/v1/bulkUploadStatus"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentCreate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
