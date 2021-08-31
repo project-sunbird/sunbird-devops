@@ -51,6 +51,12 @@ data:
           proxy_pass $target;
         }
         location /grafana/ {
+          auth_basic "Restricted";
+          auth_basic_user_file /etc/nginx/.htpasswd;
+          proxy_set_header Authorization  "";
+          proxy_set_header Host $host;
+          proxy_set_header {{ .Values.grafana_admin_user_http_header }} admin;
+          proxy_set_header X-Real-IP $remote_addr;
           set $target http://prometheus-operator-grafana.monitoring.svc.cluster.local;
           rewrite ^/grafana/(.*) /$1 break;
           proxy_pass $target;
@@ -174,17 +180,27 @@ data:
         }
         location /gql-service/ {
           set $target http://gql-service.{{ .Values.namespace }}.svc.cluster.local:8080;
-          rewrite ^/odk-service/(.*) /$1 break;
+          rewrite ^/gql-service/(.*) /$1 break;
           proxy_pass $target;
         }
-        location /fusionauth-service/ {
-          set $target http://fusionauth-service.{{ .Values.namespace }}.svc.cluster.local:9011;
-          rewrite ^/odk-service/(.*) /$1 break;
+        location /uci-service/ {
+          set $target http://uci-service.{{ .Values.namespace }}.svc.cluster.local:9999;
+          rewrite ^/uci-service/(.*) /$1 break;
           proxy_pass $target;
         }
-         location /odk-service/ {
-          set $target http://odk-service.{{ .Values.namespace }}.svc.cluster.local:8080;
-          rewrite ^/odk-service/(.*) /$1 break;
+        location /ml-survey/ {
+          set $target http://ml-survey-service.{{ .Values.namespace }}.svc.cluster.local:3000;
+          rewrite ^/ml-survey/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /ml-core/ {
+          set $target http://ml-core-service.{{ .Values.namespace }}.svc.cluster.local:3000;
+          rewrite ^/ml-core/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /ml-projects/ {
+          set $target http://ml-projects-service.{{ .Values.namespace }}.svc.cluster.local:3000;
+          rewrite ^/ml-projects/(.*) /$1 break;
           proxy_pass $target;
         }
       }
