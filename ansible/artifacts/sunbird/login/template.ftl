@@ -97,7 +97,7 @@
                                 var logoname = sessionTenant + 'logo';
                                 logoImg.setAttribute('alt',logoname);
                             } else {
-                                var logoname = 'DIKSHA logo';
+                                var logoname = 'Sunbird logo';
                                 logoImg.setAttribute('alt',logoname);
                             }
                             logoImg.src = imgSrc;
