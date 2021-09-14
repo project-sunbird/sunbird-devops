@@ -106,14 +106,18 @@ adminutil__device_keyprefix: "device_key"
 adminutil__access_keyprefix: "access_key"
 adminutil__desktop_keyprefix: "desktop_key"
 adminutil__portal_keyprefix: "portal_key"
+adminutil__portal_anonymous_keyprefix: "portal_anonymous"
+adminutil__portal_loggedin_keyprefix: "portal_loggedin"
 adminutil__device_keystart: 0
 adminutil__device_keycount: 0
 adminutil__access_keystart: 0
 adminutil__access_keycount: 0
 adminutil__desktop_keystart: 0
 adminutil__desktop_keycount: 0
-adminutil__portal_keystart: 0
-adminutil__portal_keycount: 0
+adminutil__portal_anonymous_keystart: 0
+adminutil__portal_anonymous_keycount: 0
+adminutil__portal_loggedin_keystart: 0
+adminutil__portal_loggedin_keycount: 0
 
 adminutil_refresh_token_public_key_prefix: "refresh_token_public_key"
 adminutil_access_token_validity: 43200  # 12 hours access token validity
@@ -149,12 +153,25 @@ adminutil_keys_values:
   role_to_run:
     - decrypt.yml
     - copy-to-helm.yml
-- key_to_register: portal
+- key_to_register: portal_anonymous
   values_to_pass:
-    basepath: "/keys/"
-    keyprefix: "{{ adminutil__portal_keyprefix }}"
-    keystart: "{{ adminutil__portal_keystart|int }}"
-    keycount: "{{ adminutil__portal_keycount|int }}"
+    basepath: "{{ kong_private_key_path }}"
+    keyprefix: "{{ adminutil__portal_anonymous_keyprefix }}"
+    keystart: "{{ adminutil__portal_anonymous_keystart|int }}"
+    keycount: "{{ adminutil__portal_anonymous_keycount|int }}"
+    kong_consumer: "{{ kong_portal_anonymous_consumer }}"
   role_to_run:
     - decrypt.yml
-    - copy-to-helm.yml
+    - generate-keys.yml
+    - onboard-keys.yml
+- key_to_register: portal_loggedin
+  values_to_pass:
+    basepath: "{{ kong_private_key_path }}"
+    keyprefix: "{{ adminutil__portal_loggedin_keyprefix }}"
+    keystart: "{{ adminutil__portal_loggedin_keystart|int }}"
+    keycount: "{{ adminutil__portal_loggedin_keycount|int }}"
+    kong_consumer: "{{ kong_portal_loggedin_consumer }}"
+  role_to_run:
+    - decrypt.yml
+    - generate-keys.yml
+    - onboard-keys.yml
