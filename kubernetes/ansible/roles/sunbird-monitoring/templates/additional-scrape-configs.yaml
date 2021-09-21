@@ -1,7 +1,7 @@
-# This name is used to define the 
+# This name is used to define the
 # additionalScrapeConfigs name
 # {{ fullnameOverride }}-prometheus-scrape-confg
-# If you change this, make sure to update the value in 
+# If you change this, make sure to update the value in
 # additionalScrapeConfigs/defautls/main.yaml
 #}
 
@@ -52,13 +52,13 @@ scrapeconfig:
   - job_name: 'cassandra-exporter'
     metrics_path: /metrics
     static_configs:
-      - targets:  ["{{ groups['cassandra'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:8080' ) | list | join("\", \"") }}"] 
+      - targets:  ["{{ groups['cassandra'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:8080' ) | list | join("\", \"") }}"]
 
 {% if 'druid' in groups and groups['druid'] %}
   - job_name: 'druid-exporter'
     metrics_path: /metrics
     static_configs:
-      - targets:  ["{{ groups['druid'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9108' ) | list | join("\", \"") }}"]  
+      - targets:  ["{{ groups['druid'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9108' ) | list | join("\", \"") }}"]
 {% endif %}
 
   - job_name: 'redis_exporter_targets'
@@ -111,3 +111,24 @@ scrapeconfig:
       - target_label: __address__
         replacement: json-path-exporter.monitoring.svc.cluster.local:7979
         {% endfor %}
+
+namespace: "{{ namespace }}"
+services:
+  cassandra:
+    port: 9042
+    address: ["{{ groups['cassandra'] | join('","') }}"]
+  keycloak:
+    port: 8080
+    address: ["{{ groups['keycloak'] | join('","') }}"]
+  redis:
+    port: 6379
+    address: ["{{ groups['redis-cluster'] | join('","') }}"]
+  kafka:
+    port: 9092
+    address: ["{{ groups['kafka'] | join('","') }}"]
+  es:
+    port: 9200
+    address: ["{{ groups['es'] | join('","') }}"]
+  {% if additional_blackbox_scrapeconfigs is defined and additional_blackbox_scrapeconfigs %}
+  {{ additional_blackbox_scrapeconfigs | to_nice_yaml(indent=2) | indent( width=2) }}
+  {% endif %}

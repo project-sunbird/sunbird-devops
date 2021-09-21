@@ -89,6 +89,7 @@ project_service_prefix: /project
 observations_service_prefix: /observations
 observationSubmissions_service_prefix: /observationSubmissions
 surveys_service_prefix: /surveys
+surveySubmissions_service_prefix: /surveySubmissions
 user_extension_prefix: /user-extension
 uci_admin_prefix: /uci
 notification_service_prefix: /notification
@@ -120,7 +121,7 @@ uci_inbound_service_url: "http://inbound-service:8085"
 uci_transformer_service_url: "http://trasnformer-service:9091"
 uci_gql_service_url: "http://gql-service:8080"
 uci_registry_service_url: "http://fusionauth-service:9011"
-uci_admin_service_url: "http://uci_api-service:9999"
+uci_admin_service_url: "http://uci-service:9999"
 notification_service_url: "http://notification-service:9000"
 
 premium_consumer_rate_limits:
@@ -1007,7 +1008,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'contentAccess'
+        - 'anonymousContentAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1151,7 +1152,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'userAccess'
+        - 'anonymousUserAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1273,7 +1274,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'appAccess'
+        - 'anonymousAppAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1291,7 +1292,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'orgAccess'
+        - 'anonymousOrgAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1490,7 +1491,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'courseAccess'
+        - 'anonymousCourseAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1508,7 +1509,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'courseAccess'
+        - 'anonymousCourseAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1526,7 +1527,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'courseAccess'
+        - 'anonymousCourseAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -1635,7 +1636,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'appAccess'
+        - 'anonymousAppAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -2375,7 +2376,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'orgAccess'
+        - 'anonymousOrgAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -2653,9 +2654,9 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: registerPortalv2
-    uris: "{{ api_manager_perfix }}/v2/consumer/portal/credential/register"
-    upstream_url: "{{ am_util_url }}/v2/consumer/portal/credential/register"
+  - name: registerPortalAnonymous
+    uris: "{{ api_manager_perfix }}/v2/consumer/portal_anonymous/credential/register"
+    upstream_url: "{{ am_util_url }}/v2/consumer/portal_anonymous/credential/register"
     strip_uri: true
     plugins:
     - name: jwt
@@ -2663,7 +2664,25 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'portalAdmin'
+        - 'portalAnonymous'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: registerPortalLoggedin
+    uris: "{{ api_manager_perfix }}/v2/consumer/portal_loggedin/credential/register"
+    upstream_url: "{{ am_util_url }}/v2/consumer/portal_loggedin/credential/register"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'portalLoggedin'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3263,7 +3282,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'appAccess'
+        - 'anonymousAppAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ large_rate_limit_per_hour }}"
@@ -3569,7 +3588,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'userAccess'
+        - 'anonymousUserAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3695,7 +3714,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'certificateAccess'
+        - 'anonymousCertificateAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3713,7 +3732,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'userAccess'
+        - 'anonymousUserAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -3965,7 +3984,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'userAccess'
+        - 'anonymousUserAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ small_rate_limit_per_hour }}"
@@ -4735,7 +4754,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'contentAccess'
+        - 'anonymousContentAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -4825,7 +4844,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'contentAccess'
+        - 'anonymousContentAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -4969,7 +4988,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'contentAccess'
+        - 'anonymousContentAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -5730,7 +5749,7 @@ kong_apis:
       - "{{ statsd_pulgin }}"
       - name: acl
         config.whitelist:
-          - 'contentAccess'
+          - 'anonymousContentAccess'
       - name: rate-limiting
         config.policy: local
         config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -6472,7 +6491,7 @@ kong_apis:
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: updateSurveySubmission
-    uris: "{{ surveys_service_prefix }}/v1/surveySubmissions/update"
+    uris: "{{ surveySubmissions_service_prefix }}/mlsurvey/v1/update"
     upstream_url: "{{ ml_survey_service_url }}/v1/surveySubmissions/update"
     strip_uri: true
     plugins:
@@ -7239,6 +7258,24 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'updateNotificationFeed'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: deleteNotificationFeed
+    uris: "{{ notification_service_prefix }}/v1/feed/delete"
+    upstream_url: "{{ notification_service_url }}/v1/notification/feed/delete"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'deleteNotificationFeed'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
