@@ -349,7 +349,25 @@ kong_apis:
         - 'contentTempAccess'
     - name: rate-limiting
       config.policy: local
-      config.hour: "{{ premium_consumer_large_rate_limit_per_hour }}"
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: compositePrivateSearch
+    uris: "{{ composite_service_prefix }}/v1/private/search"
+    upstream_url: "{{ knowledge_mw_service_url }}/v3/private/search"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist: 
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
@@ -2209,6 +2227,24 @@ kong_apis:
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
       config.limit_by: ip
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: contentPrivateRead
+    uris: "{{ content_prefix }}/v1/private/read"
+    upstream_url: "{{ content_service_url }}/content/v4/private/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
@@ -4834,6 +4870,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
+  - name: collectionPrivateRead
+    uris: "{{ collection_prefix }}/v1/private/read"
+    upstream_url: "{{ content_service_url }}/collection/v4/private/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
   - name: collectionUpdate
     uris: "{{ collection_prefix }}/v1/update"
     upstream_url: "{{ content_service_url }}/collection/v4/update"
@@ -5515,6 +5569,24 @@ kong_apis:
       - name: request-size-limiting
         config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
+  - name: questionPrivateRead
+    uris: "{{ question_prefix }}/v1/private/read"
+    upstream_url: "{{ assessment_service_url }}/question/v4/private/read"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
   - name: questionUpdate
     uris: "{{ question_prefix }}/v1/update"
     upstream_url: "{{ assessment_service_url }}/question/v4/update"
@@ -5628,6 +5700,24 @@ kong_apis:
         config.policy: local
         config.hour: "{{ medium_rate_limit_per_hour }}"
         config.limit_by: ip
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionSetPrivateRead
+    uris: "{{ questionset_prefix }}/v1/private/read"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/private/read"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
       - name: request-size-limiting
         config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
