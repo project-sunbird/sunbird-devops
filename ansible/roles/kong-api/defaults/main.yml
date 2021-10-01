@@ -7264,3 +7264,21 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: netcoreWhatsappInbound
+    uris: "{{ uci_admin_prefix }}/inbound/netcore/whatsApp"
+    upstream_url: "{{ uci_inbound_service_url }}/netcore/whatsApp"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ x_large_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
