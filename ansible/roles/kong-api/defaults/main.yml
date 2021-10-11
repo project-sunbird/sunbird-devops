@@ -6798,6 +6798,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: userSegmentsQueryBuilderUCI
+    uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/queryBuilder"
+    upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/queryBuilder"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: searchUserSegmentsUCI
     uris: "{{ uci_admin_prefix }}/admin/v1/userSegment/search"
     upstream_url: "{{ uci_admin_service_url }}/admin/v1/userSegment/search"
