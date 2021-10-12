@@ -1,0 +1,160 @@
+---
+- name: Create Master category
+  uri:
+    url: http://localhost:8080/learning-service/framework/v3/category/master/create
+    method: POST
+    body_format: json
+    body: |-
+      {
+          "request": {
+            "category": {{ item }}
+          }
+      }
+  with_items: "{{ master_category }}"
+  delegate_to: "{{ learning_vm_ip }}"
+
+- name: Create Object category
+  uri:
+    url: http://{{ private_ingressgateway_ip }}/taxonomy/object/category/v4/create
+    method: POST
+    body_format: json
+    body: |-
+      {
+          "request": {
+            "objectCategory": {{ item }}
+          }
+      }
+  with_items: "{{ object_category }}"
+
+- name: Create Object category definition
+  uri:
+    url: http://{{ private_ingressgateway_ip }}/taxonomy/object/category/definition/v4/create
+    method: POST
+    body_format: json
+    body: |-
+      {
+        "request": {
+          "objectCategoryDefinition": {{ item }}
+        }
+      }
+  with_items: "{{ definition_scripts }}"
+
+- name: Create Licenses
+  uri:
+    url: http://{{ private_ingressgateway_ip }}/content/license/v3/create
+    method: POST
+    body_format: json
+    body: |-
+      {
+        "request": {
+          "license": {
+              "name": "{{ item }}",
+              "description": "{{ item }}"
+          }
+        }
+      }
+  with_items: "{{ licenses }}"
+
+- name: Create Framework
+  uri:
+    url: http://localhost:8080/learning-service/framework/v3/create
+    method: POST
+    headers:
+      X-Channel-Id: "{{ sunbird_custodian_org_id }}"
+    body_format: json
+    body: |-
+      {
+          "request": {
+            "framework": {
+                "name": "{{ default_framework }}",
+                "description": "{{ default_framework }} Framework",
+                "code": "{{ default_framework }}",
+                "channels": [{"identifier": "{{ sunbird_custodian_org_id }}"}]
+              }
+          }
+      }
+  delegate_to: "{{ learning_vm_ip }}"
+
+- name: Create framework category
+  uri:
+    url: http://localhost:8080/learning-service/framework/v3/category/create?framework={{ default_framework }}
+    method: POST
+    body_format: json
+    headers:
+      X-Channel-Id: "{{ sunbird_custodian_org_id }}"
+    body: |-
+      {
+          "request": {
+             "category": {{item}}
+          }
+      }
+  with_items: "{{ framework_category }}"
+  delegate_to: "{{ learning_vm_ip }}"
+
+- name: Create framework terms
+  uri:
+    url: http://localhost:8080/learning-service/framework/v3/term/create?framework={{ default_framework }}&category={{ item.key }}
+    method: POST
+    body_format: json
+    headers:
+      X-Channel-Id: "{{ sunbird_custodian_org_id }}"
+    body: |-
+      {
+          "request": {
+             "term": {{item.term}}
+          }
+      }
+  with_items: "{{ framework_terms }}"
+  delegate_to: "{{ learning_vm_ip }}"
+
+- name: Publish Framework
+  uri:
+    url: http://localhost:8080/learning-service/framework/v3/publish/{{ default_framework }}
+    method: POST
+    body_format: json
+    headers:
+      X-Channel-Id: "{{ sunbird_custodian_org_id }}"
+    body: |-
+      {}
+  delegate_to: "{{ learning_vm_ip }}"
+
+- name: Assosiating framework with channel
+  uri:
+    url: "https://{{ domain_name }}/api/channel/v1/update/{{ sunbird_custodian_org_id }}"
+    method: PATCH
+    body_format: json
+    headers:
+      Authorization: "Bearer {{ core_vault_sunbird_api_auth_token }}"
+    body: |-
+      {
+         "request": {
+            "channel":{
+                "frameworks": [{
+                  "identifier": "{{ default_framework }}",
+                  "name": "{{ default_framework }}"
+                }]
+            }
+          }
+      }
+
+- name: check created framework
+  block:
+  - name: Listing all frameworks
+    uri:
+      url: http://localhost:8080/learning-service/framework/v3/list
+      method: POST
+      body_format: json
+      headers:
+        X-Channel-Id: "{{ sunbird_custodian_org_id }}"
+      body: |-
+        {
+          "request": {
+            "search": {},
+            "fields": ["name","identifier","code","description"]
+          }
+        }
+    delegate_to: "{{ learning_vm_ip }}"
+    register: created_framework
+  - name: Printing the output
+    debug:
+      var: created_framework

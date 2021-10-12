@@ -1,0 +1,48 @@
+---
+# tasks file for post-install
+- name: Creating X-Auth-Token
+  block:
+  - uri:
+      url: "https://{{domain_name}}/auth/realms/sunbird/protocol/openid-connect/token"
+      method: POST
+      body_format: form-urlencoded
+      body:
+        - [ client_id,lms ]
+        - [ client_secret,"{{ sunbird_sso_client_secret }}" ]
+        - [ grant_type,client_credentials ]
+    register: x_auth_output
+  - set_fact:
+      keycloak_access_token: "{{ x_auth_output.json.access_token }}"
+  - debug:
+      var: keycloak_access_token
+
+- name: Creating root org
+  block:
+  - uri:
+      url: "https://{{ domain_name }}/api/org/v1/create"
+      method: POST
+      headers:
+        x-authenticated-user-token: "{{ keycloak_access_token }}"
+        Authorization: "Bearer {{ core_vault_sunbird_api_auth_token }}"
+      body_format: json
+      body: |-
+        {
+          "request": {
+            "orgName": "Sunbird",
+            "channel": "{{ sunbird_default_channel }}",
+            "description": "Default Channel",
+            "isTenant": true,
+            "organisationType":"board"
+          }
+        }
+    register: custodian_org_output
+  - debug:
+      var: custodian_org_output
+  - set_fact:
+      sunbird_custodian_org_id: "{{ custodian_org_output.json.result.organisationId }}"
+  - debug:
+      var: sunbird_custodian_org_id
+
+- import_tasks: knowledge_platform_tasks.yaml
+- import_tasks: user_org.yaml
+- import_tasks: forms.yaml
