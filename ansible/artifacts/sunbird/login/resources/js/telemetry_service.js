@@ -2707,6 +2707,7 @@ if(client_id.toLowerCase() === 'android'){
         localStorage.clear()
     }
     addVersionToURL(version);
+    toggleGoogleSignInBtn();
     var error_message = (new URLSearchParams(window.location.search)).get('error_message');
     var success_message = (new URLSearchParams(window.location.search)).get('success_message');
 
@@ -3221,6 +3222,17 @@ var backToApplication = () => {
 		var updatedQuery = redirect_uri.split('?')[0];
 		window.location.href = updatedQuery;
 	}
+}
+
+var isIOS = function(userAgent = (navigator.userAgent || navigator.vendor || window.opera)){
+  return /iPad|iPhone|iPod/.test(userAgent);
+}
+
+const toggleGoogleSignInBtn = function(){
+  const googleSignInBtnElement = document.getElementById("googleSignInBtn");
+  const client_id = (new URLSearchParams(window.location.search)).get('client_id');
+  const hideGoogleSignInBtn = (googleSignInBtnElement && client_id && isIOS() && ['android', 'ios'].includes(client_id.toLowerCase()));
+  hideGoogleSignInBtn && googleSignInBtnElement.classList.add('hide');
 }
 
 //})();
