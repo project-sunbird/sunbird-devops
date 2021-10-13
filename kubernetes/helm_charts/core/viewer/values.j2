@@ -1,0 +1,38 @@
+### Default variable file for lms-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+
+env:
+  javaoptions: {{viewer_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{viewer_replicacount|default(1)}}
+repository: {{viewer_repository|default('viewer_service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{lms_cpu_req|default('100m')}}
+    memory: {{viewer_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{lms_cpu_limit|default('1')}}
+    memory: {{viewer_mem_limit|default('1024Mi')}}
+network:
+  port: 9005
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ viewer_maxsurge|default('25%') }}
+  maxunavailable: {{ viewer_maxunavailable|default('25%') }}
+
+{{ viewer_liveness_readiness | to_nice_yaml }}
+
+lms_access_basepath: {{ viewer_access_basepath | default('/keys/') }}
+
+autoscaling:
+  enabled: {{ viewer_autoscaling_enabled | default('false') }}
+  minReplicas: {{ viewer_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ viewer_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ viewer_autoscaling_targetCPUUtilizationPercentage|default(50) }}
+  targetMemoryUtilizationPercentage: {{ viewer_autoscaling_targetMemoryUtilizationPercentage|default('') }}
