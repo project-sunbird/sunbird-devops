@@ -92,7 +92,7 @@
                                     </#list>
                                 </div-->
                             </#if>
-                            <button type="button" class="sb-btn sb-btn-normal sb-btn-primary width-100 mb-16 btn-signInWithGoogle" onclick="navigate('google')" aria-label="${msg('signIn')} ${msg('doSignWithGoogle')}">
+                            <button id="googleSignInBtn" type="button" class="sb-btn sb-btn-normal sb-btn-primary width-100 mb-16 btn-signInWithGoogle" onclick="navigate('google')" aria-label="${msg('signIn')} ${msg('doSignWithGoogle')}">
                             <img class="signInWithGoogle" alt="${msg('signIn')} ${msg('doSignWithGoogle')}" src="${url.resourcesPath}/img/google.svg" alt="${msg("signIn")} ${msg("doSignWithGoogle")}">
                             ${msg("signIn")} ${msg("doSignWithGoogle")}
                             </button>
