@@ -26,7 +26,7 @@
                         </label>
                         <div class="ui search">
                             <div class="ui mt-8 icon input">
-                                <input class="" type="password" id="password-new" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password-new" autocomplete="off" onkeydown="javascript:validatePassword()"/>    
+                                <input class="" type="password" id="password-new" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password-new" autocomplete="new-password" onkeydown="javascript:validatePassword()"/>    
                                 <i class="eye icon link" onclick="viewPassword(this)"></i>
                                 <!--i id="preview-hide" class="eye slash icon hide link"></i-->
                             </div>
@@ -40,7 +40,7 @@
                         <label id="password-confirmLabelPlaceholder" class="activeLabelColor hide" for="password-confirm">
                             ${msg("passwordConfirm")}
                         </label>
-                        <input type="password" class="mt-8" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" id="password-confirm" name="password-confirm" autocomplete="off" onkeydown="javascript:matchPassword()"/>
+                        <input type="password" class="mt-8" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" id="password-confirm" name="password-confirm" autocomplete="new-password" onkeydown="javascript:matchPassword()"/>
                         <div id="passwd-match-error-msg" class="ui text confpasswderr hide">Passwords do not match</div>
                     </div>
                     <div class="field">
