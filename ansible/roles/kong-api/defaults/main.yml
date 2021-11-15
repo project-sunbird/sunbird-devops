@@ -1535,6 +1535,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: privateListCourseEnrollments
+    uris: "{{ course_service_prefix }}/private/v1/user/enrollment/list"
+    upstream_url: "{{ lms_service_url }}/private/v1/user/courses/list"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'privateCourseAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: listUserCourseEnrollments
     uris: "{{ course_service_prefix }}/v2/user/enrollment/list"
     upstream_url: "{{ lms_service_url }}/v2/user/courses/list"
@@ -1546,6 +1564,24 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'anonymousCourseAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: privateListUserCourseEnrollments
+    uris: "{{ course_service_prefix }}/private/v2/user/enrollment/list"
+    upstream_url: "{{ lms_service_url }}/private/v2/user/courses/list"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'privateCourseAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -2259,6 +2295,24 @@ kong_apis:
     - name: acl
       config.whitelist:
         - 'courseAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  
+  - name: privateReadContentState
+    uris: "{{ course_service_prefix }}/private/v1/content/state/read"
+    upstream_url: "{{ lms_service_url }}/private/v1/content/state/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'privateCourseAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
