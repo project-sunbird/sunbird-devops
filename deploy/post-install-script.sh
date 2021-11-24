@@ -492,8 +492,8 @@ create_framework_terms(){
     -d '{
        "request": {
          "term": {
-           "name": "Default Board",
-           "code": "defaultboard"
+           "name": "NCF",
+           "code": "ncf"
          }
        }
     }'

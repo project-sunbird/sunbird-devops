@@ -614,6 +614,26 @@ notification_liveness_readiness:
     timeoutSeconds: 5
     failureThreshold: 2
 
+nodebb_liveness_readiness:
+  healthcheck: true
+  readinessProbe:
+    httpGet:
+      path: /discussions/api/category/2
+      port: 4567
+    initialDelaySeconds: 45
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+    successThreshold: 1
+  livenessProbe:
+    httpGet:
+      path: /discussions/api/category/2
+      port: 4567
+    initialDelaySeconds: 45
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+
 player_liveness_readiness:
   healthcheck: true
   readinessProbe:
@@ -855,23 +875,26 @@ uci_outbound_liveness_readiness:
 
 uci_transformer_liveness_readiness:
   healthcheck: true
-  readinessProbe:
-    httpGet:
-      path: /service/health
-      port: 9091
-    initialDelaySeconds: 15
-    periodSeconds: 15
-    timeoutSeconds: 5
-    failureThreshold: 2
-    successThreshold: 1
   livenessProbe:
-    httpGet:
-      path: /service/health
-      port: 9091
-    initialDelaySeconds: 15
-    periodSeconds: 15
-    timeoutSeconds: 5
     failureThreshold: 2
+    httpGet:
+      path: /health
+      port: 9091
+      scheme: HTTP
+    initialDelaySeconds: 90
+    periodSeconds: 30
+    successThreshold: 1
+    timeoutSeconds: 5
+  readinessProbe:
+    failureThreshold: 2
+    httpGet:
+      path: /health
+      port: 9091
+      scheme: HTTP
+    initialDelaySeconds: 90
+    periodSeconds: 30
+    successThreshold: 1
+    timeoutSeconds: 5
 
 uci_orchestrator_liveness_readiness:
   healthcheck: true
@@ -989,6 +1012,7 @@ mount_keycloak_key_apps:
   - ml-reports-service
   - ml-core-service
   - ml-projects-service
+  - notification
 
 #master category validation enabled
 master_category_validation_enabled: "Yes"

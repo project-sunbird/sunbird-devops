@@ -55,16 +55,17 @@
     mode: "0755"
   loop:
     - "{{ WORKDIR }}/logs/observation/status"
-    - "{{ WORKDIR }}/logs/observation_evidence"
+    - "{{ WORKDIR }}/logs/observation/evidence"
     - "{{ WORKDIR }}/logs/project"
     - "{{ WORKDIR }}/logs/survey"
-    - "{{ WORKDIR }}/logs/survey_evidence"
+    - "{{ WORKDIR }}/logs/survey/evidence"
 
 - name: Install packages from requirement.txt
   pip:
     virtualenv: "{{WORKDIR }}/spark_venv"
-    virtualenv_python: python3.6
+    virtualenv_python: python3.8
     requirements: "{{ WORKDIR }}/ml-analytics-service/requirements.txt"
+    extra_args: --upgrade
 
 - name: Creating a faust service shell file in executable mode
   copy:
@@ -85,9 +86,9 @@
     - faust_survey.service
     - faust_survey_evidence.service
 
-- name: Template config.sample to config.ini
+- name: Templating the config.j2 to config.ini
   template:
-    src: "{{ config_path }}/config.sample"
+    src: "config.j2"
     dest: "{{ config_path }}/config.ini"
     backup: yes
 
@@ -99,7 +100,7 @@
   systemd:
     name: "{{ item }}"
     enabled: yes
-    state: started
+    state: restarted
   loop:
     - faust_observation.service
     - faust_observation_evidence.service

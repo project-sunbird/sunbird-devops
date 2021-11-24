@@ -38,7 +38,8 @@
 </head>
 
 <body class="${properties.kcBodyClass!}">
-    <div id="kc-logo"><a href="${properties.kcLogoLink!'#'}"><div id="kc-logo-wrapper"></div><span class="hide">kc-logo</span></a></div>
+    <main>
+    <div id="kc-logo"><a href="${properties.kcLogoLink!'#'}" title="kc-logo-wrapper"><div id="kc-logo-wrapper"></div><span class="hide">kc-logo</span></a></div>
 
     <div id="kc-container" class="${properties.kcContainerClass!}">
         <div id="kc-container-wrapper" class="${properties.kcContainerWrapperClass!}">
@@ -93,7 +94,13 @@
                         var logoImg =  document.querySelector(".ui.header img");
                         if(logoImg){
                             logoImg.setAttribute('class','logo-image');
-                            logoImg.setAttribute('alt',sessionTenant);
+                            if(sessionTenant) {
+                                var logoname = sessionTenant + 'logo';
+                                logoImg.setAttribute('alt',logoname);
+                            } else {
+                                var logoname = 'Sunbird logo';
+                                logoImg.setAttribute('alt',logoname);
+                            }
                             logoImg.src = imgSrc;
                             logoImg.addEventListener("error", ()=>{ logoImg.onerror=null;logoImg.src='${url.resourcesPath}/img/logo.png'});
                         }
@@ -110,6 +117,7 @@
             </div>
         </div>
     </div>
+    </main>
 </body>
 </html>
 </#macro>
