@@ -38,6 +38,7 @@
 </head>
 
 <body class="${properties.kcBodyClass!}">
+    <main>
     <div id="kc-logo"><a href="${properties.kcLogoLink!'#'}" title="kc-logo-wrapper"><div id="kc-logo-wrapper"></div><span class="hide">kc-logo</span></a></div>
 
     <div id="kc-container" class="${properties.kcContainerClass!}">
@@ -116,6 +117,7 @@
             </div>
         </div>
     </div>
+    </main>
 </body>
 </html>
 </#macro>

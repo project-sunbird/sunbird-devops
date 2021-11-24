@@ -41,7 +41,7 @@
                          <#-- TODO: need to find alternative for prepopulating username -->
                         <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" type="text" disabled />
                         <#else>
-                        <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="off" />
+                        <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="username" />
                         </#if>
                     </div>
                     <div class="field mb-8">
@@ -54,7 +54,7 @@
                                 ${msg("placeholderForPassword")}
                             </label>
                         </div>
-                        <input placeholder="${msg('passwordPlaceholder')}" class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="off" />
+                        <input placeholder="${msg('passwordPlaceholder')}" class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="current-password" />
                     <span class="ui text error hide" id="inCorrectPasswordError">${msg("inCorrectPasswordError")}</span>
                     </div>
                     <div class="remember-forgot-row">
@@ -92,7 +92,7 @@
                                     </#list>
                                 </div-->
                             </#if>
-                            <button type="button" class="sb-btn sb-btn-normal sb-btn-primary width-100 mb-16 btn-signInWithGoogle" onclick="navigate('google')" aria-label="${msg('signIn')} ${msg('doSignWithGoogle')}">
+                            <button id="googleSignInBtn" type="button" class="sb-btn sb-btn-normal sb-btn-primary width-100 mb-16 btn-signInWithGoogle" onclick="navigate('google')" aria-label="${msg('signIn')} ${msg('doSignWithGoogle')}">
                             <img class="signInWithGoogle" alt="${msg('signIn')} ${msg('doSignWithGoogle')}" src="${url.resourcesPath}/img/google.svg" alt="${msg("signIn")} ${msg("doSignWithGoogle")}">
                             ${msg("signIn")} ${msg("doSignWithGoogle")}
                             </button>
