@@ -2528,6 +2528,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: readUserSpecificRole
+    uris: "{{ user_service_prefix }}/v1/role/read"
+    upstream_url: "{{ learning_service_url }}/v1/user/role/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: readUserProfile
     uris: "{{ user_service_prefix }}/v1/profile/read"
     upstream_url: "{{ learning_service_url }}/v1/user/getuser"
