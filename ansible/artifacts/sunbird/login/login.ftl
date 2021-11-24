@@ -9,7 +9,7 @@
     <div class="container-wrapper">
                 <div class="ui header centered mb-8">
                     <img onerror="" alt="">
-                    <div id="signIn" class="signInHead mt-8 mb-8">${msg("loginDiksha")}</div>
+                    <h2 id="signIn" class="signInHead mt-8 mb-8">${msg("loginDiksha")}</h2>
                     <p class="subtitle">Login</p>
                 </div>
                 <p id="mergeAccountMessage" class="hide mb-0 textCenter">${msg("mergeAccountMessage")}</p>
@@ -41,7 +41,7 @@
                          <#-- TODO: need to find alternative for prepopulating username -->
                         <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" type="text" disabled />
                         <#else>
-                        <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="off" />
+                        <input class="mt-8" id="username" name="username" placeholder="Enter your email / mobile number" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" type="text" autofocus autocomplete="username" />
                         </#if>
                     </div>
                     <div class="field mb-8">
@@ -54,7 +54,7 @@
                                 ${msg("placeholderForPassword")}
                             </label>
                         </div>
-                        <input placeholder="${msg('passwordPlaceholder')}" class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="off" />
+                        <input placeholder="${msg('passwordPlaceholder')}" class=" mt-8" id="password" onfocusin="inputBoxFocusIn(this)" onfocusout="inputBoxFocusOut(this)" name="password" type="password" autocomplete="current-password" />
                     <span class="ui text error hide" id="inCorrectPasswordError">${msg("inCorrectPasswordError")}</span>
                     </div>
                     <div class="remember-forgot-row">
@@ -65,7 +65,7 @@
                     <div class="forgot-password">
                       <#if realm.resetPasswordAllowed>
                         <a id="fgtKeycloakFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:storeLocation(); javascript:makeDivUnclickable(); javascript:storeForgotPasswordLocation(event);" href="${url.loginResetCredentialsUrl}">${msg("doForgotPassword")}</a>
-                        <div id="fgtPortalFlow" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:makeDivUnclickable(); javascript:createTelemetryEvent(event); javascript:forgetPassword('/recover/identify/account');">${msg("doForgotPassword")}</div>
+                        <div id="fgtPortalFlow" role="link" class="ui right floated forgetPasswordLink hide" tabindex="1" onclick="javascript:makeDivUnclickable(); javascript:createTelemetryEvent(event); javascript:forgetPassword('/recover/identify/account');">${msg("doForgotPassword")}</div>
                       </#if>
                     </div>
                     </div>
@@ -76,7 +76,7 @@
                   <#if realm.password && realm.registrationAllowed && !usernameEditDisabled??>
                     <div id="kc-registration" class="field">
                                 <div class="ui content signUpMsg">
-                                    ${msg("noAccount")} <span id="signup" tabindex="0" class="registerLink" onclick=navigate('self')>${msg("registerHere")}</span>
+                                    ${msg("noAccount")} <span id="signup" role="link" tabindex="0" class="registerLink" onclick=navigate('self')>${msg("registerHere")}</span>
                                 </div>
                     </div>
                   </#if>
@@ -86,14 +86,14 @@
                             <#if realm.password && social.providers??>
                                 <!--div id="kc-social-providers">
                                     <#list social.providers as p>
-                                    <a href="${p.loginUrl}" id="zocial-${p.alias}" class="zocial ${p.providerId} ui fluid blue basic button textCenter">
+                                    <a href="${p.loginUrl}" id="zocial-${p.alias}" aria-label="${msg('doSignIn')} ${msg('doSignWithGoogle')}" class="zocial ${p.providerId} ui fluid blue basic button textCenter">
                                     <i class="icon signInWithGoogle"></i>${msg("doSignIn")} ${msg("doSignWithGoogle")}
                                     </a>
                                     </#list>
                                 </div-->
                             </#if>
-                            <button type="button" class="sb-btn sb-btn-normal sb-btn-primary width-100 mb-16 btn-signInWithGoogle" onclick="navigate('google')">
-                            <img class="signInWithGoogle" src="${url.resourcesPath}/img/google.svg" alt="${msg("signIn")} ${msg("doSignWithGoogle")}">
+                            <button id="googleSignInBtn" type="button" class="sb-btn sb-btn-normal sb-btn-primary width-100 mb-16 btn-signInWithGoogle" onclick="navigate('google')" aria-label="${msg('signIn')} ${msg('doSignWithGoogle')}">
+                            <img class="signInWithGoogle" alt="${msg('signIn')} ${msg('doSignWithGoogle')}" src="${url.resourcesPath}/img/google.svg" alt="${msg("signIn")} ${msg("doSignWithGoogle")}">
                             ${msg("signIn")} ${msg("doSignWithGoogle")}
                             </button>
                             <button type="button" id="stateButton" class="sb-btn sb-btn-outline-gray sb-btn-normal width-100" onclick="navigate('state')">

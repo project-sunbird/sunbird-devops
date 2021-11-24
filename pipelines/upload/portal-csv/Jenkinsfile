@@ -7,19 +7,16 @@ node() {
         String ANSI_RED = "\u001B[31m"
         String ANSI_YELLOW = "\u001B[33m"
 
-        stage('checkout public repo') {
-            folder = new File("$WORKSPACE/.git")
-            if (folder.exists())
-            {
-               println "Found .git folder. Clearing it.."
-               sh'git clean -fxd'
+      stage('checkout public repo') {
+                cleanWs()
+                checkout scm
             }
-            checkout scm
-        }
 
         stage('clone chatbot config repo') {
-                sh("rm -rf sunbird-collection-editor")
-                sh("git clone https://github.com/Sunbird-Ed/sunbird-collection-editor.git -b ${params.editor_repo_branch}")
+            sh """
+              git clone https://github.com/${params.csv_repo_name} -b ${params.csv_repo_branch}
+            """
+            
         }
 
         ansiColor('xterm') {
