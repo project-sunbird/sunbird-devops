@@ -18,5 +18,5 @@ identified_url := regex.find_n(urls[_], http_request.path, 1)[0]
 identified_action := urls_to_action_mapping[identified_url]
 
 allow {
-   data.policy[identified_action]
+   data.policies[identified_action]
 }

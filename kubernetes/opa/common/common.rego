@@ -14,7 +14,7 @@
 # }
 
 # # roleCheck(acls) = indexes {
-# #   indexes = [i | some i; ROLES[token.payload.roles[i].role][_] == acls[_]]
+# #   indexes = [i | some i; ROLES[xAuthUserToken.payload.roles[i].role][_] == acls[_]]
 # # }
 
 # # orgCheckInRequestHeader(acls, header) {

@@ -34,13 +34,13 @@ xAuthForToken := {"payload": payload} {
 updateBatch {
   acls := ["updateBatch"]
   xAuthUserToken.payload.roles[_].role in ["COURSE_CREATOR", "COURSE_MENTOR"]
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
 }
 
 listCourseEnrollments {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   split(http_request.path, "/")[6] == xAuthUserId[2]
@@ -49,7 +49,7 @@ listCourseEnrollments {
 listCourseEnrollments {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   xAuthUserId[2] == xAuthForToken.payload.parentId
@@ -59,7 +59,7 @@ listCourseEnrollments {
 readContentState {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   input.parsed_body.request.userId == xAuthUserId[2]
@@ -68,7 +68,7 @@ readContentState {
 readContentState {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   xAuthUserId[2] == xAuthForToken.payload.parentId
@@ -78,7 +78,7 @@ readContentState {
 courseEnrolment {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   input.parsed_body.request.userId == xAuthUserId[2]
@@ -87,7 +87,7 @@ courseEnrolment {
 courseEnrolment {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   xAuthUserId[2] == xAuthForToken.payload.parentId
@@ -97,7 +97,7 @@ courseEnrolment {
 courseUnEnrolment {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   input.parsed_body.request.userId == xAuthUserId[2]
@@ -106,7 +106,7 @@ courseUnEnrolment {
 courseUnEnrolment {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   xAuthUserId[2] == xAuthForToken.payload.parentId
@@ -116,7 +116,7 @@ courseUnEnrolment {
 updateContentState {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   input.parsed_body.request.userId == xAuthUserId[2]
@@ -125,7 +125,7 @@ updateContentState {
 updateContentState {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   xAuthUserId[2] == xAuthForToken.payload.parentId
@@ -135,7 +135,7 @@ updateContentState {
 updateContentState {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   input.parsed_body.request.assessments.userId == xAuthUserId[2]
@@ -144,7 +144,7 @@ updateContentState {
 updateContentState {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   xAuthUserId[2] == xAuthForToken.payload.parentId
@@ -154,7 +154,7 @@ updateContentState {
 updateContentState {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   input.parsed_body.request.userId == xAuthUserId[2]
@@ -164,7 +164,7 @@ updateContentState {
 updateContentState {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   xAuthUserId[2] == xAuthForToken.payload.parentId

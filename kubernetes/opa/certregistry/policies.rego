@@ -28,11 +28,11 @@ xAuthUserToken := {"payload": payload} {
 downloadRegCertificate {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
 }
 
 downloadRegCertificateV2 {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
 }

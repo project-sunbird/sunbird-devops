@@ -28,7 +28,7 @@ xAuthUserToken := {"payload": payload} {
 getDataExhaustRequest {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]  
   xAuthUserToken.payload.roles[i].scope[_].organisationId == http_request.headers["x-channel-id"]
@@ -42,7 +42,7 @@ not getDataExhaustRequest {
 listDataExhaustRequest {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   xAuthUserToken.payload.roles[i].scope[_].organisationId == http_request.headers["x-channel-id"]

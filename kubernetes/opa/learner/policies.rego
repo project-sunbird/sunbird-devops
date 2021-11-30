@@ -57,14 +57,14 @@ not acceptTermsAndCondition {
 assignRole {
   acls := ["assignRole"]
   xAuthUserToken.payload.roles[_].role == "ORG_ADMIN"
-  some i; ROLES[token.payload.roles[i].role][_] == acls[_]
+  some i; ROLES[xAuthUserToken.payload.roles[i].role][_] == acls[_]
   xAuthUserToken.payload.roles[i].scope[_].organisationId == input.parsed_body.request.roles[_].scope[_].organisationId
 }
 
 updateUser {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   input.parsed_body.request.userId == xAuthUserId[2]
@@ -73,7 +73,7 @@ updateUser {
 updateUser {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   xAuthUserId[2] == xAuthForToken.payload.parentId
@@ -83,7 +83,7 @@ updateUser {
 assignRoleV2 {
   acls := ["assignRole"]
   xAuthUserToken.payload.roles[_].role == "ORG_ADMIN"
-  some i; ROLES[token.payload.roles[i].role][_] == acls[_]
+  some i; ROLES[xAuthUserToken.payload.roles[i].role][_] == acls[_]
   tokenOrgs := { orgs | orgs = xAuthUserToken.payload.roles[i].scope[_].organisationId}
   payloadOrgs := { orgs | orgs = input.parsed_body.request.roles[_].scope[_].organisationId}
   # Union of sets
@@ -95,18 +95,18 @@ assignRoleV2 {
 privateUserLookup {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
 }
 
 privateUserMigrate {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
 
 }
 
 privateUserRead {
   acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[token.payload.roles[_].role][_] == acls[_]
+  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
 }
