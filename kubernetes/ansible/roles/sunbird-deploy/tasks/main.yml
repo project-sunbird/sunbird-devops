@@ -40,6 +40,20 @@
     content: "{{ core_vault_sunbird_sso_publickey }}"
   when: "{{ release_name in mount_keycloak_key_apps }}"
 
+- name: Create OPA bundle
+  shell: opa build --bundle . --optimize 2 --entrypoint "main/allow"
+  args:
+    chdir: "{{ opa_policies_path }}/{{ release_name }}"
+  when: "{{ release_name in opa_enabled_services }}"
+
+- name: Copy the OPA bundle to helm chart templates directory
+  copy:
+    src: bundle.tar.gz
+    dest: "{{chart_path}}/bundle/"
+  args:
+    chdir: "{{ opa_policies_path }}/{{ release_name }}"
+  when: "{{ release_name in opa_enabled_services }}"
+
 - name: helm upgrade
   shell: helm upgrade --install --atomic --timeout {{helm_install_timeout | d('10m')}} {{ release_name }} {{ chart_path }} -n {{namespace}}
 

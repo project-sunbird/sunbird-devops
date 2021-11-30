@@ -10,7 +10,7 @@ sunbird_keycloak_clientId:
 sunbird_keycloak_public:
 sunbird_cache_store:
 sunbird_cache_ttl: 1800
-sunbird_es_port: 9300 # If this port is same for all the machines, single vaule is enough! else comma seperated values
+sunbird_es_port: 9300 # If this port is same for all the machines, single value is enough! else comma separated values
 sunbird_es_http_port: 9200
 actor_replicas: 1
 actor_reservation_memory: 768M
@@ -956,6 +956,29 @@ uci_liveness_readiness:
     timeoutSeconds: 5
     failureThreshold: 2
 
+opa_liveness_readiness:
+  opa_healthcheck: true
+  livenessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /health?plugins
+      port: 8282
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 1
+  readinessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /health?bundle=true
+      port: 8282
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    successThreshold: 1
+    timeoutSeconds: 1
+
 adminutil__access_keyprefix: "access"
 adminutil__access_keystart: 0
 adminutil__access_keycount: 0
@@ -1002,7 +1025,6 @@ public_exhaust_datasets: ["public-data-exhaust"]
 
 data_exhaust_batch_limit: 20
 
-
 mount_keycloak_key_apps:
   - learner
   - lms
@@ -1016,3 +1038,7 @@ mount_keycloak_key_apps:
 
 #master category validation enabled
 master_category_validation_enabled: "Yes"
+
+opa_policies_path: ../../../opa
+opa_enabled_services:
+  - lms

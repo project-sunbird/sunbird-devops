@@ -4,7 +4,7 @@ import input.attributes.request.http as http_request
 
 default allow = false
 
-urls[keys] { urls_to_action_mapping[keys]}   
+urls[keys] { urls_to_action_mapping[keys]}
 
 urls_to_action_mapping := {
    "/course/v1/batch/update": "updateBatch",
