@@ -1,23 +1,24 @@
 package policies
 
+import future.keywords.in
 import input.attributes.request.http as http_request
 
 federationId := "{{ core_vault_sunbird_keycloak_user_federation_provider_id }}"
 
 ROLES := {
-   "BOOK_CREATOR": ["contentCreate", "contentAccess", "contentAdmin", "contentUpdate", "dataAccess"],
-   "BOOK_REVIEWER": ["contentCreate", "contentAdmin", "dataAccess"],
-   "CONTENT_CREATOR": ["contentCreate", "contentAccess", "contentAdmin", "contentUpdate", "dataAccess", "dataCreate"],
-   "COURSE_CREATOR": ["contentCreate", "contentAccess", "contentAdmin", "contentUpdate", "courseUpdate", "dataAccess"],
-   "COURSE_MENTOR": ["courseUpdate", "dataAccess", "dataCreate"],
-   "CONTENT_REVIEWER": ["contentCreate", "contentAdmin", "dataAccess"],
-   "FLAG_REVIEWER": ["appAccess", "contentAdmin", "dataAccess"],
-   "PROGRAM_MANAGER": ["dataCreate", "dataAccess"],
-   "PROGRAM_DESIGNER": ["dataCreate", "dataAccess"],
-   "ORG_ADMIN": ["userAdmin", "appAccess", "dataAccess", "dataCreate"],
-   "REPORT_VIEWER": ["appAccess", "dataAccess"],
-   "REPORT_ADMIN": ["dataCreate", "dataAccess"],
-   "PUBLIC": ["PUBLIC", "dataAccess"]
+   "BOOK_REVIEWER": ["createLock", "publishContent"],
+   "CONTENT_REVIEWER": ["createLock", "publishContent"],
+   "FLAG_REVIEWER": ["publishContent"],
+   "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
+   "CONTENT_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest"],
+   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
+   "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest"],
+   "PROGRAM_MANAGER": ["submitDataExhaustRequest"],
+   "PROGRAM_DESIGNER": ["submitDataExhaustRequest"],
+   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest"],
+   "REPORT_VIEWER": ["acceptTnc"],
+   "REPORT_ADMIN": ["submitDataExhaustRequest"],
+   "PUBLIC": ["PUBLIC"]
 }
 
 xAuthUserToken := {"payload": payload} {
@@ -26,27 +27,32 @@ xAuthUserToken := {"payload": payload} {
 }
 
 copyContent {
-  acls := ["contentCreate"]
+  acls := ["copyContent"]
+  xAuthUserToken.payload.roles[_].role in ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR"]
   ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
 }
 
 createContent {
-  acls := ["contentCreate"]
+  acls := ["createContent"]
+  xAuthUserToken.payload.roles[_].role in ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR"]
   some i; ROLES[xAuthUserToken.payload.roles[i].role][_] == acls[_]
-  xAuthUserToken.payload.roles[i].scope[_].organisationId == http_request.headers["X-Channel-Id"]
+  xAuthUserToken.payload.roles[i].scope[_].organisationId == http_request.headers["x-channel-id"]
 }
 
 createLock {
-  acls := ["contentCreate"]
+  acls := ["createLock"]
+  xAuthUserToken.payload.roles[_].role in ["BOOK_CREATOR", "CONTENT_CREATOR", "BOOK_REVIEWER", "CONTENT_REVIEWER"]
   ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
 }
 
 publishContent {
-  acls := ["contentAdmin"]
+  acls := ["publishContent"]
+  xAuthUserToken.payload.roles[_].role in ["BOOK_REVIEWER", "CONTENT_REVIEWER", "FLAG_REVIEWER"]
   ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
 }
 
 updateCollaborators {
-  acls := ["contentUpdate"]
+  acls := ["updateCollaborators"]
+  xAuthUserToken.payload.roles[_].role in ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR"]
   ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
 }

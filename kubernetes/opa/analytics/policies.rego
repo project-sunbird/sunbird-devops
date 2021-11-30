@@ -5,19 +5,19 @@ import input.attributes.request.http as http_request
 federationId := "{{ core_vault_sunbird_keycloak_user_federation_provider_id }}"
 
 ROLES := {
-   "BOOK_CREATOR": ["contentCreate", "contentAccess", "contentAdmin", "contentUpdate", "dataAccess"],
-   "BOOK_REVIEWER": ["contentCreate", "contentAdmin", "dataAccess"],
-   "CONTENT_CREATOR": ["contentCreate", "contentAccess", "contentAdmin", "contentUpdate", "dataAccess", "dataCreate"],
-   "COURSE_CREATOR": ["contentCreate", "contentAccess", "contentAdmin", "contentUpdate", "courseUpdate", "dataAccess"],
-   "COURSE_MENTOR": ["courseUpdate", "dataAccess", "dataCreate"],
-   "CONTENT_REVIEWER": ["contentCreate", "contentAdmin", "dataAccess"],
-   "FLAG_REVIEWER": ["appAccess", "contentAdmin", "dataAccess"],
-   "PROGRAM_MANAGER": ["dataCreate", "dataAccess"],
-   "PROGRAM_DESIGNER": ["dataCreate", "dataAccess"],
-   "ORG_ADMIN": ["userAdmin", "appAccess", "dataAccess", "dataCreate"],
-   "REPORT_VIEWER": ["appAccess", "dataAccess"],
-   "REPORT_ADMIN": ["dataCreate", "dataAccess"],
-   "PUBLIC": ["PUBLIC", "dataAccess"]
+   "BOOK_REVIEWER": ["createLock", "publishContent"],
+   "CONTENT_REVIEWER": ["createLock", "publishContent"],
+   "FLAG_REVIEWER": ["publishContent"],
+   "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
+   "CONTENT_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest"],
+   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
+   "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest"],
+   "PROGRAM_MANAGER": ["submitDataExhaustRequest"],
+   "PROGRAM_DESIGNER": ["submitDataExhaustRequest"],
+   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest"],
+   "REPORT_VIEWER": ["acceptTnc"],
+   "REPORT_ADMIN": ["submitDataExhaustRequest"],
+   "PUBLIC": ["PUBLIC"]
 }
 
 xAuthUserToken := {"payload": payload} {
@@ -26,33 +26,47 @@ xAuthUserToken := {"payload": payload} {
 }
 
 getDataExhaustRequest {
-  acls := ["dataAccess"]
+  acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
+  ROLES[token.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]  
-  xAuthUserToken.payload.roles[i].scope[_].organisationId == http_request.headers["X-Channel-ID"]
-  xAuthUserId[2] == http_request.headers["X-Authenticated-Userid"]
+  xAuthUserToken.payload.roles[i].scope[_].organisationId == http_request.headers["x-channel-id"]
+  xAuthUserId[2] == http_request.headers["x-authenticated-userid"]
+}
+
+not getDataExhaustRequest {
+  http_request.headers["x-authenticated-userid"]
 }
 
 listDataExhaustRequest {
-  acls := ["dataAccess"]
+  acls := ["PUBLIC"]
   xAuthUserToken.payload.roles[_].role == "PUBLIC"
+  ROLES[token.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
-  xAuthUserToken.payload.roles[i].scope[_].organisationId == http_request.headers["X-Channel-ID"]
-  xAuthUserId[2] == http_request.headers["X-Authenticated-Userid"]
+  xAuthUserToken.payload.roles[i].scope[_].organisationId == http_request.headers["x-channel-id"]
+  xAuthUserId[2] == http_request.headers["x-authenticated-userid"]
+}
+
+not listDataExhaustRequest {
+  http_request.headers["x-authenticated-userid"]
 }
 
 submitDataExhaustRequest {
-  acls := ["dataCreate"]
+  acls := ["submitDataExhaustRequest"]
   input.parsed_body.request.dataset in ["progress-exhaust", "response-exhaust", "userinfo-exhaust"]
   xAuthUserToken.payload.roles[_].role in ["ORG_ADMIN", "REPORT_ADMIN", "CONTENT_CREATOR", "COURSE_MENTOR"]
   ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
 }
 
 submitDataExhaustRequest {
-  acls := ["dataCreate"]
+  acls := ["submitDataExhaustRequest"]
   input.parsed_body.request.dataset == "druid-dataset"
   xAuthUserToken.payload.roles[_].role == ["PROGRAM_MANAGER", "PROGRAM_DESIGNER"]
   ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
+}
+
+not submitDataExhaustRequest {
+  http_request.headers["x-authenticated-userid"]
 }
