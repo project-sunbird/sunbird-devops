@@ -27,7 +27,7 @@
     private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
     private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
     private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount if outer_item.0.values_to_pass.keycount > '0' else '1'  }}"
-  when: "{{ release_name in mount_keycloak_key_apps }}"
+  when: release_name in mount_keycloak_key_apps
   with_subelements:
     - "{{adminutil_access_values}}"
     - role_to_run
@@ -38,21 +38,25 @@
   copy:
     dest: "{{ chart_path }}/keys/{{ adminutil_refresh_token_public_key_kid }}"
     content: "{{ core_vault_sunbird_sso_publickey }}"
+  when: release_name in mount_keycloak_key_apps
+
+- name: Replace ansible variables with values
+  template:
+    src: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/policies.rego"
+    dest: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/policies.rego"
   when: "{{ release_name in mount_keycloak_key_apps }}"
 
 - name: Create OPA bundle
-  shell: opa build --bundle . --optimize 2 --entrypoint "main/allow"
+  shell: opa build --bundle . --optimize 0 --entrypoint "main/allow"
   args:
-    chdir: "{{ opa_policies_path }}/{{ release_name }}"
-  when: "{{ release_name in opa_enabled_services }}"
+    chdir: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}"
+  when: release_name in opa_enabled_services
 
 - name: Copy the OPA bundle to helm chart templates directory
   copy:
-    src: bundle.tar.gz
+    src: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/bundle.tar.gz"
     dest: "{{chart_path}}/bundle/"
-  args:
-    chdir: "{{ opa_policies_path }}/{{ release_name }}"
-  when: "{{ release_name in opa_enabled_services }}"
+  when: release_name in opa_enabled_services
 
 - name: helm upgrade
   shell: helm upgrade --install --atomic --timeout {{helm_install_timeout | d('10m')}} {{ release_name }} {{ chart_path }} -n {{namespace}}
