@@ -7,12 +7,12 @@ default allow = false
 urls[keys] { urls_to_action_mapping[keys]}
 
 urls_to_action_mapping := {
-   "/course/v1/batch/update": "updateBatch",
-   "/course/v1/user/enrollment/list": "listCourseEnrollments",
-   "/course/v1/content/state/read": "readContentState",
-   "/course/v1/enroll": "courseEnrolment",
-   "/course/v1/unenrol": "courseUnEnrolment",
-   "/course/v1/content/state/update": "updateContentState"
+   "/v1/course/batch/update": "updateBatch",
+   "/v1/user/courses/list": "listCourseEnrollments",
+   "/v1/content/state/read": "readContentState",
+   "/v1/course/enroll": "courseEnrolment",
+   "/v1/course/unenroll": "courseUnEnrolment",
+   "/v1/content/state/update": "updateContentState"
 }
 
 identified_url := regex.find_n(urls[_], http_request.path, 1)[0]
