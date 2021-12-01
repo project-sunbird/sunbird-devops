@@ -1,6 +1,6 @@
 package policies
 
-import data.common as super
+import data.general as super
 
 updateBatch {
   acls := ["updateBatch"]
