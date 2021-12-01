@@ -43,7 +43,7 @@ listCourseEnrollments {
   ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
-  split(http_request.path, "/")[6] == xAuthUserId[2]
+  split(http_request.path, "/")[5] == xAuthUserId[2]
 }
 
 listCourseEnrollments {
@@ -53,7 +53,7 @@ listCourseEnrollments {
   xAuthUserId := split(xAuthUserToken.payload.sub, ":")
   federationId == xAuthUserId[1]
   xAuthUserId[2] == xAuthForToken.payload.parentId
-  split(http_request.path, "/")[6] == xAuthForToken.payload.sub
+  split(http_request.path, "/")[5] == xAuthForToken.payload.sub
 }
 
 readContentState {
