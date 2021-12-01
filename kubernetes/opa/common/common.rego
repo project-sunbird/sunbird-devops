@@ -38,25 +38,38 @@ for_token_userid := for_token.payload.sub
 for_token_parentid := for_token.payload.parentId
 token_roles := user_token.payload.roles
 
-federationIdCheck {
+userid = token_userid {
+    not http_request.headers["x-authenticated-for"]
+} else = for_token_userid {
+    http_request.headers["x-authenticated-for"]
+}
+
+acls_check(acls) {
+  ROLES[token_roles[_].role][_] == acls[_]
+}
+
+role_check(roles) {
+  token_roles[_].role in roles
+}
+
+federation_id_check {
   federation_id := token_federation_id
 }
 
-publicRoleCheck {
-  acls := ["PUBLIC"]
-  user_token.payload.roles[_].role == "PUBLIC"
-  ROLES[token_roles[_].role][_] == acls[_]
-  federationIdCheck
-}
-
-parentIdCheck {
+parent_id_check {
+    http_request.headers["x-authenticated-for"]
     token_userid == for_token_parentid
 }
 
-aclCheck(acls) {
-  ROLES[token_roles[_].role][_] == acls[_]
+parent_id_check {
+    not http_request.headers["x-authenticated-for"]
 }
 
-roleCheck(roles) {
-  token_roles[_].role in roles
+public_role_check {
+  acls := ["PUBLIC"]
+  roles := ["PUBLIC"]
+  acls_check(acls)
+  role_check(roles)
+  federation_id_check
+  parent_id_check
 }
