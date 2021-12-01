@@ -1,42 +1,62 @@
-# package common
+package common
 
-# import input.attributes.request.http as http_request
+import input.attributes.request.http as http_request
+import future.keywords.in
 
-# ROLES := {
-#    "BOOK_CREATOR": ["contentCreate", "contentAccess", "contentAdmin", "contentUpdate"],
-#    "BOOK_REVIEWER": ["contentCreate", "contentAdmin"],
-#    "CONTENT_CREATOR": ["contentCreate", "contentAccess", "contentAdmin", "contentUpdate"],
-#    "COURSE_CREATOR": ["contentCreate", "contentAccess", "contentAdmin", "contentUpdate"],
-#    "CONTENT_REVIEWER": ["contentCreate", "contentAdmin"],
-#    "FLAG_REVIEWER": ["contentAdmin"],
-#    "ORG_ADMIN": ["userAdmin"],
-#    "PUBLIC": ["PUBLIC"]
-# }
+federation_id := "{{ core_vault_sunbird_keycloak_user_federation_provider_id }}"
 
-# # roleCheck(acls) = indexes {
-# #   indexes = [i | some i; ROLES[xAuthUserToken.payload.roles[i].role][_] == acls[_]]
-# # }
+ROLES := {
+   "BOOK_REVIEWER": ["createLock", "publishContent"],
+   "CONTENT_REVIEWER": ["createLock", "publishContent"],
+   "FLAG_REVIEWER": ["publishContent"],
+   "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
+   "CONTENT_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest"],
+   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
+   "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest"],
+   "PROGRAM_MANAGER": ["submitDataExhaustRequest"],
+   "PROGRAM_DESIGNER": ["submitDataExhaustRequest"],
+   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest"],
+   "REPORT_VIEWER": ["acceptTnc"],
+   "REPORT_ADMIN": ["submitDataExhaustRequest"],
+   "PUBLIC": ["PUBLIC"]
+}
 
-# # orgCheckInRequestHeader(acls, header) {
-# #   roleIndexes := roleCheck(acls)
-# #   token.payload.roles[roleIndexes[_]].scope[_].organisationId == http_request.headers[header]
-# # }
+user_token := {"payload": payload} {
+  encoded := http_request.headers["x-authenticated-user-token"]
+  [_, payload, _] := io.jwt.decode(encoded)
+}
 
-# # orgCheckInRequestPayload(acls, payload) {
-# #   roleIndexes := roleCheck(acls)
-# #   token.payload.roles[roleIndexes[_]].scope[_].organisationId == input.parsed_body[request.organisationId]
-# # }
+for_token := {"payload": payload} {
+  encoded := http_request.headers["x-authenticated-for"]
+  [_, payload, _] := io.jwt.decode(encoded)
+}
 
-# federationIdCheck {
-#   federationId == sub[1]
-# }
+token_sub := split(user_token.payload.sub, ":")
+token_federation_id := token_sub[1]
+token_userid := token_sub[2]
+for_token_userid := for_token.payload.sub
+for_token_parentid := for_token.payload.parentId
+token_roles := user_token.payload.roles
 
-# #federationId := "{{ core_vault_sunbird_keycloak_user_federation_provider_id }}"
-# federationId := "5a8a3f2b-3409-42e0-9001-f913bc0fde31"
+federationIdCheck {
+  federation_id := token_federation_id
+}
 
-# sub := split(token.payload.sub, ":")
+publicRoleCheck {
+  acls := ["PUBLIC"]
+  user_token.payload.roles[_].role == "PUBLIC"
+  ROLES[token_roles[_].role][_] == acls[_]
+  federationIdCheck
+}
 
-# # token := {"payload": payload} {
-# #   [_, encoded] := split(http_request.headers.authorization, " ")
-# #   [_, payload, _] := io.jwt.decode(encoded)
-# # }
+parentIdCheck {
+    token_userid == for_token_parentid
+}
+
+aclCheck(acls) {
+  ROLES[token_roles[_].role][_] == acls[_]
+}
+
+roleCheck(roles) {
+  token_roles[_].role in roles
+}

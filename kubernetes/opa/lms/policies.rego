@@ -1,173 +1,89 @@
 package policies
 
-import future.keywords.in
-import input.attributes.request.http as http_request
-
-federationId := "{{ core_vault_sunbird_keycloak_user_federation_provider_id }}"
-
-ROLES := {
-   "BOOK_REVIEWER": ["createLock", "publishContent"],
-   "CONTENT_REVIEWER": ["createLock", "publishContent"],
-   "FLAG_REVIEWER": ["publishContent"],
-   "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
-   "CONTENT_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest"],
-   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
-   "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest"],
-   "PROGRAM_MANAGER": ["submitDataExhaustRequest"],
-   "PROGRAM_DESIGNER": ["submitDataExhaustRequest"],
-   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest"],
-   "REPORT_VIEWER": ["acceptTnc"],
-   "REPORT_ADMIN": ["submitDataExhaustRequest"],
-   "PUBLIC": ["PUBLIC"]
-}
-
-xAuthUserToken := {"payload": payload} {
-  encoded := http_request.headers["x-authenticated-user-token"]
-  [_, payload, _] := io.jwt.decode(encoded)
-}
-
-xAuthForToken := {"payload": payload} {
-  encoded := http_request.headers["x-authenticated-for"]
-  [_, payload, _] := io.jwt.decode(encoded)
-}
+import data.common as super
 
 updateBatch {
   acls := ["updateBatch"]
-  xAuthUserToken.payload.roles[_].role in ["COURSE_CREATOR", "COURSE_MENTOR"]
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
+  roles := ["COURSE_CREATOR", "COURSE_MENTOR"]
+  super.aclCheck(acls)
+  super.roleCheck(roles)
 }
 
 listCourseEnrollments {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  split(http_request.path, "/")[5] == xAuthUserId[2]
+  super.publicRoleCheck
+  super.token_userid == split(http_request.path, "/")[5]
 }
 
 listCourseEnrollments {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  xAuthUserId[2] == xAuthForToken.payload.parentId
-  split(http_request.path, "/")[5] == xAuthForToken.payload.sub
+  super.publicRoleCheck
+  super.parentIdCheck
+  super.for_token_userid == split(http_request.path, "/")[5]
 }
 
 readContentState {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  input.parsed_body.request.userId == xAuthUserId[2]
+  super.publicRoleCheck
+  super.token_userid == input.parsed_body.request.userId
 }
 
 readContentState {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  xAuthUserId[2] == xAuthForToken.payload.parentId
-  input.parsed_body.request.userId == xAuthForToken.payload.sub
+  super.publicRoleCheck
+  super.parentIdCheck
+  super.for_token_userid == input.parsed_body.request.userId
 }
 
 courseEnrolment {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  input.parsed_body.request.userId == xAuthUserId[2]
+  super.publicRoleCheck
+  super.token_userid == input.parsed_body.request.userId
 }
 
 courseEnrolment {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  xAuthUserId[2] == xAuthForToken.payload.parentId
-  input.parsed_body.request.userId == xAuthForToken.payload.sub
+  super.publicRoleCheck
+  super.parentIdCheck
+  super.for_token_userid == input.parsed_body.request.userId
 }
 
 courseUnEnrolment {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  input.parsed_body.request.userId == xAuthUserId[2]
+  super.publicRoleCheck
+  super.token_userid == input.parsed_body.request.userId
 }
 
 courseUnEnrolment {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  xAuthUserId[2] == xAuthForToken.payload.parentId
-  input.parsed_body.request.userId == xAuthForToken.payload.sub
+  super.publicRoleCheck
+  super.parentIdCheck
+  super.for_token_userid == input.parsed_body.request.userId
 }
 
 updateContentState {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  input.parsed_body.request.userId == xAuthUserId[2]
+  super.publicRoleCheck
+  super.token_userid == input.parsed_body.request.userId
 }
 
 updateContentState {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  xAuthUserId[2] == xAuthForToken.payload.parentId
-  input.parsed_body.request.userId == xAuthForToken.payload.sub
+  super.publicRoleCheck
+  super.parentIdCheck
+  super.for_token_userid == input.parsed_body.request.userId
 }
 
 updateContentState {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  input.parsed_body.request.assessments.userId == xAuthUserId[2]
+  super.publicRoleCheck
+  super.token_userid == input.parsed_body.request.assessments.userId
 }
 
 updateContentState {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  xAuthUserId[2] == xAuthForToken.payload.parentId
-  input.parsed_body.request.assessments.userId == xAuthForToken.payload.sub
+  super.publicRoleCheck
+  super.parentIdCheck
+  super.for_token_userid == input.parsed_body.request.assessments.userId
 }
 
 updateContentState {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  input.parsed_body.request.userId == xAuthUserId[2]
-  input.parsed_body.request.assessments.userId == xAuthUserId[2]
+  super.publicRoleCheck
+  super.token_userid == input.parsed_body.request.userId
+  super.token_userid == input.parsed_body.request.assessments.userId
 }
 
 updateContentState {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  xAuthUserId[2] == xAuthForToken.payload.parentId
-  input.parsed_body.request.userId == xAuthForToken.payload.sub
-  input.parsed_body.request.assessments.userId == xAuthForToken.payload.sub
+  super.publicRoleCheck
+  super.parentIdCheck
+  super.for_token_userid == input.parsed_body.request.userId
+  super.for_token_userid == input.parsed_body.request.assessments.userId
 }
