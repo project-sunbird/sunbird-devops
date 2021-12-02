@@ -37,7 +37,7 @@ assignRole {
   roles := ["ORG_ADMIN"]
   super.acls_check(acls)
   super.role_check(roles)
-  token_organisationids := super.org_check(acls)
+  token_organisationids := super.org_check(roles)
   input.parsed_body.request.organisationId in token_organisationids
 }
 
@@ -46,7 +46,7 @@ assignRoleV2 {
   roles := ["ORG_ADMIN"]
   super.acls_check(acls)
   super.role_check(roles)
-  token_organisationids := super.org_check(acls)
+  token_organisationids := super.org_check(roles)
   payload_organisationids := { ids | ids = input.parsed_body.request.roles[_].scope[_].organisationId}
   # Union of sets
   token_and_payload_orgs_union := token_organisationids | payload_organisationids

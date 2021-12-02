@@ -45,17 +45,16 @@ userid = token_userid {
 }
 
 acls_check(acls) = index {
-  some index
-  ROLES[token_roles[index].role][_] == acls[_]
+  index := [idx | some i; ROLES[token_roles[i].role][_] == acls[_]; idx = i]
 }
 
 role_check(roles) = index {
   index := [idx | some i; token_roles[i].role in roles; idx = i]
 }
 
-org_check(acls) = token_organisationids {
-  index :=  acls_check(acls)
-  token_organisationids := [ids | ids = token_roles[index].scope[_].organisationId]
+org_check(roles) = token_organisationids {
+  index :=  role_check(roles)
+  token_organisationids := [ids | ids = token_roles[index[_]].scope[_].organisationId]
 }
 
 federation_id_check {

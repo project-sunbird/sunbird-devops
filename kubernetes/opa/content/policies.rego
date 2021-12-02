@@ -23,7 +23,7 @@ createContent {
   roles := ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR"]
   super.acls_check(acls)
   super.role_check(roles)
-  token_organisationids := super.org_check(acls)
+  token_organisationids := super.org_check(roles)
   http_request.headers["x-channel-id"] in token_organisationids
 }
 
