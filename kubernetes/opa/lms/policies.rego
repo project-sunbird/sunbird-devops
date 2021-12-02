@@ -1,6 +1,7 @@
 package policies
 
 import data.general as super
+import input.attributes.request.http as http_request
 
 updateBatch {
   acls := ["updateBatch"]

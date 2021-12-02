@@ -1,4 +1,4 @@
-package common
+package general
 
 import input.attributes.request.http as http_request
 import future.keywords.in
