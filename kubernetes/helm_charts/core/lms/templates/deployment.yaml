@@ -68,6 +68,12 @@ spec:
         image: envoyproxy/envoy:v1.20.0
         imagePullPolicy: IfNotPresent
         name: envoy
+        {{- if .Values.envoy_healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.envoy_livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.envoy_readinessProbe | indent 10 }}
+        {{- end }}
         resources:
 {{ toYaml .Values.envoy_resources | indent 10 }}
         volumeMounts:
@@ -89,9 +95,9 @@ spec:
         name: opa
         {{- if .Values.opa_healthcheck }}
         livenessProbe:
-{{ toYaml .Values.livenessProbe | indent 10 }}
+{{ toYaml .Values.opa_livenessProbe | indent 10 }}
         readinessProbe:
-{{ toYaml .Values.readinessProbe | indent 10 }}
+{{ toYaml .Values.opa_readinessProbe | indent 10 }}
         {{- end }}
         resources:
 {{ toYaml .Values.opa_resources | indent 10 }}
