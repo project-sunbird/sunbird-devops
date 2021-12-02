@@ -44,12 +44,18 @@ userid = token_userid {
     http_request.headers["x-authenticated-for"]
 }
 
-acls_check(acls) {
-  ROLES[token_roles[_].role][_] == acls[_]
+acls_check(acls) = index {
+  some index
+  ROLES[token_roles[index].role][_] == acls[_]
 }
 
-role_check(roles) {
-  token_roles[_].role in roles
+role_check(roles) = index {
+  index := [idx | some i; token_roles[i].role in roles; idx = i]
+}
+
+org_check(acls) = token_organisationids {
+  index :=  acls_check(acls)
+  token_organisationids := [ids | ids = token_roles[index].scope[_].organisationId]
 }
 
 federation_id_check {

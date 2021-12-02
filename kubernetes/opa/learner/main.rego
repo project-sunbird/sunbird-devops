@@ -7,9 +7,9 @@ default allow = false
 urls[keys] { urls_to_action_mapping[keys]}   
 
 urls_to_action_mapping := {
-   "/user/v1/tnc/accept": "acceptTermsAndCondition",
-   "/user/v1/role/assign": "assignRole",
-   "/user/v2/role/assign": "assignRoleV2",
+   "/v1/user/tnc/accept": "acceptTermsAndCondition",
+   "/v1/user/assign/role": "assignRole",
+   "/v2/user/assign/role": "assignRoleV2",
    "/v1/user/update": "updateUser",
    "/private/user/v1/lookup": "privateUserLookup",
    "/private/user/v1/migrate": "privateUserMigrate",

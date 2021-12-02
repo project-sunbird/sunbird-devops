@@ -1,112 +1,67 @@
 package policies
 
+import data.general as super
 import future.keywords.in
-import input.attributes.request.http as http_request
 
-federationId := "{{ core_vault_sunbird_keycloak_user_federation_provider_id }}"
-
-ROLES := {
-   "BOOK_REVIEWER": ["createLock", "publishContent"],
-   "CONTENT_REVIEWER": ["createLock", "publishContent"],
-   "FLAG_REVIEWER": ["publishContent"],
-   "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
-   "CONTENT_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest"],
-   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
-   "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest"],
-   "PROGRAM_MANAGER": ["submitDataExhaustRequest"],
-   "PROGRAM_DESIGNER": ["submitDataExhaustRequest"],
-   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest"],
-   "REPORT_VIEWER": ["acceptTnc"],
-   "REPORT_ADMIN": ["submitDataExhaustRequest"],
-   "PUBLIC": ["PUBLIC"]
-}
-
-xAuthUserToken := {"payload": payload} {
-  encoded := http_request.headers["x-authenticated-user-token"]
-  [_, payload, _] := io.jwt.decode(encoded)
-}
-
-xAuthForToken := {"payload": payload} {
-  encoded := http_request.headers["x-authenticated-for"]
-  [_, payload, _] := io.jwt.decode(encoded)
+acceptTermsAndCondition {
+  acls := ["acceptTnc"]
+  roles := ["ORG_ADMIN"]
+  super.acls_check(acls)
+  super.role_check(roles)
+  "orgAdminTnc" == input.parsed_body.request.tncType
 }
 
 acceptTermsAndCondition {
   acls := ["acceptTnc"]
-  input.parsed_body.request.tncType == "orgAdminTnc"
-  xAuthUserToken.payload.roles[_].role == "ORG_ADMIN"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
+  roles := ["REPORT_VIEWER"]
+  super.acls_check(acls)
+  super.role_check(roles)
+  "reportViewerTnc" == input.parsed_body.request.tncType
 }
 
 acceptTermsAndCondition {
-  acls := ["acceptTnc"]
-  input.parsed_body.request.tncType == "reportViewerTnc"
-  xAuthUserToken.payload.roles[_].role == "REPORT_VIEWER"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
+  not input.parsed_body.request.tncType in ["orgAdminTnc", "reportViewerTnc"]
 }
 
 acceptTermsAndCondition {
-  input.parsed_body.request.tncType != "orgAdminTnc"
-  input.parsed_body.request.tncType != "reportViewerTnc"
+  not input.parsed_body.request.tncType
 }
 
-not acceptTermsAndCondition {
-  input.parsed_body.request.tncType
+updateUser {
+  super.public_role_check
+  super.userid == input.parsed_body.request.userId
 }
- 
+
 assignRole {
   acls := ["assignRole"]
-  xAuthUserToken.payload.roles[_].role == "ORG_ADMIN"
-  some i; ROLES[xAuthUserToken.payload.roles[i].role][_] == acls[_]
-  xAuthUserToken.payload.roles[i].scope[_].organisationId == input.parsed_body.request.roles[_].scope[_].organisationId
-}
-
-updateUser {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  input.parsed_body.request.userId == xAuthUserId[2]
-}
-
-updateUser {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-  xAuthUserId := split(xAuthUserToken.payload.sub, ":")
-  federationId == xAuthUserId[1]
-  xAuthUserId[2] == xAuthForToken.payload.parentId
-  input.parsed_body.request.userId == xAuthForToken.payload.sub
+  roles := ["ORG_ADMIN"]
+  super.acls_check(acls)
+  super.role_check(roles)
+  token_organisationids := super.org_check(acls)
+  input.parsed_body.request.organisationId in token_organisationids
 }
 
 assignRoleV2 {
   acls := ["assignRole"]
-  xAuthUserToken.payload.roles[_].role == "ORG_ADMIN"
-  some i; ROLES[xAuthUserToken.payload.roles[i].role][_] == acls[_]
-  tokenOrgs := { orgs | orgs = xAuthUserToken.payload.roles[i].scope[_].organisationId}
-  payloadOrgs := { orgs | orgs = input.parsed_body.request.roles[_].scope[_].organisationId}
+  roles := ["ORG_ADMIN"]
+  super.acls_check(acls)
+  super.role_check(roles)
+  token_organisationids := super.org_check(acls)
+  payload_organisationids := { ids | ids = input.parsed_body.request.roles[_].scope[_].organisationId}
   # Union of sets
-  tokenAndPayloadOrgs := tokenOrgs | payloadOrgs
-  # All orgs in payload must be present in token orgs of org admin
-  count(tokenAndPayloadOrgs) <= count(tokenOrgs)
+  token_and_payload_orgs_union := token_organisationids | payload_organisationids
+  # All orgs in payload must be present in token scope under ORG_ADMIN role. So the count of unique orgs in payload will always be less than or equal to count of unique orgs in token under ORG_ADMIN role
+  count(token_organisationids) <= count(payload_organisationids)
 }
 
 privateUserLookup {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
+  super.public_role_check
 }
 
 privateUserMigrate {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
-
+  super.public_role_check
 }
 
 privateUserRead {
-  acls := ["PUBLIC"]
-  xAuthUserToken.payload.roles[_].role == "PUBLIC"
-  ROLES[xAuthUserToken.payload.roles[_].role][_] == acls[_]
+  super.public_role_check
 }
