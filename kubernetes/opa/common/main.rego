@@ -3,7 +3,12 @@ package main
 import input.attributes.request.http as http_request
 import data.policies as policy
 
-default allow = false
+default allow = {
+  "allowed": false,
+  "headers": {"X-Request-Allowed": "no"},
+  "body": "HTTP 403 Forbidden",
+  "http_status": 403
+}
 
 urls[keys] { policy.urls_to_action_mapping[keys]}
 
