@@ -1,8 +1,14 @@
 package policies
 
-import data.general as super
+import data.common as super
 import future.keywords.in
 import input.attributes.request.http as http_request
+
+urls_to_action_mapping := {   
+   "/request/read": "getDataExhaustRequest",
+   "/request/list": "listDataExhaustRequest",
+   "/request/submit": "submitDataExhaustRequest"
+}
 
 getDataExhaustRequest {
   super.public_role_check

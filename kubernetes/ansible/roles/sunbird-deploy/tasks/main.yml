@@ -42,14 +42,18 @@
 
 - name: Replace ansible variables with values
   template:
-    src: "{{ role_path }}/{{ general_opa_policies }}"
-    dest: "{{ role_path }}/{{ general_opa_policies }}"
+    src: "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
+    dest: "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
+  with_items:
+  - "{{ common_opa_policy_files }}"
   when: release_name in opa_enabled_services
 
 - name: Copy the common opa policies to release folder
   copy:
-    src: "{{ role_path }}/{{ general_opa_policies }}"
-    dest: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}"
+    src: "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
+    dest: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/{{ item }}"
+  with_items:
+  - "{{ common_opa_policy_files }}"
   when: release_name in opa_enabled_services
 
 - name: Create OPA bundle

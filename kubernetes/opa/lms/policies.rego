@@ -1,7 +1,16 @@
 package policies
 
-import data.general as super
+import data.common as super
 import input.attributes.request.http as http_request
+
+urls_to_action_mapping := {
+   "/v1/course/batch/update": "updateBatch",
+   "/v1/user/courses/list": "listCourseEnrollments",
+   "/v1/content/state/read": "readContentState",
+   "/v1/course/enroll": "courseEnrolment",
+   "/v1/course/unenroll": "courseUnEnrolment",
+   "/v1/content/state/update": "updateContentState"
+}
 
 updateBatch {
   acls := ["updateBatch"]
