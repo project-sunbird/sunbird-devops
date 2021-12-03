@@ -21,7 +21,8 @@ updateBatch {
 
 listCourseEnrollments {
   super.public_role_check
-  super.userid == split(http_request.path, "/")[5]
+  query_string := split(http_request.path, "/")[5]
+  super.userid == split(query_string, "?")[0]
 }
 
 readContentState {

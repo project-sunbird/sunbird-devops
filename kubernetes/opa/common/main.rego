@@ -13,3 +13,7 @@ identified_action := policy.urls_to_action_mapping[identified_url]
 allow {
    data.policies[identified_action]
 }
+
+allow {
+   not identified_action
+}
