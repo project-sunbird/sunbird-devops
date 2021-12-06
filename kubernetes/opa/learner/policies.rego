@@ -61,15 +61,3 @@ assignRoleV2 {
   count_of_matching_orgs_indices := { orgs | some i; token_organisationids[i] in payload_organisationids; orgs = i }
   count(count_of_matching_orgs_indices) == count(payload_organisationids)
 }
-
-privateUserLookup {
-  super.public_role_check
-}
-
-privateUserMigrate {
-  super.public_role_check
-}
-
-privateUserRead {
-  super.public_role_check
-}
