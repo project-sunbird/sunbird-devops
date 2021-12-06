@@ -57,11 +57,9 @@ assignRoleV2 {
   super.acls_check(acls)
   super.role_check(roles)
   token_organisationids := super.org_check(roles)
-  payload_organisationids := { ids | ids = input.parsed_body.request.roles[_].scope[_].organisationId}
-  # Union of sets
-  token_and_payload_orgs_union := token_organisationids | payload_organisationids
-  # All orgs in payload must be present in token scope under ORG_ADMIN role. So the count of unique orgs in payload will always be less than or equal to count of unique orgs in token under ORG_ADMIN role
-  count(token_organisationids) <= count(payload_organisationids)
+  payload_organisationids := [ids | ids = input.parsed_body.request.roles[_].scope[_].organisationId]
+  count_of_matching_orgs_indices := { orgs | some i; token_organisationids[i] in payload_organisationids; orgs = i }
+  count(count_of_matching_orgs_indices) == count(payload_organisationids)
 }
 
 privateUserLookup {
