@@ -4,7 +4,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: lms-access-keys
+  name: {{ .Chart.Name }}-access-keys
   namespace: {{ .Values.namespace }}
 type: Opaque
 data:
@@ -12,13 +12,15 @@ data:
 {{ end }}
 
 ---
+{{ if .Values.lms_opa_enabled}}
 {{- $bundle := .Files.Glob "bundle/*" }}
 {{ if $bundle }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: lms-opa-policy
+  name: {{ .Chart.Name }}-opa-policy
   namespace: {{ .Values.namespace }}
 binaryData:
   bundle.tar.gz: {{ (.Files.Get "bundle/bundle.tar.gz") | b64enc }}
+{{ end }}
 {{ end }}
