@@ -24,10 +24,6 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
 {{- end }}
-      volumes:
-        - name: {{ .Chart.Name }}-config
-          configMap:
-            name: {{ .Chart.Name }}-config
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
@@ -64,7 +60,87 @@ spec:
           - name: {{ .Chart.Name }}-config
             mountPath: /home/analytics/application.conf
             subPath: analytics_api_service.conf
-          
+{{- if .Values.analytics_opa_enabled }}
+      - args:
+        - envoy
+        - --config-path
+        - /config/envoy-config.yaml
+        env:
+        - name: ENVOY_UID
+          value: "1111"
+        image: envoyproxy/envoy:v1.20.0
+        imagePullPolicy: IfNotPresent
+        name: envoy
+        {{- if .Values.envoy_healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.envoy_livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.envoy_readinessProbe | indent 10 }}
+        {{- end }}
+        resources:
+{{ toYaml .Values.envoy_resources | indent 10 }}
+        volumeMounts:
+        - mountPath: /config
+          name: envoy-config
+          readOnly: true
+      - args:
+        - run
+        - --server
+        - /bundle
+        - --addr=localhost:8181
+        - --diagnostic-addr=0.0.0.0:8282
+        - --set=plugins.envoy_ext_authz_grpc.addr=:9191
+        - --set=plugins.envoy_ext_authz_grpc.path=main/allow
+        - --log-level=error
+        - --ignore=.*
+        image: openpolicyagent/opa:0.34.2-envoy-2
+        imagePullPolicy: IfNotPresent
+        name: opa
+        {{- if .Values.opa_healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.opa_livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.opa_readinessProbe | indent 10 }}
+        {{- end }}
+        resources:
+{{ toYaml .Values.opa_resources | indent 10 }}
+        volumeMounts:
+        - mountPath: /bundle
+          name: opa-policy
+          readOnly: true
+      initContainers:
+      - args:
+        - -p
+        - "9999"
+        - -u
+        - "1111"
+        - -w
+        - "8282,10000"
+        image: openpolicyagent/proxy_init:v5
+        imagePullPolicy: IfNotPresent
+        name: proxy-init
+        resources:
+{{ toYaml .Values.initcontainer_resources | indent 10 }}
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+          runAsNonRoot: false
+          runAsUser: 0
+{{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-config
+          configMap:
+            name: {{ .Chart.Name }}-config
+{{- if .Values.analytics_opa_enabled }}
+      - name: envoy-config
+        configMap:
+          name: analytics-envoy-config
+      - name: opa-policy
+        configMap:
+          name: analytics-opa-policy
+{{- end }}
+
 ---
 apiVersion: v1
 kind: Service
