@@ -58,7 +58,7 @@ assignRoleV2 {
   super.role_check(roles)
   token_organisationids := super.org_check(roles)
   payload_organisationids := [ids | ids = input.parsed_body.request.roles[_].scope[_].organisationId]
-  count_of_matching_orgs_indices := { orgs | some i; token_organisationids[i] in payload_organisationids; orgs = i }
+  count_of_matching_orgs_indices := [orgs | some i; payload_organisationids[i] in token_organisationids; orgs = i]
   count(count_of_matching_orgs_indices) == count(payload_organisationids)
 }
 
