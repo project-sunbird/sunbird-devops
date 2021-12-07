@@ -18,7 +18,7 @@ resources:
     cpu: {{content_cpu_limit|default('1')}}
     memory: {{content_mem_limit|default('1024Mi')}}
 network:
-  port: 9002
+  port: 9000
   targetport: 9000
 strategy:
   type: RollingUpdate
@@ -26,6 +26,34 @@ strategy:
   maxunavailable: {{ content_maxunavailable|default('25%') }}
 
 {{ content_liveness_readiness | to_nice_yaml }}
+{{ opa_liveness_readiness | to_nice_yaml }}
+{{ envoy_liveness_readiness | to_nice_yaml }}
+
+content_opa_enabled: {{ content_opa_enabled | default('true') }}
+
+envoy_resources:
+  requests:
+    cpu: {{envoy_cpu_req|default('100m')}}
+    memory: {{envoy_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{envoy_cpu_limit|default('1')}}
+    memory: {{envoy_mem_limit|default('1024Mi')}}
+
+opa_resources:
+  requests:
+    cpu: {{opa_cpu_req|default('100m')}}
+    memory: {{opa_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{opa_cpu_limit|default('1')}}
+    memory: {{opa_mem_limit|default('1024Mi')}}
+
+initcontainer_resources:
+  requests:
+    cpu: {{initcontainer_cpu_req|default('100m')}}
+    memory: {{initcontainer_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{initcontainer_cpu_limit|default('200m')}}
+    memory: {{initcontainer_mem_limit|default('200Mi')}}
 
 autoscaling:
   enabled: {{ content_autoscaling_enabled | default('false') }}
