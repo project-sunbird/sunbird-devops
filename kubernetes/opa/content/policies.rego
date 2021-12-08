@@ -30,10 +30,10 @@ createContent {
   # # Due to portal legacy code, we need to add REVIEWER roles also for this API
   # roles := ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR", "BOOK_REVIEWER", "CONTENT_REVIEWER"]
   # super.acls_check(acls)
-  # super.role_check(roles)
+  # Org check will do an implicit role check so there is no need to invoke super.role_check(roles)
   # token_organisationids := super.org_check(roles)
-  # # input.parsed_body.request.content.createdFor in token_organisationids
-  # # input.parsed_body.request.content.createdBy == super.userid
+  # input.parsed_body.request.content.createdFor[_] in token_organisationids
+  # input.parsed_body.request.content.createdBy == super.userid
 
   # This rule has been disabled since request from VDN flink job is directly invoking content service and is not passing any tokens / headers. Hence this is blocking the creation workflow in VDN.
   true
