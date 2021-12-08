@@ -6,7 +6,7 @@ import data.policies as policy
 default allow = {
   "allowed": false,
   "headers": {"X-Request-Allowed": "no"},
-  "body": "HTTP 403 Forbidden",
+  "body": "You do not have permission to perform this operation",
   "http_status": 403
 }
 
