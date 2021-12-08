@@ -31,7 +31,8 @@ createContent {
   super.acls_check(acls)
   super.role_check(roles)
   token_organisationids := super.org_check(roles)
-  http_request.headers["x-channel-id"] in token_organisationids
+  input.parsed_body.request.createdFor in token_organisationids
+  input.parsed_body.request.createdBy == super.userid
 }
 
 submitContentForReview {
