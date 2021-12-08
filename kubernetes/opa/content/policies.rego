@@ -27,6 +27,7 @@ collectionExport {
 
 createContent {
 <<<<<<< HEAD
+<<<<<<< HEAD
   # acls := ["createContent"]
   # # Due to portal legacy code, we need to add REVIEWER roles also for this API
   # roles := ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR", "BOOK_REVIEWER", "CONTENT_REVIEWER"]
