@@ -26,13 +26,11 @@ collectionExport {
 }
 
 createContent {
-<<<<<<< HEAD
-<<<<<<< HEAD
   # acls := ["createContent"]
   # # Due to portal legacy code, we need to add REVIEWER roles also for this API
   # roles := ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR", "BOOK_REVIEWER", "CONTENT_REVIEWER"]
   # super.acls_check(acls)
-  # super.role_check(roles)
+  # Org check will do an implicit role check so there is no need to invoke super.role_check(roles)
   # token_organisationids := super.org_check(roles)
   # input.parsed_body.request.content.createdFor[_] in token_organisationids
   # input.parsed_body.request.content.createdBy == super.userid
