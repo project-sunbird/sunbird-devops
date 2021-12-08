@@ -163,6 +163,11 @@ apt install -y python-psycopg2
 echo -e "\n\e[0;32m${bold}Installating libpng-dev${normal}"
 apt install -y libpng-dev
 
+echo -e "\n\e[0;32m${bold}Installating OPA${normal}"
+curl -k -L -o opa https://openpolicyagent.org/downloads/v0.34.2/opa_linux_amd64_static
+chmod 755 ./opa
+mv opa /usr/local/bin/
+
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove
 
