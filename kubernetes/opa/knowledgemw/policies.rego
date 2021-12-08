@@ -26,8 +26,8 @@ createContent {
   super.acls_check(acls)
   super.role_check(roles)
   token_organisationids := super.org_check(roles)
-  # input.parsed_body.request.content.createdFor in token_organisationids
-  # input.parsed_body.request.content.createdBy == super.userid
+  input.parsed_body.request.content.createdFor[_] in token_organisationids
+  input.parsed_body.request.content.createdBy == super.userid
 }
 
 createLock {
