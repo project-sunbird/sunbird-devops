@@ -9,12 +9,18 @@ kubernetes:
   host: https://kubernetes.default
 
 reloader:
+  isArgoRollouts: false
   isOpenshift: false
   ignoreSecrets: false
   ignoreConfigMaps: false
+  reloadStrategy: default # Set to default, env-vars or annotations
+  ignoreNamespaces: "" # Comma separated list of namespaces to ignore
+  logFormat: "" #json
   watchGlobally: true
   # Set to true if you have a pod security policy that enforces readOnlyRootFilesystem
   readOnlyRootFileSystem: false
+  legacy:
+    rbac: false
   matchLabels: {}
   deployment:
     nodeSelector:
@@ -31,6 +37,10 @@ reloader:
     #             operator: "Exists"
     affinity: {}
 
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 65534
+
     # A list of tolerations to be applied to the Deployment.
     # Example:
     #   tolerations:
@@ -39,13 +49,14 @@ reloader:
     #     effect: "NoSchedule"
     tolerations: []
 
+    annotations: {}
     labels:
       provider: stakater
       group: com.stakater.platform
-      version: v0.0.49
+      version: v0.0.103
     image:
       name: stakater/reloader
-      tag: "v0.0.49"
+      tag: v0.0.103
       pullPolicy: IfNotPresent
     # Support for extra environment variables.
     env:
@@ -55,6 +66,18 @@ reloader:
       secret:
       # field supports Key value pair as environment variables. It gets the values from other fields of pod.
       field:
+
+    # Liveness and readiness probe timeout values.
+    livenessProbe: {}
+    #  timeoutSeconds: 5
+    #  failureThreshold: 5
+    #  periodSeconds: 10
+    #  successThreshold: 1
+    readinessProbe: {}
+    #  timeoutSeconds: 15
+    #  failureThreshold: 5
+    #  periodSeconds: 10
+    #  successThreshold: 1
 
     # Specify resource requests/limits for the deployment.
     # Example:
@@ -68,6 +91,12 @@ reloader:
     resources: {}
     pod:
       annotations: {}
+    priorityClassName: ""
+
+  service: {}
+    # labels: {}
+    # annotations: {}
+    # port: 9090
 
   rbac:
     enabled: true
@@ -77,12 +106,37 @@ reloader:
     # Specifies whether a ServiceAccount should be created
     create: true
     labels: {}
+    annotations: {}
     # The name of the ServiceAccount to use.
     # If not set and create is true, a name is generated using the fullname template
-    name: 
+    name:
   # Optional flags to pass to the Reloader entrypoint
   # Example:
   #   custom_annotations:
   #     configmap: "my.company.com/configmap"
   #     secret: "my.company.com/secret"
   custom_annotations: {}
+
+  serviceMonitor:
+    # Deprecated: Service monitor will be removed in future releases of reloader in favour of Pod monitor
+    # Enabling this requires service to be enabled as well, or no endpoints will be found
+    enabled: false
+    # Set the namespace the ServiceMonitor should be deployed
+    # namespace: monitoring
+    # Set how frequently Prometheus should scrape
+    # interval: 30s
+    # Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator
+    # labels:
+    # Set timeout for scrape
+    # timeout: 10s
+
+  podMonitor:
+    enabled: false
+    # Set the namespace the podMonitor should be deployed
+    # namespace: monitoring
+    # Set how frequently Prometheus should scrape
+    # interval: 30s
+    # Set labels for the podMonitor, use this to define your scrape label for Prometheus Operator
+    # labels:
+    # Set timeout for scrape
+    # timeout: 10s
