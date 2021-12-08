@@ -11,25 +11,37 @@ urls_to_action_mapping := {
 }
 
 getDataExhaustRequest {
-  super.public_role_check
+  acls := ["getDataExhaustRequest"]
+  roles := ["ORG_ADMIN", "REPORT_ADMIN", "CONTENT_CREATOR", "COURSE_MENTOR", "PROGRAM_MANAGER", "PROGRAM_DESIGNER"]
+  super.acls_check(acls)
+  super.role_check(roles)
   http_request.headers["x-channel-id"]
   http_request.headers["x-authenticated-userid"] == super.userid
 }
 
 getDataExhaustRequest {
-  super.public_role_check
+  acls := ["getDataExhaustRequest"]
+  roles := ["ORG_ADMIN", "REPORT_ADMIN", "CONTENT_CREATOR", "COURSE_MENTOR", "PROGRAM_MANAGER", "PROGRAM_DESIGNER"]
+  super.acls_check(acls)
+  super.role_check(roles)  
   http_request.headers["x-channel-id"]
   not http_request.headers["x-authenticated-userid"]
 }
 
 listDataExhaustRequest {
-  super.public_role_check
+  acls := ["listDataExhaustRequest"]
+  roles := ["ORG_ADMIN", "REPORT_ADMIN", "CONTENT_CREATOR", "COURSE_MENTOR", "PROGRAM_MANAGER", "PROGRAM_DESIGNER"]
+  super.acls_check(acls)
+  super.role_check(roles)  
   http_request.headers["x-channel-id"]
   http_request.headers["x-authenticated-userid"] == super.userid
 }
 
 listDataExhaustRequest {
-  super.public_role_check
+  acls := ["listDataExhaustRequest"]
+  roles := ["ORG_ADMIN", "REPORT_ADMIN", "CONTENT_CREATOR", "COURSE_MENTOR", "PROGRAM_MANAGER", "PROGRAM_DESIGNER"]
+  super.acls_check(acls)
+  super.role_check(roles)  
   http_request.headers["x-channel-id"]
   not http_request.headers["x-authenticated-userid"]
 }
