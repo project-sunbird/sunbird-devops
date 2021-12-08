@@ -27,7 +27,8 @@ collectionExport {
 
 createContent {
   acls := ["createContent"]
-  roles := ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR"]
+  # Due to portal legacy code, we need to add REVIEWER roles also for this API
+  roles := ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR", "BOOK_REVIEWER", "CONTENT_REVIEWER"]
   super.acls_check(acls)
   super.role_check(roles)
   token_organisationids := super.org_check(roles)
