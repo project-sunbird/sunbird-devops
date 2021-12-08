@@ -46,7 +46,7 @@ assignRole {
   acls := ["assignRole"]
   roles := ["ORG_ADMIN"]
   super.acls_check(acls)
-  super.role_check(roles)
+  # Org check will do an implicate role check so there is no need to invoke super.role_check(roles)
   token_organisationids := super.org_check(roles)
   input.parsed_body.request.organisationId in token_organisationids
 }
@@ -55,7 +55,7 @@ assignRoleV2 {
   acls := ["assignRole"]
   roles := ["ORG_ADMIN"]
   super.acls_check(acls)
-  super.role_check(roles)
+  # Org check will do an implicate role check so there is no need to invoke super.role_check(roles)
   token_organisationids := super.org_check(roles)
   payload_organisationids := [ids | ids = input.parsed_body.request.roles[_].scope[_].organisationId]
   count_of_matching_orgs_indices := [orgs | some i; payload_organisationids[i] in token_organisationids; orgs = i]
