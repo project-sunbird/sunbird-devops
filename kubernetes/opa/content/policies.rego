@@ -35,7 +35,8 @@ createContent {
   # input.parsed_body.request.content.createdFor[_] in token_organisationids
   # input.parsed_body.request.content.createdBy == super.userid
 
-  # This rule has been disabled since request from VDN flink job is directly invoking content service and is not passing any tokens / headers. Hence this is blocking the creation workflow in VDN.
+  # This rule has been disabled since request from VDN flink job is directly invoking content service 
+  # and is not passing any tokens / headers. Hence this is blocking the creation workflow in VDN.
   true
 }
 
