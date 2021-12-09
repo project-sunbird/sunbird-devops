@@ -10,14 +10,14 @@ ROLES := {
    "CONTENT_REVIEWER": ["createLock", "publishContent"],
    "FLAG_REVIEWER": ["publishContent"],
    "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
-   "CONTENT_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest"],
+   "CONTENT_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
    "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
-   "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest"],
-   "PROGRAM_MANAGER": ["submitDataExhaustRequest"],
-   "PROGRAM_DESIGNER": ["submitDataExhaustRequest"],
-   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest"],
+   "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   "PROGRAM_MANAGER": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   "PROGRAM_DESIGNER": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
    "REPORT_VIEWER": ["acceptTnc"],
-   "REPORT_ADMIN": ["submitDataExhaustRequest"],
+   "REPORT_ADMIN": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
    "PUBLIC": ["PUBLIC"]
 }
 
