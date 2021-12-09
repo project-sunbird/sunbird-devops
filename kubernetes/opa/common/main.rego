@@ -13,7 +13,7 @@ default allow = {
 urls[keys] { policy.urls_to_action_mapping[keys]}
 
 matching_url := regex.find_n(urls[_], http_request.path, 1)[0]
-identified_url := matching_url {startswith(matching_url, http_request.path)}
+identified_url := matching_url {startswith(http_request.path, matching_url)}
 identified_action := policy.urls_to_action_mapping[identified_url]
 
 allow {
