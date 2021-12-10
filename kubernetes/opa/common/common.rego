@@ -36,7 +36,17 @@ token_federation_id := token_sub[1]
 token_userid := token_sub[2]
 for_token_userid := for_token.payload.sub
 for_token_parentid := for_token.payload.parentId
-token_roles := user_token.payload.roles
+
+# Desktop app is still using keycloak tokens which will not have roles
+# This is a temporary fix where we will append the roles as PUBLIC in OPA
+
+default_role := [{"role": "PUBLIC", "scope": []}]
+
+token_roles = user_token.payload.roles {
+    user_token.payload.roles
+} else = default_role {
+    not user_token.payload.roles
+}
 
 userid = token_userid {
     not http_request.headers["x-authenticated-for"]
