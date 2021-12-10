@@ -63,13 +63,16 @@ assignRoleV2 {
 }
 
 privateUserLookup {
+  # This should be moved to a system token
   true
 }
 
 privateUserMigrate {
+  # This should be moved to a system token
   true
 }
 
 privateUserRead {
+  # This should be moved to a system token
   true
 }

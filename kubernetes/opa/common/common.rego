@@ -10,7 +10,7 @@ ROLES := {
    "CONTENT_REVIEWER": ["createLock", "publishContent"],
    "FLAG_REVIEWER": ["publishContent"],
    "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
-   "CONTENT_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   "CONTENT_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
    "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
    "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
    "PROGRAM_MANAGER": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
@@ -36,7 +36,17 @@ token_federation_id := token_sub[1]
 token_userid := token_sub[2]
 for_token_userid := for_token.payload.sub
 for_token_parentid := for_token.payload.parentId
-token_roles := user_token.payload.roles
+
+# Desktop app is still using keycloak tokens which will not have roles
+# This is a temporary fix where we will append the roles as PUBLIC in OPA
+
+default_role := [{"role": "PUBLIC", "scope": []}]
+
+token_roles = user_token.payload.roles {
+    user_token.payload.roles
+} else = default_role {
+    not user_token.payload.roles
+}
 
 userid = token_userid {
     not http_request.headers["x-authenticated-for"]
