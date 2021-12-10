@@ -14,7 +14,7 @@ urls_to_action_mapping := {
 
 updateBatch {
   acls := ["updateBatch"]
-  roles := ["COURSE_CREATOR", "COURSE_MENTOR"]
+  roles := ["CONTENT_CREATOR", "COURSE_CREATOR", "COURSE_MENTOR"]
   super.acls_check(acls)
   super.role_check(roles)
 }
