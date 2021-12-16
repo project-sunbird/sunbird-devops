@@ -12,8 +12,12 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
 {{- define "reloader-fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
 {{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
 {{- end -}}
 
 {{- define "reloader-labels.chart" -}}
@@ -21,6 +25,7 @@ app: {{ template "reloader-fullname" . }}
 chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
 release: {{ .Release.Name | quote }}
 heritage: {{ .Release.Service | quote }}
+app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
 {{- end -}}
 
 {{/*
@@ -32,4 +37,12 @@ Create the name of the service account to use
 {{- else -}}
     {{ default "default" .Values.reloader.serviceAccount.name }}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Create the annotations to support helm3
+*/}}
+{{- define "reloader-helm3.annotations" -}}
+meta.helm.sh/release-namespace: {{ .Release.Namespace | quote }}
+meta.helm.sh/release-name: {{ .Release.Name | quote }}
 {{- end -}}

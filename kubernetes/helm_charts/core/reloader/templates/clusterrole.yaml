@@ -1,7 +1,13 @@
 {{- if and .Values.reloader.watchGlobally (.Values.reloader.rbac.enabled) }}
+{{- if  (.Capabilities.APIVersions.Has "rbac.authorization.k8s.io/v1") }}
+apiVersion: rbac.authorization.k8s.io/v1
+{{ else }}
 apiVersion: rbac.authorization.k8s.io/v1beta1
+{{- end }}
 kind: ClusterRole
 metadata:
+  annotations:
+{{ include "reloader-helm3.annotations" . | indent 4 }}
   labels:
 {{ include "reloader-labels.chart" . | indent 4 }}
 {{- if .Values.reloader.rbac.labels }}
@@ -26,12 +32,24 @@ rules:
       - list
       - get
       - watch
-{{- if or (.Capabilities.APIVersions.Has "apps.openshift.io/v1") (.Values.isOpenshift) }}
+{{- if and (.Capabilities.APIVersions.Has "apps.openshift.io/v1") (.Values.reloader.isOpenshift) }}
   - apiGroups:
       - "apps.openshift.io"
       - ""
     resources:
       - deploymentconfigs
+    verbs:
+      - list
+      - get
+      - update
+      - patch
+{{- end }}
+{{- if and (.Capabilities.APIVersions.Has "argoproj.io/v1alpha1") (.Values.reloader.isArgoRollouts) }}
+  - apiGroups:
+      - "argoproj.io"
+      - ""
+    resources:
+      - rollouts
     verbs:
       - list
       - get
