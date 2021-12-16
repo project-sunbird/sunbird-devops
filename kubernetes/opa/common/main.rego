@@ -2,6 +2,7 @@ package main
 
 import input.attributes.request.http as http_request
 import data.policies as policy
+import future.keywords.in
 
 default allow = {
   "allowed": false,
@@ -22,4 +23,11 @@ allow {
 
 allow {
    not identified_action
+}
+
+# Desktop app is not sending x-authenticated-for header due to which managed user flow is breaking
+# This is a temporary fix till the desktop app issue is fixed
+
+allow {
+   http_request.headers["x-consumer-username"] in {{ kong_desktop_device_consumer_names_for_opa }}
 }
