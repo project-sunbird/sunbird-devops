@@ -103,3 +103,13 @@
     force: yes
   notify: restart elasticsearch
   when: es_config_log4j2 != ''
+ 
+- name: Add log4j env to service file
+  become: yes
+  lineinfile:
+    path: /usr/lib/systemd/system/elasticsearch.service
+    insertafter: \[Service]
+    line: "Environment=\"_JAVA_OPTIONS='-Dlog4j2.formatMsgNoLookups=true'\""
+    firstmatch: yes
+    state: present
+  notify: restart elasticsearch
