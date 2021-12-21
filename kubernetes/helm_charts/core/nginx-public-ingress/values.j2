@@ -520,10 +520,42 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass $target;
     }
+
+    location /oauth3 {
+      set $target http://oauth2-proxy.monitoring.svc.cluster.local;
+      proxy_set_header Host                    $host;
+      proxy_set_header X-Real-IP               $remote_addr;
+      proxy_set_header X-Scheme                $scheme;
+      proxy_set_header X-Auth-Request-Redirect $request_uri;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass $target;
+    }
+    location = /oauth3/auth {
+      set $target http://oauth2-proxy.monitoring.svc.cluster.local;
+      proxy_set_header Host             $host;
+      proxy_set_header X-Real-IP        $remote_addr;
+      proxy_set_header X-Scheme         $scheme;
+      proxy_set_header Content-Length   "";
+      proxy_pass_request_body           off;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass $target;
+    }
     location /grafana/ {
+      auth_request /oauth3/auth;
+      error_page 401 = /oauth3/sign_in;
+      auth_request_set $target http://prometheus-operator-grafana.monitoring.svc.cluster.local;
+      include /etc/nginx/defaults.d/compression.conf;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
       set $target http://prometheus-operator-grafana.monitoring.svc.cluster.local;
       rewrite ^/grafana/(.*) /$1 break;
       proxy_pass $target;
+    
+      #set $target http://prometheus-operator-grafana.monitoring.svc.cluster.local;
+      #rewrite ^/grafana/(.*) /$1 break;
+      #proxy_pass $target;
     }
     location /encryption/ {
     set $target http://encryption.{{ namespace }}.svc.cluster.local;
