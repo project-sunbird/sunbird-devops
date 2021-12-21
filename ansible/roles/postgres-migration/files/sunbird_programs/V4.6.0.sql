@@ -1,5 +1,5 @@
 CREATE TYPE formstatus AS ENUM ('Active', 'Inactive');
-CREATE TABLE public.formconfig1 (
+CREATE TABLE public.formconfig (
     id character varying NOT NULL,
     channel character varying,
     objecttype character varying,
