@@ -1,5 +1,5 @@
 CREATE TYPE formstatus AS ENUM ('Active', 'Inactive');
-CREATE TABLE public.formconfig (
+CREATE TABLE public.formdata (
     id character varying NOT NULL,
     channel character varying,
     objecttype character varying,
@@ -13,5 +13,5 @@ CREATE TABLE public.formconfig (
     updatedon timestamp without time zone,
     createdby character varying,
     updatedby character varying,
-    CONSTRAINT unique_form_config PRIMARY KEY (channel, objecttype, primarycategory, context, context_type, operation)
+    CONSTRAINT unique_form_data PRIMARY KEY (channel, objecttype, primarycategory, context, context_type, operation)
 );
