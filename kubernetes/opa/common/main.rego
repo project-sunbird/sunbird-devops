@@ -12,14 +12,12 @@ default allow = {
 }
 
 urls[keys] { policy.urls_to_action_mapping[keys]}
-
 matching_url := regex.find_n(urls[_], http_request.path, 1)[0]
 identified_url := matching_url {startswith(http_request.path, matching_url)}
 identified_action := policy.urls_to_action_mapping[identified_url]
 
 allow = status {
    data.policies[identified_action]
-   
    status := {
       "allowed": true,
       "headers": {"x-request-allowed": "yes"},
@@ -30,7 +28,6 @@ allow = status {
 
 allow = status {
    not identified_action
-
    status := {
       "allowed": true,
       "headers": {"x-request-allowed": "yes"},
@@ -44,7 +41,6 @@ allow = status {
 
 allow = status {
    http_request.headers["x-consumer-username"] in {{ kong_desktop_device_consumer_names_for_opa }}
-
    status := {
       "allowed": true,
       "headers": {"x-request-allowed": "yes"},
