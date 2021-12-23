@@ -43,6 +43,28 @@
   - debug:
       var: sunbird_custodian_org_id
 
-- import_tasks: knowledge_platform_tasks.yaml
-- import_tasks: user_org.yaml
-- import_tasks: forms.yaml
+# Else login won't work
+- name: Creating NTP org for login
+  block:
+  - uri:
+      url: "https://{{ domain_name }}/api/org/v1/create"
+      method: POST
+      headers:
+        x-authenticated-user-token: "{{ keycloak_access_token }}"
+        Authorization: "Bearer {{ core_vault_sunbird_api_auth_token }}"
+      body_format: json
+      body: |-
+        {
+          "request": {
+           "orgName":"NTP",
+           "description":"NTP Organisation for Sunbird",
+           "isRootOrg": true,
+           "channel": "ntp",
+           "organisationType": "board",
+           "isTenant": true
+          }
+        }
+
+# - import_tasks: knowledge_platform_tasks.yaml
+# - import_tasks: user_org.yaml
+# - import_tasks: forms.yaml
