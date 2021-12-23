@@ -72,7 +72,7 @@ org_check(roles) = token_organisationids {
 }
 
 federation_id_check {
-  federation_id := token_federation_id
+  federation_id == token_federation_id
 }
 
 parent_id_check {

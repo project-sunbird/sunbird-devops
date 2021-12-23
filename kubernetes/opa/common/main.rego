@@ -17,17 +17,38 @@ matching_url := regex.find_n(urls[_], http_request.path, 1)[0]
 identified_url := matching_url {startswith(http_request.path, matching_url)}
 identified_action := policy.urls_to_action_mapping[identified_url]
 
-allow {
+allow = status {
    data.policies[identified_action]
+   
+   status := {
+      "allowed": true,
+      "headers": {"x-request-allowed": "yes"},
+      "body": "OPA Check Passed",
+      "http_status": 200
+   }
 }
 
-allow {
+allow = status {
    not identified_action
+
+   status := {
+      "allowed": true,
+      "headers": {"x-request-allowed": "yes"},
+      "body": "OPA Check Skipped",
+      "http_status": 200
+   }
 }
 
 # Desktop app is not sending x-authenticated-for header due to which managed user flow is breaking
 # This is a temporary fix till the desktop app issue is fixed
 
-allow {
+allow = status {
    http_request.headers["x-consumer-username"] in {{ kong_desktop_device_consumer_names_for_opa }}
+
+   status := {
+      "allowed": true,
+      "headers": {"x-request-allowed": "yes"},
+      "body": "OPA Check Skipped",
+      "http_status": 200
+   }
 }

@@ -1,0 +1,35 @@
+---
+- hosts: localhost
+  vars:
+    kong_desktop_device_consumer_names_for_opa: '["desktop"]'
+    core_vault_sunbird_keycloak_user_federation_provider_id: "5bb6c87c-7c88-4d2b-af7e-534a2fef978d"
+  tasks:
+  - name: Template the common rego files
+    template:
+      src: ../opa/common/{{item}}
+      dest: ../opa/{{release_name}}/
+    with_items:
+    - main.rego
+    - common.rego
+
+  - name: Run the opa test and check for 100% coverage
+    command: opa test -v . -c
+    args:
+      chdir: ../opa/{{release_name}}/
+    register: coverage
+
+  - name: Check if coverage is 100% from policies and tests files
+    fail:
+      msg: "Coverage on {{item}} is {{ (coverage.stdout | from_json).files[item].coverage }} and not 100"
+    with_items:
+    - policies.rego
+    - tests.rego
+    when: (coverage.stdout | from_json).files[item].coverage != 100
+
+  - name: Cleanup copied files
+    file:
+      path: ../opa/{{release_name}}/{{item}}
+      state: absent
+    with_items:
+    - main.rego
+    - common.rego
