@@ -79,6 +79,24 @@
     delay: 10
     sleep: 5
 
+- name: Make sure systemd destination dir exists
+  file:
+    path: "/etc/systemd/system/cassandra.service.d"
+    state: directory
+    mode: "755"
+
+- name: Copy specific cassandra Systemd config file
+  template:
+    src: "override.conf.j2"
+    dest: "/etc/systemd/system/cassandra.service.d/override.conf"
+    owner: root
+    group: cassandra
+    mode: "644"
+    force: yes
+
+- name: Force systemd to reread configs
+  systemd: daemon_reload=yes    
+    
 - name: Restart Cassandra seeds
   service:
     name: cassandra

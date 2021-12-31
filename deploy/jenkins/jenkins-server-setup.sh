@@ -125,13 +125,11 @@ rm -rf /usr/local/bin/helm
 cp linux-386/helm /usr/local/bin/helm
 rm -rf helm-v* linux-amd*
 
-# Install kubectl
+# Install kubectl v1.22.0
 echo -e "\n\e[0;32m${bold}Installating kubectl${normal}"
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-touch /etc/apt/sources.list.d/kubernetes.list
-echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-apt-get update
-apt-get install -y kubectl
+curl -LO https://dl.k8s.io/release/v1.22.0/bin/linux/amd64/kubectl
+chmod +x kubectl
+mv kubectl /usr/local/bin
 
 #Install yarn
 echo -e "\n\e[0;32m${bold}Installating yarn${normal}"
@@ -162,6 +160,11 @@ apt install -y python-psycopg2
 #Install libpng-dev - Ubuntu 18 and above fix for plugin builds
 echo -e "\n\e[0;32m${bold}Installating libpng-dev${normal}"
 apt install -y libpng-dev
+
+echo -e "\n\e[0;32m${bold}Installating OPA${normal}"
+curl -k -L -o opa https://openpolicyagent.org/downloads/v0.34.2/opa_linux_amd64_static
+chmod 755 ./opa
+mv opa /usr/local/bin/
 
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove

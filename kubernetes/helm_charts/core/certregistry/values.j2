@@ -18,14 +18,20 @@ resources:
     cpu: {{certregistry_cpu_limit|default('1')}}
     memory: {{certregistry_mem_limit|default('1024Mi')}}
 network:
-  port: 9013
+  port: 9000
   targetport: 9000
 strategy:
   type: RollingUpdate
   maxsurge: {{ certregistry_maxsurge|default('25%') }}
   maxunavailable: {{ certregistry_maxunavailable|default('25%') }}
 
-{{ cert_liveness_readiness | to_nice_yaml }}
+{{ certregistry_liveness_readiness | to_nice_yaml }}
+{{ opa_liveness_readiness | to_nice_yaml }}
+{{ envoy_liveness_readiness | to_nice_yaml }}
+
+certregistry_opa_enabled: {{ certregistry_opa_enabled | default('true') }}
+
+{{ opa_envoy_resources | to_nice_yaml }}
 
 autoscaling:
   enabled: {{ certregistry_autoscaling_enabled | default('false') }}

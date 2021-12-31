@@ -1545,7 +1545,7 @@ kong_apis:
     - "{{ statsd_pulgin }}"
     - name: acl
       config.whitelist:
-        - 'privateCourseAccess'
+        - 'courseAccess'
     - name: rate-limiting
       config.policy: local
       config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -2513,6 +2513,24 @@ kong_apis:
   - name: readRoleMapping
     uris: "{{ data_service_prefix }}/v1/role/read"
     upstream_url: "{{ learning_service_url }}/v1/role/read"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: readUserSpecificRole
+    uris: "{{ user_service_prefix }}/v1/role/read"
+    upstream_url: "{{ learning_service_url }}/v1/user/role/read"
     strip_uri: true
     plugins:
     - name: jwt
@@ -6652,24 +6670,6 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
-  - name: observationListEvidences
-    uris: "{{ observations_service_prefix }}/mlsurvey/v1/listAllEvidences"
-    upstream_url: "{{ ml_survey_service_url }}/v1/observations/listAllEvidences"
-    strip_uri: true
-    plugins:
-    - name: jwt
-    - name: cors
-    - "{{ statsd_pulgin }}"
-    - name: acl
-      config.whitelist:
-        - 'observationAccess'
-    - name: rate-limiting
-      config.policy: local
-      config.hour: "{{ medium_rate_limit_per_hour }}"
-      config.limit_by: credential
-    - name: request-size-limiting
-      config.allowed_payload_size: "{{ small_request_size_limit }}"
- 
   - name: observationReports
     uris: "{{ reports_service_prefix }}/mlreports/v1/fetch"
     upstream_url: "{{ ml_reports_service_url }}/v1/reports/fetch"
