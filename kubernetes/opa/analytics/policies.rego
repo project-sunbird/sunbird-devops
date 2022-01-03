@@ -28,6 +28,10 @@ getDataExhaustRequest {
   not http_request.headers["x-authenticated-userid"]
 }
 
+getDataExhaustRequest {
+  not http_request.headers["x-authenticated-user-token"]
+}
+
 listDataExhaustRequest {
   acls := ["listDataExhaustRequest"]
   roles := ["ORG_ADMIN", "REPORT_ADMIN", "CONTENT_CREATOR", "COURSE_MENTOR", "PROGRAM_MANAGER", "PROGRAM_DESIGNER"]
@@ -44,6 +48,10 @@ listDataExhaustRequest {
   super.role_check(roles)  
   http_request.headers["x-channel-id"]
   not http_request.headers["x-authenticated-userid"]
+}
+
+listDataExhaustRequest {
+  not http_request.headers["x-authenticated-user-token"]
 }
 
 submitDataExhaustRequest {
@@ -84,4 +92,8 @@ submitDataExhaustRequest {
   input.parsed_body.request.dataset in ["druid-dataset"]
   http_request.headers["x-channel-id"]
   not http_request.headers["x-authenticated-userid"]
+}
+
+submitDataExhaustRequest {
+  not http_request.headers["x-authenticated-user-token"]
 }
