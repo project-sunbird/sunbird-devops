@@ -51,8 +51,9 @@ data:
                     allow_partial_message: true
                   failure_mode_allow: true
                   grpc_service:
-                    envoy_grpc:
-                      cluster_name: ext_authz
+                    google_grpc:
+                      target_uri: 127.0.0.1:9191
+                      stat_prefix: ext_authz
                     timeout: 5s
               - name: envoy.filters.http.router
       clusters:
@@ -70,24 +71,6 @@ data:
                   socket_address:
                     address: 127.0.0.1
                     port_value: {{ .Values.network.targetport }}
-      - name: ext_authz
-        connect_timeout: 30s
-        per_connection_buffer_limit_bytes: 62914560
-        type: static
-        typed_extension_protocol_options:
-          envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
-            "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
-            explicit_http_config:
-              http2_protocol_options: {}
-        load_assignment:
-          cluster_name: ext_authz
-          endpoints:
-          - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: 127.0.0.1
-                    port_value: 9191
     admin:
       access_log_path: "/dev/stdout"
       address:
