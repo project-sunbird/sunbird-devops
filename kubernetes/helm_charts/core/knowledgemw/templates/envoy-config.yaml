@@ -10,6 +10,7 @@ data:
           socket_address:
             address: 0.0.0.0
             port_value: 9999
+        per_connection_buffer_limit_bytes: 62914560
         filter_chains:
         - filters:
           - name: envoy.http_connection_manager
@@ -49,17 +50,17 @@ data:
                     max_request_bytes: 62914560
                     allow_partial_message: true
                     pack_as_bytes: true
-                  failure_mode_allow: false
+                  failure_mode_allow: true
                   grpc_service:
-                    google_grpc:
-                      target_uri: 127.0.0.1:9191
-                      stat_prefix: ext_authz
-                    timeout: 1s
+                    envoy_grpc:
+                      cluster_name: ext_authz
+                    timeout: 5s
               - name: envoy.filters.http.router
       clusters:
       - name: service
         connect_timeout: 30s
-        type: strict_dns
+        per_connection_buffer_limit_bytes: 62914560
+        type: static
         lb_policy: round_robin
         load_assignment:
           cluster_name: service
@@ -70,6 +71,24 @@ data:
                   socket_address:
                     address: 127.0.0.1
                     port_value: {{ .Values.network.targetport }}
+      - name: ext_authz
+        connect_timeout: 30s
+        per_connection_buffer_limit_bytes: 62914560
+        type: static
+        typed_extension_protocol_options:
+          envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+            "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+            explicit_http_config:
+              http2_protocol_options: {}
+        load_assignment:
+          cluster_name: ext_authz
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: 127.0.0.1
+                    port_value: 9191
     admin:
       access_log_path: "/dev/stdout"
       address:
