@@ -51,10 +51,10 @@ token_roles = user_token.payload.roles {
 userid = token_userid {
     not http_request.headers["x-authenticated-for"]
 } else = token_userid {
-    http_request.headers["x-authenticated-for"] == "" # This is a temporary fix as the mobile app is sending empty headers as x-authenticated-for: ""
+    count(http_request.headers["x-authenticated-for"]) == 0 # This is a temporary fix as the mobile app is sending empty headers as x-authenticated-for: ""
 } else = for_token_userid {
     http_request.headers["x-authenticated-for"]
-    http_request.headers["x-authenticated-for"] != ""
+    count(http_request.headers["x-authenticated-for"]) > 0
 }
 
 acls_check(acls) = indicies {
@@ -80,7 +80,12 @@ federation_id_check {
 
 parent_id_check {
     http_request.headers["x-authenticated-for"]
+    count(http_request.headers["x-authenticated-for"]) > 0
     token_userid == for_token_parentid
+}
+
+parent_id_check {
+    count(http_request.headers["x-authenticated-for"]) == 0
 }
 
 parent_id_check {
