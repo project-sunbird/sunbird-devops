@@ -50,8 +50,12 @@ token_roles = user_token.payload.roles {
 
 userid = token_userid {
     not http_request.headers["x-authenticated-for"]
+} else = token_userid {
+    # This is a temporary fix as the mobile app is sending empty headers as x-authenticated-for: ""
+    http_request.headers["x-authenticated-for"] == ""
 } else = for_token_userid {
     http_request.headers["x-authenticated-for"]
+    http_request.headers["x-authenticated-for"] != ""
 }
 
 acls_check(acls) = indicies {
