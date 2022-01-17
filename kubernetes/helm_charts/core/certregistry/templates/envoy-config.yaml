@@ -30,6 +30,15 @@ data:
                   - "*"
                   routes:
                   - match:
+                      prefix: "/opa/metrics"
+                    route:
+                      prefix_rewrite: "/metrics"
+                      cluster: opa
+                    typed_per_filter_config:
+                      envoy.filters.http.ext_authz:
+                        "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                        disabled: true
+                  - match:
                       prefix: "{{ .Values.livenessProbe.httpGet.path }}"
                     route:
                       cluster: service
@@ -71,6 +80,18 @@ data:
                   socket_address:
                     address: 127.0.0.1
                     port_value: {{ .Values.network.targetport }}
+      - name: opa
+        connect_timeout: 5s
+        type: static
+        load_assignment:
+          cluster_name: opa
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: 127.0.0.1
+                    port_value: 8181
     admin:
       access_log_path: "/dev/stdout"
       address:
