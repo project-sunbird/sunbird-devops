@@ -1,3 +1,4 @@
+{{- if .Values.content_opa_enabled }}
 {{- if .Values.serviceMonitor.enabled }}
 {{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" ) ( .Values.serviceMonitor.enabled ) }}
 apiVersion: monitoring.coreos.com/v1
@@ -10,13 +11,6 @@ metadata:
 spec:
   endpoints:
   - honorLabels: true
-    interval: 60s
-    path: /metrics/druid
-    port: http-{{ .Chart.Name }}
-    scheme: http
-    scrapeTimeout: 10s
-{{- if .Values.analytics_opa_enabled }}
-  - honorLabels: true
     interval: 30s
     path: /opa/metrics
     port: opa-metrics
@@ -28,7 +22,6 @@ spec:
     port: envoy-metrics
     scheme: http
     scrapeTimeout: 10s
-{{- end }}
   jobLabel: {{ .Chart.Name }}
   namespaceSelector:
     matchNames:
@@ -36,5 +29,6 @@ spec:
   selector:
     matchLabels:
       app: {{ .Chart.Name }}
+{{- end }}
 {{- end }}
 {{- end }}
