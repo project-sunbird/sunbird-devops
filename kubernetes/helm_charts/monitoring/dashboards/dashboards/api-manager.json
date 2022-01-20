@@ -51,7 +51,7 @@
       "fillGradient": 0,
       "gridPos": {
         "h": 7,
-        "w": 12,
+        "w": 8,
         "x": 0,
         "y": 1
       },
@@ -102,7 +102,7 @@
         {
           "expr": "sum(rate(kong_request_count{api=~\"${api}\"}[1m]))",
           "format": "time_series",
-          "hide": false,
+          "hide": true,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "Total Across All API's",
@@ -160,6 +160,123 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "$cluster",
+      "decimals": 2,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 1
+      },
+      "hiddenSeries": false,
+      "id": 4,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": true,
+        "hideEmpty": true,
+        "hideZero": true,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "sort": "avg",
+        "sortDesc": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "connected",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": true,
+      "pointradius": 5,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(increase(kong_request_status_count{api=~\"${api}\",status_code=~\"2..|3..\", status_code!= \"total\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[1m]))",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{api}}-{{status_code}}",
+          "refId": "A",
+          "step": 4
+        },
+        {
+          "expr": "sum(sum(increase(kong_request_status_count{api=~\"${api}\",status_code=~\"2..|3..\", status_code!= \"total\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[1m])))",
+          "format": "time_series",
+          "hide": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "Total Across All API's",
+          "refId": "B",
+          "step": 4
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Success %",
+      "tooltip": {
+        "shared": true,
+        "sort": 2,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": 1,
+          "format": "percentunit",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "decimals": null,
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "$cluster",
       "decimals": 0,
       "fieldConfig": {
         "defaults": {
@@ -171,8 +288,8 @@
       "fillGradient": 0,
       "gridPos": {
         "h": 7,
-        "w": 12,
-        "x": 12,
+        "w": 8,
+        "x": 16,
         "y": 1
       },
       "hiddenSeries": false,
@@ -222,7 +339,7 @@
         {
           "expr": "sum(increase(kong_request_count{api =~ \"$api\"}[$__range]))",
           "format": "time_series",
-          "hide": false,
+          "hide": true,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "Total Across All API's",
@@ -312,14 +429,14 @@
         "y": 9
       },
       "hiddenSeries": false,
-      "id": 4,
+      "id": 5,
       "legend": {
         "alignAsTable": true,
         "avg": true,
         "current": true,
         "hideEmpty": true,
         "hideZero": true,
-        "max": false,
+        "max": true,
         "min": false,
         "rightSide": true,
         "show": true,
@@ -335,7 +452,7 @@
       "options": {
         "dataLinks": []
       },
-      "percentage": true,
+      "percentage": false,
       "pointradius": 5,
       "points": false,
       "renderer": "flot",
@@ -345,7 +462,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(increase(kong_request_status_count{api=~\"${api}\",status_code=~\"2..|3..\", status_code!= \"total\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[1m]))",
+          "expr": "sum(increase(kong_request_status_count{api=~\"${api}\",status_code!~\"2..|3..|5..|total\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left  sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[1m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -354,8 +471,9 @@
           "step": 4
         },
         {
-          "expr": "sum(sum(increase(kong_request_status_count{api=~\"${api}\",status_code=~\"2..|3..\", status_code!= \"total\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[1m])))",
+          "expr": "sum(sum(increase(kong_request_status_count{api=~\"${api}\",status_code!~\"2..|3..|5..|total\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left  sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[1m])))",
           "format": "time_series",
+          "hide": true,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "Total Across All API's",
@@ -367,7 +485,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Success %",
+      "title": "4xx Error %",
       "tooltip": {
         "shared": true,
         "sort": 2,
@@ -428,7 +546,7 @@
         "y": 9
       },
       "hiddenSeries": false,
-      "id": 5,
+      "id": 51,
       "legend": {
         "alignAsTable": true,
         "avg": true,
@@ -461,7 +579,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(increase(kong_request_status_count{api=~\"${api}\",status_code!~\"2..|3..|total\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left  sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[1m]))",
+          "expr": "sum(increase(kong_request_status_count{api=~\"${api}\",status_code!~\"2..|3..|4..|total\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left  sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[1m]))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -470,8 +588,9 @@
           "step": 4
         },
         {
-          "expr": "sum(sum(increase(kong_request_status_count{api=~\"${api}\",status_code!~\"2..|3..|total\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left  sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[1m])))",
+          "expr": "sum(sum(increase(kong_request_status_count{api=~\"${api}\",status_code!~\"2..|3..|4..|total\"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left  sum(increase(kong_request_status_count{api=~\"${api}\", status_code!= \"total\"}[1m])))",
           "format": "time_series",
+          "hide": true,
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "Total Across All API's",
@@ -483,7 +602,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Error %",
+      "title": "5xx Error %",
       "tooltip": {
         "shared": true,
         "sort": 2,
@@ -828,6 +947,7 @@
             {
               "expr": "sum(increase(kong_request_status_count{api=~\"${api}\",status_code=~\"2..|3..\", status_code!= \"total\"}[1m]))",
               "format": "time_series",
+              "hide": true,
               "interval": "",
               "intervalFactor": 1,
               "legendFormat": "Total Across All API's",
@@ -944,6 +1064,7 @@
             {
               "expr": "sum(increase(kong_request_status_count{api=~\"${api}\",status_code!~\"2..|3..|total\"}[1m]))",
               "format": "time_series",
+              "hide": true,
               "interval": "",
               "intervalFactor": 1,
               "legendFormat": "Total Across All API's",
@@ -1028,7 +1149,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 26
+            "y": 33
           },
           "hiddenSeries": false,
           "id": 17,
@@ -1135,7 +1256,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 26
+            "y": 33
           },
           "hiddenSeries": false,
           "id": 18,
@@ -1258,7 +1379,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 34
+            "y": 41
           },
           "hiddenSeries": false,
           "id": 39,
@@ -1366,7 +1487,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 34
+            "y": 41
           },
           "hiddenSeries": false,
           "id": 40,
@@ -1489,7 +1610,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 42
+            "y": 49
           },
           "hiddenSeries": false,
           "id": 41,
@@ -1597,7 +1718,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 42
+            "y": 49
           },
           "hiddenSeries": false,
           "id": 42,
@@ -1719,7 +1840,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 22
+            "y": 57
           },
           "hiddenSeries": false,
           "id": 16,
@@ -1827,7 +1948,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 22
+            "y": 57
           },
           "hiddenSeries": false,
           "id": 22,
@@ -1950,7 +2071,7 @@
             "h": 7,
             "w": 12,
             "x": 0,
-            "y": 35
+            "y": 65
           },
           "hiddenSeries": false,
           "id": 23,
@@ -2058,7 +2179,7 @@
             "h": 7,
             "w": 12,
             "x": 12,
-            "y": 35
+            "y": 65
           },
           "hiddenSeries": false,
           "id": 24,
@@ -2194,7 +2315,7 @@
             "h": 7,
             "w": 24,
             "x": 0,
-            "y": 35
+            "y": 73
           },
           "hiddenSeries": false,
           "id": 21,
@@ -2342,7 +2463,7 @@
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
