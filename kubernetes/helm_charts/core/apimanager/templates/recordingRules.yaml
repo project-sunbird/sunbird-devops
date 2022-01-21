@@ -3,14 +3,14 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: {{ include "statsd-exporter.fullname" . }}-recording.rule
+  name: {{ include "apimanager.fullname" . }}-recording.rule
   namespace: {{ default .Values.namespace .Release.Namespace  }}
   labels:
-    {{- include "statsd-exporter.labels" . | nindent 4 }}
+    {{- include "apimanager.labels" . | nindent 4 }}
     {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
 spec:
   groups:
-  - name: kong-recording.rules
+  - name: apimanager-recording.rules
     rules:
     - expr: sum(rate(kong_request_count{api=~"${api}"}[1m])) by (api)
       record: job:kong_request_count:rate:sum:1m
@@ -45,13 +45,13 @@ spec:
     - expr: histogram_quantile(0.50, sum(rate(kong_upstream_latency_time_bucket{api=~"${api}"}[1m])) by (api,le))
       record: job:kong_upstream_latency_time_bucket50:rate:sum:1m
     - expr: sum(rate(kong_request_size_sum{api=~"${api}"}[1m]) / rate(kong_request_size_count{api=~"${api}"}[1m])) by (api)
-      record: job:kong_request_size_sum:rate:sum:1m
+      record: job:kong_average_request_size_sum:rate:sum:1m
     - expr: sum(rate(kong_response_size_sum{api=~"${api}"}[1m]) / rate(kong_response_size_count{api=~"${api}"}[1m])) by (api)
-      record: job:kong_response_size_sum:rate:sum:1m
+      record: job:kong_average_response_size_sum:rate:sum:1m
     - expr: sum(rate(kong_request_size_sum{api=~"${api}"}[1m])) by (api)
-      record: job:kong_request_size_sum:rate:sum:1m
+      record: job:kong_total_request_size_sum:rate:sum:1m
     - expr: sum(rate(kong_response_size_sum{api=~"${api}"}[1m])) by (api)
-      record: job:kong_response_size_sum:rate:sum:1m
+      record: job:kong_total_response_size_sum:rate:sum:1m
     - expr: sum(rate(kong_latency_time_bucket{api=~"${api}", le="0.5"}[1m])) by (api) / sum(rate(kong_latency_time_count[1m])) by (api)
       record: job:kong_latency_time_bucket:rate:sum:1m
 {{- end }}
