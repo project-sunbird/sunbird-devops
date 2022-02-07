@@ -911,6 +911,24 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+  
+  - name: createUserVersion5
+    uris: "{{ user_service_prefix }}/v5/create"
+    upstream_url: "{{ learning_service_url }}/v5/user/create"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'userAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
 
   - name: deleteNote
     uris: "{{ notes_service_prefix }}/v1/delete"
@@ -1163,6 +1181,24 @@ kong_apis:
   - name: generateOtp
     uris: "{{ otp_service_prefix }}/v1/generate"
     upstream_url: "{{ learning_service_url }}/v1/otp/generate"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'anonymousUserAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+  
+  - name: generateOtpV2
+    uris: "{{ otp_service_prefix }}/v2/generate"
+    upstream_url: "{{ learning_service_url }}/v2/otp/generate"
     strip_uri: true
     plugins:
     - name: jwt
@@ -3830,6 +3866,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: verifyOtpV2
+    uris: "{{ otp_service_prefix }}/v2/verify"
+    upstream_url: "{{ learning_service_url }}/v2/otp/verify"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'anonymousUserAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: verifyRegCertificate
     uris: "{{ cert_registry_service_prefix }}/v1/certs/verify"
     upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/verify"
@@ -5958,6 +6012,24 @@ kong_apis:
   - name: managedUserV1Create
     uris: "{{ user_service_prefix }}/v1/managed/create"
     upstream_url: "{{ learning_service_url }}/v1/manageduser/create"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'userAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  
+  - name: managedUserV2Create
+    uris: "{{ user_service_prefix }}/v2/managed/create"
+    upstream_url: "{{ learning_service_url }}/v2/manageduser/create"
     strip_uri: true
     plugins:
       - name: jwt
