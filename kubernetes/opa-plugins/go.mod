@@ -1,4 +1,4 @@
-module github.com/keshavprasadms/opa-plugins
+module github.com/project-sunbird/sunbird-devops/kubernetes/opa-plugins
 
 go 1.16
 

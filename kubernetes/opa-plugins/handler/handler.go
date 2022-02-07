@@ -5,7 +5,7 @@
 package handler
 
 import (
-	"github.com/keshavprasadms/opa-plugins/plugins/decisionlogs"
+	"github.com/project-sunbird/sunbird-devops/kubernetes/opa-plugins/plugins/decisionlogs"
 	"github.com/open-policy-agent/opa/plugins"
 )
 

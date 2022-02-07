@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/keshavprasadms/opa-plugins/handler"
+	"github.com/project-sunbird/sunbird-devops/kubernetes/opa-plugins/handler"
 	"github.com/open-policy-agent/opa-envoy-plugin/plugin"
 	"github.com/open-policy-agent/opa/cmd"
 	"github.com/open-policy-agent/opa/runtime"
