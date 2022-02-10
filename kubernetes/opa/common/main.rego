@@ -1,7 +1,3 @@
-# Note this file is a hard link
-# A change here will change in all directories where this link resides
-# Opa issue - https://github.com/open-policy-agent/opa/issues/4335
-
 package main
 
 import input.attributes.request.http as http_request
