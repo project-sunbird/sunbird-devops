@@ -21,6 +21,9 @@ test_allowed {
       "attributes": {
         "request": {
           "http": {
+            "headers": {
+              "x-consumer-username": "mobile"
+            },
             "path": "/url/allowed"
           }
         }

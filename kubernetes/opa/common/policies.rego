@@ -7,7 +7,7 @@ urls_to_action_mapping := {
    "/url/allowed": "allow",
    "/url/not/allowed": "deny",
    "/public/role/check": "public_role_check",
-   "/org/check": "org_check"
+   "/user/org/check": "user_and_org_check"
 }
 
 allow = true
@@ -18,10 +18,11 @@ public_role_check {
    super.public_role_check
 }
 
-org_check {
+user_and_org_check {
    acls := ["createContent"]
    roles := ["CONTENT_CREATOR"]
    super.acls_check(acls)
    token_organisationids := super.org_check(roles)
+   input.parsed_body.request.content.createdBy == super.userid
    input.parsed_body.request.content.channel in token_organisationids
 }
