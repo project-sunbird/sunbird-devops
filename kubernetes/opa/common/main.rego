@@ -16,8 +16,11 @@ matching_url := regex.find_n(urls[_], http_request.path, 1)[0]
 identified_url := matching_url {startswith(http_request.path, matching_url)}
 identified_action := policy.urls_to_action_mapping[identified_url]
 
+# Desktop app is not sending x-authenticated-for header due to which managed user flow is breaking
+# This is a temporary fix till the desktop app issue is fixed
+skipped_consumers := {{ kong_desktop_device_consumer_names_for_opa }}
 check_if_consumer_is_skipped {
-   http_request.headers["x-consumer-username"] in {{ kong_desktop_device_consumer_names_for_opa }}
+   http_request.headers["x-consumer-username"] in skipped_consumers
 }
 
 allow = status {
@@ -43,7 +46,6 @@ allow = status {
 
 # Desktop app is not sending x-authenticated-for header due to which managed user flow is breaking
 # This is a temporary fix till the desktop app issue is fixed
-
 allow = status {
    check_if_consumer_is_skipped
    status := {

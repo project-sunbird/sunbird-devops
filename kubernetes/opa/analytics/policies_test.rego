@@ -1,7 +1,7 @@
 package tests
 
-test_policy_get_data_exhaust_request {
-    data.main.allow.allowed 
+test_get_data_exhaust_request {
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -19,8 +19,8 @@ test_policy_get_data_exhaust_request {
     }
 }
 
-test_policy_get_data_exhaust_request_without_userid {
-    data.main.allow.allowed 
+test_get_data_exhaust_request_without_userid {
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -37,7 +37,7 @@ test_policy_get_data_exhaust_request_without_userid {
     }
 }
 
-test_policy_get_data_exhaust_request_without_user_token {
+test_get_data_exhaust_request_without_user_token {
     data.main.allow.allowed 
     with input as
     {
@@ -55,8 +55,8 @@ test_policy_get_data_exhaust_request_without_user_token {
 }
 
 
-test_policy_list_data_exhaust_request {
-    data.main.allow.allowed 
+test_list_data_exhaust_request {
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -74,8 +74,8 @@ test_policy_list_data_exhaust_request {
     }
 }
 
-test_policy_list_data_exhaust_request_without_userid {
-    data.main.allow.allowed 
+test_list_data_exhaust_request_without_userid {
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -92,7 +92,7 @@ test_policy_list_data_exhaust_request_without_userid {
     }
 }
 
-test_policy_list_data_exhaust_request_without_user_token {
+test_list_data_exhaust_request_without_user_token {
     data.main.allow.allowed 
     with input as
     {
@@ -109,8 +109,8 @@ test_policy_list_data_exhaust_request_without_user_token {
     }
 }
 
-test_policy_submit_data_exhaust_request_t1 {
-    data.main.allow.allowed 
+test_submit_data_exhaust_request_t1 {
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -138,8 +138,8 @@ test_policy_submit_data_exhaust_request_t1 {
     }
 }
 
-test_policy_submit_data_exhaust_request_t2 {
-    data.main.allow.allowed 
+test_submit_data_exhaust_request_t2 {
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -167,8 +167,8 @@ test_policy_submit_data_exhaust_request_t2 {
     }
 }
 
-test_policy_submit_data_exhaust_request_without_userid_t1 {
-    data.main.allow.allowed 
+test_submit_data_exhaust_request_without_userid_t1 {
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -195,8 +195,8 @@ test_policy_submit_data_exhaust_request_without_userid_t1 {
     }
 }
 
-test_policy_submit_data_exhaust_request_without_userid_t2 {
-    data.main.allow.allowed 
+test_submit_data_exhaust_request_without_userid_t2 {
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -223,7 +223,7 @@ test_policy_submit_data_exhaust_request_without_userid_t2 {
     }
 }
 
-test_policy_submit_data_exhaust_request_without_user_token {
+test_submit_data_exhaust_request_without_user_token {
     data.main.allow.allowed 
     with input as
     {

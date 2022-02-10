@@ -1,7 +1,7 @@
 package tests
 
-test_policy_collection_import {
-    data.main.allow.allowed 
+test_collection_import {
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -17,8 +17,8 @@ test_policy_collection_import {
     }
 }
 
-test_policy_collection_export {
-    data.main.allow.allowed 
+test_collection_export {
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -35,7 +35,7 @@ test_policy_collection_export {
 }
 
 
-test_policy_created_content {
+test_created_content {
     data.main.allow.allowed 
     with input as
     {
@@ -49,8 +49,8 @@ test_policy_created_content {
     }
 }
 
-test_policy_submit_content_for_review {
-    data.main.allow.allowed 
+test_submit_content_for_review {
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
