@@ -97,6 +97,7 @@ public_role_check {
   roles := ["PUBLIC"]
   acls_check(acls)
   role_check(roles)
+  userid
   federation_id_check
   parent_id_check
 }

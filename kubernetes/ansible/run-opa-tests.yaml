@@ -2,19 +2,25 @@
 # Run this playbook in your local before commiting the opa policy changes
 # Mandatory requirements = 100% coverage in policy and test cases
 # ANSIBLE_STDOUT_CALLBACK=debug ansible-playbook run-opa-tests.yaml -e "release_name=certregistry" -v
+# Debug by disabling "Cleanup copied files" task and using opa test -v . -c | jq '.files."common.rego".not_covered' from the policy directory
 
 - hosts: localhost
   vars:
     kong_desktop_device_consumer_names_for_opa: '["desktop"]'
     core_vault_sunbird_keycloak_user_federation_provider_id: "5bb6c87c-7c88-4d2b-af7e-534a2fef978d"
+    common_opa_policy_files:
+      - main.rego
+      - common.rego
+    service_opa_policy_files:
+      - policies.rego
+      - tests.rego
   tasks:
   - name: Template the common rego files
     template:
-      src: ../opa/common/{{item}}
-      dest: ../opa/{{release_name}}/
+      src: ../opa/{{release_name}}/{{item}}
+      dest: ../opa/{{release_name}}/{{item}}
     with_items:
-    - main.rego
-    - common.rego
+    - "{{ common_opa_policy_files }}"
 
   - name: Run the opa test and check for 100% coverage
     command: opa test -v . -c
@@ -26,14 +32,12 @@
     fail:
       msg: "Coverage on {{item}} is {{ (coverage.stdout | from_json).files[item].coverage }} and not 100"
     with_items:
-    - policies.rego
-    - tests.rego
+    - "{{ service_opa_policy_files }}"
     when: (coverage.stdout | from_json).files[item].coverage != 100
 
-  - name: Cleanup copied files
-    file:
-      path: ../opa/{{release_name}}/{{item}}
-      state: absent
+  - name: Check if coverage is 100% from common policies and tests files
+    fail:
+      msg: "Coverage on {{item}} is {{ (coverage.stdout | from_json).files[item].coverage }} and not 100"
     with_items:
-    - main.rego
-    - common.rego
+    - "{{ common_opa_policy_files }}"
+    when: (coverage.stdout | from_json).files[item].coverage != 100
