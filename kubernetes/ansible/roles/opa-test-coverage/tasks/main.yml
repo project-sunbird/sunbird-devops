@@ -1,44 +1,38 @@
 ---
 # Run this playbook in your local before commiting the opa policy changes
 # Mandatory requirements = 100% coverage in policy and test cases
-# ANSIBLE_STDOUT_CALLBACK=debug ansible-playbook run-opa-tests.yaml -e "release_name=certregistry" -v
+# Create a playbook named play.yml as below and run the subsequent command
+# ---
+# - hosts: localhost
+#   roles:
+#   - opa-test-coverage
+# ANSIBLE_STDOUT_CALLBACK=debug ansible-playbook play.yml -v -e "release_name=lms" -v
 # Debug by using opa test -v . -c | jq '.files."common.rego".not_covered' from the policy directory
 
-- hosts: localhost
-  vars:
-    kong_desktop_device_consumer_names_for_opa: '["desktop"]'
-    core_vault_sunbird_keycloak_user_federation_provider_id: "5bb6c87c-7c88-4d2b-af7e-534a2fef978d"
-    common_opa_policy_files:
-      - main.rego
-      - common.rego
-    service_opa_policy_files:
-      - policies.rego
-      - tests.rego
-  tasks:
   - name: Keep a copy of the files before templating
     copy:
-      src: ../opa/common/{{item}}
-      dest: ../opa/common/{{item}}.bak
+      src: "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
+      dest: "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}.bak"
     with_items:
     - "{{ common_opa_policy_files }}"
 
   - name: Template the common rego files
     template:
-      src: ../opa/common/{{item}}
-      dest: ../opa/common/{{item}}
+      src: "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
+      dest: "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
     with_items:
     - "{{ common_opa_policy_files }}"
 
   - name: Run the opa test and check for 100% coverage
     command: opa test -v . -c
     args:
-      chdir: ../opa/{{release_name}}/
+      chdir: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/"
     register: coverage_service
 
   - name: Run the opa test and check for 100% coverage
     command: opa test -v . -c
     args:
-      chdir: ../opa/common/
+      chdir: "{{ role_path }}/{{ common_opa_policies_path }}/"
     register: coverage_common
 
   - name: Check if coverage is 100% from policies and tests files
@@ -56,6 +50,6 @@
     when: (coverage_common.stdout | from_json).files[item].coverage != 100
 
   - name: Replace the templated files with original files
-    command: mv ../opa/common/{{item}}.bak ../opa/common/{{item}}
+    command: mv "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}.bak" "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
     with_items:
     - "{{ common_opa_policy_files }}"
