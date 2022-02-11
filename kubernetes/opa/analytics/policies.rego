@@ -5,9 +5,9 @@ import future.keywords.in
 import input.attributes.request.http as http_request
 
 urls_to_action_mapping := {   
-   "/request/read": "getDataExhaustRequest",
-   "/request/list": "listDataExhaustRequest",
-   "/request/submit": "submitDataExhaustRequest"
+  "/request/read": "getDataExhaustRequest",
+  "/request/list": "listDataExhaustRequest",
+  "/request/submit": "submitDataExhaustRequest"
 }
 
 getDataExhaustRequest {
