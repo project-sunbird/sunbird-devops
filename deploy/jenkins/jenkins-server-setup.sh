@@ -166,10 +166,10 @@ curl -k -L -o opa https://openpolicyagent.org/downloads/v0.34.2/opa_linux_amd64_
 chmod 755 ./opa
 mv opa /usr/local/bin/
 
-echo -e "\n\e[0;32m${bold}Clean up${normal}"
-sudo apt -y autoremove
-
 echo -e "\n\e[0;32m${bold}Installing mongo tools${normal}"
 apt install -y mongo-tools
+
+echo -e "\n\e[0;32m${bold}Clean up${normal}"
+sudo apt -y autoremove
 
 echo -e "\n\e[0;32m${bold}Installation complete. Please go to your jenkins URL and continue setup if this is the first run..${normal}"
