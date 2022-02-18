@@ -80,6 +80,10 @@ scrapeconfig:
       - target_label: __address__
         replacement: redis-exporter:9121
 
+  - job_name: 'graylog'
+    static_configs:
+      - targets: ["{{ groups['graylog'] | difference(["localhost"]) | map('regex_replace', '^(.*)$', '\\1:9833') | list | join("\", \"") }}"]
+
   {% for item in service_blackbox_checks %}
   # This empty line ensures indentation is correct after ansible jinja2 template is materialized
   - job_name: 'availability_{{ item.service_name }}'

@@ -6,7 +6,7 @@ import future.keywords.in
 
 default allow = {
   "allowed": false,
-  "headers": {"X-Request-Allowed": "no"},
+  "headers": {"x-request-allowed": "no"},
   "body": "You do not have permission to perform this operation",
   "http_status": 403
 }
@@ -16,8 +16,16 @@ matching_url := regex.find_n(urls[_], http_request.path, 1)[0]
 identified_url := matching_url {startswith(http_request.path, matching_url)}
 identified_action := policy.urls_to_action_mapping[identified_url]
 
+# Desktop app is not sending x-authenticated-for header due to which managed user flow is breaking
+# This is a temporary fix till the desktop app issue is fixed
+skipped_consumers := {{ kong_desktop_device_consumer_names_for_opa }}
+check_if_consumer_is_skipped {
+   http_request.headers["x-consumer-username"] in skipped_consumers
+}
+
 allow = status {
-   data.policies[identified_action]
+   not check_if_consumer_is_skipped
+   policy[identified_action]
    status := {
       "allowed": true,
       "headers": {"x-request-allowed": "yes"},
@@ -38,9 +46,8 @@ allow = status {
 
 # Desktop app is not sending x-authenticated-for header due to which managed user flow is breaking
 # This is a temporary fix till the desktop app issue is fixed
-
 allow = status {
-   http_request.headers["x-consumer-username"] in {{ kong_desktop_device_consumer_names_for_opa }}
+   check_if_consumer_is_skipped
    status := {
       "allowed": true,
       "headers": {"x-request-allowed": "yes"},

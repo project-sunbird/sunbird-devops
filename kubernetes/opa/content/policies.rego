@@ -5,10 +5,10 @@ import future.keywords.in
 import input.attributes.request.http as http_request
 
 urls_to_action_mapping := {   
-   "/collection/v4/import": "collectionImport",
-   "/collection/v4/export": "collectionExport",
-   "/content/v3/create": "createContent",
-   "/content/v3/review": "submitContentForReview"
+  "/collection/v4/import": "collectionImport",
+  "/collection/v4/export": "collectionExport",
+  "/content/v3/create": "createContent",
+  "/content/v3/review": "submitContentForReview"
 }
 
 collectionImport {
