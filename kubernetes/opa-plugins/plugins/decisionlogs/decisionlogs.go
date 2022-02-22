@@ -16,23 +16,25 @@ import (
 
 const PluginName = "print_decision_logs_on_failure"
 
-func Validate(_ *plugins.Manager, bs []byte) (*Config, error) {
+type Factory struct{}
+
+func (Factory) Validate(_ *plugins.Manager, config []byte) (interface{}, error) {
 	cfg := Config{}
 
-	if err := util.Unmarshal(bs, &cfg); err != nil {
+	if err := util.Unmarshal(config, &cfg); err != nil {
 		return nil, err
 	}
 
-	return &cfg, util.Unmarshal(bs, &cfg)
+	return cfg, util.Unmarshal(config, &cfg)
 }
 
-func New(m *plugins.Manager, cfg *Config) plugins.Plugin {
+func (Factory) New(m *plugins.Manager, config interface{}) plugins.Plugin {
 
 	m.UpdatePluginStatus(PluginName, &plugins.Status{State: plugins.StateNotReady})
 
 	return &PrintlnLogger{
 		manager: m,
-		config:  *cfg,
+		config:  config.(Config),
 	}
 }
 
