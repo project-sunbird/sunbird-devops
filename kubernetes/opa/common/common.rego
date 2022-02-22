@@ -25,8 +25,8 @@ ROLES := {
 # }
 
 jwt_public_keys := {
-{{ public_access_keys | indent( width=2, indentfirst=True) }}
-"{{ adminutil_refresh_token_public_key_kid }}": "{{ keycloak_public_key.stdout }}"
+  {{ public_access_keys }}
+  "{{ adminutil_refresh_token_public_key_kid }}": "{{ keycloak_public_key.stdout }}"
 }
 
 user_token := {"header": header, "payload": payload} {
