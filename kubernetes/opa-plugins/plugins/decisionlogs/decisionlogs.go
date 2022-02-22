@@ -92,7 +92,7 @@ func (p *PrintlnLogger) Log(ctx context.Context, event logs.EventV1) error {
 			if b_token != nil {
 				b_claims, _ := json.Marshal(b_token.Claims)
 				b_header, _ := json.Marshal(b_token.Header)
-				json_log, _ = sjson.SetRaw(json_log, "input.bearer_token_payload", string(b_claims))
+				json_log, _ = sjson.SetRaw(json_log, "input.bearer_token_claims", string(b_claims))
 				json_log, _ = sjson.SetRaw(json_log, "input.bearer_token_header", string(b_header))
 			}
 		}
@@ -102,7 +102,7 @@ func (p *PrintlnLogger) Log(ctx context.Context, event logs.EventV1) error {
 			if x_token != nil {
 				x_claims, _ := json.Marshal(x_token.Claims)
 				x_header, _ := json.Marshal(x_token.Header)
-				json_log, _ = sjson.SetRaw(json_log, "input.x_auth_token_payload", string(x_claims))
+				json_log, _ = sjson.SetRaw(json_log, "input.x_auth_token_claims", string(x_claims))
 				json_log, _ = sjson.SetRaw(json_log, "input.x_auth_token_header", string(x_header))
 			}
 		}
