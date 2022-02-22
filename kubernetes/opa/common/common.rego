@@ -64,7 +64,13 @@ userid = token_userid {
     count(http_request.headers["x-authenticated-for"]) > 0
 }
 
+validate_token {
+  kid = user_token.header.kid
+  io.jwt.verify_rs256(http_request.headers["x-authenticated-user-token"], jwt_public_keys[kid])
+}
+
 acls_check(acls) = indicies {
+  validate_token
   indicies := [idx | some i; ROLES[token_roles[i].role][_] == acls[_]; idx = i]
   count(indicies) > 0
 }
@@ -95,17 +101,11 @@ parent_id_check {
     not http_request.headers["x-authenticated-for"]
 }
 
-validate_token {
-  kid = user_token.header.kid
-  io.jwt.verify_rs256(http_request.headers["x-authenticated-user-token"], jwt_public_keys[kid])
-}
-
 public_role_check {
   acls := ["PUBLIC"]
   roles := ["PUBLIC"]
   acls_check(acls)
   role_check(roles)
   userid
-  validate_token
   parent_id_check
 }
