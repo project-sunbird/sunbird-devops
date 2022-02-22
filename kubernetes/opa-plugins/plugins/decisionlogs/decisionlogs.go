@@ -5,13 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/open-policy-agent/opa/plugins"
 	"github.com/open-policy-agent/opa/plugins/logs"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/open-policy-agent/opa/util"
 	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 )
 
 const PluginName = "print_decision_logs_on_failure"
@@ -76,11 +79,39 @@ func (p *PrintlnLogger) Log(ctx context.Context, event logs.EventV1) error {
 		p.manager.UpdatePluginStatus(PluginName, &plugins.Status{State: plugins.StateErr})
 		return nil
 	}
-	result := gjson.Get(string(bs), "result.allowed")
+	json_log := string(bs)
+	result := gjson.Get(json_log, "result.allowed")
+	bearer_token := gjson.Get(json_log, "input.attributes.request.http.headers.authorization")
+	x_auth_token := gjson.Get(json_log, "input.attributes.request.http.headers.x-authenticated-user-token")
 
 	// Print the decision logs only when result.allowed == false && Config.Stdout == true
 	if !result.Bool() && p.config.Stdout {
-		_, err = fmt.Fprintln(w, string(bs))
+		if bearer_token.Exists() {
+			token := strings.Split(bearer_token.String(), " ")[1]
+			b_token, _ := jwt.Parse(token, nil)
+			if b_token != nil {
+				b_claims, _ := json.Marshal(b_token.Claims)
+				b_header, _ := json.Marshal(b_token.Header)
+				json_log, _ = sjson.SetRaw(json_log, "input.bearer_token_payload", string(b_claims))
+				json_log, _ = sjson.SetRaw(json_log, "input.bearer_token_header", string(b_header))
+			}
+		}
+
+		if x_auth_token.Exists() {
+			x_token, _ := jwt.Parse(x_auth_token.String(), nil)
+			if x_token != nil {
+				x_claims, _ := json.Marshal(x_token.Claims)
+				x_header, _ := json.Marshal(x_token.Header)
+				json_log, _ = sjson.SetRaw(json_log, "input.x_auth_token_payload", string(x_claims))
+				json_log, _ = sjson.SetRaw(json_log, "input.x_auth_token_header", string(x_header))
+			}
+		}
+
+		json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.authorization")
+		json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.x-authenticated-user-token")
+		json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.cookie")
+
+		_, err = fmt.Fprintln(w, json_log)
 	}
 
 	if err != nil {
