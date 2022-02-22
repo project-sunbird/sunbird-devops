@@ -15,22 +15,27 @@
   register: matching_files
 
 - name: Create a temporary file
-  copy:
-    content: ""
-    dest: /tmp/public_keys.json
+  file:
+    path: /tmp/public_keys.txt
+    state: touch
 
-- name: Insert the public key value pairs into the file
+- name: Insert the public keys as key:value pairs into the file
   lineinfile:
     insertafter: EOF
-    path: /tmp/public_keys.json
+    path: /tmp/public_keys.txt
     line: "\"{{ item.split('/')[-1] }}\": \"{{ lookup('file', item) | replace('\n', '\\n') }}\","
   with_items:
   - "{{ matching_files | to_json | from_json | json_query('files[*].path') }}"
 
 - name: Set a variable with the file contents
   set_fact:
-    public_access_keys: "{{ lookup('file', '/tmp/public_keys.json') }}"
+    public_access_keys: "{{ lookup('file', '/tmp/public_keys.txt') }}"
 
 - name: Register a variable for keycloak public key in PEM format
   shell: 'echo "{{ core_vault_sunbird_sso_publickey }}" | sed -e "s/.\{64\}/&\\\n/g" | sed "s/^/-----BEGIN PUBLIC KEY-----\\\n/" | sed "s/$/\\\n-----END PUBLIC KEY-----/"'
   register: keycloak_public_key
+
+- name: Remove the temporary file
+  file:
+    path: /tmp/public_keys.txt
+    state: absent
