@@ -19,9 +19,19 @@ ROLES := {
    "PUBLIC": ["PUBLIC"]
 }
 
-user_token := {"payload": payload} {
+# This block will be expanded by ansible during deployment as below
+# jwt_public_keys := {
+#     "key0": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw1nTpgDi10Sls2Fnk6Iy\n+TPah8HNvQbE0Dm/hpbqU0IVvq28iJf+9b6y4STkvmW5rLzUOZW5BenrWFdQPGMT\n+fnNAnVG7ByQMizJfpdHOuXi7iZsOZ2Ms+9UTMfvmE+GIdp/nDfZ55b8RQAJYr2w\nhd0td7idNnLX8Zo9FZ4eaJ9f0M391v+pkXo9pdistsuuvIapT+COeFex68G0iTSO\n7vYHy3+M5Pkefmh5ftRgcWqoXrTrBZ0ajdW8gcjbOmBXiFHSYD/VLEwTCpeOJIUR\nQ3/dFCoS3KpBfx4p0Wc9117PRT433bGAmgcG4yFtgkIPf8aosSA3Es8DD+U9dlbm\nzQIDAQAB\n-----END PUBLIC KEY-----"
+# }
+
+jwt_public_keys := {
+{{ public_access_keys | indent( width=2, indentfirst=True) }}
+"{{ adminutil_refresh_token_public_key_kid }}": "{{ keycloak_public_key.stdout }}"
+}
+
+user_token := {"header": header, "payload": payload} {
   encoded := http_request.headers["x-authenticated-user-token"]
-  [_, payload, _] := io.jwt.decode(encoded)
+  [header, payload, _] := io.jwt.decode(encoded)
 }
 
 for_token := {"payload": payload} {
@@ -85,11 +95,17 @@ parent_id_check {
     not http_request.headers["x-authenticated-for"]
 }
 
+validate_token {
+  kid = user_token.header.kid
+  io.jwt.verify_rs256(http_request.headers["x-authenticated-user-token"], jwt_public_keys[kid])
+}
+
 public_role_check {
   acls := ["PUBLIC"]
   roles := ["PUBLIC"]
   acls_check(acls)
   role_check(roles)
   userid
+  validate_token
   parent_id_check
 }
