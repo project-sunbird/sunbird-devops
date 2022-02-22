@@ -19,9 +19,10 @@ ROLES := {
    "PUBLIC": ["PUBLIC"]
 }
 
-# This block will be expanded by ansible during deployment as below
+# The below block (jwt_public_keys) will be expanded by ansible during deployment as below
 # jwt_public_keys := {
-#     "key0": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw1nTpgDi10Sls2Fnk6Iy\n+TPah8HNvQbE0Dm/hpbqU0IVvq28iJf+9b6y4STkvmW5rLzUOZW5BenrWFdQPGMT\n+fnNAnVG7ByQMizJfpdHOuXi7iZsOZ2Ms+9UTMfvmE+GIdp/nDfZ55b8RQAJYr2w\nhd0td7idNnLX8Zo9FZ4eaJ9f0M391v+pkXo9pdistsuuvIapT+COeFex68G0iTSO\n7vYHy3+M5Pkefmh5ftRgcWqoXrTrBZ0ajdW8gcjbOmBXiFHSYD/VLEwTCpeOJIUR\nQ3/dFCoS3KpBfx4p0Wc9117PRT433bGAmgcG4yFtgkIPf8aosSA3Es8DD+U9dlbm\nzQIDAQAB\n-----END PUBLIC KEY-----"
+#     "accessv1_key1": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw1nTpgDi10Sls2Fnk6Iy\n+TPah8HNvQbE0Dm/hpbqU0IVvq28iJf+9b6y4STkvmW5rLzUOZW5BenrWFdQPGMT\n+fnNAnVG7ByQMizJfpdHOuXi7iZsOZ2Ms+9UTMfvmE+GIdp/nDfZ55b8RQAJYr2w\nhd0td7idNnLX8Zo9FZ4eaJ9f0M391v+pkXo9pdistsuuvIapT+COeFex68G0iTSO\n7vYHy3+M5Pkefmh5ftRgcWqoXrTrBZ0ajdW8gcjbOmBXiFHSYD/VLEwTCpeOJIUR\nQ3/dFCoS3KpBfx4p0Wc9117PRT433bGAmgcG4yFtgkIPf8aosSA3Es8DD+U9dlbm\nzQIDAQAB\n-----END PUBLIC KEY-----",
+#     "hhzZXoTbJBUQ": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwTS+srpbA/n7I5fDjxcf\nH1QUSiFMP7B4yyLxir3VigKtai+YW7ZqMF853O3OiE/QTKuT0ZsR7aDtCsoZaGqq\n2NSyfbc3m339dBQ+0YgM5UdqvUHubNkgQwkRwb1lGlMWSHMYk0iIKJEIw1MCdCH0\nOBwjzlDxHb78lCKd/GvBvRLMXOJbAP72xJ/gjaNFHQ/GzskhrapDuMXaH+S7vtox\nBDG74fQwXCG+nDJ9ryV2bbWxWMINLU82x3+L6YYnWK80loucm2fzG5l1W/Wz9DIa\nGiWwP0JHlZf9GM/raydB4kDEq3jB22LfdLCdQanMkxbw7bkmvjBT2NFwqgFv3q3m\nVQIDAQAB\n-----END PUBLIC KEY-----"
 # }
 
 jwt_public_keys := {
