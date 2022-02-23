@@ -23,7 +23,7 @@ acceptTermsAndCondition {
 
 acceptTermsAndCondition {
   acls := ["acceptTnc"]
-  roles := ["REPORT_VIEWER"]
+  roles := ["REPORT_VIEWER", "REPORT_ADMIN"]
   super.acls_check(acls)
   super.role_check(roles)
   "reportViewerTnc" == input.parsed_body.request.tncType
