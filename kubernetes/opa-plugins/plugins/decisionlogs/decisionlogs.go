@@ -84,6 +84,11 @@ func (p *PrintlnLogger) Log(ctx context.Context, event logs.EventV1) error {
 	bearer_token := gjson.Get(json_log, "input.attributes.request.http.headers.authorization")
 	x_auth_token := gjson.Get(json_log, "input.attributes.request.http.headers.x-authenticated-user-token")
 
+	json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.authorization")
+	json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.x-authenticated-user-token")
+	json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.x-auth-token")
+	json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.cookie")
+
 	// Print the decision logs only when result.allowed == false && Config.Stdout == true
 	if !result.Bool() && p.config.Stdout {
 		if bearer_token.Exists() {
@@ -106,11 +111,6 @@ func (p *PrintlnLogger) Log(ctx context.Context, event logs.EventV1) error {
 				json_log, _ = sjson.SetRaw(json_log, "input.x_auth_token_header", string(x_header))
 			}
 		}
-
-		json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.authorization")
-		json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.x-authenticated-user-token")
-		json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.x-auth-token")
-		json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.cookie")
 
 		_, err = fmt.Fprintln(w, json_log)
 	}
