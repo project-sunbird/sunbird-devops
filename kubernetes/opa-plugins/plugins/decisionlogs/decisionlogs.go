@@ -109,6 +109,7 @@ func (p *PrintlnLogger) Log(ctx context.Context, event logs.EventV1) error {
 
 		json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.authorization")
 		json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.x-authenticated-user-token")
+		json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.x-auth-token")
 		json_log, _ = sjson.Delete(json_log, "input.attributes.request.http.headers.cookie")
 
 		_, err = fmt.Fprintln(w, json_log)
