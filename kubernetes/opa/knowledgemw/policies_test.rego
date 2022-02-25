@@ -4,7 +4,7 @@ package tests
 # So we use the current time slightly older than the token expiry time
 # This ensures the test cases will not fail
 
-current_time := 1640136100
+current_time := 1640235102
 
 test_copy_content {
     data.main.allow.allowed

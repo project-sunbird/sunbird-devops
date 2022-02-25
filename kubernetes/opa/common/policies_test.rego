@@ -4,7 +4,7 @@ package common_test
 # So we use the current time slightly older than the token expiry time
 # This ensures the test cases will not fail
 
-current_time := 1640136100
+current_time := 1640235102
 
 test_public_role_check {
     data.main.allow.allowed
