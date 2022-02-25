@@ -239,7 +239,6 @@ test_submit_data_exhaust_request_without_userid_t2 {
 
 test_submit_data_exhaust_request_without_user_token {
     data.main.allow.allowed
-    with data.common.current_time as current_time
     with input as
     {
       "attributes": {

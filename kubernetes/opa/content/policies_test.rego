@@ -45,7 +45,6 @@ test_collection_export {
 
 test_created_content {
     data.main.allow.allowed
-    with data.common.current_time as current_time
     with input as
     {
       "attributes": {

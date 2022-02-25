@@ -182,8 +182,7 @@ test_assign_role_v2 {
 }
 
 test_private_user_lookup {
-    data.main.allow.allowed 
-    with data.common.current_time as current_time
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -198,7 +197,6 @@ test_private_user_lookup {
 
 test_private_user_migrate {
     data.main.allow.allowed
-    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -213,7 +211,6 @@ test_private_user_migrate {
 
 test_private_user_read {
     data.main.allow.allowed
-    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
