@@ -42,18 +42,13 @@ courseUnEnrolment {
 
 updateContentState {
   super.public_role_check
-  not input.parsed_body.request.assessments.userId
   super.userid == input.parsed_body.request.userId
 }
 
 updateContentState {
   super.public_role_check
   not input.parsed_body.request.userId
-  super.userid == input.parsed_body.request.assessments.userId
 }
 
-updateContentState {
-  super.public_role_check
-  super.userid == input.parsed_body.request.userId
-  super.userid == input.parsed_body.request.assessments.userId
-}
+# Todo
+# Check input.parsed_body.request.assessments[_].userId with userid to ensure all userids are same for updateContentState

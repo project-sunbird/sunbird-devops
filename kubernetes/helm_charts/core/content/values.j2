@@ -30,8 +30,37 @@ strategy:
 {{ envoy_liveness_readiness | to_nice_yaml }}
 
 content_opa_enabled: {{ content_opa_enabled | default('true') }}
+opa_decision_logs: {{ content_opa_decision_logs | default('false') }}
 
-{{ opa_envoy_resources | to_nice_yaml }}
+envoy_resources:
+  requests:
+    cpu: "{{ content_envoy_cpu_req | default('100m') }}"
+    memory: "{{ content_envoy_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ content_envoy_cpu_limit | default('1') }}"
+    memory: "{{ content_envoy_mem_limit | default('1024Mi') }}"
+
+opa_resources:
+  requests:
+    cpu: "{{ content_opa_cpu_req | default('100m') }}"
+    memory: "{{ content_opa_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ content_opa_cpu_limit | default('1') }}"
+    memory: "{{ content_opa_mem_limit | default('1024Mi') }}"
+
+initcontainer_resources:
+  requests:
+    cpu: "{{ content_initcontainer_cpu_req | default('100m') }}"
+    memory: "{{ content_initcontainer_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ content_initcontainer_cpu_limit | default('100m') }}"
+    memory: "{{ content_initcontainer_mem_limit | default('100Mi') }}"
+
+serviceMonitor:
+  enabled: true
+  labels: # labels with which the prometheus choose the serviceMonitor
+    app: prometheus-operator
+    release: prometheus-operator
 
 autoscaling:
   enabled: {{ content_autoscaling_enabled | default('false') }}

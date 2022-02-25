@@ -90,6 +90,9 @@ spec:
         - --diagnostic-addr=0.0.0.0:8282
         - --set=plugins.envoy_ext_authz_grpc.addr=:9191
         - --set=plugins.envoy_ext_authz_grpc.path=main/allow
+        {{- if .Values.opa_decision_logs }}
+        - --set=decision_logs.console=true
+        {{- end }}
         - --log-level=error
         - --ignore=.*
         image: openpolicyagent/opa:0.34.2-envoy-2
@@ -159,5 +162,15 @@ spec:
   - name: http-{{ .Chart.Name }}
     protocol: TCP
     port: {{ .Values.network.targetport }}
+{{- if .Values.lms_opa_enabled }}
+  - name: opa-metrics
+    port: 8181
+    protocol: TCP
+    targetPort: 8181
+  - name: envoy-metrics
+    port: 10000
+    protocol: TCP
+    targetPort: 10000
+{{- end }}
   selector:
     app: {{ .Chart.Name }}
