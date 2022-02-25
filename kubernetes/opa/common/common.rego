@@ -43,11 +43,8 @@ for_token := {"payload": payload} {
   [_, payload, _] := io.jwt.decode(encoded)
 }
 
-allowed_aud := { {{ keycloak_allowed_aud }} }
 token_kid := user_token.header.kid
-token_alg := user_token.header.alg
 token_iss := user_token.payload.iss
-token_aud := user_token.payload.aud
 token_exp := user_token.payload.exp
 current_time := time.now_ns()
 
@@ -76,23 +73,10 @@ userid = token_userid {
     count(x_authenticated_for) > 0
 }
 
-aud_check {
-  type_name(token_aud) == "array"
-  matching_auds := [aud | some i; token_aud[i] in allowed_aud; aud := token_aud[i]]
-  count(token_aud) == count(matching_auds)
-}
-
-aud_check {
-  type_name(token_aud) == "string"
-  token_aud in allowed_aud
-}
-
 validate_token {
   io.jwt.verify_rs256(x_authenticated_user_token, jwt_public_keys[token_kid])
   token_exp * 1000000000 > current_time
-  token_alg == "RS256"
   token_iss == "{{ keycloak_auth_server_url }}/realms/{{ keycloak_realm }}"
-  aud_check
 }
 
 acls_check(acls) = indicies {
@@ -135,3 +119,30 @@ public_role_check {
   userid
   parent_id_check
 }
+
+# We are not checking Audience (aud) claim as of now
+# We don't use this claim field for anything yet in sunbird
+# A probable use case would be to whitelist certain audience from checks in future
+# The aud field needs to still be attached from Keycloak to be openid compliant
+# Invoke `aud_check` from validate_token block when we want to use this
+
+# Jinja comment block {# #}
+# {# allowed_aud := { {{ keycloak_allowed_aud }} } #}
+# token_aud := user_token.payload.aud
+
+# aud_check {
+#   type_name(token_aud) == "array"
+#   matching_auds := [aud | some i; token_aud[i] in allowed_aud; aud := token_aud[i]]
+#   count(token_aud) == count(matching_auds)
+# }
+
+# aud_check {
+#   type_name(token_aud) == "string"
+#   token_aud in allowed_aud
+# }
+
+# Algorithm checks are not being done as of now since we use only RS256 tokens
+# A probable use case would be to check alg claim field when we use mutiple algorithms to issue tokens
+# Add `token_alg == "RS256"` in validate_token block when we want to use this
+
+# token_alg := user_token.header.alg

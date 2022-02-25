@@ -60,7 +60,7 @@ assignRoleV2 {
 
   # In the below code, we use sets and compare them
   # This can be done using arrays also
-  # Take a look at the audice check in common.rego which uses the array logic
+  # Take a look at the audience check (commented out) in common.rego which uses the array logic
 
   payload_orgs := {ids | ids = input.parsed_body.request.roles[_].scope[_].organisationId}
   matching_orgs := {orgs | some i; payload_orgs[i] in token_orgs; orgs := i}
