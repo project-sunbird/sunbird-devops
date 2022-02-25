@@ -1,7 +1,14 @@
 package tests
 
+# The tokens used in test cases expire on 1640236102
+# So we use the current time slightly older than the token expiry time
+# This ensures the test cases will not fail
+
+current_time := 1640136100
+
 test_get_data_exhaust_request {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -21,6 +28,7 @@ test_get_data_exhaust_request {
 
 test_get_data_exhaust_request_without_userid {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -38,7 +46,7 @@ test_get_data_exhaust_request_without_userid {
 }
 
 test_get_data_exhaust_request_without_user_token {
-    data.main.allow.allowed 
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -57,6 +65,7 @@ test_get_data_exhaust_request_without_user_token {
 
 test_list_data_exhaust_request {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -76,6 +85,7 @@ test_list_data_exhaust_request {
 
 test_list_data_exhaust_request_without_userid {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -93,7 +103,7 @@ test_list_data_exhaust_request_without_userid {
 }
 
 test_list_data_exhaust_request_without_user_token {
-    data.main.allow.allowed 
+    data.main.allow.allowed
     with input as
     {
       "attributes": {
@@ -111,6 +121,7 @@ test_list_data_exhaust_request_without_user_token {
 
 test_submit_data_exhaust_request_t1 {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -140,6 +151,7 @@ test_submit_data_exhaust_request_t1 {
 
 test_submit_data_exhaust_request_t2 {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -169,6 +181,7 @@ test_submit_data_exhaust_request_t2 {
 
 test_submit_data_exhaust_request_without_userid_t1 {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -197,6 +210,7 @@ test_submit_data_exhaust_request_without_userid_t1 {
 
 test_submit_data_exhaust_request_without_userid_t2 {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -224,7 +238,8 @@ test_submit_data_exhaust_request_without_userid_t2 {
 }
 
 test_submit_data_exhaust_request_without_user_token {
-    data.main.allow.allowed 
+    data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {

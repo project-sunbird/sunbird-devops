@@ -56,10 +56,10 @@ assignRoleV2 {
   roles := ["ORG_ADMIN"]
   super.acls_check(acls)
   # Org check will do an implicit role check so there is no need to invoke super.role_check(roles)
-  token_organisationids := super.org_check(roles)
-  payload_organisationids := [ids | ids = input.parsed_body.request.roles[_].scope[_].organisationId]
-  count_of_matching_orgs_indices := [orgs | some i; payload_organisationids[i] in token_organisationids; orgs = i]
-  count(count_of_matching_orgs_indices) == count(payload_organisationids)
+  token_orgs := super.org_check(roles)
+  payload_orgs := {ids | ids = input.parsed_body.request.roles[_].scope[_].organisationId}
+  matching_orgs := {orgs | some i; payload_orgs[i] in token_orgs; orgs := i}
+  payload_orgs == matching_orgs
 }
 
 privateUserLookup {

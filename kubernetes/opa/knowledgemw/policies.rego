@@ -2,7 +2,6 @@ package policies
 
 import data.common as super
 import future.keywords.in
-import input.attributes.request.http as http_request
 
 urls_to_action_mapping := {   
   "/v1/content/copy": "copyContent",

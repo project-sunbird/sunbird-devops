@@ -1,7 +1,14 @@
 package tests
 
+# The tokens used in test cases expire on 1640236102
+# So we use the current time slightly older than the token expiry time
+# This ensures the test cases will not fail
+
+current_time := 1640136100
+
 test_collection_import {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -19,6 +26,7 @@ test_collection_import {
 
 test_collection_export {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -36,7 +44,8 @@ test_collection_export {
 
 
 test_created_content {
-    data.main.allow.allowed 
+    data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -51,6 +60,7 @@ test_created_content {
 
 test_submit_content_for_review {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {

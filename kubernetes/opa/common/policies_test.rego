@@ -1,7 +1,14 @@
 package common_test
 
+# The tokens used in test cases expire on 1640236102
+# So we use the current time slightly older than the token expiry time
+# This ensures the test cases will not fail
+
+current_time := 1640136100
+
 test_public_role_check {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -17,8 +24,44 @@ test_public_role_check {
     }
 }
 
+test_public_role_check_with_expired_token {
+    not data.main.allow.allowed
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "headers": {
+              "x-authenticated-user-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImFjY2Vzc3YxX2tleTEifQ.eyJhdWQiOiJodHRwczovL3N1bmJpcmRlZC5vcmcvYXV0aC9yZWFsbXMvc3VuYmlyZCIsInN1YiI6ImY6NWJiNmM4N2MtN2M4OC00ZDJiLWFmN2UtNTM0YTJmZWY5NzhkOjI4YjBkMDhmLWMyZWEtNDBkMS1iY2QwLThhZTAwZmNhNjZiZSIsInJvbGVzIjpbeyJyb2xlIjoiQk9PS19DUkVBVE9SIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6IkNPTlRFTlRfQ1JFQVRPUiIsInNjb3BlIjpbeyJvcmdhbmlzYXRpb25JZCI6IjAxMzY5ODc4Nzk3NTAzNjkyODEwIn1dfSx7InJvbGUiOiJDT05URU5UX1JFVklFV0VSIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6IkNPVVJTRV9NRU5UT1IiLCJzY29wZSI6W3sib3JnYW5pc2F0aW9uSWQiOiIwMTM2OTg3ODc5NzUwMzY5MjgxMCJ9XX0seyJyb2xlIjoiUFJPR1JBTV9ERVNJR05FUiIsInNjb3BlIjpbeyJvcmdhbmlzYXRpb25JZCI6IjAxMzY5ODc4Nzk3NTAzNjkyODEwIn1dfSx7InJvbGUiOiJSRVBPUlRfVklFV0VSIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6Ik9SR19BRE1JTiIsInNjb3BlIjpbeyJvcmdhbmlzYXRpb25JZCI6IjAxMzY5ODc4Nzk3NTAzNjkyODEwIn0seyJvcmdhbmlzYXRpb25JZCI6IjAxNDcxOTIzNTY3ODEyMzQ1Njc4In1dfSx7InJvbGUiOiJQVUJMSUMiLCJzY29wZSI6W119XSwiaXNzIjoiaHR0cHM6Ly9zdW5iaXJkZWQub3JnL2F1dGgvcmVhbG1zL3N1bmJpcmQiLCJuYW1lIjoiZGVtbyIsInR5cCI6IkJlYXJlciIsImV4cCI6MTY0MDIzNjEwMiwiaWF0IjoxNjQwMTQ5NzA1fQ.B3-TSdYSOlawPHjFdiRjXwvRbYQ_eH_HTiLKlH7vGS0rCOJ6HQbYyWOhZ7vbZPb3virkuyfhykFcYCEHBCkHY-fwGAeU58Pmhi0dnNJkR59Fa9y_75W98JXZW68HROp62ntEAKCA1oot_U4tYi-8UNoR17Gszj9iYzFEBc6TZA4Lrom_9gqhBOYzL0ISFWSS6oG94EaaKDYHyWzCSjU2nYRB_fn-tODmnVJ12GRJAc1oM9y54o8neNYsl4T_xPyD34v-CinUJM8jzDjFqK5_O3HnAbcmXvkZjFRgfk4mF1V4s5hlsTJGyhi2JOPh90C5N-HbAY8QsPBnzgYFQU_sww"
+            },
+            "path": "/public/role/check"
+          }
+        }
+      }
+    }
+}
+
+test_public_role_check_with_an_array_in_aud_claim {
+    data.main.allow.allowed
+    with data.common.current_time as current_time
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "headers": {
+              "x-authenticated-user-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImFjY2Vzc3YxX2tleTEifQ.eyJhdWQiOlsiYWNjb3VudCIsInJlYWxtLW1hbmFnZW1lbnQiXSwic3ViIjoiZjo1YmI2Yzg3Yy03Yzg4LTRkMmItYWY3ZS01MzRhMmZlZjk3OGQ6MjhiMGQwOGYtYzJlYS00MGQxLWJjZDAtOGFlMDBmY2E2NmJlIiwicm9sZXMiOlt7InJvbGUiOiJCT09LX0NSRUFUT1IiLCJzY29wZSI6W3sib3JnYW5pc2F0aW9uSWQiOiIwMTM2OTg3ODc5NzUwMzY5MjgxMCJ9XX0seyJyb2xlIjoiQ09OVEVOVF9DUkVBVE9SIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6IkNPTlRFTlRfUkVWSUVXRVIiLCJzY29wZSI6W3sib3JnYW5pc2F0aW9uSWQiOiIwMTM2OTg3ODc5NzUwMzY5MjgxMCJ9XX0seyJyb2xlIjoiQ09VUlNFX01FTlRPUiIsInNjb3BlIjpbeyJvcmdhbmlzYXRpb25JZCI6IjAxMzY5ODc4Nzk3NTAzNjkyODEwIn1dfSx7InJvbGUiOiJQUk9HUkFNX0RFU0lHTkVSIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6IlJFUE9SVF9WSUVXRVIiLCJzY29wZSI6W3sib3JnYW5pc2F0aW9uSWQiOiIwMTM2OTg3ODc5NzUwMzY5MjgxMCJ9XX0seyJyb2xlIjoiT1JHX0FETUlOIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifSx7Im9yZ2FuaXNhdGlvbklkIjoiMDE0NzE5MjM1Njc4MTIzNDU2NzgifV19LHsicm9sZSI6IlBVQkxJQyIsInNjb3BlIjpbXX1dLCJpc3MiOiJodHRwczovL3N1bmJpcmRlZC5vcmcvYXV0aC9yZWFsbXMvc3VuYmlyZCIsIm5hbWUiOiJkZW1vIiwidHlwIjoiQmVhcmVyIiwiZXhwIjoxNjQwMjM2MTAyLCJpYXQiOjE2NDAxNDk3MDV9.FqqzFBSds7oXDyoy0PC303m76HmaDu-U7uGWV77WkT9R5FTbQ0xRdObVsmJMgF0k3xMqysrj_x-sYRkMPQM4cAS65ybYtM1ZgRcM8AK9AhLcQO4frf9Dsue4D3_EvGBfVW3AM_myGGUPKCNLHokZB7kR1OLz_TxNs1CB5Cw1_aqw6l7TaCpZdItv8hIdVBSZIyGMu0Kfi8wxSoIpEuvZwBLNcwWOE4bKu5Bx9lqOcFK1M5gDEdiAIak11aFQoQlh36SH4SmhRhoFXc0HPBA_NgcrqH71TexAALoQHoHAvMUwGEoqrXpDNcG9HrDzjPa2eDItLV5P9dg3vONCYnh7wQ"
+            },
+            "path": "/public/role/check"
+          }
+        }
+      }
+    }
+}
+
 test_public_role_check_with_for_token {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -37,6 +80,7 @@ test_public_role_check_with_for_token {
 
 test_public_role_check_with_empty_for_token {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -55,6 +99,7 @@ test_public_role_check_with_empty_for_token {
 
 test_public_role_check_with_keycloak_token {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -72,6 +117,7 @@ test_public_role_check_with_keycloak_token {
 
 test_user_and_org_check {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {

@@ -1,7 +1,14 @@
 package tests
 
+# The tokens used in test cases expire on 1640236102
+# So we use the current time slightly older than the token expiry time
+# This ensures the test cases will not fail
+
+current_time := 1640136100
+
 test_update_batch {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -19,6 +26,7 @@ test_update_batch {
 
 test_list_course_enrollments {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -36,6 +44,7 @@ test_list_course_enrollments {
 
 test_course_enrollment {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -60,6 +69,7 @@ test_course_enrollment {
 
 test_course_unenrollment {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -84,6 +94,7 @@ test_course_unenrollment {
 
 test_read_content_state_t1 {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -108,6 +119,7 @@ test_read_content_state_t1 {
 
 test_read_content_state_t2 {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -133,6 +145,7 @@ test_read_content_state_t2 {
 # Check input.parsed_body.request.assessments[_].userId with userid to ensure all userids are same for updateContentState
 test_update_content_state_t1 {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
@@ -171,6 +184,7 @@ test_update_content_state_t1 {
 
 test_update_content_state_t2 {
     data.main.allow.allowed
+    with data.common.current_time as current_time
     with input as
     {
       "attributes": {
