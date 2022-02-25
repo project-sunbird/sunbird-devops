@@ -1,8 +1,8 @@
 package common_test
 
 # The tokens used in test cases expire on 1640236102
-# So we use the current time slightly older than the token expiry time
-# This ensures the test cases will not fail
+# So we set the current_time to a few minutes earlier than the expiry
+# This will ensure the test cases succeed
 
 current_time := 1640235102
 
