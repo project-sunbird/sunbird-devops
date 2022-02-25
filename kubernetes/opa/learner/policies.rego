@@ -62,7 +62,7 @@ assignRoleV2 {
   # This can be done using arrays also
   # Take a look at the audience check (commented out) in common.rego which uses the array logic
 
-  payload_orgs := {ids | ids = input.parsed_body.request.roles[_].scope[_].organisationId}
+  payload_orgs := {ids | ids := input.parsed_body.request.roles[_].scope[_].organisationId}
   matching_orgs := {orgs | some i; payload_orgs[i] in token_orgs; orgs := i}
   payload_orgs == matching_orgs
 }

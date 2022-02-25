@@ -43,6 +43,7 @@ for_token := {"payload": payload} {
   [_, payload, _] := io.jwt.decode(encoded)
 }
 
+iss := "{{ keycloak_auth_server_url }}/realms/{{ keycloak_realm }}"
 token_kid := user_token.header.kid
 token_iss := user_token.payload.iss
 token_exp := user_token.payload.exp
@@ -76,7 +77,7 @@ userid = token_userid {
 validate_token {
   io.jwt.verify_rs256(x_authenticated_user_token, jwt_public_keys[token_kid])
   token_exp * 1000000000 > current_time
-  token_iss == "{{ keycloak_auth_server_url }}/realms/{{ keycloak_realm }}"
+  token_iss == iss
 }
 
 acls_check(acls) = indicies {
