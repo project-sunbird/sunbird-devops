@@ -18,14 +18,48 @@ resources:
     cpu: {{certregistry_cpu_limit|default('1')}}
     memory: {{certregistry_mem_limit|default('1024Mi')}}
 network:
-  port: 9013
+  port: 9000
   targetport: 9000
 strategy:
   type: RollingUpdate
   maxsurge: {{ certregistry_maxsurge|default('25%') }}
   maxunavailable: {{ certregistry_maxunavailable|default('25%') }}
 
-{{ cert_liveness_readiness | to_nice_yaml }}
+{{ certregistry_liveness_readiness | to_nice_yaml }}
+{{ opa_liveness_readiness | to_nice_yaml }}
+{{ envoy_liveness_readiness | to_nice_yaml }}
+
+certregistry_opa_enabled: {{ certregistry_opa_enabled | default('true') }}
+
+envoy_resources:
+  requests:
+    cpu: "{{ certregistry_envoy_cpu_req | default('100m') }}"
+    memory: "{{ certregistry_envoy_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ certregistry_envoy_cpu_limit | default('1') }}"
+    memory: "{{ certregistry_envoy_mem_limit | default('1024Mi') }}"
+
+opa_resources:
+  requests:
+    cpu: "{{ certregistry_opa_cpu_req | default('100m') }}"
+    memory: "{{ certregistry_opa_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ certregistry_opa_cpu_limit | default('1') }}"
+    memory: "{{ certregistry_opa_mem_limit | default('1024Mi') }}"
+
+initcontainer_resources:
+  requests:
+    cpu: "{{ certregistry_initcontainer_cpu_req | default('100m') }}"
+    memory: "{{ certregistry_initcontainer_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ certregistry_initcontainer_cpu_limit | default('100m') }}"
+    memory: "{{ certregistry_initcontainer_mem_limit | default('100Mi') }}"
+
+serviceMonitor:
+  enabled: true
+  labels: # labels with which the prometheus choose the serviceMonitor
+    app: prometheus-operator
+    release: prometheus-operator
 
 autoscaling:
   enabled: {{ certregistry_autoscaling_enabled | default('false') }}

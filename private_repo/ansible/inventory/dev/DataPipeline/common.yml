@@ -29,9 +29,9 @@ media_service_azure_token_client_key: ""
 media_service_azure_token_client_secret: ""
 
 # data exhaust alerts
-data_exhaust_webhook_url: ""     # Slack webhook url
-data_exhaust_Channel: ""         # Slack channel for data products alerts
-secor_alerts_slack_channel: ""   # Slack channel name for secor alerts - Example #all_alerts_channel
+data_exhaust_webhook_url: "slack.com"     # Slack webhook url
+data_exhaust_Channel: "slack.com"         # Slack channel for data products alerts
+secor_alerts_slack_channel: "slack.com"   # Slack channel name for secor alerts - Example #all_alerts_channel
 
 # ------------------------------------------------------------------------------------------------------------ #
 # Sensible defaults which you need not change - But if you would like to change, you are free to do so
@@ -56,29 +56,62 @@ core_kubeconfig_path: "{{ kubeconfig_path }}"              # kubeconfig file pat
 # The below sets the kafka topics retention time to 1 day, if you use the defaults from the public repo, it will be 7 days
 # If you want to retain the topics for 7 days, remove the below sections completely
 # Ensure you have atleast 1 TB of disk to retain data for 7 days
+ingestion_kafka_topics:
+  - name: telemetry.ingestion
+    num_of_partitions: 2
+    replication_factor: 1
+  - name: events.deviceprofile
+    num_of_partitions: 2
+    replication_factor: 1
+  - name: telemetry.ingest
+    num_of_partitions: 2
+    replication_factor: 1
+
 ingestion_kafka_overriden_topics:
+  - name: telemetry.ingestion
+    retention_time: 86400000
+    replication_factor: 1
+    max_message_bytes: 5242880
+  - name: events.deviceprofile
+    retention_time: 86400000
+    replication_factor: 1
   - name: telemetry.ingest
     retention_time: 86400000
     replication_factor: 1
     max_message_bytes: 5242880
 
 processing_kafka_overriden_topics:
-  - name: telemetry.raw
+  - name: analytics.job_queue
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.valid
+  - name: analytics_metrics
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.unique
+  - name: druid.events.error
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.duplicate
+  - name: druid.events.log
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.sink
+  - name: druid.events.summary
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.with_location
+  - name: druid.events.telemetry
+    retention_time: 86400000
+    replication_factor: 1
+  - name: events.deviceprofile
+    retention_time: 86400000
+    replication_factor: 1
+  - name: prom.monitoring.metrics
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.assess
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.assess.failed
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.assess.raw
     retention_time: 86400000
     replication_factor: 1
   - name: telemetry.audit
@@ -87,103 +120,51 @@ processing_kafka_overriden_topics:
   - name: telemetry.denorm
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.denorm.valid
-    retention_time: 86400000
-    replication_factor: 1
-  - name: telemetry.de_normalized
-    retention_time: 86400000
-    replication_factor: 1
-  - name: telemetry.log
-    retention_time: 86400000
-    replication_factor: 1
-  - name: analytics.job_queue
-    retention_time: 86400000
-    replication_factor: 1
-  - name: learning.graph.events
-    retention_time: 86400000
-    replication_factor: 1
-  - name: pipeline_metrics
-    retention_time: 86400000
-    replication_factor: 1
-  - name: prom.monitoring.metrics
-    retention_time: 86400000
-    replication_factor: 1
-  - name: metrics
-    retention_time: 86400000
-    replication_factor: 1
-  - name: learning.graph.events.fail
-    retention_time: 86400000
-    replication_factor: 1
-  - name: analytics_metrics
-    retention_time: 86400000
-    replication_factor: 1
-  - name: learning.job.request
-    retention_time: 86400000
-    replication_factor: 1
-  - name: learning.job.request.fail
-    retention_time: 86400000
-    replication_factor: 1
-  - name: learning.republish.job.request
-    retention_time: 86400000
-    replication_factor: 1
   - name: telemetry.derived
-    retention_time: 86400000
-    replication_factor: 1
-  - name: events.telemetry
-    retention_time: 86400000
-    replication_factor: 1
-  - name: events.summary
-    retention_time: 86400000
-    replication_factor: 1
-  - name: events.log
-    retention_time: 86400000
-  - name: events.error
-    retention_time: 86400000
-  - name: telemetry.assess
-    retention_time: 86400000
-    replication_factor: 1
-  - name: telemetry.assess.redact
-    retention_time: 86400000
-    replication_factor: 1
-  - name: telemetry.assess.raw
     retention_time: 86400000
     replication_factor: 1
   - name: telemetry.derived.unique
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.failed
+  - name: telemetry.duplicate
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.malformed
+  - name: telemetry.error
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.extractor.duplicate
     retention_time: 86400000
     replication_factor: 1
   - name: telemetry.extractor.failed
     retention_time: 86400000
     replication_factor: 1
-  - name: events.deviceprofile
+  - name: telemetry.failed
     retention_time: 86400000
     replication_factor: 1
-  - name: system.command
-    retention_time: 86400000
-    replication_factor: 1
-  - name: lms.audit.events
-    retention_time: 86400000
-    replication_factor: 1
-  - name: lms.sso.events
-    retention_time: 86400000
-    replication_factor: 1
-  - name: lms.user.account.merge
+  - name: telemetry.ingest
     retention_time: 86400000
     replication_factor: 1
   - name: telemetry.metrics
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.assess.failed
+  - name: telemetry.raw
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.share
+  - name: telemetry.unique
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.error
+  - name: telemetry.unique.latest
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.unique.primary
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.unique.secondary
+    retention_time: 86400000
+    replication_factor: 1
+  - name: ml.observation.raw
+    retention_time: 86400000
+    replication_factor: 1
+  - name: ml.observation.druid
     retention_time: 86400000
     replication_factor: 1

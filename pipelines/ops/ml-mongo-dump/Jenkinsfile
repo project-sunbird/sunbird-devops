@@ -1,0 +1,29 @@
+node() {
+    try {
+            cleanWs()
+
+            ip=params.ip
+            database=params.database
+            
+            stage('Backup mongo single DB') {
+                
+                sh '''
+                echo $ip
+                echo $database
+                echo $WORKSPACE
+                mongodump --host="$ip" --port=27017 --out=$database --db=$database
+                tar -cvzf $database-$(date +'%m-%d-%Y-%s').tar.gz $database
+                
+                '''
+                archiveArtifacts artifacts: '*.tar.gz', followSymlinks: false
+                
+                
+            }    
+        }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+
+}
+
