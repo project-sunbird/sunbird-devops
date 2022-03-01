@@ -52,7 +52,13 @@ token_exp := user_token.payload.exp
 current_time := time.now_ns()
 
 token_sub := split(user_token.payload.sub, ":")
-token_userid := token_sub[2]
+# Check for both cases - With and without federation_id in sub field as below
+# sub := f:federation_id:user_id OR sub := user_id
+token_userid = token_sub[2] {
+    count(token_sub) == 3
+} else = token_sub[0] {
+    count(token_sub) == 1
+}
 for_token_userid := for_token.payload.sub
 for_token_parentid := for_token.payload.parentId
 
