@@ -5,10 +5,12 @@ package tests
 # This will ensure the test cases succeed
 
 current_time := 1640235102
+iss := "https://sunbirded.org/auth/realms/sunbird"
 
 test_update_batch {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -27,6 +29,7 @@ test_update_batch {
 test_list_course_enrollments {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -45,6 +48,7 @@ test_list_course_enrollments {
 test_course_enrollment {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -70,6 +74,7 @@ test_course_enrollment {
 test_course_unenrollment {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -95,6 +100,7 @@ test_course_unenrollment {
 test_read_content_state_t1 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -120,6 +126,7 @@ test_read_content_state_t1 {
 test_read_content_state_t2 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -146,6 +153,7 @@ test_read_content_state_t2 {
 test_update_content_state_t1 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -185,6 +193,7 @@ test_update_content_state_t1 {
 test_update_content_state_t2 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {

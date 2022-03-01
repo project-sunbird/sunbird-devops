@@ -5,10 +5,12 @@ package common_test
 # This will ensure the test cases succeed
 
 current_time := 1640235102
+iss := "https://sunbirded.org/auth/realms/sunbird"
 
 test_public_role_check {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -26,6 +28,7 @@ test_public_role_check {
 
 test_public_role_check_with_expired_token {
     not data.main.allow.allowed
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -44,6 +47,7 @@ test_public_role_check_with_expired_token {
 test_public_role_check_with_for_token {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -63,6 +67,7 @@ test_public_role_check_with_for_token {
 test_public_role_check_with_empty_for_token {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -82,6 +87,7 @@ test_public_role_check_with_empty_for_token {
 test_public_role_check_with_keycloak_token {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -100,6 +106,7 @@ test_public_role_check_with_keycloak_token {
 test_user_and_org_check {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -128,6 +135,7 @@ test_user_and_org_check {
 # test_public_role_check_with_an_array_in_aud_claim {
 #     data.main.allow.allowed
 #     with data.common.current_time as current_time
+#     with data.common.iss as iss
 #     with input as
 #     {
 #       "attributes": {

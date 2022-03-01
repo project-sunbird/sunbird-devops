@@ -5,10 +5,12 @@ package tests
 # This will ensure the test cases succeed
 
 current_time := 1640235102
+iss := "https://sunbirded.org/auth/realms/sunbird"
 
 test_accept_terms_and_conditions_t1 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -33,6 +35,7 @@ test_accept_terms_and_conditions_t1 {
 test_accept_terms_and_conditions_t2 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -57,6 +60,7 @@ test_accept_terms_and_conditions_t2 {
 test_accept_terms_and_conditions_t3 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -81,6 +85,7 @@ test_accept_terms_and_conditions_t3 {
 test_accept_terms_and_conditions_t3 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -99,6 +104,7 @@ test_accept_terms_and_conditions_t3 {
 test_update_user {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -122,6 +128,7 @@ test_update_user {
 test_assign_role {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -147,6 +154,7 @@ test_assign_role {
 test_assign_role_v2 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {

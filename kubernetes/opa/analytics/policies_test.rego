@@ -5,10 +5,12 @@ package tests
 # This will ensure the test cases succeed
 
 current_time := 1640235102
+iss := "https://sunbirded.org/auth/realms/sunbird"
 
 test_get_data_exhaust_request {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -29,6 +31,7 @@ test_get_data_exhaust_request {
 test_get_data_exhaust_request_without_userid {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -66,6 +69,7 @@ test_get_data_exhaust_request_without_user_token {
 test_list_data_exhaust_request {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -86,6 +90,7 @@ test_list_data_exhaust_request {
 test_list_data_exhaust_request_without_userid {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -122,6 +127,7 @@ test_list_data_exhaust_request_without_user_token {
 test_submit_data_exhaust_request_t1 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -152,6 +158,7 @@ test_submit_data_exhaust_request_t1 {
 test_submit_data_exhaust_request_t2 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -182,6 +189,7 @@ test_submit_data_exhaust_request_t2 {
 test_submit_data_exhaust_request_without_userid_t1 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -211,6 +219,7 @@ test_submit_data_exhaust_request_without_userid_t1 {
 test_submit_data_exhaust_request_without_userid_t2 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {

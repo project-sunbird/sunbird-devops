@@ -5,10 +5,12 @@ package tests
 # This will ensure the test cases succeed
 
 current_time := 1640235102
+iss := "https://sunbirded.org/auth/realms/sunbird"
 
 test_copy_content {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -27,6 +29,7 @@ test_copy_content {
 test_create_content_t1 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -53,6 +56,7 @@ test_create_content_t1 {
 test_create_content_t2 {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -79,6 +83,7 @@ test_create_content_t2 {
 test_create_lock {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -97,6 +102,7 @@ test_create_lock {
 test_publish_content {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
@@ -115,6 +121,7 @@ test_publish_content {
 test_update_collaborators {
     data.main.allow.allowed
     with data.common.current_time as current_time
+    with data.common.iss as iss
     with input as
     {
       "attributes": {
