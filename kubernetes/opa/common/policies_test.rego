@@ -44,6 +44,24 @@ test_public_role_check_with_expired_token {
     }
 }
 
+test_public_role_check_with_invalid_iss {
+    not data.main.allow.allowed
+    with data.common.current_time as current_time
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "headers": {
+              "x-authenticated-user-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImFjY2Vzc3YxX2tleTEifQ.eyJhdWQiOiJodHRwczovL2ludmFsaWQuaXNzLm9yZy9hdXRoL3JlYWxtcy9zdW5iaXJkIiwic3ViIjoiZjo1YmI2Yzg3Yy03Yzg4LTRkMmItYWY3ZS01MzRhMmZlZjk3OGQ6MjhiMGQwOGYtYzJlYS00MGQxLWJjZDAtOGFlMDBmY2E2NmJlIiwicm9sZXMiOlt7InJvbGUiOiJCT09LX0NSRUFUT1IiLCJzY29wZSI6W3sib3JnYW5pc2F0aW9uSWQiOiIwMTM2OTg3ODc5NzUwMzY5MjgxMCJ9XX0seyJyb2xlIjoiQ09OVEVOVF9DUkVBVE9SIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6IkNPTlRFTlRfUkVWSUVXRVIiLCJzY29wZSI6W3sib3JnYW5pc2F0aW9uSWQiOiIwMTM2OTg3ODc5NzUwMzY5MjgxMCJ9XX0seyJyb2xlIjoiQ09VUlNFX01FTlRPUiIsInNjb3BlIjpbeyJvcmdhbmlzYXRpb25JZCI6IjAxMzY5ODc4Nzk3NTAzNjkyODEwIn1dfSx7InJvbGUiOiJQUk9HUkFNX0RFU0lHTkVSIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6IlJFUE9SVF9WSUVXRVIiLCJzY29wZSI6W3sib3JnYW5pc2F0aW9uSWQiOiIwMTM2OTg3ODc5NzUwMzY5MjgxMCJ9XX0seyJyb2xlIjoiT1JHX0FETUlOIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifSx7Im9yZ2FuaXNhdGlvbklkIjoiMDE0NzE5MjM1Njc4MTIzNDU2NzgifV19LHsicm9sZSI6IlBVQkxJQyIsInNjb3BlIjpbXX1dLCJpc3MiOiJodHRwczovL2ludmFsaWQuaXNzLm9yZy9hdXRoL3JlYWxtcy9zdW5iaXJkIiwibmFtZSI6ImRlbW8iLCJ0eXAiOiJCZWFyZXIiLCJleHAiOjE2NDAyMzYxMDIsImlhdCI6MTY0MDE0OTcwNX0.LUtvi3e7NWEoesyMOQZlVQ-a1B98knO856Ihk97JMcBy9yphpW0to6kjM6ArCs556VLj0VRQvrx9QVwkGrQ2W--jdPmgpuF8i1tiTOBUWI8dj1OsfqxNJAgUpdTtPosUZzZ75K5OgujlfYvSxE7ah9LUzdZ89bJz-uq5pLUSsr2cF990rf9BUo_4-6HjboYGejzXV1QPYojHTV3cBjLUBkIPJG16MuR5LFefT9BZmOvd2Sadez8js6Abf5YKgf3-QZ6RkAz1ikIbQ83Iz7c-wq50cBQ9y2VVuBlgYIoaevrF6rrufm_QyuBnKMHnLCmOjTW7K0CUtHBBhC_Ep37GCA"
+            },
+            "path": "/public/role/check"
+          }
+        }
+      }
+    }
+}
+
 test_public_role_check_with_for_token {
     data.main.allow.allowed
     with data.common.current_time as current_time

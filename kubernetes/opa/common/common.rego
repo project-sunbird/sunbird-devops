@@ -29,8 +29,10 @@ x_authenticated_for := http_request.headers["x-authenticated-for"]
 # }
 
 jwt_public_keys := {
-  {{ public_access_keys }}
+{{ public_access_keys | indent( width=2, indentfirst=True) }}
+{% if opa_test_case_run is undefined or not opa_test_case_run %}
   "{{ adminutil_refresh_token_public_key_kid }}": "{{ keycloak_public_key.stdout }}"
+{% endif %}
 }
 
 user_token := {"header": header, "payload": payload} {
