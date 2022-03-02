@@ -93,6 +93,7 @@ surveySubmissions_service_prefix: /surveySubmissions
 user_extension_prefix: /user-extension
 uci_admin_prefix: /uci
 notification_service_prefix: /notification
+registry_service_prefix: /rc
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -123,6 +124,7 @@ uci_gql_service_url: "http://gql-service:8080"
 uci_registry_service_url: "http://fusionauth-service:9011"
 uci_admin_service_url: "http://uci-service:9999"
 notification_service_url: "http://notification-service:9000"
+vm_registry_service_url: "http://{{registryservice_ip}}:8081"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -7999,6 +8001,60 @@ kong_apis:
       - name: acl
         config.whitelist:
           - 'getNotificationTemplate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: createRCCertificate
+    uris: "{{ registry_service_prefix }}/certificate/v1/create"
+    upstream_url: "{{ vm_registry_service_url }}/api/v1/TrainingCertificate"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'createRCCertificate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: searchRCCertificate
+    uris: "{{ registry_service_prefix }}/certificate/v1/search"
+    upstream_url: "{{ vm_registry_service_url }}/api/v1/TrainingCertificate/search"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'searchRCCertificate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: getRCCertificate
+    uris: "{{ registry_service_prefix }}/certificate/v1/download"
+    upstream_url: "{{ vm_registry_service_url }}/api/v1/TrainingCertificate"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'getRCCertificate'
       - name: rate-limiting
         config.policy: local
         config.hour: "{{ medium_rate_limit_per_hour }}"
