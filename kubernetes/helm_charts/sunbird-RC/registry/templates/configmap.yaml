@@ -8,3 +8,14 @@ metadata:
   creationTimestamp: null
   name: {{ .Chart.Name }}-config
   namespace: {{ .Values.namespace }}
+  ---
+  {{- $keys := .Files.Glob "schemas/*" }}
+  {{ if $keys }}
+  apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    name: { { .Chart.Name } }-schemas
+    namespace: { { .Values.namespace } }
+  data:
+  { { (.Files.Glob "schemas/*").AsConfig | indent 2 } }
+  { { end } }
