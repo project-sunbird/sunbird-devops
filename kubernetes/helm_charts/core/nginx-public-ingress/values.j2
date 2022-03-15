@@ -959,6 +959,12 @@ proxyconfig: |-
       return 200 'OK';
       add_header Content-Type text/plain;
     }
+    location /dial/ {
+        if ($dial_upstream_host = kong) {
+          rewrite ^/dial/(.*) /dialcode/v2/read/$1;
+        }
+        proxy_pass http://$dial_upstream_host;
+    }
     {# Including custom configuration #}
     {{ proxy_custom_config }}}
 
@@ -1020,6 +1026,10 @@ nginxconfig: |
       map $upstream_cache_status $cache_status {
         default  $upstream_cache_status;
         ''       "NONE";
+      }
+      map $http_accept $dial_upstream_host {
+        default                player;
+        application/ld+json    kong;
       }
       # Defining metrics
       init_worker_by_lua_block {
