@@ -2412,6 +2412,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: readDialcodeV2
+      uris: "{{ dialcode_service_prefix }}/v2/read"
+      upstream_url: "{{ knowledge_mw_service_url }}/v2/dialcode/read"
+      strip_uri: true
+      plugins:
+        - name: jwt
+        - name: cors
+        - "{{ statsd_pulgin }}"
+        - name: acl
+          config.whitelist:
+            - 'dialcodeAccess'
+        - name: rate-limiting
+          config.policy: local
+          config.hour: "{{ medium_rate_limit_per_hour }}"
+          config.limit_by: credential
+        - name: request-size-limiting
+          config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: readForm
     uris: "{{ data_service_prefix }}/v1/form/read"
     upstream_url: "{{ player_service_url }}/plugin/v1/form/read"
@@ -3436,6 +3454,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: updateDialcodeV2
+      uris: "{{ dialcode_service_prefix }}/v2/update"
+      upstream_url: "{{ knowledge_mw_service_url }}/v2/dialcode/update"
+      strip_uri: true
+      plugins:
+        - name: jwt
+        - name: cors
+        - "{{ statsd_pulgin }}"
+        - name: acl
+          config.whitelist:
+            - 'dialcodeUpdate'
+        - name: rate-limiting
+          config.policy: local
+          config.hour: "{{ medium_rate_limit_per_hour }}"
+          config.limit_by: credential
+        - name: request-size-limiting
+          config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: updateForm
     uris: "{{ data_service_prefix }}/v1/form/update"
     upstream_url: "{{ player_service_url }}/plugin/v1/form/update"
@@ -4102,6 +4138,24 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: searchRegCertificateV2
+    uris: "{{ cert_registry_service_prefix }}/v2/certs/search"
+    upstream_url: "{{ cert_registry_service_url }}/certs/v2/registry/search"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'certificateAccess'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"    
+
   - name: readRegCertificate
     uris: "{{ cert_registry_service_prefix }}/v1/certs/read"
     upstream_url: "{{ cert_registry_service_url }}/certs/v1/registry/read"
@@ -4655,7 +4709,7 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
-    
+
   - name: contentImportAPI
     uris: "{{ content_prefix }}/v1/import"
     upstream_url: "{{ content_service_url }}/content/v3/import"

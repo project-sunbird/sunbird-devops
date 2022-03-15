@@ -1,0 +1,30 @@
+- hosts: local
+  become: yes
+  gather_facts: no
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  environment:
+        AZURE_STORAGE_ACCOUNT: "{{ sunbird_public_storage_account_name }}"
+        AZURE_STORAGE_SAS_TOKEN: "{{ sunbird_public_storage_account_sas }}"
+  tasks:
+    - name: Create directories
+      file:
+        path: dial_schema_template_files/{{ item.path }}
+        state: directory
+        owner: jenkins
+        group: jenkins
+      with_filetree: "{{ source_name }}"
+      when: item.state == 'directory'
+
+    - name: Template files in all directories
+      template:
+        src: "{{ item.src }}"
+        dest: dial_schema_template_files/{{ item.path }}
+      with_filetree: "{{ source_name }}"
+      when: item.state == 'file'
+            
+    - name: upload batch
+      command: "az storage blob upload-batch --destination {{ dial_plugin_container_name }}/schemas/local --source dial_schema_template_files"
+      async: 3600
+      poll: 10
+

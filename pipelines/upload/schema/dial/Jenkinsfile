@@ -25,11 +25,11 @@ node() {
                 jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                 stage('deploy artifact'){
                     sh """
-                rm -rf knowledge-platform
-                git clone https://github.com/project-sunbird/knowledge-platform.git -b ${params.kp_branch_or_tag}
+                rm -rf sunbird-dial-service
+                git clone https://github.com/project-sunbird/sunbird-dial-service.git -b ${params.dial_branch_or_tag}
                     """
-                    ansiblePlaybook = "${currentWs}/ansible/kp_upload-schema.yml"
-                    ansibleExtraArgs = "--extra-vars \" source_name=${currentWs}/knowledge-platform/schemas \" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                    ansiblePlaybook = "${currentWs}/ansible/dial_upload-schema.yml"
+                    ansibleExtraArgs = "--extra-vars \" source_name=${currentWs}/sunbird-dial-service/schemas \" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
                     values.put('currentWs', currentWs)
                     values.put('env', envDir)
                     values.put('module', module)
@@ -39,7 +39,7 @@ node() {
                     println values
                     ansible_playbook_run(values)
                     currentBuild.result = 'SUCCESS'
-                    currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}, kp_branch_or_tag: ${params.kp_branch_or_tag}"
+                    currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}, dial_branch_or_tag: ${params.dial_branch_or_tag}"
                 }
             }
         summary()
@@ -53,3 +53,4 @@ node() {
         email_notify()
     }
 }
+

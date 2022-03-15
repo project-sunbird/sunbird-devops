@@ -4,7 +4,7 @@
 # Note: this app should run in the same namespace as nginx-public-ingress.
 #
 # for example
-# `kubectl apply -f certbot-autoupdater.yaml -n dev`
+# `kubectl apply -f certbot-ingress-cert.yaml -n dev`
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -13,7 +13,7 @@ metadata:
   labels:
     app: certbot
 spec:
-  schedule: "0 18 10 * *" # 10th of every month at 6:00 pm it's UTC -> translates in to 12.30 midnight IST
+  schedule: "0 18 */85 * *" # Every 85th day at 6:00 PM UTC -> Translates to 12.30 AM IST
   jobTemplate:
     spec:
       template:
@@ -24,7 +24,7 @@ spec:
           serviceAccountName: certbot
           containers:
           - name: certbot
-            image: rjshrjndrn/certbot-autoupdater
+            image: sunbird/certbot-autoupdater:v0.0.1
             resources:
               limits:
                 cpu: 100m
@@ -49,7 +49,6 @@ spec:
             configMap:
               name: certbot
           restartPolicy: Never
-          successfulJobsHistoryLimit: 1
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -57,11 +56,16 @@ metadata:
   name: certbot
 data:
   renew.sh: |-
+    kubectl patch svc nginx-public-ingress --type='json' -p='[{"op": "replace", "path": "/spec/selector", "value": {"app": "certbot"}}]'
     certbot certonly --non-interactive --agree-tos -m $EMAIL -d $DOMAIN --standalone
-    kubectl get secret ingress-cert -o yaml > ssl.yaml
-    cat ssl.yaml | sed "s/ site.crt: .*/ site.crt: $(cat /etc/letsencrypt/live/${DOMAIN}/chain.pem | base64 | tr -d '\n')/g" | \
-                   sed "s/ site.key: .*/ site.key: $(cat /etc/letsencrypt/live/${DOMAIN}/privkey.pem |  base64 | tr -d '\n')/g" > file.yaml
-    kubectl apply -f file.yaml
+    privkey=$(cat /etc/letsencrypt/live/${DOMAIN}/privkey.pem | base64 -w0)
+    #fullchain=$(cat /etc/letsencrypt/live/${DOMAIN}/fullchain.pem | base64 -w0)
+    # The below step is required to trim Letsencrypt Root Certificate since we are using many outdated package versions which don't recognize the new Root CA certificate
+    fullchain=$(awk '$0=="-----BEGIN CERTIFICATE-----"{c++} c==1' /etc/letsencrypt/live/${DOMAIN}/fullchain.pem && awk '$0=="-----BEGIN CERTIFICATE-----"{c++} c==2' /etc/letsencrypt/live/${DOMAIN}/fullchain.pem)
+    fullchain=$(echo "$fullchain" | base64 -w0)
+    kubectl patch secrets ingress-cert --type='json' -p='[{"op": "replace", "path": "/data/site.key", "value": "'"$privkey"'"}]'
+    kubectl patch secrets ingress-cert --type='json' -p='[{"op": "replace", "path": "/data/site.crt", "value": "'"$fullchain"'"}]'
+    kubectl patch svc nginx-public-ingress --type='json' -p='[{"op": "replace", "path": "/spec/selector", "value": {"app": "nginx-public-ingress"}}]'
     kubectl rollout restart daemonset nginx-public-ingress
     kubectl rollout status daemonset nginx-public-ingress
 ---
@@ -97,10 +101,29 @@ rules:
   - list
   - watch
   - patch
-- apiGroups: [""]
-  resources: ["secrets"]
-  resourceNames: ["ingress-cert"]
-  verbs: ["*"]
+- apiGroups:
+  - ""
+  resourceNames:
+  - ingress-cert
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+- apiGroups:
+  - ""
+  resourceNames:
+  - nginx-public-ingress
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+
 ---
 # This role binding allows "jane" to read pods in the "default" namespace.
 kind: RoleBinding
