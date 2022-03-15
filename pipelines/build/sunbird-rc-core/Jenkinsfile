@@ -15,7 +15,7 @@ node('build-slave') {
                         println(ANSI_BOLD + ANSI_GREEN + "Found environment variable named hub_org with value as: " + hub_org + ANSI_NORMAL)
                 }
                 
-                cleanWs()
+                //cleanWs()
                 checkout scm
                 commit_hash = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                 build_tag = sh(script: "echo " + params.github_release_tag.split('/')[-1] + "_" + commit_hash + "_" + env.BUILD_NUMBER, returnStdout: true).trim()
@@ -25,11 +25,10 @@ node('build-slave') {
                 name=params.repository_name
 
                 stage('Build') {
-                    sh '''
-                    docker pull $dockerhub_image_source
-                    docker tag $dockerhub_image_source ${hub_org}/${name}:${build_tag}
-                    echo {\"image_name\" : \"${name}\", \"image_tag\" : \"${build_tag}\"} > metadata.json
-                    '''
+                    sh("docker pull ${dockerhub_image_source}")
+                    sh("docker tag ${dockerhub_image_source} ${hub_org}/${name}:$build_tag")
+                    sh("echo {\"image_name\" : \"${name}\", \"image_tag\" : \"${build_tag}\"} > metadata.json")
+                    
                 }
 
                 stage('ArchiveArtifacts') {
