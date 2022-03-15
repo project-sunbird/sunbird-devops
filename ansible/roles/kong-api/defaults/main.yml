@@ -2412,6 +2412,20 @@ kong_apis:
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
 
+  - name: readDialcodeV2
+    uris: "{{ dialcode_service_prefix }}/v2/read"
+    upstream_url: "{{ knowledge_mw_service_url }}/v2/dialcode/read"
+    strip_uri: true
+    plugins:
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: ip
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
   - name: readForm
     uris: "{{ data_service_prefix }}/v1/form/read"
     upstream_url: "{{ player_service_url }}/plugin/v1/form/read"
@@ -3421,6 +3435,24 @@ kong_apis:
   - name: updateDialcode
     uris: "{{ dialcode_service_prefix }}/v1/update"
     upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/update"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'dialcodeUpdate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: updateDialcodeV2
+    uris: "{{ dialcode_service_prefix }}/v2/update"
+    upstream_url: "{{ knowledge_mw_service_url }}/v2/dialcode/update"
     strip_uri: true
     plugins:
     - name: jwt
