@@ -24,6 +24,10 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
 {{- end }}
+      volumes:
+        - name: {{ .Chart.Name }}-schemas
+          configMap:
+            name: {{ .Chart.Name }}-schemas
       containers:
       - name: {{ .Chart.Name }}
         image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
@@ -35,10 +39,8 @@ spec:
         ports:
         - containerPort: {{ .Values.network.port }}
       volumeMounts:
-        - name: { { .Chart.Name } }-schemas
-          mountPath: ${PWD}/java/registry/src/main/resources/public/_schemas
-          subPath: learner-service_logback.xml
-        
+        - name: {{ .Chart.Name }}-schemas
+          mountPath: /home/sunbirdrc/config/public/_schemas
 
 ---
 apiVersion: v1
