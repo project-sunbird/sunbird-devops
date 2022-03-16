@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 data:
   {{- range $key, $val := .Values.rccoreenv }}
@@ -8,14 +9,16 @@ metadata:
   creationTimestamp: null
   name: {{ .Chart.Name }}-config
   namespace: {{ .Values.namespace }}
-  ---
-  {{- $keys := .Files.Glob "schemas/*" }}
-  {{ if $keys }}
-  apiVersion: v1
-  kind: ConfigMap
-  metadata:
-    name: { { .Chart.Name } }-schemas
-    namespace: { { .Values.namespace } }
-  data:
-  { { (.Files.Glob "schemas/*").AsConfig | indent 2 } }
-  { { end } }
+  
+---
+{{- $schema := .Files.Glob "schemas/*" }}
+{{ if $keys }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-schema
+  namespace: {{ .Values.namespace }}
+type: Opaque
+data:
+{{ (.Files.Glob "schemas/*").AsConfig | indent 2 }}
+{{ end }}
