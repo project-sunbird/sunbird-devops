@@ -12,47 +12,47 @@ spec:
   groups:
   - name: apimanager-recording.rules
     rules:
-    - expr: sum(rate(kong_request_count{api=~".*"}[1m])) by (api)
+    - expr: sum(rate(kong_request_count{api=~".*"}[5m])) by (api)
       record: job:kong_request_count:rate:sum:1m
-    - expr: sum(increase(kong_request_status_count{api=~".*",status_code=~"2..|3..", status_code!= "total"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{api=~".*", status_code!= "total"}[1m]))
+    - expr: sum(increase(kong_request_status_count{api=~".*",status_code=~"2..|3..", status_code!= "total"}[5m])) by (api, status_code) / ignoring(api, status_code) group_left sum(increase(kong_request_status_count{api=~".*", status_code!= "total"}[5m]))
       record: job:kong_request_success_percentage:increase:sum:1m
-    - expr: sum(increase(kong_request_count{api =~ "$api"}[1m])) by (api)
+    - expr: sum(increase(kong_request_count{api=~".*"}[5m])) by (api)
       record: job:kong_request_count:increase:sum:1m
-    - expr: sum(increase(kong_request_status_count{api=~".*",status_code!~"2..|3..|5..|total"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left  sum(increase(kong_request_status_count{api=~".*", status_code!= "total"}[1m]))
+    - expr: sum(increase(kong_request_status_count{api=~".*",status_code!~"2..|3..|5..|total"}[5m])) by (api, status_code) / ignoring(api, status_code) group_left  sum(increase(kong_request_status_count{api=~".*", status_code!= "total"}[5m]))
       record: job:kong_request_4xx_percentage:increase:sum:1m
-    - expr: sum(increase(kong_request_status_count{api=~".*",status_code!~"2..|3..|4..|total"}[1m])) by (api, status_code) / ignoring(api, status_code) group_left  sum(increase(kong_request_status_count{api=~".*", status_code!= "total"}[1m]))
+    - expr: sum(increase(kong_request_status_count{api=~".*",status_code!~"2..|3..|4..|total"}[5m])) by (api, status_code) / ignoring(api, status_code) group_left  sum(increase(kong_request_status_count{api=~".*", status_code!= "total"}[5m]))
       record: job:kong_request_5xx_percentage:increase:sum:1m
-    - expr: sum(rate(kong_latency_time_sum{api=~".*"}[1m]) / rate(kong_latency_time_count{api=~".*"}[1m])) by (api)
+    - expr: sum(rate(kong_latency_time_sum{api=~".*"}[5m]) / rate(kong_latency_time_count{api=~".*"}[5m])) by (api)
       record: job:kong_latency_time_sum:rate:sum:1m
-    - expr: sum(rate(kong_upstream_latency_time_sum{api=~".*"}[1m])) by (api)  / sum(rate(kong_upstream_latency_time_count{api=~".*"}[1m])) by (api)
+    - expr: sum(rate(kong_upstream_latency_time_sum{api=~".*"}[5m])) by (api)  / sum(rate(kong_upstream_latency_time_count{api=~".*"}[5m])) by (api)
       record: job:kong_upstream_latency_time_sum:rate:sum:1m
-    - expr: sum(increase(kong_request_status_count{api=~".*",status_code=~"2..|3..", status_code!= "total"}[1m])) by (api, status_code)
+    - expr: sum(increase(kong_request_status_count{api=~".*",status_code=~"2..|3..", status_code!= "total"}[5m])) by (api, status_code)
       record: job:kong_request_success_count:increase:sum:1m
-    - expr: sum(increase(kong_request_status_count{api=~".*",status_code!~"2..|3..|5..|total"}[1m])) by (api, status_code)
+    - expr: sum(increase(kong_request_status_count{api=~".*",status_code!~"2..|3..|5..|total"}[5m])) by (api, status_code)
       record: job:kong_request_4xx_count:increase:sum:1m
-    - expr: sum(increase(kong_request_status_count{api=~".*",status_code!~"2..|3..|4..|total"}[1m])) by (api, status_code)
+    - expr: sum(increase(kong_request_status_count{api=~".*",status_code!~"2..|3..|4..|total"}[5m])) by (api, status_code)
       record: job:kong_request_5xx_count:increase:sum:1m
-    - expr: histogram_quantile(0.99, sum(rate(kong_latency_time_bucket{api=~".*"}[1m])) by (api,le))
+    - expr: histogram_quantile(0.99, sum(rate(kong_latency_time_bucket{api=~".*"}[5m])) by (api,le))
       record: job:kong_latency_time_bucket99:rate:sum:1m
-    - expr: histogram_quantile(0.99, sum(rate(kong_upstream_latency_time_bucket{api=~".*"}[1m])) by (api,le))
+    - expr: histogram_quantile(0.99, sum(rate(kong_upstream_latency_time_bucket{api=~".*"}[5m])) by (api,le))
       record: job:kong_upstream_latency_time_bucket99:rate:sum:1m
-    - expr: histogram_quantile(0.95, sum(rate(kong_latency_time_bucket{api=~".*"}[1m])) by (api,le))
+    - expr: histogram_quantile(0.95, sum(rate(kong_latency_time_bucket{api=~".*"}[5m])) by (api,le))
       record: job:kong_latency_time_bucket95:rate:sum:1m
-    - expr: histogram_quantile(0.95, sum(rate(kong_upstream_latency_time_bucket{api=~".*"}[1m])) by (api,le))
+    - expr: histogram_quantile(0.95, sum(rate(kong_upstream_latency_time_bucket{api=~".*"}[5m])) by (api,le))
       record: job:kong_upstream_latency_time_bucket95:rate:sum:1m
-    - expr: histogram_quantile(0.50, sum(rate(kong_latency_time_bucket{api=~".*"}[1m])) by (api,le))
+    - expr: histogram_quantile(0.50, sum(rate(kong_latency_time_bucket{api=~".*"}[5m])) by (api,le))
       record: job:kong_latency_time_bucket50:rate:sum:1m
-    - expr: histogram_quantile(0.50, sum(rate(kong_upstream_latency_time_bucket{api=~".*"}[1m])) by (api,le))
+    - expr: histogram_quantile(0.50, sum(rate(kong_upstream_latency_time_bucket{api=~".*"}[5m])) by (api,le))
       record: job:kong_upstream_latency_time_bucket50:rate:sum:1m
-    - expr: sum(rate(kong_request_size_sum{api=~".*"}[1m]) / rate(kong_request_size_count{api=~".*"}[1m])) by (api)
+    - expr: sum(rate(kong_request_size_sum{api=~".*"}[5m]) / rate(kong_request_size_count{api=~".*"}[5m])) by (api)
       record: job:kong_average_request_size_sum:rate:sum:1m
-    - expr: sum(rate(kong_response_size_sum{api=~".*"}[1m]) / rate(kong_response_size_count{api=~".*"}[1m])) by (api)
+    - expr: sum(rate(kong_response_size_sum{api=~".*"}[5m]) / rate(kong_response_size_count{api=~".*"}[5m])) by (api)
       record: job:kong_average_response_size_sum:rate:sum:1m
-    - expr: sum(rate(kong_request_size_sum{api=~".*"}[1m])) by (api)
+    - expr: sum(rate(kong_request_size_sum{api=~".*"}[5m])) by (api)
       record: job:kong_total_request_size_sum:rate:sum:1m
-    - expr: sum(rate(kong_response_size_sum{api=~".*"}[1m])) by (api)
+    - expr: sum(rate(kong_response_size_sum{api=~".*"}[5m])) by (api)
       record: job:kong_total_response_size_sum:rate:sum:1m
-    - expr: sum(rate(kong_latency_time_bucket{api=~".*", le="0.5"}[1m])) by (api) / sum(rate(kong_latency_time_count[1m])) by (api)
+    - expr: sum(rate(kong_latency_time_bucket{api=~".*", le="0.05"}[5m])) by (api) / sum(rate(kong_latency_time_count[5m])) by (api)
       record: job:kong_latency_time_bucket:rate:sum:1m
 {{- end }}
 {{- end }}

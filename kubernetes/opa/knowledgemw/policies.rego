@@ -2,14 +2,13 @@ package policies
 
 import data.common as super
 import future.keywords.in
-import input.attributes.request.http as http_request
 
 urls_to_action_mapping := {   
-   "/v1/content/copy": "copyContent",
-   "/v1/content/create": "createContent",
-   "/v1/lock/create": "createLock",
-   "/v1/content/publish": "publishContent",
-   "/v1/content/collaborator/update": "updateCollaborators"
+  "/v1/content/copy": "copyContent",
+  "/v1/content/create": "createContent",
+  "/v1/lock/create": "createLock",
+  "/v1/content/publish": "publishContent",
+  "/v1/content/collaborator/update": "updateCollaborators"
 }
 
 copyContent {

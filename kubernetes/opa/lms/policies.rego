@@ -4,12 +4,12 @@ import data.common as super
 import input.attributes.request.http as http_request
 
 urls_to_action_mapping := {
-   "/v1/course/batch/update": "updateBatch",
-   "/v1/user/courses/list": "listCourseEnrollments",
-   "/v1/content/state/read": "readContentState",
-   "/v1/course/enroll": "courseEnrolment",
-   "/v1/course/unenroll": "courseUnEnrolment",
-   "/v1/content/state/update": "updateContentState"
+  "/v1/course/batch/update": "updateBatch",
+  "/v1/user/courses/list": "listCourseEnrollments",
+  "/v1/course/enroll": "courseEnrollment",
+  "/v1/course/unenroll": "courseUnEnrollment",
+  "/v1/content/state/read": "readContentState",
+  "/v1/content/state/update": "updateContentState"
 }
 
 updateBatch {
@@ -21,8 +21,18 @@ updateBatch {
 
 listCourseEnrollments {
   super.public_role_check
-  query_string := split(http_request.path, "/")[5]
-  super.userid == split(query_string, "?")[0]
+  user_id := split(http_request.path, "/")[5]
+  super.userid == split(user_id, "?")[0]
+}
+
+courseEnrollment {
+  super.public_role_check
+  super.userid == input.parsed_body.request.userId
+}
+
+courseUnEnrollment {
+  super.public_role_check
+  super.userid == input.parsed_body.request.userId
 }
 
 readContentState {
@@ -30,14 +40,9 @@ readContentState {
   super.userid == input.parsed_body.request.userId
 }
 
-courseEnrolment {
+readContentState {
   super.public_role_check
-  super.userid == input.parsed_body.request.userId
-}
-
-courseUnEnrolment {
-  super.public_role_check
-  super.userid == input.parsed_body.request.userId
+  not input.parsed_body.request.userId
 }
 
 updateContentState {

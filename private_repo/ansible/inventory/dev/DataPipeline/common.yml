@@ -29,9 +29,9 @@ media_service_azure_token_client_key: ""
 media_service_azure_token_client_secret: ""
 
 # data exhaust alerts
-data_exhaust_webhook_url: ""     # Slack webhook url
-data_exhaust_Channel: ""         # Slack channel for data products alerts
-secor_alerts_slack_channel: ""   # Slack channel name for secor alerts - Example #all_alerts_channel
+data_exhaust_webhook_url: "slack.com"     # Slack webhook url
+data_exhaust_Channel: "slack.com"         # Slack channel for data products alerts
+secor_alerts_slack_channel: "slack.com"   # Slack channel name for secor alerts - Example #all_alerts_channel
 
 # ------------------------------------------------------------------------------------------------------------ #
 # Sensible defaults which you need not change - But if you would like to change, you are free to do so
@@ -56,7 +56,25 @@ core_kubeconfig_path: "{{ kubeconfig_path }}"              # kubeconfig file pat
 # The below sets the kafka topics retention time to 1 day, if you use the defaults from the public repo, it will be 7 days
 # If you want to retain the topics for 7 days, remove the below sections completely
 # Ensure you have atleast 1 TB of disk to retain data for 7 days
+ingestion_kafka_topics:
+  - name: telemetry.ingestion
+    num_of_partitions: 2
+    replication_factor: 1
+  - name: events.deviceprofile
+    num_of_partitions: 2
+    replication_factor: 1
+  - name: telemetry.ingest
+    num_of_partitions: 2
+    replication_factor: 1
+
 ingestion_kafka_overriden_topics:
+  - name: telemetry.ingestion
+    retention_time: 86400000
+    replication_factor: 1
+    max_message_bytes: 5242880
+  - name: events.deviceprofile
+    retention_time: 86400000
+    replication_factor: 1
   - name: telemetry.ingest
     retention_time: 86400000
     replication_factor: 1
@@ -99,7 +117,7 @@ processing_kafka_overriden_topics:
   - name: telemetry.audit
     retention_time: 86400000
     replication_factor: 1
-  - name: telemetry.denorm 
+  - name: telemetry.denorm
     retention_time: 86400000
     replication_factor: 1
   - name: telemetry.derived
