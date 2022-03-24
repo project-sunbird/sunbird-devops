@@ -85,6 +85,7 @@ content_validation_service_prefix: /contentValidation
 scoring_engine_service_prefix: /scoring
 hub_graph_service_prefix: /connections
 workflow_handler_service_prefix: /workflow
+player_prefix: /player
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -5822,7 +5823,7 @@ kong_apis:
 
   - name: questionList
     uris: "{{ question_prefix }}/v1/list"
-    upstream_url: "{{ sb_cb_ext_service_url }}/v1/quml/question/list"
+    upstream_url: "{{ assessment_service_url }}/question/v4/list"
     strip_uri: true
     plugins:
       - name: jwt
@@ -5966,7 +5967,7 @@ kong_apis:
 
   - name: questionSetReadHierarchy
     uris: "{{ questionset_prefix }}/v1/hierarchy"
-    upstream_url: "{{ sb_cb_ext_service_url }}/v1/quml/assessment/read"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/hierarchy"
     strip_uri: true
     plugins:
       - name: jwt
@@ -7249,3 +7250,39 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: playerQuSetReadHierarchy
+    uris: "{{ player_prefix }}/questionset/v1/hierarchy"
+    upstream_url: "{{ sb_cb_ext_service_url }}/v1/quml/assessment/read"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: playerQuestionList
+    uris: "{{ player_prefix }}/question/v1/list"
+    upstream_url: "{{ sb_cb_ext_service_url }}/v1/quml/question/list"
+    strip_uri: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentAccess'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
