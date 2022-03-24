@@ -5822,7 +5822,7 @@ kong_apis:
 
   - name: questionList
     uris: "{{ question_prefix }}/v1/list"
-    upstream_url: "{{ assessment_service_url }}/question/v4/list"
+    upstream_url: "{{ sb_cb_ext_service_url }}/v1/quml/question/list"
     strip_uri: true
     plugins:
       - name: jwt
@@ -5966,7 +5966,7 @@ kong_apis:
 
   - name: questionSetReadHierarchy
     uris: "{{ questionset_prefix }}/v1/hierarchy"
-    upstream_url: "{{ assessment_service_url }}/questionset/v4/hierarchy"
+    upstream_url: "{{ sb_cb_ext_service_url }}/v1/quml/assessment/read"
     strip_uri: true
     plugins:
       - name: jwt
@@ -7231,3 +7231,21 @@ kong_apis:
       config.limit_by: credential
     - name: request-size-limiting
       config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: assessmentSubmitV3
+    uris: "/v3/user/assessment/submit"
+    upstream_url: "{{ sb_cb_ext_service_url }}/v3/user/assessment/submit"
+    strip_uri: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'dataCreate'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
