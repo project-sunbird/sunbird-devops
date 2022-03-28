@@ -4,13 +4,13 @@ import data.common as super
 import future.keywords.in
 
 urls_to_action_mapping := {
-   "/v1/user/tnc/accept": "acceptTermsAndCondition",
-   "/v1/user/assign/role": "assignRole",
-   "/v2/user/assign/role": "assignRoleV2",
-   "/v1/user/update": "updateUser",
-   "/private/user/v1/lookup": "privateUserLookup",
-   "/private/user/v1/migrate": "privateUserMigrate",
-   "/private/user/v1/read": "privateUserRead"
+  "/v1/user/tnc/accept": "acceptTermsAndCondition",
+  "/v1/user/update": "updateUser",
+  "/v1/user/assign/role": "assignRole",
+  "/v2/user/assign/role": "assignRoleV2",
+  "/private/user/v1/lookup": "privateUserLookup",
+  "/private/user/v1/migrate": "privateUserMigrate",
+  "/private/user/v1/read": "privateUserRead"
 }
 
 acceptTermsAndCondition {
@@ -23,7 +23,7 @@ acceptTermsAndCondition {
 
 acceptTermsAndCondition {
   acls := ["acceptTnc"]
-  roles := ["REPORT_VIEWER"]
+  roles := ["REPORT_VIEWER", "REPORT_ADMIN"]
   super.acls_check(acls)
   super.role_check(roles)
   "reportViewerTnc" == input.parsed_body.request.tncType
