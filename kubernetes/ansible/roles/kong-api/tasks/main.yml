@@ -7,7 +7,10 @@
   pip: name=retry
 
 - name: Save api details to json file
-  copy: dest=/tmp/kong_apis.json content="{{ kong_apis | to_nice_json}}" mode=0644
+  copy: dest=/tmp/kong_apis_temp.json content="{{ kong_apis | to_nice_json}}" mode=0644
+
+- name: Remove opa-checks key from plugins array
+  shell: jq 'del(.[].plugins[] | select(.name == "opa-checks"))' /tmp/kong_apis_temp.json > /tmp/kong_apis.json
 
 - name: Copy kong api scripts
   copy: src=static-files/kong-api-scripts dest=/tmp mode=0755
