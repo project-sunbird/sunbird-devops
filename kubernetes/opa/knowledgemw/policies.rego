@@ -2,6 +2,9 @@ package policies
 
 import data.common as super
 import future.keywords.in
+import input.attributes.request.http as http_request
+
+x_channel_id := http_request.headers["x-channel-id"]
 
 urls_to_action_mapping := {   
   "/v1/content/copy": "copyContent",
@@ -27,7 +30,8 @@ createContent {
   
   # Org check will do an implicit role check so there is no need to invoke super.role_check(roles)
   token_organisationids := super.org_check(roles)
-  
+  x_channel_id in token_organisationids
+
   # The below payload is being invoked when creating contents
   input.parsed_body.request.content.createdFor[_] in token_organisationids
   input.parsed_body.request.content.createdBy == super.userid
@@ -42,6 +46,8 @@ createContent {
   
   # Org check will do an implicit role check so there is no need to invoke super.role_check(roles)
   token_organisationids := super.org_check(roles)
+
+  x_channel_id in token_organisationids
 
   # The below payload is being invoked when creating certificate templates
   input.parsed_body.request.content.channel in token_organisationids

@@ -7,10 +7,7 @@ urls_to_action_mapping := {
   "/v1/user/tnc/accept": "acceptTermsAndCondition",
   "/v1/user/update": "updateUser",
   "/v1/user/assign/role": "assignRole",
-  "/v2/user/assign/role": "assignRoleV2",
-  "/private/user/v1/lookup": "privateUserLookup",
-  "/private/user/v1/migrate": "privateUserMigrate",
-  "/private/user/v1/read": "privateUserRead"
+  "/v2/user/assign/role": "assignRoleV2"
 }
 
 acceptTermsAndCondition {
@@ -65,19 +62,4 @@ assignRoleV2 {
   payload_orgs := {ids | ids := input.parsed_body.request.roles[_].scope[_].organisationId}
   matching_orgs := {orgs | some i; payload_orgs[i] in token_orgs; orgs := i}
   payload_orgs == matching_orgs
-}
-
-privateUserLookup {
-  # This should be moved to a system token
-  true
-}
-
-privateUserMigrate {
-  # This should be moved to a system token
-  true
-}
-
-privateUserRead {
-  # This should be moved to a system token
-  true
 }
