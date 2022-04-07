@@ -19,8 +19,9 @@ identified_action := policy.urls_to_action_mapping[identified_url]
 # Desktop app is not sending x-authenticated-for header due to which managed user flow is breaking
 # This is a temporary fix till the desktop app issue is fixed
 skipped_consumers := {{ kong_desktop_device_consumer_names_for_opa }}
+x_consumer_username := http_request.headers["x-consumer-username"]
 check_if_consumer_is_skipped {
-   http_request.headers["x-consumer-username"] in skipped_consumers
+   x_consumer_username in skipped_consumers
 }
 
 allow = status {
