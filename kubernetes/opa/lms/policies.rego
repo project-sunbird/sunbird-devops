@@ -22,22 +22,22 @@ updateBatch {
 listCourseEnrollments {
   super.public_role_check
   user_id := split(http_request.path, "/")[5]
-  super.userid == split(user_id, "?")[0]
+  split(user_id, "?")[0] == super.userid
 }
 
 courseEnrollment {
   super.public_role_check
-  super.userid == input.parsed_body.request.userId
+  input.parsed_body.request.userId == super.userid
 }
 
 courseUnEnrollment {
   super.public_role_check
-  super.userid == input.parsed_body.request.userId
+  input.parsed_body.request.userId == super.userid
 }
 
 readContentState {
   super.public_role_check
-  super.userid == input.parsed_body.request.userId
+  input.parsed_body.request.userId == super.userid
 }
 
 readContentState {
@@ -47,7 +47,7 @@ readContentState {
 
 updateContentState {
   super.public_role_check
-  super.userid == input.parsed_body.request.userId
+  input.parsed_body.request.userId == super.userid
 }
 
 updateContentState {

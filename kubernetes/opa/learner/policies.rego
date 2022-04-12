@@ -36,7 +36,7 @@ acceptTermsAndCondition {
 
 updateUser {
   super.public_role_check
-  super.userid == input.parsed_body.request.userId
+  input.parsed_body.request.userId == super.userid
 }
 
 assignRole {

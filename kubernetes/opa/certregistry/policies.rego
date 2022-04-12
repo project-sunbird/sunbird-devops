@@ -20,5 +20,5 @@ searchRegCertificate {
   super.public_role_check
   recipient_ids := {id | id = input.parsed_body.request.query.bool.must[_].match_phrase["recipient.id"]}
   count(recipient_ids) == 1
-  super.userid == recipient_ids[super.userid]
+  recipient_ids[super.userid] == super.userid
 }
