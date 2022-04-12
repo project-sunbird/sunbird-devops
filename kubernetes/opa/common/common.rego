@@ -4,17 +4,28 @@ import input.attributes.request.http as http_request
 import future.keywords.in
 
 ROLES := {
-   "BOOK_REVIEWER": ["createLock", "publishContent"],
-   "CONTENT_REVIEWER": ["createLock", "publishContent"],
-   "FLAG_REVIEWER": ["publishContent"],
-   "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "rejectContentV2"],
-   "CONTENT_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "rejectContentV2"],
-   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "rejectContentV2"],
+   "BOOK_REVIEWER": ["createLock", "publishContent", "listLock", "retireLock", "refreshLock", "rejectContent", "rejectContentV2"],
+   
+   "CONTENT_REVIEWER": ["createLock", "publishContent", "listLock", "retireLock", "refreshLock", "rejectContent", "rejectContentV2"],
+   
+   "FLAG_REVIEWER": ["publishContent", "rejectContent", "rejectContentV2"],
+   
+   "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock", "updateContent", "uploadContent"],
+   
+   "CONTENT_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock", "updateContent", "uploadContent"],
+   
+   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock",  "updateContent", "uploadContent"],
+   
    "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   
    "PROGRAM_MANAGER": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   
    "PROGRAM_DESIGNER": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   
    "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   
    "REPORT_VIEWER": ["acceptTnc"],
+   
    "REPORT_ADMIN": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "acceptTnc"],
    "PUBLIC": ["PUBLIC"]
 }
