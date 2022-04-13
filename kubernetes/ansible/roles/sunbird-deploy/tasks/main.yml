@@ -18,6 +18,11 @@
 - name: create xml configmap
   shell: find "{{role_path}}/templates/" -iname "*.xml" -exec /bin/bash -c "ls {}; kubectl create configmap {{ release_name }}-xml-config --from-file={} -n {{namespace}} --dry-run=client -o=yaml | kubectl apply -f - " \;
 
+- name: Check opa testcases coverage is 100%
+  include_role:
+    name: "opa-test-coverage"
+  when: vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled'] and mandate_opa_tests_coverage
+
 - name: Load role to decrypt private keys, copy to helm chart and encrypt private keys
   include_role:
     name: mount-keys
@@ -27,7 +32,7 @@
     private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
     private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
     private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount if outer_item.0.values_to_pass.keycount > '0' else '1'  }}"
-  when: "{{ release_name in mount_keycloak_key_apps }}"
+  when: (release_name in mount_keycloak_key_apps) or (vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled'])
   with_subelements:
     - "{{adminutil_access_values}}"
     - role_to_run
@@ -38,7 +43,31 @@
   copy:
     dest: "{{ chart_path }}/keys/{{ adminutil_refresh_token_public_key_kid }}"
     content: "{{ core_vault_sunbird_sso_publickey }}"
-  when: "{{ release_name in mount_keycloak_key_apps }}"
+  when: release_name in mount_keycloak_key_apps
+
+- name: Replace ansible variables with values
+  template:
+    src: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/{{ item }}"
+    dest: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/{{ item }}"
+  with_items:
+  - "{{ common_opa_policy_files }}"
+  when: vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled']
+
+# Cannot use higher optimization in 0.34.2 version
+# Opa issue - https://github.com/open-policy-agent/opa/issues/4111
+# Removing test files from bundle manually using rm *_test.rego
+# Opa issue - https://github.com/open-policy-agent/opa/issues/2944
+- name: Create OPA bundle
+  shell: rm *_test.rego && opa build --bundle . --optimize 0 --entrypoint "main/allow"
+  args:
+    chdir: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}"
+  when: vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled']
+
+- name: Copy the OPA bundle to helm chart directory
+  copy:
+    src: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/bundle.tar.gz"
+    dest: "{{chart_path}}/bundle/"
+  when: vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled']
 
 - name: helm upgrade
   shell: helm upgrade --install --atomic --timeout {{helm_install_timeout | d('10m')}} {{ release_name }} {{ chart_path }} -n {{namespace}}

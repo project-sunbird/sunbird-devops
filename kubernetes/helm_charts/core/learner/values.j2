@@ -27,8 +27,42 @@ strategy:
   maxunavailable: {{ learner_maxunavailable|default('25%') }}
 
 {{ learner_liveness_readiness | to_nice_yaml }}
+{{ opa_liveness_readiness | to_nice_yaml }}
+{{ envoy_liveness_readiness | to_nice_yaml }}
+
+learner_opa_enabled: {{ learner_opa_enabled | default('true') }}
+
+envoy_resources:
+  requests:
+    cpu: "{{ learner_envoy_cpu_req | default('100m') }}"
+    memory: "{{ learner_envoy_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ learner_envoy_cpu_limit | default('1') }}"
+    memory: "{{ learner_envoy_mem_limit | default('1024Mi') }}"
+
+opa_resources:
+  requests:
+    cpu: "{{ learner_opa_cpu_req | default('100m') }}"
+    memory: "{{ learner_opa_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ learner_opa_cpu_limit | default('1') }}"
+    memory: "{{ learner_opa_mem_limit | default('1024Mi') }}"
+
+initcontainer_resources:
+  requests:
+    cpu: "{{ learner_initcontainer_cpu_req | default('100m') }}"
+    memory: "{{ learner_initcontainer_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ learner_initcontainer_cpu_limit | default('100m') }}"
+    memory: "{{ learner_initcontainer_mem_limit | default('100Mi') }}"
 
 learner_access_basepath: {{ learner_access_basepath | default('/keys/') }}
+
+serviceMonitor:
+  enabled: true
+  labels: # labels with which the prometheus choose the serviceMonitor
+    app: prometheus-operator
+    release: prometheus-operator
 
 autoscaling:
   enabled: {{ learner_autoscaling_enabled | default('false') }}
