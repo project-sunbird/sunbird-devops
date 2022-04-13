@@ -1,7 +1,13 @@
 {{- if and .Values.reloader.watchGlobally (.Values.reloader.rbac.enabled) }}
+{{- if  (.Capabilities.APIVersions.Has "rbac.authorization.k8s.io/v1") }}
+apiVersion: rbac.authorization.k8s.io/v1
+{{ else }}
 apiVersion: rbac.authorization.k8s.io/v1beta1
+{{- end }}
 kind: ClusterRoleBinding
 metadata:
+  annotations:
+{{ include "reloader-helm3.annotations" . | indent 4 }}
   labels:
 {{ include "reloader-labels.chart" . | indent 4 }}
 {{- if .Values.reloader.rbac.labels }}
