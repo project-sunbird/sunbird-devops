@@ -124,7 +124,7 @@ test_list_data_exhaust_request_without_user_token {
     }
 }
 
-test_submit_data_exhaust_request_t1 {
+test_submit_data_exhaust_request_with_dataset_as_progress_exhaust {
     data.main.allow.allowed
     with data.common.current_time as current_time
     with data.common.iss as iss
@@ -155,7 +155,7 @@ test_submit_data_exhaust_request_t1 {
     }
 }
 
-test_submit_data_exhaust_request_t2 {
+test_submit_data_exhaust_request_with_dataset_as_druid_dataset {
     data.main.allow.allowed
     with data.common.current_time as current_time
     with data.common.iss as iss
@@ -186,7 +186,7 @@ test_submit_data_exhaust_request_t2 {
     }
 }
 
-test_submit_data_exhaust_request_without_userid_t1 {
+test_submit_data_exhaust_request_with_dataset_as_progress_exhaust_without_userid {
     data.main.allow.allowed
     with data.common.current_time as current_time
     with data.common.iss as iss
@@ -216,7 +216,7 @@ test_submit_data_exhaust_request_without_userid_t1 {
     }
 }
 
-test_submit_data_exhaust_request_without_userid_t2 {
+test_submit_data_exhaust_request_with_dataset_as_druid_dataset_without_userid {
     data.main.allow.allowed
     with data.common.current_time as current_time
     with data.common.iss as iss
@@ -246,7 +246,7 @@ test_submit_data_exhaust_request_without_userid_t2 {
     }
 }
 
-test_submit_data_exhaust_request_without_user_token {
+test_submit_data_exhaust_request_with_dataset_as_progress_exhaust_without_user_token {
     data.main.allow.allowed
     with input as
     {

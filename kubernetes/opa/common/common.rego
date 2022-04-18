@@ -12,11 +12,11 @@ ROLES := {
    
    "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock", "updateContent", "uploadContent"],
    
-   "CONTENT_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock", "updateContent", "uploadContent"],
+   "CONTENT_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock", "updateContent", "uploadContent", "courseBatchAddCertificateTemplate", "courseBatchRemoveCertificateTemplate", "createBatch"],
    
-   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock",  "updateContent", "uploadContent"],
+   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock",  "updateContent", "uploadContent", "courseBatchAddCertificateTemplate", "courseBatchRemoveCertificateTemplate", "createBatch"],
    
-   "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "courseBatchAddCertificateTemplate", "courseBatchRemoveCertificateTemplate", "createBatch"],
    
    "PROGRAM_MANAGER": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
    
