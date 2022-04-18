@@ -22,7 +22,7 @@ ROLES := {
    
    "PROGRAM_DESIGNER": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
    
-   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "getUserProfileV5", "updateUserV2", "readUserConsent", "createTenantPreferences", "updateTenantPreferences"],
    
    "REPORT_VIEWER": ["acceptTnc"],
    
@@ -84,13 +84,17 @@ token_roles = user_token.payload.roles {
     not user_token.payload.roles
 }
 
+for_token_exists {
+  x_authenticated_for
+  count(x_authenticated_for) > 0
+}
+
 userid = token_userid {
     not x_authenticated_for
 } else = token_userid {
     count(x_authenticated_for) == 0 # This is a temporary fix as the mobile app is sending empty headers as x-authenticated-for: ""
 } else = for_token_userid {
-    x_authenticated_for
-    count(x_authenticated_for) > 0
+    for_token_exists
 }
 
 validate_token {
