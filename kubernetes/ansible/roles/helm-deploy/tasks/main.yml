@@ -50,6 +50,30 @@
     content: "{{ core_vault_sunbird_sso_publickey }}"
   when: release_name == "gotenberg"
 
+- name: Replace ansible variables with values
+  template:
+    src: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/{{ item }}"
+    dest: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/{{ item }}"
+  with_items:
+  - "{{ common_opa_policy_files }}"
+  when: vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled']
+
+# Cannot use higher optimization in 0.34.2 version
+# Opa issue - https://github.com/open-policy-agent/opa/issues/4111
+# Removing test files from bundle manually using rm *_test.rego
+# Opa issue - https://github.com/open-policy-agent/opa/issues/2944
+- name: Create OPA bundle
+  shell: rm *_test.rego && opa build --bundle . --optimize 0 --entrypoint "main/allow"
+  args:
+    chdir: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}"
+  when: vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled']
+
+- name: Copy the OPA bundle to helm chart directory
+  copy:
+    src: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/bundle.tar.gz"
+    dest: "{{chart_path}}/bundle/"
+  when: vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled']
+
 - name: helm install
   shell: helm upgrade --install --atomic --timeout {{helm_install_timeout | d("10m")}} {{ release_name }} {{ chart_path }} -n {{namespace}}
 
