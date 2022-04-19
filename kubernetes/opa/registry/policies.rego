@@ -7,13 +7,13 @@ import input.attributes.request.http as http_request
 accept := http_request.headers["accept"]
 
 urls_to_action_mapping := {
-  "/api/v1/TrainingCertificate": "createGetDeleteRCCertificate",
+  "/api/v1/TrainingCertificate": "createDeleteGetRCCertificate",
   "/api/v1/TrainingCertificate/search": "searchRCCertificate",
   "/api/v1/PublicKey": "getRCPublicKey"
 }
 
 # Create or Delete certificate API - Invoked by flink jobs
-createGetDeleteRCCertificate {
+createDeleteGetRCCertificate {
   http_request.method in ["POST", "DELETE"]
   not endswith(http_request.path, "/search")
   not endswith(http_request.path, "/PublicKey/search")
@@ -21,13 +21,13 @@ createGetDeleteRCCertificate {
 }
 
 # Open APIs to query some certificate data - User token not required
-createGetDeleteRCCertificate {
+createDeleteGetRCCertificate {
   http_request.method == "GET"
   accept in ["application/json", "application/vc+ld+json"]
 }
 
 # Download the user certificate - User token required
-createGetDeleteRCCertificate {
+createDeleteGetRCCertificate {
   http_request.method == "GET"
   accept == "image/svg+xml"
   super.public_role_check
