@@ -22,7 +22,7 @@
     - "{{ chart_path }}/schemas/*.json"
   when: release_name == "registry"
 
-- name: Load role to decrypt private keys, copy to helm chart and encrypt private keys
+- name: Load role to decrypt private keys, copy to private keys helm chart
   include_role:
     name: mount-keys
     tasks_from: "{{outer_item.1}}"
@@ -50,7 +50,7 @@
     content: "{{ core_vault_sunbird_sso_publickey }}"
   when: release_name == "gotenberg"
 
-- name: Load role to decrypt private keys, copy to helm chart and encrypt private keys
+- name: Load role to decrypt private keys, copy public keys to helm chart
   include_role:
     name: mount-keys
     tasks_from: "{{outer_item.1}}"
@@ -59,7 +59,7 @@
     private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
     private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
     private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount if outer_item.0.values_to_pass.keycount > '0' else '1'  }}"
-  when: (release_name in mount_keycloak_key_apps) or (vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled'])
+  when: (mount_keycloak_key_apps is defined and release_name in mount_keycloak_key_apps) or (vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled'])
   with_subelements:
     - "{{adminutil_access_values}}"
     - role_to_run
