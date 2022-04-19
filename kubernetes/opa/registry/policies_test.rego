@@ -7,7 +7,7 @@ package tests
 current_time := 1640235102
 iss := "https://sunbirded.org/auth/realms/sunbird"
 
-test_rc_certificate_create {
+test_rc_certificate_create_internal_request {
     data.main.allow.allowed
     with data.common.current_time as current_time
     with data.common.iss as iss
@@ -61,7 +61,7 @@ test_rc_certificate_create {
     }
 }
 
-test_rc_certificate_delete {
+test_rc_certificate_delete_internal_request {
     data.main.allow.allowed
     with data.common.current_time as current_time
     with data.common.iss as iss
