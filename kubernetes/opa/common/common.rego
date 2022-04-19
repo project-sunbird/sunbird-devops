@@ -10,11 +10,11 @@ ROLES := {
    
    "FLAG_REVIEWER": ["publishContent", "rejectContent", "rejectContentV2"],
    
-   "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock", "updateContent", "uploadContent"],
+   "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReviewV1", "submitContentForReviewV3", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock", "updateContent", "uploadContent"],
    
-   "CONTENT_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock", "updateContent", "uploadContent", "courseBatchAddCertificateTemplate", "courseBatchRemoveCertificateTemplate", "createBatch"],
+   "CONTENT_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReviewV1", "submitContentForReviewV3", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock", "updateContent", "uploadContent", "courseBatchAddCertificateTemplate", "courseBatchRemoveCertificateTemplate", "createBatch"],
    
-   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock",  "updateContent", "uploadContent", "courseBatchAddCertificateTemplate", "courseBatchRemoveCertificateTemplate", "createBatch"],
+   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReviewV1", "submitContentForReviewV3", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock",  "updateContent", "uploadContent", "courseBatchAddCertificateTemplate", "courseBatchRemoveCertificateTemplate", "createBatch"],
    
    "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "courseBatchAddCertificateTemplate", "courseBatchRemoveCertificateTemplate", "createBatch"],
    

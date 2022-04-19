@@ -17,7 +17,8 @@ urls_to_action_mapping := {
   "/v1/lock/refresh": "refreshLock",
   "/v1/content/reject": "rejectContent",
   "/v1/content/update": "updateContent",
-  "/v1/content/upload": "uploadContent"
+  "/v1/content/upload": "uploadContent",
+  "/v1/content/review": "submitContentForReviewV1"
 }
 
 copyContent {
@@ -119,6 +120,13 @@ updateContent {
 
 uploadContent {
   acls := ["uploadContent"]
+  roles := ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR"]
+  super.acls_check(acls)
+  super.role_check(roles)
+}
+
+submitContentForReviewV1 {
+  acls := ["submitContentForReviewV1"]
   roles := ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR"]
   super.acls_check(acls)
   super.role_check(roles)

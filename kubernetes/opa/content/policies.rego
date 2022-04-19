@@ -10,7 +10,7 @@ urls_to_action_mapping := {
 # "/content/v3/create": "createContent",
   "/collection/v4/import": "collectionImport",
   "/collection/v4/export": "collectionExport",
-  "/content/v3/review": "submitContentForReview",
+  "/content/v3/review": "submitContentForReviewV3",
   "/asset/v4/create": "createAsset",
   "/asset/v4/update": "updateAsset",
   "/asset/v4/upload/url": "uploadUrlAsset",
@@ -33,8 +33,8 @@ collectionExport {
   super.role_check(roles)
 }
 
-submitContentForReview {
-  acls := ["submitContentForReview"]
+submitContentForReviewV3 {
+  acls := ["submitContentForReviewV3"]
   roles := ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR"]
   super.acls_check(acls)
   super.role_check(roles)
