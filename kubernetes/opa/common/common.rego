@@ -98,6 +98,10 @@ userid = token_userid {
     for_token_exists
 }
 
+is_an_internal_request {
+  http_request.host == "{{ private_ingressgateway_ip }}"
+}
+
 validate_token {
   io.jwt.verify_rs256(x_authenticated_user_token, jwt_public_keys[token_kid])
   token_exp * 1000000000 > current_time
