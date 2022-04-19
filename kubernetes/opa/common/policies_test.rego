@@ -167,6 +167,24 @@ test_user_and_org_check {
     }
 }
 
+test_is_an_internal_request {
+    data.main.allow.allowed
+    with data.common.current_time as current_time
+    with data.common.iss as iss
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "headers": {},
+            "path": "/internal/api/call",
+            "host": "1.2.3.4"
+          }
+        }
+      }
+    }
+}
+
 # Audience claim check is not being done as of now
 
 # test_public_role_check_with_an_array_in_aud_claim {
