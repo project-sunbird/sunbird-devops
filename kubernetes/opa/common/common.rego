@@ -33,6 +33,7 @@ ROLES := {
 
 x_authenticated_user_token := http_request.headers["x-authenticated-user-token"]
 x_authenticated_for := http_request.headers["x-authenticated-for"]
+private_ingressgateway_ip := "{{ private_ingressgateway_ip }}"
 
 # The below block (jwt_public_keys) will be expanded by ansible during deployment as below
 # jwt_public_keys := {
@@ -98,14 +99,14 @@ userid = token_userid {
     for_token_exists
 }
 
-is_an_internal_request {
-  http_request.host == "{{ private_ingressgateway_ip }}"
-}
-
 validate_token {
   io.jwt.verify_rs256(x_authenticated_user_token, jwt_public_keys[token_kid])
   token_exp * 1000000000 > current_time
   token_iss == iss
+}
+
+is_an_internal_request {
+  http_request.host == private_ingressgateway_ip
 }
 
 acls_check(acls) = indicies {
