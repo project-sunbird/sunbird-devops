@@ -22,47 +22,43 @@ strategy:
   maxsurge: {{ notification_maxsurge|default('25%') }}
   maxunavailable: {{ notification_maxunavailable|default('25%') }}
 
-notification:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true
-  readinessProbe:
-    httpGet:
-      path: /health
-      port: 9000
-    initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 5
-    successThreshold: 1
-  livenessProbe:
-    httpGet:
-      path: /service/health
-      port: 9000
-    initialDelaySeconds: 60
-    periodSeconds: 10
+{{ notification_liveness_readiness | to_nice_yaml }}
+{{ opa_liveness_readiness | to_nice_yaml }}
+{{ envoy_liveness_readiness | to_nice_yaml }}
 
-notification:
-  readinessprobe:
-    enabled: true
-  livenessprobe:
-    enabled: true
-  readinessProbe:
-    httpGet:
-      path: /health
-      port: 9000
-    initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 5
-    successThreshold: 1
-  livenessProbe:
-    httpGet:
-      path: /service/health
-      port: 9000
-    initialDelaySeconds: 60
-    periodSeconds: 10
+notification_opa_enabled: {{ notification_opa_enabled | default('true') }}
+
+envoy_resources:
+  requests:
+    cpu: "{{ notification_envoy_cpu_req | default('100m') }}"
+    memory: "{{ notification_envoy_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ notification_envoy_cpu_limit | default('1') }}"
+    memory: "{{ notification_envoy_mem_limit | default('1024Mi') }}"
+
+opa_resources:
+  requests:
+    cpu: "{{ notification_opa_cpu_req | default('100m') }}"
+    memory: "{{ notification_opa_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ notification_opa_cpu_limit | default('1') }}"
+    memory: "{{ notification_opa_mem_limit | default('1024Mi') }}"
+
+initcontainer_resources:
+  requests:
+    cpu: "{{ notification_initcontainer_cpu_req | default('100m') }}"
+    memory: "{{ notification_initcontainer_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ notification_initcontainer_cpu_limit | default('100m') }}"
+    memory: "{{ notification_initcontainer_mem_limit | default('100Mi') }}"
+
+notification_access_basepath: {{ notification_access_basepath | default('/keys/') }}
+
+serviceMonitor:
+  enabled: true
+  labels: # labels with which the prometheus choose the serviceMonitor
+    app: prometheus-operator
+    release: prometheus-operator
 
 notification_access_basepath: {{ notification_access_basepath | default('/keys/') }}
 

@@ -50,7 +50,7 @@ test_check_if_consumer_is_skipped {
     }
 }
 
-test_not_identified_action {
+test_url_path_not_matched {
     data.main.allow.allowed
     with input as
     {

@@ -22,7 +22,7 @@
     - "{{ chart_path }}/schemas/*.json"
   when: release_name == "registry"
 
-- name: Load role to decrypt private keys, copy to helm chart and encrypt private keys
+- name: Load role to decrypt private keys, copy to private keys helm chart
   include_role:
     name: mount-keys
     tasks_from: "{{outer_item.1}}"
@@ -50,6 +50,46 @@
     content: "{{ core_vault_sunbird_sso_publickey }}"
   when: release_name == "gotenberg"
 
+- name: Load role to decrypt private keys, copy public keys to helm chart
+  include_role:
+    name: mount-keys
+    tasks_from: "{{outer_item.1}}"
+  vars:
+    private_key_path: "{{ outer_item.0.values_to_pass.basepath }}"
+    private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
+    private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
+    private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount if outer_item.0.values_to_pass.keycount > '0' else '1'  }}"
+  when: (mount_keycloak_key_apps is defined and release_name in mount_keycloak_key_apps) or (vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled'])
+  with_subelements:
+    - "{{adminutil_access_values}}"
+    - role_to_run
+  loop_control:
+    loop_var: outer_item
+
+- name: Replace ansible variables with values
+  template:
+    src: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/{{ item }}"
+    dest: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/{{ item }}"
+  with_items:
+  - "{{ common_opa_policy_files }}"
+  when: vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled']
+
+# Cannot use higher optimization in 0.34.2 version
+# Opa issue - https://github.com/open-policy-agent/opa/issues/4111
+# Removing test files from bundle manually using rm *_test.rego
+# Opa issue - https://github.com/open-policy-agent/opa/issues/2944
+- name: Create OPA bundle
+  shell: rm *_test.rego && opa build --bundle . --optimize 0 --entrypoint "main/allow"
+  args:
+    chdir: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}"
+  when: vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled']
+
+- name: Copy the OPA bundle to helm chart directory
+  copy:
+    src: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/bundle.tar.gz"
+    dest: "{{chart_path}}/bundle/"
+  when: vars[release_name + '_opa_enabled'] is defined and vars[release_name + '_opa_enabled']
+
 - name: helm install
   shell: helm upgrade --install --atomic --timeout {{helm_install_timeout | d("10m")}} {{ release_name }} {{ chart_path }} -n {{namespace}}
 
@@ -70,7 +110,7 @@
   ignore_errors: yes
 
 - name: Get deployed image name - deployments
-  shell: "kubectl get deployments {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
+  shell: kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[0].image | split("/")[1]'
   register: image
 
 - set_fact:
