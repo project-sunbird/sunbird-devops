@@ -149,7 +149,7 @@ updateUserDeclarations {
 
 managedUserV1Create {
   super.public_role_check
-  input.parsed_body.request.managedBy == super.for_token_parentid
+  input.parsed_body.request.managedBy == super.userid
 }
 
 # If for token exists, check userid in url matches for token parent id
