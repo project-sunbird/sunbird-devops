@@ -24,16 +24,8 @@ getDataExhaustRequest {
 }
 
 getDataExhaustRequest {
-  acls := ["getDataExhaustRequest"]
-  roles := ["ORG_ADMIN", "REPORT_ADMIN", "CONTENT_CREATOR", "COURSE_MENTOR", "PROGRAM_MANAGER", "PROGRAM_DESIGNER"]
-  super.acls_check(acls)
-  super.role_check(roles)  
-  x_channel_id
-  not x_authenticated_userid
-}
-
-getDataExhaustRequest {
   not x_authenticated_user_token
+  not x_authenticated_userid
 }
 
 listDataExhaustRequest {
@@ -46,16 +38,8 @@ listDataExhaustRequest {
 }
 
 listDataExhaustRequest {
-  acls := ["listDataExhaustRequest"]
-  roles := ["ORG_ADMIN", "REPORT_ADMIN", "CONTENT_CREATOR", "COURSE_MENTOR", "PROGRAM_MANAGER", "PROGRAM_DESIGNER"]
-  super.acls_check(acls)
-  super.role_check(roles)  
-  x_channel_id
-  not x_authenticated_userid
-}
-
-listDataExhaustRequest {
   not x_authenticated_user_token
+  not x_authenticated_userid
 }
 
 submitDataExhaustRequest {
@@ -70,16 +54,6 @@ submitDataExhaustRequest {
 
 submitDataExhaustRequest {
   acls := ["submitDataExhaustRequest"]
-  roles := ["ORG_ADMIN", "REPORT_ADMIN", "CONTENT_CREATOR", "COURSE_MENTOR"]
-  super.acls_check(acls)
-  super.role_check(roles)
-  input.parsed_body.request.dataset in ["progress-exhaust", "response-exhaust", "userinfo-exhaust"]
-  x_channel_id
-  not x_authenticated_userid
-}
-
-submitDataExhaustRequest {
-  acls := ["submitDataExhaustRequest"]
   roles :=["PROGRAM_MANAGER", "PROGRAM_DESIGNER"]
   super.acls_check(acls)
   super.role_check(roles)
@@ -89,15 +63,6 @@ submitDataExhaustRequest {
 }
 
 submitDataExhaustRequest {
-  acls := ["submitDataExhaustRequest"]
-  roles :=["PROGRAM_MANAGER", "PROGRAM_DESIGNER"]
-  super.acls_check(acls)
-  super.role_check(roles)
-  input.parsed_body.request.dataset in ["druid-dataset"]
-  x_channel_id
-  not x_authenticated_userid
-}
-
-submitDataExhaustRequest {
   not x_authenticated_user_token
+  not x_authenticated_userid
 }
