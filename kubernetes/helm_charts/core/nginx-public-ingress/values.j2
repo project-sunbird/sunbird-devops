@@ -973,6 +973,12 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://$dial_upstream_host;
     }
+{% if apple_app_site_association is defined %}
+    location /apple-app-site-association {
+      alias /var/www/html/;
+      index apple-app-site-association.json;
+    }
+{% endif %}
     {# Including custom configuration #}
     {{ proxy_custom_config }}}
 
@@ -1256,3 +1262,7 @@ serviceMonitor:
   labels: # labels with which the prometheus choose the serviceMonitor
     app: prometheus-operator
     release: prometheus-operator
+
+{# Add the apple site association json contents in a single line within single quotes as shown below in Core/common.yml  #}
+{# apple_app_site_association: '{"applinks":{"apps":[],"details":[{"appID":"123456.dev.sunbird.app","paths":["/explore","/dial/*","/get/dial","/play/content","/play/collection","/learn/course","/explore-course/course","/explore-course","/search","/search/Library","/faq","/profile","/play/quiz","/explore","/learn","/resources"]}]}}' #}
+apple_universal_links: '{{ apple_app_site_association | default("") }}'
