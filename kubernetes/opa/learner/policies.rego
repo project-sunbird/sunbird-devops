@@ -116,6 +116,12 @@ getUserProfileV5 {
   super.role_check(roles)
 }
 
+# Allow the API call when using ?withTokens=true as query param since we are retrieving the managed user details and service is already making parent and child check in this endpoint
+getUserProfileV5 {
+  super.public_role_check
+  contains(http_request.path, "?withTokens=true")
+}
+
 userFeed {
   super.public_role_check
   user_id := split(http_request.path, "/")[4]
