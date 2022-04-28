@@ -48,6 +48,12 @@ acceptTermsAndCondition {
   input.parsed_body.request.userId == super.userid
 }
 
+acceptTermsAndCondition {
+  super.public_role_check
+  not input.parsed_body.request.tncType
+  not input.parsed_body.request.userId
+}
+
 updateUser {
   super.public_role_check
   input.parsed_body.request.userId == super.userid
