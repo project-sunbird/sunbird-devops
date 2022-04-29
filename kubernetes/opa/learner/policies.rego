@@ -48,6 +48,7 @@ acceptTermsAndCondition {
   input.parsed_body.request.userId == super.userid
 }
 
+# Optional request.userId - https://project-sunbird.atlassian.net/browse/SB-29723
 acceptTermsAndCondition {
   super.public_role_check
   not input.parsed_body.request.tncType
@@ -122,7 +123,7 @@ getUserProfileV5 {
   super.role_check(roles)
 }
 
-# Allow the API call when using ?withTokens=true as query param since we are retrieving the managed user details and service is already making parent and child check in this endpoint
+# Allow the API call when using ?withTokens=true as query param - https://project-sunbird.atlassian.net/browse/SB-29676
 getUserProfileV5 {
   super.public_role_check
   contains(http_request.path, "?withTokens=true")

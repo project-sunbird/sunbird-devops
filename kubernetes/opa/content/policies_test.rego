@@ -118,6 +118,43 @@ test_create_asset {
     }
 }
 
+test_create_asset_without_userid {
+    data.main.allow.allowed
+    with data.common.current_time as current_time
+    with data.common.iss as iss
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "headers": {
+              "x-authenticated-user-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImFjY2Vzc3YxX2tleTEifQ.eyJhdWQiOiJodHRwczovL3N1bmJpcmRlZC5vcmcvYXV0aC9yZWFsbXMvc3VuYmlyZCIsInN1YiI6ImY6NWJiNmM4N2MtN2M4OC00ZDJiLWFmN2UtNTM0YTJmZWY5NzhkOjI4YjBkMDhmLWMyZWEtNDBkMS1iY2QwLThhZTAwZmNhNjZiZSIsInJvbGVzIjpbeyJyb2xlIjoiQk9PS19DUkVBVE9SIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifSx7Im9yZ2FuaXNhdGlvbklkIjoiMDE0NzE5MjM1Njc4MTIzNDU2NzgifV19LHsicm9sZSI6IkNPTlRFTlRfQ1JFQVRPUiIsInNjb3BlIjpbeyJvcmdhbmlzYXRpb25JZCI6IjAxMzY5ODc4Nzk3NTAzNjkyODEwIn1dfSx7InJvbGUiOiJDT05URU5UX1JFVklFV0VSIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6IkNPVVJTRV9NRU5UT1IiLCJzY29wZSI6W3sib3JnYW5pc2F0aW9uSWQiOiIwMTM2OTg3ODc5NzUwMzY5MjgxMCJ9XX0seyJyb2xlIjoiUFJPR1JBTV9ERVNJR05FUiIsInNjb3BlIjpbeyJvcmdhbmlzYXRpb25JZCI6IjAxMzY5ODc4Nzk3NTAzNjkyODEwIn1dfSx7InJvbGUiOiJSRVBPUlRfVklFV0VSIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6Ik9SR19BRE1JTiIsInNjb3BlIjpbeyJvcmdhbmlzYXRpb25JZCI6IjAxMzY5ODc4Nzk3NTAzNjkyODEwIn0seyJvcmdhbmlzYXRpb25JZCI6IjAxNDcxOTIzNTY3ODEyMzQ1Njc4In1dfSx7InJvbGUiOiJQVUJMSUMiLCJzY29wZSI6W119XSwiaXNzIjoiaHR0cHM6Ly9zdW5iaXJkZWQub3JnL2F1dGgvcmVhbG1zL3N1bmJpcmQiLCJuYW1lIjoiZGVtbyIsInR5cCI6IkJlYXJlciIsImV4cCI6MTY0MDIzNjEwMiwiaWF0IjoxNjQwMTQ5NzA1fQ.rdczGSAV-wwRrrYDhR4iT12zpWVPjj4tanvp1QV8So6yzbQPEl1Xf6W7REMBPuodqmpum0v1xQelTaMRYfr4YF-wDDwsgpW9o6xIxo1E-pUk0Rev-Rgr1gU9sswXnqI4jQhBzmB-pXak7LqNlHFLUIsC_92UuZaAYPHMlHJPRxXiGRuiFE4-j5pG05JXXagu7FmdJvTimsXy79xKkMfpZXhl_R0lP8dOlDBOZQwejnt8IH2KNQUBuqmOEVNT2AmsIL_AsxTe8lw_-4Wk4fY_KkDQccfOi8P5wzfswFxwyjA-AQFzr5cLuivWGbG6Bu9dn-kXFfab7MjFXkQ-rNB2wQ",
+              "x-channel-id": "01369878797503692810"
+            },
+            "path": "/asset/v4/create"
+          }
+        }
+      },
+      "parsed_body": {
+        "request": {
+          "asset": {
+            "primaryCategory": "asset",
+            "language": [
+              "English"
+            ],
+            "code": "fe59eba6-5232-2109-f38e-0cee4a86efbd",
+            "name": "mountainImage",
+            "mediaType": "image",
+            "mimeType": "image/jpeg",
+            "creator": "N11",
+            "channel": "01369878797503692810",
+            "keywords": ""
+          }
+        }
+      }
+    }
+}
+
 test_update_asset {
     data.main.allow.allowed
     with data.common.current_time as current_time
