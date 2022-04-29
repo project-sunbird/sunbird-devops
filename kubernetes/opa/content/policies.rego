@@ -52,6 +52,19 @@ createAsset {
   input.parsed_body.request.asset.createdBy == super.userid
 }
 
+# Optional request.asset.createdBy in payload - https://project-sunbird.atlassian.net/browse/SB-29753
+createAsset {
+  acls := ["createAsset"]
+  roles := ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR"]
+  super.acls_check(acls)
+  # Org check will do an implicit role check so there is no need to invoke super.role_check(roles)
+  token_organisationids := super.org_check(roles)
+  x_channel_id in token_organisationids
+  input.parsed_body.request.asset.channel in token_organisationids
+  input.parsed_body.request.asset.channel == x_channel_id
+  not input.parsed_body.request.asset.createdBy
+}
+
 updateAsset {
   acls := ["updateAsset"]
   roles := ["BOOK_CREATOR", "CONTENT_CREATOR", "COURSE_CREATOR"]
