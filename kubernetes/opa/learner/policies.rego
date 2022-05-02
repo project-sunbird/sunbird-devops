@@ -160,6 +160,13 @@ updateUserDeclarations {
   payload_userids[super.userid] == super.userid
 }
 
+# If for token exists, check request.managedBy matches for_token_parentid
+managedUserV1Create {
+  super.public_role_check
+  input.parsed_body.request.managedBy == super.for_token_parentid
+}
+
+# If for token doesn't exist, check request.managedBy matches userid
 managedUserV1Create {
   super.public_role_check
   input.parsed_body.request.managedBy == super.userid
