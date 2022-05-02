@@ -456,7 +456,43 @@ test_update_user_declarations {
     }
 }
 
-test_managed_user_v1_create {
+test_managed_user_v1_create_with_for_token {
+    data.main.allow.allowed
+    with data.common.current_time as current_time
+    with data.common.iss as iss
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "headers": {
+              "x-authenticated-user-token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImFjY2Vzc3YxX2tleTEifQ.eyJhdWQiOiJodHRwczovL3N1bmJpcmRlZC5vcmcvYXV0aC9yZWFsbXMvc3VuYmlyZCIsInN1YiI6ImY6NWJiNmM4N2MtN2M4OC00ZDJiLWFmN2UtNTM0YTJmZWY5NzhkOjI4YjBkMDhmLWMyZWEtNDBkMS1iY2QwLThhZTAwZmNhNjZiZSIsInJvbGVzIjpbeyJyb2xlIjoiQk9PS19DUkVBVE9SIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6IkNPTlRFTlRfQ1JFQVRPUiIsInNjb3BlIjpbeyJvcmdhbmlzYXRpb25JZCI6IjAxMzY5ODc4Nzk3NTAzNjkyODEwIn1dfSx7InJvbGUiOiJDT05URU5UX1JFVklFV0VSIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6IkNPVVJTRV9NRU5UT1IiLCJzY29wZSI6W3sib3JnYW5pc2F0aW9uSWQiOiIwMTM2OTg3ODc5NzUwMzY5MjgxMCJ9XX0seyJyb2xlIjoiUFJPR1JBTV9ERVNJR05FUiIsInNjb3BlIjpbeyJvcmdhbmlzYXRpb25JZCI6IjAxMzY5ODc4Nzk3NTAzNjkyODEwIn1dfSx7InJvbGUiOiJSRVBPUlRfVklFV0VSIiwic2NvcGUiOlt7Im9yZ2FuaXNhdGlvbklkIjoiMDEzNjk4Nzg3OTc1MDM2OTI4MTAifV19LHsicm9sZSI6Ik9SR19BRE1JTiIsInNjb3BlIjpbeyJvcmdhbmlzYXRpb25JZCI6IjAxMzY5ODc4Nzk3NTAzNjkyODEwIn0seyJvcmdhbmlzYXRpb25JZCI6IjAxNDcxOTIzNTY3ODEyMzQ1Njc4In1dfSx7InJvbGUiOiJQVUJMSUMiLCJzY29wZSI6W119XSwiaXNzIjoiaHR0cHM6Ly9zdW5iaXJkZWQub3JnL2F1dGgvcmVhbG1zL3N1bmJpcmQiLCJuYW1lIjoiZGVtbyIsInR5cCI6IkJlYXJlciIsImV4cCI6MTY0MDIzNjEwMiwiaWF0IjoxNjQwMTQ5NzA1fQ.B3-TSdYSOlawPHjFdiRjXwvRbYQ_eH_HTiLKlH7vGS0rCOJ6HQbYyWOhZ7vbZPb3virkuyfhykFcYCEHBCkHY-fwGAeU58Pmhi0dnNJkR59Fa9y_75W98JXZW68HROp62ntEAKCA1oot_U4tYi-8UNoR17Gszj9iYzFEBc6TZA4Lrom_9gqhBOYzL0ISFWSS6oG94EaaKDYHyWzCSjU2nYRB_fn-tODmnVJ12GRJAc1oM9y54o8neNYsl4T_xPyD34v-CinUJM8jzDjFqK5_O3HnAbcmXvkZjFRgfk4mF1V4s5hlsTJGyhi2JOPh90C5N-HbAY8QsPBnzgYFQU_sww",
+              "x-authenticated-for": "eyJhbGciOiJSUzI1NiIsImtpZCI6ImFjY2Vzc3YxX2tleTUifQ.eyJwYXJlbnRJZCI6IjI4YjBkMDhmLWMyZWEtNDBkMS1iY2QwLThhZTAwZmNhNjZiZSIsInN1YiI6IjgwYzM0YzdmLTViYXktNTY0ZS05MDhiLWJmYzA0MTAzODEwZCIsImV4cCI6MTcwMTUxNDA4NSwiaWF0IjoxNjM4NDQyMDg1fQ.skXXt_p2N_0EYQ500Z-xAwdZxoS3MzmVWBhsfSw7ff_QzHciKw21ICDNVnHHOXd_Akf2IA9jUP1lyrBLPRtFrLfYMLjlZB65L2r34QGpBTgkaLhacA_yv7h0neHNHT3D_KO3YKDAdycdAGzTDQZ9BJ1iDtBLc8Qu9VEdRZOQvQf11jotHZf3UEvY3zrpIrghYAfUbTR3kPFp2W_1CJDixWiKgm8IfEJSpzzCHH2RPKPDdyIbY-9eEHGkeTPqtyCNx_vgOLZg5ieJGwyvhH6KRMJ5y1fgXXv0kadZsp7h3nrDSkd3uONStFxdUdIzIIjvJHqjpDFa5NkQbbY0iIULvw"
+            },
+            "path": "/v1/manageduser/create"
+          }
+        }
+      },
+      "parsed_body": {
+        "request": {
+          "firstName": "My Child",
+          "managedBy": "28b0d08f-c2ea-40d1-bcd0-8ae00fca66be",
+          "profileLocation": [
+            {
+              "code": "02,",
+              "type": "state"
+            },
+            {
+              "code": "0211,",
+              "type": "district"
+            }
+          ]
+        }
+      }
+    }
+}
+
+test_managed_user_v1_create_without_for_token {
     data.main.allow.allowed
     with data.common.current_time as current_time
     with data.common.iss as iss
