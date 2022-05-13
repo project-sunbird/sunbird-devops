@@ -35,12 +35,21 @@
 
 - name: Install dependencies for keycloak
   apt:
-    name: "{{ item }}"
+    name: ["python-setuptools"]
     update_cache: true
-  with_items:
-    - python-pip
-    - python-setuptools
   run_once: true
+
+- name: Ensure python packages are installed
+  apt: 
+    name: ["python-pip", "python-dev"]
+    update_cache: yes
+  when: ansible_os_family == 'Debian' and ansible_distribution_version | float < 18
+
+- name: Ensure python packages are installed
+  apt:
+    name: ["python3-pip", "python3-dev"]
+    update_cache: yes
+  when: ansible_os_family == 'Debian' and ansible_distribution_version | float > 18
 
 - name: Copying python libraries
   copy:
