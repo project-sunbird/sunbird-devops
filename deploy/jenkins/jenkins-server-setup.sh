@@ -169,6 +169,36 @@ mv opa /usr/local/bin/
 echo -e "\n\e[0;32m${bold}Installing mongo tools${normal}"
 apt install -y mongo-tools
 
+echo -e "\n\e[0;32m${bold}Installing required python2 pacakges if distro is ubuntu 18 and above${normal}"
+# For kong api and consumer onboarding
+osrelease=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | awk -F '=' '{print $2}')
+if [[ $osrelease > 18 ]]
+then
+  wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
+  which pip
+  rc=$?
+  if [[ $rc == 0 ]]
+  then
+    cp /usr/local/bin/pip /usr/local/bin/pip3
+  fi
+  which python2.7
+  rc=$?
+  if [[ $rc == 0 ]]
+  then
+    python2.7 get-pip.py
+    pip install retry
+    pip install PyJWT
+    apt reinstall -y python3-pip
+  else
+    apt reinstall -y python2
+    python2.7 get-pip.py
+    python2.7 get-pip.py
+    pip install PyJWT
+    apt reinstall -y python3-pip
+  fi
+fi
+rm -rf get-pip.py
+
 echo -e "\n\e[0;32m${bold}Clean up${normal}"
 sudo apt -y autoremove
 
