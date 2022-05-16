@@ -346,6 +346,51 @@ test_get_user_feed {
     }  
 }
 
+test_get_user_feed_create {
+    data.main.allow.allowed
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "path": "/v1/user/feed/create"
+          }
+        }
+      }
+    }  
+}
+
+
+test_get_user_feed_delete {
+    data.main.allow.allowed
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "path": "/v1/user/feed/delete"
+          }
+        }
+      }
+    }  
+}
+
+
+test_get_user_feed_update {
+    data.main.allow.allowed
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "path": "/v1/user/feed/update"
+          }
+        }
+      }
+    }  
+}
+
+
 test_update_user_v2_as_public_user {
     data.main.allow.allowed
     with data.common.current_time as current_time
