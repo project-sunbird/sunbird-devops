@@ -219,3 +219,20 @@ test_rc_certificate_search_public_key {
       }
     }
 }
+
+test_rc_certificate_get_public_key {
+    data.main.allow.allowed
+    with data.common.current_time as current_time
+    with data.common.iss as iss
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "path": "/api/v1/PublicKey/search/1-ab8bb63e-d4f2-11ec-9a7d-07cc64ac49c1",
+            "method": "GET"
+          }
+        }
+      }
+    }
+}
