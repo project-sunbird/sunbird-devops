@@ -54,5 +54,5 @@ searchRCCertificate {
 
 # Retrieve public key API
 getRCPublicKey {
-  http_request.method == "POST"
+  http_request.method in ["POST", "GET"]
 }
