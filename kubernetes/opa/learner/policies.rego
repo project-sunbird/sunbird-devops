@@ -15,6 +15,9 @@ urls_to_action_mapping := {
   "/v4/user/read": "getUserProfileV4",
   "/v5/user/read": "getUserProfileV5",
   "/v1/user/feed": "userFeed",
+  "/v1/user/feed/create": "userFeedCreate",
+  "/v1/user/feed/delete": "userFeedDelete",
+  "/v1/user/feed/update": "userFeedUpdate",
   "/v2/user/update": "updateUserV2",
   "/v3/user/update": "updateUserV3",
   "/v1/user/declarations": "updateUserDeclarations",
@@ -133,6 +136,22 @@ userFeed {
   super.public_role_check
   user_id := split(http_request.path, "/")[4]
   split(user_id, "?")[0] == super.userid
+}
+
+# Temporary fix as all feed url's begin with /v1/user/feed
+# Having only the userFeed (/v1/user/feed/:userid) block is causing issues for other similar routes like /v1/user/feed/create, /v1/user/feed/delete and /v1/user/feed/update
+# Adding the other url blocks below and making them a pass through to avoid rejecting the API incorrectly
+
+userFeedCreate {
+  true
+}
+
+userFeedDelete {
+  true
+}
+
+userFeedUpdate {
+  true
 }
 
 updateUserV2 {
