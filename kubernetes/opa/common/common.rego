@@ -4,23 +4,36 @@ import input.attributes.request.http as http_request
 import future.keywords.in
 
 ROLES := {
-   "BOOK_REVIEWER": ["createLock", "publishContent"],
-   "CONTENT_REVIEWER": ["createLock", "publishContent"],
-   "FLAG_REVIEWER": ["publishContent"],
-   "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
-   "CONTENT_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
-   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReview"],
-   "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   "BOOK_REVIEWER": ["createLock", "publishContent", "listLock", "retireLock", "refreshLock", "rejectContent", "rejectContentV2"],
+   
+   "CONTENT_REVIEWER": ["createLock", "publishContent", "listLock", "retireLock", "refreshLock", "rejectContent", "rejectContentV2"],
+   
+   "FLAG_REVIEWER": ["publishContent", "rejectContent", "rejectContentV2"],
+   
+   "BOOK_CREATOR": ["copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReviewV1", "submitContentForReviewV3", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock", "updateContent", "uploadContent"],
+   
+   "CONTENT_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReviewV1", "submitContentForReviewV3", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock", "updateContent", "uploadContent", "courseBatchAddCertificateTemplate", "courseBatchRemoveCertificateTemplate", "createBatch"],
+   
+   "COURSE_CREATOR": ["updateBatch", "copyContent", "createContent", "createLock", "updateCollaborators", "collectionImport", "collectionExport", "submitContentForReviewV1", "submitContentForReviewV3", "createAsset", "uploadAsset", "updateAsset", "uploadUrlAsset", "copyAsset", "listLock", "retireLock", "refreshLock",  "updateContent", "uploadContent", "courseBatchAddCertificateTemplate", "courseBatchRemoveCertificateTemplate", "createBatch"],
+   
+   "COURSE_MENTOR": ["updateBatch", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "courseBatchAddCertificateTemplate", "courseBatchRemoveCertificateTemplate", "createBatch"],
+   
    "PROGRAM_MANAGER": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
+   
    "PROGRAM_DESIGNER": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
-   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
-   "REPORT_VIEWER": ["acceptTnc"],
-   "REPORT_ADMIN": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "acceptTnc"],
+   
+   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "getUserProfileV5", "updateUserV2", "readUserConsent", "createTenantPreferences", "updateTenantPreferences", "getReport", "listReports", "createReport", "deleteReport", "updateReport", "publishReport", "retireReport", "getReportSummary", "listReportSummary", "createReportSummary"],
+   
+   "REPORT_VIEWER": ["acceptTnc", "getReport", "listReports", "getReportSummary", "listReportSummary"],
+   
+   "REPORT_ADMIN": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "acceptTnc", "getReport", "listReports", "createReport", "deleteReport", "updateReport", "publishReport", "retireReport", "getReportSummary", "listReportSummary", "createReportSummary"],
+
    "PUBLIC": ["PUBLIC"]
 }
 
 x_authenticated_user_token := http_request.headers["x-authenticated-user-token"]
 x_authenticated_for := http_request.headers["x-authenticated-for"]
+private_ingressgateway_ip := "{{ private_ingressgateway_ip }}"
 
 # The below block (jwt_public_keys) will be expanded by ansible during deployment as below
 # jwt_public_keys := {
@@ -73,19 +86,27 @@ token_roles = user_token.payload.roles {
     not user_token.payload.roles
 }
 
+for_token_exists {
+  x_authenticated_for
+  count(x_authenticated_for) > 0
+}
+
 userid = token_userid {
     not x_authenticated_for
 } else = token_userid {
     count(x_authenticated_for) == 0 # This is a temporary fix as the mobile app is sending empty headers as x-authenticated-for: ""
 } else = for_token_userid {
-    x_authenticated_for
-    count(x_authenticated_for) > 0
+    for_token_exists
 }
 
 validate_token {
   io.jwt.verify_rs256(x_authenticated_user_token, jwt_public_keys[token_kid])
   token_exp * 1000000000 > current_time
   token_iss == iss
+}
+
+is_an_internal_request {
+  http_request.host == private_ingressgateway_ip
 }
 
 acls_check(acls) = indicies {

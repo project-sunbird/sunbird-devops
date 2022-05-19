@@ -178,7 +178,76 @@ connectionInfo_password: "{{ core_vault_postgres_password }}"
 elastic_search_connection_url: "{{ groups['es']|join(':9200,')}}:9200"
 #############################################################################
 
+opa_liveness_readiness:
+  opa_healthcheck: true
+  opa_readinessProbe:
+    failureThreshold: 2
+    httpGet:
+      path: /health?bundle=true
+      port: 8282
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+  opa_livenessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /health?plugins
+      port: 8282
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
 
+envoy_liveness_readiness:
+  envoy_healthcheck: true
+  envoy_readinessProbe:
+    failureThreshold: 2
+    httpGet:
+      path: /ready
+      port: 10000
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
+  envoy_livenessProbe:
+    failureThreshold: 3
+    httpGet:
+      path: /ready
+      port: 10000
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 2
 
-  
-  
+adminutil__access_keyprefix: "access"
+adminutil__access_keystart: 0
+adminutil__access_keycount: 0
+
+adminutil_access_values:
+- key_to_register: access
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ adminutil__access_keyprefix }}"
+    keystart: "{{ adminutil__access_keystart }}"
+    keycount: "{{ adminutil__access_keystart + adminutil__access_keycount - 1 }}"
+  role_to_run:
+    - decrypt.yml
+    - generate-keys.yml
+    - copy-to-helm-public.yml
+
+opa_policies_path: ../../../opa
+# Cannot remove common.rego from common_opa_policy_files yet
+# Opa issue - https://github.com/open-policy-agent/opa/issues/4335
+common_opa_policy_files:
+  - main.rego
+  - common.rego
+mandate_opa_tests_coverage: true
+# Desktop app is not sending x-authenticated-for header due to which managed user flow is breaking
+# This is a temporary fix till the desktop app issue is fixed
+kong_desktop_device_consumer_names_for_opa: '["desktop"]'
+registry_opa_enabled: true

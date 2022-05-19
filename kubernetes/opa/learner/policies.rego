@@ -2,15 +2,32 @@ package policies
 
 import data.common as super
 import future.keywords.in
+import input.attributes.request.http as http_request
 
 urls_to_action_mapping := {
   "/v1/user/tnc/accept": "acceptTermsAndCondition",
   "/v1/user/update": "updateUser",
   "/v1/user/assign/role": "assignRole",
   "/v2/user/assign/role": "assignRoleV2",
-  "/private/user/v1/lookup": "privateUserLookup",
-  "/private/user/v1/migrate": "privateUserMigrate",
-  "/private/user/v1/read": "privateUserRead"
+  "/v1/user/read": "getUserProfile",
+  "/v2/user/read": "getUserProfileV2",
+  "/v3/user/read": "getUserProfileV3",
+  "/v4/user/read": "getUserProfileV4",
+  "/v5/user/read": "getUserProfileV5",
+  "/v1/user/feed": "userFeed",
+  "/v1/user/feed/create": "userFeedCreate",
+  "/v1/user/feed/delete": "userFeedDelete",
+  "/v1/user/feed/update": "userFeedUpdate",
+  "/v2/user/update": "updateUserV2",
+  "/v3/user/update": "updateUserV3",
+  "/v1/user/declarations": "updateUserDeclarations",
+  "/v1/manageduser/create": "managedUserV1Create",
+  "/v1/user/managed": "searchManagedUser",
+  "/v1/user/consent/read": "readUserConsent",
+  "/v1/user/consent/update": "updateUserConsent",
+  "/v2/org/preferences/read": "readTenantPreferences",
+  "/v2/org/preferences/create": "createTenantPreferences",
+  "/v2/org/preferences/update": "updateTenantPreferences"
 }
 
 acceptTermsAndCondition {
@@ -30,16 +47,20 @@ acceptTermsAndCondition {
 }
 
 acceptTermsAndCondition {
-  not input.parsed_body.request.tncType in ["orgAdminTnc", "reportViewerTnc"]
+  super.public_role_check
+  input.parsed_body.request.userId == super.userid
 }
 
+# Optional request.userId - https://project-sunbird.atlassian.net/browse/SB-29723
 acceptTermsAndCondition {
+  super.public_role_check
   not input.parsed_body.request.tncType
+  not input.parsed_body.request.userId
 }
 
 updateUser {
   super.public_role_check
-  super.userid == input.parsed_body.request.userId
+  input.parsed_body.request.userId == super.userid
 }
 
 assignRole {
@@ -67,17 +88,157 @@ assignRoleV2 {
   payload_orgs == matching_orgs
 }
 
-privateUserLookup {
-  # This should be moved to a system token
+getUserProfile {
+  super.public_role_check
+  user_id := split(http_request.path, "/")[4]
+  split(user_id, "?")[0] == super.userid
+}
+
+getUserProfileV2 {
+  super.public_role_check
+  user_id := split(http_request.path, "/")[4]
+  split(user_id, "?")[0] == super.userid
+}
+
+getUserProfileV3 {
+  super.public_role_check
+  user_id := split(http_request.path, "/")[4]
+  split(user_id, "?")[0] == super.userid
+}
+
+getUserProfileV4 {
+  super.public_role_check
+  user_id := split(http_request.path, "/")[4]
+  split(user_id, "?")[0] == super.userid
+}
+
+getUserProfileV5 {
+  super.public_role_check
+  user_id := split(http_request.path, "/")[4]
+  split(user_id, "?")[0] == super.userid
+}
+
+# Org admin is allowed to retrive any user info using the /v5/user/read endpoint
+getUserProfileV5 {
+  acls := ["getUserProfileV5"]
+  roles := ["ORG_ADMIN"]
+  super.acls_check(acls)
+  super.role_check(roles)
+}
+
+# Allow the API call when using ?withTokens=true as query param - https://project-sunbird.atlassian.net/browse/SB-29676
+getUserProfileV5 {
+  super.public_role_check
+  contains(http_request.path, "?withTokens=true")
+}
+
+userFeed {
+  super.public_role_check
+  user_id := split(http_request.path, "/")[4]
+  split(user_id, "?")[0] == super.userid
+}
+
+# Temporary fix as all feed url's begin with /v1/user/feed
+# Having only the userFeed (/v1/user/feed/:userid) block is causing issues for other similar routes like /v1/user/feed/create, /v1/user/feed/delete and /v1/user/feed/update
+# Adding the other url blocks below and making them a pass through to avoid rejecting the API incorrectly
+
+userFeedCreate {
   true
 }
 
-privateUserMigrate {
-  # This should be moved to a system token
+userFeedDelete {
   true
 }
 
-privateUserRead {
-  # This should be moved to a system token
+userFeedUpdate {
   true
+}
+
+updateUserV2 {
+  super.public_role_check
+  input.parsed_body.request.userId == super.userid
+}
+
+# Org admin is allowed to update any user info using the /v2/user/update endpoint
+updateUserV2 {
+  acls := ["updateUserV2"]
+  roles := ["ORG_ADMIN"]
+  super.acls_check(acls)
+  super.role_check(roles)
+}
+
+updateUserV3 {
+  super.public_role_check
+  input.parsed_body.request.userId == super.userid
+}
+
+updateUserDeclarations {
+  super.public_role_check
+  payload_userids := {ids | ids := input.parsed_body.request.declarations[_].userId}
+  count(payload_userids) == 1
+  payload_userids[super.userid] == super.userid
+}
+
+# If for token exists, check request.managedBy matches for_token_parentid
+managedUserV1Create {
+  super.public_role_check
+  input.parsed_body.request.managedBy == super.for_token_parentid
+}
+
+# If for token doesn't exist, check request.managedBy matches userid
+managedUserV1Create {
+  super.public_role_check
+  input.parsed_body.request.managedBy == super.userid
+}
+
+# If for token exists, check userid in url matches for token parent id
+searchManagedUser {
+  super.public_role_check
+  super.for_token_exists
+  user_id := split(http_request.path, "/")[4]
+  split(user_id, "?")[0] == super.for_token_parentid
+}
+
+# If for token doesn't exist, check userid in url matches the x-authenticated-user-token userid
+searchManagedUser {
+  super.public_role_check
+  not super.for_token_exists
+  user_id := split(http_request.path, "/")[4]
+  split(user_id, "?")[0] == super.userid
+}
+
+readUserConsent {
+  super.public_role_check
+  input.parsed_body.request.consent.filters.userId == super.userid
+}
+
+# Org admin is allowed to read any user's consent using the /v1/user/consent/read endpoint
+readUserConsent {
+  acls := ["readUserConsent"]
+  roles := ["ORG_ADMIN"]
+  super.acls_check(acls)
+  super.role_check(roles)
+}
+
+updateUserConsent {
+  super.public_role_check
+  input.parsed_body.request.consent.userId == super.userid
+}
+
+readTenantPreferences {
+  super.public_role_check
+}
+
+createTenantPreferences {
+  acls := ["createTenantPreferences"]
+  roles := ["ORG_ADMIN"]
+  super.acls_check(acls)
+  super.role_check(roles)
+}
+
+updateTenantPreferences {
+  acls := ["updateTenantPreferences"]
+  roles := ["ORG_ADMIN"]
+  super.acls_check(acls)
+  super.role_check(roles)
 }

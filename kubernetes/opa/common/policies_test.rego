@@ -6,6 +6,7 @@ package common_test
 
 current_time := 1640235102
 iss := "https://sunbirded.org/auth/realms/sunbird"
+private_ingressgateway_ip := "1.2.3.4"
 
 test_public_role_check {
     data.main.allow.allowed
@@ -161,6 +162,43 @@ test_user_and_org_check {
           "content": {
             "channel": "01369878797503692810",
             "createdBy": "28b0d08f-c2ea-40d1-bcd0-8ae00fca66be"
+          }
+        }
+      }
+    }
+}
+
+test_is_an_internal_request {
+    data.main.allow.allowed
+    with data.common.current_time as current_time
+    with data.common.iss as iss
+    with data.common.private_ingressgateway_ip as private_ingressgateway_ip
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "headers": {},
+            "path": "/internal/api/call",
+            "host": "1.2.3.4"
+          }
+        }
+      }
+    }
+}
+
+test_is_an_internal_request_with_wrong_private_ingress_ip {
+    not data.main.allow.allowed
+    with data.common.current_time as current_time
+    with data.common.iss as iss
+    with input as
+    {
+      "attributes": {
+        "request": {
+          "http": {
+            "headers": {},
+            "path": "/internal/api/call",
+            "host": "5.6.7.8"
           }
         }
       }
