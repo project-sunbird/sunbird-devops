@@ -6265,6 +6265,24 @@ kong_apis:
       - name: request-size-limiting
         config.allowed_payload_size: "{{ medium_request_size_limit }}"
 
+  - name: questionCopy
+    request_path: "{{ question_prefix }}/v1/copy"
+    upstream_url: "{{ assessment_service_url }}/question/v4/copy"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentCreate'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
   - name: questionSetCreate
     request_path: "{{ questionset_prefix }}/v1/create"
     upstream_url: "{{ assessment_service_url }}/questionset/v4/create"
@@ -6470,6 +6488,24 @@ kong_apis:
       - name: acl
         config.whitelist:
           - 'contentAdmin'
+      - name: rate-limiting
+        config.policy: local
+        config.hour: "{{ medium_rate_limit_per_hour }}"
+        config.limit_by: credential
+      - name: request-size-limiting
+        config.allowed_payload_size: "{{ medium_request_size_limit }}"
+
+  - name: questionsetCopy
+    request_path: "{{ questionset_prefix }}/v1/copy"
+    upstream_url: "{{ assessment_service_url }}/questionset/v4/copy"
+    strip_request_path: true
+    plugins:
+      - name: jwt
+      - name: cors
+      - "{{ statsd_pulgin }}"
+      - name: acl
+        config.whitelist:
+          - 'contentCreate'
       - name: rate-limiting
         config.policy: local
         config.hour: "{{ medium_rate_limit_per_hour }}"
