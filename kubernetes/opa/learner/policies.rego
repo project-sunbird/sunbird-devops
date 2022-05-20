@@ -138,6 +138,7 @@ userFeed {
   split(user_id, "?")[0] == super.userid
 }
 
+# https://project-sunbird.atlassian.net/browse/SB-29951
 # Temporary fix as all feed url's begin with /v1/user/feed
 # Having only the userFeed (/v1/user/feed/:userid) block is causing issues for other similar routes like /v1/user/feed/create, /v1/user/feed/delete and /v1/user/feed/update
 # Adding the other url blocks below and making them a pass through to avoid rejecting the API incorrectly
