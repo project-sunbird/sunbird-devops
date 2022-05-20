@@ -94,6 +94,7 @@ user_extension_prefix: /user-extension
 uci_admin_prefix: /uci
 notification_service_prefix: /notification
 registry_service_prefix: /rc
+assessment_prefix: /assessment
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -5895,6 +5896,27 @@ kong_apis:
 - name: collectionPrivateRead
   uris: "{{ collection_prefix }}/v1/private/read"
   upstream_url: "{{ content_service_url }}/collection/v4/private/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: assessmentItemRead
+  uris: "{{ assessment_prefix }}/v1/items/read"
+  upstream_url: "{{ learning_service_url }}/assessment/v3/items/read"
   strip_uri: true
   plugins:
   - name: jwt
