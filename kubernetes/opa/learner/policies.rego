@@ -30,32 +30,85 @@ urls_to_action_mapping := {
   "/v2/org/preferences/update": "updateTenantPreferences"
 }
 
+# Tnc API policy updates to handle different scenarios as explained below
+# When some or all payloads are missing:
+# 1. Missing userid and tnc type
+# 2. Missing tnc type
+# 3. Missing userid and tnc type not as orgAdminTnc / reportViewerTnc
+# 4. Missing userid but tnc type as orgAdminTnc / reportViewerTnc
+# When all payloads are present:
+# 5. Both userid, tnc type present and tnc type not as orgAdminTnc / reportViewerTnc
+# 6. Both userid, tnc type present and tnc type as orgAdminTnc / reportViewerTnc
+# Issue identified as part of -
+# - https://project-sunbird.atlassian.net/browse/SB-29723 
+# - https://project-sunbird.atlassian.net/browse/SB-29996
+
+# Point #1
+acceptTermsAndCondition {
+  super.public_role_check
+  not input.parsed_body.request.userId
+  not input.parsed_body.request.tncType
+}
+
+# Point #2
+acceptTermsAndCondition {
+  super.public_role_check
+  input.parsed_body.request.userId == super.userid
+  not input.parsed_body.request.tncType
+}
+
+# Point #3
+acceptTermsAndCondition {
+  super.public_role_check
+  not input.parsed_body.request.userId
+  not input.parsed_body.request.tncType in ["orgAdminTnc", "reportViewerTnc"]
+}
+
+# Point #4 - As orgAdminTnc
 acceptTermsAndCondition {
   acls := ["acceptTnc"]
   roles := ["ORG_ADMIN"]
   super.acls_check(acls)
   super.role_check(roles)
+  not input.parsed_body.request.userId
   "orgAdminTnc" == input.parsed_body.request.tncType
 }
 
+# Point #4 - As reportViewerTnc
 acceptTermsAndCondition {
   acls := ["acceptTnc"]
   roles := ["REPORT_VIEWER", "REPORT_ADMIN"]
   super.acls_check(acls)
   super.role_check(roles)
+  not input.parsed_body.request.userId
   "reportViewerTnc" == input.parsed_body.request.tncType
 }
 
+# Point #5
 acceptTermsAndCondition {
   super.public_role_check
   input.parsed_body.request.userId == super.userid
+  not input.parsed_body.request.tncType in ["orgAdminTnc", "reportViewerTnc"]
 }
 
-# Optional request.userId - https://project-sunbird.atlassian.net/browse/SB-29723
+# Point #6 - As orgAdminTnc
 acceptTermsAndCondition {
-  super.public_role_check
-  not input.parsed_body.request.tncType
-  not input.parsed_body.request.userId
+  acls := ["acceptTnc"]
+  roles := ["ORG_ADMIN"]
+  super.acls_check(acls)
+  super.role_check(roles)
+  input.parsed_body.request.userId == super.userid
+  "orgAdminTnc" == input.parsed_body.request.tncType
+}
+
+# Point #6 - As reportViewerTnc
+acceptTermsAndCondition {
+  acls := ["acceptTnc"]
+  roles := ["REPORT_VIEWER", "REPORT_ADMIN"]
+  super.acls_check(acls)
+  super.role_check(roles)
+  input.parsed_body.request.userId == super.userid
+  "reportViewerTnc" == input.parsed_body.request.tncType
 }
 
 updateUser {
