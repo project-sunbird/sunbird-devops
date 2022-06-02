@@ -95,6 +95,7 @@ uci_admin_prefix: /uci
 notification_service_prefix: /notification
 registry_service_prefix: /rc
 assessment_prefix: /assessment
+movie_prefix: /movie
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
@@ -9023,6 +9024,57 @@ kong_apis:
   - name: opa-checks
     config.required: true
     config.enabled: true
+
+- name: createMovie
+  uris: "{{ movie_prefix }}/v1/create"
+  upstream_url: "{{ content_service_url }}/movie/v4/create"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateContentV2
+  uris: "{{ movie_prefix }}/v1/update"
+  upstream_url: "{{ content_service_url }}/movie/v4/update"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: readContentV2
+  uris: "{{ movie_prefix }}/v1/read"
+  upstream_url: "{{ content_service_url }}/movie/v4/read"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
 
 - name: createContentV2
   uris: "{{ content_prefix }}/v2/create"
