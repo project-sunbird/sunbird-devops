@@ -1,0 +1,41 @@
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{knowlgbbportal_replicacount|default(1)}}
+repository: {{knowlgbbportal_repository|default('knowlgbbportal')}}
+image_tag: {{image_tag}}
+resources:
+  requests:
+    cpu: {{knowlgbbportal_cpu_req|default('100m')}}
+    memory: {{knowlgbbportal_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{knowlgbbportal_cpu_limit|default('1000m')}}
+    memory: {{knowlgbbportal_memory_limit|default('1024Mi')}}
+network:
+  port: 8000
+  targetport: 8000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ knowlgbbportal_maxsurge|default('50%') }}
+  maxunavailable: {{ knowlgbbportal_maxunavailable|default('50%') }} 
+
+autoscaling:
+  enabled: {{ knowlgbbportal_autoscaling_enabled | default('false') }}
+  minReplicas: {{ knowlgbbportal_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ knowlgbbportal_autoscaling_maxReplicas|default(3) }}
+  targetCPUUtilizationPercentage: {{ knowlgbbportal_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ knowlgbbportal_autoscaling_targetMemoryUtilizationPercentage|default('') }}
+
+knowlgbbportalenv:
+  RASA_CORE_ENDPOINT: http://bot-service:5005/webhooks/rest/webhook
+  REDIS_HOST: "{{ dedup_redis_host }}"
+  telemetry_endpoint: v1/telemetry
+  sunbird_api_auth_token: "{{ sunbird_api_auth_token_bot }}"
+  telemetry_service_url: "https://{{ domain_name }}/api/data/"
+  WHATSAPP_TELEMETRY_CHANNEL: '"{{sunbird_whatsapp_telemetry_channel | default("")}}"'
+  WHATSAPP_SECRET_KEY: "{{sunbird_whatsapp_secret_key | default("''")}}"
+  WHATSAPP_AUTH_TOKEN: "{{sunbird_whatsapp_auth_token | default("''")}}"
+  WHATSAPP_URL: "{{sunbird_whatsapp_url | default("''")}}"
+  WHATSAPP_SOURCE: "{{sunbird_whatsapp_source | default("''")}}"
+  CONFIG_BLOB_PATH: "{{sunbird_public_storage_account_name}}"
