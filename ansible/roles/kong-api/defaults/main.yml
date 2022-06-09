@@ -2434,3 +2434,20 @@ kong_apis:
   - name: opa-checks
     config.required: false
     config.enabled: false
+
+- name: readForm
+  uris: "{{ data_service_prefix }}/v1/form/read"
+  upstream_url: "{{ player_service_url }}/plugin/v1/form/read"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
