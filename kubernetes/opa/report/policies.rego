@@ -22,6 +22,10 @@ getReport {
   super.role_check(roles)
 }
 
+getReport {
+  super.is_an_internal_request
+}
+
 listReports {
   acls := ["listReports"]
   roles := ["REPORT_ADMIN", "REPORT_VIEWER", "ORG_ADMIN"]
@@ -37,6 +41,10 @@ createReport {
   input.parsed_body.request.report.createdby == super.userid
 }
 
+createReport {
+  super.is_an_internal_request
+}
+
 deleteReport {
   acls := ["deleteReport"]
   roles := ["REPORT_ADMIN", "ORG_ADMIN"]
@@ -49,6 +57,10 @@ updateReport {
   roles := ["REPORT_ADMIN", "ORG_ADMIN"]
   super.acls_check(acls)
   super.role_check(roles)
+}
+
+updateReport {
+  super.is_an_internal_request
 }
 
 publishReport {
