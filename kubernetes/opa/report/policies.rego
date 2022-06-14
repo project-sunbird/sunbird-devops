@@ -1,6 +1,9 @@
 package policies
 
 import data.common as super
+import input.attributes.request.http as http_request
+
+x_authenticated_user_token := http_request.headers["x-authenticated-user-token"]
 
 urls_to_action_mapping := {
   "/report/get": "getReport",
@@ -12,14 +15,16 @@ urls_to_action_mapping := {
   "/report/retire": "retireReport",
   "/report/summary": "getReportSummary",
   "/report/summary/list": "listReportSummary",
-  "/report/summary/create": "createReportSummary"
+  "/report/summary/create": "createReportSummary",
+  "/report/datasets/get": "getReportDatasets"
 }
 
 getReport {
-  acls := ["getReport"]
-  roles := ["REPORT_ADMIN", "REPORT_VIEWER", "ORG_ADMIN"]
-  super.acls_check(acls)
-  super.role_check(roles)
+  super.public_role_check
+}
+
+getReport {
+  not x_authenticated_user_token
 }
 
 getReport {
@@ -27,10 +32,11 @@ getReport {
 }
 
 listReports {
-  acls := ["listReports"]
-  roles := ["REPORT_ADMIN", "REPORT_VIEWER", "ORG_ADMIN"]
-  super.acls_check(acls)
-  super.role_check(roles)
+  super.public_role_check
+}
+
+listReports {
+  not x_authenticated_user_token
 }
 
 createReport {
@@ -97,4 +103,12 @@ createReportSummary {
   super.acls_check(acls)
   super.role_check(roles)
   input.parsed_body.request.summary.createdby == super.userid
+}
+
+getReportDatasets {
+  super.public_role_check
+}
+
+getReportDatasets {
+  not x_authenticated_user_token
 }
