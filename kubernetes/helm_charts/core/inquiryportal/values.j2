@@ -1,0 +1,35 @@
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{inquiryportal_replicacount|default(1)}}
+repository: {{inquiryportal_repository|default('inquiryportal')}}
+image_tag: {{image_tag}}
+resources:
+  requests:
+    cpu: {{inquiryportal_cpu_req|default('100m')}}
+    memory: {{inquiryportal_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{inquiryportal_cpu_limit|default('1000m')}}
+    memory: {{inquiryportal_memory_limit|default('1024Mi')}}
+network:
+  port: 8000
+  targetport: 8000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ inquiryportal_maxsurge|default('50%') }}
+  maxunavailable: {{ inquiryportal_maxunavailable|default('50%') }} 
+
+autoscaling:
+  enabled: {{ inquiryportal_autoscaling_enabled | default('false') }}
+  minReplicas: {{ inquiryportal_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ inquiryportal_autoscaling_maxReplicas|default(3) }}
+  targetCPUUtilizationPercentage: {{ inquiryportal_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ inquiryportal_autoscaling_targetMemoryUtilizationPercentage|default('') }}
+
+inquiryportalenv:
+  inquiry_portal_base_url: {{domain_name}}
+  inquiry_portal_api_auth_token: {{inquiry_portal_api_auth_token}}
+  inquiry_portal_user_api_token: {{inquiry_portal_user_api_token}}
+  inquiry_portal_channel_id: {{inquiry_portal_channel_id}}
+  inquiry_portal_user_id: {{inquiry_portal_user_id}}
