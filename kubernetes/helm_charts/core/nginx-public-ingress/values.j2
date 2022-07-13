@@ -115,6 +115,20 @@ proxyconfig: |-
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
     resolver {{ kube_dns_ip }} valid=30s;
 
+    location / {
+      rewrite ^/(.*) /$1 break;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_set_header    X-Forwarded-Proto $scheme;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass http://player;
+    }
 
     location /api/ {
       if ($request_method = OPTIONS ) {
@@ -297,6 +311,14 @@ nginxconfig: |
              server kong:8000;
              keepalive 1000;
          }
+         upstream keycloak {
+          server {{ keycloak_url.split('//')[-1] }};
+          keepalive 1000;
+        }
+         upstream player {
+          server player:3000;
+          keepalive 1000;
+        }
          include /etc/nginx/defaults.d/*.conf;
          include /etc/nginx/conf.d/*.conf;
          #################
