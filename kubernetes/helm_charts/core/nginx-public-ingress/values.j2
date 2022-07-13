@@ -115,7 +115,7 @@ proxyconfig: |-
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
     resolver {{ kube_dns_ip }} valid=30s;
 
-    location / {
+   location / {
       rewrite ^/(.*) /$1 break;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -130,7 +130,7 @@ proxyconfig: |-
       proxy_pass http://player;
     }
 
-    location /api/ {
+   location /api/ {
       if ($request_method = OPTIONS ) {
           add_header Access-Control-Allow-Origin "*" ;
           add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
@@ -176,7 +176,7 @@ proxyconfig: |-
       #rewrite ^/discussions/(.*) /$1 break;
       proxy_pass $target;
     }
- # Admin API Endpoints for sunbird realm fpr forgot password flow
+  # Admin API Endpoints for sunbird realm fpr forgot password flow
    location ~ /auth/admin/realms/sunbird/users/ {
      rewrite ^/auth/(.*) /auth/$1 break;
      proxy_set_header X-Request-ID $sb_request_id;
@@ -189,7 +189,7 @@ proxyconfig: |-
      proxy_http_version 1.1;
      proxy_pass http://keycloak;
    }
- # Sunbird realm keycloak API endpoints
+  # Sunbird realm keycloak API endpoints
    location ~ /auth/realms/sunbird/(get-required-action-link|login-actions/(action-token|authenticate|required-action)|protocol/openid-connect/(auth|certs|logout|token|userinfo)|.well-known/openid-configuration) {
      rewrite ^/auth/(.*) /auth/$1 break;
      proxy_set_header X-Request-ID $sb_request_id;
@@ -202,7 +202,7 @@ proxyconfig: |-
      proxy_http_version 1.1;
      proxy_pass http://keycloak;
    }
- # Refresh token endpoint being routed to kong
+  # Refresh token endpoint being routed to kong
    location ~* ^/auth/v1/refresh/token  {
      rewrite ^/auth/(.*) /auth/$1 break;
      proxy_set_header Connection "";
