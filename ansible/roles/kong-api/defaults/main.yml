@@ -4423,5 +4423,22 @@ kong_apis:
   - name: opa-checks
     config.required: false
     config.enabled: false
-
+    
+    
+- name: readChannel
+  uris: "{{ channel_service_prefix }}/v1/read"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/channel/read"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ x_large_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false 
 
