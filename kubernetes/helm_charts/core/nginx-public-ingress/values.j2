@@ -131,6 +131,36 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://portal;
     }
+    location /api/ {
+      if ($request_method = OPTIONS ) {
+          add_header Access-Control-Allow-Origin "*" ;
+          add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+          add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id, Content-Encoding";
+          add_header Content-Length 0;
+          add_header Content-Type text/plain;
+          return 200;
+      }
+      if ( $arg_eHVyhwSdt ) {
+        set $custom_header "Bearer $arg_eHVyhwSdt";
+      }
+      if ( $http_authorization ) {
+        set $custom_header "$http_authorization";
+      }
+      include /etc/nginx/defaults.d/compression.conf;
+      proxy_set_header Authorization $custom_header;
+      rewrite ^/api/(.*) /$1 break;
+      proxy_set_header Connection "";
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_set_header    X-Forwarded-For   {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass http://kong;
+    } 
    }
 
 nginxconfig: |
@@ -218,6 +248,10 @@ nginxconfig: |
       # Nginx connection limit per ip
       limit_conn_zone $binary_remote_addr zone=limitbyaddr:10m;
       limit_conn_status 429;
+      upstream kong {
+          server kong:8000;
+          keepalive 1000;
+      }
       upstream portal {
           server inquiryportal-service:3000;
           keepalive 1000;
