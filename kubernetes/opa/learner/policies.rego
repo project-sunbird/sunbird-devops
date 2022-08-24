@@ -141,6 +141,15 @@ assignRoleV2 {
   payload_orgs == matching_orgs
 }
 
+# https://project-sunbird.atlassian.net/browse/SB-30186
+# Allow the request to go through if the organisationId is an array type in order to receive a 400 Bad Request error from backend
+assignRoleV2 {
+  acls := ["assignRole"]
+  roles := ["ORG_ADMIN"]
+  super.acls_check(acls)
+  type_name(input.parsed_body.request.roles[_].scope[_].organisationId) == "array"
+}
+
 getUserProfile {
   super.public_role_check
   user_id := split(http_request.path, "/")[4]
