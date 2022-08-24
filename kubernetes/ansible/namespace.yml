@@ -1,0 +1,39 @@
+---
+# tasks file for creating namespace and imagepull secrets
+
+- hosts: local
+  gather_facts: false
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  serial: 1
+  vars:
+    helm_vars:
+      reloader:
+        watchGlobally: false
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  pre_tasks:
+    - name: Creating tmp file
+      tempfile:
+        state: file
+        suffix: helm
+      register: helm_file
+    - name: Creating helm_charts vars file
+      copy:
+        content: "{{ helm_vars|to_yaml }}"
+        dest: "{{ helm_file.path }}"
+    - name: Creating namespace
+      shell: "kubectl create namespace {{ item }} "
+      with_items:
+        - "{{ bootstrap_namespace.split(',') }}"
+      ignore_errors: yes
+    - name: Creating docker secrets
+      shell: "kubectl create secret docker-registry {{ imagepullsecrets }} --namespace {{ item }} --docker-server {{ vault_docker_registry_url }} --docker-username {{ vault_docker_registry_user }} --docker-password {{ vault_docker_registry_password }} --dry-run=client -o=yaml | kubectl apply -f -"
+      when: imagepullsecrets|length > 0
+      with_items:
+        - "{{ bootstrap_namespace.split(',') }}"
+
+    - name: Installing reloader for configmaps reload
+      shell: helm upgrade --install --atomic reloader "{{ playbook_dir }}"/../helm_charts/core/reloader --namespace "{{ item }}" -f "{{ helm_file.path }}"
+      with_items:
+        - "{{ bootstrap_namespace.split(',') }}"
