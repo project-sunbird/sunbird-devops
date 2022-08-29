@@ -2,6 +2,8 @@
 
 - set_fact: base_path_date="{{ lookup('pipe','date +%Y-%m') }}"
 
+- set_fact: snapshot_number="snapshot_{{ lookup('pipe','date +%s') }}"
+
 - name: Create azure snapshot
   uri:
     url: "http://{{ es_snapshot_host }}:9200/_snapshot/{{ snapshot_base_path }}"
@@ -9,11 +11,6 @@
     body: "{{ snapshot_create_request_body | to_json }}"
     headers:
       Content-Type: "application/json"
-
-- debug:
-    msg: "snapshot_base_path: {{ snapshot_base_path }}"
-
-- set_fact: snapshot_number="snapshot_{{ansible_date_time.epoch}}"
 
 - name: Take new snapshot
   uri:
