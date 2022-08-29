@@ -4,6 +4,16 @@
 
 - set_fact: snapshot_number="snapshot_{{ lookup('pipe','date +%s') }}"
 
+- name: Ensure blob container exisits
+  azure_rm_storageblob:
+    resource_group: "{{ azure_management_resource_group }}"
+    storage_account_name: "{{ azure_management_storage_account_name }}"
+    container: "{{ backup_container }}"
+    state: present
+  environment:
+    AZURE_STORAGE_KEY: "{{ azure_management_storage_account_key }}"
+  delegate_to: localhost
+
 - name: Create azure snapshot
   uri:
     url: "http://{{ es_snapshot_host }}:9200/_snapshot/{{ snapshot_base_path }}"
@@ -16,8 +26,6 @@
   uri:
     url: "http://{{ es_snapshot_host }}:9200/_snapshot/{{ snapshot_base_path }}/{{ snapshot_number }}"
     method: PUT
-    body:  >
-      {"indices":"*","include_global_state":false}
     headers:
       Content-Type: "application/json"
 
