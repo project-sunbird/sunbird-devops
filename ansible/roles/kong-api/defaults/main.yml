@@ -2469,6 +2469,23 @@ kong_apis:
     config.required: false
     config.enabled: false
 
+- name: updateForm
+  uris: "{{ data_service_prefix }}/v1/form/update"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/data/form/update"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: updateCollaborators
   uris: "{{ content_prefix }}/v1/collaborator/update"
   upstream_url: "{{ knowledge_mw_service_url }}/v1/content/collaborator/update"
