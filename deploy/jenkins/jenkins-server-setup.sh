@@ -70,7 +70,7 @@ rm -rf node-v6.17.1-linux-x64*
 
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
 pip uninstall -y ansible
-pip3 install ansible==2.8.19
+pip3 install ansible==2.10.7
 
 echo -e "\n\e[0;32m${bold}Installating azure cli${normal}"
 apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
@@ -95,6 +95,9 @@ rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
 echo -e "\n\e[0;32m${bold}Installating pip docker${normal}"
 pip install docker
 pip3 install docker
+
+echo -e "\n\e[0;32m${bold}Installating ansible azure modules${normal}"
+pip3 install -r requirements-azure.txt
 
 echo -e "\n\e[0;32m${bold}Installating colordiff${normal}"
 apt-get install -y colordiff
