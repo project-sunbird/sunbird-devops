@@ -5,17 +5,10 @@
 - set_fact: snapshot_number="snapshot_{{ lookup('pipe','date +%s') }}"
 
 - name: Ensure backup folder exists in azure blob
-  azure_rm_storageblob:
-    resource_group: "{{ azure_management_storage_resource_group_name }}"
-    storage_account_name: "{{ azure_management_storage_account_name }}"
-    container: "{{ es_azure_backup_folder_name }}"
-    state: present
+  shell: "az storage container create --name {{ es_azure_backup_folder_name }}"
   environment:
-        AZURE_TENANT: "{{ azure_management_tenant_id }}"
-        AZURE_SUBSCRIPTION_ID: "{{ azure_management_subscription_id }}"
-        AZURE_CLIENT_ID: "{{ azure_management_client_id }}"
-        AZURE_SECRET: "{{ azure_management_client_secret }}"
-  delegate_to: localhost
+    AZURE_STORAGE_ACCOUNT: "{{ azure_management_storage_account_name }}"
+    AZURE_STORAGE_KEY: "{{ azure_management_storage_account_key }}"
 
 - name: Create Azure Repository
   uri:
