@@ -25,7 +25,12 @@
     - es_snapshot_host: "{{log_es_snapshot_host}}"
     - snapshot_base_path: "{{log_snapshot_base_path}}"
   roles:
-    - es-azure-snapshot
+    - role: es-azure-snapshot
+      when: cloud_service_provider == "azure"
+    - role: es-s3-snapshot
+      when: cloud_service_provider == "aws"
+    - role: es-gcs-snapshot
+      when: cloud_service_provider == "gcloud"
     - es5-snapshot-purge
   tags:
     - log_es_backup
