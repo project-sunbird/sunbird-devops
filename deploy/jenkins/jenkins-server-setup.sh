@@ -96,9 +96,6 @@ echo -e "\n\e[0;32m${bold}Installating pip docker${normal}"
 pip install docker
 pip3 install docker
 
-echo -e "\n\e[0;32m${bold}Installating ansible azure modules${normal}"
-pip3 install -r requirements-azure.txt
-
 echo -e "\n\e[0;32m${bold}Installating colordiff${normal}"
 apt-get install -y colordiff
 
