@@ -1,8 +1,28 @@
 ---
 - hosts: localhost
-  vars:
-    ansible_connection: local
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-  roles:
-    - assets-upload-azure
+  tasks:
+    - name: set common azure variables
+      set_fact:
+        blob_container_name: "{{ player_cdn_container }}"
+        container_public_access: "container"
+        blob_container_folder_path: ""
+        storage_account_name: "{{ azure_public_storage_account_name }}"
+        storage_account_key: "{{ azure_public_storage_account_key }}"
+        storage_account_sas_token: "{{ azure_public_storage_account_sas }}"
+      when: cloud_service_provider == "azure"
+ 
+    - name: delete files and folders from azure storage using azcopy
+      include_role:
+        name: azure-cloud-storage
+        tasks_from: delete-using-azcopy.yml
+      when: cloud_service_provider == "azure"
+
+    - name: upload batch of files to azure storage
+      include_role:
+        name: azure-cloud-storage
+        tasks_from: blob-upload-batch.yml
+      vars:
+        local_file_or_folder_path: "{{ assets }}"
+      when: cloud_service_provider == "azure"

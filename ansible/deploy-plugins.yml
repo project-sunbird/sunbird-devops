@@ -3,9 +3,6 @@
   gather_facts: no
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  environment:
-        AZURE_STORAGE_ACCOUNT: "{{ sunbird_public_storage_account_name }}"
-        AZURE_STORAGE_SAS_TOKEN: "{{ sunbird_public_storage_account_sas  }}"
   tasks:
     - name: rename env_domain in preview_cdn.html for CDN
       shell: |
@@ -15,40 +12,62 @@
       tags:
         - preview
 
-    - name: delete batch
-      shell: |
-        azcopy rm "https://{{ sunbird_public_storage_account_name }}.blob.core.windows.net/{{ plugin_container_name }}/{{ folder_name }}{{sunbird_public_storage_account_sas}}" --recursive=true
-      async: 3600
-      poll: 10
-      tags:
-        - content-editor
-        - collection-editor
-        - generic-editor
-        - preview
-
-    - name: upload batch
-      command: "az storage blob upload-batch --destination {{ plugin_container_name }}/{{ folder_name }} --source {{ source_name }}"
-      async: 3600
-      poll: 10
-      tags:
-        - content-editor 
-        - collection-editor
-        - generic-editor
-        - preview
-        - editor
-        - core-plugins
-  
-
-    - name: upload file
-      command: "az storage blob upload --container-name {{ plugin_container_name }} --file {{ source_file_name }} --name artefacts/content-player/content-player-{{ player_version_number }}.zip"
-      async: 3600
-      poll: 10  
-      tags:
-        - preview
-
-    - name:  run az_copy.sh
-      shell: "bash {{ az_file_path }} {{ plugin_container_name }} {{ source_file }}"
-      async: 3600
-      poll: 10
-      tags:
-        - plugins
+    - name: this block consists of tasks related to azure storage
+      block:
+        - name: set common azure variables
+          set_fact:
+            blob_container_name: "{{ plugin_container_name }}"
+            container_public_access: "container"
+            blob_container_folder_path: "/{{ folder_name }}"
+            storage_account_name: "{{ azure_public_storage_account_name }}"
+            storage_account_key: "{{ azure_public_storage_account_key }}"
+            storage_account_sas_token: "{{ azure_public_storage_account_sas }}"
+      
+        - block:
+          - name: delete files and folders from azure storage using azcopy
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: delete-using-azcopy.yml        
+          tags:
+            - content-editor
+            - collection-editor
+            - generic-editor
+            - preview
+      
+        - block:
+          - name: upload batch of files to azure storage
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: blob-upload-batch.yml
+            vars:
+              local_file_or_folder_path: "{{ source_name }}"
+          tags:
+            - content-editor 
+            - collection-editor
+            - generic-editor
+            - preview
+            - editor
+            - core-plugins 
+      
+        - block:
+          - name: upload file to azure storage
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: blob-upload-batch.yml
+            vars:
+              blob_file_name: "artefacts/content-player/content-player-{{ player_version_number }}.zip"
+              local_file_or_folder_path: "{{ source_file_name }}"
+          tags:
+            - preview
+      
+        - block:
+          - name:  run the az_copy.sh script
+            shell: "bash {{ az_file_path }} {{ plugin_container_name }} {{ source_file }}"
+            async: 3600
+            poll: 10
+            environment:
+              AZURE_STORAGE_ACCOUNT: "{{ azure_public_storage_account_name }}"
+              AZURE_STORAGE_SAS_TOKEN: "{{ azure_public_storage_account_sas }}"
+          tags:
+            - plugins
+      when: cloud_service_provider == "azure"

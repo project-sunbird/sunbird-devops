@@ -4,11 +4,15 @@
 
 - set_fact: snapshot_number="snapshot_{{ lookup('pipe','date +%s') }}"
 
-- name: Ensure backup folder exists in azure blob
-  shell: "az storage container create --name {{ es_azure_backup_folder_name }}"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ azure_management_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ azure_management_storage_account_key }}"
+- name: create container in azure storage if it doesn't exist
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: container-create.yml
+  vars:
+    blob_container_name: "{{ es_azure_backup_container_name }}"
+    container_public_access: "off"
+    storage_account_name: "{{ azure_management_storage_account_name }}"
+    storage_account_key: "{{ azure_management_storage_account_key }}"
 
 - name: Create Azure Repository
   uri:

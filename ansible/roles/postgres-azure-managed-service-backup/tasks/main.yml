@@ -11,7 +11,6 @@
 - set_fact:
     postgresql_backup_gzip_file_path: "{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}.zip"
 
-
 - name: Dump an existing database to a file
   postgresql_db:
     login_user: "{{ sunbird_pg_user }}"
@@ -42,20 +41,18 @@
   async: 500
   poll: 10
 
-- name: Ensure azure blob storage container exists
-  command: az storage container create  --name {{ postgresql_backup_azure_container_name }}
-  ignore_errors: true
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_management_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ sunbird_management_storage_account_key }}"
-
-- name: Upload to azure blob storage
-  command: az storage blob upload --name {{ postgresql_backup_gzip_file_name }}.zip --file {{ postgresql_backup_gzip_file_path }} --container-name {{ postgresql_backup_azure_container_name }}
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_management_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ sunbird_management_storage_account_key }}"
-  async: 3600
-  poll: 10
+- name: upload file to azure storage
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: blob-upload.yml
+  vars:
+    blob_container_name: "{{ postgresql_backup_azure_container_name }}"
+    container_public_access: "off"
+    blob_file_name: "{{ postgresql_backup_gzip_file_name }}.zip"
+    local_file_or_folder_path: "{{ postgresql_backup_gzip_file_path }}"
+    storage_account_name: "{{ azure_management_storage_account_name }}"
+    storage_account_key: "{{ azure_management_storage_account_key }}"
+  when: cloud_service_provider == "azure"
 
 - name: clean up backup dir after upload
   file: path="{{ postgresql_backup_dir }}" state=absent

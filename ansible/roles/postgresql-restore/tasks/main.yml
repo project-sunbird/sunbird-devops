@@ -4,13 +4,17 @@
 - set_fact:
     postgresql_restore_gzip_file_path: "{{ postgresql_restore_dir }}/{{ postgresql_restore_gzip_file_name }}"
 
-- name: Download restore file from azure
-  command: az storage blob download --container-name {{ postgresql_restore_azure_container_name }} --name {{ postgresql_restore_gzip_file_name }} --file {{ postgresql_restore_gzip_file_path }}
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ postgresql_restore_azure_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ postgresql_restore_azure_storage_access_key }}"
-  async: 3600
-  poll: 10
+- name: download a file from azure storage
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: blob-download.yml
+  vars:
+    blob_container_name: "{{ postgresql_restore_azure_container_name }}"
+    blob_file_name: "{{ postgresql_restore_gzip_file_name }}"
+    local_file_or_folder_path: "{{ postgresql_restore_gzip_file_path  }}"
+    storage_account_name: "{{ azure_management_storage_account_name }}"
+    storage_account_key: "{{ azure_management_storage_account_key }}"
+  when: cloud_service_provider == "azure"
 
 - name: ensure postgresql service is stopped
   service: name=postgresql state=stopped

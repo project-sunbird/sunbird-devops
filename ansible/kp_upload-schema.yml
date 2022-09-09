@@ -1,13 +1,17 @@
 - hosts: local
-  become: yes
   gather_facts: no
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  environment:
-        AZURE_STORAGE_ACCOUNT: "{{ sunbird_public_storage_account_name }}"
-        AZURE_STORAGE_SAS_TOKEN: "{{ sunbird_public_storage_account_sas }}"
   tasks:
-    - name: upload batch
-      command: "az storage blob upload-batch --destination {{ plugin_container_name }}/schemas/local --source {{ source_name }}"
-      async: 3600
-      poll: 10
+    - name: upload batch of files to azure storage
+      include_role:
+        name: azure-cloud-storage
+        tasks_from: blob-upload-batch.yml
+      vars:
+        blob_container_name: "{{ plugin_container_name }}"
+        container_public_access: "container"
+        blob_container_folder_path: "/schemas/local"
+        local_file_or_folder_path: "{{ source_name }}"
+        storage_account_name: "{{ azure_public_storage_account_name }}"
+        storage_account_key: "{{ azure_public_storage_account_key }}"
+      when: cloud_service_provider == "azure"
