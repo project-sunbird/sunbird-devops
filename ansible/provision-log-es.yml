@@ -1,13 +1,10 @@
 - hosts: log-es
   become: yes
   vars:
-    es_version: "6.8.10"
+    es_version: "6.8.22"
     es_etc_discovery_zen_ping_unicast_hosts: "{{ groups['log-es'] }}"
     es_etc_cluster_name: "{{ node_name }}"
     es_heap_size: "{{ log_es_heap_size | default('1g') }}"
-    es_plugins_reinstall: true
-    es_plugins:
-      - plugin: "repository-azure"
     es_config:
       cluster.name: "{{ log_es_etc_cluster_name }}"
       discovery.zen.ping.unicast.hosts: "{{ groups['log-es'] }}"
@@ -49,5 +46,7 @@
         method: PUT
         return_content: true
         timeout: 30
-        retries: 3
-        delay: 10
+      register: _result
+      until: _result.status == 200
+      retries: 3
+      delay: 10
