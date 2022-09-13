@@ -70,7 +70,7 @@ rm -rf node-v6.17.1-linux-x64*
 
 echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
 pip uninstall -y ansible
-pip3 install ansible==2.8.19
+pip3 install ansible==2.10.7
 
 echo -e "\n\e[0;32m${bold}Installating azure cli${normal}"
 apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
