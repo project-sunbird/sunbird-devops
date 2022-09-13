@@ -2708,8 +2708,13 @@ if(client_id.toLowerCase() === 'android'){
     }
     addVersionToURL(version);
     toggleGoogleSignInBtn();
+    var parser = new DOMParser();
     var error_message = (new URLSearchParams(window.location.search)).get('error_message');
+    console.log('before error_message parse => ', error_message); // TODO: log!
+    error_message = parser.parseFromString(error_message, 'text/html');
+    console.log('after error_message parse => ', error_message); // TODO: log!`
     var success_message = (new URLSearchParams(window.location.search)).get('success_message');
+    success_message = parser.parseFromString(success_message, 'text/html');
 
     if(error_message){
         var error_msg = document.getElementById('error-msg');
