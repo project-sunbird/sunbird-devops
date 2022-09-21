@@ -52,8 +52,8 @@ default_snapshot_name = "cassandra_backup" + strftime("%Y-%m-%d-%H%M%S")
 tmpdir = getcwd()+sep+default_snapshot_name
 
 parser = ArgumentParser(description="Create a snapshot and create tar ball inside tardirectory")
-parser.add_argument("-d", "--datadirectory", metavar="datadir",  default='/var/lib/cassandra/data',
-                    help="Path to cassadandra keyspaces. Default /var/lib/cassadra/data")
+parser.add_argument("-d", "--datadirectory", metavar="datadir",  default='/data/cassandra/data',
+                    help="Path to cassadandra keyspaces. Default /data/cassandra/data")
 parser.add_argument("-s", "--snapshotdirectory", metavar="snapdir",  default=tmpdir,
                     help="Path to take cassandra snapshot. Default {}".format(tmpdir))
 parser.add_argument("-n", "--snapshotname", metavar="snapshotname",
