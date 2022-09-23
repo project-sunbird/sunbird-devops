@@ -32,8 +32,21 @@ spec:
             name: {{ .Chart.Name }}-config
         resources:
 {{ toYaml .Values.resources | indent 10 }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+        volumeMounts:
+        - mountPath: {{ .Values.knowlgbb_usertoken_basepath }}
+          name: user-token
+{{- end }}
         ports:
         - containerPort: {{ .Values.network.port }}
+{{- $keys := .Files.Glob "keys/*" }}
+{{- if $keys }}
+      volumes:
+      - name: user-token
+        secret:
+          secretName: {{ .Chart.Name }}-access-token
+{{- end }}     
         
 
 ---

@@ -117,6 +117,10 @@ adminutil__portal_anonymous_keycount: 0
 adminutil__portal_loggedin_keystart: 0
 adminutil__portal_loggedin_keycount: 0
 
+knowlgbb__portal__access_keyprefix: "usertoken"
+knowlgbb__portal__access_keystart: 0
+knowlgbb__portal__access_keycount: 0
+
 adminutil_refresh_token_public_key_prefix: "refresh_token_public_key"
 adminutil_access_token_validity: 43200  # 12 hours access token validity
 adminutil_refresh_token_offline_validity: 15552000 # 180 days offline token validity
@@ -170,6 +174,16 @@ adminutil_keys_values:
     - decrypt.yml
     - copy-to-helm.yml
 
+knowlgbb_portal_usertoken:
+- key_to_register: usertoken
+  values_to_pass:
+    basepath: "/keys/"
+    keyprefix: "{{ knowlgbb__portal__access_keyprefix }}"
+    keystart: "{{ knowlgbb__portal__access_keystart }}"
+    keycount: "{{ knowlgbb__portal__access_keystart + knowlgbb__portal__access_keycount - 1 }}"
+  role_to_run:
+    - decrypt.yml
+    - copy-to-helm.yml
 
 #######################  SUnbird RC Variables ########################
 postgres_connectionInfo_uri: "jdbc:postgresql://{{ application_postgres_host }}:5432/registry"
@@ -238,7 +252,7 @@ adminutil_access_values:
   role_to_run:
     - decrypt.yml
     - generate-keys.yml
-    - copy-to-helm-public.yml
+    - copy-to-helm.yml
 
 opa_policies_path: ../../../opa
 # Cannot remove common.rego from common_opa_policy_files yet
