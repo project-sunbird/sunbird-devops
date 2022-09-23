@@ -38,6 +38,22 @@
   loop_control:
     loop_var: outer_item
 
+- name: Load role to decrypt user token , copy to private keys helm chart
+  include_role:
+    name: mount-keys
+    tasks_from: "{{outer_item.1}}"
+  vars:
+    private_key_path: "{{ outer_item.0.values_to_pass.basepath }}"
+    private_key_prefix: "{{ outer_item.0.values_to_pass.keyprefix }}"
+    private_key_sign_start: "{{ outer_item.0.values_to_pass.keystart }}"
+    private_key_sign_end: "{{ outer_item.0.values_to_pass.keycount if outer_item.0.values_to_pass.keycount > '0' else '1'  }}"
+  when: release_name == "adminutils" or release_name == "gotenberg" or release_name == "knowlgbbportal"
+  with_subelements:
+    - "{{knowlgbb_portal_usertoken}}"
+    - role_to_run
+  loop_control:
+    loop_var: outer_item
+
 - name: Create the token pubic key file
   copy:
     dest: "{{ chart_path }}/keys/{{ adminutil_refresh_token_public_key_prefix }}"
