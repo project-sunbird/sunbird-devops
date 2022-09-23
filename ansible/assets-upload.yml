@@ -2,10 +2,17 @@
 - hosts: localhost
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  # The vars: section is added for the below reason
+  # 1. Introduce a common variable for various clouds. In case of azure, it refers to container name, in case of aws / gcp, it refers to folder name
+  # 2. We want to avoid too many new variable introduction / replacement in first phase. Hence we will reuse the existing variable defined in private repo
+  #    or other default files and just assign the value to the newly introduced common variable 
+  # 3. After few releases, we will remove the older variables and use only the new variables across the repos
+  vars:
+    player_cdn_storage: "{{ player_cdn_container }}"
   tasks:
     - name: set common azure variables
       set_fact:
-        blob_container_name: "{{ player_cdn_container }}"
+        blob_container_name: "{{ player_cdn_storage }}"
         container_public_access: "container"
         blob_container_folder_path: ""
         storage_account_name: "{{ azure_public_storage_account_name }}"

@@ -3,11 +3,18 @@
   gather_facts: no
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
+  # The vars: section is added for the below reason
+  # 1. Introduce a common variable for various clouds. In case of azure, it refers to container name, in case of aws / gcp, it refers to folder name
+  # 2. We want to avoid too many new variable introduction / replacement in first phase. Hence we will reuse the existing variable defined in private repo
+  #    or other default files and just assign the value to the newly introduced common variable 
+  # 3. After few releases, we will remove the older variables and use only the new variables across the repos
+  vars:
+    plugin_storage: "{{ plugin_container_name }}"
   tasks:
     - name: rename env_domain in preview_cdn.html for CDN
       shell: |
-        echo "{{sunbird_portal_preview_cdn_url}}"
-        sed -i 's|cdn_url|{{sunbird_portal_preview_cdn_url}}|g' "{{currentws}}"/ansible/preview/preview_cdn.html
+        echo "{{ sunbird_portal_preview_cdn_url }}"
+        sed -i 's|cdn_url|{{ sunbird_portal_preview_cdn_url }}|g' "{{ currentws }}"/ansible/preview/preview_cdn.html
       when: sunbird_portal_preview_cdn_url is defined
       tags:
         - preview
@@ -16,7 +23,7 @@
       block:
         - name: set common azure variables
           set_fact:
-            blob_container_name: "{{ plugin_container_name }}"
+            blob_container_name: "{{ plugin_storage }}"
             container_public_access: "container"
             blob_container_folder_path: "/{{ folder_name }}"
             storage_account_name: "{{ azure_public_storage_account_name }}"
@@ -62,7 +69,7 @@
       
         - block:
           - name:  run the az_copy.sh script
-            shell: "bash {{ az_file_path }} {{ plugin_container_name }} {{ source_file }}"
+            shell: "bash {{ az_file_path }} {{ plugin_storage }} {{ source_file }}"
             async: 3600
             poll: 10
             environment:
