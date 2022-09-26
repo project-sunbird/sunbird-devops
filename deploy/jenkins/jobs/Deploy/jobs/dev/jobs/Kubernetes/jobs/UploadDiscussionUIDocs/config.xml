@@ -1,12 +1,5 @@
 <?xml version="1.1" encoding="UTF-8" standalone="no"?><flow-definition plugin="workflow-job@2.40">
-  <actions>
-    <org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction plugin="workflow-multibranch@2.23">
-      <jobPropertyDescriptors>
-        <string>hudson.model.ParametersDefinitionProperty</string>
-        <string>com.sonyericsson.rebuild.RebuildSettings</string>
-      </jobPropertyDescriptors>
-    </org.jenkinsci.plugins.workflow.multibranch.JobPropertyTrackerAction>
-  </actions>
+  <actions/>
   <description/>
   <keepDependencies>false</keepDependencies>
   <properties>
@@ -25,6 +18,94 @@
     </com.sonyericsson.rebuild.RebuildSettings>
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>absolute_job_path</name>
+          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Do not change this value! The metadata.json will be copied from this job.&lt;/b&gt;&lt;/font&gt;</description>
+          <defaultValue>ArtifactUpload/dev/Core/DiscussionsUI</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.5.6">
+          <name>artifact_source</name>
+          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;
+ArtifactRepo - Download the artifact from azure blob, JenkinsJob - Use the atrifact from Jenkins job.&lt;/b&gt;&lt;/font&gt;</description>
+          <randomName>choice-parameter-9600649228560</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.76">
+              <script>return[
+'JenkinsJob',
+'ArtifactRepo'
+]</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.76">
+              <script/>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>UploadDiscussionUIDocs</projectName>
+          <projectFullName>Deploy/dev/Kubernetes/UploadDiscussionUIDocs</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters/>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.5.6">
+          <name>build_number</name>
+          <description/>
+          <randomName>choice-parameter-9600651313765</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.76">
+              <script>if (artifact_source.equals("JenkinsJob")) {
+return """&lt;input name="value" value="lastSuccessfulBuild" class="setting-input"  type="text"&gt;&lt;br&gt; &lt;font color=darkgreen size=2&gt;&lt;b&gt;OPTIONAL: Specify the build number of ArtifactUpload job from which the artifact will be copied and deployed.&lt;/b&gt;&lt;/font&gt;"""
+}
+else
+{ 
+return "&lt;b&gt;Not Applicable&lt;/b&gt;"
+}</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.76">
+              <script/>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>UploadDiscussionUIDocs</projectName>
+          <projectFullName>Deploy/dev/Kubernetes/UploadDiscussionUIDocs</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>artifact_source</referencedParameters>
+          <choiceType>ET_FORMATTED_HTML</choiceType>
+          <omitValueField>true</omitValueField>
+        </org.biouno.unochoice.DynamicReferenceParameter>
+        <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.5.6">
+          <name>artifact_version</name>
+          <description/>
+          <randomName>choice-parameter-9600653373369</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.76">
+              <script>if (artifact_source.equals("ArtifactRepo")) {
+return """&lt;input name="value" value="" class="setting-input"  type="text"&gt; &lt;br&gt; &lt;font color=red size=2&gt;&lt;b&gt;CAUTION: If the value is blank, artifact version will be taken from the latest metadata.json.&lt;/b&gt;&lt;/font&gt;"""
+} 
+else {
+return "&lt;b&gt;Not Applicable&lt;/b&gt;"
+}</script>
+              <sandbox>true</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.76">
+              <script/>
+              <sandbox>true</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>UploadDiscussionUIDocs</projectName>
+          <projectFullName>Deploy/dev/Kubernetes/UploadDiscussionUIDocs</projectFullName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>artifact_source</referencedParameters>
+          <choiceType>ET_FORMATTED_HTML</choiceType>
+          <omitValueField>true</omitValueField>
+        </org.biouno.unochoice.DynamicReferenceParameter>
         <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.5.6">
           <name>private_branch</name>
           <description/>
@@ -44,8 +125,8 @@ return """&lt;b&gt;This parameter is not used&lt;/b&gt;"""</script>
               <sandbox>true</sandbox>
             </secureFallbackScript>
           </script>
-          <projectName>Upload_CollectionHierarchy_CSV</projectName>
-          <projectFullName>Deploy/DockStaging/Kubernetes/Upload_CollectionHierarchy_CSV</projectFullName>
+          <projectName>UploadDiscussionUIDocs</projectName>
+          <projectFullName>Deploy/dev/Kubernetes/UploadDiscussionUIDocs</projectFullName>
           <parameters class="linked-hash-map"/>
           <referencedParameters/>
           <choiceType>ET_FORMATTED_HTML</choiceType>
@@ -71,43 +152,19 @@ return """&lt;b&gt;This parameter is not used&lt;/b&gt;"""</script>
               <sandbox>true</sandbox>
             </secureFallbackScript>
           </script>
-          <projectName>Upload_CollectionHierarchy_CSV</projectName>
-          <projectFullName>Deploy/DockStaging/Kubernetes/Upload_CollectionHierarchy_CSV</projectFullName>
+          <projectName>UploadDiscussionUIDocs</projectName>
+          <projectFullName>Deploy/dev/Kubernetes/UploadDiscussionUIDocs</projectFullName>
           <parameters class="linked-hash-map"/>
           <referencedParameters/>
           <choiceType>ET_FORMATTED_HTML</choiceType>
           <omitValueField>true</omitValueField>
         </org.biouno.unochoice.DynamicReferenceParameter>
         <hudson.model.ChoiceParameterDefinition>
-          <name>tag</name>
-          <description/>
-          <choices class="java.util.Arrays$ArrayList">
-            <a class="string-array">
-              <string>upload-batch</string>
-            </a>
-          </choices>
-        </hudson.model.ChoiceParameterDefinition>
-        <hudson.model.ChoiceParameterDefinition>
-          <name>csv_repo_name</name>
-          <description/>
-          <choices class="java.util.Arrays$ArrayList">
-            <a class="string-array">
-              <string>Sunbird-Ed/creation-portal.git</string>
-            </a>
-          </choices>
-        </hudson.model.ChoiceParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>csv_repo_branch</name>
-          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Enter the branch from where csv file is uploaded &lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue/>
-          <trim>false</trim>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.ChoiceParameterDefinition>
           <name>upload_storage</name>
           <description/>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
-              <string>content-service</string>
+              <string>discussion-ui</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -116,7 +173,7 @@ return """&lt;b&gt;This parameter is not used&lt;/b&gt;"""</script>
           <description/>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
-              <string>creation-portal/bulk-upload-csv-template</string>
+              <string>documentation</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -125,7 +182,16 @@ return """&lt;b&gt;This parameter is not used&lt;/b&gt;"""</script>
           <description/>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
-              <string>content-service</string>
+              <string>discussion-ui/documentation</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>tag</name>
+          <description/>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>upload-batch</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -170,7 +236,7 @@ return """&lt;b&gt;This parameter is not used&lt;/b&gt;"""</script>
         </hudson.plugins.git.extensions.impl.CloneOption>
       </extensions>
     </scm>
-    <scriptPath>pipelines/upload/portal-csv/Jenkinsfile</scriptPath>
+    <scriptPath>pipelines/upload/discussion-UI/Jenkinsfile</scriptPath>
     <lightweight>false</lightweight>
   </definition>
   <triggers/>
