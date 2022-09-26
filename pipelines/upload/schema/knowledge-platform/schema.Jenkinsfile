@@ -26,10 +26,10 @@ node() {
                 stage('deploy artifact'){
                     sh """
                 rm -rf schema_repo
-                git clone ${params.schema_repo} -b ${params.schema_repo_branch_or_tag} -c schema_repo
+                git clone ${params.schema_repo} -b ${params.schema_repo_branch_or_tag} schema_repo
                     """
                     ansiblePlaybook = "${currentWs}/ansible/kp_upload-schema.yml"
-                    ansibleExtraArgs = "--extra-vars \" source_name=${currentWs}/schema_repo/schemas/${params.schema_folder_name} \" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
+                    ansibleExtraArgs = "--extra-vars \" source_name=${params.source_folder} source_path=${currentWs}/schema_repo/schemas \" --vault-password-file /var/lib/jenkins/secrets/vault-pass"  
                     values.put('currentWs', currentWs)
                     values.put('env', envDir)
                     values.put('module', module)
