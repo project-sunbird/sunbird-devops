@@ -39,7 +39,7 @@ node() {
                     println values
                     ansible_playbook_run(values)
                     currentBuild.result = 'SUCCESS'
-                    currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}, schmea_repo_branch_or_tag: ${params.schema_repo_branch_or_tag}"
+                    currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}, schema_repo_branch_or_tag: ${params.schema_repo_branch_or_tag}"
                 }
             }
         summary()
