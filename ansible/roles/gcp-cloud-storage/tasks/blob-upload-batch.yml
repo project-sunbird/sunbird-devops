@@ -1,0 +1,10 @@
+---
+- name: create container in azure storage if it doesn't exist
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: container-create.yml
+
+- name: Upload files from a local directory to a blob container
+  shell: "az storage blob upload-batch --destination {{ blob_container_name  }}{{ blob_container_folder_path }} --source {{ local_source_folder }} --account-name {{ storage_account_name }} --account-key {{ storage_account_key }}"
+  async: 3600
+  poll: 10
