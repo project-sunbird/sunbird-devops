@@ -14,11 +14,11 @@
     mode: 0755
 
 - set_fact:
-    cassandra_backup_gzip_file_name: "cassandra-backup-{{ lookup('pipe', 'date +%Y%m%d') }}-{{ ansible_hostname }}-new"
+    cassandra_backup_folder_name: "cassandra-backup-{{ lookup('pipe', 'date +%Y%m%d') }}-{{ ansible_hostname }}-new"
 
 - name: run the backup script
   become: true
-  shell: python3 cassandra_backup.py --snapshotname "{{ cassandra_backup_gzip_file_name }}" --snapshotdirectory "{{ cassandra_backup_gzip_file_name }}" "{{additional_arguments|d('')}}"
+  shell: python3 cassandra_backup.py --snapshotname "{{ cassandra_backup_folder_name }}" --snapshotdirectory "{{ cassandra_backup_folder_name }}" "{{additional_arguments|d('')}}"
   args:
     chdir: /data/cassandra/backup
   async: 14400
@@ -39,7 +39,8 @@
   vars:
     blob_container_name: "{{ cassandra_backup_storage }}"
     container_public_access: "off"
-    local_file_or_folder_path: "/data/cassandra/backup/{{ cassandra_backup_gzip_file_name }}"
+    blob_container_folder_path: ""
+    local_file_or_folder_path: "/data/cassandra/backup/{{ cassandra_backup_folder_name }}"
     storage_account_name: "{{ azure_management_storage_account_name }}"
     storage_account_sas_token: "{{ azure_management_storage_account_sas }}"
   when: cloud_service_provider == "azure"
