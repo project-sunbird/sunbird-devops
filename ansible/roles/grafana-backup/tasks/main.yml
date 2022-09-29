@@ -19,14 +19,18 @@
   async: 3600
   poll: 10
 
-- name: Ensure azure blob storage container exists
-  command: az storage container create  --name {{ grafana_backup_azure_container_name }}
-  ignore_errors: true
-
-- name: Upload to azure blob storage
-  command: az storage blob upload --name {{ grafana_backup_gzip_file_name }} --file {{ grafana_backup_gzip_file_path }} --container-name {{ grafana_backup_azure_container_name }}
-  async: 5000
-  poll: 10
+- name: upload file to azure storage
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: blob-upload.yml
+  vars:
+    blob_container_name: "{{ grafana_backup_storage }}"
+    container_public_access: "off"
+    blob_file_name: "{{ grafana_backup_gzip_file_name }}"
+    local_file_or_folder_path: "{{ grafana_backup_gzip_file_path }}"
+    storage_account_name: "{{ azure_management_storage_account_name }}"
+    storage_account_key: "{{ azure_management_storage_account_key }}"
+  when: cloud_service_provider == "azure"
 
 - name: clean up backup dir after upload
   file: path="{{ grafana_backup_dir }}" state=absent

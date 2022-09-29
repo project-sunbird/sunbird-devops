@@ -1,8 +1,35 @@
 ---
 - hosts: localhost
-  vars:
-    ansible_connection: local
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-  roles:
-    - assets-upload-azure
+  # The vars: section is added for the below reason
+  # 1. Introduce a common variable for various clouds. In case of azure, it refers to container name, in case of aws / gcp, it refers to folder name
+  # 2. We want to avoid too many new variable introduction / replacement in first phase. Hence we will reuse the existing variable defined in private repo
+  #    or other default files and just assign the value to the newly introduced common variable 
+  # 3. After few releases, we will remove the older variables and use only the new variables across the repos
+  vars:
+    player_cdn_storage: "{{ player_cdn_container }}"
+  tasks:
+    - name: set common azure variables
+      set_fact:
+        blob_container_name: "{{ player_cdn_storage }}"
+        container_public_access: "container"
+        blob_container_folder_path: ""
+        storage_account_name: "{{ azure_public_storage_account_name }}"
+        storage_account_key: "{{ azure_public_storage_account_key }}"
+        storage_account_sas_token: "{{ azure_public_storage_account_sas }}"
+      when: cloud_service_provider == "azure"
+ 
+    - name: delete files and folders from azure storage using azcopy
+      include_role:
+        name: azure-cloud-storage
+        tasks_from: delete-using-azcopy.yml
+      when: cloud_service_provider == "azure"
+
+    - name: upload batch of files to azure storage
+      include_role:
+        name: azure-cloud-storage
+        tasks_from: blob-upload-batch.yml
+      vars:
+        local_file_or_folder_path: "{{ assets }}"
+      when: cloud_service_provider == "azure"
