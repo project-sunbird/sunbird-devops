@@ -16,6 +16,16 @@
     storage_account_key: "{{ azure_management_storage_account_key }}"
   when: cloud_service_provider == "azure"
 
+- name: download file from gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: download.yml
+  vars:
+    dest_folder_name: "{{ postgresql_storage_name }}"
+    dest_file_name: "{{ postgresql_backup_gzip_file_name }}"
+    local_file_path: "{{ postgresql_backup_gzip_file_path }}"
+  when: cloud_service_provider == "gcloud"
+
 - name: ensure postgresql service is stopped
   service: name=postgresql state=stopped
 
