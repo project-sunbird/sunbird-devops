@@ -46,13 +46,14 @@
   when: cloud_service_provider == "azure"
 
 - name: upload backup to S3
-  environment:
-    AWS_DEFAULT_REGION: "{{ aws_region }}"
-    AWS_ACCESS_KEY_ID: "{{ aws_management_bucket_access_key }}"
-    AWS_SECRET_ACCESS_KEY: "{{ aws_management_bucket_secret_access_key }}"
   include_role:
     name: aws-cloud-storage
     tasks_from: upload-folder.yml
+  apply:
+    environment:
+      AWS_DEFAULT_REGION: "{{ aws_region }}"
+      AWS_ACCESS_KEY_ID: "{{ aws_management_bucket_access_key }}"
+      AWS_SECRET_ACCESS_KEY: "{{ aws_management_bucket_secret_access_key }}"
   vars:
     local_file_or_folder_path: "/data/cassandra/backup/{{ cassandra_backup_folder_name }}"
     s3_bucket_name: "{{ aws_management_s3_bucket_name }}"
