@@ -33,3 +33,27 @@
       vars:
         local_file_or_folder_path: "{{ assets }}"
       when: cloud_service_provider == "azure"
+
+    - name: set common aws variables
+      set_fact:
+        s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+        s3_path: "{{ player_cdn_storage }}"
+        aws_default_region: "{{ aws_region }}"
+        aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+        aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+      when: cloud_service_provider == "aws"
+
+    - name: delete files and folders from s3
+      include_role:
+        name: aws-cloud-storage
+        tasks_from: delete-folder.yml
+      when: cloud_service_provider == "aws"
+
+    - name: upload batch of files to s3
+      include_role:
+        name: aws-cloud-storage
+        tasks_from: upload-folder.yml
+      vars:
+        local_file_or_folder_path: "{{ assets }}"
+      when: cloud_service_provider == "aws"  
+    

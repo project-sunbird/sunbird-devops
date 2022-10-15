@@ -22,3 +22,16 @@
         storage_account_name: "{{ azure_public_storage_account_name }}"
         storage_account_key: "{{ azure_public_storage_account_key }}"
       when: cloud_service_provider == "azure"
+
+    - name: upload batch of files to aws s3
+      include_role:
+        name: aws-cloud-storage
+        tasks_from: upload-folder.yml
+      vars:
+        s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+        aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+        aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+        aws_default_region: "{{ aws_region }}"
+        local_file_or_folder_path: "{{ source_name }}"
+        s3_path: "{{ plugin_storage }}/schemas/local"
+      when: cloud_service_provider == "aws"

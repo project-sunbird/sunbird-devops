@@ -74,3 +74,31 @@
         blob_container_folder_path: "/latest"
         local_file_or_folder_path: "{{ offline_repo_location }}/desktop_uploader_assets/{{ time }}/"
   when: cloud_service_provider == "azure"
+
+######################## AWS tasks ##################################
+
+- name: this block consists of tasks related to aws s3
+  block:
+    - name: set common aws variables
+      set_fact:
+        s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+        aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+        aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+        aws_default_region: "{{ aws_region }}"
+        
+    - name: upload batch of files to aws s3
+      include_role:
+        name: aws-cloud-storage
+        tasks_from: upload-folder.yml
+      vars:
+        s3_path: "{{ offline_installer_storage }}"
+        local_file_or_folder_path: "{{ offline_repo_location }}/desktop_uploader_assets"
+    
+    - name: upload batch of files to aws s3
+      include_role:
+        name: aws-cloud-storage
+        tasks_from: upload-folder.yml
+      vars:
+        s3_path: "{{ offline_installer_storage }}/latest"
+        local_file_or_folder_path: "{{ offline_repo_location }}/desktop_uploader_assets/{{ time }}/"
+  when: cloud_service_provider == "aws"
