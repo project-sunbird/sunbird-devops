@@ -44,6 +44,20 @@
     storage_account_name: "{{ azure_management_storage_account_name }}"
     storage_account_sas_token: "{{ azure_management_storage_account_sas }}"
   when: cloud_service_provider == "azure"
+
+- name: upload backup to S3
+  environment:
+    AWS_DEFAULT_REGION: "{{ aws_region }}"
+    AWS_ACCESS_KEY_ID: "{{ aws_management_bucket_access_key }}"
+    AWS_SECRET_ACCESS_KEY: "{{ aws_management_bucket_secret_access_key }}"
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: upload-folder.yml
+  vars:
+    local_file_or_folder_path: "/data/cassandra/backup/{{ cassandra_backup_folder_name }}"
+    s3_bucket_name: "{{ aws_management_s3_bucket_name }}"
+    s3_path: "{{ cassandra_backup_storage }}"
+  when: cloud_service_provider == "aws"  
   
 - name: clean up backup dir after upload
   file: path="{{ cassandra_backup_dir }}" state=absent
