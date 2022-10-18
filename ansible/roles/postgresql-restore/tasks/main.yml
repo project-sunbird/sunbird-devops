@@ -21,9 +21,10 @@
     name: gcp-cloud-storage
     tasks_from: download.yml
   vars:
-    dest_folder_name: "{{ postgresql_storage_name }}"
-    dest_file_name: "{{ postgresql_backup_gzip_file_name }}"
-    local_file_path: "{{ postgresql_backup_gzip_file_path }}"
+    gcp_bucket_name: "{{ gcloud_management_bucket_name }}"
+    dest_folder_name: "{{ postgresql_restore_storage }}"
+    dest_file_name: "{{ postgresql_restore_gzip_file_name }}"
+    local_file_or_folder_path: "{{ postgresql_restore_gzip_file_path }}"
   when: cloud_service_provider == "gcloud"
 
 - name: ensure postgresql service is stopped
@@ -31,15 +32,6 @@
 
 - name: wait for postgresql to be stopped
   wait_for: port={{ postgresql_port }} state=stopped
-
-- name: drop cluster
-  command: pg_dropcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }}
-  become_user: "{{ postgresql_user }}"
-  ignore_errors: true
-
-- name: create cluster
-  command: pg_createcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }}
-  become_user: "{{ postgresql_user }}"
 
 - name: ensure postgresql service is started
   service: name=postgresql state=started
