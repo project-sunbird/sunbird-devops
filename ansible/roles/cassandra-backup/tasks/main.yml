@@ -44,6 +44,17 @@
     storage_account_name: "{{ azure_management_storage_account_name }}"
     storage_account_sas_token: "{{ azure_management_storage_account_sas }}"
   when: cloud_service_provider == "azure"
+
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    gcp_bucket_name: "{{ gcloud_management_bucket_name }}"
+    dest_folder_name: "{{ cassandra_backup_storage }}"
+    dest_file_name: "{{ cassandra_backup_gzip_file_name }}"
+    local_file_or_folder_path: "/data/cassandra/backup/{{ cassandra_backup_gzip_file_name }}"
+  when: cloud_service_provider == "gcloud"
   
 - name: clean up backup dir after upload
   file: path="{{ cassandra_backup_dir }}" state=absent
