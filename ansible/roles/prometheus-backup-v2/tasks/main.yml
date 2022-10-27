@@ -29,6 +29,19 @@
     storage_account_key: "{{ azure_management_storage_account_key }}"
   when: cloud_service_provider == "azure"
 
+- name: upload file to aws s3
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    s3_bucket_name: "{{ aws_management_s3_bucket_name }}"
+    aws_access_key_id: "{{ aws_management_bucket_access_key }}"
+    aws_secret_access_key: "{{ aws_management_bucket_secret_access_key }}"
+    aws_default_region: "{{ aws_region }}"
+    local_file_or_folder_path: "/tmp/{{ prometheus_backup_prefix }}_{{ snapshot_name }}.tar.gz"
+    s3_path: "{{ prometheus_backup_storage }}/{{ prometheus_backup_prefix }}_{{ snapshot_name }}.tar.gz"
+  when: cloud_service_provider == "aws" 
+
 - name: Deleting snapshot
   file:
     path: "{{ prometheus_data_dir }}/snapshots/{{ snapshot_name }}"

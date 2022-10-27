@@ -29,6 +29,19 @@
     with_items:
       - "{{ source_folder.split(',') }}"
     when: cloud_service_provider == "azure"
+  - name: upload batch of files to s3
+    include_role:
+      name: aws-cloud-storage
+      tasks_from: upload-folder.yml
+    vars:
+      s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+      s3_path: "{{ player_cdn_storage }}"
+      aws_default_region: "{{ aws_region }}"
+      aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+      aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+      local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
+      s3_path: "{{ upload_storage }}"
+    when: cloud_service_provider == "aws"   
   tags:
     - upload-faqs
     - upload-RC-schema
