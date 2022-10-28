@@ -9769,7 +9769,7 @@ kong_apis:
   - name: opa-checks
     config.required: false
     config.enabled: false
-    
+
 - name: createRCProjectCertificate
   uris: "{{ registry_service_prefix }}/certificate/v1/create"
   upstream_url: "{{ registry_service_url }}/api/v1/ProjectCertificate"
@@ -9781,6 +9781,29 @@ kong_apis:
   - name: acl
     config.whitelist:
     - certificateCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: request-transformer
+    config.remove.headers: Authorization
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: getProjectRCCertificate
+  uris: "{{ registry_service_prefix }}/projetCertificate/v1/download"
+  upstream_url: "{{ registry_service_url }}/api/v1/ProjectCertificate"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - anonymousCertificateAccess
   - name: rate-limiting
     config.policy: local
     config.hour: "{{ medium_rate_limit_per_hour }}"
