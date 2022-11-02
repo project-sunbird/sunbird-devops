@@ -26,6 +26,16 @@
     storage_account_name: "{{ azure_management_storage_account_name }}"
     storage_account_key: "{{ azure_management_storage_account_key }}"
   when: cloud_service_provider == "azure"
+
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    dest_folder_name: "{{ mongo_backup_storage }}"
+    dest_file_name: "{{ mongo_backup_file_name }}.tar.gz"
+    local_file_or_folder_path: "{{ mongo_backup_file_path }}.tar.gz"
+  when: cloud_service_provider == "gcloud"
  
 - name: clean up backup dir after upload
   file: path={{ mongo_backup_dir }} state=absent
