@@ -54,5 +54,16 @@
     storage_account_key: "{{ azure_management_storage_account_key }}"
   when: cloud_service_provider == "azure"
 
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    gcp_bucket_name: "{{ gcloud_management_bucket_name }}"
+    dest_folder_name: "{{ postgresql_backup_storage }}"
+    dest_file_name: "{{ postgresql_backup_gzip_file_name }}.zip"
+    local_file_or_folder_path: "{{ postgresql_backup_gzip_file_path }}"
+  when: cloud_service_provider == "gcloud"
+
 - name: clean up backup dir after upload
   file: path="{{ postgresql_backup_dir }}" state=absent
