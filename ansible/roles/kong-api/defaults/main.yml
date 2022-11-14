@@ -14,6 +14,34 @@ statsd_pulgin:
   name: statsd
   config.host: "{{ statsd_host }}"
   config.port: "{{ statsd_port }}"
+  config.metrics:
+  - name: request_count
+    sample_rate: 1
+    stat_type: counter
+  - name: latency
+    stat_type: timer
+  - name: request_size
+    stat_type: timer
+  - name: status_count
+    sample_rate: 1
+    stat_type: counter
+  - name: response_size
+    stat_type: timer
+  - consumer_identifier: username
+    name: unique_users
+    stat_type: set
+  - consumer_identifier: username
+    name: request_per_user
+    sample_rate: 1
+    stat_type: counter
+  - name: upstream_latency
+    stat_type: timer
+  - name: kong_latency
+    stat_type: timer
+  - consumer_identifier: username
+    name: status_count_per_user
+    sample_rate: 1
+    stat_type: counter
 
 # Default Rate limits
 small_rate_limit_per_hour: 100
@@ -3944,6 +3972,48 @@ kong_apis:
     config.required: false
     config.enabled: false
 
+- name: linkDialcodeContentV1
+  uris: "{{ content_prefix }}/v1/dialcode/link"
+  upstream_url: "{{ content_service_url }}/content/v3/dialcode/link"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: reserveDialcodeContent
+  uris: "{{ content_prefix }}/v1/dialcode/reserve"
+  upstream_url: "{{ content_service_url }}/content/v3/dialcode/reserve"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: updateCourseHierarchy
   uris: "{{ course_service_prefix }}/v1/hierarchy/update"
   upstream_url: "{{ knowledge_mw_service_url }}/v1/course/hierarchy/update"
@@ -6015,6 +6085,27 @@ kong_apis:
     config.limit_by: credential
   - name: request-size-limiting
     config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: linkDialcodeCollection
+  uris: "{{ collection_prefix }}/v1/dialcode/link"
+  upstream_url: "{{ content_service_url }}/collection/v4/dialcode/link"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
     config.required: false
     config.enabled: false
@@ -9293,6 +9384,48 @@ kong_apis:
     config.required: true
     config.enabled: true
 
+- name: linkDialcodeContentV2
+  uris: "{{ content_prefix }}/v2/dialcode/link"
+  upstream_url: "{{ content_service_url }}/content/v4/dialcode/link"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: reserveDialcodeContentV2
+  uris: "{{ content_prefix }}/v2/dialcode/reserve"
+  upstream_url: "{{ content_service_url }}/content/v4/dialcode/reserve"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: collectionReview
   uris: "{{ collection_prefix }}/v1/review"
   upstream_url: "{{ content_service_url }}/collection/v4/review"
@@ -9346,6 +9479,27 @@ kong_apis:
   - name: acl
     config.whitelist:
     - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: reserveDialcodeCollection
+  uris: "{{ collection_prefix }}/v1/dialcode/reserve"
+  upstream_url: "{{ content_service_url }}/collection/v4/dialcode/reserve"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
   - name: rate-limiting
     config.policy: local
     config.hour: "{{ medium_rate_limit_per_hour }}"
