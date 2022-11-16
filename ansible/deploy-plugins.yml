@@ -76,20 +76,15 @@
           - name: delete batch of files from azure storage
             include_role:
               name: azure-cloud-storage
-              tasks_from: blob-delete-batch.yml
+              tasks_from: "{{ item[0] }}"
             vars:
-              blob_delete_pattern: "content-plugins/{{ item }}/*"
-            with_lines: cat {{ plugin_list_to_delete_and_upload }}
-
-          - name: upload batch of files to azure storage
-            include_role:
-              name: azure-cloud-storage
-              tasks_from: blob-upload-batch.yml
-            vars:
-              blob_container_folder_path: "/content-plugins/{{ item }}"
-              local_file_or_folder_path: "{{ source_folder }}/{{ item }}"
+              blob_delete_pattern: "content-plugins/{{ item[1] }}/*"
+              blob_container_folder_path: "/content-plugins/{{ item[1] }}"
+              local_file_or_folder_path: "{{ source_folder }}/{{ item[1] }}"
               create_container: false
-            with_lines: cat {{ plugin_list_to_delete_and_upload }}
+            with_nested:
+              - ['blob-delete-batch-no-poll.yml', 'blob-upload-batch-no-poll.yml']
+              - "{{ lookup('file', plugins_to_delete_and_upload).split('\n') }}"
           tags:
             - plugins
       when: cloud_service_provider == "azure"
