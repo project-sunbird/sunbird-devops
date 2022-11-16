@@ -30,6 +30,7 @@
             storage_account_sas_token: "{{ azure_public_storage_account_sas }}"
           tags:
             - always
+          no_log: True
 
         - block:
           - name: delete files and folders from azure storage using azcopy
@@ -77,17 +78,18 @@
               name: azure-cloud-storage
               tasks_from: blob-delete-batch.yml
             vars:
-              blob_delete_pattern: "content-plugins/{{ item }}"
-            with_lines: "cat {{ plugin_list_to_delete_and_upload }}"
+              blob_delete_pattern: "content-plugins/{{ item }}/*"
+            with_lines: cat {{ plugin_list_to_delete_and_upload }}
 
           - name: upload batch of files to azure storage
             include_role:
               name: azure-cloud-storage
               tasks_from: blob-upload-batch.yml
             vars:
-              blob_container_folder_path: "/content-plugins"
-              local_file_or_folder_path: "{{ source_file }}/{{ item }}"     
-            with_lines: "cat {{ plugin_list_to_delete_and_upload }}"
+              blob_container_folder_path: "/content-plugins/{{ item }}"
+              local_file_or_folder_path: "{{ source_folder }}/{{ item }}"
+              create_container: false
+            with_lines: cat {{ plugin_list_to_delete_and_upload }}
           tags:
             - plugins
       when: cloud_service_provider == "azure"
