@@ -138,3 +138,67 @@
             - preview
       when: cloud_service_provider == "gcloud"
 
+################################### AWS tasks #########################
+    - name: this block consists of tasks related to aws s3
+      block:
+        - name: set common aws variables
+          set_fact:
+            aws_default_region: "{{ aws_region }}"
+            s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+            aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+            aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+          tags:
+            - always
+      
+        - block:
+          - name: delete files and folders from s3
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: delete-folder.yml
+          vars:
+              s3_path: "{{ plugin_storage }}/{{ folder_name }}"
+          tags:
+            - content-editor
+            - collection-editor
+            - generic-editor
+            - preview
+      
+        - block:
+          - name: upload folder to s3
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: upload-folder.yml
+            vars:
+              s3_path: "{{ plugin_storage }}/{{ folder_name }}"
+              local_file_or_folder_path: "{{ source_name }}"
+          tags:
+            - content-editor 
+            - collection-editor
+            - generic-editor
+            - preview
+            - editor
+            - core-plugins 
+      
+        - block:
+          - name: upload file to s3
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              s3_path: "{{ plugin_storage }}/artefacts/content-player/content-player-{{ player_version_number }}.zip"
+              local_file_or_folder_path: "{{ source_file_name }}"
+          tags:
+            - preview
+      
+        - block:
+          - name:  run the s3_copy.sh script
+            shell: "bash {{ s3_file_path }} {{ plugin_storage }} {{ source_file }} {{ aws_public_s3_bucket_name }}"
+            async: 3600
+            poll: 10
+            environment:
+              AWS_DEFAULT_REGION: "{{ aws_default_region }}"
+              AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
+              AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+          tags:
+            - plugins
+      when: cloud_service_provider == "aws"
