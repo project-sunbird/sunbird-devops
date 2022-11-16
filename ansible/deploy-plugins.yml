@@ -72,13 +72,22 @@
             - preview
       
         - block:
-          - name:  run the az_copy.sh script
-            shell: "bash {{ az_file_path }} {{ plugin_storage }} {{ source_file }}"
-            async: 3600
-            poll: 10
-            environment:
-              AZURE_STORAGE_ACCOUNT: "{{ azure_public_storage_account_name }}"
-              AZURE_STORAGE_SAS_TOKEN: "{{ azure_public_storage_account_sas }}"
+          - name: delete batch of files from azure storage
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: blob-delete-batch.yml
+            vars:
+              blob_delete_pattern: "content-plugins/{{ item }}"
+            with_lines: "cat {{ plugin_list_to_delete_and_upload }}"
+
+          - name: upload batch of files to azure storage
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: blob-upload-batch.yml
+            vars:
+              blob_container_folder_path: "/content-plugins"
+              local_file_or_folder_path: "{{ source_file }}/{{ item }}"     
+            with_lines: "cat {{ plugin_list_to_delete_and_upload }}"
           tags:
             - plugins
       when: cloud_service_provider == "azure"
