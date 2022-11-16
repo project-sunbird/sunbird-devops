@@ -37,7 +37,20 @@ azure_artifact_storage_account_name: "{{ sunbird_artifact_storage_account_name }
 aws_management_bucket_name: ""
 
 # Define the below if you are using Google Cloud
-gcs_management_bucket_name: ""
+gcloud_private_bucket_name: ""
+gcloud_public_bucket_name: ""
+gcloud_artifact_bucket_name: ""
+gcloud_management_bucket_name: ""
+
+gcloud_private_bucket_projectId: ""
+
+# Uncomment the variable based on your cloud provider (as a default we have kept Azure variable uncommented)
+# GCP
+# cloud_storage_url: https://storage.cloud.google.com/{{ gcloud_public_bucket_name }}
+# AWS
+# cloud_storage_url: # Geetha to fill this url based on AWS role vars
+# Azure
+cloud_storage_url: "https://{{ sunbird_public_storage_account_name }}.blob.core.windows.net"
 
 # ------------------------------------------------------------------------------------------------------------ #
 # Cloud / Infra Specific values - Check these and update accordingly
@@ -64,7 +77,10 @@ proto: https               # http or https, preferably https
 sunbird_default_channel: sunbird                # default sunbird channel name
 environment_id: "10000003"                                 # A 8 digit number for example like 1000000, should be same as defined in KP common.yml
 
+# SB-31155 - This should be deprecated in future in favour of content_storage defined in all.yml
 sunbird_content_azure_storage_container: contents        # Azure container name for storing public data (like contents), should be same as azure_public_container defined in KP common.yml
+
+
 # This sms sender id should be verified by your provider. This is the sender id which will be used for `From Address`. For example,
 #
 # From: SBSMS
@@ -110,14 +126,12 @@ postgres:
   db_admin_user: postgres
   db_admin_password: "{{core_vault_postgres_password}}"
 
+
 # Azure account related vars
 sunbird_azure_public_storage_account_name: "{{ sunbird_public_storage_account_name }}"
-upstream_url: "{{sunbird_azure_public_storage_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}" # Proxy url to get /assets/public
-plugin_upstream_url: "{{upstream_url}}"
 azure_plugin_storage_account_name: "{{sunbird_azure_public_storage_account_name}}"
 azure_plugin_storage_account_key: "{{sunbird_public_storage_account_key}}"
 plugin_container_name: "{{sunbird_content_azure_storage_container}}"
-kp_schema_base_path: "{{proto}}://{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{plugin_container_name}}/schemas/local"
 
 keycloak_api_management_user_email: "admin@sunbird.org"
 sunbird_installation_email: "admin@sunbird.org"

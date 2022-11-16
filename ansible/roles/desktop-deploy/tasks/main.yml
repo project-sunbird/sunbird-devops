@@ -74,3 +74,27 @@
         blob_container_folder_path: "/latest"
         local_file_or_folder_path: "{{ offline_repo_location }}/desktop_uploader_assets/{{ time }}/"
   when: cloud_service_provider == "azure"
+
+- name: this block consists of tasks related to gcloud storage
+  block:
+    - name: set common gcloud variables
+      set_fact:
+        dest_folder_name: "{{ offline_installer_storage }}"
+        gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+
+    - name: upload batch of files to gcloud storage
+      include_role:
+        name: gcp-cloud-storage
+        tasks_from: upload-batch.yml
+      vars:
+        dest_folder_path: ""
+        local_file_or_folder_path: "{{ offline_repo_location }}/desktop_uploader_assets"
+
+    - name: upload batch of files to gcloud storage
+      include_role:
+        name: gcp-cloud-storage
+        tasks_from: upload-batch.yml
+      vars:
+        dest_folder_path: "latest"
+        local_file_or_folder_path: "{{ offline_repo_location }}/desktop_uploader_assets/{{ time }}/"
+  when: cloud_service_provider == "gcloud"

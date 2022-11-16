@@ -30,7 +30,7 @@
             storage_account_sas_token: "{{ azure_public_storage_account_sas }}"
           tags:
             - always
-      
+
         - block:
           - name: delete files and folders from azure storage using azcopy
             include_role:
@@ -43,7 +43,7 @@
             - collection-editor
             - generic-editor
             - preview
-      
+
         - block:
           - name: upload batch of files to azure storage
             include_role:
@@ -82,3 +82,54 @@
           tags:
             - plugins
       when: cloud_service_provider == "azure"
+    
+    - name: this block consists of tasks related to gcloud storage
+      block:
+        - name: set common gcloud variables
+          set_fact:
+            dest_folder_name: "{{ plugin_storage }}"
+            gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+          tags:
+            - always
+  
+        - block:
+          - name: delete files and folders from gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: delete-batch.yml
+          vars:
+            file_delete_pattern: "{{ dest_folder_name }}/{{ folder_name }}"
+          tags:
+            - content-editor
+            - collection-editor
+            - generic-editor
+            - preview
+ 
+        - block:
+          - name: upload batch of files to gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: upload-batch.yml
+            vars:
+              dest_folder_path: "{{ folder_name }}"
+              local_file_or_folder_path: "{{ source_name }}"
+          tags:
+            - content-editor
+            - collection-editor
+            - generic-editor
+            - preview
+            - editor
+            - core-plugins
+     
+        - block:
+          - name: upload file to gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              dest_file_name: "artefacts/content-player/content-player-{{ player_version_number }}.zip"
+              local_file_or_folder_path: "{{ source_file_name }}"
+          tags:
+            - preview
+      when: cloud_service_provider == "gcloud"
+
