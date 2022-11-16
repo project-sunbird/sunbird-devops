@@ -51,7 +51,46 @@
             - upload-batch
       when: cloud_service_provider == "azure"
 
- ######################## AWS tasks #########################################
+    - name: this block consists of tasks related to gcloud storage
+      block:
+        - name: set common gcloud variables
+          set_fact:
+            dest_folder_name: "{{ upload_storage }}"
+            dest_file_name: "{{ destination_path }}"
+            dest_folder_path: "{{ destination_path }}"
+            local_file_or_folder_path: "{{ playbook_dir }}/../{{ src_file_path }}"
+          tags:
+            - always
+     
+        - block:
+          - name: upload file to gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              gcp_bucket_name: "{{ gcloud_public_bucket_name }}"  
+          - name: upload file to gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              gcp_bucket_name: "{{ gcloud_private_bucket_name }}"
+          tags:
+            - upload-label
+
+        - block:
+          - name: upload batch of files to gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: upload-batch.yml
+            vars:
+              gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+          tags:
+            - upload-chatbot-config
+            - upload-batch
+      when: cloud_service_provider == "gcloud"
+
+######################## AWS tasks #########################################
 
     - name: this block consists of tasks related to aws s3
       block:
@@ -99,4 +138,4 @@
           tags:
             - upload-chatbot-config
             - upload-batch
-      when: cloud_service_provider == "aws"
+      when: cloud_service_provider == "aws"      

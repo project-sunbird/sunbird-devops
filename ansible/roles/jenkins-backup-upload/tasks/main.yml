@@ -37,3 +37,15 @@
     local_file_or_folder_path: "/tmp/{{ LATEST_BACKUP_DIR.stdout }}.zip"
     s3_path: "{{ jenkins_backup_storage }}/{{ LATEST_BACKUP_DIR.stdout }}.zip"
   when: cloud_service_provider == "aws"
+  
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    gcp_bucket_name: "{{ gcloud_management_bucket_name }}"
+    dest_folder_name: "{{ jenkins_backup_storage  }}"
+    dest_file_name: "{{ LATEST_BACKUP_DIR.stdout }}.zip"
+    local_file_or_folder_path: "/tmp/{{ LATEST_BACKUP_DIR.stdout }}.zip"
+  when: cloud_service_provider == "gcloud"
+

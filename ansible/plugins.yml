@@ -33,3 +33,24 @@
           name: azure-cloud-storage
           tasks_from: blob-upload-batch.yml
     when: cloud_service_provider == "azure"
+
+  - name: this block consists of tasks related to gcloud storage
+    block:
+        - name: set common gcloud variables
+          set_fact:
+            dest_folder_name: "{{ plugin_storage }}"
+            gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+            file_delete_pattern: "content-plugins/{{ plugins_name }}"
+            dest_folder_path: "/content-plugins/{{ plugins_name }}"
+            local_file_or_folder_path: "{{ source_file }}"
+
+        - name: delete files and folders from gcloud storage
+          include_role:
+            name: gcp-cloud-storage
+            tasks_from: delete-batch.yml
+
+        - name: upload batch of files to gcloud storage
+          include_role:
+            name: gcp-cloud-storage
+            tasks_from: upload-batch.yml
+    when: cloud_service_provider == "gcloud"

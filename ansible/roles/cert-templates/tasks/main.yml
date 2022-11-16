@@ -55,4 +55,15 @@
     aws_default_region: "{{ aws_region }}"
     local_file_or_folder_path: "{{ cert_location }}/cert-templates/certUtilScripts/out"
     s3_path: "{{ cert_service_storage }}"
-  when: cloud_service_provider == "aws"  
+  when: cloud_service_provider == "aws"
+  
+- name: upload batch of files to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload-batch.yml
+  vars:
+    dest_folder_name: "{{ cert_service_storage }}"
+    dest_folder_path: ""
+    local_file_or_folder_path: "{{ cert_location }}/cert-templates/certUtilScripts/out"
+    gcp_bucket_name: "{{ gcloud_private_bucket_name }}"
+  when: cloud_service_provider == "gcloud"

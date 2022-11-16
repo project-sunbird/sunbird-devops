@@ -50,6 +50,17 @@
     local_file_or_folder_path: "{{ prometheus_backup_gzip_file_path }}"
     s3_path: "{{ prometheus_backup_storage }}/{{ prometheus_backup_gzip_file_name }}"
   when: cloud_service_provider == "aws" 
+  
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    gcp_bucket_name: "{{ gcloud_management_bucket_name }}"
+    dest_folder_name: "{{ prometheus_backup_storage }}"
+    dest_file_name: "{{ prometheus_backup_gzip_file_name }}"
+    local_file_or_folder_path: "{{ prometheus_backup_gzip_file_path }}"
+  when: cloud_service_provider == "gcloud"
 
 - name: clean up backup dir after upload
   file: path="{{ prometheus_backup_dir }}" state=absent

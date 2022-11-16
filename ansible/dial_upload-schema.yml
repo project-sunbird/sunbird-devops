@@ -51,3 +51,15 @@
         local_file_or_folder_path: "dial_schema_template_files"
         s3_path: "{{ dial_plugin_storage }}/schemas/local"
       when: cloud_service_provider == "aws"
+
+    - name: upload batch of files to gcloud storage
+      include_role:
+              name: gcp-cloud-storage
+              tasks_from: upload-batch.yml
+      vars:
+        dest_folder_name: "{{ dial_plugin_storage }}"
+        dest_folder_path: "schemas/local"
+        local_file_or_folder_path: "dial_schema_template_files"
+        gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+      when: cloud_service_provider == "gcloud"
+

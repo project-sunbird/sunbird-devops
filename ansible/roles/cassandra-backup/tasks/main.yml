@@ -56,7 +56,18 @@
     aws_default_region: "{{ aws_region }}"
     aws_access_key_id: "{{ aws_management_bucket_access_key }}"
     aws_secret_access_key: "{{ aws_management_bucket_secret_access_key }}"
-  when: cloud_service_provider == "aws"  
+  when: cloud_service_provider == "aws"
+  
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload-batch.yml
+  vars:
+    gcp_bucket_name: "{{ gcloud_management_bucket_name }}"
+    dest_folder_name: "{{ cassandra_backup_storage }}"
+    dest_folder_path: ""
+    local_file_or_folder_path: "/data/cassandra/backup/{{ cassandra_backup_folder_name }}"
+  when: cloud_service_provider == "gcloud"
   
 - name: clean up backup dir after upload
   file: path="{{ cassandra_backup_dir }}" state=absent

@@ -54,6 +54,7 @@
     storage_account_key: "{{ azure_management_storage_account_key }}"
   when: cloud_service_provider == "azure"
 
+<<<<<<< HEAD:ansible/roles/postgres-azure-managed-service-backup/tasks/main.yml
 - name: upload file to aws s3
   include_role:
     name: aws-cloud-storage
@@ -66,6 +67,18 @@
     local_file_or_folder_path: "{{ postgresql_backup_gzip_file_path }}"
     s3_path: "{{ postgresql_backup_storage }}/{{ postgresql_backup_gzip_file_name }}.zip"
   when: cloud_service_provider == "aws"  
+=======
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    gcp_bucket_name: "{{ gcloud_management_bucket_name }}"
+    dest_folder_name: "{{ postgresql_backup_storage }}"
+    dest_file_name: "{{ postgresql_backup_gzip_file_name }}.zip"
+    local_file_or_folder_path: "{{ postgresql_backup_gzip_file_path }}"
+  when: cloud_service_provider == "gcloud"
+>>>>>>> upstream/release-5.1.0:ansible/roles/postgres-managed-service-backup/tasks/main.yml
 
 - name: clean up backup dir after upload
   file: path="{{ postgresql_backup_dir }}" state=absent
