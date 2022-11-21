@@ -1,49 +1,146 @@
 - hosts: localhost
-  become: yes
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  vars:
-    artifacts_container: "{{desktop_container}}"
-    artifact: "{{destination_path}}"
-    artifact_path: "{{playbook_dir}}/../{{src_file_path}}"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_public_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ sunbird_public_storage_account_key }}"
-  roles:
-    - artifacts-upload-azure
-  tags:
-    - upload-desktop-faq
- 
- 
-- hosts: localhost
-  become: yes
-  vars_files:
-    - "{{inventory_dir}}/secrets.yml"
-  vars:
-    artifacts_container: "{{desktop_container}}"
-    artifact: "{{destination_path}}"
-    artifact_path: "{{playbook_dir}}/../{{src_file_path}}"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_private_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ sunbird_private_storage_account_key }}"
-  roles:
-    - artifacts-upload-azure
-  tags:
-    - upload-label
+  tasks:
+    - name: this block consists of tasks related to azure storage
+      block:
+        - name: set common azure variables
+          set_fact:
+            blob_container_name: "{{ upload_storage }}"
+            blob_file_name: "{{ destination_path }}"
+            blob_container_folder_path: "/{{ destination_path }}"
+            local_file_or_folder_path: "{{ playbook_dir }}/../{{ src_file_path }}"
+          tags:
+            - always
+      
+        - block:
+          - name: upload file to azure storage
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: blob-upload.yml
+            vars:
+              container_public_access: "container"
+              storage_account_name: "{{ azure_public_storage_account_name }}"
+              storage_account_key: "{{ azure_public_storage_account_key }}"
+          tags:
+            - upload-desktop-faq
+      
+        - block:
+          - name: upload file to azure storage
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: blob-upload.yml
+            vars:
+              container_public_access: "off"
+              storage_account_name: "{{ azure_private_storage_account_name }}"
+              storage_account_key: "{{ azure_private_storage_account_key }}"
+          tags:
+            - upload-label
+      
+        - block:
+          - name: upload batch of files to azure storage
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: blob-upload-batch.yml
+            vars:
+              container_public_access: "container"
+              storage_account_name: "{{ azure_public_storage_account_name }}"
+              storage_account_key: "{{ azure_public_storage_account_key }}"
+          tags:
+            - upload-chatbot-config
+            - upload-batch
+      when: cloud_service_provider == "azure"
 
-- hosts: localhost
-  become: yes
-  vars_files:
-    - "{{inventory_dir}}/secrets.yml"
-  vars:
-    source_path: "{{playbook_dir}}/../{{src_file_path}}"
-    destination_path: "{{destination_path}}"
-    container_name: "{{desktop_container}}"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_public_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ sunbird_public_storage_account_key }}"
-  roles:
-    - upload-batch
-  tags:
-    - upload-chatbot-config
-    - upload-batch
+    - name: this block consists of tasks related to gcloud storage
+      block:
+        - name: set common gcloud variables
+          set_fact:
+            dest_folder_name: "{{ upload_storage }}"
+            dest_file_name: "{{ destination_path }}"
+            dest_folder_path: "{{ destination_path }}"
+            local_file_or_folder_path: "{{ playbook_dir }}/../{{ src_file_path }}"
+          tags:
+            - always
+     
+        - block:
+          - name: upload file to gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+          tags:
+            - upload-desktop-faq
+      
+        - block:
+          - name: upload file to gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              gcp_bucket_name: "{{ gcloud_private_bucket_name }}"
+          tags:
+            - upload-label
+
+        - block:
+          - name: upload batch of files to gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: upload-batch.yml
+            vars:
+              gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+          tags:
+            - upload-chatbot-config
+            - upload-batch
+      when: cloud_service_provider == "gcloud"
+
+######################## AWS tasks #########################################
+
+    - name: this block consists of tasks related to aws s3
+      block:
+        - name: set common aws variables
+          set_fact:
+            aws_default_region: "{{ aws_region }}"
+            local_file_or_folder_path: "{{ playbook_dir }}/../{{ src_file_path }}"
+            s3_path: "{{ upload_storage }}/{{ destination_path }}"
+          tags:
+            - always
+      
+        - block:
+          - name: upload file to aws s3 public bucket
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+              aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+              aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+          tags:
+            - upload-desktop-faq
+      
+        - block:
+          - name: upload file to aws s3 private bucket
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              s3_bucket_name: "{{ aws_private_s3_bucket_name }}"
+              aws_access_key_id: "{{ aws_private_bucket_access_key }}"
+              aws_secret_access_key: "{{ aws_private_bucket_secret_access_key }}"
+          tags:
+            - upload-label
+      
+        - block:
+          - name: upload folder to aws s3
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: upload-folder.yml
+            vars:
+              s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+              aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+              aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+          tags:
+            - upload-chatbot-config
+            - upload-batch
+      when: cloud_service_provider == "aws"    
+      

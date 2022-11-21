@@ -1,20 +1,49 @@
 - name: ensure backup dir exists
   file: path="{{ prometheus_backup_dir }}" state=directory
 
-- name: Download backup from azure
-  command: az storage blob download -c {{ prometheus_backup_azure_container_name }} --name {{ prometheus_backup_filename }} -f {{ prometheus_backup_filepath }}
-  args:
-    chdir: "{{ prometheus_backup_dir }}"
-  async: 100
-  poll: 10
+- name: download a file from azure storage
+  become: true
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: blob-download.yml
+  vars:
+    blob_container_name: "{{ prometheus_backup_storage }}"
+    blob_file_name: "{{ prometheus_backup_filename }}"
+    local_file_or_folder_path: "{{ prometheus_backup_dir }}/{{ prometheus_backup_filepath }}"
+    storage_account_name: "{{ azure_management_storage_account_name }}"
+    storage_account_key: "{{ azure_management_storage_account_key }}"
+  when: cloud_service_provider == "azure"
+
+- name: download a file from aws s3
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: download.yml
+  vars:
+    s3_bucket_name: "{{ aws_management_s3_bucket_name }}"
+    aws_access_key_id: "{{ aws_management_bucket_access_key }}"
+    aws_secret_access_key: "{{ aws_management_bucket_secret_access_key }}"
+    aws_default_region: "{{ aws_region }}"
+    local_file_or_folder_path: "{{ prometheus_backup_dir }}/{{ prometheus_backup_filepath }}"
+    s3_path: "{{ prometheus_backup_storage }}/{{ prometheus_backup_filename }}"
+  when: cloud_service_provider == "aws"
+
+- name: download file from gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: download.yml
+  vars:
+    gcp_bucket_name: "{{ gcloud_management_bucket_name }}"
+    dest_folder_name: "{{ prometheus_backup_storage }}"
+    dest_file_name: "{{ prometheus_backup_filename }}"
+    local_file_or_folder_path: "{{ prometheus_backup_dir }}/{{ prometheus_backup_filepath }}"
+  when: cloud_service_provider == "gcloud"
 
 - name: ensure prometheus is stopped
   shell: "docker service scale {{prometheus_service_name}}=0 && sleep 10"
   delegate_to: "{{manager_host}}"  #variable is passed as extra vars from jenkins
 
-
 - name: Unarchive backup
-  become: yes
+  become: true
   unarchive: 
     src: "{{ prometheus_backup_dir }}/{{ prometheus_backup_filename }}"
     dest: "{{prometheus_data_dir}}/"
@@ -29,4 +58,3 @@
 
 - name: clean up backup dir 
   file: path="{{ prometheus_backup_dir }}" state=absent
-    
