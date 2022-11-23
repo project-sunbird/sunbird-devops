@@ -24,9 +24,20 @@ Dependencies
 ```
 Note : Tested with Ubuntu
 ```
-Example Playbook
-----------------
+Inventory hosts file as shown Below
+-----------------------------------
+```
+[etcd]
+192.168.245.129 etcd_ip=192.168.245.129 ansible_ssh_user=ubuntu
 
+[postgresql]
+192.168.245.129 postgresql_origin=192.168.245.129 postgresql_1=192.168.245.129 postgresql_2=192.168.245.130 postgresql_3=192.168.245.131 etcd_ip=192.168.245.129 ansible_ssh_user=ubuntu
+<postgres_server_2> postgresql_origin=<server_ip1> postgresql_1=<server_ip2> postgresql_2=<server_ip3> postgresql_3=<server_ip4> etcd_ip=192.168.245.129 ansible_ssh_user=ubuntu
+<postgres_server_3> postgresql_origin=<server_ip1> postgresql_1=<server_ip2> postgresql_2=<server_ip3> postgresql_3=<server_ip4> etcd_ip=192.168.245.129 ansible_ssh_user=ubuntu
+
+[haproxy]
+192.168.245.129 postgresql_1=192.168.245.129 postgresql_2=192.168.245.130 postgresql_3=192.168.245.131 ansible_ssh_user=ubuntu
+```
 
 License
 -------
