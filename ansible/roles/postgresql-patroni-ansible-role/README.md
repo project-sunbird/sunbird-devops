@@ -23,6 +23,10 @@ Architecture
 ------------
 ![Untitled Diagram (1)](https://user-images.githubusercontent.com/63706239/203470986-f8ec3d56-a6d2-4678-b594-dc20a29ec972.jpg)
 
+```
+Users can access the postgres server using Haproxy Ip and port defined in the haproxy rules. 
+```
+
 Inventory hosts file as shown Below
 -----------------------------------
 ```
