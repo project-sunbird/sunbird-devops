@@ -19,11 +19,10 @@ In hosts files:
 4. postgresql_2: <postgres replica 1 server IP>
 5. postgresql_3: <postgres replica 2 server IP>
 ```
-Dependencies
+Architecture
 ------------
-```
-Note : Tested with Ubuntu
-```
+![Untitled Diagram (1)](https://user-images.githubusercontent.com/63706239/203470986-f8ec3d56-a6d2-4678-b594-dc20a29ec972.jpg)
+
 Inventory hosts file as shown Below
 -----------------------------------
 ```
