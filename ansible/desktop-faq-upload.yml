@@ -93,3 +93,54 @@
             - upload-chatbot-config
             - upload-batch
       when: cloud_service_provider == "gcloud"
+
+######################## AWS tasks #########################################
+
+    - name: this block consists of tasks related to aws s3
+      block:
+        - name: set common aws variables
+          set_fact:
+            aws_default_region: "{{ aws_region }}"
+            local_file_or_folder_path: "{{ playbook_dir }}/../{{ src_file_path }}"
+            s3_path: "{{ upload_storage }}/{{ destination_path }}"
+          tags:
+            - always
+      
+        - block:
+          - name: upload file to aws s3 public bucket
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+              aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+              aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+          tags:
+            - upload-desktop-faq
+      
+        - block:
+          - name: upload file to aws s3 private bucket
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              s3_bucket_name: "{{ aws_private_s3_bucket_name }}"
+              aws_access_key_id: "{{ aws_private_bucket_access_key }}"
+              aws_secret_access_key: "{{ aws_private_bucket_secret_access_key }}"
+          tags:
+            - upload-label
+      
+        - block:
+          - name: upload folder to aws s3
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: upload-folder.yml
+            vars:
+              s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+              aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+              aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+          tags:
+            - upload-chatbot-config
+            - upload-batch
+      when: cloud_service_provider == "aws"    
+      

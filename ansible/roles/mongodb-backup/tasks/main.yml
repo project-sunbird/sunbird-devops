@@ -27,6 +27,19 @@
     storage_account_key: "{{ azure_management_storage_account_key }}"
   when: cloud_service_provider == "azure"
 
+- name: upload file to aws s3
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+    aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+    aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+    aws_default_region: "{{ aws_region }}"
+    local_file_or_folder_path: "{{ mongo_backup_file_path }}.tar.gz"
+    s3_path: "{{ mongo_backup_storage }}/{{ mongo_backup_file_name }}.tar.gz"
+  when: cloud_service_provider == "aws"
+
 - name: upload file to gcloud storage
   include_role:
     name: gcp-cloud-storage
