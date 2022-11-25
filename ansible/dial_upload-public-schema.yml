@@ -1,0 +1,29 @@
+- hosts: local
+  become: yes
+  gather_facts: no
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  environment:
+        AZURE_STORAGE_ACCOUNT: "{{ knowlgbb_dial_storage_account_name }}"
+        AZURE_STORAGE_SAS_TOKEN: "{{ knowlgbb_dial_storage_account_sas }}"
+  tasks:
+    - name: Download file from git repo
+      shell: wget "{{ file_git_url  }}"
+    
+    - set_fact:
+        file_name: "{{ file_git_url.split('/')[-1] }}"
+
+    - name: Create directory
+      file:
+        path: file-upload
+        state: directory
+        owner: jenkins
+        group: jenkins
+       
+    - name: Copy file to created directory
+      shell: "cp {{ file_name }} file-upload/"    
+
+    - name: Upload file
+      command: "az storage blob upload-batch --destination {{ dial_public_container_name }}/{{ blob_path }} --source file-upload"
+      async: 3600
+      poll: 10
