@@ -1,0 +1,42 @@
+---
+
+- set_fact: base_path_date="{{ lookup('pipe','date +%Y-%m') }}"
+
+- set_fact: snapshot_number="snapshot_{{ lookup('pipe','date +%s') }}"
+
+- name: Create GCS Repository
+  uri:
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/{{ snapshot_base_path }}"
+    method: PUT
+    body: "{{ snapshot_create_request_body | to_json }}"
+    headers:
+      Content-Type: "application/json"
+
+- name: Take new snapshot
+  uri:
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/{{ snapshot_base_path }}/{{ snapshot_number }}"
+    method: PUT
+    headers:
+      Content-Type: "application/json"
+
+- name: Print all snapshots
+  uri:
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/{{ snapshot_base_path }}/_all"
+    method: GET
+
+- name: Print status of current snapshot
+  uri:
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/{{ snapshot_base_path }}/{{ snapshot_number }}"
+    method: GET
+
+- name: "Wait for backup to be completed"
+  uri:
+    url: "http://{{ es_snapshot_host }}:9200/_snapshot/{{ snapshot_base_path }}/{{ snapshot_number }}"
+    method: GET
+    return_content: yes
+    status_code: 200
+    body_format: json
+  register: result
+  until: result.json.snapshots[0].state == 'SUCCESS'
+  retries: 120
+  delay: 10

@@ -1,6 +1,7 @@
 # ------------------------------------------------------------------------------------------------------------ #
 # Mandatorty variables - DO NOT LEAVE ANYTHING BLANK #
 # ------------------------------------------------------------------------------------------------------------ #
+cloud_service_provider: ""       # Your cloud service provider name. Supported values are aws, azure, gcloud
 domain_name: ""                  # your domain name like example.com
 dockerhub: "change.docker.url"   # docker hub username or url incase of private registry
 # This ip should be in the kubenetes subnet range. For example, if your kube cluster is running in `10.0.0.0/24, then it can be 10.0.0.5. Make sure this ip is not allocated to any other things.`
@@ -18,11 +19,43 @@ mail_server_username: "apikey"                           # Email provider userna
 sunbird_mail_server_from_email: "support@myorg.com"       # Email ID that should be as from address in mails
 # List of mail ids to whome the monitoring alerts should be sent.
 alerts_mailing_list : "devops@myorg.com"                         # Comma separated mail list for Alerts; eg: user1@mail.com, user2@mail.com
+
+
+# Define the below if you are using Azure Cloud
 # Note - You can use the same azure account for the below variables or have separate azure accounts
 sunbird_public_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing public data (like contents)
-sunbird_private_storage_account_name: "change.azure.storage.account.name"           # Azure account name for storing private data (like reports, telemetry data)
-sunbird_artifact_storage_account_name: "change.azure.storage.account.name"          # Azure account name for storing artifacts data (like jenkins build zip files)
-sunbird_management_storage_account_name: "change.azure.storage.account.name"        # Azure account name for storing backup data (like cassandra backups)
+sunbird_private_storage_account_name: "change.azure.storage.account.name"        # Azure account name for storing private data (like reports, telemetry data)
+sunbird_management_storage_account_name: "change.azure.storage.account.name"     # Azure account name for storing backup data (like cassandra backups)
+sunbird_artifact_storage_account_name: "{{ sunbird_management_storage_account_name }}"    # Azure account name for storing artifacts data (like jenkins build zip files)
+
+azure_public_storage_account_name: "{{ sunbird_public_storage_account_name }}"
+azure_private_storage_account_name: "{{ sunbird_private_storage_account_name }}"
+azure_management_storage_account_name: "{{ sunbird_management_storage_account_name }}"
+azure_artifact_storage_account_name: "{{ sunbird_artifact_storage_account_name }}"
+
+# Define the below if you are using AWS Cloud
+aws_region: "" 
+aws_management_s3_bucket_name: ""
+aws_artifact_s3_bucket_name: ""
+aws_public_s3_bucket_name: ""
+aws_private_s3_bucket_name: ""
+
+# Define the below if you are using Google Cloud
+gcloud_private_bucket_name: ""
+gcloud_public_bucket_name: ""
+gcloud_artifact_bucket_name: ""
+gcloud_management_bucket_name: ""
+
+gcloud_private_bucket_projectId: ""
+
+# Uncomment the variable based on your cloud provider (as a default we have kept Azure variable uncommented)
+# GCP
+# cloud_storage_url: https://storage.cloud.google.com/{{ gcloud_public_bucket_name }}
+# AWS
+# cloud_storage_url: "https://{{aws_public_s3_bucket_name}}.s3.{{aws_region}}.amazonaws.com"
+# Azure
+cloud_storage_url: "https://{{ sunbird_public_storage_account_name }}.blob.core.windows.net"
+
 # ------------------------------------------------------------------------------------------------------------ #
 # Cloud / Infra Specific values - Check these and update accordingly
 
@@ -48,7 +81,10 @@ proto: https               # http or https, preferably https
 sunbird_default_channel: sunbird                # default sunbird channel name
 environment_id: "10000003"                                 # A 8 digit number for example like 1000000, should be same as defined in KP common.yml
 
+# SB-31155 - This should be deprecated in future in favour of content_storage defined in all.yml
 sunbird_content_azure_storage_container: contents        # Azure container name for storing public data (like contents), should be same as azure_public_container defined in KP common.yml
+
+
 # This sms sender id should be verified by your provider. This is the sender id which will be used for `From Address`. For example,
 #
 # From: SBSMS
@@ -94,14 +130,12 @@ postgres:
   db_admin_user: postgres
   db_admin_password: "{{core_vault_postgres_password}}"
 
+
 # Azure account related vars
 sunbird_azure_public_storage_account_name: "{{ sunbird_public_storage_account_name }}"
-upstream_url: "{{sunbird_azure_public_storage_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}" # Proxy url to get /assets/public
-plugin_upstream_url: "{{upstream_url}}"
 azure_plugin_storage_account_name: "{{sunbird_azure_public_storage_account_name}}"
 azure_plugin_storage_account_key: "{{sunbird_public_storage_account_key}}"
 plugin_container_name: "{{sunbird_content_azure_storage_container}}"
-kp_schema_base_path: "{{proto}}://{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{plugin_container_name}}/schemas/local"
 
 keycloak_api_management_user_email: "admin@sunbird.org"
 sunbird_installation_email: "admin@sunbird.org"

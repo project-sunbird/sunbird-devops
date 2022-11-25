@@ -8,7 +8,7 @@
     - name: Installing other packages
       apt:
         state: present
-        name: ['python-pkg-resources', 'python2-pip']
+        name: ['python-pkg-resources', 'python-pip']
       when: ansible_distribution_version | float < 18
     - name: Installing other packages
       apt:
@@ -19,10 +19,8 @@
     - bootstrap_any
   tags:
     - bootstrap_any
-    - all
 
-- hosts: "{{hosts}}"
-  gather_facts: no
+- hosts: "{{ hosts }}"
   become: yes
   ignore_unreachable: yes
   vars_files:
@@ -31,6 +29,26 @@
     - role: azure-cli
   tags:
     - azure_cli
+
+- hosts: "{{ hosts }}"
+  become: yes
+  ignore_unreachable: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  roles:
+    - role: gcloud-cli
+  tags:
+    - gcloud_cli
+
+- hosts: "{{ hosts }}"
+  become: yes
+  ignore_unreachable: yes
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  roles:
+    - role: aws-cli
+  tags:
+    - aws_cli    
 
 - hosts: "{{ hosts| default('all') }}"
   become: yes
@@ -42,4 +60,4 @@
     - vm-agents-nodeexporter
   tags:
     - node_exporter
-    - all
+

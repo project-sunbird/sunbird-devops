@@ -1,6 +1,7 @@
 # ------------------------------------------------------------------------------------------------------------ #
 # Mandatorty variables - DO NOT LEAVE ANYTHING BLANK #
 # docker hub details
+cloud_service_provider: ""       # Your cloud service provider name. Supported values are aws, azure, gcloud
 dockerhub: "change.docker.url"                 # docker hub username or url incase of private registry
 private_ingressgateway_ip: "" # your private kubernetes load balancer ip
 domain_name: ""               # your domain name like example.com
@@ -28,7 +29,26 @@ neo4j_enterprise: false                           # Set this to true if you use 
 # Sensible defaults which you need not change - But if you would like to change, you are free to do so
 ekstep_domain_name: "{{ proto }}://{{ domain_name }}"
 artifacts_container: artifacts
-plugin_container_name: "{{azure_public_container}}"
-kp_schema_base_path: "{{proto}}://{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{plugin_container_name}}/schemas/local"
+
+# Uncomment the variable based on your cloud provider (as a default we have kept Azure variable uncommented)
+# GCP
+# cloud_storage_url: https://storage.cloud.google.com/{{ gcloud_public_bucket_name }}
+# AWS
+# cloud_storage_url: # Geetha to fill this url based on AWS role vars
+# Azure
+cloud_storage_url: "https://{{ sunbird_public_storage_account_name }}.blob.core.windows.net"
+
+# SB-31155 - This should be deprecated in future in favour of plugin_storage
+plugin_container_name: "{{ azure_public_container }}"
+
+kp_schema_base_path: "{{ cloud_storage_url }}/{{ plugin_storage }}/schemas/local"
 imagepullsecrets: "{{env}}registrysecret"                 # kubernetes imagePullSecrets
 kubeconfig_path: /var/lib/jenkins/secrets/k8s.yaml        # kubeconfig file path on jenkins
+
+# Define the below if you are using Google Cloud
+gcloud_private_bucket_name: ""
+gcloud_public_bucket_name: ""
+gcloud_artifact_bucket_name: ""
+gcloud_management_bucket_name: ""
+
+gcloud_private_bucket_projectId: ""

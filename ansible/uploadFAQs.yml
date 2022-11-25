@@ -1,47 +1,62 @@
 - hosts: localhost
-  become: yes
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  vars:
-    container_name: "{{ blob_container }}"
-    destination_path: "{{ blob_container }}"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_public_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ sunbird_public_storage_account_key }}"
   tasks:
-    - name: upload files
-      include_role:
-        name: upload-batch
-      vars:
-        source_path: "{{ playbook_dir }}/../utils/{{ item }}"
-      with_items:
-        - "{{ source_folder.split(',') }}"
+  - name: template schema files
+    template:
+      src: "{{ item }}"
+      dest: "{{ item }}"
+    with_fileglob:
+      - "{{ playbook_dir }}/../utils/sunbird-RC/schema/*.json"
+  tags:
+    - upload-RC-schema
+
+- hosts: localhost
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  tasks:
+  - name: upload batch of files to azure storage
+    include_role:
+      name: azure-cloud-storage
+      tasks_from: blob-upload-batch.yml
+    vars:
+      blob_container_name: "{{ upload_storage }}"
+      container_public_access: "container"
+      blob_container_folder_path: ""
+      local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
+      storage_account_name: "{{ azure_public_storage_account_name }}"
+      storage_account_key: "{{ azure_public_storage_account_key }}"
+    with_items:
+      - "{{ source_folder.split(',') }}"
+    when: cloud_service_provider == "azure"
+    
+  - name: upload batch of files to s3
+    include_role:
+      name: aws-cloud-storage
+      tasks_from: upload-folder.yml
+    vars:
+      s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+      aws_default_region: "{{ aws_region }}"
+      aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+      aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+      local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
+      s3_path: "{{ upload_storage }}"
+    with_items:
+      - "{{ source_folder.split(',') }}"  
+    when: cloud_service_provider == "aws"   
+
+  - name: upload batch of files to gcloud storage
+    include_role:
+      name: gcp-cloud-storage
+      tasks_from: upload-batch.yml
+    vars:
+        dest_folder_name: "{{ upload_storage }}"
+        dest_folder_path: ""
+        local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
+        gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+    with_items:
+      - "{{ source_folder.split(',') }}"
+    when: cloud_service_provider == "gcloud"
   tags:
     - upload-faqs
-    
-- hosts: localhost
-  become: yes
-  vars_files:
-    - "{{inventory_dir}}/secrets.yml"
-  vars:
-    container_name: "{{ blob_container }}"
-    destination_path: "{{ blob_container }}"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_public_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ sunbird_public_storage_account_key }}"
-  tasks:
-    - name: template schema files
-      template:
-        src: "{{ item }}"
-        dest: "{{ item }}"
-      with_fileglob:
-        - "{{ playbook_dir }}/../utils/sunbird-RC/schema/*.json"
-    - name: upload files
-      include_role:
-        name: upload-batch
-      vars:
-        source_path: "{{ playbook_dir }}/../utils/{{ item }}"
-      with_items:
-        - "{{ source_folder.split(',') }}"
-  tags:
-    - upload-RC-schema   
+    - upload-RC-schema

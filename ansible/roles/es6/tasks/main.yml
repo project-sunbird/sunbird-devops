@@ -31,15 +31,26 @@
   tags:
       - plugins
 
-# Install Elasticsearch plugin for backups
-- name: include elasticsearch plugin install
-  include: azure-plugin.yml
-
 #We always execute xpack as we may need to remove features
 - name: include xpack/elasticsearch-xpack.yml
   include: xpack/elasticsearch-xpack.yml
   tags:
       - xpack
+
+- name: include plugins/create-keystore.yml
+  include: plugins/create-keystore.yml
+
+- name: include plugins/repository-azure.yml
+  include: plugins/repository-azure.yml
+  when: cloud_service_provider == "azure"
+
+- name: include plugins/repository-s3.yml
+  include: plugins/repository-s3.yml
+  when: cloud_service_provider == "aws"
+
+- name: include plugins/repository-gcs.yml
+  include: plugins/repository-gcs.yml
+  when: cloud_service_provider == "gcloud"
 
 - name: flush handlers
   meta: flush_handlers
@@ -79,15 +90,3 @@
   when: es_templates
   tags:
       - templates
-
-# Add ES Plugin credentials for backups
-- name: Add ES Backup variables to elasticsearch to have backups enabled
-  lineinfile:
-    path: '{{conf_dir}}/elasticsearch.yml'
-    line: 'cloud.azure.storage.default.{{item.key}}: {{item.value}}'
-    regexp: "cloud.azure.storage.default.{{ item.key }}.*"
-  with_items:
-    - {key: 'account', value: '{{ sunbird_management_storage_account_name }}'}
-    - {key: 'key', value: '{{ sunbird_management_storage_account_key }}'}
-  when: sunbird_management_storage_account_name is defined and sunbird_management_storage_account_key is defined
-  notify: restart elasticsearch
