@@ -3,8 +3,40 @@
   become: yes
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_artifact_storage_account_name }}"
-    AZURE_STORAGE_SAS_TOKEN: "{{ sunbird_artifact_storage_account_sas }}"
-  roles:
-    - artifacts-upload-azure
+  tasks:
+    - name: upload artifact to azure storage
+      include_role:
+        name: azure-cloud-storage
+        tasks_from: blob-upload.yml
+      vars:
+        blob_container_name: "{{ artifacts_container }}"
+        container_public_access: "off"
+        blob_file_name: "{{ artifact }}"
+        local_file_or_folder_path: "{{ artifact_path }}"
+        storage_account_name: "{{ azure_artifact_storage_account_name }}"
+        storage_account_key: "{{ azure_artifact_storage_account_key }}"
+      when: cloud_service_provider == "azure"
+
+    - name: upload artifact to gcloud storage
+      include_role:
+        name: gcp-cloud-storage
+        tasks_from: upload.yml
+      vars:
+        gcp_bucket_name: "{{ gcloud_artifact_bucket_name }}"
+        dest_folder_name: "{{ artifacts_container }}"
+        dest_file_name: "{{ artifact }}"
+        local_file_or_folder_path: "{{ artifact_path }}"
+      when: cloud_service_provider == "gcloud"
+
+    - name: upload artifact to aws s3
+      include_role:
+        name: aws-cloud-storage
+        tasks_from: upload.yml
+      vars:
+        local_file_or_folder_path: "{{ artifact_path }}"
+        s3_bucket_name: "{{ aws_artifact_s3_bucket_name }}"
+        s3_path: "{{ artifacts_container }}/{{ artifact }}"
+        aws_default_region: "{{ aws_region }}"
+        aws_access_key_id: "{{ aws_artifact_bucket_access_key }}"
+        aws_secret_access_key: "{{ aws_artifact_bucket_secret_access_key }}"
+      when: cloud_service_provider == "aws"

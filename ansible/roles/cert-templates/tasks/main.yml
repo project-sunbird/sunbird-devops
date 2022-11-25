@@ -31,30 +31,39 @@
     chdir: "{{cert_location}}/cert-templates/certUtilScripts/"
   when: createPublicKey is defined
 
-- name: Ensure azure blob storage container exists
-  command: az storage container create  --name {{cert_service_container_name}} --public-access off
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{sunbird_private_storage_account_name}}"
-    AZURE_STORAGE_KEY: "{{sunbird_private_storage_account_key}}"
+- name: upload batch of files to azure storage
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: blob-upload-batch.yml
+  vars:
+    blob_container_name: "{{ cert_service_storage }}"
+    container_public_access: "off"
+    blob_container_folder_path: ""
+    local_file_or_folder_path: "{{ cert_location }}/cert-templates/certUtilScripts/out"
+    storage_account_name: "{{ azure_private_storage_account_name }}"
+    storage_account_key: "{{ azure_private_storage_account_key }}"
+  when: cloud_service_provider == "azure"
 
-- name: Upload to azure blob storage
-  command: az storage blob upload-batch --destination {{cert_service_container_name}} --source "out"
-  args:
-    chdir: "{{cert_location}}/cert-templates/certUtilScripts/"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{sunbird_private_storage_account_name}}"
-    AZURE_STORAGE_KEY: "{{sunbird_private_storage_account_key}}"
-  async: 60
-  poll: 10
-
-- name: list all the files
-  shell: "ls -lR {{cert_location}}"
-  register: allfiles
-
-- debug:
-    var: allfiles
-
-- name: Remove unwanted files
-  file:
-    path: "{{cert_location}}/cert-templates"
-    state: absent
+- name: upload batch of files to aws s3
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: upload-folder.yml
+  vars:
+    s3_bucket_name: "{{ aws_private_s3_bucket_name }}"
+    aws_access_key_id: "{{ aws_private_bucket_access_key }}"
+    aws_secret_access_key: "{{ aws_private_bucket_secret_access_key }}"
+    aws_default_region: "{{ aws_region }}"
+    local_file_or_folder_path: "{{ cert_location }}/cert-templates/certUtilScripts/out"
+    s3_path: "{{ cert_service_storage }}"
+  when: cloud_service_provider == "aws"
+  
+- name: upload batch of files to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload-batch.yml
+  vars:
+    dest_folder_name: "{{ cert_service_storage }}"
+    dest_folder_path: ""
+    local_file_or_folder_path: "{{ cert_location }}/cert-templates/certUtilScripts/out"
+    gcp_bucket_name: "{{ gcloud_private_bucket_name }}"
+  when: cloud_service_provider == "gcloud"

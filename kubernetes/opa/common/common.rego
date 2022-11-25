@@ -22,11 +22,11 @@ ROLES := {
    
    "PROGRAM_DESIGNER": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
    
-   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "getUserProfileV5", "updateUserV2", "readUserConsent", "createTenantPreferences", "updateTenantPreferences", "getReport", "listReports", "createReport", "deleteReport", "updateReport", "publishReport", "retireReport", "getReportSummary", "listReportSummary", "createReportSummary"],
+   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "getUserProfileV5", "updateUserV2", "readUserConsent", "createTenantPreferences", "updateTenantPreferences", "createReport", "deleteReport", "updateReport", "publishReport", "retireReport", "getReportSummary", "listReportSummary", "createReportSummary"],
    
-   "REPORT_VIEWER": ["acceptTnc", "getReport", "listReports", "getReportSummary", "listReportSummary"],
+   "REPORT_VIEWER": ["acceptTnc", "getReportSummary", "listReportSummary"],
    
-   "REPORT_ADMIN": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "acceptTnc", "getReport", "listReports", "createReport", "deleteReport", "updateReport", "publishReport", "retireReport", "getReportSummary", "listReportSummary", "createReportSummary"],
+   "REPORT_ADMIN": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "acceptTnc", "createReport", "deleteReport", "updateReport", "publishReport", "retireReport", "getReportSummary", "listReportSummary", "createReportSummary"],
 
    "PUBLIC": ["PUBLIC"]
 }
