@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxy-default
+  namespace: {{ .Values.namespace }}
+data:
+  proxy-default.conf: |
+{{ .Values.proxyconfig | indent 4 }}
+  compression.conf: |
+{{ .Values.compressionConfig | indent 4 }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+  namespace: {{ .Values.namespace }}
+data:
+  nginx.conf: |
+{{ .Values.nginxconfig | indent 4 }}
+
+---
+{{- if .Values.merge_domain_status }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-conf
+  namespace: {{ .Values.namespace }}
+data:
+  keycloak.conf: |
+{{ .Values.keycloakconf | indent 4 }}
+{{- end }}
+
+---
+{{- if .Values.apple_universal_links }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apple-universal-links
+  namespace: {{ .Values.namespace }}
+data:
+  apple-app-site-association.json: |
+{{ .Values.apple_universal_links | indent 4 }}
+{{- end }}

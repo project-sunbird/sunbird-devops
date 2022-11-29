@@ -1,0 +1,109 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-public-ingress
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: nginx-public-ingress
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+  template:
+    metadata:
+      annotations:
+        nginxRolloutID: {{ randAlphaNum 5 | quote }} # Restart nginx after every deployment
+        fluentbit.io/parser: nginx2
+      labels:
+        app: nginx-public-ingress
+    spec:
+      # Running nginx with custom config
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      volumes:
+        - name: tls
+          secret:
+            secretName: ingress-cert
+        - name: proxy-config
+          configMap:
+            name: proxy-default
+        - name: nginx-config
+          configMap:
+            name: nginx-conf
+{{- if .Values.apple_universal_links }}
+        - name: apple-site-association
+          configMap:
+            name: apple-universal-links
+{{- end }}
+{{- if .Values.volumes }}
+{{ toYaml .Values.volumes | indent 8 }}
+{{- end }}
+      containers:
+      - name: nginx-public
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        volumeMounts:
+          - name: tls
+            mountPath: /etc/secrets
+            readOnly: true
+          - name: proxy-config
+            mountPath: /etc/nginx/defaults.d
+          - name: nginx-config
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+{{- if .Values.apple_universal_links }}
+          - name: apple-site-association
+            mountPath: /var/www/html
+{{- end }}
+{{- if .Values.volumeMounts }}
+{{ toYaml .Values.volumeMounts | indent 10 }}
+{{- end }}
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+        - containerPort: 9145
+          name: http-metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-public-ingress-metrics
+  namespace: {{ .Values.namespace }}
+  labels:
+{{- include "nginx-public-ingress.labels" . | nindent 4 }}
+spec:
+  selector:
+    app: nginx-public-ingress
+  ports:
+    - name: http
+      port: 9145
+      targetPort: 9145
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-public-ingress
+  namespace: {{ .Values.namespace }}
+{{- if .Values.service.annotations }}
+  annotations:
+{{ toYaml .Values.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  externalTrafficPolicy: Local
+  selector:
+    app: nginx-public-ingress
+  type: {{ .Values.service.type }}
+{{- if and .Values.service.nginx_public_ingress_ip (ne .Values.service.type "NodePort") }}
+  loadBalancerIP: {{ .Values.service.nginx_public_ingress_ip }}
+{{- end }}
+  ports:
+{{ toYaml .Values.service.ports | indent 4 }}
