@@ -138,17 +138,27 @@
             - preview
 
         - block:
+          - name: Authenticate to gcloud
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: gcloud-auth.yml
+
           - name: delete and re-upload plugins
             include_role:
               name: gcp-cloud-storage
               tasks_from: "{{ item[0] }}"
             vars:
               file_delete_pattern: "content-plugins/{{ item[1] }}/*"
-              dest_folder_path: "/content-plugins/{{ item[1] }}"
+              dest_folder_path: "content-plugins/{{ item[1] }}"
               local_file_or_folder_path: "{{ source_folder }}/{{ item[1] }}"
             with_nested:
               - ['delete-batch-no-poll.yml', 'upload-batch-no-poll.yml']
               - "{{ lookup('file', plugins_to_delete_and_upload).split('\n') }}"
+
+          - name: Revoke gcloud access
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: gcloud-revoke.yml
           tags:
             - plugins
       when: cloud_service_provider == "gcloud"
