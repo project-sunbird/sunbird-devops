@@ -1,3 +1,4 @@
+---
 - name: Create the directory
   file: path={{ mongo_backup_dir }} state=directory recurse=yes
   
@@ -13,13 +14,42 @@
 - name: Compress the backup file
   shell: "tar -czf {{ mongo_backup_file_path }}.tar.gz {{ mongo_backup_file_path }}"
 
-- name: upload to azure
+- name: upload file to azure storage
   include_role:
-    name: artifacts-upload-azure
+    name: azure-cloud-storage
+    tasks_from: blob-upload.yml
   vars:
-    artifact: "{{ mongo_backup_file_name }}.tar.gz"
-    artifact_path: "{{ mongo_backup_file_path }}.tar.gz"
-    artifacts_container: "{{ mongo_backup_azure_container_name }}"
+    blob_container_name: "{{ mongo_backup_storage }}"
+    container_public_access: "off"
+    blob_file_name: "{{ mongo_backup_file_name }}.tar.gz"
+    local_file_or_folder_path: "{{ mongo_backup_file_path }}.tar.gz"
+    storage_account_name: "{{ azure_management_storage_account_name }}"
+    storage_account_key: "{{ azure_management_storage_account_key }}"
+  when: cloud_service_provider == "azure"
+
+- name: upload file to aws s3
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
+    aws_access_key_id: "{{ aws_public_bucket_access_key }}"
+    aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+    aws_default_region: "{{ aws_region }}"
+    local_file_or_folder_path: "{{ mongo_backup_file_path }}.tar.gz"
+    s3_path: "{{ mongo_backup_storage }}/{{ mongo_backup_file_name }}.tar.gz"
+  when: cloud_service_provider == "aws"
+
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    gcp_bucket_name: "{{ gcloud_management_bucket_name }}"
+    dest_folder_name: "{{ mongo_backup_storage }}"
+    dest_file_name: "{{ mongo_backup_file_name }}.tar.gz"
+    local_file_or_folder_path: "{{ mongo_backup_file_path }}.tar.gz"
+  when: cloud_service_provider == "gcloud"
  
 - name: clean up backup dir after upload
   file: path={{ mongo_backup_dir }} state=absent
