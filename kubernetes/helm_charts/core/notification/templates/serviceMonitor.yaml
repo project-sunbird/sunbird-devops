@@ -1,0 +1,34 @@
+{{- if .Values.notification_opa_enabled }}
+{{- if .Values.serviceMonitor.enabled }}
+{{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" ) ( .Values.serviceMonitor.enabled ) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Chart.Name }}-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
+spec:
+  endpoints:
+  - honorLabels: true
+    interval: 30s
+    path: /opa/metrics
+    port: opa-metrics
+    scheme: http
+    scrapeTimeout: 10s
+  - honorLabels: true
+    interval: 30s
+    path: /stats/prometheus
+    port: envoy-metrics
+    scheme: http
+    scrapeTimeout: 10s
+  jobLabel: {{ .Chart.Name }}
+  namespaceSelector:
+    matchNames:
+    - {{ default .Values.namespace .Release.Namespace  }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+{{- end }}
+{{- end }}
+{{- end }}

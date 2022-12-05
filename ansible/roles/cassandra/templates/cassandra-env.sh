@@ -68,10 +68,6 @@ calculate_heap_sizes()
     quarter_system_memory_in_mb=`expr $half_system_memory_in_mb / 2`
 
     resource_crunch="{{resource_crunch}}"
-    if [ $resource_crunch = "yes" ]; then
-      MAX_HEAP_SIZE="${quarter_system_memory_in_mb}M"
-      return
-    fi
 
     if [ "$half_system_memory_in_mb" -gt "1024" ]
     then
@@ -87,7 +83,12 @@ calculate_heap_sizes()
     else
         max_heap_size_in_mb="$quarter_system_memory_in_mb"
     fi
-    MAX_HEAP_SIZE="${max_heap_size_in_mb}M"
+
+    if [ $resource_crunch = "yes" ]; then
+      MAX_HEAP_SIZE="${quarter_system_memory_in_mb}M"
+    else
+      MAX_HEAP_SIZE="${max_heap_size_in_mb}M"
+    fi
 
     # Young gen: min(max_sensible_per_modern_cpu_core * num_cores, 1/4 * heap size)
     max_sensible_yg_per_core_in_mb="100"

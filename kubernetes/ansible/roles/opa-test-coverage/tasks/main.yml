@@ -1,0 +1,72 @@
+---
+# Run this playbook in your local before commiting the opa policy changes
+# Mandatory requirements = 100% coverage in policy and test cases
+# cd sunbird-devops/kubernetes/ansible
+# ANSIBLE_STDOUT_CALLBACK=debug ansible-playbook opa-test-coverage.yaml -e "release_name=lms" -v
+#
+# Debug by using below command 
+# opa test -v . -c | jq '.files."policies.rego".not_covered' from the policy directory
+#
+# One line command as below 
+# ansible localhost -m "import_role" -a "name=opa-test-coverage" -e "release_name=analytics"
+#
+# Test all modules by running the playbook in a loop like below
+# while read -r line; do echo $line && ansible-playbook play.yml -e "release_name=$line"; done <<< $(ls ../opa)
+
+- name: Register list of .bak files as a variable
+  find:
+    paths: "{{ role_path }}/{{ common_opa_policies_path }}"
+    patterns: '.*\.bak'
+    use_regex: yes
+  register: bak_files
+
+- name: Avoid overwrite of files on multiple runs by replacing the templated files with .bak files
+  command: mv "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}.bak" "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
+  with_items:
+  - "{{ common_opa_policy_files }}"
+  when: (bak_files.files | length) > 0
+
+- name: Keep a copy of the files before templating
+  copy:
+    src: "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
+    dest: "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}.bak"
+  with_items:
+  - "{{ common_opa_policy_files }}"
+
+- name: Template the common rego files
+  template:
+    src: "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
+    dest: "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
+  with_items:
+  - "{{ common_opa_policy_files }}"
+
+- name: Run the opa test and check for 100% coverage on service policies
+  command: opa test -v . -c
+  args:
+    chdir: "{{ role_path }}/{{ opa_policies_path }}/{{ release_name }}/"
+  register: coverage_service
+
+- name: Run the opa test and check for 100% coverage on common policies
+  command: opa test -v . -c
+  args:
+    chdir: "{{ role_path }}/{{ common_opa_policies_path }}/"
+  register: coverage_common
+
+- name: Check if coverage is 100% from policies and tests files
+  fail:
+    msg: "Coverage on {{item}} is {{ (coverage_service.stdout | from_json).files[item].coverage }} and not 100"
+  with_items:
+  - "{{ service_opa_policy_files }}"
+  when: (coverage_service.stdout | from_json).files[item].coverage != 100
+
+- name: Check if coverage is 100% from common policies and tests files
+  fail:
+    msg: "Coverage on {{item}} is {{ (coverage_common.stdout | from_json).files[item].coverage }} and not 100"
+  with_items:
+  - "{{ common_opa_policy_files }}"
+  when: (coverage_common.stdout | from_json).files[item].coverage != 100
+
+- name: Replace the templated files with original files
+  command: mv "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}.bak" "{{ role_path }}/{{ common_opa_policies_path }}/{{ item }}"
+  with_items:
+  - "{{ common_opa_policy_files }}"

@@ -40,10 +40,23 @@
     - "{{ BASEPATH }}"
     - "{{ WORKDIR }}"
     - "{{ WORKDIR }}/faust_as_service"
-
-- name: Change user and create working directory under opt dir and install python virtual environment
+    
+- name: Delete the virtualenv DIR
+  shell: "rm -rf {{ WORKDIR }}/spark_env"
+  become: true
+  
+- name: Install python virtual environment
   shell: "cd {{ WORKDIR }} && virtualenv --python=python3.8 spark_venv"
   become: true
+  
+- name: Change the ownership of virtual env
+  become: yes
+  file:
+    path: "{{ WORKDIR }}/spark_env"
+    state: directory
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+    mode: "0755"
 
 - name: Create necessary logs folders for pipeline
   become: yes
@@ -92,6 +105,12 @@
     dest: "{{ config_path }}/config.ini"
     backup: yes
 
+- name: Templating the shell_script_config.j2 to shell_script_config
+  template:
+    src: "shell_script_config.j2"
+    dest: "{{ config_path }}/shell_script_config"
+    backup: yes
+    
 - name: SYSTEMD DAEMON-RELOAD
   systemd:
     daemon_reload: yes
@@ -107,10 +126,19 @@
     - faust_survey.service
     - faust_survey_evidence.service
 
-- name: CREATE THE CRON
+- name: CREATE THE CRON BATCH INGESTION
   cron:
     name: "Run Batch Ingestion Job"
     user: "{{ USER }}"
     minute: "30"
     hour: "18"
-    job: "{{ BASEPATH }}/ml-analytics-service/run.sh"
+    job: "{{ BASEPATH }}/ml-analytics-service/run.sh > {{ BASEPATH }}/ml-analytics-service/crontab_job.log"
+
+- name: CREATE THE CRON NVSK Data Upload
+  cron:
+    name: "NVSK Data Upload JOB"
+    user: "{{ USER }}"
+    minute: "30"
+    hour: "7"
+    weekday: "4"
+    job: "{{ BASEPATH }}/run_weekly.sh > {{ BASEPATH }}/ml-analytics-service/nvsk_data_weekly.logs"

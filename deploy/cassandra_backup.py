@@ -147,7 +147,7 @@ if rc != 0:
 print("Schema backup completed. saved in {}/cassandra_backup/complete_db_schema.sql".format(tmpdir))
 
 # Backing up tokenring
-command = """ nodetool ring | grep """ + get_ip() + """ | awk '{print $NF ","}' | xargs | tee -a """ + tmpdir + """/cassandra_backup/tokenring.txt """ #.format(args.host, tmpdir)
+command = """ nodetool ring | grep ^""" + get_ip() + """ | awk '{print $NF ","}' | xargs | tee -a """ + tmpdir + """/cassandra_backup/tokenring.txt """ #.format(args.host, tmpdir)
 print(command)
 rc = system(command)
 if rc != 0:

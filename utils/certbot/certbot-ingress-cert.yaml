@@ -1,0 +1,139 @@
+# This is a cronjob for automatically update your letsencrypt certificate in kubernetes cluster.
+# Only dependency here is to have a domain path to ./well-known => this service (certbot:80)
+#
+# Note: this app should run in the same namespace as nginx-public-ingress.
+#
+# for example
+# `kubectl apply -f certbot-ingress-cert.yaml -n dev`
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: certbot
+  labels:
+    app: certbot
+spec:
+  schedule: "0 18 */85 * *" # Every 85th day at 6:00 PM UTC -> Translates to 12.30 AM IST
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: certbot
+        spec:
+          serviceAccountName: certbot
+          containers:
+          - name: certbot
+            image: sunbird/certbot-autoupdater:v0.0.1
+            resources:
+              limits:
+                cpu: 100m
+                memory: 200Mi
+            ports:
+            - containerPort: 80
+            env:
+            - name: EMAIL
+              value: devops@ekstep.org
+            - name: DOMAIN
+              value: dev.sunbirded.org
+            command:
+              - /bin/sh
+            args:
+              - /opt/renew.sh
+            volumeMounts:
+            - name: renewscript
+              mountPath: /opt/renew.sh
+              subPath: renew.sh
+          volumes:
+          - name: renewscript
+            configMap:
+              name: certbot
+          restartPolicy: Never
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: certbot
+data:
+  renew.sh: |-
+    kubectl patch svc nginx-public-ingress --type='json' -p='[{"op": "replace", "path": "/spec/selector", "value": {"app": "certbot"}}]'
+    certbot certonly --non-interactive --agree-tos -m $EMAIL -d $DOMAIN --standalone
+    privkey=$(cat /etc/letsencrypt/live/${DOMAIN}/privkey.pem | base64 -w0)
+    #fullchain=$(cat /etc/letsencrypt/live/${DOMAIN}/fullchain.pem | base64 -w0)
+    # The below step is required to trim Letsencrypt Root Certificate since we are using many outdated package versions which don't recognize the new Root CA certificate
+    fullchain=$(awk '$0=="-----BEGIN CERTIFICATE-----"{c++} c==1' /etc/letsencrypt/live/${DOMAIN}/fullchain.pem && awk '$0=="-----BEGIN CERTIFICATE-----"{c++} c==2' /etc/letsencrypt/live/${DOMAIN}/fullchain.pem)
+    fullchain=$(echo "$fullchain" | base64 -w0)
+    kubectl patch secrets ingress-cert --type='json' -p='[{"op": "replace", "path": "/data/site.key", "value": "'"$privkey"'"}]'
+    kubectl patch secrets ingress-cert --type='json' -p='[{"op": "replace", "path": "/data/site.crt", "value": "'"$fullchain"'"}]'
+    kubectl patch svc nginx-public-ingress --type='json' -p='[{"op": "replace", "path": "/spec/selector", "value": {"app": "nginx-public-ingress"}}]'
+    kubectl rollout restart daemonset nginx-public-ingress
+    kubectl rollout status daemonset nginx-public-ingress
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: certbot
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: certbot
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: certbot
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: certbot
+rules:
+- apiGroups:
+  - apps
+  resourceNames:
+  - nginx-public-ingress
+  resources:
+  - daemonsets
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+- apiGroups:
+  - ""
+  resourceNames:
+  - ingress-cert
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+- apiGroups:
+  - ""
+  resourceNames:
+  - nginx-public-ingress
+  resources:
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+
+---
+# This role binding allows "jane" to read pods in the "default" namespace.
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: certbot
+subjects:
+- kind: ServiceAccount
+  name: certbot # Name is case sensitive
+roleRef:
+  kind: Role #this must be Role or ClusterRole
+  name: certbot # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io

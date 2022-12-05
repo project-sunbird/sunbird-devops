@@ -332,15 +332,15 @@ proxyconfig: |-
       proxy_buffer_size 16k;
       proxy_busy_buffers_size 16k;
       proxy_pass http://kong;
-  }
+    }
     location /api/ {
       if ($request_method = OPTIONS ) {
-              add_header Access-Control-Allow-Origin "*" ;
-              add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
-              add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id, Content-Encoding";
-              add_header Content-Length 0;
-              add_header Content-Type text/plain;
-              return 200;
+          add_header Access-Control-Allow-Origin "*" ;
+          add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+          add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id, Content-Encoding";
+          add_header Content-Length 0;
+          add_header Content-Type text/plain;
+          return 200;
       }
       if ( $arg_eHVyhwSdt ) {
         set $custom_header "Bearer $arg_eHVyhwSdt";
@@ -464,18 +464,18 @@ proxyconfig: |-
       proxy_pass $target;
     }
     location /encryption/ {
-    set $target http://encryption.{{ namespace }}.svc.cluster.local;
-    rewrite ^/encryption/(.*) /$1 break;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
-    proxy_set_header X-Scheme $scheme;
-    proxy_connect_timeout 1;
-    proxy_send_timeout 30;
-    proxy_read_timeout 40;
-    proxy_set_header    X-Forwarded-Proto $scheme;
-    proxy_set_header    X-Forwarded-For   $http_x_forwarded_for;
-    proxy_set_header X-Request-ID $sb_request_id;
-    proxy_pass $target;
+      set $target http://encryption.{{ namespace }}.svc.cluster.local;
+      rewrite ^/encryption/(.*) /$1 break;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_connect_timeout 1;
+      proxy_send_timeout 30;
+      proxy_read_timeout 40;
+      proxy_set_header    X-Forwarded-Proto $scheme;
+      proxy_set_header    X-Forwarded-For   $http_x_forwarded_for;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass $target;
     }
     location /discussions/ {
       proxy_set_header X-Real-IP $remote_addr;
@@ -491,26 +491,26 @@ proxyconfig: |-
       set $target http://nodebb-service.{{ namespace }}.svc.cluster.local:4567;
       #rewrite ^/discussions/(.*) /$1 break;
       proxy_pass $target;
-  }
+    }
     location ~* ^/assets/public/(.*) {
-          # Enabling cache for Response code 200
-          expires 1M;
-          add_header Pragma public;
-          add_header Cache-Control "public";
-          # Enabling compression
-          gzip            on;
-          gzip_min_length 100000;
-          gzip_proxied    expired no-cache no-store private auth;
-          gzip_types application/javascript application/x-javascript text/javascript;
-          if ($request_method = OPTIONS ) {
-                  add_header Access-Control-Allow-Origin "*" ;
-                  add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
-                  add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
-                  # add_header Access-Control-Allow-Credentials "true";
-                  add_header Content-Length 0;
-                  add_header Content-Type text/plain;
-                  return 200;
-          }
+      # Enabling cache for Response code 200
+      expires 1M;
+      add_header Pragma public;
+      add_header Cache-Control "public";
+      # Enabling compression
+      gzip            on;
+      gzip_min_length 100000;
+      gzip_proxied    expired no-cache no-store private auth;
+      gzip_types application/javascript application/x-javascript text/javascript;
+      if ($request_method = OPTIONS ) {
+          add_header Access-Control-Allow-Origin "*" ;
+          add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+          add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
+          # add_header Access-Control-Allow-Credentials "true";
+          add_header Content-Length 0;
+          add_header Content-Type text/plain;
+          return 200;
+      }
       set $bucket        "{{upstream_url}}";
       set $url_full         '$1';
       proxy_http_version     1.1;
@@ -524,26 +524,26 @@ proxyconfig: |-
       proxy_ignore_headers   "Set-Cookie";
       proxy_buffering        off;
       proxy_intercept_errors on;
-          add_header             Access-Control-Allow-Origin "*";
-          add_header             Access-Control-Allow-Methods GET;
+      add_header             Access-Control-Allow-Origin "*";
+      add_header             Access-Control-Allow-Methods GET;
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$bucket/$url_full;
-  }
-   location ~* ^/content/preview/(.*) {
-          # Enabling compression
-          gzip            on;
-          gzip_min_length 100000;
-          gzip_proxied    expired no-cache no-store private auth;
-          gzip_types application/javascript application/x-javascript text/css text/javascript;
-          if ($request_method = OPTIONS ) {
-                  add_header Access-Control-Allow-Origin "*" ;
-                  add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
-                  add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
-                  # add_header Access-Control-Allow-Credentials "true";
-                  add_header Content-Length 0;
-                  add_header Content-Type text/plain;
-                  return 200;
-          }
+    }
+    location ~* ^/content/preview/(.*) {
+      # Enabling compression
+      gzip            on;
+      gzip_min_length 100000;
+      gzip_proxied    expired no-cache no-store private auth;
+      gzip_types application/javascript application/x-javascript text/css text/javascript;
+      if ($request_method = OPTIONS ) {
+          add_header Access-Control-Allow-Origin "*" ;
+          add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+          add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
+          # add_header Access-Control-Allow-Credentials "true";
+          add_header Content-Length 0;
+          add_header Content-Type text/plain;
+          return 200;
+      }
       set $s3_bucket        "{{plugin_upstream_url}}";
       set $url_full         '$1';
       proxy_http_version     1.1;
@@ -561,7 +561,7 @@ proxyconfig: |-
       add_header             Access-Control-Allow-Methods GET;
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$s3_bucket/v3/preview/$url_full;
-  }
+   }
    location ~ /content-editor/telemetry|collection-editor/telemetry {
       rewrite ^/(.*) /$1 break;
       proxy_set_header Host $host;
@@ -576,21 +576,21 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://player;
     }
-  location ~* ^/content-editor/(.*) {
-          # Enabling compression
-          gzip            on;
-          gzip_min_length 100000;
-          gzip_proxied    expired no-cache no-store private auth;
-          gzip_types application/javascript application/x-javascript text/css text/javascript;
-          if ($request_method = OPTIONS ) {
-                  add_header Access-Control-Allow-Origin "*" ;
-                  add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
-                  add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
-                  # add_header Access-Control-Allow-Credentials "true";
-                  add_header Content-Length 0;
-                  add_header Content-Type text/plain;
-                  return 200;
-          }
+    location ~* ^/content-editor/(.*) {
+      # Enabling compression
+      gzip            on;
+      gzip_min_length 100000;
+      gzip_proxied    expired no-cache no-store private auth;
+      gzip_types application/javascript application/x-javascript text/css text/javascript;
+      if ($request_method = OPTIONS ) {
+          add_header Access-Control-Allow-Origin "*" ;
+          add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+          add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
+          # add_header Access-Control-Allow-Credentials "true";
+          add_header Content-Length 0;
+          add_header Content-Type text/plain;
+          return 200;
+      }
       set $s3_bucket        "{{plugin_upstream_url}}";
       set $url_full         '$1';
       proxy_http_version     1.1;
@@ -608,14 +608,13 @@ proxyconfig: |-
       add_header             Access-Control-Allow-Methods GET;
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$s3_bucket/content-editor/$url_full;
-  }
-
+    }
     location ~* ^/discussion-ui/(.*) {
-          # Enabling compression
-          gzip            on;
-          gzip_min_length 100000;
-          gzip_proxied    expired no-cache no-store private auth;
-          gzip_types application/javascript application/x-javascript text/css text/javascript;
+      # Enabling compression
+      gzip            on;
+      gzip_min_length 100000;
+      gzip_proxied    expired no-cache no-store private auth;
+      gzip_types application/javascript application/x-javascript text/css text/javascript;
       set $s3_bucket        "{{discussion_upstream_url}}";
       set $url_full         '$1';
       proxy_http_version     1.1;
@@ -633,23 +632,22 @@ proxyconfig: |-
       add_header             Access-Control-Allow-Methods GET;
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$s3_bucket/discussion-ui/$url_full;
-  }
-
+    }
     location ~* ^/collection-editor/(.*) {
-          # Enabling compression
-          gzip            on;
-          gzip_min_length 100000;
-          gzip_proxied    expired no-cache no-store private auth;
-          gzip_types application/javascript application/x-javascript text/css text/javascript;
-          if ($request_method = OPTIONS ) {
-                  add_header Access-Control-Allow-Origin "*" ;
-                  add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
-                  add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
-                  # add_header Access-Control-Allow-Credentials "true";
-                  add_header Content-Length 0;
-                  add_header Content-Type text/plain;
-                  return 200;
-          }
+      # Enabling compression
+      gzip            on;
+      gzip_min_length 100000;
+      gzip_proxied    expired no-cache no-store private auth;
+      gzip_types application/javascript application/x-javascript text/css text/javascript;
+      if ($request_method = OPTIONS ) {
+          add_header Access-Control-Allow-Origin "*" ;
+          add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+          add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
+          # add_header Access-Control-Allow-Credentials "true";
+          add_header Content-Length 0;
+          add_header Content-Type text/plain;
+          return 200;
+      }
       set $s3_bucket        "{{plugin_upstream_url}}";
       set $url_full         '$1';
       proxy_http_version     1.1;
@@ -667,22 +665,22 @@ proxyconfig: |-
       add_header             Access-Control-Allow-Methods GET;
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$s3_bucket/collection-editor/$url_full;
-  }
+    }
     location ~* ^/generic-editor/(.*) {
-          # Enabling compression
-          gzip            on;
-          gzip_min_length 100000;
-          gzip_proxied    expired no-cache no-store private auth;
-          gzip_types application/javascript application/x-javascript text/css text/javascript;
-          if ($request_method = OPTIONS ) {
-                  add_header Access-Control-Allow-Origin "*" ;
-                  add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
-                  add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
-                  # add_header Access-Control-Allow-Credentials "true";
-                  add_header Content-Length 0;
-                  add_header Content-Type text/plain;
-                  return 200;
-          }
+      # Enabling compression
+      gzip            on;
+      gzip_min_length 100000;
+      gzip_proxied    expired no-cache no-store private auth;
+      gzip_types application/javascript application/x-javascript text/css text/javascript;
+      if ($request_method = OPTIONS ) {
+          add_header Access-Control-Allow-Origin "*" ;
+          add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+          add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
+          # add_header Access-Control-Allow-Credentials "true";
+          add_header Content-Length 0;
+          add_header Content-Type text/plain;
+          return 200;
+      }
       set $s3_bucket        "{{plugin_upstream_url}}";
       set $url_full         '$1';
       proxy_http_version     1.1;
@@ -700,54 +698,54 @@ proxyconfig: |-
       add_header             Access-Control-Allow-Methods GET;
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             https://$s3_bucket/generic-editor/$url_full;
-  }
-  location ~* ^/content-plugins/(.*) {
-          # Enabling cache for Response code 200
-          expires 1M;
-          add_header Pragma public;
-          add_header Cache-Control "public";
-          # Enabling compression
-          gzip            on;
-          gzip_min_length 100000;
-          gzip_proxied    expired no-cache no-store private auth;
-          gzip_types application/javascript application/x-javascript text/css text/javascript;
-          if ($request_method = OPTIONS ) {
-                  add_header Access-Control-Allow-Origin "*" ;
-                  add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
-                  add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
-                  # add_header Access-Control-Allow-Credentials "true";
-                  add_header Content-Length 0;
-                  add_header Content-Type text/plain;
-                  return 200;
-          }
-         set $s3_bucket        "{{plugin_upstream_url}}";
-         set $url_full         '$1';
-         proxy_http_version     1.1;
-         proxy_set_header       Host "{{plugin_upstream_url.split('/')[0]|lower}}";
-         proxy_set_header       Authorization '';
-         proxy_hide_header      Access-Control-Allow-Origin;
-         proxy_hide_header      Access-Control-Allow-Methods;
-         proxy_hide_header      x-amz-id-2;
-         proxy_hide_header      x-amz-request-id;
-         proxy_hide_header      Set-Cookie;
-         proxy_ignore_headers   "Set-Cookie";
-         proxy_buffering        off;
-         proxy_intercept_errors on;
-         add_header             Access-Control-Allow-Origin "*";
-         add_header             Access-Control-Allow-Methods GET;
-         proxy_set_header X-Request-ID $sb_request_id;
-         proxy_pass             https://$s3_bucket/content-plugins/$url_full;
-  }
+    }
+    location ~* ^/content-plugins/(.*) {
+      # Enabling cache for Response code 200
+      expires 1M;
+      add_header Pragma public;
+      add_header Cache-Control "public";
+      # Enabling compression
+      gzip        on;
+      gzip_min_length 100000;
+      gzip_proxied    expired no-cache no-store private auth;
+      gzip_types application/javascript application/x-javascript text/css text/javascript;
+      if ($request_method = OPTIONS ) {
+          add_header Access-Control-Allow-Origin "*" ;
+          add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+          add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
+          # add_header Access-Control-Allow-Credentials "true";
+          add_header Content-Length 0;
+          add_header Content-Type text/plain;
+          return 200;
+      }
+      set $s3_bucket        "{{plugin_upstream_url}}";
+      set $url_full         '$1';
+      proxy_http_version     1.1;
+      proxy_set_header       Host "{{plugin_upstream_url.split('/')[0]|lower}}";
+      proxy_set_header       Authorization '';
+      proxy_hide_header      Access-Control-Allow-Origin;
+      proxy_hide_header      Access-Control-Allow-Methods;
+      proxy_hide_header      x-amz-id-2;
+      proxy_hide_header      x-amz-request-id;
+      proxy_hide_header      Set-Cookie;
+      proxy_ignore_headers   "Set-Cookie";
+      proxy_buffering        off;
+      proxy_intercept_errors on;
+      add_header             Access-Control-Allow-Origin "*";
+      add_header             Access-Control-Allow-Methods GET;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass             https://$s3_bucket/content-plugins/$url_full;
+    }
     location /thirdparty {
-          # Enabling cache for Response code 200
-          expires 1M;
-          add_header Pragma public;
-          add_header Cache-Control "public";
-          # Enabling compression
-          gzip            on;
-          gzip_min_length 100000;
-          gzip_proxied    expired no-cache no-store private auth;
-          gzip_types application/javascript application/x-javascript text/css text/javascript;
+      # Enabling cache for Response code 200
+      expires 1M;
+      add_header Pragma public;
+      add_header Cache-Control "public";
+      # Enabling compression
+      gzip            on;
+      gzip_min_length 100000;
+      gzip_proxied    expired no-cache no-store private auth;
+      gzip_types application/javascript application/x-javascript text/css text/javascript;
       rewrite ^/(.*) /$1 break;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
@@ -761,43 +759,43 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://player;
     }
-  location ~* ^/desktop/(.*) {
-          # Enabling cache for Response code 200
-          expires 1M;
-          add_header Pragma public;
-          add_header Cache-Control "public";
-          # Enabling compression
-          gzip            on;
-          gzip_min_length 100000;
-          gzip_proxied    expired no-cache no-store private auth;
-          gzip_types application/javascript application/x-javascript text/css text/javascript;
-          if ($request_method = OPTIONS ) {
-                  add_header Access-Control-Allow-Origin "*" ;
-                  add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
-                  add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
-                  # add_header Access-Control-Allow-Credentials "true";
-                  add_header Content-Length 0;
-                  add_header Content-Type text/plain;
-                  return 200;
-          }
-         set $offline_bucket        "{{ sunbird_offline_azure_storage_account_url }}";
-         set $url_full         '$1';
-         proxy_http_version     1.1;
-         proxy_set_header       Host "{{sunbird_offline_azure_storage_account_url.split('/')[0]|lower}}";
-         proxy_set_header       Authorization '';
-         proxy_hide_header      Access-Control-Allow-Origin;
-         proxy_hide_header      Access-Control-Allow-Methods;
-         proxy_hide_header      x-amz-id-2;
-         proxy_hide_header      x-amz-request-id;
-         proxy_hide_header      Set-Cookie;
-         proxy_ignore_headers   "Set-Cookie";
-         proxy_buffering        off;
-         proxy_intercept_errors on;
-         add_header             Access-Control-Allow-Origin "*";
-         add_header             Access-Control-Allow-Methods GET;
-         proxy_set_header X-Request-ID $sb_request_id;
-         proxy_pass             https://$offline_bucket/$url_full;
-  }
+    location ~* ^/desktop/(.*) {
+       # Enabling cache for Response code 200
+       expires 1M;
+       add_header Pragma public;
+       add_header Cache-Control "public";
+       # Enabling compression
+       gzip            on;
+       gzip_min_length 100000;
+       gzip_proxied    expired no-cache no-store private auth;
+       gzip_types application/javascript application/x-javascript text/css text/javascript;
+       if ($request_method = OPTIONS ) {
+           add_header Access-Control-Allow-Origin "*" ;
+           add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+           add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
+           # add_header Access-Control-Allow-Credentials "true";
+           add_header Content-Length 0;
+           add_header Content-Type text/plain;
+           return 200;
+      }
+      set $offline_bucket        "{{ sunbird_offline_azure_storage_account_url }}";
+      set $url_full         '$1';
+      proxy_http_version     1.1;
+      proxy_set_header       Host "{{sunbird_offline_azure_storage_account_url.split('/')[0]|lower}}";
+      proxy_set_header       Authorization '';
+      proxy_hide_header      Access-Control-Allow-Origin;
+      proxy_hide_header      Access-Control-Allow-Methods;
+      proxy_hide_header      x-amz-id-2;
+      proxy_hide_header      x-amz-request-id;
+      proxy_hide_header      Set-Cookie;
+      proxy_ignore_headers   "Set-Cookie";
+      proxy_buffering        off;
+      proxy_intercept_errors on;
+      add_header             Access-Control-Allow-Origin "*";
+      add_header             Access-Control-Allow-Methods GET;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass             https://$offline_bucket/$url_full;
+    }
     # compression for svg certs download
     location /api/certreg/v2/certs/download {
       rewrite ^/api/(.*) /$1 break;
@@ -962,6 +960,28 @@ proxyconfig: |-
       return 200 'OK';
       add_header Content-Type text/plain;
     }
+    location /dial/ {
+      if ($dial_upstream_host = kong) {
+          rewrite ^/dial/(.*) /api/dialcode/v2/read/$1;
+      }
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
+      proxy_set_header X-Scheme $scheme;
+      proxy_connect_timeout 5;
+      proxy_send_timeout 60;
+      proxy_read_timeout 70;
+      proxy_set_header    X-Forwarded-Proto $scheme;
+      proxy_set_header Connection "";
+      proxy_http_version 1.1;
+      proxy_set_header X-Request-ID $sb_request_id;
+      proxy_pass http://$dial_upstream_host;
+    }
+{% if apple_app_site_association is defined %}
+    location /apple-app-site-association {
+      alias /var/www/html/;
+      index apple-app-site-association.json;
+    }
+{% endif %}
     {# Including custom configuration #}
     {{ proxy_custom_config }}}
 
@@ -1023,6 +1043,10 @@ nginxconfig: |
       map $upstream_cache_status $cache_status {
         default  $upstream_cache_status;
         ''       "NONE";
+      }
+      map $http_accept $dial_upstream_host {
+        default                player;
+        application/ld+json    kong;
       }
       # Defining metrics
       init_worker_by_lua_block {
@@ -1246,3 +1270,7 @@ serviceMonitor:
   labels: # labels with which the prometheus choose the serviceMonitor
     app: prometheus-operator
     release: prometheus-operator
+
+{# Add the apple site association json contents in a single line within single quotes as shown below in Core/common.yml  #}
+{# apple_app_site_association: '{"applinks":{"apps":[],"details":[{"appID":"123456.dev.sunbird.app","paths":["/explore","/dial/*","/get/dial","/play/content","/play/collection","/learn/course","/explore-course/course","/explore-course","/search","/search/Library","/faq","/profile","/play/quiz","/explore","/learn","/resources"]}]}}' #}
+apple_universal_links: '{{ apple_app_site_association | default("") }}'

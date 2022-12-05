@@ -1,7 +1,11 @@
 ---
 - name: Ensure pip is installed
-  apt: name=python-pip
-  when: ansible_os_family == 'Debian'
+  apt: name=python-pip update_cache=yes
+  when: ansible_os_family == 'Debian' and ansible_distribution_version | float < 18
+
+- name: Ensure pip is installed
+  apt: name=python3-pip update_cache=yes
+  when: ansible_os_family == 'Debian' and ansible_distribution_version | float > 18
 
 - name: Ensure PyJWT is installed
   pip: name=PyJWT
@@ -44,3 +48,7 @@
   with_items:
     - /tmp/jwt_token_output.txt
     - /tmp/jwt_token.txt
+
+- name: Reload kong
+  shell: kubectl get pod -l app=apimanager --namespace={{namespace}} -o name | xargs -I{} kubectl exec {} -- kong reload
+  ignore_errors: true

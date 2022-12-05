@@ -6,10 +6,16 @@
     - es_snapshot_host: "{{app_es_snapshot_host}}"
     - snapshot_base_path: "{{app_snapshot_base_path}}"
   roles:
-    - es-azure-snapshot
-    - es5-snapshot-purge
+    - role: es-azure-snapshot
+      when: cloud_service_provider == "azure"
+    - role: es-s3-snapshot
+      when: cloud_service_provider == "aws"
+    - role: es-gcs-snapshot
+      when: cloud_service_provider == "gcloud"
+    - role: es5-snapshot-purge
   tags:
     - es_backup
+  run_once: true
 
 - hosts: log-es-backup
   become: yes
@@ -19,16 +25,13 @@
     - es_snapshot_host: "{{log_es_snapshot_host}}"
     - snapshot_base_path: "{{log_snapshot_base_path}}"
   roles:
-    - es-azure-snapshot
+    - role: es-azure-snapshot
+      when: cloud_service_provider == "azure"
+    - role: es-s3-snapshot
+      when: cloud_service_provider == "aws"
+    - role: es-gcs-snapshot
+      when: cloud_service_provider == "gcloud"
     - es5-snapshot-purge
   tags:
     - log_es_backup
-
-- hosts: log-es
-  become: yes
-  vars_files:
-    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-  roles:
-    - es2-data-purge
-  tags:
-    - purge_old_logs
+  run_once: true

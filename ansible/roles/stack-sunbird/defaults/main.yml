@@ -583,7 +583,7 @@ notification_liveness_readiness:
   healthcheck: true
   readinessProbe:
     httpGet:
-      path: /service/health
+      path: /health
       port: 9000
     initialDelaySeconds: 15
     periodSeconds: 15
@@ -591,7 +591,7 @@ notification_liveness_readiness:
     failureThreshold: 2
   livenessProbe:
     httpGet:
-      path: /service/health
+      path: /health
       port: 9000
     initialDelaySeconds: 15
     periodSeconds: 15
@@ -607,7 +607,7 @@ nodebb_liveness_readiness:
     initialDelaySeconds: 45
     periodSeconds: 15
     timeoutSeconds: 5
-    failureThreshold: 2
+    failureThreshold: 20
   livenessProbe:
     httpGet:
       path: /discussions/api/category/2
@@ -615,7 +615,7 @@ nodebb_liveness_readiness:
     initialDelaySeconds: 45
     periodSeconds: 15
     timeoutSeconds: 5
-    failureThreshold: 2
+    failureThreshold: 20
 
 player_liveness_readiness:
   healthcheck: true
@@ -753,7 +753,7 @@ report_liveness_readiness:
   healthcheck: false
   readinessProbe:
     httpGet:
-      path: /health
+      path: /service/health
       port: 3030
     initialDelaySeconds: 15
     periodSeconds: 15
@@ -1029,10 +1029,12 @@ mount_keycloak_key_apps:
 master_category_validation_enabled: "Yes"
 
 opa_policies_path: ../../../opa
-common_opa_policies_path: "{{ opa_policies_path }}/common"
+# Cannot remove common.rego from common_opa_policy_files yet
+# Opa issue - https://github.com/open-policy-agent/opa/issues/4335
 common_opa_policy_files:
   - main.rego
   - common.rego
+mandate_opa_tests_coverage: true
 
 analytics_opa_enabled: true
 certregistry_opa_enabled: true
@@ -1040,7 +1042,13 @@ content_opa_enabled: true
 knowledgemw_opa_enabled: true
 learner_opa_enabled: true
 lms_opa_enabled: true
+notification_opa_enabled: true
+report_opa_enabled: true
 
 # Desktop app is not sending x-authenticated-for header due to which managed user flow is breaking
 # This is a temporary fix till the desktop app issue is fixed
 kong_desktop_device_consumer_names_for_opa: '["desktop"]'
+
+# Audience claim check is disabled as of now
+# List of keycloak clients as these can come in audience field of a JWT token
+# keycloak_allowed_aud: '"{{ keycloak_auth_server_url }}/realms/{{ keycloak_realm }}", "account", "realm-management"'

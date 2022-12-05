@@ -30,6 +30,7 @@
     group: "graylog"
     mode: 0644
   notify: "restart graylog-server"
+  tags: configuration
 
 - name: "Graylog server defaults should be configured"
   template:
@@ -39,15 +40,16 @@
     group: "graylog"
     mode: 0644
   notify: "restart graylog-server"
+  tags: configuration
 
-- name: "Add log4j env to service file"
-  lineinfile:
-    path: /usr/lib/systemd/system/graylog-server.service
-    insertafter: \[Service]
-    line: "Environment=\"_JAVA_OPTIONS='-Dlog4j2.formatMsgNoLookups=true'\""
-    firstmatch: yes
-    state: present
-  notify: "restart graylog-server"
+- name: "Copy custom prometheus mapping for additional metrics"
+  copy:
+    src: "prometheus-exporter-mapping-custom.yml"
+    dest: "/etc/graylog/server/prometheus-exporter-mapping-custom.yml"
+    owner: "graylog"
+    group: "graylog"
+    mode: 0644
+  tags: configuration
 
 - name: "Graylog server should start after reboot"
   file:

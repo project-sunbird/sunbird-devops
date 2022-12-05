@@ -40,6 +40,7 @@ data:
                       envoy.filters.http.ext_authz:
                         "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
                         disabled: true
+{{- if ((.Values.livenessProbe).httpGet).path }}
                   - match:
                       prefix: "{{ .Values.livenessProbe.httpGet.path }}"
                     route:
@@ -48,6 +49,17 @@ data:
                       envoy.filters.http.ext_authz:
                         "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
                         disabled: true
+{{- end }}
+{{- if ((.Values.readinessProbe).httpGet).path }}
+                  - match:
+                      prefix: "{{ .Values.readinessProbe.httpGet.path }}"
+                    route:
+                      cluster: service
+                    typed_per_filter_config:
+                      envoy.filters.http.ext_authz:
+                        "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute
+                        disabled: true
+{{- end }}
                   - match:
                       prefix: "/"
                     route:
