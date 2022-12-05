@@ -1,1 +1,1 @@
-### Installation wiki moved to [here.](http://www.sunbird.org/developer-docs/installation)
+### Installation wiki moved to [here.](http://www.sunbird.org/developer-docs/installation) 
