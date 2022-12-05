@@ -97,6 +97,7 @@ content_service_url: "http://content-service:9000"
 taxonomy_service_url: "http://taxonomy-service:9000"
 assessment_service_url: "http://assessment-service:9000"
 ml_core_service_url: "http://ml-core-service:3000"
+dial_service_url: "http://dial-service:9000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -2176,6 +2177,23 @@ kong_apis:
 - name: readDialcodeV2
   uris: "{{ dialcode_service_prefix }}/v2/read"
   upstream_url: "{{ knowledge_mw_service_url }}/v2/dialcode/read"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: readDIALCodesBatchInfo
+  uris: "{{ dialcode_service_prefix }}/v2/read/batch"
+  upstream_url: "{{ dial_service_url }}/dialcode/v4/batch/read"
   strip_uri: true
   plugins:
   - name: cors
