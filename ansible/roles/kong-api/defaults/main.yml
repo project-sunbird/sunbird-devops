@@ -9815,3 +9815,24 @@ kong_apis:
   - name: opa-checks
     config.required: true
     config.enabled: true
+
+- name: fetchAllForm
+  uris: "{{ data_service_prefix }}/v1/form/fetchAll"
+  upstream_url: "{{ player_service_url }}/plugin/v1/form/fetchAll"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - appAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ small_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
