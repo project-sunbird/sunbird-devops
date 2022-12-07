@@ -15,7 +15,14 @@ echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
 apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
 apt-get update
-apt-get install -y jenkins=2.277.4
+apt-get install -y jenkins=2.319.3
+
+
+sudo apt install python2
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python2 0
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+sudo update-alternatives --list python
+sudo update-alternatives --set python /usr/bin/python2
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
