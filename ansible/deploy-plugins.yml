@@ -24,8 +24,8 @@
           set_fact:
             blob_container_name: "{{ plugin_storage }}"
             container_public_access: "container"
-            storage_account_name: "{{ azure_public_storage_account_name }}"
-            storage_account_key: "{{ azure_public_storage_account_key }}"
+            storage_account_name: "{{ cloud_public_storage_accountname }}"
+            storage_account_key: "{{ cloud_public_storage_secret }}"
             storage_account_sas_token: "{{ azure_public_storage_account_sas }}"
           tags:
             - always
@@ -92,8 +92,9 @@
       block:
         - name: set common gcloud variables
           set_fact:
-            dest_folder_name: "{{ plugin_storage }}"
-            gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+            gcp_bucket_name: "{{ cloud_storage_content_bucketname }}"
+            gcp_path: ""
+
           tags:
             - always
   
@@ -103,7 +104,7 @@
               name: gcp-cloud-storage
               tasks_from: delete-batch.yml
           vars:
-            file_delete_pattern: "{{ dest_folder_name }}/{{ folder_name }}"
+            file_delete_pattern: "{{ folder_name }}"
           tags:
             - content-editor
             - collection-editor
@@ -116,7 +117,7 @@
               name: gcp-cloud-storage
               tasks_from: upload-batch.yml
             vars:
-              dest_folder_path: "{{ folder_name }}"
+              gcp_path: "{{ folder_name }}"
               local_file_or_folder_path: "{{ source_name }}"
           tags:
             - content-editor
@@ -132,7 +133,7 @@
               name: gcp-cloud-storage
               tasks_from: upload.yml
             vars:
-              dest_file_name: "artefacts/content-player/content-player-{{ player_version_number }}.zip"
+              gcp_path: "artefacts/content-player/content-player-{{ player_version_number }}.zip"
               local_file_or_folder_path: "{{ source_file_name }}"
           tags:
             - preview
@@ -149,7 +150,7 @@
               tasks_from: "{{ item[0] }}"
             vars:
               file_delete_pattern: "content-plugins/{{ item[1] }}/*"
-              dest_folder_path: "content-plugins/{{ item[1] }}"
+              gcp_path: "content-plugins/{{ item[1] }}"
               local_file_or_folder_path: "{{ source_folder }}/{{ item[1] }}"
             with_nested:
               - ['delete-batch-no-poll.yml', 'upload-batch-no-poll.yml']
