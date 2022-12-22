@@ -1,0 +1,14 @@
+---
+- name: create tmp gcp service key file
+  tempfile:
+    state:  file
+    suffix: gcp
+  register: config_key
+
+- name: Copy service account key file
+  copy: 
+    content: "{{ gcp_storage_key_file }}" 
+    dest: "{{ config_key.path }}"
+
+- name: Configure gcloud service account
+  shell: gcloud auth activate-service-account "{{ gcp_storage_service_account_name }}" --key-file="{{ config_key.path }}"
