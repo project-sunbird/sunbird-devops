@@ -1,0 +1,17 @@
+---
+# Retrieve information from cassandra
+
+- hosts: "{{server_group}}"
+  gather_facts: false
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  tasks:
+    - name: validate the cassandra query
+      shell: "echo {{cassandra_query}} | grep -iE 'drop|delete|truncate|alter|update|insert'"
+      register: validator_output
+      run_once: true
+
+    - name: execute the query on succesful validation
+      shell: "cqlsh --request-timeout=3600 \"{{cassandra_query}}\""
+      when: validator_output.rc == 1
+      run_once: true

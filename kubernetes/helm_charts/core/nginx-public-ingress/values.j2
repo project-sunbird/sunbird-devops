@@ -117,6 +117,9 @@ proxyconfig: |-
     proxy_set_header    X-Forwarded-Proto $scheme;
     ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
     resolver {{ kube_dns_ip }} valid=30s;
+    location ~* .*\/\.\..*$ {
+      return 401 "InvalidRoute Called.";
+    }
     # Mobile Devices Refresh token Endpoints
     location ~* ^/auth/v1/refresh/token  {
       rewrite ^/auth/(.*) /auth/$1 break;
@@ -1211,7 +1214,12 @@ keycloakconf: |
       proxy_http_version 1.1;
       proxy_pass http://keycloak;
     }
+    location /mirror {
+      proxy_set_header Requestdebugger_url https://dev.sunbirded.org;
+      proxy_pass http://requestdebugger-service.dev.svc.cluster.local:80$request_uri;
+    }
     location / {
+      mirror /mirror;
       rewrite ^/(.*) /$1 break;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP {{ nginx_client_public_ip_header | d('$remote_addr') }};
