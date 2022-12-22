@@ -2659,7 +2659,97 @@ kong_apis:
 
   - name: publishContent
     request_path: "{{ content_prefix }}/v1/publish"
-    upstream_url: "{{ knowledge_mw_service_url }}/v1/content/publish"
+    upstream_url: "{{ content_service_url }}/content/v3/publish"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: publishContentV2
+    request_path: "{{ content_prefix }}/v2/publish"
+    upstream_url: "{{ content_service_url }}/content/v4/publish"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: unlistedPublishContent
+    request_path: "{{ content_prefix }}/v1/unlisted/publish"
+    upstream_url: "{{ content_service_url }}/content/v3/unlisted/publish"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: unlistedPublishContentV2
+    request_path: "{{ content_prefix }}/v2/unlisted/publish"
+    upstream_url: "{{ content_service_url }}/content/v4/unlisted/publish"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: publishCollection
+    request_path: "{{ collection_prefix }}/v1/publish"
+    upstream_url: "{{ content_service_url }}/collection/v4/publish"
+    strip_request_path: true
+    plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - 'contentAdmin'
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ small_request_size_limit }}"
+
+  - name: unlistedPublishCollection
+    request_path: "{{ collection_prefix }}/v1/unlisted/publish"
+    upstream_url: "{{ content_service_url }}/collection/v4/unlisted/publish"
     strip_request_path: true
     plugins:
     - name: jwt
