@@ -21,30 +21,30 @@ In hosts files:
 
 
 etcd Role variables:
-etcd_name: "postgres-etcd"                                                        # cluster name
-etcd_initial_cluster: "{{ etcd_name }}=http://{{ etcd_ip }}:2380"                 # initial cluster
-etcd_initial_cluster_state: "postgres"                                            # initial cluster state
-etcd_initial_cluster_token: "etcd-cluster-postgres"                               # initial cluster token
-etcd_initial_advertise_peer_urls: "http://{{ etcd_ip }}:2380"                     # initial advertise peer urls
-etcd_listen_peer_urls: "http://{{ etcd_ip }}:2380"                                # listen peer urls
-etcd_listen_client_urls: "http://{{ etcd_ip }}:2379,http://127.0.0.1:2379"        # listen client urls
-etcd_advertise_client_urls: "http://{{ etcd_ip }}:2379"                           # advertise client urls
+postgres_patroni_etcd_name: "postgres-etcd"                                                        # cluster name
+postgres_patroni_etcd_initial_cluster: "{{ etcd_name }}=http://{{ etcd_ip }}:2380"                 # initial cluster
+postgres_patroni_etcd_initial_cluster_state: "postgres"                                            # initial cluster state
+postgres_patroni_etcd_initial_cluster_token: "etcd-cluster-postgres"                               # initial cluster token
+postgres_patroni_etcd_initial_advertise_peer_urls: "http://{{ etcd_ip }}:2380"                     # initial advertise peer urls
+postgres_patroni_etcd_listen_peer_urls: "http://{{ etcd_ip }}:2380"                                # listen peer urls
+postgres_patroni_etcd_listen_client_urls: "http://{{ etcd_ip }}:2379,http://127.0.0.1:2379"        # listen client urls
+postgres_patroni_etcd_advertise_client_urls: "http://{{ etcd_ip }}:2379"                           # advertise client urls
 
 Ansible-postgres_patroni role Variables:
 #patroni .yaml config
-Postgres_cluster_name: postgresql-prod      # Cluster name
+postgres_cluster_name: postgresql-prod      # Cluster name
 
 # users admin password
-admin_password: admin                       # Admin Password
+postgres_patroni_admin_password: admin                       # Admin Password
 
 #Authentication
 # Replication
-replication_username: replicator            # Replication Username
-replication_password: password              # Replication password
+postgres_patroni_replication_username: replicator            # Replication Username
+postgres_patroni_replication_password: password              # Replication password
 
 #SuperUser
-superuser_username: postgres                # Superuser username
-superuser_password: password                # Superuser Password
+postgres_patroni_superuser_username: postgres                # Superuser username
+postgres_patroni_superuser_password: password                # Superuser Password
 ```
 Architecture
 ------------
