@@ -7,6 +7,7 @@
 
 - name: Execute run.sh
   become: yes
+  become_user: data-pipeline
   shell: "/opt/sparkjobs/ml-analytics-service/run.sh > /opt/sparkjobs/ml-analytics-service/run_job.log"
   tags:
     - run-job
@@ -20,6 +21,7 @@
 
 - name: Execute run_weekly.sh
   become: yes
+  become_user: data-pipeline
   shell: "/opt/sparkjobs/ml-analytics-service/run_weekly.sh > /opt/sparkjobs/ml-analytics-service/run_weekly_job.log"
   tags:
     - run-weekly
@@ -33,6 +35,7 @@
 
 - name: Execute run_program.sh
   become: yes
+  become_user: data-pipeline
   shell: "/opt/sparkjobs/ml-analytics-service/run_program.sh > /opt/sparkjobs/ml-analytics-service/run_program_job.log"
   tags:
     - run-program
@@ -46,52 +49,55 @@
 
 - name: Execute Observation ingest/refresh
   become: yes
-  shell: "/opt/sparkjobs/spark_venv/bin/activate && /opt/sparkjobs/spark_venv/lib/python3.8/site-packages/pyspark/bin/spark-submit --driver-memory 50g --executor-memory 50g /opt/sparkjobs/ml-analytics-service/observations/pyspark_observation_status_batch.py > /opt/sparkjobs/ml-analytics-service/obs_refresh.log"
+  become_user: data-pipeline
+  shell: "source /opt/sparkjobs/spark_venv/bin/activate && /opt/sparkjobs/spark_venv/lib/python3.8/site-packages/pyspark/bin/spark-submit --driver-memory 50g --executor-memory 50g /opt/sparkjobs/ml-analytics-service/observations/pyspark_observation_status_batch.py"
+  register: out
   tags:
     - observation-refresh-ingest
 
-- name: Fetch obs_refresh.log
-  synchronize: src="{{ item }}" dest="../output/" mode=pull recursive=yes rsync_path=rsync
-  with_items:
-    - "/opt/sparkjobs/ml-analytics-service/obs_refresh.log"
+- debug:
+    var: out.stdout_lines
   tags:
     - observation-refresh-ingest
 
 - name: Execute Survey ingest/refresh
   become: yes
-  shell: "/opt/sparkjobs/spark_venv/bin/activate && /opt/sparkjobs/spark_venv/lib/python3.8/site-packages/pyspark/bin/spark-submit --driver-memory 50g --executor-memory 50g /opt/sparkjobs/ml-analytics-service/survey/pyspark_survey_status.py > /opt/sparkjobs/ml-analytics-service/survey_refresh.log"
+  become_user: data-pipeline
+  shell: "source /opt/sparkjobs/spark_venv/bin/activate && /opt/sparkjobs/spark_venv/lib/python3.8/site-packages/pyspark/bin/spark-submit --driver-memory 50g --executor-memory 50g /opt/sparkjobs/ml-analytics-service/survey/pyspark_survey_status.py"
+  args:
+    executable: /bin/bash
   tags:
     - survey-refresh-ingest
 
-- name: Fetch survey_refresh.log
-  synchronize: src="{{ item }}" dest="../output/" mode=pull recursive=yes rsync_path=rsync
-  with_items:
-    - "/opt/sparkjobs/ml-analytics-service/survey_refresh.log"
+- debug:
+    var: out.stdout_lines
   tags:
     - survey-refresh-ingest
 
 - name: Execute Project Refresh
   become: yes
-  shell: "/opt/sparkjobs/spark_venv/bin/activate && /opt/sparkjobs/spark_venv/lib/python3.8/site-packages/pyspark/bin/spark-submit --driver-memory 50g --executor-memory 50g /opt/sparkjobs/ml-analytics-service/projects/pyspark_project_deletion_batch.py > /opt/sparkjobs/ml-analytics-service/proj_refresh.log"
+  become_user: data-pipeline
+  shell: "source /opt/sparkjobs/spark_venv/bin/activate && /opt/sparkjobs/spark_venv/lib/python3.8/site-packages/pyspark/bin/spark-submit --driver-memory 50g --executor-memory 50g /opt/sparkjobs/ml-analytics-service/projects/pyspark_project_deletion_batch.py"
+  args:
+    executable: /bin/bash
   tags:
     - project-refresh
 
-- name: Fetch proj_refresh.log
-  synchronize: src="{{ item }}" dest="../output/" mode=pull recursive=yes rsync_path=rsync
-  with_items:
-    - "/opt/sparkjobs/ml-analytics-service/proj_refresh.log"
+- debug:
+    var: out.stdout_lines
   tags:
     - project-refresh
 
 - name: Execute Project ingest
   become: yes
-  shell: "/opt/sparkjobs/spark_venv/bin/activate && /opt/sparkjobs/spark_venv/lib/python3.8/site-packages/pyspark/bin/spark-submit --driver-memory 50g --executor-memory 50g /opt/sparkjobs/ml-analytics-service/projects/pyspark_project_batch.py > /opt/sparkjobs/ml-analytics-service/proj_ingest.log"
+  become_user: data-pipeline
+  shell: "source /opt/sparkjobs/spark_venv/bin/activate && /opt/sparkjobs/spark_venv/lib/python3.8/site-packages/pyspark/bin/spark-submit --driver-memory 50g --executor-memory 50g /opt/sparkjobs/ml-analytics-service/projects/pyspark_project_batch.py"
+  args:
+    executable: /bin/bash
   tags:
     - project-ingest
-
-- name: Fetch proj_ingest.log
-  synchronize: src="{{ item }}" dest="../output/" mode=pull recursive=yes rsync_path=rsync
-  with_items:
-    - "/opt/sparkjobs/ml-analytics-service/proj_ingest.log"
+  
+- debug:
+    var: out.stdout_lines
   tags:
     - project-ingest
