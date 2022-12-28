@@ -5,15 +5,79 @@ domain_name: ""          # your domain name like example.com
 # docker hub details
 dockerhub: "change.docker.url"                                      # docker hub username or url incase of private registry
 private_ingressgateway_ip: ""                        # your private kubernetes load balancer ip
-# Note - You can use the same azure account for the below variables or have separate azure accounts
-sunbird_private_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing private data (like reports, telemetry data)
-sunbird_public_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing public data (like contents)
-sunbird_druid_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing druid data (like query results)
-sunbird_artifact_storage_account_name: "change.azure.storage.account.name"       # Azure account name for storing artifacts data (like jenkins build zip files)
-sunbird_management_storage_account_name: "change.azure.storage.account.name"     # Azure account name for storing backup data (like cassandra backups)
+
+# Cloud Service Provider Variables
+cloud_public_storage_accountname: ""  # If cloud_service_provider is aws--> access key, gcp--> service account name, azure--> storage account name
+cloud_public_storage_endpoint: ""     # Not required in current release
+cloud_public_storage_region: ""       # If cloud_service_provider is aws and oci update this variable
+cloud_public_storage_project: ""      # If cloud_service_provider is gcp update this variable
+cloud_public_storage_namespace: ""    # If cloud_service_provider is oci update this variable
+
+cloud_private_storage_accountname: "" # If cloud_service_provider is aws--> access key, gcp--> service account name, azure--> storage account name
+cloud_private_storage_endpoint: ""    # Not required in current release
+cloud_private_storage_region: ""      # If cloud_service_provider is aws and oci update this variable
+cloud_private_storage_project: ""     # If cloud_service_provider is gcp update this variable
+cloud_private_storage_namespace: ""    # If cloud_service_provider is oci update this variable
+
+cloud_management_storage_accountname: ""  # If cloud_service_provider is aws--> access key, gcp--> service account name, azure--> storage account name
+cloud_management_storage_endpoint: ""     # Not required in current release
+cloud_management_storage_region: ""       # If cloud_service_provider is aws and oci update this variable
+cloud_management_storage_project: ""      # If cloud_service_provider is gcp update this variable
+cloud_management_storage_namespace: ""    # If cloud_service_provider is oci update this variable
+
+cloud_artifact_storage_accountname: ""  # If cloud_service_provider is aws--> access key, gcp--> service account name, azure--> storage account name
+cloud_artifact_storage_endpoint: ""     # Not required in current release
+cloud_artifact_storage_region: ""       # If cloud_service_provider is aws and oci update this variable
+cloud_artifact_storage_project: ""      # If cloud_service_provider is gcp update this variable
+cloud_artifact_storage_namespace: ""    # If cloud_service_provider is oci update this variable
+
+# Create object storage for each below mentioned variabled and update accordingly
+cloud_storage_certqr_bucketname: ""
+cloud_storage_chatbot_bucketname: ""
+cloud_storage_dial_bucketname: ""
+cloud_storage_flink_bucketname: ""
+cloud_storage_playercdn_bucketname: ""
+cloud_storage_public_bucketname: ""
+cloud_storage_publicreports_bucketname: ""
+cloud_storage_privatereports_bucketname: ""
+cloud_storage_samiksha_bucketname: ""
+cloud_storage_schema_bucketname: ""
+cloud_storage_sourcing_bucketname: ""
+cloud_storage_offlineinstaller_bucketname: ""
+cloud_storage_content_bucketname: ""
+cloud_storage_telemetry_bucketname: ""
+cloud_storage_termsandcondtions_bucketname: ""
+cloud_storage_user_bucketname: ""
+cloud_storage_desktopappcrashlogs_bucketname: ""
+cloud_storage_label_bucketname: ""
+cloud_storage_certservice_bucketname: ""
+cloud_storage_uci_bucketname: "" 
+cloud_storage_artifacts_bucketname: ""
+
+cloud_storage_management_bucketname: ""  # This object storage is used for backups
+
+## Enable below vars to upload database backups in seperate buckets 
+# cloud_storage_cassandrabackup_bucketname: ""
+# cloud_storage_dpcassandrabackup_bucketname: ""
+# cloud_storage_dppostgresbackup_bucketname: ""
+# cloud_storage_dpredisbackup_bucketname: ""
+# cloud_storage_esbackup_bucketname: ""
+# cloud_storage_influxdbbackup_bucketname: ""
+# cloud_storage_jenkinsbackup_bucketname: ""
+# cloud_storage_mongobackup_bucketname: ""
+# cloud_storage_neo4jbackup_bucketname: ""
+# cloud_storage_redisbackup_bucketname: ""
 
 
-
+# Uncomment the variable based on your cloud provider (as a default we have kept Azure variable uncommented)
+# GCP
+# cloud_storage_url: https://storage.cloud.google.com
+# AWS
+# cloud_storage_url: "https://s3.{{ cloud_public_storage_region }}.amazonaws.com"
+# OCI
+# cloud_storage_url: https://{{ cloud_public_storage_namespace }}.compat.objectstorage.{{ cloud_public_storage_region }}.oraclecloud.com/{{ bucket_name }}
+# Azure
+cloud_storage_url: "https://{{ cloud_public_storage_accountname }}.blob.core.windows.net"
 
 # ------------------------------------------------------------------------------------------------------------ #
 # Optional variables - Can be left blank if you dont plan to use the intended features
@@ -48,8 +112,6 @@ postgres:
   db_admin_password: "{{dp_vault_pgdb_admin_password}}"
 
 druid_postgres_user: druid # Do not change this
-sunbird_private_azure_report_container_name: 'reports'
-sunbird_public_azure_report_container_name: 'public-reports'
 imagepullsecrets: "{{env}}registrysecret"                  # kubernetes imagePullSecrets
 kubeconfig_path: /var/lib/jenkins/secrets/k8s.yaml         # kubeconfig file path on jenkins
 core_kubeconfig_path: "{{ kubeconfig_path }}"              # kubeconfig file path on jenkins for core kube cluster, change this if you use separate kube cluster for core and KP + DP
@@ -170,10 +232,3 @@ processing_kafka_overriden_topics:
     retention_time: 86400000
     replication_factor: 1
 
-# Define the below if you are using Google Cloud
-gcloud_private_bucket_name: ""
-gcloud_public_bucket_name: ""
-gcloud_artifact_bucket_name: ""
-gcloud_management_bucket_name: ""
-
-gcloud_private_bucket_projectId: ""

@@ -20,41 +20,78 @@ sunbird_mail_server_from_email: "support@myorg.com"       # Email ID that should
 # List of mail ids to whome the monitoring alerts should be sent.
 alerts_mailing_list : "devops@myorg.com"                         # Comma separated mail list for Alerts; eg: user1@mail.com, user2@mail.com
 
+# Cloud Service Provider Variables
+cloud_public_storage_accountname: ""  # If cloud_service_provider is aws--> access key, gcp--> service account name, azure--> storage account name
+cloud_public_storage_endpoint: ""     # Not required in current release
+cloud_public_storage_region: ""       # If cloud_service_provider is aws and oci update this variable
+cloud_public_storage_project: ""      # If cloud_service_provider is gcp update this variable
+cloud_public_storage_namespace: ""    # If cloud_service_provider is oci update this variable
 
-# Define the below if you are using Azure Cloud
-# Note - You can use the same azure account for the below variables or have separate azure accounts
-sunbird_public_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing public data (like contents)
-sunbird_private_storage_account_name: "change.azure.storage.account.name"        # Azure account name for storing private data (like reports, telemetry data)
-sunbird_management_storage_account_name: "change.azure.storage.account.name"     # Azure account name for storing backup data (like cassandra backups)
-sunbird_artifact_storage_account_name: "{{ sunbird_management_storage_account_name }}"    # Azure account name for storing artifacts data (like jenkins build zip files)
+cloud_private_storage_accountname: "" # If cloud_service_provider is aws--> access key, gcp--> service account name, azure--> storage account name
+cloud_private_storage_endpoint: ""    # Not required in current release
+cloud_private_storage_region: ""      # If cloud_service_provider is aws and oci update this variable
+cloud_private_storage_project: ""     # If cloud_service_provider is gcp update this variable
+cloud_private_storage_namespace: ""    # If cloud_service_provider is oci update this variable
 
-azure_public_storage_account_name: "{{ sunbird_public_storage_account_name }}"
-azure_private_storage_account_name: "{{ sunbird_private_storage_account_name }}"
-azure_management_storage_account_name: "{{ sunbird_management_storage_account_name }}"
-azure_artifact_storage_account_name: "{{ sunbird_artifact_storage_account_name }}"
+cloud_management_storage_accountname: ""  # If cloud_service_provider is aws--> access key, gcp--> service account name, azure--> storage account name
+cloud_management_storage_endpoint: ""     # Not required in current release
+cloud_management_storage_region: ""       # If cloud_service_provider is aws and oci update this variable
+cloud_management_storage_project: ""      # If cloud_service_provider is gcp update this variable
+cloud_management_storage_namespace: ""    # If cloud_service_provider is oci update this variable
 
-# Define the below if you are using AWS Cloud
-aws_region: "" 
-aws_management_s3_bucket_name: ""
-aws_artifact_s3_bucket_name: ""
-aws_public_s3_bucket_name: ""
-aws_private_s3_bucket_name: ""
+cloud_artifact_storage_accountname: ""  # If cloud_service_provider is aws--> access key, gcp--> service account name, azure--> storage account name
+cloud_artifact_storage_endpoint: ""     # Not required in current release
+cloud_artifact_storage_region: ""       # If cloud_service_provider is aws and oci update this variable
+cloud_artifact_storage_project: ""      # If cloud_service_provider is gcp update this variable
+cloud_artifact_storage_namespace: ""    # If cloud_service_provider is oci update this variable
 
-# Define the below if you are using Google Cloud
-gcloud_private_bucket_name: ""
-gcloud_public_bucket_name: ""
-gcloud_artifact_bucket_name: ""
-gcloud_management_bucket_name: ""
+# Create object storage for each below mentioned variabled and update accordingly
+cloud_storage_certqr_bucketname: ""
+cloud_storage_chatbot_bucketname: ""
+cloud_storage_dial_bucketname: ""
+cloud_storage_flink_bucketname: ""
+cloud_storage_playercdn_bucketname: ""
+cloud_storage_public_bucketname: ""
+cloud_storage_publicreports_bucketname: ""
+cloud_storage_privatereports_bucketname: ""
+cloud_storage_samiksha_bucketname: ""
+cloud_storage_schema_bucketname: ""
+cloud_storage_sourcing_bucketname: ""
+cloud_storage_offlineinstaller_bucketname: ""
+cloud_storage_content_bucketname: ""
+cloud_storage_telemetry_bucketname: ""
+cloud_storage_termsandcondtions_bucketname: ""
+cloud_storage_user_bucketname: ""
+cloud_storage_desktopappcrashlogs_bucketname: ""
+cloud_storage_label_bucketname: ""
+cloud_storage_certservice_bucketname: ""
+cloud_storage_uci_bucketname: "" 
+cloud_storage_artifacts_bucketname: ""
 
-gcloud_private_bucket_projectId: ""
+cloud_storage_management_bucketname: ""  # This object storage is used for backups
+
+## Enable below vars to upload database backups in seperate buckets 
+# cloud_storage_cassandrabackup_bucketname: ""
+# cloud_storage_dpcassandrabackup_bucketname: ""
+# cloud_storage_dppostgresbackup_bucketname: ""
+# cloud_storage_dpredisbackup_bucketname: ""
+# cloud_storage_esbackup_bucketname: ""
+# cloud_storage_influxdbbackup_bucketname: ""
+# cloud_storage_jenkinsbackup_bucketname: ""
+# cloud_storage_mongobackup_bucketname: ""
+# cloud_storage_neo4jbackup_bucketname: ""
+# cloud_storage_redisbackup_bucketname: ""
+
 
 # Uncomment the variable based on your cloud provider (as a default we have kept Azure variable uncommented)
 # GCP
-# cloud_storage_url: https://storage.cloud.google.com/{{ gcloud_public_bucket_name }}
+# cloud_storage_url: https://storage.cloud.google.com
 # AWS
-# cloud_storage_url: "https://{{aws_public_s3_bucket_name}}.s3.{{aws_region}}.amazonaws.com"
+# cloud_storage_url: "https://s3.{{ cloud_public_storage_region }}.amazonaws.com"
+# OCI
+# cloud_storage_url: https://{{ cloud_public_storage_namespace }}.compat.objectstorage.{{ cloud_public_storage_region }}.oraclecloud.com/{{ bucket_name }}
 # Azure
-cloud_storage_url: "https://{{ sunbird_public_storage_account_name }}.blob.core.windows.net"
+cloud_storage_url: "https://{{ cloud_public_storage_accountname }}.blob.core.windows.net"
 
 # ------------------------------------------------------------------------------------------------------------ #
 # Cloud / Infra Specific values - Check these and update accordingly
@@ -80,10 +117,6 @@ env: dev                  # some name like dev, preprod etc
 proto: https               # http or https, preferably https
 sunbird_default_channel: sunbird                # default sunbird channel name
 environment_id: "10000003"                                 # A 8 digit number for example like 1000000, should be same as defined in KP common.yml
-
-# SB-31155 - This should be deprecated in future in favour of content_storage defined in all.yml
-sunbird_content_azure_storage_container: contents        # Azure container name for storing public data (like contents), should be same as azure_public_container defined in KP common.yml
-
 
 # This sms sender id should be verified by your provider. This is the sender id which will be used for `From Address`. For example,
 #
@@ -131,19 +164,12 @@ postgres:
   db_admin_password: "{{core_vault_postgres_password}}"
 
 
-# Azure account related vars
-sunbird_azure_public_storage_account_name: "{{ sunbird_public_storage_account_name }}"
-azure_plugin_storage_account_name: "{{sunbird_azure_public_storage_account_name}}"
-azure_plugin_storage_account_key: "{{sunbird_public_storage_account_key}}"
-plugin_container_name: "{{sunbird_content_azure_storage_container}}"
-
 keycloak_api_management_user_email: "admin@sunbird.org"
 sunbird_installation_email: "admin@sunbird.org"
 
 # Other vars
 cert_service_container_name: e-credentials               # Conatiner name for cert service to store cert templates
 cert_service_cloud_storage_type: azure                   # Changes this if you use other clouds like aws, gcp
-artifacts_container: artifacts                           # Azure blob container name to save built artifacts, default it can be arti
 dataexhaust_super_admin_channel: sunbird
 dedup_redis_host: "{{ groups['dp-redis'][0] }}"          # for router service
 namespace: "{{ env }}"                                   # required for bot and router, these helm charts should be moved to devops repo
