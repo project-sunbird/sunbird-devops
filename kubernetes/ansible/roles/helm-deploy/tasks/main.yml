@@ -120,6 +120,12 @@
 - name: Get deployed image name - deployments
   shell: kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[0].image | split("/")[1]'
   register: image
+  when: cloud_service_provider != "oci"
+
+- name: Get deployed image name - deployments for OCI
+  shell: kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[0].image | split("/")[3]'
+  register: image
+  when: cloud_service_provider == "oci"
 
 - set_fact:
    deployed_image: "{{ image }}"
