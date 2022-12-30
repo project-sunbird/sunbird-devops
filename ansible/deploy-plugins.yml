@@ -29,7 +29,6 @@
             storage_account_sas_token: "{{ azure_public_storage_account_sas }}"
           tags:
             - always
-            - plugins
           no_log: True
 
         - block:
@@ -71,21 +70,21 @@
               local_file_or_folder_path: "{{ source_file_name }}"
           tags:
             - preview
-      
-        - block:
-          - name: delete and re-upload plugins
-            include_role:
-              name: azure-cloud-storage
-              tasks_from: "{{ item[0] }}"
-            vars:
-              blob_delete_pattern: "content-plugins/{{ item[1] }}/*"
-              blob_container_folder_path: "/content-plugins/{{ item[1] }}"
-              local_file_or_folder_path: "{{ source_folder }}/{{ item[1] }}"
-            with_nested:
-              - ['blob-delete-batch-no-poll.yml', 'blob-upload-batch-no-poll.yml']
-              - "{{ lookup('file', plugins_to_delete_and_upload).split('\n') }}"
-          tags:
-            - plugins
+# Disabled tempoararily    
+        # - block:
+        #   - name: delete and re-upload plugins
+        #     include_role:
+        #       name: azure-cloud-storage
+        #       tasks_from: "{{ item[0] }}"
+        #     vars:
+        #       blob_delete_pattern: "content-plugins/{{ item[1] }}/*"
+        #       blob_container_folder_path: "/content-plugins/{{ item[1] }}"
+        #       local_file_or_folder_path: "{{ source_folder }}/{{ item[1] }}"
+        #     with_nested:
+        #       - ['blob-delete-batch-no-poll.yml', 'blob-upload-batch-no-poll.yml']
+        #       - "{{ lookup('file', plugins_to_delete_and_upload).split('\n') }}"
+        #   tags:
+        #     - plugins
       when: cloud_service_provider == "azure"
 
 ### GCP tasks ####
