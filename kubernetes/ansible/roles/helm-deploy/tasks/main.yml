@@ -141,6 +141,10 @@
   shell: "kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
   register: image
 
+- name: Get deployed image name - daemonsets for OCI
+  shell: "kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $4}'"
+  register: image
+
 - set_fact:
    deployed_image: "{{ image if image.stdout_lines | length > 0 else deployed_image }}"
 
