@@ -1,1 +1,312 @@
 
+env: 
+env_name: "{{ env }}"
+cloud_storage_config_environment: "{{env}}"
+
+proto: 
+domain_name: 
+ekstep_domain_name: "https://qa.ekstep.in"
+
+sunbird_public_storage_account_name: 
+azure_public_container: 
+azure_account_name: 
+learnings:
+  paths: ['/data', '/data/graphDB', '/data/logs', '/data/contentBundle', '/data/properties', '/home/learning/tmp', '/home/learning/platform']
+  service_config: ['consumer-config.xml']
+
+
+# This variable should change value per env
+# eg: dev 1xx; staging 2xxx
+environment_id: 
+
+###########  jenkinspipeline upload artifact ############
+artifacts_container: artifacts
+lp_artifact_azure_account_name: 
+artifact_azure_account_name: 
+
+neo4j_zip: neo4j-community-3.3.9-unix.tar.gz      # Neo4j file name present in the azure blob artifacts folder (only neo4j 3.4 and below is supported)
+neo4j_home: "{{learner_user_home}}/{{neo4j_dir}}/neo4j-community-3.3.9"   # update the version number here of the neo4j
+neo4j_enterprise: false   
+
+
+sunbird_installation: "Sunbird_Dev"
+## kubernetes variables ### overriding swarm manager lb ip to private ingress ip ### 
+private_ingressgateway_ip: 
+learner_service_base_url: "http://{{private_ingressgateway_ip}}/learner"  ## lp samza jobs
+cert_service_base_url: "http://{{private_ingressgateway_ip}}/cert"    ### lp samza jobs
+kp_content_service_base_url: "http://{{private_ingressgateway_ip}}/content" 
+cert_reg_service_base_url: "http://{{private_ingressgateway_ip}}/certreg"
+kp_print_service_base_url: "http://{{private_ingressgateway_ip}}/print" 
+kp_search_service_base_url: "http://{{private_ingressgateway_ip}}/search" 
+
+processing_kafka_topics:
+  - name: telemetry.raw
+    num_of_partitions: 4
+    replication_factor: 1
+  - name: telemetry.valid
+    num_of_partitions: 4
+    replication_factor: 1
+  - name: telemetry.unique
+    num_of_partitions: 8
+    replication_factor: 1
+  - name: telemetry.duplicate
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: telemetry.sink
+    num_of_partitions: 8
+    replication_factor: 1
+  - name: telemetry.with_location
+    num_of_partitions: 8
+    replication_factor: 1
+  - name: telemetry.de_normalized
+    num_of_partitions: 4
+    replication_factor: 1
+  - name: telemetry.log
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: analytics.job_queue
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: learning.graph.events
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: pipeline_metrics
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: metrics
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: learning.graph.events.fail
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: analytics_metrics
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: learning.job.request 
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: learning.job.request.fail
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: learning.republish.job.request
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: telemetry.derived
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: telemetry.failed
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: telemetry.malformed
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: telemetry.extractor.failed
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: telemetry.indexer.failed
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: coursebatch.job.request
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: content.postpublish.request  
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: coursebatch.certificate.request
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: system.command 
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: learning.events.failed
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: auto.creation.job.request
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: auto.creation.job.request.failed
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: contentstate.invalid
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: db.query.events
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: mvc.events.failed
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: mvc.processor.job.request
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: auto.creation.job.failedevent
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: assessment.publish.request
+    num_of_partitions: 1
+    replication_factor: 1
+  - name: publish.job.request
+    num_of_partitions: 1
+    replication_factor: 1
+
+
+processing_kafka_overriden_topics:
+  - name: telemetry.raw
+    retention_time: 604800000
+    replication_factor: 1
+  - name: telemetry.valid
+    retention_time: 604800000
+    replication_factor: 1
+  - name: telemetry.unique
+    retention_time: 604800000
+    replication_factor: 1
+  - name: telemetry.duplicate
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.sink
+    retention_time: 259200000
+    replication_factor: 1
+  - name: telemetry.with_location
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.de_normalized
+    retention_time: 86400000
+    replication_factor: 1
+  - name: telemetry.log
+    retention_time: 86400000
+    replication_factor: 1
+  - name: analytics.job_queue
+    retention_time: 86400000
+    replication_factor: 1
+  - name: learning.graph.events
+    retention_time: 1209600000
+    replication_factor: 1
+  - name: pipeline_metrics
+    retention_time: 259200000
+    replication_factor: 1
+  - name: metrics
+    retention_time: 604800000
+    replication_factor: 1
+  - name: learning.graph.events.fail
+    retention_time: 1209600000
+    replication_factor: 1
+  - name: analytics_metrics
+    retention_time: 86400000
+    replication_factor: 1
+  - name: learning.job.request
+    retention_time: 1209600000 
+    replication_factor: 1
+  - name: learning.job.request.fail
+    retention_time: 1296000000
+    replication_factor: 1
+  - name: telemetry.derived
+    retention_time: 259200000
+    replication_factor: 1
+  - name: assessment.publish.request
+    retention_time: 1209600000
+    replication_factor: 1
+  - name: publish.job.request
+    retention_time: 1209600000
+    replication_factor: 1
+  # Error/Failed Topics
+  - name: telemetry.failed
+    retention_time: 604800000
+    replication_factor: 1
+  - name: telemetry.malformed
+    retention_time: 604800000
+    replication_factor: 1
+  - name: telemetry.extractor.failed
+    retention_time: 604800000
+    replication_factor: 1
+  - name: telemetry.indexer.failed
+    retention_time: 604800000
+    replication_factor: 1
+  - name: coursebatch.job.request
+    retention_time: 1209600000 
+    replication_factor: 1
+  - name: content.postpublish.request
+    retention_time: 1209600000
+    replication_factor: 1
+  - name: coursebatch.certificate.request
+    retention_time: 1209600000
+    replication_factor: 1
+  - name: learning.events.failed 
+    retention_time: 604800000
+    replication_factor: 1
+  - name: auto.creation.job.request
+    retention_time: 1209600000
+    replication_factor: 1
+  - name: auto.creation.job.request.failed
+    retention_time: 1296000000
+    replication_factor: 1
+  - name: contentstate.invalid
+    retention_time: 604800000
+    replication_factor: 1
+  - name: db.query.events
+    retention_time: 604800000
+    replication_factor: 1
+  - name: mvc.events.failed
+    retention_time: 1209600000
+    replication_factor: 1
+  - name: mvc.processor.job.request
+    retention_time: 1209600000
+    replication_factor: 1
+  - name: auto.creation.job.failedevent
+    retention_time: 1209600000
+    replication_factor: 1
+    
+### Flink  Jobs vars
+kubeconfig_path:
+dockerhub: 
+docker_registry: 
+
+kp_schema_base_path: 
+master_category_validation_enabled: no
+
+content_stream_enabled: false
+
+plugin_media_base_url: "https://{{domain_name}}"
+
+# Uncomment the variable based on your cloud provider (as a default we have kept Azure variable uncommented)
+# GCP
+# cloud_storage_url: https://storage.cloud.google.com/{{ gcloud_public_bucket_name }}
+# AWS
+# cloud_storage_url: # aws storage url to be updated
+# Azure
+#cloud_storage_url: "https://{{ sunbird_public_storage_account_name }}.blob.core.windows.net"
+
+
+# CSP vars
+cloud_service_provider: azure
+
+cloud_public_storage_accountname: ""
+cloud_public_storage_endpoint: ""
+cloud_public_storage_region: ""
+cloud_public_storage_project: ""
+
+cloud_private_storage_accountname: ""
+cloud_private_storage_endpoint: ""
+cloud_private_storage_region: ""
+cloud_private_storage_project: ""
+
+cloud_management_storage_accountname: ""
+cloud_management_storage_endpoint: ""
+cloud_management_storage_region: ""
+cloud_management_storage_project: ""
+
+cloud_artifact_storage_accountname: ""
+cloud_artifact_storage_endpoint: ""
+cloud_artifact_storage_region: ""
+cloud_artifact_storage_project: ""
+
+cloud_storage_publicreports_bucketname: "reports" 
+cloud_storage_privatereports_bucketname: "reports"
+cloud_storage_telemetry_bucketname: "telemetry-data-store"
+cloud_storage_schemas_bucketname: "content-service"
+cloud_storage_flink_bucketname: "flink-check-points-store"
+cloud_storage_plugin_bucketname: ""
+cloud_storage_cassandrabackup_bucketname: "cassandra-backup"
+cloud_storage_esbackup_bucketname: "elasticsearch-snapshots"
+cloud_storage_neo4jbackup_bucketname: "neo4j-backup"
+cloud_storage_redisbackup_bucketname: "redis-backup"
+cloud_storage_artifacts_bucketname: "{{ artifacts_container }}"
