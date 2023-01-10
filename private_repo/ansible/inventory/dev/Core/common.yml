@@ -241,11 +241,9 @@ cloudstorage_base_path: "{{ cloud_storage_url }}"
 valid_cloudstorage_base_urls: '["{{ cloud_storage_url }}"]'
 cloudstorage_relative_path_prefix: "CONTENT_STORAGE_BASE_PATH"
 
-
-
 # Provide the admin-api consumer access to all API's - The public repo restricts this for security reasons
-# If you dont want to key to have access to all API's, please remove the variables kong_all_consumer_groups and kong_consumers or edit the groups to have a smaller subset
-kong_all_consumer_groups:
+# If you dont want the admin api key to have access to all API's, please remove the variables "all_apis_access_group" and "kong_consumers" or edit the groups to have a smaller subset
+all_apis_access_group:
   - announcementAccess
   - anonymousAppAccess
   - anonymousCertificateAccess
@@ -367,6 +365,37 @@ kong_all_consumer_groups:
 
 kong_consumers:
   - username: api-admin
+    groups: "{{ all_apis_access_group }}"
+    state: present
+  - username: mobile_admin
+    groups: "{{ mobile_admin_groups }}"
+    print_credentials: true
+    state: present
+  - username: mobile_app
+    groups: "{{ mobile_app_groups }}"
+    state: present
+  - username: mobile_device
+    groups: "{{ mobile_device_groups }}"
+    state: present
+  - username: mobile_devicev2
+    groups: "{{ mobile_device_groups }}"
+    state: present
+  - username: portal_anonymous_register
+    groups: "{{ portal_anonymous_register }}"
+    state: present
+  - username: portal_loggedin_register
+    groups: "{{ portal_loggedin_register }}"
+    state: present
+  - username: portal_anonymous
+    groups: "{{ anonymous_user_groups }}"
+    state: present
+  - username: portal_loggedin
+    groups: "{{ kong_all_consumer_groups }}"
+    state: present
+  - username: portal_anonymous_fallback_token
+    groups: "{{ anonymous_user_groups }}"
+    state: present
+  - username: portal_loggedin_fallback_token
     groups: "{{ kong_all_consumer_groups }}"
     state: present
 
@@ -439,6 +468,6 @@ kong_desktop_device_consumer_names_for_opa: '["desktop_devicev2", "desktop_devic
 
 # Portal sessions
 sunbird_kong_device_register: 'true'  # enables refersh token api call after login
-sunbird_kong_device_register_anonymous: 'true'  # enabled anonymous sessions
+sunbird_kong_device_register_anonymous: 'true'  # enables anonymous sessions
 sunbird_session_store_type: redis  # uses redis for session data instead of cassandra
-portal_redis_connection_string: "redis://:@{{ sunbird_redis_host }}:6379/3"  # Uses KP redis and DB number 3
+portal_redis_connection_string: "redis://:@{{ sunbird_redis_host }}:6379/3"  # Uses KP redis and DB number 3 to store session data
