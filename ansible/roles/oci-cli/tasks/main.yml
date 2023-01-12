@@ -1,0 +1,24 @@
+---
+- name: Download the installation file
+  get_url:
+    url: "{{ oci_cli_url }}"
+    dest: /tmp/ocicli.zip
+
+- name: Installing unzip
+  apt:
+    name: "{{item}}"
+    state: latest
+  with_items:
+    - zip
+    - unzip
+
+- name: Unzip the installer
+  unarchive:
+    src: /tmp/ocicli.zip
+    dest: /tmp/
+    remote_src: yes    
+
+- name: install oci cli
+  shell: ./oci-cli-installation/install.sh --install-dir {{ ansible_env.HOME }} --exec-dir {{ ansible_env.HOME }} --script-dir {{ ansible_env.HOME }} --accept-all-defaults
+  args:
+    chdir: /tmp/
