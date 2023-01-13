@@ -7,7 +7,7 @@ echo
 if [[ $vault_pass == $confirm_vault_pass ]]
 then
   echo "$vault_pass" > temp_vault_pass
-  cd Core/keys
+  mkdir -p Core/keys && cd Core/keys
   for i in {1..10}; do openssl genrsa -out mobile_devicev2_c$i 2048 && openssl pkcs8 -topk8 -inform PEM -in mobile_devicev2_c$i -out mobile_devicev2_key$i -nocrypt && rm -rf mobile_devicev2_c$i ; done
   for i in {1..10}; do openssl genrsa -out accessv1_c$i 2048 && openssl pkcs8 -topk8 -inform PEM -in accessv1_c$i -out accessv1_key$i -nocrypt && rm -rf accessv1_c$i ; done
   for i in {1..10}; do openssl genrsa -out desktop_devicev2_c$i 2048 && openssl pkcs8 -topk8 -inform PEM -in desktop_devicev2_c$i -out desktop_devicev2_key$i -nocrypt && rm -rf desktop_devicev2_c$i ; done
