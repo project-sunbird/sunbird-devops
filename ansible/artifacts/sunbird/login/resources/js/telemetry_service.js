@@ -2506,7 +2506,7 @@ if(client_id.toLowerCase() === 'android'){
     "telemetry": {
       "pdata": {
         "id": pdataId,
-        "ver": "5.0.0",
+        "ver": "5.1.0",
         "pid": "sunbird-portal"
       }
     }
@@ -2687,7 +2687,6 @@ if(client_id.toLowerCase() === 'android'){
   function stringToHTML(str) {
     let parser = new DOMParser();
     let doc = parser.parseFromString(str, 'text/html');
-    console.log('Doc parse => ', doc); // TODO: log!
     return doc?.body?.innerText || document.createElement('body');
   }
 
