@@ -128,6 +128,8 @@ nginx_private_ingress_annotations:
 
 # ------------------------------------------------------------------------------------------------------------ #
 
+graylog_trusted_proxies: "1.2.3.4/21" # This should be the kubernetes nodes subnet CIDR range
+
 ## Optional
 
 learningservice_ip: "10.0.1.5"             # Load balancer IP or server ip
@@ -239,11 +241,9 @@ cloudstorage_base_path: "{{ cloud_storage_url }}"
 valid_cloudstorage_base_urls: '["{{ cloud_storage_url }}"]'
 cloudstorage_relative_path_prefix: "CONTENT_STORAGE_BASE_PATH"
 
-
-
 # Provide the admin-api consumer access to all API's - The public repo restricts this for security reasons
-# If you dont want to key to have access to all API's, please remove the variables kong_all_consumer_groups and kong_consumers or edit the groups to have a smaller subset
-kong_all_consumer_groups:
+# If you dont want the admin api key to have access to all API's, please remove the variables "all_apis_access_group" and "kong_consumers" or edit the groups to have a smaller subset
+all_apis_access_group:
   - announcementAccess
   - anonymousAppAccess
   - anonymousCertificateAccess
@@ -365,8 +365,43 @@ kong_all_consumer_groups:
 
 kong_consumers:
   - username: api-admin
+    groups: "{{ all_apis_access_group }}"
+    state: present
+  - username: mobile_admin
+    groups: "{{ mobile_admin_groups }}"
+    print_credentials: true
+    state: present
+  - username: mobile_app
+    groups: "{{ mobile_app_groups }}"
+    state: present
+  - username: mobile_device
+    groups: "{{ mobile_device_groups }}"
+    state: present
+  - username: mobile_devicev2
+    groups: "{{ mobile_device_groups }}"
+    state: present
+  - username: portal_anonymous_register
+    groups: "{{ portal_anonymous_register }}"
+    state: present
+  - username: portal_loggedin_register
+    groups: "{{ portal_loggedin_register }}"
+    state: present
+  - username: portal_anonymous
+    groups: "{{ anonymous_user_groups }}"
+    state: present
+  - username: portal_loggedin
     groups: "{{ kong_all_consumer_groups }}"
     state: present
+  - username: portal_anonymous_fallback_token
+    groups: "{{ anonymous_user_groups }}"
+    state: present
+  - username: portal_loggedin_fallback_token
+    groups: "{{ kong_all_consumer_groups }}"
+    state: present
+  - username: adminutil_learner_api_key
+    groups: "{{ userAccess }}"
+    state: present
+
 
 ## Grafana oauth
 
@@ -394,3 +429,49 @@ grafana_login_whitelisted_emails: |-
 
 # Add below var to monitor report-cassandra server
 report_cassandra_server_count: "{{ groups['report-cassandra'] | length }}"
+
+# graylog variables
+graylog_open_to_public: true  # allows you to access via domain/graylog
+send_logs_to_graylog: true    # filebeat agents will send logs to graylog instead of ES
+graylog_root_timezone: "Asia/Kolkata"  # timezone
+graylog_elasticsearch_discovery_enabled: "true"  # auto discover ES nodes and version
+graylog_allow_leading_wildcard_searches: "true"  # allows wild card searching
+graylog_allow_highlighting: "true"   # shows yellow highlights on matches
+graylog_transport_email_enabled: "true"  # enables emails to be sent via graylog
+graylog_transport_email_hostname: "{{ mail_server_host }}"  # email server host name
+graylog_transport_email_auth_username: "apikey"   # sendgrid  / email service api key 
+graylog_transport_email_from_email: "{{ sunbird_mail_server_from_email }}"  # from email address
+graylog_transport_email_use_ssl: "false"  # cannot use both tls and ssl, so disabling ssl as tls is enabled by default
+
+# Opa and Adminutils
+# Prefixes will match the starting part of the files under keys dirctory in inventory
+adminutil__device_keyprefix: "mobile_devicev2_key"  # private key prefix for mobile apps
+adminutil__device_keystart: 1   # starting number of the key file
+adminutil__device_keycount: 10  # ending number of the key file
+adminutil__access_keyprefix: "accessv1_key"  # private key prefix for user access tokens
+adminutil__access_keystart: 1  # starting number of the key file
+adminutil__access_keycount: 10  # ending number of the key file
+adminutil__desktop_keyprefix: "desktop_devicev2_key"  # private key prefix for desktop apps
+adminutil__desktop_keystart: 1  # starting number of the key file
+adminutil__desktop_keycount: 10  # ending number of the key file
+adminutil__portal_anonymous_keyprefix: "portal_anonymous_key"  # private key prefix for portal anonymous sessions
+adminutil__portal_anonymous_keystart: 1  # starting number of the key file
+adminutil__portal_anonymous_keycount: 10  # ending number of the key file
+adminutil__portal_loggedin_keyprefix: "portal_loggedin_key"  # private key prefix for portal loggedin sessions
+adminutil__portal_loggedin_keystart: 1  # starting number of the key file
+adminutil__portal_loggedin_keycount: 10  # ending number of the key file
+adminutil_embed_role: 'true'  # embeds user roles in access tokens
+
+# Kong and Adminutils
+# Consumer names will match the starting part of the files under keys dirctory in inventory 
+kong_mobile_v2_consumer: "mobile_devicev2"  # kong consumer name for mobile apps
+kong_desktop_v2_consumer: "desktop_devicev2"  # kong consumer name for desktop apps
+kong_portal_anonymous_consumer: "portal_anonymous"  # kong consumer name for portal anonymous sessions
+kong_portal_loggedin_consumer: "portal_loggedin"  # kong consumer name for portal loggedin sessions
+kong_desktop_device_consumer_names_for_opa: '["desktop_devicev2", "desktop_device"]'  # ops checks will be skipped for desktop consumers
+
+# Portal sessions
+sunbird_kong_device_register: 'true'  # enables refersh token api call after login
+sunbird_kong_device_register_anonymous: 'true'  # enables anonymous sessions
+sunbird_session_store_type: redis  # uses redis for session data instead of cassandra
+portal_redis_connection_string: "redis://:@{{ sunbird_redis_host }}:6379/3"  # Uses KP redis and DB number 3 to store session data
