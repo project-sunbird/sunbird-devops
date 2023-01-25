@@ -2,25 +2,18 @@
   gather_facts: no
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  # The vars: section is added for the below reason
-  # 1. Introduce a common variable for various clouds. In case of azure, it refers to container name, in case of aws / gcp, it refers to folder name
-  # 2. We want to avoid too many new variable introduction / replacement in first phase. Hence we will reuse the existing variable defined in private repo
-  #    or other default files and just assign the value to the newly introduced common variable 
-  # 3. After few releases, we will remove the older variables and use only the new variables across the repos
-  vars:
-    plugin_storage: "{{ plugin_container_name }}"
   tasks:
     - name: upload batch of files to azure storage
       include_role:
         name: azure-cloud-storage
         tasks_from: blob-upload-batch.yml
       vars:
-        blob_container_name: "{{ plugin_storage }}"
+        blob_container_name: "{{ cloud_storage_content_bucketname }}"
         container_public_access: "container"
         blob_container_folder_path: "/schemas/local"
         local_file_or_folder_path: "{{ source_name }}"
-        storage_account_name: "{{ azure_public_storage_account_name }}"
-        storage_account_key: "{{ azure_public_storage_account_key }}"
+        storage_account_name: "{{ cloud_public_storage_accountname }}"
+        storage_account_key: "{{ cloud_public_storage_secret }}"
       when: cloud_service_provider == "azure"
 
     - name: upload batch of files to aws s3
@@ -28,12 +21,12 @@
         name: aws-cloud-storage
         tasks_from: upload-folder.yml
       vars:
-        s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
-        aws_access_key_id: "{{ aws_public_bucket_access_key }}"
-        aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
-        aws_default_region: "{{ aws_region }}"
+        s3_bucket_name: "{{ cloud_storage_content_bucketname }}"
+        aws_access_key_id: "{{ cloud_public_storage_accountname }}"
+        aws_secret_access_key: "{{ cloud_public_storage_secret }}"
+        aws_default_region: "{{ cloud_public_storage_region }}"
         local_file_or_folder_path: "{{ source_name }}"
-        s3_path: "{{ plugin_storage }}/schemas/local"
+        s3_path: "schemas/local"
       when: cloud_service_provider == "aws"
       
     - name: upload batch of files to gcloud storage
@@ -41,8 +34,9 @@
           name: gcp-cloud-storage
           tasks_from: upload-batch.yml
       vars:
-        dest_folder_name: "{{ plugin_storage }}"
-        dest_folder_path: "schemas/local"
+        gcp_storage_service_account_name: "{{ cloud_public_storage_accountname }}"
+        gcp_storage_key_file: "{{ cloud_public_storage_secret }}"
+        gcp_bucket_name: "{{ cloud_storage_content_bucketname }}"
+        gcp_path: "schemas/local"
         local_file_or_folder_path: "{{ source_name }}"
-        gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
       when: cloud_service_provider == "gcloud"  

@@ -22,6 +22,14 @@
     - "{{ chart_path }}/schemas/*.json"
   when: release_name == "registry"
 
+- name: template config json
+  template:
+    src: "{{ item }}"
+    dest: "{{ item }}"
+  with_fileglob:
+    - "{{ chart_path }}/configs/*.json"
+  when: release_name == "certificatesign"
+
 - name: Load role to decrypt private keys, copy to private keys helm chart
   include_role:
     name: mount-keys
@@ -110,7 +118,7 @@
   ignore_errors: true
 
 - name: Get deployed image name - deployments
-  shell: kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[0].image | split("/")[1]'
+  shell: kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[0].image | split("/")[-1]'
   register: image
 
 - set_fact:
@@ -124,7 +132,7 @@
   ignore_errors: true
 
 - name: Get deployed image name - daemonsets
-  shell: "kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
+  shell: kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[].image | split("/")[-1]'
   register: image
 
 - set_fact:
@@ -138,7 +146,7 @@
   ignore_errors: true
 
 - name: Get deployed image name - statefulsets
-  shell: "kubectl get statefulsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
+  shell: kubectl get statefulsets {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[].image | split("/")[-1]'
   register: image
 
 - set_fact:

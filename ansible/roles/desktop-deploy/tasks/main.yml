@@ -53,10 +53,10 @@
   block:
     - name: set common azure variables
       set_fact:
-        blob_container_name: "{{ offline_installer_storage }}"
+        blob_container_name: "{{ cloud_storage_offlineinstaller_bucketname }}"
         container_public_access: "blob"
-        storage_account_name: "{{ azure_public_storage_account_name }}"
-        storage_account_key: "{{ azure_public_storage_account_key }}"
+        storage_account_name: "{{ cloud_public_storage_accountname }}"
+        storage_account_key: "{{ cloud_public_storage_secret }}"
 
     - name: upload batch of files to azure storage
       include_role:
@@ -81,10 +81,10 @@
   block:
     - name: set common aws variables
       set_fact:
-        s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
-        aws_access_key_id: "{{ aws_public_bucket_access_key }}"
-        aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
-        aws_default_region: "{{ aws_region }}"
+        s3_bucket_name: "{{ cloud_storage_offlineinstaller_bucketname }}"
+        aws_access_key_id: "{{ cloud_public_storage_accountname }}"
+        aws_secret_access_key: "{{ cloud_public_storage_secret }}"
+        aws_default_region: "{{ cloud_public_storage_region }}"
         
     - name: upload batch of files to aws s3
       include_role:
@@ -103,19 +103,21 @@
         local_file_or_folder_path: "{{ offline_repo_location }}/desktop_uploader_assets/{{ time }}/"
   when: cloud_service_provider == "aws"
   
+### GCP Tasks ###   
 - name: this block consists of tasks related to gcloud storage
   block:
     - name: set common gcloud variables
       set_fact:
-        dest_folder_name: "{{ offline_installer_storage }}"
-        gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+        gcp_storage_service_account_name: "{{ cloud_public_storage_accountname }}"
+        gcp_storage_key_file: "{{ cloud_public_storage_secret }}"
+        gcp_bucket_name: "{{ cloud_storage_offlineinstaller_bucketname }}"
 
     - name: upload batch of files to gcloud storage
       include_role:
         name: gcp-cloud-storage
         tasks_from: upload-batch.yml
       vars:
-        dest_folder_path: ""
+        gcp_path: ""
         local_file_or_folder_path: "{{ offline_repo_location }}/desktop_uploader_assets"
 
     - name: upload batch of files to gcloud storage
@@ -123,6 +125,6 @@
         name: gcp-cloud-storage
         tasks_from: upload-batch.yml
       vars:
-        dest_folder_path: "latest"
+        gcp_path: "latest"
         local_file_or_folder_path: "{{ offline_repo_location }}/desktop_uploader_assets/{{ time }}/"
   when: cloud_service_provider == "gcloud"

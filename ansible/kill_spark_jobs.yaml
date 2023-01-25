@@ -1,0 +1,12 @@
+---
+- hosts: spark
+  become: yes
+  tasks:
+  - name: get pids of job manager which may be orphaned
+    shell: ps -ef | grep [j]ob. | awk '{print $2}'
+    register: pids_of_jobmanager
+
+  - name: kill the orphan job manager pids
+    shell: "kill -9 {{ item | int }}"
+    with_items:
+    - "{{ pids_of_jobmanager.stdout_lines }}"
