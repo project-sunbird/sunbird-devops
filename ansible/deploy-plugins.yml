@@ -2,13 +2,6 @@
   gather_facts: no
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  # The vars: section is added for the below reason
-  # 1. Introduce a common variable for various clouds. In case of azure, it refers to container name, in case of aws / gcp, it refers to folder name
-  # 2. We want to avoid too many new variable introduction / replacement in first phase. Hence we will reuse the existing variable defined in private repo
-  #    or other default files and just assign the value to the newly introduced common variable 
-  # 3. After few releases, we will remove the older variables and use only the new variables across the repos
-  vars:
-    plugin_storage: "{{ plugin_container_name }}"
   tasks:
     - name: rename env_domain in preview_cdn.html for CDN
       shell: |
@@ -22,11 +15,10 @@
       block:
         - name: set common azure variables
           set_fact:
-            blob_container_name: "{{ plugin_storage }}"
+            blob_container_name: "{{ cloud_storage_content_bucketname }}"
             container_public_access: "container"
-            storage_account_name: "{{ azure_public_storage_account_name }}"
-            storage_account_key: "{{ azure_public_storage_account_key }}"
-            storage_account_sas_token: "{{ azure_public_storage_account_sas }}"
+            storage_account_name: "{{ cloud_public_storage_accountname }}"
+            storage_account_key: "{{ cloud_public_storage_secret }}"
           tags:
             - always
           no_log: True
@@ -86,13 +78,15 @@
           tags:
             - plugins
       when: cloud_service_provider == "azure"
-    
+
+### GCP tasks ####
     - name: this block consists of tasks related to gcloud storage
       block:
         - name: set common gcloud variables
           set_fact:
-            dest_folder_name: "{{ plugin_storage }}"
-            gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+            gcp_bucket_name: "{{ cloud_storage_content_bucketname }}"
+            gcp_path: ""
+
           tags:
             - always
   
@@ -102,7 +96,7 @@
               name: gcp-cloud-storage
               tasks_from: delete-batch.yml
           vars:
-            file_delete_pattern: "{{ dest_folder_name }}/{{ folder_name }}"
+            file_delete_pattern: "{{ folder_name }}"
           tags:
             - content-editor
             - collection-editor
@@ -115,7 +109,7 @@
               name: gcp-cloud-storage
               tasks_from: upload-batch.yml
             vars:
-              dest_folder_path: "{{ folder_name }}"
+              gcp_path: "{{ folder_name }}"
               local_file_or_folder_path: "{{ source_name }}"
           tags:
             - content-editor
@@ -131,10 +125,37 @@
               name: gcp-cloud-storage
               tasks_from: upload.yml
             vars:
-              dest_file_name: "artefacts/content-player/content-player-{{ player_version_number }}.zip"
+              gcp_path: "artefacts/content-player/content-player-{{ player_version_number }}.zip"
               local_file_or_folder_path: "{{ source_file_name }}"
           tags:
             - preview
+
+        - block:
+          - name: Authenticate to gcloud
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: gcloud-auth.yml
+
+          - name: delete and re-upload plugins
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: "{{ item[0] }}"
+            vars:
+              gcp_storage_service_account_name: "{{ cloud_public_storage_accountname }}"
+              gcp_storage_key_file: "{{ cloud_public_storage_secret }}"
+              file_delete_pattern: "content-plugins/{{ item[1] }}/*"
+              gcp_path: "content-plugins/{{ item[1] }}"
+              local_file_or_folder_path: "{{ source_folder }}/{{ item[1] }}"
+            with_nested:
+              - ['delete-batch-no-poll.yml', 'upload-batch-no-poll.yml']
+              - "{{ lookup('file', plugins_to_delete_and_upload).split('\n') }}"
+
+          - name: Revoke gcloud access
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: gcloud-revoke.yml
+          tags:
+            - plugins
       when: cloud_service_provider == "gcloud"
 
 ################################### AWS tasks #########################
@@ -142,10 +163,10 @@
       block:
         - name: set common aws variables
           set_fact:
-            aws_default_region: "{{ aws_region }}"
-            s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
-            aws_access_key_id: "{{ aws_public_bucket_access_key }}"
-            aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+            aws_default_region: "{{ cloud_public_storage_region }}"
+            s3_bucket_name: "{{ cloud_storage_content_bucketname }}"
+            aws_access_key_id: "{{ cloud_public_storage_accountname }}"
+            aws_secret_access_key: "{{ cloud_public_storage_secret }}"
           tags:
             - always
       
@@ -155,7 +176,7 @@
               name: aws-cloud-storage
               tasks_from: delete-folder.yml
           vars:
-              s3_path: "{{ plugin_storage }}/{{ folder_name }}"
+              s3_path: "{{ folder_name }}"
           tags:
             - content-editor
             - collection-editor
@@ -168,7 +189,7 @@
               name: aws-cloud-storage
               tasks_from: upload-folder.yml
             vars:
-              s3_path: "{{ plugin_storage }}/{{ folder_name }}"
+              s3_path: "{{ folder_name }}"
               local_file_or_folder_path: "{{ source_name }}"
           tags:
             - content-editor 
@@ -184,14 +205,14 @@
               name: aws-cloud-storage
               tasks_from: upload.yml
             vars:
-              s3_path: "{{ plugin_storage }}/artefacts/content-player/content-player-{{ player_version_number }}.zip"
+              s3_path: "artefacts/content-player/content-player-{{ player_version_number }}.zip"
               local_file_or_folder_path: "{{ source_file_name }}"
           tags:
             - preview
       
         - block:
           - name:  run the s3_copy.sh script
-            shell: "bash {{ s3_file_path }} {{ plugin_storage }} {{ source_file }} {{ aws_public_s3_bucket_name }}"
+            shell: "bash {{ s3_file_path }} {{ source_file }} {{ cloud_public_storage_accountname }}"
             async: 3600
             poll: 10
             environment:

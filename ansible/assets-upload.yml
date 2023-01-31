@@ -2,25 +2,17 @@
 - hosts: localhost
   vars_files:
     - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
-  # The vars: section is added for the below reason
-  # 1. Introduce a common variable for various clouds. In case of azure, it refers to container name, in case of aws / gcp, it refers to folder name
-  # 2. We want to avoid too many new variable introduction / replacement in first phase. Hence we will reuse the existing variable defined in private repo
-  #    or other default files and just assign the value to the newly introduced common variable 
-  # 3. After few releases, we will remove the older variables and use only the new variables across the repos
-  vars:
-    player_cdn_storage: "{{ player_cdn_container }}"
   # Azure
   tasks:
   - name: this block consists of tasks related to azure storage
     block:
     - name: set common azure variables
       set_fact:
-        blob_container_name: "{{ player_cdn_storage }}"
+        blob_container_name: "{{ cloud_storage_playercdn_bucketname }}"
         container_public_access: "container"
         blob_container_folder_path: ""
-        storage_account_name: "{{ azure_public_storage_account_name }}"
-        storage_account_key: "{{ azure_public_storage_account_key }}"
-        storage_account_sas_token: "{{ azure_public_storage_account_sas }}"
+        storage_account_name: "{{ cloud_public_storage_accountname }}"
+        storage_account_key: "{{ cloud_public_storage_secret }}"
 
     - name: delete files and folders from azure storage using azcopy
       include_role:
@@ -40,11 +32,11 @@
     block:
     - name: set common aws variables
       set_fact:
-        s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
-        s3_path: "{{ player_cdn_storage }}"
-        aws_default_region: "{{ aws_region }}"
-        aws_access_key_id: "{{ aws_public_bucket_access_key }}"
-        aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+        s3_bucket_name: "{{ cloud_storage_playercdn_bucketname }}"
+        s3_path: ""
+        aws_default_region: "{{ cloud_public_storage_region }}"
+        aws_access_key_id: "{{ cloud_public_storage_accountname }}"
+        aws_secret_access_key: "{{ cloud_public_storage_secret }}"
 
     - name: delete files and folders from s3
       include_role:
@@ -64,10 +56,12 @@
     block:
     - name: set common gcloud variables
       set_fact:
-        dest_folder_name: "{{ player_cdn_storage }}"
-        dest_folder_path: ""
-        file_delete_pattern: "{{ player_cdn_storage }}/"
-        gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
+        gcp_storage_service_account_name: "{{ cloud_public_storage_accountname }}"
+        gcp_storage_key_file: "{{ cloud_public_storage_secret }}"
+        gcp_bucket_name: "{{ cloud_storage_playercdn_bucketname }}"
+        gcp_path: ""
+        file_delete_pattern: ""
+        
 
     - name: delete files and folders from gcloud storage
       include_role:

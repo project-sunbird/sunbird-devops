@@ -20,12 +20,12 @@
       name: azure-cloud-storage
       tasks_from: blob-upload-batch.yml
     vars:
-      blob_container_name: "{{ upload_storage }}"
+      blob_container_name: "{{ cloud_storage_public_bucketname }}"
       container_public_access: "container"
       blob_container_folder_path: ""
       local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
-      storage_account_name: "{{ azure_public_storage_account_name }}"
-      storage_account_key: "{{ azure_public_storage_account_key }}"
+      storage_account_name: "{{ cloud_public_storage_accountname }}"
+      storage_account_key: "{{ cloud_public_storage_secret }}"
     with_items:
       - "{{ source_folder.split(',') }}"
     when: cloud_service_provider == "azure"
@@ -35,12 +35,12 @@
       name: aws-cloud-storage
       tasks_from: upload-folder.yml
     vars:
-      s3_bucket_name: "{{ aws_public_s3_bucket_name }}"
-      aws_default_region: "{{ aws_region }}"
-      aws_access_key_id: "{{ aws_public_bucket_access_key }}"
-      aws_secret_access_key: "{{ aws_public_bucket_secret_access_key }}"
+      s3_bucket_name: "{{ cloud_storage_public_bucketname }}"
+      aws_default_region: "{{ cloud_public_storage_region }}"
+      aws_access_key_id: "{{ cloud_public_storage_accountname }}"
+      aws_secret_access_key: "{{ cloud_public_storage_secret }}"
       local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
-      s3_path: "{{ upload_storage }}"
+      s3_path: ""
     with_items:
       - "{{ source_folder.split(',') }}"  
     when: cloud_service_provider == "aws"   
@@ -50,13 +50,61 @@
       name: gcp-cloud-storage
       tasks_from: upload-batch.yml
     vars:
-        dest_folder_name: "{{ upload_storage }}"
+        gcp_storage_service_account_name: "{{ cloud_public_storage_accountname }}"
+        gcp_storage_key_file: "{{ cloud_public_storage_secret }}"
+        gcp_bucket_name: "{{ cloud_storage_public_bucketname }}"
         dest_folder_path: ""
         local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
-        gcp_bucket_name: "{{ gcloud_public_bucket_name }}"
     with_items:
       - "{{ source_folder.split(',') }}"
     when: cloud_service_provider == "gcloud"
   tags:
     - upload-faqs
+
+- hosts: localhost
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  tasks:
+  - name: upload batch of files to azure storage
+    include_role:
+      name: azure-cloud-storage
+      tasks_from: blob-upload-batch.yml
+    vars:
+      blob_container_name: "{{ cloud_storage_content_bucketname }}"
+      container_public_access: "container"
+      blob_container_folder_path: ""
+      local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
+      storage_account_name: "{{ cloud_public_storage_accountname }}"
+      storage_account_key: "{{ cloud_public_storage_secret }}"
+    with_items:
+      - "{{ source_folder.split(',') }}"
+    when: cloud_service_provider == "azure"
+
+  - name: upload batch of files to s3
+    include_role:
+      name: aws-cloud-storage
+      tasks_from: upload-folder.yml
+    vars:
+      s3_bucket_name: "{{ cloud_storage_content_bucketname }}"
+      aws_default_region: "{{ cloud_public_storage_region }}"
+      aws_access_key_id: "{{ cloud_public_storage_accountname }}"
+      aws_secret_access_key: "{{ cloud_public_storage_secret }}"
+      local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
+      s3_path: ""
+    with_items:
+      - "{{ source_folder.split(',') }}"
+    when: cloud_service_provider == "aws"
+
+  - name: upload batch of files to gcloud storage
+    include_role:
+      name: gcp-cloud-storage
+      tasks_from: upload-batch.yml
+    vars:
+        gcp_bucket_name: "{{ cloud_storage_content_bucketname }}"
+        dest_folder_path: ""
+        local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
+    with_items:
+      - "{{ source_folder.split(',') }}"
+    when: cloud_service_provider == "gcloud"
+  tags:
     - upload-RC-schema

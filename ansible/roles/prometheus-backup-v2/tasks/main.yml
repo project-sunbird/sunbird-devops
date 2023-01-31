@@ -25,8 +25,8 @@
     container_public_access: "off"
     blob_file_name: "{{ prometheus_backup_prefix }}_{{ snapshot_name }}.tar.gz"
     local_file_or_folder_path: "/tmp/{{ prometheus_backup_prefix }}_{{ snapshot_name }}.tar.gz"
-    storage_account_name: "{{ azure_management_storage_account_name }}"
-    storage_account_key: "{{ azure_management_storage_account_key }}"
+    storage_account_name: "{{ cloud_management_storage_accountname }}"
+    storage_account_key: "{{ cloud_management_storage_secret }}"
   when: cloud_service_provider == "azure"
 
 - name: upload file to aws s3
@@ -34,12 +34,12 @@
     name: aws-cloud-storage
     tasks_from: upload.yml
   vars:
-    s3_bucket_name: "{{ aws_management_s3_bucket_name }}"
-    aws_access_key_id: "{{ aws_management_bucket_access_key }}"
-    aws_secret_access_key: "{{ aws_management_bucket_secret_access_key }}"
-    aws_default_region: "{{ aws_region }}"
+    s3_bucket_name: "{{ cloud_storage_prometheusbackup_bucketname }}"
+    aws_access_key_id: "{{ cloud_management_storage_accountname }}"
+    aws_secret_access_key: "{{ cloud_management_storage_secret }}"
+    aws_default_region: "{{ cloud_public_storage_region }}"
     local_file_or_folder_path: "/tmp/{{ prometheus_backup_prefix }}_{{ snapshot_name }}.tar.gz"
-    s3_path: "{{ prometheus_backup_storage }}/{{ prometheus_backup_prefix }}_{{ snapshot_name }}.tar.gz"
+    s3_path: "{{ cloud_storage_prometheusbackup_foldername }}/{{ prometheus_backup_prefix }}_{{ snapshot_name }}.tar.gz"
   when: cloud_service_provider == "aws"
   
 - name: upload file to gcloud storage
@@ -47,9 +47,10 @@
     name: gcp-cloud-storage
     tasks_from: upload.yml
   vars:
-    gcp_bucket_name: "{{ gcloud_management_bucket_name }}"
-    dest_folder_name: "{{ prometheus_backup_storage }}"
-    dest_file_name: "{{ prometheus_backup_prefix }}_{{ snapshot_name }}.tar.gz"
+    gcp_storage_service_account_name: "{{ cloud_management_storage_accountname }}"
+    gcp_storage_key_file: "{{ cloud_management_storage_secret }}"
+    gcp_bucket_name: "{{ cloud_storage_prometheusbackup_bucketname }}"
+    gcp_path: "{{ cloud_storage_prometheusbackup_foldername }}/{{ prometheus_backup_prefix }}_{{ snapshot_name }}.tar.gz"
     local_file_or_folder_path: "/tmp/{{ prometheus_backup_prefix }}_{{ snapshot_name }}.tar.gz"
   when: cloud_service_provider == "gcloud"
 

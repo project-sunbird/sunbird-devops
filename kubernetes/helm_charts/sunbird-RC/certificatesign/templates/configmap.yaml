@@ -9,3 +9,16 @@ metadata:
   creationTimestamp: null
   name: {{ .Chart.Name }}-config
   namespace: {{ .Values.namespace }}
+
+---
+
+{{- $configs := .Files.Glob "configs/*" }}
+{{ if $configs }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-conf
+  namespace: {{ .Values.namespace }}
+data:
+{{ (.Files.Glob "configs/*").AsConfig | indent 2 }}
+{{ end }}

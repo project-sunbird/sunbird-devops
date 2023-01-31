@@ -36,12 +36,12 @@
     name: azure-cloud-storage
     tasks_from: blob-upload-batch.yml
   vars:
-    blob_container_name: "{{ cert_service_storage }}"
+    blob_container_name: "{{ cloud_storage_certservice_bucketname }}"
     container_public_access: "off"
     blob_container_folder_path: ""
     local_file_or_folder_path: "{{ cert_location }}/cert-templates/certUtilScripts/out"
-    storage_account_name: "{{ azure_private_storage_account_name }}"
-    storage_account_key: "{{ azure_private_storage_account_key }}"
+    storage_account_name: "{{ cloud_private_storage_accountname }}"
+    storage_account_key: "{{ cloud_private_storage_secret }}"
   when: cloud_service_provider == "azure"
 
 - name: upload batch of files to aws s3
@@ -49,12 +49,12 @@
     name: aws-cloud-storage
     tasks_from: upload-folder.yml
   vars:
-    s3_bucket_name: "{{ aws_private_s3_bucket_name }}"
-    aws_access_key_id: "{{ aws_private_bucket_access_key }}"
-    aws_secret_access_key: "{{ aws_private_bucket_secret_access_key }}"
-    aws_default_region: "{{ aws_region }}"
+    s3_bucket_name: "{{ cloud_storage_certservice_bucketname }}"
+    aws_access_key_id: "{{ cloud_private_storage_accountname }}"
+    aws_secret_access_key: "{{ cloud_private_storage_secret }}"
+    aws_default_region: "{{ cloud_public_storage_region }}"
     local_file_or_folder_path: "{{ cert_location }}/cert-templates/certUtilScripts/out"
-    s3_path: "{{ cert_service_storage }}"
+    s3_path: ""
   when: cloud_service_provider == "aws"
   
 - name: upload batch of files to gcloud storage
@@ -62,8 +62,9 @@
     name: gcp-cloud-storage
     tasks_from: upload-batch.yml
   vars:
-    dest_folder_name: "{{ cert_service_storage }}"
-    dest_folder_path: ""
+    gcp_storage_service_account_name: "{{ cloud_private_storage_accountname }}"
+    gcp_storage_key_file: "{{ cloud_private_storage_secret }}"
+    gcp_bucket_name: "{{ cloud_storage_certservice_bucketname }}"
+    gcp_path: ""
     local_file_or_folder_path: "{{ cert_location }}/cert-templates/certUtilScripts/out"
-    gcp_bucket_name: "{{ gcloud_private_bucket_name }}"
   when: cloud_service_provider == "gcloud"

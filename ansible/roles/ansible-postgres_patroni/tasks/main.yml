@@ -1,0 +1,105 @@
+---
+# tasks file for ansible-postgres_patroni
+
+- name: Install postgresql after updating apt
+  apt:
+    name:
+      - postgresql
+      - postgresql-contrib
+    state: present
+    update_cache: yes
+  tags:
+    - postgresql Install
+
+- name: Stop the postgresql service
+  systemd:
+    name: postgresql.service
+    state: stopped
+    enabled: yes
+  tags:
+    - postgresql_service
+
+- name: creating softlink for postgres
+  ansible.builtin.shell:
+    cmd: ln -s /usr/lib/postgresql/15/bin/* /usr/sbin/
+  tags:
+    - softlink
+
+- name: Install and update python and pip
+  apt:
+    name:
+      - python3-pip
+      - python3-dev
+      - libpq-dev
+    state: present
+  tags:
+    - pip_python
+
+- name: Upgrade pip to latest vesion
+  pip:
+    name: pip
+    extra_args: --upgrade
+    state: latest
+  tags:
+    - upgrade_pip
+
+- name: Install patroni and dependencies
+  pip:
+    name: 
+      - patroni
+      - python-etcd
+      - psycopg2
+    state: present
+  tags:
+    - install patroni
+
+- name: Creates data directory for patroni
+  file:
+    path: /data
+    state: directory
+    mode: 0700
+    owner: postgres
+    group: postgres
+  tags:
+    - create_data_dir
+
+- name: Creates data directory for patroni
+  file:
+    path: /data/patroni
+    state: directory
+    mode: 0700
+    owner: postgres
+    group: postgres
+  tags:
+    - create_patroni_dir
+
+
+- name: Template patroni systemd service file to /etc/systemd/system/patroni.service
+  template:
+    src: patroni.service.j2
+    dest: /etc/systemd/system/patroni.service
+  tags:
+    - patroni_service
+
+- name: Restart patroni systemd
+  systemd:
+    name: patroni.service
+    state: restarted
+    daemon_reload: yes
+
+- name: Template configuration file to patroni.yaml
+  template:
+    src: patroni.yaml.j2
+    dest: '/etc/patroni.yaml'
+  tags:
+    - patroni_config
+
+- name: Restart patroni service
+  systemd:
+    name: patroni.service
+    state: restarted
+
+- name: Restart postgres service
+  systemd:
+    name: postgresql.service
+    state: restarted

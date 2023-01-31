@@ -14,11 +14,11 @@
     name: azure-cloud-storage
     tasks_from: blob-download.yml
   vars:
-    blob_container_name: "{{ postgres_backup_storage }}"
+    blob_container_name: "{{ cloud_storage_postgresqlbackup_foldername }}"
     blob_file_name: "{{ postgres_backup_filename }}"
     local_file_or_folder_path: "{{ postgres_restore_dir }}/{{ postgres_backup_filepath }}"
-    storage_account_name: "{{ azure_management_storage_account_name }}"
-    storage_account_key: "{{ azure_management_storage_account_key }}"
+    storage_account_name: "{{ cloud_management_storage_accountname }}"
+    storage_account_key: "{{ cloud_management_storage_secret }}"
   when: cloud_service_provider == "azure"
 
 - name: download a file from aws s3
@@ -26,12 +26,12 @@
     name: aws-cloud-storage
     tasks_from: download.yml
   vars:
-    s3_bucket_name: "{{ aws_management_s3_bucket_name }}"
-    aws_access_key_id: "{{ aws_management_bucket_access_key }}"
-    aws_secret_access_key: "{{ aws_management_bucket_secret_access_key }}"
-    aws_default_region: "{{ aws_region }}"
+    s3_bucket_name: "{{ cloud_storage_postgresqlbackup_bucketname }}"
+    aws_access_key_id: "{{ cloud_management_storage_accountname }}"
+    aws_secret_access_key: "{{ cloud_management_storage_secret }}"
+    aws_default_region: "{{ cloud_public_storage_region }}"
     local_file_or_folder_path: "{{ postgres_restore_dir }}/{{ postgres_backup_filepath }}"
-    s3_path: "{{ postgres_backup_storage }}/{{ postgres_backup_filename }}"
+    s3_path: "{{ cloud_storage_postgresqlbackup_foldername }}/{{ postgres_backup_filename }}"
   when: cloud_service_provider == "aws"
    
 - name: download file from gcloud storage
@@ -39,9 +39,10 @@
     name: gcp-cloud-storage
     tasks_from: download.yml
   vars:
-    gcp_bucket_name: "{{ gcloud_management_bucket_name }}"
-    dest_folder_name: "{{ postgres_backup_storage }}"
-    dest_file_name: "{{ postgres_backup_filename }}"
+    gcp_storage_service_account_name: "{{ cloud_management_storage_accountname }}"
+    gcp_storage_key_file: "{{ cloud_management_storage_secret }}"
+    gcp_bucket_name: "{{ cloud_storage_postgresqlbackup_bucketname }}"
+    gcp_path: "{{ cloud_storage_postgresqlbackup_foldername }}/{{ postgres_backup_filename }}"
     local_file_or_folder_path: "{{ postgres_restore_dir }}/{{ postgres_backup_filepath }}"
   when: cloud_service_provider == "gcloud"
 
