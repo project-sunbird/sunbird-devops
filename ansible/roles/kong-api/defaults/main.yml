@@ -4065,6 +4065,272 @@ kong_apis:
     config.required: true
     config.enabled: true
 
+- name: getCourseHierarchy
+  uris: "{{ course_service_prefix }}/v1/hierarchy"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/course/hierarchy"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+####################################
+- name: LicenseAPI
+  uris: "{{ license_api_prefix }}/v3"
+  upstream_url: "{{ content_service_url }}/license/v3"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - appAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: createChannel
+  uris: "{{ channel_service_prefix }}/v1/create"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/channel/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - channelCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateChannel
+  uris: "{{ channel_service_prefix }}/v1/update"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/channel/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - channelUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: readChannel
+  uris: "{{ channel_service_prefix }}/v1/read"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/channel/read"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ x_large_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: listChannel
+  uris: "{{ channel_service_prefix }}/v1/list"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/channel/list"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - channelAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: searchChannel
+  uris: "{{ channel_service_prefix }}/v1/search"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/channel/search"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - channelAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: createFramework
+  uris: "{{ framework_service_prefix }}/v1/create"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/framework/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ x_medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: createFrameworkCategory
+  uris: "{{ framework_service_prefix }}/v1/category/create"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/framework/category/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ large_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: createFrameworkTerm
+  uris: "{{ framework_service_prefix }}/v1/term/create"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/framework/term/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ large_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateFramework
+  uris: "{{ framework_service_prefix }}/v1/update"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/framework/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ large_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateFrameworkCategory
+  uris: "{{ framework_service_prefix }}/v1/category/update"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/framework/category/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ large_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateFrameworkTerm
+  uris: "{{ framework_service_prefix }}/v1/term/update"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/framework/term/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ large_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: readFramework
   uris: "{{ framework_service_prefix }}/v1/read"
   upstream_url: "{{ knowledge_mw_service_url }}/v1/framework/read"
@@ -4124,6 +4390,27 @@ kong_apis:
     config.required: false
     config.enabled: false
 
+- name: publishFramework
+  uris: "{{ framework_service_prefix }}/v1/publish"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/framework/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ large_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: listFramework
   uris: "{{ framework_service_prefix }}/v1/list"
   upstream_url: "{{ knowledge_mw_service_url }}/v1/framework/list"
@@ -4138,6 +4425,27 @@ kong_apis:
   - name: rate-limiting
     config.policy: local
     config.hour: "{{ x_medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: copyFramework
+  uris: "{{ framework_service_prefix }}/v1/copy"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/framework/copy"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ large_rate_limit_per_hour }}"
     config.limit_by: credential
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
@@ -4187,6 +4495,342 @@ kong_apis:
     config.required: false
     config.enabled: false
 
+- name: createObjectCategory
+  uris: "{{ object_category_prefix }}/v1/create"
+  upstream_url: "{{ taxonomy_service_url }}/object/category/v4/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ small_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: readObjectCategory
+  uris: "{{ object_category_prefix }}/v1/read"
+  upstream_url: "{{ taxonomy_service_url }}/object/category/v4/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ x_medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateObjectCategory
+  uris: "{{ object_category_prefix }}/v1/update"
+  upstream_url: "{{ taxonomy_service_url }}/object/category/v4/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ small_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: createObjectCategoryDefinition
+  uris: "{{ object_category_definition_prefix }}/v1/create"
+  upstream_url: "{{ taxonomy_service_url }}/object/category/definition/v4/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ small_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: readObjectCategoryDefinition
+  uris: "{{ object_category_definition_prefix }}/v1/read"
+  upstream_url: "{{ taxonomy_service_url }}/object/category/definition/v4/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ x_medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateObjectCategoryDefinition
+  uris: "{{ object_category_definition_prefix }}/v1/update"
+  upstream_url: "{{ taxonomy_service_url }}/object/category/definition/v4/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - frameworkUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ small_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: createAsset
+  uris: "{{ asset_prefix }}/v1/create"
+  upstream_url: "{{ content_service_url }}/asset/v4/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateAsset
+  uris: "{{ asset_prefix }}/v1/update"
+  upstream_url: "{{ content_service_url }}/asset/v4/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: readAsset
+  uris: "{{ asset_prefix }}/v1/read"
+  upstream_url: "{{ content_service_url }}/asset/v4/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - anonymousContentAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: uploadAsset
+  uris: "{{ asset_prefix }}/v1/upload"
+  upstream_url: "{{ content_service_url }}/asset/v4/upload"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: uploadUrlAsset
+  uris: "{{ asset_prefix }}/v1/upload/url"
+  upstream_url: "{{ content_service_url }}/asset/v4/upload/url"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: copyAsset
+  uris: "{{ asset_prefix }}/v1/copy"
+  upstream_url: "{{ content_service_url }}/asset/v4/copy"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: createContent
+  uris: "{{ content_prefix }}/v1/create"
+  upstream_url: "{{ knowledge_mw_service_url }}/action/content/v3/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: getContentUploadUrl
+  uris: "{{ content_prefix }}/v1/upload/url/read"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/upload/url"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: publishContent
+  uris: "{{ content_prefix }}/v1/publish"
+  upstream_url: "{{ content_service_url }}/content/v3/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: unlistedPublishContent
+  uris: "{{ content_prefix }}/v1/unlisted/publish"
+  upstream_url: "{{ content_service_url }}/content/v3/unlisted/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: readContent
   uris: "{{ content_prefix }}/v1/read"
   upstream_url: "{{ knowledge_mw_service_url }}/v1/content/read"
@@ -4225,6 +4869,90 @@ kong_apis:
     config.required: false
     config.enabled: false
 
+- name: rejectContent
+  uris: "{{ content_prefix }}/v1/reject"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/reject"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: rejectContentFlag
+  uris: "{{ content_prefix }}/v1/flag/reject"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/flag/reject"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: acceptContentFlag
+  uris: "{{ content_prefix }}/v1/flag/accept"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/flag/accept"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: retireContent
+  uris: "{{ content_prefix }}/v1/retire"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/retire"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: searchContent
   uris: "{{ content_prefix }}/v1/search"
   upstream_url: "{{ knowledge_mw_service_url }}/v1/content/search"
@@ -4236,6 +4964,153 @@ kong_apis:
     config.policy: local
     config.hour: "{{ medium_rate_limit_per_hour }}"
     config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: submitContentForReview
+  uris: "{{ content_prefix }}/v1/review"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/review"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateContent
+  uris: "{{ content_prefix }}/v1/update"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: uploadContent
+  uris: "{{ content_prefix }}/v1/upload"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/upload"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ large_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: copyContent
+  uris: "{{ content_prefix }}/v1/copy"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/copy"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: contentImportAPI
+  uris: "{{ content_prefix }}/v1/import"
+  upstream_url: "{{ content_service_url }}/content/v3/import"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: createContentV2
+  uris: "{{ content_prefix }}/v2/create"
+  upstream_url: "{{ content_service_url }}/content/v4/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateContentV2
+  uris: "{{ content_prefix }}/v2/update"
+  upstream_url: "{{ content_service_url }}/content/v4/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
@@ -4259,6 +5134,237 @@ kong_apis:
     config.required: false
     config.enabled: false
 
+- name: uploadUrlContentV2
+  uris: "{{ content_prefix }}/v2/upload/url"
+  upstream_url: "{{ content_service_url }}/content/v4/upload/url"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: uploadContentV2
+  uris: "{{ content_prefix }}/v2/upload"
+  upstream_url: "{{ content_service_url }}/content/v4/upload"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: copyContentV2
+  uris: "{{ content_prefix }}/v2/copy"
+  upstream_url: "{{ content_service_url }}/content/v4/copy"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: importContentV2
+  uris: "{{ content_prefix }}/v2/import"
+  upstream_url: "{{ content_service_url }}/content/v4/import"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: flagContentV2
+  uris: "{{ content_prefix }}/v2/flag"
+  upstream_url: "{{ content_service_url }}/content/v4/flag"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: acceptFlagContentV2
+  uris: "{{ content_prefix }}/v2/flag/accept"
+  upstream_url: "{{ content_service_url }}/content/v4/flag/accept"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: discardContentV2
+  uris: "{{ content_prefix }}/v2/discard"
+  upstream_url: "{{ content_service_url }}/content/v4/discard"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: retireContentV2
+  uris: "{{ content_prefix }}/v2/retire"
+  upstream_url: "{{ content_service_url }}/content/v4/retire"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: reviewContentV2
+  uris: "{{ content_prefix }}/v2/review"
+  upstream_url: "{{ content_service_url }}/content/v4/review"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: rejectContentV2
+  uris: "{{ content_prefix }}/v2/reject"
+  upstream_url: "{{ content_service_url }}/content/v4/reject"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: PrivateContentCreateAPIs
+  uris: "{{ private_content_prefix }}/v3/create"
+  upstream_url: "{{ content_service_url }}/content/v3/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentSuperAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: PrivateContentReadAPIs
   uris: "{{ private_content_prefix }}/v3/read"
   upstream_url: "{{ content_service_url }}/content/v3/read"
@@ -4276,6 +5382,174 @@ kong_apis:
     config.limit_by: credential
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: PrivateContentUpdateAPIs
+  uris: "{{ private_content_prefix }}/v3/update"
+  upstream_url: "{{ content_service_url }}/content/v3/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentSuperAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: PrivateContentRetireAPI
+  uris: "{{ private_content_prefix }}/v3/retire"
+  upstream_url: "{{ vm_learning_service_url }}/content/v3/retire"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentSuperAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: PrivateContentUploadAPI
+  uris: "{{ private_content_prefix }}/v3/upload"
+  upstream_url: "{{ content_service_url }}/content/v3/upload"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentSuperAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: PrivateContentReviewAPI
+  uris: "{{ private_content_prefix }}/v3/review"
+  upstream_url: "{{ vm_learning_service_url }}/content/v3/review"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentSuperAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: PrivateContentPublishAPI
+  uris: "{{ private_content_prefix }}/v3/publish"
+  upstream_url: "{{ vm_learning_service_url }}/content/v3/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentSuperAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: PrivateContentRejectAPI
+  uris: "{{ private_content_prefix }}/v3/reject"
+  upstream_url: "{{ vm_learning_service_url }}/content/v3/reject"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentSuperAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: PrivateContentHierarchyAPI
+  uris: "{{ private_content_prefix }}/v3/hierarchy"
+  upstream_url: "{{ content_service_url }}/content/v3/hierarchy"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentSuperAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionCreate
+  uris: "{{ collection_prefix }}/v1/create"
+  upstream_url: "{{ content_service_url }}/collection/v4/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: opa-checks
     config.required: false
     config.enabled: false
@@ -4322,6 +5596,216 @@ kong_apis:
     config.required: false
     config.enabled: false
 
+- name: collectionReview
+  uris: "{{ collection_prefix }}/v1/review"
+  upstream_url: "{{ content_service_url }}/collection/v4/review"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionReject
+  uris: "{{ collection_prefix }}/v1/reject"
+  upstream_url: "{{ content_service_url }}/collection/v4/reject"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: acceptCollectionFlag
+  uris: "{{ collection_prefix }}/v1/flag/accept"
+  upstream_url: "{{ content_service_url }}/collection/v4/flag/accept"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionUpdate
+  uris: "{{ collection_prefix }}/v1/update"
+  upstream_url: "{{ content_service_url }}/collection/v4/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionFlag
+  uris: "{{ collection_prefix }}/v1/flag"
+  upstream_url: "{{ content_service_url }}/collection/v4/flag"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionDiscard
+  uris: "{{ collection_prefix }}/v1/discard"
+  upstream_url: "{{ content_service_url }}/collection/v4/discard"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionRetire
+  uris: "{{ collection_prefix }}/v1/retire"
+  upstream_url: "{{ content_service_url }}/collection/v4/retire"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionHierarchyAdd
+  uris: "{{ collection_prefix }}/v1/hierarchy/add"
+  upstream_url: "{{ content_service_url }}/collection/v4/hierarchy/add"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionHierarchyRemove
+  uris: "{{ collection_prefix }}/v1/hierarchy/remove"
+  upstream_url: "{{ content_service_url }}/collection/v4/hierarchy/remove"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionHierarchyUpdate
+  uris: "{{ collection_prefix }}/v1/hierarchy/update"
+  upstream_url: "{{ content_service_url }}/collection/v4/hierarchy/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: collectionHierarchyRead
   uris: "{{ collection_prefix }}/v1/hierarchy"
   upstream_url: "{{ content_service_url }}/collection/v4/hierarchy"
@@ -4333,6 +5817,69 @@ kong_apis:
   - name: acl
     config.whitelist:
       - anonymousContentAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionCopy
+  uris: "{{ collection_prefix }}/v1/copy"
+  upstream_url: "{{ content_service_url }}/collection/v4/copy"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionImport
+  uris: "{{ collection_prefix }}/v1/import"
+  upstream_url: "{{ content_service_url }}/collection/v4/import"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: collectionExport
+  uris: "{{ collection_prefix }}/v1/export"
+  upstream_url: "{{ content_service_url }}/collection/v4/export"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAccess
   - name: rate-limiting
     config.policy: local
     config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -4386,6 +5933,27 @@ kong_apis:
     config.required: false
     config.enabled: false
 
+- name: integrationAppRead
+  uris: "{{ integration_app_prefix }}/v1/read"
+  upstream_url: "{{ content_service_url }}/app/v4/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ small_request_size_limit }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: getFileUploadUrls
   uris: "{{ cloud_service_prefix }}/mlcore/v1/files/preSignedUrls"
   upstream_url: "{{ ml_core_service_url }}/v1/cloud-services/files/preSignedUrls"
@@ -4397,6 +5965,502 @@ kong_apis:
   - name: acl
     config.whitelist:
       - cloudUrlsCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: createPublisher
+  uris: "{{ dialcode_service_prefix }}/v1/publisher/create"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/publisher/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: generateDialcodes
+  uris: "{{ dialcode_service_prefix }}/v1/generate"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/generate"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: linkDialcodeContent
+  uris: "{{ dialcode_service_prefix }}/v1/content/link"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/content/link"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: listDialcodes
+  uris: "{{ dialcode_service_prefix }}/v1/list"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/list"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: publishDialcode
+  uris: "{{ dialcode_service_prefix }}/v1/publish"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: qrCodeBatchProcessRetry
+  uris: "{{ dialcode_service_prefix }}/v1/process/retry"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/process/retry"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: qrCodeBatchProcessStatus
+  uris: "{{ dialcode_service_prefix }}/v1/process/status"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/process/status"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: readDialcode
+  uris: "{{ dialcode_service_prefix }}/v1/read"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: readDialcodeV2
+  uris: "{{ dialcode_service_prefix }}/v2/read"
+  upstream_url: "{{ knowledge_mw_service_url }}/v2/dialcode/read"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: readDIALCodesBatchInfo
+  uris: "{{ dialcode_service_prefix }}/v2/read/batch"
+  upstream_url: "{{ dial_service_url }}/dialcode/v4/batch/read"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: readPublisher
+  uris: "{{ dialcode_service_prefix }}/v1/publisher/read"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/publisher/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: releaseDialcode
+  uris: "{{ dialcode_service_prefix }}/v1/release"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/release"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: reserveDialcode
+  uris: "{{ dialcode_service_prefix }}/v1/reserve"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/reserve"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: searchDialcodes
+  uris: "{{ dialcode_service_prefix }}/v1/search"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/search"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateDialcode
+  uris: "{{ dialcode_service_prefix }}/v1/update"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateDialcodeV2
+  uris: "{{ dialcode_service_prefix }}/v2/update"
+  upstream_url: "{{ knowledge_mw_service_url }}/v2/dialcode/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updatePublisher
+  uris: "{{ dialcode_service_prefix }}/v1/publisher/update"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/dialcode/publisher/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - dialcodeUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: pluginSearch
+  uris: "{{ plugin_service_prefix }}/v1/search"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/plugins/search"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - pluginAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: assessmentItemCreate
+  uris: "{{ assessment_prefix }}/v1/items/create"
+  upstream_url: "{{ vm_learning_service_url }}/assessment/v3/items/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - assessmentAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: assessmentItemUpdate
+  uris: "{{ assessment_prefix }}/v1/items/update"
+  upstream_url: "{{ vm_learning_service_url }}/assessment/v3/items/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - assessmentAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: assessmentItemRetire
+  uris: "{{ assessment_prefix }}/v1/items/retire"
+  upstream_url: "{{ vm_learning_service_url }}/assessment/v3/items/retire"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - assessmentAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: assessmentItemRead
+  uris: "{{ assessment_prefix }}/v1/items/read"
+  upstream_url: "{{ vm_learning_service_url }}/assessment/v3/items/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - assessmentAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: contentBundle
+  uris: "{{ content_prefix }}/v1/bundle"
+  upstream_url: "{{ vm_learning_service_url }}/content/v3/bundle"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: ItemSetAPIs
+  uris: "{{ itemset_prefix }}/v1"
+  upstream_url: "{{ knowledge_mw_service_url }}/itemset/v1"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - itemSetAdmin
   - name: rate-limiting
     config.policy: local
     config.hour: "{{ medium_rate_limit_per_hour }}"
@@ -4423,28 +6487,10 @@ kong_apis:
   - name: opa-checks
     config.required: false
     config.enabled: false
-    
-    
-- name: readChannel
-  uris: "{{ channel_service_prefix }}/v1/read"
-  upstream_url: "{{ knowledge_mw_service_url }}/v1/channel/read"
-  strip_uri: true
-  plugins:
-  - name: cors
-  - "{{ statsd_pulgin }}"
-  - name: rate-limiting
-    config.policy: local
-    config.hour: "{{ x_large_rate_limit_per_hour }}"
-    config.limit_by: ip
-  - name: request-size-limiting
-    config.allowed_payload_size: "{{ small_request_size_limit }}"
-  - name: opa-checks
-    config.required: false
-    config.enabled: false 
 
-- name: getCourseHierarchy
-  uris: "{{ course_service_prefix }}/v1/hierarchy"
-  upstream_url: "{{ knowledge_mw_service_url }}/v1/course/hierarchy"
+- name: createForm
+  uris: "{{ data_service_prefix }}/v1/form/create"
+  upstream_url: "{{ player_service_url }}/plugin/v1/form/create"
   strip_uri: true
   plugins:
   - name: cors
@@ -4454,14 +6500,31 @@ kong_apis:
     config.hour: "{{ medium_rate_limit_per_hour }}"
     config.limit_by: ip
   - name: request-size-limiting
-    config.allowed_payload_size: "{{ small_request_size_limit }}"
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: opa-checks
     config.required: false
     config.enabled: false
 
-- name: readObjectCategoryDefinition
-  uris: "{{ object_category_definition_prefix }}/v1/read"
-  upstream_url: "{{ taxonomy_service_url }}/object/category/definition/v4/read"
+- name: updateForm
+  uris: "{{ data_service_prefix }}/v1/form/update"
+  upstream_url: "{{ player_service_url }}/plugin/v1/form/update"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: updateCollaborators
+  uris: "{{ content_prefix }}/v1/collaborator/update"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/collaborator/update"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4469,10 +6532,10 @@ kong_apis:
   - "{{ statsd_pulgin }}"
   - name: acl
     config.whitelist:
-      - frameworkAccess
+      - contentUpdate
   - name: rate-limiting
     config.policy: local
-    config.hour: "{{ x_medium_rate_limit_per_hour }}"
+    config.hour: "{{ medium_rate_limit_per_hour }}"
     config.limit_by: credential
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
@@ -4480,9 +6543,9 @@ kong_apis:
     config.required: false
     config.enabled: false
 
-- name: readObjectCategory
-  uris: "{{ object_category_prefix }}/v1/read"
-  upstream_url: "{{ taxonomy_service_url }}/object/category/v4/read"
+- name: linkDialcodeContentV1
+  uris: "{{ content_prefix }}/v1/dialcode/link"
+  upstream_url: "{{ content_service_url }}/content/v3/dialcode/link"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4490,13 +6553,265 @@ kong_apis:
   - "{{ statsd_pulgin }}"
   - name: acl
     config.whitelist:
-      - frameworkAccess
+      - contentUpdate
   - name: rate-limiting
     config.policy: local
-    config.hour: "{{ x_medium_rate_limit_per_hour }}"
+    config.hour: "{{ medium_rate_limit_per_hour }}"
     config.limit_by: credential
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
     config.required: false
     config.enabled: false
+
+- name: reserveDialcodeContent
+  uris: "{{ content_prefix }}/v1/dialcode/reserve"
+  upstream_url: "{{ content_service_url }}/content/v3/dialcode/reserve"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: linkDialcodeCollection
+  uris: "{{ collection_prefix }}/v1/dialcode/link"
+  upstream_url: "{{ content_service_url }}/collection/v4/dialcode/link"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: linkDialcodeContentV2
+  uris: "{{ content_prefix }}/v2/dialcode/link"
+  upstream_url: "{{ content_service_url }}/content/v4/dialcode/link"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: reserveDialcodeContentV2
+  uris: "{{ content_prefix }}/v2/dialcode/reserve"
+  upstream_url: "{{ content_service_url }}/content/v4/dialcode/reserve"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: releaseDialcodeContentV2
+  uris: "{{ content_prefix }}/v2/dialcode/release"
+  upstream_url: "{{ content_service_url }}/content/v4/dialcode/release"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: reserveDialcodeCollection
+  uris: "{{ collection_prefix }}/v1/dialcode/reserve"
+  upstream_url: "{{ content_service_url }}/collection/v4/dialcode/reserve"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: releaseDialcodeCollection
+  uris: "{{ collection_prefix }}/v1/dialcode/release"
+  upstream_url: "{{ content_service_url }}/collection/v4/dialcode/release"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: publishContentV2
+  uris: "{{ content_prefix }}/v2/publish"
+  upstream_url: "{{ content_service_url }}/content/v4/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: unlistedPublishContentV2
+  uris: "{{ content_prefix }}/v2/unlisted/publish"
+  upstream_url: "{{ content_service_url }}/content/v4/unlisted/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: publishCollection
+  uris: "{{ collection_prefix }}/v1/publish"
+  upstream_url: "{{ content_service_url }}/collection/v4/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: unlistedPublishCollection
+  uris: "{{ collection_prefix }}/v1/unlisted/publish"
+  upstream_url: "{{ content_service_url }}/collection/v4/unlisted/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: createLock
+  uris: "{{ lock_service_prefix }}/v1/create"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/lock/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
