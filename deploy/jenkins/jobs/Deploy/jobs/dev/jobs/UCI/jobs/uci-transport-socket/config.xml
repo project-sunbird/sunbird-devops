@@ -26,15 +26,21 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>hosts</name>
-          <description>&lt;font color=dimgray size=2&gt;Enter the ansible group or IP to be bootstrapped&lt;/font&gt;</description>
+          <name>absolute_job_path</name>
+          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Do not change this value! The metadata.json will be copied from this job.&lt;/b&gt;&lt;/font&gt;</description>
+          <defaultValue>ArtifactUpload/dev/UCI/uci-transport-socket</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>image_tag</name>
+          <description>&lt;font color=red size=2&gt;&lt;b&gt;CAUTION: If the value is blank, image tag will be taken from the latest metadata.json.&lt;/b&gt;&lt;/font&gt;</description>
           <defaultValue/>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.5.6">
           <name>private_branch</name>
           <description/>
-          <randomName>choice-parameter-189744593687191</randomName>
+          <randomName>choice-parameter-2544395024638227</randomName>
           <visibleItemCount>1</visibleItemCount>
           <script class="org.biouno.unochoice.model.GroovyScript">
             <secureScript plugin="script-security@1.76">
@@ -50,8 +56,8 @@ return """&lt;b&gt;This parameter is not used&lt;/b&gt;"""</script>
               <sandbox>true</sandbox>
             </secureFallbackScript>
           </script>
-          <projectName>Bootstrap</projectName>
-          <projectFullName>OpsAdministration/dev/Core/Bootstrap</projectFullName>
+          <projectName>uci-transport-socket</projectName>
+          <projectFullName>Deploy/dev/UCI/uci-transport-socket</projectFullName>
           <parameters class="linked-hash-map"/>
           <referencedParameters/>
           <choiceType>ET_FORMATTED_HTML</choiceType>
@@ -60,7 +66,7 @@ return """&lt;b&gt;This parameter is not used&lt;/b&gt;"""</script>
         <org.biouno.unochoice.DynamicReferenceParameter plugin="uno-choice@2.5.6">
           <name>branch_or_tag</name>
           <description/>
-          <randomName>choice-parameter-189744596707715</randomName>
+          <randomName>choice-parameter-2620434998790477</randomName>
           <visibleItemCount>1</visibleItemCount>
           <script class="org.biouno.unochoice.model.GroovyScript">
             <secureScript plugin="script-security@1.76">
@@ -77,42 +83,22 @@ return """&lt;b&gt;This parameter is not used&lt;/b&gt;"""</script>
               <sandbox>true</sandbox>
             </secureFallbackScript>
           </script>
-          <projectName>Bootstrap</projectName>
-          <projectFullName>OpsAdministration/dev/Core/Bootstrap</projectFullName>
+          <projectName>uci-transport-socket</projectName>
+          <projectFullName>Deploy/dev/UCI/uci-transport-socket</projectFullName>
           <parameters class="linked-hash-map"/>
           <referencedParameters/>
           <choiceType>ET_FORMATTED_HTML</choiceType>
           <omitValueField>true</omitValueField>
         </org.biouno.unochoice.DynamicReferenceParameter>
-        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.5.6">
-          <name>tag</name>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>role_name</name>
           <description/>
-          <randomName>choice-parameter-14343568343793649</randomName>
-          <visibleItemCount>1</visibleItemCount>
-          <script class="org.biouno.unochoice.model.GroovyScript">
-            <secureScript plugin="script-security@1.76">
-              <script>return['bootstrap_any',
-'node_exporter',
-'azure_cli',
-'aws_cli',
-'gcloud_cli',
-'oci_cli'
-'all']</script>
-              <sandbox>true</sandbox>
-            </secureScript>
-            <secureFallbackScript plugin="script-security@1.76">
-              <script/>
-              <sandbox>true</sandbox>
-            </secureFallbackScript>
-          </script>
-          <projectName>Bootstrap</projectName>
-          <projectFullName>OpsAdministration/dev/Core/Bootstrap</projectFullName>
-          <parameters class="linked-hash-map"/>
-          <referencedParameters/>
-          <choiceType>PT_MULTI_SELECT</choiceType>
-          <filterable>false</filterable>
-          <filterLength>1</filterLength>
-        </org.biouno.unochoice.CascadeChoiceParameter>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>sunbird-deploy</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
       </parameterDefinitions>
     </hudson.model.ParametersDefinitionProperty>
     <hudson.plugins.throttleconcurrents.ThrottleJobProperty plugin="throttle-concurrents@2.2">
@@ -124,7 +110,21 @@ return """&lt;b&gt;This parameter is not used&lt;/b&gt;"""</script>
       <limitOneJobWithMatchingParams>false</limitOneJobWithMatchingParams>
       <paramsToUseForLimit/>
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
-
+    
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <jenkins.triggers.ReverseBuildTrigger>
+          <spec/>
+          <upstreamProjects>ArtifactUpload/dev/UCI/uci-transport-socket</upstreamProjects>
+          <threshold>
+            <name>SUCCESS</name>
+            <ordinal>0</ordinal>
+            <color>BLUE</color>
+            <completeBuild>true</completeBuild>
+          </threshold>
+        </jenkins.triggers.ReverseBuildTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.90">
     <scm class="hudson.plugins.git.GitSCM" plugin="git@4.7.1">
@@ -136,7 +136,7 @@ return """&lt;b&gt;This parameter is not used&lt;/b&gt;"""</script>
       </userRemoteConfigs>
       <branches>
         <hudson.plugins.git.BranchSpec>
-          <name>${branch_or_tag}</name>
+          <name>uci-transport-socket</name>
         </hudson.plugins.git.BranchSpec>
       </branches>
       <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
@@ -151,7 +151,7 @@ return """&lt;b&gt;This parameter is not used&lt;/b&gt;"""</script>
         </hudson.plugins.git.extensions.impl.CloneOption>
       </extensions>
     </scm>
-    <scriptPath>pipelines/bootstrap/Jenkinsfile</scriptPath>
+    <scriptPath>kubernetes/pipelines/deploy_core/Jenkinsfile</scriptPath>
     <lightweight>false</lightweight>
   </definition>
   <triggers/>
