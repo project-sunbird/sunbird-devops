@@ -5,18 +5,106 @@ cloud_service_provider: ""       # Your cloud service provider name. Supported v
 dockerhub: "change.docker.url"                 # docker hub username or url incase of private registry
 private_ingressgateway_ip: "" # your private kubernetes load balancer ip
 domain_name: ""               # your domain name like example.com
-# Note - You can use the same azure account for the below variables or have separate azure accounts
-sunbird_public_storage_account_name: "change.azure.storage.account.name"             # Azure account name for storing public data (like contents)
-sunbird_private_storage_account_name: "change.azure.storage.account.name"            # Azure account name for storing private data (like reports, telemetry data)
-sunbird_artifact_storage_account_name: "change.azure.storage.account.name"           # Azure account name for storing artifacts data (like jenkins build zip files)
-sunbird_management_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing backup data (like cassandra backups)
+
+# Cloud Service Provider Variables
+# If cloud_service_provider is AWS then update with access key as value
+# Example: cloud_public_storage_accountname: "AKSHKSJHFJDHJDSHFKSD"
+# If cloud_service_provider is gloud(GCP) then update with service account name
+# Example: cloud_public_storage_accountname: "cloudstorage-gcp-test.iam.gserviceaccount.com"
+# If cloud_service_provider is AZURE then update with stoage account name
+# Example: cloud_public_storage_accountname: "azurestotageaccount"
+cloud_public_storage_accountname: ""
+# If cloud_service_provider is AWS then update with region
+# Example: cloud_public_storage_region: us-east-1
+cloud_public_storage_region: ""
+# If cloud_service_provider is gcp then update this variable with project id
+# Example: cloud_public_storage_project: "sunbird-gcp-test"
+cloud_public_storage_project: ""
+# If cloud_service_provider is oci update this variable with namespace
+# Example: cloud_public_storage_namespace: "apsjfhudfjs"
+cloud_public_storage_namespace: ""
+
+
+# Create object storage for each below mentioned variables and update accordingly
+# If cloud_service_provider is AWS update with bucket name
+# If cloud_service_provider is gcloud(GCP) update with bucket name
+# If cloud_service_provider is AZURE update with container name 
+# Example: cloud_storage_certqr_bucketname: "certqr-storage"
+cloud_storage_certqr_bucketname: ""
+# This storage contains chatbot related data
+# Example: cloud_storage_chatbot_bucketname: "chatbot-storage"
+cloud_storage_chatbot_bucketname: ""
+# This storage contains dial related data
+# Example: cloud_storage_dial_bucketname: "dial-storage"
+cloud_storage_dial_bucketname: ""
+# This storage contains flink checkpoint data
+# Example: cloud_storage_flink_bucketname: "flink-storage"
+cloud_storage_flink_bucketname: ""
+# This storage contains portal cdn file
+# Example: cloud_storage_playercdn_bucketname: "playercdn-storage"
+cloud_storage_playercdn_bucketname: ""
+# This storage contains public data
+# Example: cloud_storage_public_bucketname: "public-storage"
+cloud_storage_public_bucketname: ""
+# This storage contains public reports data
+# Example: cloud_storage_publicreports_bucketname: "publicreports-storage"
+cloud_storage_publicreports_bucketname: ""
+# This storage contains private reports data
+# Example: cloud_storage_privatereports_bucketname: "privatereports-storage"
+cloud_storage_privatereports_bucketname: ""
+# This storage contains samiksha data
+# Example: cloud_storage_samiksha_bucketname: "samiksha-storage"
+cloud_storage_samiksha_bucketname: ""
+# This storage contains schema data
+# Example: cloud_storage_schema_bucketname: "schema-storage"
+cloud_storage_schema_bucketname: ""
+# This storage contains sourcing related data
+# Example: cloud_storage_sourcing_bucketname: "sourcing-storage"
+cloud_storage_sourcing_bucketname: ""
+# This storage contains desktop app data
+# Example: cloud_storage_offlineinstaller_bucketname: "offlineinstaller-storage"
+cloud_storage_offlineinstaller_bucketname: ""
+# This storage contains public schemas, contents
+# Example: cloud_storage_content_bucketname: "content-storage"
+cloud_storage_content_bucketname: ""
+# This storage contains telemetry data
+# Example: cloud_storage_telemetry_bucketname: "telemetry-storage"
+cloud_storage_telemetry_bucketname: ""
+# This storage contains T & C data
+# Example: cloud_storage_termsandcondtions_bucketname: "termsandconditions-storage"
+cloud_storage_termsandcondtions_bucketname: ""
+# Example: cloud_storage_user_bucketname: "user-storage"
+cloud_storage_user_bucketname: ""
+# This storage contains crashlogs
+# Example: cloud_storage_desktopappcrashlogs_bucketname: "desktopappcrashlogs-storage"
+cloud_storage_desktopappcrashlogs_bucketname: ""
+# This storage contains labels data
+# Example: cloud_storage_label_bucketname: "label-storage"
+cloud_storage_label_bucketname: ""
+# Example: cloud_storage_certservice_bucketname: "certservice-storage"
+cloud_storage_certservice_bucketname: ""
+# This storage contains UCI services data
+# Example: cloud_storage_uci_bucketname: "uci-storage"
+cloud_storage_uci_bucketname: "" 
+# This storage contains artifacts data
+# Example: cloud_storage_artifacts_bucketname: "artifact-storage"
+cloud_storage_artifacts_bucketname: ""
+# This storage contains backups data
+# Example: cloud_storage_management_bucketname: "management-storage"
+cloud_storage_management_bucketname: ""
+
+# Uncomment the variable based on your cloud provider (as a default we have kept Azure variable uncommented)
+# GCP
+# cloud_storage_url: https://storage.googleapis.com
+# AWS
+# cloud_storage_url: "https://s3.{{ cloud_public_storage_region }}.amazonaws.com"
+# Azure
+cloud_storage_url: "https://{{ cloud_public_storage_accountname }}.blob.core.windows.net"
 
 # Optional
 
 env: dev                  # some name like dev, preprod etc
 proto: https               # http or https, preferably https
-
-azure_public_container: contents                          # Azure container name for storing public data (like contents)
 
 environment_id: "10000003"                                   # A 8 digit number for example like 1000000,
                                                   # Important: same as the one in core/common.yaml
@@ -28,27 +116,96 @@ neo4j_enterprise: false                           # Set this to true if you use 
 # ------------------------------------------------------------------------------------------------------------ #
 # Sensible defaults which you need not change - But if you would like to change, you are free to do so
 ekstep_domain_name: "{{ proto }}://{{ domain_name }}"
-artifacts_container: artifacts
-
-# Uncomment the variable based on your cloud provider (as a default we have kept Azure variable uncommented)
-# GCP
-# cloud_storage_url: https://storage.cloud.google.com/{{ gcloud_public_bucket_name }}
-# AWS
-# cloud_storage_url: # Geetha to fill this url based on AWS role vars
-# Azure
-cloud_storage_url: "https://{{ sunbird_public_storage_account_name }}.blob.core.windows.net"
 
 # SB-31155 - This should be deprecated in future in favour of plugin_storage
-plugin_container_name: "{{ azure_public_container }}"
+plugin_container_name: "{{ cloud_storage_content_bucketname }}"
 
-kp_schema_base_path: "{{ cloud_storage_url }}/{{ plugin_storage }}/schemas/local"
+kp_schema_base_path: "{{ cloud_storage_url }}/{{ cloud_storage_content_bucketname }}/schemas/local"
 imagepullsecrets: "{{env}}registrysecret"                 # kubernetes imagePullSecrets
 kubeconfig_path: /var/lib/jenkins/secrets/k8s.yaml        # kubeconfig file path on jenkins
 
-# Define the below if you are using Google Cloud
-gcloud_private_bucket_name: ""
-gcloud_public_bucket_name: ""
-gcloud_artifact_bucket_name: ""
-gcloud_management_bucket_name: ""
+# Below endpoint is not required in current release
+cloud_public_storage_endpoint: ""
 
-gcloud_private_bucket_projectId: ""
+# Update below vars if seperate object storage is required
+cloud_private_storage_accountname: "{{ cloud_public_storage_accountname }}" 
+cloud_private_storage_endpoint: "{{ cloud_public_storage_endpoint }}"    
+cloud_private_storage_region: "{{ cloud_public_storage_region }}"      
+cloud_private_storage_project: "{{ cloud_public_storage_project }}"     
+cloud_private_storage_namespace: "{{ cloud_public_storage_namespace }}" 
+
+cloud_management_storage_accountname: "{{ cloud_public_storage_accountname }}"  
+cloud_management_storage_endpoint: "{{ cloud_public_storage_endpoint }}"     
+cloud_management_storage_region: "{{ cloud_public_storage_region }}"       
+cloud_management_storage_project: "{{ cloud_public_storage_project }}"      
+cloud_management_storage_namespace: "{{ cloud_public_storage_namespace }}"
+
+cloud_artifact_storage_accountname: "{{ cloud_public_storage_accountname }}"  
+cloud_artifact_storage_endpoint: "{{ cloud_public_storage_endpoint }}"     
+cloud_artifact_storage_region: "{{ cloud_public_storage_region }}"       
+cloud_artifact_storage_project: "{{ cloud_public_storage_project }}"      
+cloud_artifact_storage_namespace: "{{ cloud_public_storage_namespace }}"
+
+## Enable below vars to upload database backups in seperate buckets 
+# cloud_storage_cassandrabackup_bucketname: ""
+# cloud_storage_dpcassandrabackup_bucketname: ""
+# cloud_storage_dppostgresbackup_bucketname: ""
+# cloud_storage_dpredisbackup_bucketname: ""
+# cloud_storage_esbackup_bucketname: ""
+# cloud_storage_influxdbbackup_bucketname: ""
+# cloud_storage_jenkinsbackup_bucketname: ""
+# cloud_storage_mongobackup_bucketname: ""
+# cloud_storage_neo4jbackup_bucketname: ""
+# cloud_storage_redisbackup_bucketname: ""
+
+# Building block vars
+cloud_storage_base_url: "{{ cloud_storage_url }}"
+cloudstorage_base_path: "{{ cloud_storage_url }}"
+valid_cloudstorage_base_urls: '["{{ cloud_storage_url }}"]'
+cloudstorage_relative_path_prefix: "CONTENT_STORAGE_BASE_PATH"
+cloud_storage_pathstyle_access: false 
+
+### Lern BB - Adding Lern specific vars here. In future if we want to move it to seperate folder this can be used as the starting point
+
+# Mandatorty variables - DO NOT LEAVE ANYTHING BLANK #
+is_multidc_enabled: false     # Change this to true if you plan to use cassandra multi data center setup
+#Assessment Aggregator Content Read API
+content_read_api_host: ""       # Your domain host ex: http://test.com
+content_read_api_endpoint: ""   # ex: api/content/v1/read/
+
+# For sendgrid, if you want to change, update the following
+sunbird_mail_server_host: "smtp.sendgrid.net"   # Email host, can be any email provider
+sunbird_mail_server_username: "apikey"          # Email provider username; for sendgrid you can use "apikey"
+sunbird_mail_server_port:  ## Email server SMTP port ex: 587
+# This mail id should be verified by your provider. This is the mail id which will be used for `From Address`. For example,
+# From: support@sunbird.org
+# Subject: Forgot password
+# Hi.....
+sunbird_mail_server_from_email: "support@myorg.com"       # Email ID that should be as from address in mails
+
+# Optional variables - Can be left blank if you dont plan to use the intended features
+# data exhaust alerts
+data_exhaust_webhook_url: "slack.com"     # Slack webhook url
+data_exhaust_Channel: "slack.com"         # Slack channel for data products alerts
+
+# This sms sender id should be verified by your provider. This is the sender id which will be used for `From Address`. For example,
+# From: SBSMS
+# Hi.....
+# This is optional.
+# If not set, you won't get sms OTPs. You'll get it in mail though.
+sunbird_notification_msg_default_sender:       # SMS from Address; exact 6 char like SBSUNB
+
+
+# Sensible defaults which you need not change - But if you would like to change, you are free to do so
+data_exhaust_name: "lern-datapipeline-monitoring"  # Slack notification name
+postgres:
+  db_url: "{{ groups['postgres'][0] }}"
+  db_username: analytics
+  db_name: analytics
+  db_table_name: "{{env}}_consumer_channel_mapping"
+  db_port: 5432
+  db_admin_user: postgres
+  db_admin_password: "{{dp_vault_pgdb_admin_password}}"
+
+# graylog
+send_logs_to_graylog: true  # filebeat agents will send logs to graylog instead of ES
