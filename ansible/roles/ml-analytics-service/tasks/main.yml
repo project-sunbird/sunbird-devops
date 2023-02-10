@@ -48,16 +48,6 @@
 - name: Install python virtual environment
   shell: "cd {{ WORKDIR }} && virtualenv --python=python3.8 spark_venv"
   become: true
-  
-- name: Change the ownership of virtual env
-  become: yes
-  file:
-    path: "{{ WORKDIR }}/spark_venv"
-    state: directory
-    recurse: yes
-    owner: "{{ USER }}"
-    group: "{{ USER }}"
-    mode: "0755"
 
 - name: Create necessary logs folders for pipeline
   become: yes
@@ -81,6 +71,16 @@
     requirements: "{{ WORKDIR }}/ml-analytics-service/requirements.txt"
     extra_args: --upgrade
 
+- name: Change the ownership of virtual env
+  become: yes
+  file:
+    path: "{{ WORKDIR }}/spark_venv"
+    state: directory
+    recurse: yes
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+    mode: "0755"
+    
 - name: Creating a faust service shell file in executable mode
   copy:
     src: files/faust.sh
