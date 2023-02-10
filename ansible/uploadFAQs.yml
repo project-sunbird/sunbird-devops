@@ -64,7 +64,7 @@
       name: oci-cloud-storage
       tasks_from: upload-folder.yml
     vars:
-      oss_bucket_name: "{{ upload_storage }}"
+      oss_bucket_name: "{{ cloud_storage_public_bucketname }}"
       oss_path: ""
       local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
     with_items:
@@ -118,5 +118,17 @@
     with_items:
       - "{{ source_folder.split(',') }}"
     when: cloud_service_provider == "gcloud"
+
+  - name: upload batch of files to oci oss
+    include_role:
+      name: oci-cloud-storage
+      tasks_from: upload-folder.yml
+    vars:
+      oss_bucket_name: "{{ cloud_storage_content_bucketname }}"
+      oss_path: ""
+      local_file_or_folder_path: "{{ playbook_dir }}/../utils/{{ item }}"
+    with_items:
+      - "{{ source_folder.split(',') }}"  
+    when: cloud_service_provider == "oci"
   tags:
     - upload-RC-schema
