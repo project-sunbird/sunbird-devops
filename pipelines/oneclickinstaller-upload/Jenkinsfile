@@ -1,0 +1,46 @@
+@Library('deploy-conf') _
+node(){
+    try {
+
+        stage('checkout public repo') {
+            folder = new File("$WORKSPACE/.git")
+            if (folder.exists())
+            {
+               println "Found .git folder. Clearing it.."
+               sh'git clean -fxd'
+            }
+            checkout scm
+        }
+
+        stage('Artifact Upload') {
+            values = docker_params()
+            if(params.artifact_source == "ArtifactRepo") {
+                currentWs = sh(returnStdout: true, script: 'pwd').trim()
+                values.put('currentWs', currentWs)
+                sh "echo the value is ${hub_org}"
+                sh "echo the value is ${values.currentWs}"
+                sh "echo the value is ${values.image_name}"
+                sh "echo the value is ${values.image_tag}"
+                sh "docker login ${oneclickinstaller_docker_repo} -u ${oneclickinstaller_docker_username} -p ${oneclickinstaller_docker_password}"
+                sh "docker tag ${hub_org}/${values.image_name}:${values.image_tag} oneclickinstaller/${values.image_name}:${values.image_tag}_${BUILD_NUMBER}"
+                sh "docker push oneclickinstaller/${values.image_name}:${values.image_tag}_${BUILD_NUMBER}"
+                currentBuild.result = 'SUCCESS'
+            }
+            archiveArtifacts 'metadata.json'
+            cdn_file_exists = new File("$currentWs/index_cdn.ejs")
+            if (cdn_file_exists.exists()) {
+                archiveArtifacts "index_cdn.ejs, cdn_assets.zip"
+            }    
+            currentBuild.description = "Image: ${values.image_tag}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
+        }
+    }
+
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
+    }
+}
