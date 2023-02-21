@@ -85,16 +85,23 @@ discussions_mw_service_url: "http://discussionsmw-service:3002/discussion"
 notification_service_url: "http://notification-service:9000"
 registry_service_url: "http://registry-service:8081"
 
-#knowlg URLs
+# knowlg URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
 vm_learning_service_url: "http://{{learningservice_ip}}:8080/learning-service"
-telemetry_service_url: "http://telemetry-service:9001"
-player_service_url: "http://player:3000"
 content_service_url: "http://content-service:9000"
 taxonomy_service_url: "http://taxonomy-service:9000"
-assessment_service_url: "http://assessment-service:9000"
 ml_core_service_url: "http://ml-core-service:3000"
 dial_service_url: "http://dial-service:9000"
+
+# Obsrv URLs
+analytics_api_service_url: "http://analytics-service:9000"
+telemetry_service_url: "http://telemetry-service:9001"
+
+# Inquiry URLs
+assessment_service_url: "http://assessment-service:9000"
+
+# Ed URLs
+player_service_url: "http://player:3000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -6856,6 +6863,27 @@ kong_apis:
   - name: rate-limiting
     config.policy: local
     config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: telemetry
+  uris: "{{ data_service_prefix }}/v1/telemetry"
+  upstream_url: "{{ telemetry_service_url }}/v1/telemetry"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - telemetryCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ premium_consumer_large_rate_limit_per_hour }}"
     config.limit_by: credential
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
