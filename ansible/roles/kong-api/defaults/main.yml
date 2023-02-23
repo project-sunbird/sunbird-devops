@@ -73,6 +73,7 @@ assessment_prefix: /assessment
 
 # Obsrv service prefixes
 device_prefix: /v3/device
+dataset_service_prefix: /dataset
 
 # Service URLs
 learning_service_url: "http://learner-service:9000"
@@ -6890,3 +6891,66 @@ kong_apis:
   - name: opa-checks
     config.required: false
     config.enabled: false
+
+- name: submitDataExhaustRequest
+  uris: "{{ dataset_service_prefix }}/v1/request/submit"
+  upstream_url: "{{ analytics_api_service_url }}/request/submit"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - dataCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: getDataExhaustRequest
+  uris: "{{ dataset_service_prefix }}/v1/request/read"
+  upstream_url: "{{ analytics_api_service_url }}/request/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - dataAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: listDataExhaustRequest
+  uris: "{{ dataset_service_prefix }}/v1/request/list"
+  upstream_url: "{{ analytics_api_service_url }}/request/list"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - dataAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
