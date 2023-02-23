@@ -1,0 +1,37 @@
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{knowlgbbportal_replicacount|default(1)}}
+repository: {{knowlgbbportal_repository|default('knowlgbbportal')}}
+image_tag: {{image_tag}}
+resources:
+  requests:
+    cpu: {{knowlgbbportal_cpu_req|default('100m')}}
+    memory: {{knowlgbbportal_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{knowlgbbportal_cpu_limit|default('1000m')}}
+    memory: {{knowlgbbportal_memory_limit|default('1024Mi')}}
+network:
+  port: 3000
+  targetport: 3000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ knowlgbbportal_maxsurge|default('50%') }}
+  maxunavailable: {{ knowlgbbportal_maxunavailable|default('50%') }} 
+
+autoscaling:
+  enabled: {{ knowlgbbportal_autoscaling_enabled | default('false') }}
+  minReplicas: {{ knowlgbbportal_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ knowlgbbportal_autoscaling_maxReplicas|default(3) }}
+  targetCPUUtilizationPercentage: {{ knowlgbbportal_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ knowlgbbportal_autoscaling_targetMemoryUtilizationPercentage|default('') }}
+
+knowlgbbportalenv:
+  knowlg_bb_portal_base_url: {{domain_name}}
+  knowlg_bb_portal_api_auth_token: {{knowlg_bb_portal_api_auth_token}}
+  knowlg_bb_portal_user_api_token: {{knowlg_bb_portal_user_api_token}}
+  knowlg_bb_portal_channel_id: !!str {{knowlg_bb_portal_channel_id}}
+  knowlg_bb_portal_user_role: {{knowlg_bb_portal_user_role}}
+
+knowlgbb_usertoken_basepath: {{ knowlgbb_usertoken_basepath | default('/keys/') }}
