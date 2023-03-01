@@ -1,5 +1,8 @@
 [all:vars]
-# Replace the value deployer to your server login user name, for example ubuntu
+# deployer is the name of the system admin user which will be used to provision and configure the services on the servers. 
+# Replace the value deployer, if you would like to use any other system admin user
+# Update the IP address under each host group as per your infrastructure
+
 ansible_ssh_user=deployer
 ansible_ssh_private_key_file=/var/lib/jenkins/secrets/deployer_ssh_key
 
@@ -31,7 +34,8 @@ log-es-1
 es-1
 
 [es7-1]
-10.10.10.15 es_instance_name=es7-1 es_etc_node_master=true es_etc_node_data=true
+10.0.1.10 es_instance_name=es7-1 es_etc_node_master=true es_etc_node_data=true
+
 [es7:children]
 es7-1
 
@@ -107,17 +111,6 @@ localhost
 [composite-search-cluster]
 10.0.1.8
 
-[yarn-master]
-10.0.1.7
-
-[yarn-slave]
-10.0.1.7     #yarn master
-10.0.1.7
-
-[yarn:children]
-yarn-master
-yarn-slave
-
 [graylog-1]
 10.0.1.9 mongodb_master=True graylog_is_master=True
 
@@ -131,12 +124,8 @@ graylog-1
 log-es-1
 
 [node-exporter]
-# Add all your VM IP's under this group
-10.1.4.4
-10.1.4.5
-10.1.4.6
-10.1.4.7
-10.1.4.8
+# Add all your VM IP's. This is required for monitoring using prometheus
+
 
 [process-exporter:children]
 node-exporter
@@ -152,7 +141,6 @@ kafka
 keycloak
 composite-search-cluster
 processing-cluster-kafka
-yarn
 process-exporter
 
 [env:children]
@@ -160,7 +148,7 @@ core
 local
 
 [ml-analytics-service]
-10.0.0.45
+10.0.1.11
 
 [dp-druid-broker]
 0.0.0.0                # Druid broker IP for druid proxy api
