@@ -11,6 +11,6 @@ require (
 	github.com/spf13/cobra v1.3.0 // indirect
 	github.com/tidwall/gjson v1.12.1
 	github.com/tidwall/sjson v1.2.4
-	golang.org/x/net v0.0.0-20211111083644-e5c967477495 // indirect
+	golang.org/x/net v0.7.0 // indirect
 	google.golang.org/grpc v1.44.0 // indirect
 )
