@@ -71,6 +71,10 @@ integration_app_prefix: /app
 cloud_service_prefix: /cloud-services
 assessment_prefix: /assessment
 
+# Obsrv service prefixes
+device_prefix: /v3/device
+dataset_service_prefix: /dataset
+
 # Service URLs
 user_org_service_url: "http://user-org-service:9000"
 am_util_url: "http://adminutil:4000"
@@ -82,16 +86,23 @@ discussions_mw_service_url: "http://discussionsmw-service:3002/discussion"
 notification_service_url: "http://notification-service:9000"
 registry_service_url: "http://registry-service:8081"
 
-#knowlg URLs
+# knowlg URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
 vm_learning_service_url: "http://{{learningservice_ip}}:8080/learning-service"
-telemetry_service_url: "http://telemetry-service:9001"
-player_service_url: "http://player:3000"
 content_service_url: "http://content-service:9000"
 taxonomy_service_url: "http://taxonomy-service:9000"
-assessment_service_url: "http://assessment-service:9000"
 ml_core_service_url: "http://ml-core-service:3000"
 dial_service_url: "http://dial-service:9000"
+
+# Obsrv URLs
+analytics_api_service_url: "http://analytics-service:9000"
+telemetry_service_url: "http://telemetry-service:9001"
+
+# Inquiry URLs
+assessment_service_url: "http://assessment-service:9000"
+
+# Ed URLs
+player_service_url: "http://player:3000"
 
 premium_consumer_rate_limits:
   - api: createContent
@@ -4083,7 +4094,7 @@ kong_apis:
     config.required: false
     config.enabled: false
 
-####################################
+### Knowls APIs START ###
 - name: LicenseAPI
   uris: "{{ license_api_prefix }}/v3"
   upstream_url: "{{ content_service_url }}/license/v3"
@@ -4640,8 +4651,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: updateAsset
   uris: "{{ asset_prefix }}/v1/update"
@@ -4661,8 +4672,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: readAsset
   uris: "{{ asset_prefix }}/v1/read"
@@ -4703,8 +4714,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: uploadUrlAsset
   uris: "{{ asset_prefix }}/v1/upload/url"
@@ -4724,8 +4735,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: copyAsset
   uris: "{{ asset_prefix }}/v1/copy"
@@ -4745,12 +4756,12 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: createContent
   uris: "{{ content_prefix }}/v1/create"
-  upstream_url: "{{ knowledge_mw_service_url }}/action/content/v3/create"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4766,8 +4777,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: getContentUploadUrl
   uris: "{{ content_prefix }}/v1/upload/url/read"
@@ -4808,8 +4819,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: unlistedPublishContent
   uris: "{{ content_prefix }}/v1/unlisted/publish"
@@ -4829,8 +4840,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: readContent
   uris: "{{ content_prefix }}/v1/read"
@@ -4888,8 +4899,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: rejectContentFlag
   uris: "{{ content_prefix }}/v1/flag/reject"
@@ -4989,8 +5000,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: updateContent
   uris: "{{ content_prefix }}/v1/update"
@@ -5010,8 +5021,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: uploadContent
   uris: "{{ content_prefix }}/v1/upload"
@@ -5031,8 +5042,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ large_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: copyContent
   uris: "{{ content_prefix }}/v1/copy"
@@ -5342,8 +5353,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: PrivateContentCreateAPIs
   uris: "{{ private_content_prefix }}/v3/create"
@@ -5867,8 +5878,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: collectionExport
   uris: "{{ collection_prefix }}/v1/export"
@@ -5888,8 +5899,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ medium_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: compositeSearch
   uris: "{{ composite_service_prefix }}/v1/search"
@@ -6175,8 +6186,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: readPublisher
   uris: "{{ dialcode_service_prefix }}/v1/publisher/read"
@@ -6667,8 +6678,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: reserveDialcodeCollection
   uris: "{{ collection_prefix }}/v1/dialcode/reserve"
@@ -6709,8 +6720,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: publishContentV2
   uris: "{{ content_prefix }}/v2/publish"
@@ -6730,8 +6741,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: unlistedPublishContentV2
   uris: "{{ content_prefix }}/v2/unlisted/publish"
@@ -6751,8 +6762,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: publishCollection
   uris: "{{ collection_prefix }}/v1/publish"
@@ -6772,8 +6783,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: unlistedPublishCollection
   uris: "{{ collection_prefix }}/v1/unlisted/publish"
@@ -6793,8 +6804,8 @@ kong_apis:
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks
-    config.required: false
-    config.enabled: false
+    config.required: true
+    config.enabled: true
 
 - name: createLock
   uris: "{{ lock_service_prefix }}/v1/create"
@@ -6807,6 +6818,196 @@ kong_apis:
   - name: acl
     config.whitelist:
     - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: listLock
+  uris: "{{ lock_service_prefix }}/v1/list"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/lock/list"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: refreshLock
+  uris: "{{ lock_service_prefix }}/v1/refresh"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/lock/refresh"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: retireLock
+  uris: "{{ lock_service_prefix }}/v1/retire"
+  upstream_url: "{{ knowledge_mw_service_url }}/v1/lock/retire"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+### Obsrv APIs START ###
+- name: deviceProfile
+  uris: "{{ device_prefix }}/profile"
+  upstream_url: "{{ analytics_api_service_url }}/v1/device/profile"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - deviceCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: deviceRegister
+  uris: "{{ device_prefix }}/register"
+  upstream_url: "{{ analytics_api_service_url }}/v1/device/register"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - deviceCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: telemetry
+  uris: "{{ data_service_prefix }}/v1/telemetry"
+  upstream_url: "{{ telemetry_service_url }}/v1/telemetry"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - telemetryCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ premium_consumer_large_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: submitDataExhaustRequest
+  uris: "{{ dataset_service_prefix }}/v1/request/submit"
+  upstream_url: "{{ analytics_api_service_url }}/request/submit"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - dataCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: getDataExhaustRequest
+  uris: "{{ dataset_service_prefix }}/v1/request/read"
+  upstream_url: "{{ analytics_api_service_url }}/request/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - dataAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: listDataExhaustRequest
+  uris: "{{ dataset_service_prefix }}/v1/request/list"
+  upstream_url: "{{ analytics_api_service_url }}/request/list"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - dataAccess
   - name: rate-limiting
     config.policy: local
     config.hour: "{{ medium_rate_limit_per_hour }}"
