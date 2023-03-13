@@ -1,0 +1,41 @@
+### Default variable file for cert-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+env:
+  javaoptions: {{learning_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{learning_replicacount|default(1)}}
+repository: {{learning_repository|default('learning-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{learning_cpu_req|default('100m')}}
+    memory: {{learning_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{learning_cpu_limit|default('1')}}
+    memory: {{learning_mem_limit|default('1024Mi')}}
+network:
+  port: 9000
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ learning_maxsurge|default('25%') }}
+  maxunavailable: {{ learning_maxunavailable|default('25%') }}
+
+initcontainer_resources:
+  requests:
+    cpu: "{{ learning_initcontainer_cpu_req | default('100m') }}"
+    memory: "{{ learning_initcontainer_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ learning_initcontainer_cpu_limit | default('100m') }}"
+    memory: "{{ learning_initcontainer_mem_limit | default('100Mi') }}"
+
+autoscaling:
+  enabled: {{ learning_autoscaling_enabled | default('false') }}
+  minReplicas: {{ learning_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ learning_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ learning_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ learning_autoscaling_targetMemoryUtilizationPercentage|default('') }}
