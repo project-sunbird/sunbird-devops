@@ -118,7 +118,7 @@
   ignore_errors: true
 
 - name: Get deployed image name - deployments
-  shell: kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[0].image | split("/")[1]'
+  shell: kubectl get deployments.apps {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[0].image | split("/")[-1]'
   register: image
   when: cloud_service_provider != "oci"
 
@@ -138,7 +138,7 @@
   ignore_errors: true
 
 - name: Get deployed image name - daemonsets
-  shell: "kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
+  shell: kubectl get daemonsets {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[].image | split("/")[-1]'
   register: image
 
 - name: Get deployed image name - daemonsets for OCI
@@ -156,7 +156,7 @@
   ignore_errors: true
 
 - name: Get deployed image name - statefulsets
-  shell: "kubectl get statefulsets {{ release_name }} -o json -n {{ namespace }} | jq '.spec.template.spec.containers | .[].image' -r | awk -F/ '{print $2}'"
+  shell: kubectl get statefulsets {{ release_name }} -o json -n {{ namespace }} | jq -r '.spec.template.spec.containers[].image | split("/")[-1]'
   register: image
 
 - set_fact:
