@@ -1,0 +1,56 @@
+---
+- hosts: local
+  gather_facts: false
+  vars_files:
+    - "{{inventory_dir}}/secrets.yml"
+  # The vars: section is added for the below reason
+  # 1. Introduce a common variable for various clouds. In case of azure, it refers to container name, in case of aws / gcp, it refers to folder name
+  # 2. We want to avoid too many new variable introduction / replacement in first phase. Hence we will reuse the existing variable defined in private repo
+  #    or other default files and just assign the value to the newly introduced common variable 
+  # 3. After few releases, we will remove the older variables and use only the new variables across the repos
+  vars:
+    plugin_storage: "{{ plugin_container_name }}"
+  tasks:
+  - name: this block consists of tasks related to azure storage
+    block:
+      - name: set common azure variables
+        set_fact:
+          blob_container_name: "{{ plugin_storage }}"
+          container_public_access: "container"
+          blob_delete_pattern: "content-plugins/{{ plugins_name }}"
+          blob_container_folder_path: "/content-plugins/{{ plugins_name }}"
+          local_file_or_folder_path: "{{ source_file }}"
+          storage_account_name: "{{ cloud_public_storage_accountname }}"
+          storage_account_key: "{{ cloud_public_storage_secret }}"
+    
+      - name: delete batch of files from azure storage
+        include_role:
+          name: azure-cloud-storage
+          tasks_from: blob-delete-batch.yml
+    
+      - name: upload batch of files to azure storage
+        include_role:
+          name: azure-cloud-storage
+          tasks_from: blob-upload-batch.yml
+    when: cloud_service_provider == "azure"
+
+### GCP tasks ###
+  - name: this block consists of tasks related to gcloud storage
+    block:
+        - name: set common gcloud variables
+          set_fact:
+            gcp_bucket_name: "{{ cloud_storage_content_bucketname }}"
+            gcp_path: "/content-plugins/{{ plugins_name }}"
+            file_delete_pattern: "content-plugins/{{ plugins_name }}"
+            local_file_or_folder_path: "{{ source_file }}"
+
+        - name: delete files and folders from gcloud storage
+          include_role:
+            name: gcp-cloud-storage
+            tasks_from: delete-batch.yml
+
+        - name: upload batch of files to gcloud storage
+          include_role:
+            name: gcp-cloud-storage
+            tasks_from: upload-batch.yml
+    when: cloud_service_provider == "gcloud"

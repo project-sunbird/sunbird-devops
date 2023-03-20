@@ -1,6 +1,5 @@
 - name: Create the directory
   file: path={{ redis_backup_dir }} state=directory recurse=yes
-  
 
 - set_fact:
     redis_backup_file_name: "redis-backup-{{ lookup('pipe', 'date +%Y-%m-%d-%T') }}.rdb"
@@ -8,22 +7,50 @@
 - set_fact:
     redis_backup_file_path: "{{ redis_backup_dir }}/{{ redis_backup_file_name }}"
 
-
 - name: copy dump.rdb file
   copy:
     src: /home/learning/redis-stable/dump.rdb
     dest: "{{ redis_backup_dir }}/{{ redis_backup_file_name }}"
     remote_src: yes
-    
 
-- name: upload to azure
+- name: upload file to azure storage
   include_role:
-    name: artifacts-upload-azure
+    name: azure-cloud-storage
+    tasks_from: blob-upload.yml
   vars:
-    artifact: "{{ redis_backup_file_name }}"
-    artifact_path: "{{ redis_backup_file_path }}"
-    artifacts_container: "{{ nodebb_redis_backup_azure_container_name }}"
+    blob_container_name: "{{ cloud_storage_redisbackup_foldername }}"
+    container_public_access: "off"
+    blob_file_name: "{{ redis_backup_file_name }}"
+    local_file_or_folder_path: "{{ redis_backup_file_path }}"
+    storage_account_name: "{{ cloud_management_storage_accountname }}"
+    storage_account_key: "{{ cloud_management_storage_secret }}"
+  when: cloud_service_provider == "azure"
+
+- name: upload file to aws s3
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    s3_bucket_name: "{{ cloud_storage_redisbackup_bucketname }}"
+    aws_access_key_id: "{{ cloud_management_storage_accountname }}"
+    aws_secret_access_key: "{{ cloud_management_storage_secret }}"
+    aws_default_region: "{{ cloud_public_storage_region }}"
+    local_file_or_folder_path: "{{ redis_backup_file_path }}"
+    s3_path: "{{ cloud_storage_redisbackup_foldername }}/{{ redis_backup_file_name }}"
+  when: cloud_service_provider == "aws"
    
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    gcp_storage_service_account_name: "{{ cloud_management_storage_accountname }}"
+    gcp_storage_key_file: "{{ cloud_management_storage_secret }}"
+    gcp_bucket_name: "{{ cloud_storage_redisbackup_bucketname }}"
+    gcp_path: "{{ cloud_storage_redisbackup_foldername }}/{{ redis_backup_file_name }}"
+    local_file_or_folder_path: "{{ redis_backup_file_path }}"
+  when: cloud_service_provider == "gcloud"
+
 - name: clean up backup dir after upload
   file: path={{ redis_backup_dir }} state=absent
 

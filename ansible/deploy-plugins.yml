@@ -1,54 +1,224 @@
 - hosts: local
-  become: yes
   gather_facts: no
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  environment:
-        AZURE_STORAGE_ACCOUNT: "{{ sunbird_public_storage_account_name }}"
-        AZURE_STORAGE_SAS_TOKEN: "{{ sunbird_public_storage_account_sas  }}"
   tasks:
     - name: rename env_domain in preview_cdn.html for CDN
       shell: |
-        echo "{{sunbird_portal_preview_cdn_url}}"
-        sed -i 's|cdn_url|{{sunbird_portal_preview_cdn_url}}|g' "{{currentws}}"/ansible/preview/preview_cdn.html
+        echo "{{ sunbird_portal_preview_cdn_url }}"
+        sed -i 's|cdn_url|{{ sunbird_portal_preview_cdn_url }}|g' "{{ currentws }}"/ansible/preview/preview_cdn.html
       when: sunbird_portal_preview_cdn_url is defined
       tags:
         - preview
 
-    - name: delete batch
-      shell: |
-        azcopy rm "https://{{ sunbird_public_storage_account_name }}.blob.core.windows.net/{{ plugin_container_name }}/{{ folder_name }}{{sunbird_public_storage_account_sas}}" --recursive=true
-      async: 3600
-      poll: 10
-      tags:
-        - content-editor
-        - collection-editor
-        - generic-editor
-        - preview
+    - name: this block consists of tasks related to azure storage
+      block:
+        - name: set common azure variables
+          set_fact:
+            blob_container_name: "{{ cloud_storage_content_bucketname }}"
+            container_public_access: "container"
+            storage_account_name: "{{ cloud_public_storage_accountname }}"
+            storage_account_key: "{{ cloud_public_storage_secret }}"
+          tags:
+            - always
+          no_log: True
 
-    - name: upload batch
-      command: "az storage blob upload-batch --destination {{ plugin_container_name }}/{{ folder_name }} --source {{ source_name }}"
-      async: 3600
-      poll: 10
-      tags:
-        - content-editor 
-        - collection-editor
-        - generic-editor
-        - preview
-        - editor
-        - core-plugins
+        - block:
+          - name: delete files and folders from azure storage using azcopy
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: delete-using-azcopy.yml
+          vars:
+              blob_container_folder_path: "/{{ folder_name }}"
+          tags:
+            - content-editor
+            - collection-editor
+            - generic-editor
+            - preview
+
+        - block:
+          - name: upload batch of files to azure storage
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: blob-upload-batch.yml
+            vars:
+              blob_container_folder_path: "/{{ folder_name }}"
+              local_file_or_folder_path: "{{ source_name }}"
+          tags:
+            - content-editor 
+            - collection-editor
+            - generic-editor
+            - preview
+            - editor
+            - core-plugins 
+      
+        - block:
+          - name: upload file to azure storage
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: blob-upload.yml
+            vars:
+              blob_file_name: "artefacts/content-player/content-player-{{ player_version_number }}.zip"
+              local_file_or_folder_path: "{{ source_file_name }}"
+          tags:
+            - preview
+      
+        - block:
+          - name: delete and re-upload plugins
+            include_role:
+              name: azure-cloud-storage
+              tasks_from: "{{ item[0] }}"
+            vars:
+              blob_delete_pattern: "content-plugins/{{ item[1] }}/*"
+              blob_container_folder_path: "/content-plugins/{{ item[1] }}"
+              local_file_or_folder_path: "{{ source_folder }}/{{ item[1] }}"
+            with_nested:
+              - ['blob-delete-batch-no-poll.yml', 'blob-upload-batch-no-poll.yml']
+              - "{{ lookup('file', plugins_to_delete_and_upload).split('\n') }}"
+          tags:
+            - plugins
+      when: cloud_service_provider == "azure"
+
+### GCP tasks ####
+    - name: this block consists of tasks related to gcloud storage
+      block:
+        - name: set common gcloud variables
+          set_fact:
+            gcp_bucket_name: "{{ cloud_storage_content_bucketname }}"
+            gcp_path: ""
+
+          tags:
+            - always
   
+        - block:
+          - name: delete files and folders from gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: delete-batch.yml
+          vars:
+            file_delete_pattern: "{{ folder_name }}"
+          tags:
+            - content-editor
+            - collection-editor
+            - generic-editor
+            - preview
+ 
+        - block:
+          - name: upload batch of files to gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: upload-batch.yml
+            vars:
+              gcp_path: "{{ folder_name }}"
+              local_file_or_folder_path: "{{ source_name }}"
+          tags:
+            - content-editor
+            - collection-editor
+            - generic-editor
+            - preview
+            - editor
+            - core-plugins
+     
+        - block:
+          - name: upload file to gcloud storage
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              gcp_path: "artefacts/content-player/content-player-{{ player_version_number }}.zip"
+              local_file_or_folder_path: "{{ source_file_name }}"
+          tags:
+            - preview
 
-    - name: upload file
-      command: "az storage blob upload --container-name {{ plugin_container_name }} --file {{ source_file_name }} --name artefacts/content-player/content-player-{{ player_version_number }}.zip"
-      async: 3600
-      poll: 10  
-      tags:
-        - preview
+        - block:
+          - name: Authenticate to gcloud
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: gcloud-auth.yml
 
-    - name:  run az_copy.sh
-      shell: "bash {{ az_file_path }} {{ plugin_container_name }} {{ source_file }}"
-      async: 3600
-      poll: 10
-      tags:
-        - plugins
+          - name: delete and re-upload plugins
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: "{{ item[0] }}"
+            vars:
+              gcp_storage_service_account_name: "{{ cloud_public_storage_accountname }}"
+              gcp_storage_key_file: "{{ cloud_public_storage_secret }}"
+              file_delete_pattern: "content-plugins/{{ item[1] }}/*"
+              gcp_path: "content-plugins/{{ item[1] }}"
+              local_file_or_folder_path: "{{ source_folder }}/{{ item[1] }}"
+            with_nested:
+              - ['delete-batch-no-poll.yml', 'upload-batch-no-poll.yml']
+              - "{{ lookup('file', plugins_to_delete_and_upload).split('\n') }}"
+
+          - name: Revoke gcloud access
+            include_role:
+              name: gcp-cloud-storage
+              tasks_from: gcloud-revoke.yml
+          tags:
+            - plugins
+      when: cloud_service_provider == "gcloud"
+
+################################### AWS tasks #########################
+    - name: this block consists of tasks related to aws s3
+      block:
+        - name: set common aws variables
+          set_fact:
+            aws_default_region: "{{ cloud_public_storage_region }}"
+            s3_bucket_name: "{{ cloud_storage_content_bucketname }}"
+            aws_access_key_id: "{{ cloud_public_storage_accountname }}"
+            aws_secret_access_key: "{{ cloud_public_storage_secret }}"
+          tags:
+            - always
+      
+        - block:
+          - name: delete files and folders from s3
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: delete-folder.yml
+          vars:
+              s3_path: "{{ folder_name }}"
+          tags:
+            - content-editor
+            - collection-editor
+            - generic-editor
+            - preview
+      
+        - block:
+          - name: upload folder to s3
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: upload-folder.yml
+            vars:
+              s3_path: "{{ folder_name }}"
+              local_file_or_folder_path: "{{ source_name }}"
+          tags:
+            - content-editor 
+            - collection-editor
+            - generic-editor
+            - preview
+            - editor
+            - core-plugins 
+      
+        - block:
+          - name: upload file to s3
+            include_role:
+              name: aws-cloud-storage
+              tasks_from: upload.yml
+            vars:
+              s3_path: "artefacts/content-player/content-player-{{ player_version_number }}.zip"
+              local_file_or_folder_path: "{{ source_file_name }}"
+          tags:
+            - preview
+      
+        - block:
+          - name:  run the s3_copy.sh script
+            shell: "bash {{ s3_file_path }} {{ source_file }} {{ cloud_public_storage_accountname }}"
+            async: 3600
+            poll: 10
+            environment:
+              AWS_DEFAULT_REGION: "{{ aws_default_region }}"
+              AWS_ACCESS_KEY_ID: "{{ aws_access_key_id }}"
+              AWS_SECRET_ACCESS_KEY: "{{ aws_secret_access_key }}"
+          tags:
+            - plugins
+      when: cloud_service_provider == "aws"

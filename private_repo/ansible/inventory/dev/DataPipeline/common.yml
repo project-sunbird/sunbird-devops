@@ -1,18 +1,102 @@
 # ------------------------------------------------------------------------------------------------------------ #
 # Mandatorty variables - DO NOT LEAVE ANYTHING BLANK #
+cloud_service_provider: ""       # Your cloud service provider name. Supported values are aws, azure, gcloud
 domain_name: ""          # your domain name like example.com
 # docker hub details
 dockerhub: "change.docker.url"                                      # docker hub username or url incase of private registry
 private_ingressgateway_ip: ""                        # your private kubernetes load balancer ip
-# Note - You can use the same azure account for the below variables or have separate azure accounts
-sunbird_private_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing private data (like reports, telemetry data)
-sunbird_public_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing public data (like contents)
-sunbird_druid_storage_account_name: "change.azure.storage.account.name"         # Azure account name for storing druid data (like query results)
-sunbird_artifact_storage_account_name: "change.azure.storage.account.name"       # Azure account name for storing artifacts data (like jenkins build zip files)
-sunbird_management_storage_account_name: "change.azure.storage.account.name"     # Azure account name for storing backup data (like cassandra backups)
+
+# Cloud Service Provider Variables
+# If cloud_service_provider is AWS then update with access key as value
+# Example: cloud_public_storage_accountname: "AKSHKSJHFJDHJDSHFKSD"
+# If cloud_service_provider is gloud(GCP) then update with service account name
+# Example: cloud_public_storage_accountname: "cloudstorage-gcp-test.iam.gserviceaccount.com"
+# If cloud_service_provider is AZURE then update with stoage account name
+# Example: cloud_public_storage_accountname: "azurestotageaccount"
+cloud_public_storage_accountname: ""
+# If cloud_service_provider is AWS then update with region
+# Example: cloud_public_storage_region: us-east-1
+cloud_public_storage_region: ""
+# If cloud_service_provider is gcp then update this variable with project id
+# Example: cloud_public_storage_project: "sunbird-gcp-test"
+cloud_public_storage_project: ""
 
 
+# Create object storage for each below mentioned variables and update accordingly
+# If cloud_service_provider is AWS update with bucket name
+# If cloud_service_provider is gcloud(GCP) update with bucket name
+# If cloud_service_provider is AZURE update with container name 
+# Example: cloud_storage_certqr_bucketname: "certqr-storage"
+cloud_storage_certqr_bucketname: ""
+# This storage contains chatbot related data
+# Example: cloud_storage_chatbot_bucketname: "chatbot-storage"
+cloud_storage_chatbot_bucketname: ""
+# This storage contains dial related data
+# Example: cloud_storage_dial_bucketname: "dial-storage"
+cloud_storage_dial_bucketname: ""
+# This storage contains flink checkpoint data
+# Example: cloud_storage_flink_bucketname: "flink-storage"
+cloud_storage_flink_bucketname: ""
+# This storage contains portal cdn file
+# Example: cloud_storage_playercdn_bucketname: "playercdn-storage"
+cloud_storage_playercdn_bucketname: ""
+# This storage contains public data
+# Example: cloud_storage_public_bucketname: "public-storage"
+cloud_storage_public_bucketname: ""
+# This storage contains public reports data
+# Example: cloud_storage_publicreports_bucketname: "publicreports-storage"
+cloud_storage_publicreports_bucketname: ""
+# This storage contains private reports data
+# Example: cloud_storage_privatereports_bucketname: "privatereports-storage"
+cloud_storage_privatereports_bucketname: ""
+# This storage contains samiksha data
+# Example: cloud_storage_samiksha_bucketname: "samiksha-storage"
+cloud_storage_samiksha_bucketname: ""
+# This storage contains schema data
+# Example: cloud_storage_schema_bucketname: "schema-storage"
+cloud_storage_schema_bucketname: ""
+# This storage contains sourcing related data
+# Example: cloud_storage_sourcing_bucketname: "sourcing-storage"
+cloud_storage_sourcing_bucketname: ""
+# This storage contains desktop app data
+# Example: cloud_storage_offlineinstaller_bucketname: "offlineinstaller-storage"
+cloud_storage_offlineinstaller_bucketname: ""
+# This storage contains public schemas, contents
+# Example: cloud_storage_content_bucketname: "content-storage"
+cloud_storage_content_bucketname: ""
+# This storage contains telemetry data
+# Example: cloud_storage_telemetry_bucketname: "telemetry-storage"
+cloud_storage_telemetry_bucketname: ""
+# This storage contains T & C data
+# Example: cloud_storage_termsandcondtions_bucketname: "termsandconditions-storage"
+cloud_storage_termsandcondtions_bucketname: ""
+# Example: cloud_storage_user_bucketname: "user-storage"
+cloud_storage_user_bucketname: ""
+# This storage contains crashlogs
+# Example: cloud_storage_desktopappcrashlogs_bucketname: "desktopappcrashlogs-storage"
+cloud_storage_desktopappcrashlogs_bucketname: ""
+# This storage contains labels data
+# Example: cloud_storage_label_bucketname: "label-storage"
+cloud_storage_label_bucketname: ""
+# Example: cloud_storage_certservice_bucketname: "certservice-storage"
+cloud_storage_certservice_bucketname: ""
+# This storage contains UCI services data
+# Example: cloud_storage_uci_bucketname: "uci-storage"
+cloud_storage_uci_bucketname: "" 
+# This storage contains artifacts data
+# Example: cloud_storage_artifacts_bucketname: "artifact-storage"
+cloud_storage_artifacts_bucketname: ""
+# This storage contains backups data
+# Example: cloud_storage_management_bucketname: "management-storage"
+cloud_storage_management_bucketname: ""
 
+# Uncomment the variable based on your cloud provider (as a default we have kept Azure variable uncommented)
+# GCP
+# cloud_storage_url: https://storage.googleapis.com
+# AWS
+# cloud_storage_url: "https://s3.{{ cloud_public_storage_region }}.amazonaws.com"
+# Azure
+cloud_storage_url: "https://{{ cloud_public_storage_accountname }}.blob.core.windows.net"
 
 # ------------------------------------------------------------------------------------------------------------ #
 # Optional variables - Can be left blank if you dont plan to use the intended features
@@ -47,11 +131,46 @@ postgres:
   db_admin_password: "{{dp_vault_pgdb_admin_password}}"
 
 druid_postgres_user: druid # Do not change this
-sunbird_private_azure_report_container_name: 'reports'
-sunbird_public_azure_report_container_name: 'public-reports'
 imagepullsecrets: "{{env}}registrysecret"                  # kubernetes imagePullSecrets
 kubeconfig_path: /var/lib/jenkins/secrets/k8s.yaml         # kubeconfig file path on jenkins
 core_kubeconfig_path: "{{ kubeconfig_path }}"              # kubeconfig file path on jenkins for core kube cluster, change this if you use separate kube cluster for core and KP + DP
+
+# Below endpoint is not required in current release
+cloud_public_storage_endpoint: ""
+
+# Update below vars if seperate object storage is required
+cloud_private_storage_accountname: "{{ cloud_public_storage_accountname }}" 
+cloud_private_storage_endpoint: "{{ cloud_public_storage_endpoint }}"    
+cloud_private_storage_region: "{{ cloud_public_storage_region }}"      
+cloud_private_storage_project: "{{ cloud_public_storage_project }}"
+
+cloud_management_storage_accountname: "{{ cloud_public_storage_accountname }}"  
+cloud_management_storage_endpoint: "{{ cloud_public_storage_endpoint }}"     
+cloud_management_storage_region: "{{ cloud_public_storage_region }}"       
+cloud_management_storage_project: "{{ cloud_public_storage_project }}"
+
+cloud_artifact_storage_accountname: "{{ cloud_public_storage_accountname }}"  
+cloud_artifact_storage_endpoint: "{{ cloud_public_storage_endpoint }}"     
+cloud_artifact_storage_region: "{{ cloud_public_storage_region }}"       
+cloud_artifact_storage_project: "{{ cloud_public_storage_project }}"
+
+## Enable below vars to upload database backups in seperate buckets 
+# cloud_storage_cassandrabackup_bucketname: ""
+# cloud_storage_dpcassandrabackup_bucketname: ""
+# cloud_storage_dppostgresbackup_bucketname: ""
+# cloud_storage_dpredisbackup_bucketname: ""
+# cloud_storage_esbackup_bucketname: ""
+# cloud_storage_influxdbbackup_bucketname: ""
+# cloud_storage_jenkinsbackup_bucketname: ""
+# cloud_storage_mongobackup_bucketname: ""
+# cloud_storage_neo4jbackup_bucketname: ""
+# cloud_storage_redisbackup_bucketname: ""
+
+# Building block vars
+cloud_storage_base_url: "{{ cloud_storage_url }}"
+cloudstorage_base_path: "{{ cloud_storage_url }}"
+valid_cloudstorage_base_urls: '["{{ cloud_storage_url }}"]'
+cloudstorage_relative_path_prefix: "CONTENT_STORAGE_BASE_PATH"
 
 # The below sets the kafka topics retention time to 1 day, if you use the defaults from the public repo, it will be 7 days
 # If you want to retain the topics for 7 days, remove the below sections completely
@@ -168,3 +287,6 @@ processing_kafka_overriden_topics:
   - name: ml.observation.druid
     retention_time: 86400000
     replication_factor: 1
+
+# graylog
+send_logs_to_graylog: true  # filebeat agents will send logs to graylog instead of ES

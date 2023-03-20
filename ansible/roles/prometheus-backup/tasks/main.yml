@@ -25,20 +25,43 @@
       shell: "docker service scale monitor_prometheus=1"
       delegate_to: "{{groups['swarm-bootstrap-manager'][0]}}"
 
-- name: Ensure azure blob storage container exists
-  command: az storage container create  --name {{ prometheus_backup_azure_container_name }}
-  ignore_errors: true
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_management_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ sunbird_management_storage_account_key }}"
+- name: upload file to azure storage
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: blob-upload.yml
+  vars:
+    blob_container_name: "{{ cloud_storage_prometheusbackup_foldername }}"
+    container_public_access: "off"
+    blob_file_name: "{{ prometheus_backup_gzip_file_name }}"
+    local_file_or_folder_path: "{{ prometheus_backup_gzip_file_path }}"
+    storage_account_name: "{{ cloud_management_storage_accountname }}"
+    storage_account_key: "{{ cloud_management_storage_secret }}"
+  when: cloud_service_provider == "azure"
 
-- name: Upload to azure blob storage
-  command: az storage blob upload --name {{ prometheus_backup_gzip_file_name }} --file {{ prometheus_backup_gzip_file_path }} --container-name {{ prometheus_backup_azure_container_name }}
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_management_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ sunbird_management_storage_account_key }}"
-  async: 3600
-  poll: 10
+- name: upload file to aws s3
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    s3_bucket_name: "{{ cloud_storage_prometheusbackup_bucketname }}"
+    aws_access_key_id: "{{ cloud_management_storage_accountname }}"
+    aws_secret_access_key: "{{ cloud_management_storage_secret }}"
+    aws_default_region: "{{ cloud_public_storage_region }}"
+    local_file_or_folder_path: "{{ prometheus_backup_gzip_file_path }}"
+    s3_path: "{{ cloud_storage_prometheusbackup_foldername }}/{{ prometheus_backup_gzip_file_name }}"
+  when: cloud_service_provider == "aws" 
+  
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    gcp_storage_service_account_name: "{{ cloud_management_storage_accountname }}"
+    gcp_storage_key_file: "{{ cloud_management_storage_secret }}"
+    gcp_bucket_name: "{{ cloud_storage_prometheusbackup_bucketname }}"
+    gcp_path: "{{ cloud_storage_prometheusbackup_foldername }}/{{ prometheus_backup_gzip_file_name }}"
+    local_file_or_folder_path: "{{ prometheus_backup_gzip_file_path }}"
+  when: cloud_service_provider == "gcloud"
 
 - name: clean up backup dir after upload
   file: path="{{ prometheus_backup_dir }}" state=absent
