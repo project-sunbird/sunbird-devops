@@ -36,7 +36,7 @@ sunbird_keycloak_required_action_link_expiration_seconds: 2592000
 
 sunbird_es_port: 9300
 mail_server_port: 587
-upstream_url: "{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}"
+upstream_url: "{{cloud_public_storage_accountname}}.blob.core.windows.net/{{cloud_storage_content_bucketname}}"
 
 # Learner
 sunbird_user_profile_field_default_visibility: private
@@ -132,6 +132,8 @@ cassandra_rpc_address: 0.0.0.0
 cassandra_restore_dir: "/home/{{ ansible_ssh_user }}/"
 cassandra_backup_azure_container_name: cassandra-backup
 cassandra_backup_dir: /data/cassandra/backup
+### Release 5.0.0 ###
+cassandra_isMultiDCEnabled: false
 
 keycloak_realm: sunbird
 sunbird_content_player_url: "http://kong:8000/"
@@ -361,9 +363,9 @@ content_service_blacklisted_resourcetype: ''
 content_service_whitelisted_resourcetype: ''
 content_service_whitelisted_mimetype: ''
 content_service_blacklisted_mimetype: ''
-sunbird_cloud_storage_urls: 'https://s3.ap-south-1.amazonaws.com/ekstep-public-{{ekstep_s3_env}}/,https://ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com/,https://{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}/'
+sunbird_cloud_storage_urls: 'https://s3.ap-south-1.amazonaws.com/ekstep-public-{{ekstep_s3_env}}/,https://ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com/,https://{{cloud_public_storage_accountname}}.blob.core.windows.net/{{cloud_storage_content_bucketname}}/'
 sunbird_email_max_recipients_limit: 100
-sunbird_cassandra_consistency_level: one
+sunbird_cassandra_consistency_level: quorum
 sunbird_cassandra_replication_strategy: '{"class":"SimpleStrategy","replication_factor":"1"}'
 sunbird_lock_expiry_time: 3600
 app_es_heap_size: 1500m
@@ -409,7 +411,7 @@ sunbird_health_check_enable: 'true'
 ## Release 1.15 ##
 sunbird_keycloak_user_federation_provider_id: "{{core_vault_sunbird_keycloak_user_federation_provider_id}}"
 # Learner-service
-sunbird_course_metrics_base_url: https://{{sunbird_private_storage_account_name}}.blob.core.windows.net/
+sunbird_course_metrics_base_url: https://{{cloud_private_storage_accountname}}.blob.core.windows.net/
 sunbird_gzip_size_threshold: 262144
 prometheus_mount_point: "/root/dockerdata/prometheus/data/"
 
@@ -447,7 +449,7 @@ kafka_urls: "{{groups['processing-cluster-kafka']|join(':9092,')}}:9092"
 kafka_topics_certificate_instruction: "{{env_name}}.issue.certificate.request"
 kafka_topics_contentstate_invalid: "{{env_name}}.contentstate.invalid"
 kafka_enrolment_sync_topic: "{{env_name}}.batch.enrolment.sync.request"
-cert_service_container_name: "{{env}}-e-credentials"
+cert_service_container_name: "{{cloud_storage_certservice_bucketname}}"
 cert_service_cloud_storage_type: "{{cert_service_cloud_storage_type}}"
 
 ### Release-2.4.0 ###
@@ -465,6 +467,10 @@ job_names:
 ### api call report mailing list ####
 api_report_mailing_list: "" ## This mailing list to send the daily api count report. if adaptor want to use they have to override in common.yml
 kafka_assessment_topic: "{{env_name}}.telemetry.assess"
+
+### Release-5.0.0 kafka topic variables for merge user course and notification job ###
+kafka_topic_lms_user_account: "{{env_name}}.lms.user.account.merge"
+kafka_topic_lms_notification: "{{env_name}}.lms.notification"
 
 # Portal vars for reports
 #sunbird_portal_azure_storage_account: "{{sunbird_azure_storage_account}}"
@@ -502,7 +508,7 @@ sunbird_portal_updateLoginTimeEnabled: false
 # Desktop app vars
 #sunbird_offline_azure_storage_account: "" #added this var for adopter usecase
 offline_installer_container_name: "" #added this var for adopter usecase
-cloud_storage_url: "{{ sunbird_public_storage_account_name }}.blob.core.windows.net"
+cloud_storage_url: "{{ cloud_public_storage_accountname }}.blob.core.windows.net"
 
 # Search-service
 search_index_host: "{{ groups['composite-search-cluster']|join(':9200,')}}:9200"
@@ -531,7 +537,7 @@ cassandra_cluster_size: "{{ groups['cassandra'] | length }}"
 # This value is constant for sendgrid api authentication.
 # If you're using any other mail server provider, override this value in common.yaml.
 mail_server_username: "apikey"
-bootstrap_namespace: "{{ env }},flink-{{ env }},flink-kp-{{ env }}"
+bootstrap_namespace: "{{ namespace }},flink-{{ namespace }},flink-kp-{{ namespace }}"
 
 # Graylog vars shared across multiple roles
 graylog_open_to_public: false
@@ -545,3 +551,14 @@ sunbird_desktop_keycloak_client_id: desktop
 sunbird_google_desktop_keycloak_client_id: google-auth-desktop
 sunbird_trampoline_android_keycloak_client_id: trampoline-android
 sunbird_trampoline_desktop_keycloak_client_id: trampoline-desktop
+
+# DIAL-service schema
+dial_plugin_container_name: "sunbird-dial-{{env}}"
+dial_service_schema_base_path: "https://{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{dial_plugin_container_name}}/schemas/local"
+
+### Release-5.0.0 cloud service provider changes for supporting multiple providers ###
+### cloud_service_provider value should be either (azure, aws, gcloud) as per cloud sdk dependency ###
+cloud_service_provider: "azure"
+# LERN Release-5.0.1 cname template variable
+cloud_storage_base_url: https://sunbirddev.blob.core.windows.net
+

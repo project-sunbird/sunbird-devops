@@ -46,10 +46,88 @@ spec:
         volumeMounts:
         - mountPath: {{ .Values.notification_access_basepath }}
           name: access-keys
+{{- if .Values.notification_opa_enabled }}
+      - args:
+        - envoy
+        - --config-path
+        - /config/envoy-config.yaml
+        env:
+        - name: ENVOY_UID
+          value: "1111"
+        image: envoyproxy/envoy:v1.20.0
+        imagePullPolicy: IfNotPresent
+        name: envoy
+        {{- if .Values.envoy_healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.envoy_livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.envoy_readinessProbe | indent 10 }}
+        {{- end }}
+        resources:
+{{ toYaml .Values.envoy_resources | indent 10 }}
+        volumeMounts:
+        - mountPath: /config
+          name: envoy-config
+          readOnly: true
+      - args:
+        - run
+        - --server
+        - /bundle
+        - --addr=localhost:8181
+        - --diagnostic-addr=0.0.0.0:8282
+        - --set=plugins.envoy_ext_authz_grpc.addr=:9191
+        - --set=plugins.envoy_ext_authz_grpc.path=main/allow
+        - --set=decision_logs.plugin=print_decision_logs_on_failure
+        - --set=plugins.print_decision_logs_on_failure.stdout=true
+        - --log-level=error
+        - --ignore=.*
+        image: sunbird/opa:0.34.2-envoy
+        imagePullPolicy: IfNotPresent
+        name: opa
+        {{- if .Values.opa_healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.opa_livenessProbe | indent 10 }}
+        readinessProbe:
+{{ toYaml .Values.opa_readinessProbe | indent 10 }}
+        {{- end }}
+        resources:
+{{ toYaml .Values.opa_resources | indent 10 }}
+        volumeMounts:
+        - mountPath: /bundle
+          name: opa-policy
+          readOnly: true
+      initContainers:
+      - args:
+        - -p
+        - "9999"
+        - -u
+        - "1111"
+        - -w
+        - "8282,10000"
+        image: openpolicyagent/proxy_init:v5
+        imagePullPolicy: IfNotPresent
+        name: proxy-init
+        resources:
+{{ toYaml .Values.initcontainer_resources | indent 10 }}
+        securityContext:
+          capabilities:
+            add:
+            - NET_ADMIN
+          runAsNonRoot: false
+          runAsUser: 0
+{{- end }}
       volumes:
       - name: access-keys
         secret:
           secretName: notification-access-keys
+{{- if .Values.notification_opa_enabled }}
+      - name: envoy-config
+        configMap:
+          name: {{ .Chart.Name }}-envoy-config
+      - name: opa-policy
+        configMap:
+          name: {{ .Chart.Name }}-opa-policy
+{{- end }}
 {{ end }}
 ---
 apiVersion: v1
@@ -64,5 +142,15 @@ spec:
   - name: http-{{ .Chart.Name }}
     protocol: TCP
     port: {{ .Values.network.targetport }}
+{{- if .Values.notification_opa_enabled }}
+  - name: opa-metrics
+    port: 8181
+    protocol: TCP
+    targetPort: 8181
+  - name: envoy-metrics
+    port: 10000
+    protocol: TCP
+    targetPort: 10000
+{{- end }}
   selector:
     app: {{ .Chart.Name }}

@@ -1,0 +1,118 @@
+---
+kong_desktop_device_consumer_names_for_opa: '["desktop"]'
+# Cannot remove common.rego yet
+# Opa issue - https://github.com/open-policy-agent/opa/issues/4335
+common_opa_policy_files:
+  - main.rego
+  - common.rego
+service_opa_policy_files:
+  - policies.rego
+  - policies_test.rego
+opa_policies_path: ../../../opa
+common_opa_policies_path: "{{ opa_policies_path }}/common"
+opa_test_case_run: true
+# In the public_access_keys variable both the kids and public keys are added
+# This is to ensure test cases pass on real environment 
+# adminutil_refresh_token_public_key_kid variable will be overwritten from private repo
+# and that will not match the kid of tokens defined in test cases
+public_access_keys: |-
+  "accessv1_key1": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw1nTpgDi10Sls2Fnk6Iy\n+TPah8HNvQbE0Dm/hpbqU0IVvq28iJf+9b6y4STkvmW5rLzUOZW5BenrWFdQPGMT\n+fnNAnVG7ByQMizJfpdHOuXi7iZsOZ2Ms+9UTMfvmE+GIdp/nDfZ55b8RQAJYr2w\nhd0td7idNnLX8Zo9FZ4eaJ9f0M391v+pkXo9pdistsuuvIapT+COeFex68G0iTSO\n7vYHy3+M5Pkefmh5ftRgcWqoXrTrBZ0ajdW8gcjbOmBXiFHSYD/VLEwTCpeOJIUR\nQ3/dFCoS3KpBfx4p0Wc9117PRT433bGAmgcG4yFtgkIPf8aosSA3Es8DD+U9dlbm\nzQIDAQAB\n-----END PUBLIC KEY-----",
+  "hhzZXoTbJBUQ": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwTS+srpbA/n7I5fDjxcf\nH1QUSiFMP7B4yyLxir3VigKtai+YW7ZqMF853O3OiE/QTKuT0ZsR7aDtCsoZaGqq\n2NSyfbc3m339dBQ+0YgM5UdqvUHubNkgQwkRwb1lGlMWSHMYk0iIKJEIw1MCdCH0\nOBwjzlDxHb78lCKd/GvBvRLMXOJbAP72xJ/gjaNFHQ/GzskhrapDuMXaH+S7vtox\nBDG74fQwXCG+nDJ9ryV2bbWxWMINLU82x3+L6YYnWK80loucm2fzG5l1W/Wz9DIa\nGiWwP0JHlZf9GM/raydB4kDEq3jB22LfdLCdQanMkxbw7bkmvjBT2NFwqgFv3q3m\nVQIDAQAB\n-----END PUBLIC KEY-----",
+
+adminutil_refresh_token_public_key_kid: "hhzZXoTbJBUQ"
+keycloak_public_key:
+  stdout: '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwTS+srpbA/n7I5fDjxcf\nH1QUSiFMP7B4yyLxir3VigKtai+YW7ZqMF853O3OiE/QTKuT0ZsR7aDtCsoZaGqq\n2NSyfbc3m339dBQ+0YgM5UdqvUHubNkgQwkRwb1lGlMWSHMYk0iIKJEIw1MCdCH0\nOBwjzlDxHb78lCKd/GvBvRLMXOJbAP72xJ/gjaNFHQ/GzskhrapDuMXaH+S7vtox\nBDG74fQwXCG+nDJ9ryV2bbWxWMINLU82x3+L6YYnWK80loucm2fzG5l1W/Wz9DIa\nGiWwP0JHlZf9GM/raydB4kDEq3jB22LfdLCdQanMkxbw7bkmvjBT2NFwqgFv3q3m\nVQIDAQAB\n-----END PUBLIC KEY-----'
+keycloak_auth_server_url: "https://sunbirded.org/auth"
+keycloak_realm: "sunbird"
+private_ingressgateway_ip: "2.3.4.5"
+
+# Audience claim check is disabled as of now
+# keycloak_allowed_aud: '"{{ keycloak_auth_server_url }}/realms/{{ keycloak_realm }}", "account", "realm-management"'
+
+
+# The private key used to create the token used in test cases are as below
+#
+# kid: accessv1_key1
+# -----BEGIN PRIVATE KEY-----
+# MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDDWdOmAOLXRKWz
+# YWeTojL5M9qHwc29BsTQOb+GlupTQhW+rbyIl/71vrLhJOS+ZbmsvNQ5lbkF6etY
+# V1A8YxP5+c0CdUbsHJAyLMl+l0c65eLuJmw5nYyz71RMx++YT4Yh2n+cN9nnlvxF
+# AAlivbCF3S13uJ02ctfxmj0Vnh5on1/Qzf3W/6mRej2l2Ky2y668hqlP4I54V7Hr
+# wbSJNI7u9gfLf4zk+R5+aHl+1GBxaqhetOsFnRqN1byByNs6YFeIUdJgP9UsTBMK
+# l44khRFDf90UKhLcqkF/HinRZz3XXs9FPjfdsYCaBwbjIW2CQg9/xqixIDcSzwMP
+# 5T12VubNAgMBAAECggEBAJzp8GntWEiV6YuW9/3MUal+j1BwyfPGFh0z5bYUTxCl
+# ipXpNAF8Jd37WfAjFGIjj+tCmi3PKBmp9dK1/8shwpAOqTAKR/esUd8bvpYiqaKT
+# uZ6V2mTFOpnl6g7qonfzmMhknBA9hJjT3LsH9oIL4FkGelkqP43W3cJBpENTCRX7
+# Vri9bfPq6CMmNjs7tM9QKjV6KiMpiXmiiYY3tknW/pyvL2QCNlI4EYDlByyqgUpI
+# pKun1RteBKaziHtyF4x5j+1HiLG1GRn10SH/ETTfH8GoxNameR9DXzqAiy5Edw2M
+# jZelrvQTNONupKLCdhUEQfExx/GSE40ADt5Pm3rmt4ECgYEA7R/BOEZA3Ixs1gMk
+# WsCvPQMVjNhOS08CMnk9juBR04F2aLAo8mo5U60kNz4tz0rgq4ywWL8I+VNeUF4G
+# lOpKqeK8I/reHR24EB/2+wdQnpP9x6N5DpKP8C7scchMsN2oZWgDdB3mL3L3P7C6
+# x/sywDkwHANZgfxJabEzEbJN2BECgYEA0ubLogKTOk+1QC346v8Gcjje/RCaXG8P
+# ZXmcN3hnmQwwrLKyiF4Qqnk7vQk2ra7Zqy2ikViMBKZRarmCKk8HY4UzEZYSSrsQ
+# zSRXPnLrTgssgGkPUmaeBBk7uAWaovxIOyOe5EO/QIIXGfz16FapRM2sxKBYKkMy
+# FPoO144Qfv0CgYANDP1ecodpXBU1ZjDfCdHbQssx2Ene3Tdavc+EiJYYVPzGYEOw
+# q+YB0/q1S6fLy+w3pOOjzsfYqRz8wWANXCPF2+PM+ya0ZYlW4dt/D3UBdVW3Yijs
+# g2aGqp562LJX3atCAYqHHoonvGUdTUXKcenmKH+cWxbXD6KevZD4/V5JcQKBgQCp
+# ++do3xZ3S0NVRTh5f69cZMYlxjoEAmewbEIi22L0kkSxDR6kltxr6mbhyAlQF7vN
+# Im0DJRFFth+tG3P0UdostnEg3YpEvV2fWokPBmTtdEgb/5Gf4qG9v/DIM4wdjaVS
+# NTWd2ZTOk4u3IJG7AA5SLEvx9yLYfWxiR+GqjxBwqQKBgQCv6Z5R8nI8NMrsVLDP
+# JUThOA1oRu3GicaTffnwPdhzdPJ1tqJ1/vgvLADxV5kwbNaxaXY5xamhqwmjRdYv
+# fnnFzHw0TOa9F4J5CMCxqKf/o4Y6JFNSLuaz1KujYVy/dgaN+XtZurerC5mQ2Q90
+# AwfWRJEQeuvHdF69ahbNKTKvTA==
+# -----END PRIVATE KEY-----
+#
+# kid: hhzZXoTbJBUQ
+# -----BEGIN PRIVATE KEY-----
+# MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDBNL6yulsD+fsj
+# l8OPFx8fVBRKIUw/sHjLIvGKvdWKAq1qL5hbtmowXznc7c6IT9BMq5PRmxHtoO0K
+# yhloaqrY1LJ9tzebff10FD7RiAzlR2q9Qe5s2SBDCRHBvWUaUxZIcxiTSIgokQjD
+# UwJ0IfQ4HCPOUPEdvvyUIp38a8G9Esxc4lsA/vbEn+CNo0UdD8bOySGtqkO4xdof
+# 5Lu+2jEEMbvh9DBcIb6cMn2vJXZttbFYwg0tTzbHf4vphidYrzSWi5ybZ/MbmXVb
+# 9bP0MhoaJbA/QkeVl/0Yz+trJ0HiQMSreMHbYt90sJ1BqcyTFvDtuSa+MFPY0XCq
+# AW/ereZVAgMBAAECggEATe88zVOmyx/XUjAxzlKBV13PIWf1HevNjgN2c4TH0nfq
+# A99XEgevJfwDlz7GBO5NE+BSLEblIHm9pJCJVzlP2U9TAKsbXzmfN2fDPzomGYaJ
+# Y/ZoerfK77+EziXb1paVcnwa+a5UXijC5Cdj4fygStHvD5ZO7LTRpd+g4uWErQNn
+# 55l3YcQxt7Dqx/sVWks7xhKu4PnvncpId4bP8PGnj5BZgIB9VEc83V0cxg+EVNnm
+# FjoEUjgLg9Uuk7lYeqpHgVaNWHV7OewYDotBk4xpAD6e8WWX+b0C8ZpFXadA8uPp
+# zG2rhMdOisTGJPqCSx8JIytdH8xeAjWkuk28zNtkAQKBgQD1gQA6+BJi7P8+JXeC
+# 4gwqvQ9W2C8ontDwZxh55oPIRRH0sIIsb4sH9uG4FuKLlKeE7zZxuHs34vEAprZI
+# IgtRIc8kdyMCob3BC6gCVx5G66Qp4PuX+9dMzgSb6IqMC8dgwymx66eXsz5anNvd
+# O4qLHmV4aFj3bgWBWDRREAe9QQKBgQDJd1pAnlRQo1ku2f7GPuHGH3PxnGqPbOim
+# nX8kD2dBCAY9yql3WOLu2DG5cKHzNglhcHpYcULMxVRhG8SPL8vNpuDQxu3dsf3t
+# Tl+Wloz7nV6OE40N42Dj5pMnnSPBFsQagE9zOrvoGUPsoo0tTWMQnDEWdpi/Zibb
+# N3ACi1NgFQKBgEicAaxvKEj33TnNLP6Zyo1tYzcFM1VpO1SOuU98XOeDfh8HgUiR
+# KOaPHw0qP5CWw8DuWwThUhgiV7Mgm3LUFtLFFBWt4r3phkytHOCsUXkaQnBcaSz3
+# QCMoH3bZHPj0luBIeHF1yBh22+9Cy0gwTvZ8Y/hrrDxp3tj1dGuxOQjBAoGBAJsI
+# PWt8a2WiTf6/wk7MFPFhQteqhlXYeS++Axi8wbhJdIQYcFBnFjq2I42QHxAJhS52
+# X6+veLgbIdOYiqmlHjAjOt1uN51iWwVCSkyXjeYSM7EhWmpVjznRNWxGgD0WR9Ic
+# 6wbBK9hvmNWAQSObaaBekWe329NtyHjpMEjE7mQBAoGAGGvJJ5PpfgzP3h+8hkwt
+# 1/Z332mFf5f8Qv4pqR2fndpllIWPcvASokemiT4lT3gLM3d0wcOA7xjy4nnVBITK
+# edBExoj5wCYnYtSu6i4eQxQNZA+DDoL8SaaeitekkWaHkHTXDjuQoEVt8r6JrPux
+# h0rBcXkPYxwELr+bfbm2OtA=
+# -----END PRIVATE KEY-----
+
+
+# The public key to verify the token used in test cases are as below
+#
+# kid: accessv1_key1
+# -----BEGIN PUBLIC KEY-----
+# MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw1nTpgDi10Sls2Fnk6Iy
+# +TPah8HNvQbE0Dm/hpbqU0IVvq28iJf+9b6y4STkvmW5rLzUOZW5BenrWFdQPGMT
+# +fnNAnVG7ByQMizJfpdHOuXi7iZsOZ2Ms+9UTMfvmE+GIdp/nDfZ55b8RQAJYr2w
+# hd0td7idNnLX8Zo9FZ4eaJ9f0M391v+pkXo9pdistsuuvIapT+COeFex68G0iTSO
+# 7vYHy3+M5Pkefmh5ftRgcWqoXrTrBZ0ajdW8gcjbOmBXiFHSYD/VLEwTCpeOJIUR
+# Q3/dFCoS3KpBfx4p0Wc9117PRT433bGAmgcG4yFtgkIPf8aosSA3Es8DD+U9dlbm
+# zQIDAQAB
+# -----END PUBLIC KEY-----
+#
+# kid: hhzZXoTbJBUQ
+# -----BEGIN PUBLIC KEY-----
+# MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwTS+srpbA/n7I5fDjxcf
+# H1QUSiFMP7B4yyLxir3VigKtai+YW7ZqMF853O3OiE/QTKuT0ZsR7aDtCsoZaGqq
+# 2NSyfbc3m339dBQ+0YgM5UdqvUHubNkgQwkRwb1lGlMWSHMYk0iIKJEIw1MCdCH0
+# OBwjzlDxHb78lCKd/GvBvRLMXOJbAP72xJ/gjaNFHQ/GzskhrapDuMXaH+S7vtox
+# BDG74fQwXCG+nDJ9ryV2bbWxWMINLU82x3+L6YYnWK80loucm2fzG5l1W/Wz9DIa
+# GiWwP0JHlZf9GM/raydB4kDEq3jB22LfdLCdQanMkxbw7bkmvjBT2NFwqgFv3q3m
+# VQIDAQAB
+# -----END PUBLIC KEY-----

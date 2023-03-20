@@ -1,0 +1,36 @@
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{certificateapi_replicacount|default(1)}}
+repository: {{certificateapi_repository|default('sunbird-rc-certificate-api')}}
+image_tag: {{image_tag}}
+resources:
+  requests:
+    cpu: {{certificateapi_cpu_req|default('100m')}}
+    memory: {{certificateapi_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{certificateapi_cpu_limit|default('1000m')}}
+    memory: {{certificateapi_memory_limit|default('1024Mi')}}
+network:
+  port: 8078
+  targetport: 8078
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ certificateapi_maxsurge|default('50%') }}
+  maxunavailable: {{ certificateapi_maxunavailable|default('50%') }}
+
+autoscaling:
+  enabled: {{ certificateapi_autoscaling_enabled | default('false') }}
+  minReplicas: {{ certificateapi_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ certificateapi_autoscaling_maxReplicas|default(3) }}
+  targetCPUUtilizationPercentage: {{ certificateapi_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ certificateapi_autoscaling_targetMemoryUtilizationPercentage|default('') }}
+
+certificateapienv:
+  PORT: "8078"
+  QR_TYPE: {{ QR_TYPE|default('URL') }}
+  CERTIFICATE_DOMAIN_URL: "https://{{domain_name}}"
+  CERTIFICATE_PUBLIC_KEY: {{CERTIFICATE_PUBLIC_KEY | default("''")}}
+  CERTIFICATE_PRIVATE_KEY: |-
+    {{ CERTIFICATE_PRIVATE_KEY | default("''") | indent(width=4) }}

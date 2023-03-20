@@ -1,0 +1,83 @@
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{registry_replicacount|default(1)}}
+repository: {{registry_repository|default('sunbird-rc-core')}}
+image_tag: {{image_tag}}
+resources:
+  requests:
+    cpu: {{registry_cpu_req|default('100m')}}
+    memory: {{registry_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{registry_cpu_limit|default('1000m')}}
+    memory: {{registry_memory_limit|default('1024Mi')}}
+network:
+  port: 8081
+  targetport: 8081
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ registry_maxsurge|default('50%') }}
+  maxunavailable: {{ registry_maxunavailable|default('50%') }}
+
+autoscaling:
+  enabled: {{ registry_autoscaling_enabled | default('false') }}
+  minReplicas: {{ registry_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ registry_autoscaling_maxReplicas|default(3) }}
+  targetCPUUtilizationPercentage: {{ registry_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ registry_autoscaling_targetMemoryUtilizationPercentage|default('') }}
+
+rccoreenv:
+  connectionInfo_uri: {{ postgres_connectionInfo_uri }}
+  connectionInfo_username: {{ postgres_connectionInfo_username }}
+  connectionInfo_password: {{ connectionInfo_password }}
+  elastic_search_enabled: {{ elastic_search_enabled|default('true')}}
+  elastic_search_connection_url: {{ elastic_search_connection_url }}
+  search_provider: "dev.sunbirdrc.registry.service.ElasticSearchService"
+  search_providerName: "dev.sunbirdrc.registry.service.ElasticSearchService"
+  enable_external_templates: {{ enable_external_templates|default('true') }}
+  sign_url: {{ sign_url|default('http://certificatesign-service:8079/sign') }}
+  signature_enabled: {{ signature_enabled|default('true') }}
+  pdf_url: {{ pdf_url|default('http://certificateapi-service:8078/api/v1/certificatePDF') }}
+  template_base_url: {{ template_base_url|default('http://registry-service:8081/api/v1/templates/') }}
+  workflow.enable: {{ registry_workflow_enable|default('false')}}
+  connectionInfo_maxPoolSize: {{ registry_connectionInfo_maxPoolSize|default('200')}}
+  auditTaskExecutor_queueCapacity: {{ registry_auditTaskExecutor_queueCapacity|default('100')}}
+  taskExecutor_index_queueCapacity: {{ registry_taskExecutor_index_queueCapacity|default('100')}}
+
+{# The below should get enabled once the service has probes implemented #}
+{# {{ registry_liveness_readiness | to_nice_yaml }} #}
+{{ opa_liveness_readiness | to_nice_yaml }}
+{{ envoy_liveness_readiness | to_nice_yaml }}
+
+registry_opa_enabled: {{ registry_opa_enabled | default('true') }}
+
+envoy_resources:
+  requests:
+    cpu: "{{ registry_envoy_cpu_req | default('100m') }}"
+    memory: "{{ registry_envoy_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ registry_envoy_cpu_limit | default('1') }}"
+    memory: "{{ registry_envoy_mem_limit | default('1024Mi') }}"
+
+opa_resources:
+  requests:
+    cpu: "{{ registry_opa_cpu_req | default('100m') }}"
+    memory: "{{ registry_opa_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ registry_opa_cpu_limit | default('1') }}"
+    memory: "{{ registry_opa_mem_limit | default('1024Mi') }}"
+
+initcontainer_resources:
+  requests:
+    cpu: "{{ registry_initcontainer_cpu_req | default('100m') }}"
+    memory: "{{ registry_initcontainer_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ registry_initcontainer_cpu_limit | default('100m') }}"
+    memory: "{{ registry_initcontainer_mem_limit | default('100Mi') }}"
+
+serviceMonitor:
+  enabled: true
+  labels: # labels with which the prometheus choose the serviceMonitor
+    app: prometheus-operator
+    release: prometheus-operator

@@ -1,0 +1,49 @@
+---
+apiVersion: v1
+data:
+  {{- range $key, $val := .Values.rccoreenv }}
+  {{ $key }}: "{{ $val }}"
+  {{- end }}
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-config
+  namespace: {{ .Values.namespace }}
+  
+---
+{{- $schemas := .Files.Glob "schemas/*" }}
+{{ if $schemas }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-schemas
+  namespace: {{ .Values.namespace }}
+data:
+{{ (.Files.Glob "schemas/*").AsConfig | indent 2 }}
+{{ end }}
+
+---
+{{- $svg_templates := .Files.Glob "svg_templates/*" }}
+{{ if $svg_templates }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-templates
+  namespace: {{ .Values.namespace }}
+data:
+{{ (.Files.Glob "svg_templates/*").AsConfig | indent 2 }}
+{{ end }}
+
+
+---
+{{- if .Values.registry_opa_enabled }}
+{{- $bundle := .Files.Glob "bundle/*" }}
+{{ if $bundle }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-opa-policy
+  namespace: {{ .Values.namespace }}
+binaryData:
+  bundle.tar.gz: {{ (.Files.Get "bundle/bundle.tar.gz") | b64enc }}
+{{ end }}
+{{ end }}

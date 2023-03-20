@@ -1,6 +1,5 @@
 - hosts: "{{ hosts| default('all') }}"
   become: yes
-  gather_facts: no
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
   pre_tasks:
@@ -9,10 +8,13 @@
     - name: Installing other packages
       apt:
         state: present
-        name: "{{ item }}"
-      with_items:
-        - python-pkg-resources
-        - python-pip
+        name: ['python-pkg-resources', 'python2-pip']
+      when: ansible_distribution_version | float < 18
+    - name: Installing other packages
+      apt:
+        state: present
+        name: ['python-pkg-resources', 'python3-pip', 'acl']
+      when: ansible_distribution_version | float > 18
   roles:
     - bootstrap_any
   tags:

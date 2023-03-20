@@ -1,7 +1,41 @@
 ---
-- name: Generate Public Keys for private keys
+- name: Generate public keys for private keys
   vars:
     private_key_path: "{{private_key_path | regex_replace('^\\/|\\/$', '')}}"
   shell: "openssl rsa -in {{ lookup('fileglob', '{{inventory_dir}}/{{private_key_path}}/{{private_key_prefix}}{{item}}') }} -outform PEM -pubout -out {{inventory_dir}}/{{private_key_path | regex_replace('^\\/|\\/$', '')}}/{{private_key_prefix}}{{item}}"
   with_sequence: start={{private_key_sign_start}} end={{private_key_sign_start|int + private_key_sign_end|int - 1}} stride={{private_key_sign_incr}}
   when: (private_key_sign_start|int + private_key_sign_end|int - 1) > 0
+
+# The below code is for generating key:value pairs of public keys for opa
+- name: Register list of files as a variable
+  find:
+    paths: "{{inventory_dir}}/{{private_key_path}}"
+    patterns: '{{private_key_prefix}}*'
+    use_regex: yes
+  register: matching_files
+
+- name: Create a temporary file
+  file:
+    path: "/tmp/{{ env }}_{{ release_name }}_public_keys.txt"
+    state: touch
+
+- name: Insert the public keys as key:value pairs into the file
+  lineinfile:
+    insertafter: EOF
+    path: "/tmp/{{ env }}_{{ release_name }}_public_keys.txt"
+    line: "\"{{ item.split('/')[-1] }}\": \"{{ lookup('file', item) | replace('\n', '\\n') }}\","
+  with_items:
+  - "{{ matching_files | to_json | from_json | json_query('files[*].path') }}"
+
+- name: Set a variable with the file contents
+  set_fact:
+    public_access_keys: "{{ lookup('file', '/tmp/{{ env }}_{{ release_name }}_public_keys.txt') }}"
+
+- name: Register a variable for keycloak public key in PEM format
+  shell: 'echo "{{ core_vault_sunbird_sso_publickey }}" | sed -e "s/.\{64\}/&\\\n/g" | sed "s/^/-----BEGIN PUBLIC KEY-----\\\n/" | sed "s/$/\\\n-----END PUBLIC KEY-----/"'
+  register: keycloak_public_key
+
+- name: Remove the temporary file
+  file:
+    path: "/tmp/{{ env }}_{{ release_name }}_public_keys.txt"
+    state: absent

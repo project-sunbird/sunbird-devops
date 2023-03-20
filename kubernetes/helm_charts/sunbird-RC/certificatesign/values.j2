@@ -1,0 +1,38 @@
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+replicaCount: {{certificatesign_replicacount|default(1)}}
+repository: {{certificatesign_repository|default('sunbird-rc-certificate-signer')}}
+image_tag: {{image_tag}}
+resources:
+  requests:
+    cpu: {{certificatesign_cpu_req|default('100m')}}
+    memory: {{certificatesign_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{certificatesign_cpu_limit|default('1000m')}}
+    memory: {{certificatesign_memory_limit|default('1024Mi')}}
+network:
+  port: 8079
+  targetport: 8079
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ certificatesign_maxsurge|default('50%') }}
+  maxunavailable: {{ certificatesign_maxunavailable|default('50%') }}
+
+autoscaling:
+  enabled: {{ certificatesign_autoscaling_enabled | default('false') }}
+  minReplicas: {{ certificatesign_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ certificatesign_autoscaling_maxReplicas|default(3) }}
+  targetCPUUtilizationPercentage: {{ certificatesign_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ certificatesign_autoscaling_targetMemoryUtilizationPercentage|default('') }}
+
+certificatesignenv:
+  PORT: "8079"
+  QR_TYPE: {{ QR_TYPE|default('URL') }}
+  CERTIFICATE_DOMAIN_URL: "https://{{domain_name}}"
+  CERTIFICATE_PUBLIC_KEY: {{CERTIFICATE_PUBLIC_KEY | default("''")}}
+  CERTIFICATE_PRIVATE_KEY: |-
+    {{ CERTIFICATE_PRIVATE_KEY | default("''") | indent(width=4) }}  
+  SIGNING_KEY_TYPE: "{{ SIGNING_KEY_TYPE|default('RSA')}}"
+  CACHE_CONTEXT_URLS: "{{ cache_context_urls | default('https://' + sunbird_public_storage_account_name + '.blob.core.windows.net/' + sunbird_content_azure_storage_container + '/schema/v1_context.json,https://' + sunbird_public_storage_account_name + '.blob.core.windows.net/' + sunbird_content_azure_storage_container + '/schema/sunbird_context.json,https://' + sunbird_public_storage_account_name + '.blob.core.windows.net/' + sunbird_content_azure_storage_container + '/schema/credential_template.json')}}"
