@@ -1,0 +1,169 @@
+## This section has optional variables
+## If you provide a value to the variable, then that will have the highest precedence
+## If you don't provide a value, then it's fetched from kubernetes secret or subchart template
+## If the value is empty or nil, installation will be halted
+connectionInfo_username: ""
+connectionInfo_password: ""
+
+
+## This section has variables with default values
+## These are standard defaults that work well
+## You can override these if you have a use case for it
+KAFKA_ADVERTISED_LISTENERS: kafka.lern.svc.cluster.local:9092
+KAFKA_BROKER_ID: "1"
+KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,OUTSIDE:PLAINTEXT
+KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+KAFKA_ZOOKEEPER_CONNECT: kafka-zookeeper.lern.svc.cluster.local:8080
+ZOOKEEPER_CLIENT_PORT: "2181"
+ZOOKEEPER_TICK_TIME: "2000"
+async_enabled: "true"
+auditTaskExecutor_queueCapacity: "100"
+authentication_enabled: "false"
+connectionInfo_maxPoolSize: "200"
+connectionInfo_uri: jdbc:postgresql://postgresql.lern.svc.cluster.local:5432/registry
+elastic_search_connection_url: elasticsearch.lern.svc.cluster.local:9200
+elastic_search_enabled: "true"
+enable_external_templates: "true"
+kafka_bootstrap_address: kafka.lern.svc.cluster.local:9092
+logging_level_root: INFO
+pdf_url: http://certificateapi-service.lern.svc.cluster.local:8078/api/v1/certificatePDF
+search_provider: dev.sunbirdrc.registry.service.ElasticSearchService
+search_providerName: dev.sunbirdrc.registry.service.ElasticSearchService
+sign_url: http://certificateapi-service.lern.svc.cluster.local:8079/sign
+signature_enabled: "true"
+taskExecutor_index_queueCapacity: "100"
+template_base_url: http://certificate-registry-service.lern.svc.cluster.local:8081/api/v1/templates/
+webhook_enabled: "true"
+workflow_enable: "false"
+
+
+## Helper variables which are used to construct other variables
+external_secrets:
+  postgresql_user:
+    name: postgresql
+    key: postgres-user
+  postgresql_password:
+    name: postgresql
+    key: postgresql-password
+
+external_configmaps:
+  common_opa_policies:
+    name: common-opa-policies
+  common_opa_policies_keys:
+    name: common-opa-policies-public-keys
+
+
+## This section has other kubernetes variables
+## These are standard defaults that work well
+## You can override these if you have a use case for it
+image:
+  registry: docker.io
+  repository: saiakhil46/registry
+  tag: release-5.1.0
+
+replicaCount: 1
+
+strategy:
+  maxSurge: 25%
+  maxUnavailable: 25%
+
+imagePullSecrets: ""
+
+javaOptions: -Xmx600m
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 1
+    memory: 1G
+
+port: 8081
+
+targetPort: 8081
+
+livenessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /service/health
+      port: 9000
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+readinessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /service/health
+      port: 9000
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+opa_sidecar: true
+
+envoy_livenessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /ready
+      port: 10000
+      scheme: HTTP
+  initialDelaySeconds: 5
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+envoy_readinessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /ready
+      port: 10000
+      scheme: HTTP
+  initialDelaySeconds: 5
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+opa_livenessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /health?plugins
+      port: 8282
+      scheme: HTTP
+  initialDelaySeconds: 5
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+opa_readinessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /health?bundle=true
+      port: 8282
+      scheme: HTTP
+  initialDelaySeconds: 5
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+envoy_resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 1
+    memory: 1G
+
+opa_resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 1
+    memory: 1G
+
+initcontainer_resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 100m
+    memory: 100M
