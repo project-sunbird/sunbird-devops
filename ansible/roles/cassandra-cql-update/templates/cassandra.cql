@@ -501,19 +501,6 @@ CREATE TABLE IF NOT EXISTS sunbird.skills(id text,skills list<text>, PRIMARY KEY
 //25th Oct
 ALTER TABLE sunbird.organisation ADD orgTypeId text;
 
-//Announcement apis -27th Oct
-{% if (cassandra_cluster_size | int) > 1 %}
-CREATE KEYSPACE IF NOT EXISTS sunbirdplugin WITH REPLICATION = { 'class' : 'NetworkTopologyStrategy', 'datacenter1' : 2 };
-{% else %}
-CREATE KEYSPACE IF NOT EXISTS sunbirdplugin WITH REPLICATION = {'class':'SimpleStrategy','replication_factor':1};
-{% endif %}
-//CREATE TYPE IF NOT EXISTS sunbirdplugin.attachment (id text,filename text,mimetype text);
-CREATE TABLE sunbirdplugin.announcement (id text,userid text,sourceid text,details map<text, text>,links list<text>,attachments list<text>,target text,sentcount int,priority text,expiry text,status text,createddate text,updateddate text, PRIMARY KEY (id));
-CREATE TABLE sunbirdplugin.attachment (id text,file text,filename text,mimetype text,createdby text,status text,createddate text, PRIMARY KEY (id));
-CREATE TABLE sunbirdplugin.metrics (id text,userid text,announcementid text,activity text,channel text,createddate text, PRIMARY KEY (id));
-CREATE TABLE sunbirdplugin.announcementtype (id text,rootorgid text,name text,status text,createddate text, PRIMARY KEY (id));
-CREATE TABLE sunbirdplugin.announcementauth (id text,userid text,rootorgid text,permissions map<text, text>,status text,createddate text, PRIMARY KEY (id));
-
 insert into sunbird.role_group (id,name) values ('ANNOUNCEMENT_SENDER','Announcement Sender');
 update sunbird.role_group set url_action_ids=['Announcement Sender'] where id='ANNOUNCEMENT_SENDER';
 insert into sunbird.role (id,name,rolegroupid,status) values ('ANNOUNCEMENT_SENDER','Announcement Sender',['ANNOUNCEMENT_SENDER'],1);
@@ -543,9 +530,6 @@ ALTER TABLE sunbird.organisation ADD locationId text;
 
 ALTER TABLE sunbird.user ADD profileVisibility map<text,text>;
 
-// 9th Nov 2017
-ALTER TABLE sunbirdplugin.announcement DROP target ;
-ALTER TABLE sunbirdplugin.announcement ADD target map<text, frozen<map<text ,frozen<list<text>>>>>;
 //adding default one Skills.
 insert into skills (id,skills) values ('001',['java']);
 ALTER TABLE sunbird.user_skills drop endorsers;
