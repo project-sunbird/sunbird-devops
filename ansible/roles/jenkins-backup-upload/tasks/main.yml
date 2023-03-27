@@ -12,11 +12,41 @@
 - name: Create archive of backup directory
   archive: path="{{ jenkins_backup_base_dir }}/{{ LATEST_BACKUP_DIR.stdout }}" dest="/tmp/{{ LATEST_BACKUP_DIR.stdout }}.zip" format=zip
 
-- name: Ensure azure blob storage container exists
-  command: az storage container create --name {{ jenkins_backup_azure_container_name }}
+- name: upload file to azure storage
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: blob-upload.yml
+  vars:
+    blob_container_name: "{{ cloud_storage_jenkinsbackup_foldername }}"
+    container_public_access: "off"
+    blob_file_name: "{{ LATEST_BACKUP_DIR.stdout }}.zip"
+    local_file_or_folder_path: "/tmp/{{ LATEST_BACKUP_DIR.stdout }}.zip"
+    storage_account_name: "{{ cloud_management_storage_accountname }}"
+    storage_account_key: "{{ cloud_management_storage_secret }}"
+  when: cloud_service_provider == "azure"
 
-- name: Upload to azure blob storage
-  command: az storage blob upload -c {{ jenkins_backup_azure_container_name }} --name "{{ LATEST_BACKUP_DIR.stdout }}.zip" -f "/tmp/{{ LATEST_BACKUP_DIR.stdout }}.zip"
-  async: 3600
-  poll: 10
+- name: upload file to aws s3
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    s3_bucket_name: "{{ cloud_storage_jenkinsbackup_bucketname }}"
+    aws_access_key_id: "{{ cloud_management_storage_accountname }}"
+    aws_secret_access_key: "{{ cloud_management_storage_secret }}"
+    aws_default_region: "{{ cloud_public_storage_region }}"
+    local_file_or_folder_path: "/tmp/{{ LATEST_BACKUP_DIR.stdout }}.zip"
+    s3_path: "{{ cloud_storage_jenkinsbackup_foldername }}/{{ LATEST_BACKUP_DIR.stdout }}.zip"
+  when: cloud_service_provider == "aws"
+  
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    gcp_storage_service_account_name: "{{ cloud_management_storage_accountname }}"
+    gcp_storage_key_file: "{{ cloud_management_storage_secret }}"
+    gcp_bucket_name: "{{ cloud_storage_jenkinsbackup_bucketname }}"
+    gcp_path: "{{ cloud_storage_jenkinsbackup_foldername  }}/{{ LATEST_BACKUP_DIR.stdout }}.zip"
+    local_file_or_folder_path: "/tmp/{{ LATEST_BACKUP_DIR.stdout }}.zip"
+  when: cloud_service_provider == "gcloud"
 

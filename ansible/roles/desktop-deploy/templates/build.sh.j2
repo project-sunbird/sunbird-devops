@@ -4,8 +4,9 @@ set -eo pipefail
 cd {{offline_repo_location}}/
 
 # Run the docker image and run the OS Specific build along with environment specific build
-docker run -d --env-file envfile  --env ELECTRON_CACHE="/root/.cache/electron"  --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" --name offline_deploy -w /project electronuserland/builder:wine sleep infinity
+docker run -d --env-file envfile  --env ELECTRON_CACHE="/root/.cache/electron"  --env ELECTRON_BUILDER_CACHE="/root/.cache/electron-builder" --name offline_deploy -w /project electronuserland/builder:16-wine sleep infinity
 docker cp . offline_deploy:/project/
+docker exec offline_deploy npm install -g npm@9.4.1
 docker exec offline_deploy bash -x /project/setupOfflineInstaller.sh
 
 # Copy the built artifacts

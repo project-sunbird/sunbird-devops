@@ -1,52 +1,79 @@
 - name: Stop the cassandra 
-  become: yes
+  become: true
   service: name=cassandra state=stopped
   
 - set_fact:
     cassandra_restore_gzip_file_path: "{{ cassandra_restore_dir }}/{{ cassandra_restore_gzip_file_name }}"
-    
-- name: Download to azure blob storage
-  command: az storage blob download --name {{ cassandra_restore_gzip_file_name }} --file {{ cassandra_restore_gzip_file_path }} --container-name {{ cassandra_backup_azure_container_name }}
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_management_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ sunbird_management_storage_account_key }}"
-  async: 3600
-  poll: 10
-  
+
+- name: download a file from azure storage
+  become: true
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: blob-download.yml
+  vars:
+    blob_container_name: "{{ cloud_storage_cassandrabackup_foldername }}"
+    blob_file_name: "{{ cassandra_restore_gzip_file_name }}"
+    local_file_or_folder_path: "{{ cassandra_restore_gzip_file_path  }}"
+    storage_account_name: "{{ cloud_management_storage_accountname }}"
+    storage_account_key: "{{ cloud_management_storage_secret }}"
+  when: cloud_service_provider == "azure"
+
+- name: download a file from aws s3
+  become: true
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: download.yml
+  vars:
+    s3_bucket_name: "{{ cloud_storage_cassandrabackup_bucketname }}"
+    aws_access_key_id: "{{ cloud_management_storage_accountname }}"
+    aws_secret_access_key: "{{ cloud_management_storage_secret }}"
+    aws_default_region: "{{ cloud_public_storage_region }}"
+    local_file_or_folder_path: "{{ cassandra_restore_gzip_file_path  }}"
+    s3_path: "{{ cloud_storage_cassandrabackup_foldername }}/{{ cassandra_restore_gzip_file_name }}"
+  when: cloud_service_provider == "aws"  
+   
+- name: download file from gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: download.yml
+  vars:
+    gcp_storage_service_account_name: "{{ cloud_management_storage_accountname }}"
+    gcp_storage_key_file: "{{ cloud_management_storage_secret }}"
+    gcp_bucket_name: "{{ cloud_storage_cassandrabackup_bucketname }}"
+    gcp_path: "{{ cloud_storage_cassandrabackup_foldername }}/{{ cassandra_restore_gzip_file_name }}"
+    local_file_or_folder_path: "{{ cassandra_restore_gzip_file_path }}"
+  when: cloud_service_provider == "gcloud"
+
 - name: unarchieve restore artifact
-  become: yes
+  become: true
   unarchive: src={{user_home}}/{{ cassandra_restore_gzip_file_name }} dest={{user_home}}/ copy=no
   
 - name: Remove the restroe artefact
-  become: yes
+  become: true
   file: path={{user_home}}/cassandra* state=absent
   
 - name: Remove the old data
-  become: yes
+  become: true
   file: path=/var/lib/cassandra/data/sunbird state=absent
   
 - name: Replace the new data
-  become: yes
+  become: true
   command: mv {{user_home}}/data/sunbird /var/lib/cassandra/data/ 
 
-
 - name: remove data
-  become: yes
+  become: true
   file: 
     path: "/home/{{ ansible_ssh_user }}/data"
     state: absent
 
 - name: change the permissions 
-  become: yes
+  become: true
   file: path=/var/lib/cassandra/data owner=cassandra group=cassandra recurse=yes
 
 - name: copy the backup script 
-  become: yes
+  become: true
   template: src=nodetool.j2  dest={{user_home}}/nodetool.sh mode=0755 
-  
 
 - name: Start the cassandra 
-  become: yes
+  become: true
   service: name=cassandra state=started
-  
-  

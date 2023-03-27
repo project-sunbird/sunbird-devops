@@ -10,39 +10,40 @@ node() {
         stage('checkout utils repo') {
             cleanWs()
             checkout scm
-              sh """
-		git clone https://github.com/project-sunbird/sunbird-utils.git -b ${sunbird_util_branch_or_tag} cert-templates
-	      """
+            sh "git clone https://github.com/project-sunbird/sunbird-utils.git -b ${sunbird_util_branch_or_tag} cert-templates"
         }
-            ansiColor('xterm') {
-                    stage('inject vars') {
-			values = [:]
-	                currentWs = sh(returnStdout: true, script: 'pwd').trim()
-	                envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
-	                module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
-	                jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
-	
-                    	ansiblePlaybook = "${currentWs}/ansible/cert-templates.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass "
-		    	if (params.badgeType == "createBadge") {
-		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs createBadge=True\""
-                    	} else if (params.badgeType == "createIssuer") {
-		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs createIssuer=True\""
-                    	}else if (params.badgeType == "createPublicKey") {
-		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs createPublicKey=True\""
-		    	}else {
-		    	    ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\""
-		    	}
-
+        ansiColor('xterm') {
+            stage('inject vars') {
+			    values = [:]
+	            currentWs = sh(returnStdout: true, script: 'pwd').trim()
+	            envDir = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-3].trim()
+	            module = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-2].trim()
+	            jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
+                ansiblePlaybook = "${currentWs}/ansible/cert-templates.yml --vault-password-file /var/lib/jenkins/secrets/vault-pass"
+		        if (params.badgeType == "createBadge") {
+		          ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs createBadge=True\""
+                } 
+			    else if (params.badgeType == "createIssuer") {
+		          ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs createIssuer=True\""
+                }
+			    else if (params.badgeType == "createPublicKey") {
+		          ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs createPublicKey=True\""
+		        }
+			    else {
+		          ansibleExtraArgs = " --extra-vars \"cert_location=$currentWs\""
+		        }
 		        values.put('currentWs', currentWs)
 		        values.put('env', envDir)
-                	values.put('module', module)
-                	values.put('jobName', jobName)
-                    	values.put('ansiblePlaybook', ansiblePlaybook)
-                    	values.put('ansibleExtraArgs', ansibleExtraArgs)
-                    	println values
-                    	ansible_playbook_run(values)
-                }
+                values.put('module', module)
+                values.put('jobName', jobName)
+                values.put('ansiblePlaybook', ansiblePlaybook)
+                values.put('ansibleExtraArgs', ansibleExtraArgs)
+                println values
+                ansible_playbook_run(values)
+                currentBuild.result = 'SUCCESS'
+                currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
             }
+        }
     }
     catch (err) {
         currentBuild.result = "FAILURE"

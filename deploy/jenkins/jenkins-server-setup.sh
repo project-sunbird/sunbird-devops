@@ -15,7 +15,7 @@ echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
 apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
 apt-get update
-apt-get install -y jenkins=2.277.4
+apt-get install -y jenkins=2.319.3
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
@@ -144,6 +144,13 @@ tar -xf openjdk-11+28_linux-x64_bin.tar.gz
 mv jdk-11 java-11-openjdk-amd64
 cp -r java-11-openjdk-amd64 /usr/lib/jvm/
 rm -rf java-11-openjdk-amd64 openjdk-11+28_linux-x64_bin.tar.gz
+
+#Install openjdk-11.0.2 # needed for DP jobs
+echo -e "\n\e[0;32m${bold}Installating openjdk 11.0.2${normal}"
+wget https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz
+tar -xf openjdk-11.0.2_linux-x64_bin.tar.gz
+mv jdk-11.0.2 /usr/lib/jvm/
+rm openjdk-11.0.2_linux-x64_bin.tar.gz
 
 #Install maven 3.6.3
 echo -e "\n\e[0;32m${bold}Installating maven 3.6.3${normal}"
