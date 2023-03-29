@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # Set the namespace for the Helm charts
 namespace="testing"
 kubeconfig_file=$1
@@ -26,12 +28,6 @@ fi
 # Print Sunbird Learn ASCII art banner using figlet
 figlet -f slant "Sunbird Learn Installation"
 
-# Create the learn namespace if it doesn't exist
-if ! kubectl get ns $namespace >/dev/null 2>&1; then
-  kubectl create ns $namespace
-  echo -e "\e[92mCreated namespace $namespace\e[0m"
-fi
-
 # Check if the kubeconfig file exists
 if [ ! -f "$kubeconfig_file" ]; then
     echo "Error: Kubeconfig file not found."
@@ -53,17 +49,10 @@ if ! kubectl get namespace $namespace >/dev/null 2>&1; then
   echo -e "\e[92mCreated namespace $namespace\e[0m"
 fi
 
-# Loop through the CSV file and install the Helm charts
-while IFS=',' read -r chart_name chart_version chart_repo; do
+while IFS=',' read -r chart_name  chart_repo; do
   if [ -z "$chart_repo" ]; then
     echo "Error: Repository URL not found for $chart_name in charts.csv"
     exit 1
-  fi
-
-  # Update the Helm repository
-  if ! helm repo list | grep -q $chart_name; then
-    helm repo add $chart_name $chart_repo
-    helm repo update
   fi
 
   # Check if the chart is already installed
@@ -71,6 +60,31 @@ while IFS=',' read -r chart_name chart_version chart_repo; do
     echo "$chart_name is already installed."
   else
     # Install the chart with global variables
-    helm install $chart_name $chart_name/$chart_name --version $chart_version -n $namespace -f global-values.yaml
+    helm install $chart_name $chart_repo -n $namespace -f global-values.yaml
   fi
 done < charts.csv
+
+# Loop through the CSV file and install the Helm charts
+# while IFS=',' read -r chart_name chart_version chart_repo; do
+#   if [ -z "$chart_repo" ]; then
+#     echo "Error: Repository URL not found for $chart_name in charts.csv"
+#     exit 1
+#   fi
+
+#   # Update the Helm repository
+#   if ! helm repo list | grep -q $chart_name; then
+#     helm repo add $chart_name $chart_repo
+#     helm repo update
+#   fi
+
+#   # Check if the chart is already installed
+#   if helm list -n $namespace | grep -q $chart_name; then
+#     echo "$chart_name is already installed."
+#   else
+#     # Install the chart with global variables
+#     helm upgrade --install $chart_name $chart_name/$chart_name --version $chart_version -n $namespace -f global-values.yaml
+#   fi
+# done < charts.csv
+
+
+
