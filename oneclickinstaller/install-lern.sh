@@ -60,7 +60,7 @@ while IFS=',' read -r chart_name  chart_repo; do
     echo "$chart_name is already installed."
   else
     # Install the chart with global variables
-    helm install $chart_name $chart_repo -n $namespace -f global-values.yaml
+    helm upgrade --install $chart_name $chart_repo -n $namespace -f global-values.yaml
   fi
 done < charts.csv
 
