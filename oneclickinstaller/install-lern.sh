@@ -36,6 +36,7 @@ fi
 
 # Check connectivity with the Kubernetes cluster
 kubectl --kubeconfig="$kubeconfig_file" cluster-info >/dev/null 2>&1
+export KUBECONFIG="$kubeconfig_file"
 if [ $? -ne 0 ]; then
     echo "Error: Unable to connect to the Kubernetes cluster with the provided kubeconfig file."
     exit 1
