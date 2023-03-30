@@ -1,5 +1,10 @@
 #!/bin/bash
-NAMESPACE="lern"
+
+set -x
+
+# Set the namespace for the Helm charts
+namespace="dry-run"
+kubeconfig_file=$1
 
 # Check if kubectl is installed
 if ! command -v kubectl &> /dev/null; then
@@ -23,34 +28,64 @@ fi
 # Print Sunbird Learn ASCII art banner using figlet
 figlet -f slant "Sunbird Learn Installation"
 
-# Check if kubernetes cluster connection exists by trying to list pods
-if ! kubectl get pods >/dev/null 2>&1; then
-  echo -e "\e[91mCould not connect to Kubernetes cluster\e[0m"
-  exit 1
+# Check if the kubeconfig file exists
+if [ ! -f "$kubeconfig_file" ]; then
+    echo "Error: Kubeconfig file not found."
+    exit 1
 fi
+
+# Check connectivity with the Kubernetes cluster
+kubectl --kubeconfig="$kubeconfig_file" cluster-info >/dev/null 2>&1
+export KUBECONFIG="$kubeconfig_file"
+if [ $? -ne 0 ]; then
+    echo "Error: Unable to connect to the Kubernetes cluster with the provided kubeconfig file."
+    exit 1
+fi
+
+echo "Success: Connected to the Kubernetes cluster with the provided kubeconfig file."
 
 # Create the learn namespace if it doesn't exist
-if ! kubectl get namespace $NAMESPACE >/dev/null 2>&1; then
-  kubectl create namespace $NAMESPACE
-  echo -e "\e[92mCreated namespace $NAMESPACE\e[0m"
+if ! kubectl get namespace $namespace >/dev/null 2>&1; then
+  kubectl create namespace $namespace
+  echo -e "\e[92mCreated namespace $namespace\e[0m"
 fi
 
-chart_dir=$PWD
-
-# Deploy the Helm charts from the current directory
-for chart in */ ; do
-  chart_name=$(basename $chart)
-  if helm upgrade --install $chart_name $chart --namespace $NAMESPACE >/dev/null; then
-    echo -e "\e[92mSuccessfully deployed ${chart_name}\e[0m"
-  else
-    echo -e "\e[91mFailed to deploy ${chart_name}\e[0m"
+while IFS=',' read -r chart_name  chart_repo; do
+  if [ -z "$chart_repo" ]; then
+    echo "Error: Repository URL not found for $chart_name in charts.csv"
+    exit 1
   fi
-done
+
+  # Check if the chart is already installed
+  if helm list -n $namespace | grep -q $chart_name; then
+    echo "$chart_name is already installed."
+  else
+    # Install the chart with global variables
+    echo "helm upgrade --install $chart_name $chart_repo -n $namespace -f global-values.yaml"
+    helm upgrade --install $chart_name $chart_repo -n $namespace -f global-values.yaml
+    echo "$chart_name is installed successfully."
+    fi
+done < charts.csv
 
 
+# Loop through the CSV file and install the Helm charts
+# while IFS=',' read -r chart_name chart_version chart_repo; do
+#   if [ -z "$chart_repo" ]; then
+#     echo "Error: Repository URL not found for $chart_name in charts.csv"
+#     exit 1
+#   fi
 
-#Install helm chart 3.7.1 for chart installation
-# curl -LO https://get.helm.sh/helm-v3.7.1-linux-amd64.tar.gz
-# tar -zxvf helm-v3.7.1-linux-amd64.tar.gz
-# sudo mv linux-amd64/helm /usr/local/bin/
-# helm version
+#   # Update the Helm repository
+#   if ! helm repo list | grep -q $chart_name; then
+#     helm repo add $chart_name $chart_repo
+#     helm repo update
+#   fi
+
+#   # Check if the chart is already installed
+#   if helm list -n $namespace | grep -q $chart_name; then
+#     echo "$chart_name is already installed."
+#   else
+#     # Install the chart with global variables
+#     helm upgrade --install $chart_name $chart_name/$chart_name --version $chart_version -n $namespace -f global-values.yaml
+#   fi
+# done < charts.csv
