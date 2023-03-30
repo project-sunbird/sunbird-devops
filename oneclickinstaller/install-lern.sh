@@ -1,7 +1,5 @@
 #!/bin/bash
-
-set -x
-
+# set -x
 # Set the namespace for the Helm charts
 namespace="dry-run"
 kubeconfig_file=$1
@@ -58,12 +56,11 @@ while IFS=',' read -r chart_name  chart_repo; do
 
   # Check if the chart is already installed
   if helm list -n $namespace | grep -q $chart_name; then
-    echo "$chart_name is already installed."
+    echo -e "\e[92m$chart_name is already installed\e[0m"
   else
     # Install the chart with global variables
-    echo "helm upgrade --install $chart_name $chart_repo -n $namespace -f global-values.yaml"
     helm upgrade --install $chart_name $chart_repo -n $namespace -f global-values.yaml
-    echo "$chart_name is installed successfully."
+    echo -e "\e[92m$chart_name is installed successfully\e[0m"
     fi
 done < charts.csv
 
