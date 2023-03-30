@@ -756,6 +756,30 @@ proxyconfig: |-
       proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass http://player;
     }
+    location ~* ^/.well-known/assetlinks.json {
+      # Enabling cache for Response code 200
+      expires 1M;
+      add_header Pragma public;
+      add_header Cache-Control "public";
+      # Enabling compression
+      gzip        on;
+      gzip_min_length 100000;
+      gzip_proxied    expired no-cache no-store private auth;
+      gzip_types application/javascript application/x-javascript text/css text/javascript;
+      if ($request_method = OPTIONS ) {
+          add_header Access-Control-Allow-Origin "*" ;
+          add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST";
+          add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id";
+          # add_header Access-Control-Allow-Credentials "true";
+          add_header Content-Length 0;
+          add_header Content-Type text/plain;
+          return 200;
+      }
+      set $bucket        "{{mobile_deeplink_url}}";
+      set $url_full         '$1';
+      proxy_http_version     1.1;
+      proxy_pass             $bucket;
+    }
     location ~* ^/desktop/(.*) {
        # Enabling cache for Response code 200
        expires 1M;
