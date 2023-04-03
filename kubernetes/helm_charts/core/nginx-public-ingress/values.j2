@@ -775,9 +775,22 @@ proxyconfig: |-
           add_header Content-Type text/plain;
           return 200;
       }
-      set $bucket        "{{mobile_deeplink_url}}";
+      set $bucket        "{{ mobile_deeplink_url }}";
       set $url_full         '$1';
       proxy_http_version     1.1;
+      proxy_set_header       Host "{{mobile_deeplink_url.split('/')[2]|lower}}";
+      proxy_set_header       Authorization '';
+      proxy_hide_header      Access-Control-Allow-Origin;
+      proxy_hide_header      Access-Control-Allow-Methods;
+      proxy_hide_header      x-amz-id-2;
+      proxy_hide_header      x-amz-request-id;
+      proxy_hide_header      Set-Cookie;
+      proxy_ignore_headers   "Set-Cookie";
+      proxy_buffering        off;
+      proxy_intercept_errors on;
+      add_header             Access-Control-Allow-Origin "*";
+      add_header             Access-Control-Allow-Methods GET;
+      proxy_set_header X-Request-ID $sb_request_id;
       proxy_pass             $bucket;
     }
     location ~* ^/desktop/(.*) {
