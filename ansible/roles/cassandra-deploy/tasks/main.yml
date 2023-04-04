@@ -1,10 +1,10 @@
 - name: checking for last failed migration
-  shell: cqlsh -e 'SELECT version from sunbird.cassandra_migration_version where success=false ALLOW FILTERING ;' | tail -n +4 | head -n -2 | sort | tail -n1 | xargs
+  shell: cqlsh -e 'SELECT version from {{ cassandra_keyspace_to_migrate }}.cassandra_migration_version where success=false ALLOW FILTERING ;' | tail -n +4 | head -n -2 | sort | tail -n1 | xargs
   register: version
   run_once: true
 
 - name: Dropping failed migration {{ version.stdout }}
-  shell: cqlsh -e "delete from sunbird.cassandra_migration_version where version='{{version.stdout}}';"
+  shell: cqlsh -e "delete from {{ cassandra_keyspace_to_migrate }}.cassandra_migration_version where version='{{version.stdout}}';"
   when: version.stdout
   run_once: true
 
@@ -14,8 +14,20 @@
     dest: "/home/{{ansible_ssh_user}}/"
   run_once: true
 
+- name: Delete migration-script
+  file:
+    state: absent
+    path: "/home/{{ansible_ssh_user}}/migration-script/"
+
+- name: Copy the migration script
+  copy:
+    src: "{{ script_location }}"
+    dest: "/home/{{ansible_ssh_user}}/migration-script/"
+  run_once: true
+
 - name: Run the application
   shell: java -cp "cassandra-migration-0.0.1-SNAPSHOT-jar-with-dependencies.jar" com.contrastsecurity.cassandra.migration.utils.MigrationScriptEntryPoint
+#  shell: java -jar -Dcassandra.migration.scripts.locations=filesystem:migration-script/{{ cassandra_keyspace_to_migrate }}/ -Dcassandra.migration.cluster.contactpoints=localhost -Dcassandra.migration.cluster.port=9042 -Dcassandra.migration.cluster.username=cassandra -Dcassandra.migration.cluster.password=cassandra -Dcassandra.migration.keyspace.name={{ cassandra_keyspace_to_migrate }} *-jar-with-dependencies.jar migrate
   run_once: true
   register: migration_status
 
