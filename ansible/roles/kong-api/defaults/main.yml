@@ -7522,6 +7522,27 @@ kong_apis:
     config.required: false
     config.enabled: false
 
+- name: getSolutionReportInformation
+  uris: "{{ resource_prefix }}/mlreports/v1/filtervalues"
+  upstream_url: "{{{ ml_reports_service_url }}/v1/resource/filtervalues"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - solutionAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: userLocationScope
   uris: "{{ entities_service_prefix }}/mlcore/v1/subEntityListBasedOnRoleAndLocation"
   upstream_url: "{{ ml_core_service_url }}/v1/entities/subEntityListBasedOnRoleAndLocation"
@@ -9981,24 +10002,3 @@ kong_apis:
   - name: opa-checks
     config.required: true
     config.enabled: true
-
-- name: getSolutionReportInformation
-  uris: "{{ resource_prefix }}/mlreports/v1/filtervalues"
-  upstream_url: "{{{ ml_reports_service_url }}/v1/resource/filtervalues"
-  strip_uri: true
-  plugins:
-  - name: jwt
-  - name: cors
-  - "{{ statsd_pulgin }}"
-  - name: acl
-    config.whitelist:
-    - solutionAccess
-  - name: rate-limiting
-    config.policy: local
-    config.hour: "{{ medium_rate_limit_per_hour }}"
-    config.limit_by: credential
-  - name: request-size-limiting
-    config.allowed_payload_size: "{{ small_request_size_limit }}"
-  - name: opa-checks
-    config.required: false
-    config.enabled: false
