@@ -76,5 +76,13 @@ while IFS=',' read -r chart_name chart_repo; do
 done < knowlg-charts.csv
 
 ## Update Neo4J Definition ##
-## Run the curl commands in the learning pod. Reference: https://github.com/Sunbird-Knowlg/sunbird-learning-platform/blob/release-5.2.0/ansible/lp_definition_update.yml
+learningpod=`kubectl get pods --selector=app=learning -n $namespace | awk '{if(NR==2) print $1}'`
+FILES="definitions/*"
+for f in $FILES
+do
+  echo "Updating $f ..."
+  kubectl exec -it $learningpod -n $namespace -- bash -c "curl -X POST -H \"Content-Type: application/json\" -d $f  http://localhost:8080"
+done
+
+
 
