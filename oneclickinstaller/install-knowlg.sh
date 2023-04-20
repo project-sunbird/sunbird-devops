@@ -76,6 +76,7 @@ while IFS=',' read -r chart_name chart_repo; do
 done < knowlg-charts.csv
 
 ## Update Neo4J Definition ##
+## It is expected to have the definition directory kept in the same folder. Download the definiti
 learningpod=`kubectl get pods --selector=app=learning -n $namespace | awk '{if(NR==2) print $1}'`
 FILES="definitions/*"
 for f in $FILES

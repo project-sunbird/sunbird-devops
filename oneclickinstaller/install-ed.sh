@@ -1,7 +1,7 @@
 #!/bin/bash
 # set -x
 # Set the namespace for the Helm charts
-namespace="ed"
+namespace="dry-run"
 kubeconfig_file=$1
 
 # Check if kubectl is installed
@@ -43,16 +43,16 @@ fi
 echo "Success: Connected to the Kubernetes cluster with the provided kubeconfig file."
 
 ### Trigger Lern Installer 
-./install-lern.sh 
+./install-lern.sh $kubeconfig_file 
 
 ### Trigger Observ Installer 
-./install-obsrv.sh
+./install-obsrv.sh $kubeconfig_file
 
 ### Trigger InQuiry Installer 
-./install-inquiry.sh 
+./install-inquiry.sh $kubeconfig_file
 
 ### Trigger Knowlg Installer
-./install-knowlg.sh 
+./install-knowlg.sh $kubeconfig_file
 
 # Create the ed namespace if it doesn't exist
 if ! kubectl get namespace $namespace >/dev/null 2>&1; then
