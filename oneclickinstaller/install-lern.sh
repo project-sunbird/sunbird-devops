@@ -1,5 +1,5 @@
 #!/bin/bash
-# set -x
+#set -x
 # Set the namespace for the Helm charts
 namespace="dry-run"
 kubeconfig_file=$1

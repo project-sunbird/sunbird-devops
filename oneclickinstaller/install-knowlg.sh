@@ -1,7 +1,7 @@
 #!/bin/bash
 # set -x
 # Set the namespace for the Helm charts
-namespace="knowlg"
+namespace="dry-run"
 kubeconfig_file=$1
 
 # Check if kubectl is installed
@@ -24,7 +24,7 @@ if ! command -v figlet &> /dev/null; then
 fi
 
 # Print Sunbird Obsrv ASCII art banner using figlet
-figlet -f slant "Sunbird Obsrv Installation"
+figlet -f slant "Sunbird Knowlg Installation"
 
 # Check if the kubeconfig file exists
 if [ ! -f "$kubeconfig_file" ]; then
