@@ -1,7 +1,7 @@
 #!/bin/bash
 # set -x
 # Set the namespace for the Helm charts
-namespace="obsrv"
+namespace="dry-run"
 kubeconfig_file=$1
 
 # Check if kubectl is installed
