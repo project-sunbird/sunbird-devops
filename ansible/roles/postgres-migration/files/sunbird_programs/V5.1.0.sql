@@ -1,0 +1,1 @@
+INSERT INTO "public"."configuration" ("key", "value", "status") VALUES ('PrashnavaliReminder', ' VidyaDaan: Reminder to kindly create or review pending questions for the Project:$projectName by $projectDate. Log in via https://vdn.diksha.gov.in/contribute. Please ignore if work has already been completed.', 'active');

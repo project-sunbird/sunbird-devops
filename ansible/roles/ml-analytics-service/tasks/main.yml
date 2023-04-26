@@ -42,21 +42,12 @@
     - "{{ WORKDIR }}/faust_as_service"
     
 - name: Delete the virtualenv DIR
-  shell: "rm -rf {{ WORKDIR }}/spark_env"
+  shell: "rm -rf {{ WORKDIR }}/spark_venv"
   become: true
   
 - name: Install python virtual environment
   shell: "cd {{ WORKDIR }} && virtualenv --python=python3.8 spark_venv"
   become: true
-  
-- name: Change the ownership of virtual env
-  become: yes
-  file:
-    path: "{{ WORKDIR }}/spark_env"
-    state: directory
-    owner: "{{ USER }}"
-    group: "{{ USER }}"
-    mode: "0755"
 
 - name: Create necessary logs folders for pipeline
   become: yes
@@ -80,6 +71,16 @@
     requirements: "{{ WORKDIR }}/ml-analytics-service/requirements.txt"
     extra_args: --upgrade
 
+- name: Change the ownership of virtual env
+  become: yes
+  file:
+    path: "{{ WORKDIR }}/spark_venv"
+    state: directory
+    recurse: yes
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+    mode: "0755"
+    
 - name: Creating a faust service shell file in executable mode
   copy:
     src: files/faust.sh
@@ -104,6 +105,10 @@
     src: "config.j2"
     dest: "{{ config_path }}/config.ini"
     backup: yes
+
+- name: Copy GCP Secrets to JSON file
+  copy: dest="{{config_path}}/{{ml_Cloud_secret_json_file}}" content="{{ ml_Cloud_Secrets | to_nice_json}}" mode=0400 owner="{{ USER }}"
+  when: ML_Cloud_Service_Provider == 'gcloud'
 
 - name: Templating the shell_script_config.j2 to shell_script_config
   template:
@@ -141,4 +146,4 @@
     minute: "30"
     hour: "7"
     weekday: "4"
-    job: "{{ BASEPATH }}/run_weekly.sh > {{ BASEPATH }}/ml-analytics-service/nvsk_data_weekly.logs"
+    job: "{{ BASEPATH }}/ml-analytics-service/run_weekly.sh > {{ BASEPATH }}/ml-analytics-service/nvsk_data_weekly.logs"

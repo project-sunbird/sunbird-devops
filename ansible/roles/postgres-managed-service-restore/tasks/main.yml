@@ -1,0 +1,100 @@
+- name: install psycopg2
+  package:
+    name: python-psycopg2
+    state: present
+   
+- name: ensure restore dir exists
+  file: path="{{ postgresql_restore_dir }}" state=directory mode=0777
+
+- set_fact:
+    postgres_backup_filepath: "{{ postgresql_restore_dir }}/{{ postgres_backup_filename }}"
+
+- name: download a file from azure storage
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: blob-download.yml
+  vars:
+    blob_container_name: "{{ cloud_storage_postgresqlbackup_foldername }}"
+    blob_file_name: "{{ postgres_backup_filename }}"
+    local_file_or_folder_path: "{{ postgres_restore_dir }}/{{ postgres_backup_filepath }}"
+    storage_account_name: "{{ cloud_management_storage_accountname }}"
+    storage_account_key: "{{ cloud_management_storage_secret }}"
+  when: cloud_service_provider == "azure"
+
+- name: download a file from aws s3
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: download.yml
+  vars:
+    s3_bucket_name: "{{ cloud_storage_postgresqlbackup_bucketname }}"
+    aws_access_key_id: "{{ cloud_management_storage_accountname }}"
+    aws_secret_access_key: "{{ cloud_management_storage_secret }}"
+    aws_default_region: "{{ cloud_public_storage_region }}"
+    local_file_or_folder_path: "{{ postgres_restore_dir }}/{{ postgres_backup_filepath }}"
+    s3_path: "{{ cloud_storage_postgresqlbackup_foldername }}/{{ postgres_backup_filename }}"
+  when: cloud_service_provider == "aws"
+   
+- name: download file from gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: download.yml
+  vars:
+    gcp_storage_service_account_name: "{{ cloud_management_storage_accountname }}"
+    gcp_storage_key_file: "{{ cloud_management_storage_secret }}"
+    gcp_bucket_name: "{{ cloud_storage_postgresqlbackup_bucketname }}"
+    gcp_path: "{{ cloud_storage_postgresqlbackup_foldername }}/{{ postgres_backup_filename }}"
+    local_file_or_folder_path: "{{ postgres_restore_dir }}/{{ postgres_backup_filepath }}"
+  when: cloud_service_provider == "gcloud"
+
+- name: unarchive artifact
+  unarchive: src={{ postgresql_restore_dir }}/{{ postgres_backup_filename }} dest={{ postgresql_restore_dir }}/ copy=no
+
+- name: Create db's
+  postgresql_db:
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    login_host: "{{ postgres_hostname }}"
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ db.name }}"
+  async: 1000
+  poll: 10
+
+- name: Create role and grant access to db's
+  postgresql_user:
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    login_host: "{{ postgres_hostname }}"
+    db: "{{ item[0] }}"
+    name: "{{ item[1] }}"
+    priv: ALL
+    state: present
+    role_attr_flags: CREATEROLE
+  with_nested:
+    - "{{ db.name }}"
+    - "{{ db.role }}"
+  async: 1000
+  poll: 10
+
+- name: create user
+  postgresql_user:
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    login_host: "{{ postgres_hostname }}"
+    name: "{{ item }}"
+  with_items: "{{ db.user }}"
+  async: 1000
+  poll: 10
+
+- name: Restore db's
+  postgresql_db:
+    login_user: "{{ postgres_user }}"
+    login_password: "{{ postgres_password }}"
+    login_host: "{{ postgres_hostname }}"
+    name: "{{ item }}"
+    state: restore
+    target: "{{ item }}.sql"
+  args:
+    chdir: "{{ postgres_restore_dir }}"
+  with_items: "{{ db.name }}"
+

@@ -38,7 +38,7 @@ node() {
                 jobName = sh(returnStdout: true, script: "echo $JOB_NAME").split('/')[-1].trim()
                 currentWs = sh(returnStdout: true, script: 'pwd').trim()
                 ansiblePlaybook = "${currentWs}/ansible/desktop-faq-upload.yml"
-                ansibleExtraArgs = "--extra-vars \" desktop_container=${params.container_name} src_file_path=${params.source_path} destination_path=${params.destination_path}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass --tags ${params.tag}"
+                ansibleExtraArgs = "--extra-vars \" src_file_path=${params.source_path} destination_path=${params.destination_path}\" --vault-password-file /var/lib/jenkins/secrets/vault-pass --tags ${params.tag}"
                 values.put('currentWs', currentWs)
                 values.put('env', envDir)
                 values.put('module', module)
@@ -47,12 +47,19 @@ node() {
                 values.put('ansibleExtraArgs', ansibleExtraArgs)
                 println values
                 ansible_playbook_run(values)
+                currentBuild.result = 'SUCCESS'
+                currentBuild.description = "Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
             }
         }
         summary()
      }
     catch (err) {
+        currentBuild.result = 'FAILURE'
         throw err
+    }    
+    finally {
+        slack_notify(currentBuild.result)
+        email_notify()
     }
 }
 

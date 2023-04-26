@@ -4,28 +4,48 @@
 - set_fact:
     postgresql_restore_gzip_file_path: "{{ postgresql_restore_dir }}/{{ postgresql_restore_gzip_file_name }}"
 
-- name: Download restore file from azure
-  command: az storage blob download --container-name {{ postgresql_restore_azure_container_name }} --name {{ postgresql_restore_gzip_file_name }} --file {{ postgresql_restore_gzip_file_path }}
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ postgresql_restore_azure_storage_account_name }}"
-    AZURE_STORAGE_KEY: "{{ postgresql_restore_azure_storage_access_key }}"
-  async: 3600
-  poll: 10
+- name: download a file from azure storage
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: blob-download.yml
+  vars:
+    blob_container_name: "{{ cloud_storage_postgresqlbackup_foldername }}"
+    blob_file_name: "{{ postgresql_restore_gzip_file_name }}"
+    local_file_or_folder_path: "{{ postgresql_restore_gzip_file_path  }}"
+    storage_account_name: "{{ cloud_management_storage_accountname }}"
+    storage_account_key: "{{ cloud_management_storage_secret }}"
+  when: cloud_service_provider == "azure"
+
+- name: download a file from aws s3
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: download.yml
+  vars:
+    s3_bucket_name: "{{ cloud_storage_postgresqlbackup_bucketname }}"
+    aws_access_key_id: "{{ cloud_management_storage_accountname }}"
+    aws_secret_access_key: "{{ cloud_management_storage_secret }}"
+    aws_default_region: "{{ cloud_public_storage_region }}"
+    local_file_or_folder_path: "{{ postgresql_restore_gzip_file_path  }}"
+    s3_path: "{{ cloud_storage_postgresqlbackup_foldername }}/{{ postgresql_restore_gzip_file_name }}"
+  when: cloud_service_provider == "aws"
+  
+- name: download file from gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: download.yml
+  vars:
+    gcp_storage_service_account_name: "{{ cloud_management_storage_accountname }}"
+    gcp_storage_key_file: "{{ cloud_management_storage_secret }}"
+    gcp_bucket_name: "{{ cloud_storage_postgresqlbackup_bucketname }}"
+    gcp_path: "{{ cloud_storage_postgresqlbackup_foldername }}/{{ postgresql_restore_gzip_file_name }}"
+    local_file_or_folder_path: "{{ postgresql_restore_gzip_file_path }}"
+  when: cloud_service_provider == "gcloud"
 
 - name: ensure postgresql service is stopped
   service: name=postgresql state=stopped
 
 - name: wait for postgresql to be stopped
   wait_for: port={{ postgresql_port }} state=stopped
-
-- name: drop cluster
-  command: pg_dropcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }}
-  become_user: "{{ postgresql_user }}"
-  ignore_errors: true
-
-- name: create cluster
-  command: pg_createcluster {{ postgresql_cluster_version }} {{ postgresql_cluster_name }}
-  become_user: "{{ postgresql_user }}"
 
 - name: ensure postgresql service is started
   service: name=postgresql state=started

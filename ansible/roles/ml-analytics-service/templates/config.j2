@@ -6,6 +6,7 @@ integrated_app = {{ ml_analytics_integrated_app_name }}
 
 integrated_portal = {{ ml_analytics_integrated_portal }}
 
+
 [API_HEADERS]
 
 content_type = application/json
@@ -13,6 +14,7 @@ content_type = application/json
 authorization = {{ ml_analytics_api_authorization_key }}
 
 internal_access_token = {{ ml_analytics_api_access_token }}
+
 
 [ML_SURVEY_SERVICE_URL]
 
@@ -24,24 +26,15 @@ user_profile_end_point = assessment/api/v1/userExtension/getProfile/
 
 evidence_base_url = {{ ml_analytics_evidence_base_url }}
 
+
 [MONGO]
 
-# --------------
-# Mongo  url
-#---------------
-
-mongo_url = mongodb://{{ ml_analytics_mongodb_url }}
-
-# -----------------------
-# Mongo database name
-# -----------------------
+url = mongodb://{{ ml_analytics_mongodb_url }}
 
 database_name = {{ ml_analytics_mongo_db_name }}
 
-# -------------------
-# Mongo Collections
-# -------------------
 
+# ------ Mongo Collections ------- #
 observation_sub_collection = {{ ml_analytics_mongo_observation_submission_collection }}
 
 solutions_collection = {{ ml_analytics_mongo_solution_collection }}
@@ -68,6 +61,7 @@ survey_submissions_collection = {{ ml_analytics_mongo_survey_submissions_collect
 
 survey_collection = {{ ml_analytics_mongo_survey_collection }}
 
+
 [DRUID]
 
 metadata_url = http://{{ ml_analytics_druid_url }}/druid/coordinator/v1/datasources/
@@ -84,13 +78,15 @@ observation_status_injestion_spec = {{ ml_analytics_druid_observation_status_inj
 
 project_injestion_spec = {{ ml_analytics_druid_project_injestion_spec }}
 
-ml_distinctCnt_obs_status_spec = {{ ml_analytics_druid_distinctCnt_obs_injestion_spec }}	
+ml_distinctCnt_obs_status_spec = {{ ml_analytics_druid_distinctCnt_obs_injestion_spec }}
 
-ml_distinctCnt_obs_domain_spec = {{ ml_analytics_druid_distinctCnt_obs_domain_injestion_spec }}	
+ml_distinctCnt_obs_domain_spec = {{ ml_analytics_druid_distinctCnt_obs_domain_injestion_spec }}
 
-ml_distinctCnt_obs_domain_criteria_spec = {{ ml_analytics_druid_distinctCnt_obs_domain_criteria_injestion_spec }}	
+ml_distinctCnt_obs_domain_criteria_spec = {{ ml_analytics_druid_distinctCnt_obs_domain_criteria_injestion_spec }}
 
-ml_distinctCnt_projects_status_spec = {{ ml_analytics_druid_distinctCnt_projects_status_injestion_spec }}	
+ml_distinctCnt_projects_status_spec = {{ ml_analytics_druid_distinctCnt_projects_status_injestion_spec }}
+
+ml_distinctCnt_prglevel_projects_status_spec = {{ ml_analytics_druid_distinctCnt_prglevel_projects_status_injestion_spec }}
 
 observation_status_rollup_injestion_spec = {{ ml_analytics_druid_observation_status_rollup_injestion_spec }}
 
@@ -98,13 +94,18 @@ project_rollup_injestion_spec = {{ ml_analytics_druid_project_rollup_injestion_s
 
 ml_survey_rollup_spec = {{ml_analytics_druid_survey_rollup_injestion_spec}}
 
-ml_distinctCnt_prglevel_projects_status_spec = {{ ml_analytics_druid_distinctCnt_prglevel_projects_status_injestion_spec}}
-
 survey_status_injestion_spec = {{ ml_analytics_druid_survey_status_injestion_spec }}
 
 observation_query_spec = {{ ml_analytics_druid_observation_query_spec }}
 
 observation_injestion_spec = {{ml_analytics_druid_observation_batch_ingestion_spec}}
+
+survey_query_spec = {{ml_analytics_druid_survey_query_spec}}
+
+survey_injestion_spec = {{ml_analytics_druid_survey_batch_ingestion_spec}}
+
+intervals = {{ml_analytics_druid_interval_list}}
+
 
 [KAFKA]
 
@@ -121,6 +122,7 @@ survey_evidence_druid_topic = {{ ml_analytics_kafka_survey_evidence_topic_name }
 survey_raw_topic = {{ ml_analytics_kafka_survey_topic_name }}
 
 survey_druid_topic = {{ ml_analytics_kafka_survey_druid_topic_name }}
+
 
 [LOGS]
 
@@ -148,53 +150,53 @@ survey_streaming_success = {{ ml_analytics_survey_log_folder_path }}/success.log
 
 survey_streaming_error = {{ ml_analytics_survey_log_folder_path }}/error.log
 
+{% if ML_Cloud_Service_Provider is equalto 'ORACLE' %}
+
+[ORACLE]
+
+endpoint_url = {{ cloud_public_storage_endpoint }}
+
+access_key = {{ cloud_public_storage_accountname }}
+
+secret_access_key = {{ cloud_public_storage_secret }}
+
+region_name = {{ cloud_public_storage_region }}
+
+bucket_name = {{ cloud_storage_telemetry_bucketname }}
+
+{% elif ML_Cloud_Service_Provider is equalto 'gcloud' %}
+
+[GCP]
+
+secret_data = {{ ml_Cloud_secret_json_file }}
+
+bucket_name = {{ cloud_storage_telemetry_bucketname }}
+
+{% elif ML_Cloud_Service_Provider is equalto 'aws' %}
+
+[AWS]
+
+service_name = S3
+
+access_key = {{ cloud_public_storage_accountname }}
+
+secret_access_key = {{ cloud_public_storage_secret }}
+
+region_name = {{ cloud_public_storage_region }}
+
+bucket_name = {{ cloud_storage_telemetry_bucketname }}
+
+{% else %}
+
 [AZURE]
 
-account_name = {{ ml_analytics_azure_account_name }}
+account_name = {{ cloud_public_storage_accountname }}
 
-sas_token = {{ ml_analytics_azure_sas_token }}
+container_name = {{ cloud_storage_telemetry_bucketname }}
 
-container_name = {{ ml_analytics_azure_container_name }}
+account_key = {{ cloud_public_storage_secret }}
 
-observation_blob_path = {{ ml_analytics_observation_azure_blob_path }}
-
-projects_blob_path = {{ ml_analytics_project_azure_blob_path }}
-
-observation_distinctCount_blob_path = {{ ml_analytics_obs_distinctCnt_azure_blob_path }}	
-
-observation_distinctCount_domain_blob_path = {{ ml_analytics_obs_distinctCnt_domain_azure_blob_path }}	
-
-observation_distinctCount_domain_criteria_blob_path = {{ ml_analytics_obs_distinctCnt_domain_criteria_azure_blob_path }}	
-
-projects_distinctCnt_blob_path = {{ ml_analytics_projects_distinctCnt_azure_blob_path }}
-
-projects_rollup_blob_path = {{ ml_analytics_project_rollup_azure_blob_path }}
-
-observation_rollup_blob_path = {{ ml_analytics_observation_rollup_azure_blob_path }}
-
-survey_rollup_blob_path = {{ ml_analytics_survey_rollup_azure_blob_path }}
-
-projects_distinctCnt_prgmlevel_blob_path = {{ml_analytics_projects_distinctCnt_prglevel_azure_blob_path}}
-
-survey_blob_path = {{ ml_analytics_survey_azure_blob_path }}
-
-public_account_name = {{ ml_analytics_public_azure_account_name }}
-
-public_access_key = {{ ml_analytics_public_azure_access_key }}
-
-public_container_name = {{ ml_analytics_public_azure_container_name }}
-
-projects_program_csv = {{ ml_analytics_program_dashboard_azure_blob_path }}
-
-observation_batch_ingestion_data_del = {{ ml_analytics_observation_batchupdate_azure_blob_path }}
-
-[REDIS]
-
-host = {{ ml_analytics_redis_host }}
-
-port = {{ ml_analytics_redis_port }}
-
-db_name = {{ ml_analytics_redis_db_name }}
+{% endif %}
 
 [OUTPUT_DIR]
 
@@ -202,13 +204,15 @@ project = {{ ml_analytics_project_output_dir }}
 
 observation_status = {{ ml_analytics_observation_status_output_dir }}
 
-observation_distinctCount_status = {{ ml_analytics_obs_distinctCnt_output_dir }}	
+observation_distinctCount_status = {{ ml_analytics_obs_distinctCnt_output_dir }}
 
-observation_distinctCount_domain = {{ ml_analytics_obs_distinctCnt_domain_output_dir }}	
+observation_distinctCount_domain = {{ ml_analytics_obs_distinctCnt_domain_output_dir }}
 
-observation_distinctCount_domain_criteria = {{ ml_analytics_obs_distinctCnt_domain_criteria_output_dir }}	
+observation_distinctCount_domain_criteria = {{ ml_analytics_obs_distinctCnt_domain_criteria_output_dir }}
 
 projects_distinctCount = {{ ml_analytics_projects_distinctCnt_output_dir }}
+
+projects_distinctCount_prgmlevel = {{ ml_analytics_projects_distinctCnt_prglevel_output_dir }}
 
 project_rollup = {{ ml_analytics_project_rollup_output_dir }}
 
@@ -216,34 +220,66 @@ observation_status_rollup = {{ ml_analytics_observation_status_rollup_output_dir
 
 survey_rollup = {{ ml_analytics_survey_rollup_output_dir }}
 
-projects_distinctCount_prgmlevel = {{ml_analytics_projects_distinctCnt_prglevel_output_dir}}
-
 survey_status = {{ ml_analytics_survey_status_output_dir }}
 
 observation_sub_ids = {{ ml_analytics_observation_submission_id_filepath }}
 
 observation_druid_data = {{ ml_analytics_observation_batchupdate_output_dir }}
 
-[CLOUD_STORAGE]
+survey_sub_ids = {{ml_analytics_survey_submission_id_filepath}}
 
-service_name = {{ ml_analytics_AWS_service_name }}
+survey_druid_data = {{ml_analytics_survey_batchupdate_output_dir}}
 
-access_key = {{ ml_analytics_AWS_access_key }}
-
-secret_access_key = {{ ml_analytics_AWS_secret_access_key }}
-
-region_name = {{ ml_analytics_AWS_region_name }}
-
-bucket_name = {{ ml_analytics_AWS_bucket_name }}
+program_text_file = {{ml_analytics_project_program}}
 
 [SLACK]
 
-token = {{ ml_analytics_slack_token }}
+token = {{ml_slack_token}}
 
-channel = {{ ml_analytics_channel_name }} 
+channel = {{ml_slack_channel}}
+
 
 [VAM]
 
 druid_query_url = {{ ml_druid_query_data }}
 
 program_dashboard_data = {{ ml_program_dashboard_data }}
+
+
+[COMMON]
+
+cloud_module_path = {{ ml_analytics_cloud_package_path }}
+
+observation_blob_path = {{ ml_analytics_observation_cloud_blob_path }}
+
+projects_blob_path = {{ ml_analytics_project_cloud_blob_path }}
+
+observation_distinctCount_blob_path = {{ ml_analytics_obs_distinctCnt_cloud_blob_path }}
+
+observation_distinctCount_domain_blob_path = {{ ml_analytics_obs_distinctCnt_domain_cloud_blob_path }}
+
+observation_distinctCount_domain_criteria_blob_path = {{ ml_analytics_obs_distinctCnt_domain_criteria_cloud_blob_path }}
+
+projects_distinctCnt_blob_path = {{ ml_analytics_projects_distinctCnt_cloud_blob_path }}
+
+projects_distinctCnt_prgmlevel_blob_path = {{ ml_analytics_projects_distinctCnt_prglevel_cloud_blob_path }}
+
+projects_rollup_blob_path = {{ ml_analytics_project_rollup_cloud_blob_path }}
+
+observation_rollup_blob_path = {{ ml_analytics_observation_rollup_cloud_blob_path }}
+
+survey_rollup_blob_path = {{ ml_analytics_survey_rollup_cloud_blob_path }}
+
+survey_blob_path = {{ ml_analytics_survey_cloud_blob_path }}
+
+projects_program_csv = {{ ml_analytics_program_dashboard_cloud_blob_path }}
+
+observation_batch_ingestion_data_del = {{ ml_analytics_observation_batchupdate_cloud_blob_path }}
+
+survey_batch_ingestion_data_del = {{ ml_analytics_survey_batchupdate_cloud_blob_path}}
+
+cname_url = {{ ml_analytics_cname_url }}
+
+nvsk_imp_projects_data_local_path = {{ ml_analytics_nvsk_imp_projects_data_local_path }}
+
+nvsk_imp_projects_data_blob_path = {{ ml_analytics_nvsk_imp_projects_data_blob_path }}
