@@ -1,0 +1,83 @@
+- name: install psycopg2
+  package:
+    name: python-psycopg2
+    state: present
+- name: ensure backup dir exists
+  file: path="{{ postgresql_backup_dir }}" state=directory mode=0777
+
+- set_fact:
+    postgresql_backup_gzip_file_name: "postgresql_backup_{{ lookup('pipe', 'date +%Z-%Y-%m-%d-%H-%M-%S') }}"
+
+- set_fact:
+    postgresql_backup_gzip_file_path: "{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}.zip"
+
+- name: Dump an existing database to a file
+  postgresql_db:
+    login_user: "{{ sunbird_pg_user }}"
+    login_password: "{{ postgres_password }}"
+    login_host: "{{ postgres_hostname }}"
+    name: "{{ item }}"
+    state: dump
+    target: "{{ postgresql_backup_dir }}/{{ item }}.sql"
+  with_items: "{{ db_name.db }}"
+  async: 3600
+  poll: 10
+
+- name: Dump api manager database to a file
+  postgresql_db:
+    login_user: "{{ kong_postgres_user }}"
+    login_password: "{{ kong_postgres_password }}"
+    login_host: "{{ kong_postgres_host }}"
+    name: "{{ item }}"
+    state: dump
+    target: "{{ postgresql_backup_dir }}/{{ item }}_new.sql"
+  with_items: "{{ db_name.db[1] }}"
+  when: postgres_db_count is defined 
+  async: 3600
+  poll: 10  
+
+- name: Create archive of backup directory
+  archive: path="{{ postgresql_backup_dir }}/*" dest="{{ postgresql_backup_dir }}/{{ postgresql_backup_gzip_file_name }}.zip" format=zip
+  async: 500
+  poll: 10
+
+- name: upload file to azure storage
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: blob-upload.yml
+  vars:
+    blob_container_name: "{{ cloud_storage_postgresqlbackup_foldername }}"
+    container_public_access: "off"
+    blob_file_name: "{{ postgresql_backup_gzip_file_name }}.zip"
+    local_file_or_folder_path: "{{ postgresql_backup_gzip_file_path }}"
+    storage_account_name: "{{ cloud_management_storage_accountname }}"
+    storage_account_key: "{{ cloud_management_storage_secret }}"
+  when: cloud_service_provider == "azure"
+
+- name: upload file to aws s3
+  include_role:
+    name: aws-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    s3_bucket_name: "{{ cloud_storage_postgresqlbackup_bucketname }}"
+    aws_access_key_id: "{{ cloud_management_storage_accountname }}"
+    aws_secret_access_key: "{{ cloud_management_storage_secret }}"
+    aws_default_region: "{{ cloud_public_storage_region }}"
+    local_file_or_folder_path: "{{ postgresql_backup_gzip_file_path }}"
+    s3_path: "{{ cloud_storage_postgresqlbackup_foldername }}/{{ postgresql_backup_gzip_file_name }}.zip"
+  when: cloud_service_provider == "aws"
+   
+- name: upload file to gcloud storage
+  include_role:
+    name: gcp-cloud-storage
+    tasks_from: upload.yml
+  vars:
+    gcp_storage_service_account_name: "{{ cloud_management_storage_accountname }}"
+    gcp_storage_key_file: "{{ cloud_management_storage_secret }}"
+    gcp_bucket_name: "{{ cloud_storage_postgresqlbackup_bucketname }}"
+    gcp_path: "{{ cloud_storage_postgresqlbackup_foldername }}/{{ postgresql_backup_gzip_file_name }}.zip"
+    local_file_or_folder_path: "{{ postgresql_backup_gzip_file_path }}"
+  when: cloud_service_provider == "gcloud"
+
+- name: clean up backup dir after upload
+  file: path="{{ postgresql_backup_dir }}" state=absent

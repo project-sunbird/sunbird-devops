@@ -78,12 +78,11 @@ sunbird_portal_cdn_url:
 sunbird_dataservice_url:
 sunbird_background_actor_port:
 sunbird_app_url:
-sunbird_image_storage_url:
 sunbird_telemetry_dispatchers: kafka
 content_service_whitelisted_channels:
 content_service_blacklisted_channels:
 sunbird_env_logo_url:
-desktop_app_storage_url: "https://{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{offline_installer_container_name}}"
+desktop_app_storage_url: "{{ sunbird_offline_azure_storage_account_url }}"
 
 telemetry_logstash_heap_size: 512m
 telemetry_logstash_replicas: 1
@@ -212,9 +211,6 @@ prometheus_alertmanager_route_prefix: alertmanager
 ekstep_s3_env: "{{sunbird_env}}"
 registry_url: "{{proto}}://{{proxy_server_name}}/registry"
 
-upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
-plugin_upstream_url: "ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com"
-sunbird_offline_azure_storage_account_url: "{{ sunbird_public_storage_account_name }}.blob.core.windows.net/{{ offline_installer_container_name }}"
 # Override this dictionary in your common.yaml
 proxy:
   # repository:  'proxy'
@@ -982,7 +978,7 @@ adminutil_access_values:
   role_to_run:
     - decrypt.yml
     - generate-keys.yml
-    - copy-to-helm-public.yml
+    - copy-to-helm.yml
 
 # analytics-service related vars
 cassandra:
@@ -1052,3 +1048,25 @@ kong_desktop_device_consumer_names_for_opa: '["desktop"]'
 # Audience claim check is disabled as of now
 # List of keycloak clients as these can come in audience field of a JWT token
 # keycloak_allowed_aud: '"{{ keycloak_auth_server_url }}/realms/{{ keycloak_realm }}", "account", "realm-management"'
+
+
+cloudstorage_relative_path_prefix_content: "CONTENT_STORAGE_BASE_PATH"
+cloudstorage_relative_path_prefix_dial: "DIAL_STORAGE_BASE_PATH"
+cloudstorage_metadata_list: '["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "assetsMap", "certTemplate", "itemSetPreviewUrl", "grayScaleAppIcon", "sourceURL", "variants", "downloadUrl", "streamingUrl", "toc_url", "data", "question", "solutions", "editorState", "media", "pdfUrl", "transcripts"]'
+
+### inQuiry assessment service default values
+inquiry_schema_path: "{{ kp_schema_base_path }}"
+inquiry_kafka_urls: "{{ kafka_urls }}"
+inquiry_assessment_import_kafka_topic_name: "{{ env_name }}.object.import.request"
+inquiry_assessment_publish_kafka_topic_name: "{{ env_name }}.assessment.publish.request"
+inquiry_cassandra_connection: "{{ lp_cassandra_connection }}"
+inquiry_cassandra_keyspace_prefix: "{{ lp_cassandra_keyspace_prefix }}"
+inquiry_redis_host: "{{ sunbird_lp_redis_host }}"
+inquiry_search_service_base_url: "{{ sunbird_search_service_api_base_url }}/v3/search"
+
+### LERN Release-5.0.1
+cloud_store_base_path_placeholder: "CLOUD_BASE_PATH"
+
+#Youtube Standard Licence Validation
+youtube_app_name: fetch-youtube-license
+youtube_api_key: "{{ lp_vault_youtube_api_key }}"

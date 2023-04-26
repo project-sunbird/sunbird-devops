@@ -1,0 +1,23 @@
+---
+- name: generate SAS token for azcopy
+  shell: |
+   sas_expiry=`date -u -d "1 hour" '+%Y-%m-%dT%H:%MZ'`
+   sas_token=?`az storage container generate-sas -n {{ blob_container_name }} --account-name {{ storage_account_name }} --account-key {{ storage_account_key }} --https-only --permissions dlrw --expiry $sas_expiry -o tsv`
+   echo $sas_token
+  register: sas_token
+
+- set_fact:
+   container_sas_token: "{{ sas_token.stdout}}"
+
+- name: create container in azure storage if it doesn't exist
+  include_role:
+    name: azure-cloud-storage
+    tasks_from: container-create.yml
+  when: create_container == True
+
+- name: upload files and folders to azure storage using azcopy
+  shell: "azcopy copy {{ local_file_or_folder_path }} 'https://{{ storage_account_name }}.blob.core.windows.net/{{ blob_container_name }}{{ blob_container_folder_path }}{{ container_sas_token }}' --recursive"
+  environment:
+    AZCOPY_CONCURRENT_FILES: "10"
+  async: 10800
+  poll: 10

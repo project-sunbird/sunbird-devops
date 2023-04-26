@@ -127,6 +127,7 @@ assessment_prefix: /assessment
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
 learning_service_url: "http://learner-service:9000"
+dial_service_url: "http://dial-service:9000"
 vm_learning_service_url: "http://{{learningservice_ip}}:8080/learning-service"
 telemetry_service_url: "http://telemetry-service:9001"
 player_service_url: "http://player:3000"
@@ -2494,7 +2495,7 @@ kong_apis:
 
 - name: publishContent
   uris: "{{ content_prefix }}/v1/publish"
-  upstream_url: "{{ knowledge_mw_service_url }}/v1/content/publish"
+  upstream_url: "{{ content_service_url }}/content/v3/publish"
   strip_uri: true
   plugins:
   - name: jwt
@@ -9743,6 +9744,258 @@ kong_apis:
     config.policy: local
     config.hour: "{{ medium_rate_limit_per_hour }}"
     config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: projectCertificateList
+  uris: "{{ userProjects_service_prefix }}/mlprojects/v1/certificates"
+  upstream_url: "{{ ml_project_service_url }}/v1/userProjects/certificates"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - projectAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: createRCProjectCertificate
+  uris: "{{ registry_service_prefix }}/certificate/v1/create"
+  upstream_url: "{{ registry_service_url }}/api/v1/ProjectCertificate"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - certificateCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: request-transformer
+    config.remove.headers: Authorization
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: getProjectRCCertificate
+  uris: "{{ registry_service_prefix }}/projectCertificate/v1/download"
+  upstream_url: "{{ registry_service_url }}/api/v1/ProjectCertificate"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - anonymousCertificateAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: request-transformer
+    config.remove.headers: Authorization
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: fetchAllForm
+  uris: "{{ data_service_prefix }}/v1/form/fetchAll"
+  upstream_url: "{{ player_service_url }}/plugin/v1/form/fetchAll"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - formUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ small_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: releaseDialcodeContentV2
+  uris: "{{ content_prefix }}/v2/dialcode/release"
+  upstream_url: "{{ content_service_url }}/content/v4/dialcode/release"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: releaseDialcodeCollection
+  uris: "{{ collection_prefix }}/v1/dialcode/release"
+  upstream_url: "{{ content_service_url }}/collection/v4/dialcode/release"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: publishContentV2
+  uris: "{{ content_prefix }}/v2/publish"
+  upstream_url: "{{ content_service_url }}/content/v4/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: unlistedPublishContent
+  uris: "{{ content_prefix }}/v1/unlisted/publish"
+  upstream_url: "{{ content_service_url }}/content/v3/unlisted/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: unlistedPublishContentV2
+  uris: "{{ content_prefix }}/v2/unlisted/publish"
+  upstream_url: "{{ content_service_url }}/content/v4/unlisted/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: publishCollection
+  uris: "{{ collection_prefix }}/v1/publish"
+  upstream_url: "{{ content_service_url }}/collection/v4/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: unlistedPublishCollection
+  uris: "{{ collection_prefix }}/v1/unlisted/publish"
+  upstream_url: "{{ content_service_url }}/collection/v4/unlisted/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: readDIALCodesBatchInfo
+  uris: "{{ dialcode_service_prefix }}/v2/read/batch"
+  upstream_url: "{{ dial_service_url }}/dialcode/v4/batch/read"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
   - name: request-size-limiting
     config.allowed_payload_size: "{{ small_request_size_limit }}"
   - name: opa-checks

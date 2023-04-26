@@ -36,7 +36,6 @@ sunbird_keycloak_required_action_link_expiration_seconds: 2592000
 
 sunbird_es_port: 9300
 mail_server_port: 587
-upstream_url: "{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}"
 
 # Learner
 sunbird_user_profile_field_default_visibility: private
@@ -86,7 +85,6 @@ keycloak_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres ser
 kong_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 uci_postgres_host: "{{groups['postgres'][0]}}"  #Private IP of Postgres server
 sunbird_cassandra_host: "{{groups['cassandra']|join(',')}}"  #Private IP of Cassandra server
-sunbird_es_host: "{{groups['es']| join(',')}}"
 
 ## Application server configurations
 sunbird_analytics_api_base_url: "http://analytics-service.{{namespace}}.svc.cluster.local:9000"
@@ -130,10 +128,11 @@ cassandra_version: '3.9'
 cassandra_port: 9042
 cassandra_rpc_address: 0.0.0.0
 cassandra_restore_dir: "/home/{{ ansible_ssh_user }}/"
-cassandra_backup_azure_container_name: cassandra-backup
 cassandra_backup_dir: /data/cassandra/backup
 ### Release 5.0.0 ###
 cassandra_multi_dc_enabled: false
+### Release-5.0.1 ###
+cloud_storage_base_url: "{{cloud_storage_base_url}}"
 
 keycloak_realm: sunbird
 sunbird_content_player_url: "http://kong:8000/"
@@ -340,13 +339,11 @@ kong__test_jwt: "{{ core_vault_sunbird_api_auth_token  }}"
 ####### App ES ########
 app_es_etc_cluster_name: "{{env}}"
 app_es_etc_discovery_zen_minimum_master_nodes: "{{groups['es']| length | int}}"
-app_es_snapshot_host: "{{ groups['es'][0] }}"
 app_es_restore_host: "{{ groups['es'][0] }}"
 app_es_snapshot_base_path: application
 
 #######Log Es
 log_es_etc_cluster_name: "{{env}}-log"
-log_es_snapshot_host: "{{ groups['log-es'][0] }}"
 log_es_restore_host: "{{ groups['log-es'][0] }}"
 log_es_host: "{{ groups['log-es'][0] }}"
 
@@ -363,7 +360,7 @@ content_service_blacklisted_resourcetype: ''
 content_service_whitelisted_resourcetype: ''
 content_service_whitelisted_mimetype: ''
 content_service_blacklisted_mimetype: ''
-sunbird_cloud_storage_urls: 'https://s3.ap-south-1.amazonaws.com/ekstep-public-{{ekstep_s3_env}}/,https://ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com/,https://{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{sunbird_content_azure_storage_container}}/'
+sunbird_cloud_storage_urls: 'https://s3.ap-south-1.amazonaws.com/ekstep-public-{{ekstep_s3_env}}/,https://ekstep-public-{{ekstep_s3_env}}.s3-ap-south-1.amazonaws.com/,{{ upstream_url }}/'
 sunbird_email_max_recipients_limit: 100
 sunbird_cassandra_consistency_level: local_quorum
 sunbird_cassandra_replication_strategy: '{"class":"SimpleStrategy","replication_factor":"1"}'
@@ -375,7 +372,6 @@ sunbird_otp_length: 6
 sunbird_help_link_visibility: FALSE
 
 # not required
-sunbird_image_storage_url: "https://{{sunbird_public_storage_account_name}}.blob.core.windows.net/dial/"
 vault_auth_key: "{{core_vault_auth_key}}"
 vault_sender: "{{core_vault_sender}}"
 vault_country: "{{core_vault_country}}"
@@ -410,8 +406,6 @@ sunbird_health_check_enable: 'true'
 
 ## Release 1.15 ##
 sunbird_keycloak_user_federation_provider_id: "{{core_vault_sunbird_keycloak_user_federation_provider_id}}"
-# Learner-service
-sunbird_course_metrics_base_url: https://{{sunbird_private_storage_account_name}}.blob.core.windows.net/
 sunbird_gzip_size_threshold: 262144
 prometheus_mount_point: "/root/dockerdata/prometheus/data/"
 
@@ -505,10 +499,14 @@ content_import_remove_props: '["downloadUrl","variants","previewUrl","streamingU
 #Sunbird-Portal release-2.6.5 #
 sunbird_portal_updateLoginTimeEnabled: false
 
-# Desktop app vars
-#sunbird_offline_azure_storage_account: "" #added this var for adopter usecase
+# SB-31155 - This should be deprecated in future in favour of offline_installer_storage
 offline_installer_container_name: "{{env}}-offlineinstaller"
-cloud_storage_url: "{{ sunbird_public_storage_account_name }}.blob.core.windows.net"
+
+# SB-31155 - Adding a generalized variable which can be used for any CSP
+offline_installer_storage: "{{ offline_installer_container_name }}"
+
+# SB-31155 - Removed multiple declarations and moved here
+sunbird_offline_azure_storage_account_url: "{{ cloud_storage_url }}/{{ offline_installer_storage }}"
 
 # Search-service
 search_index_host: "{{ groups['composite-search-cluster']|join(':9200,')}}:9200"
@@ -553,5 +551,17 @@ sunbird_trampoline_android_keycloak_client_id: trampoline-android
 sunbird_trampoline_desktop_keycloak_client_id: trampoline-desktop
 
 # DIAL-service schema
+# SB-31155 - This should be deprecated in future in favour of dial_plugin_storage
 dial_plugin_container_name: "sunbird-dial-{{env}}"
-dial_service_schema_base_path: "https://{{sunbird_public_storage_account_name}}.blob.core.windows.net/{{dial_plugin_container_name}}/jsonld-schema/local"
+
+# SB-31155 - Adding a generalized variable which can be used for any CSP
+dial_plugin_storage: "{{ dial_plugin_container_name }}"
+dial_service_schema_base_path: "{{ cloud_storage_url }}/{{ dial_plugin_storage }}/jsonld-schema/local"
+
+# SB-31155 - Moving few vars from private repo template to here
+content_storage: "{{ sunbird_content_azure_storage_container }}"
+upstream_url: "{{ cloud_storage_url }}/{{ content_storage }}"
+plugin_upstream_url: "{{ upstream_url }}"
+kp_schema_base_path: "{{ upstream_url }}/schemas/local"
+# SB-31155 - Moved to the installation public container for now (same place where keycloaka and java artifacts are stored)
+h5p_library_path: "https://sunbirdpublic.blob.core.windows.net/installation/h5p-standalone-1.3.4.zip"

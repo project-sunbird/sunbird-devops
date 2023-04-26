@@ -3,8 +3,40 @@
   become: yes
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{ sunbird_artifact_storage_account_name }}"
-    AZURE_STORAGE_SAS_TOKEN: "{{ sunbird_artifact_storage_account_sas }}"
-  roles:
-    - artifacts-download-azure
+  tasks:
+    - name: download artifact from azure storage
+      include_role:
+        name: azure-cloud-storage
+        tasks_from: blob-download.yml
+      vars:
+        blob_container_name: "{{ cloud_storage_artifacts_bucketname }}"
+        blob_file_name: "{{ artifact }}"
+        local_file_or_folder_path: "{{ artifact_path }}"
+        storage_account_name: "{{ cloud_artifact_storage_accountname }}"
+        storage_account_key: "{{ cloud_artifact_storage_secret }}"
+      when: cloud_service_provider == "azure"
+
+    - name: download artifact from gcloud storage
+      include_role:
+        name: gcp-cloud-storage
+        tasks_from: download.yml
+      vars:
+        gcp_storage_service_account_name: "{{ cloud_artifact_storage_accountname }}"
+        gcp_storage_key_file: "{{ cloud_artifact_storage_secret }}"
+        gcp_bucket_name: "{{ cloud_storage_artifacts_bucketname }}"
+        gcp_path: "{{ artifact }}"
+        local_file_or_folder_path: "{{ artifact_path }}"
+      when: cloud_service_provider == "gcloud"
+
+    - name: download artifact from aws s3
+      include_role:
+        name: aws-cloud-storage
+        tasks_from: download.yml
+      vars:
+        local_file_or_folder_path: "{{ artifact_path }}"
+        s3_bucket_name: "{{ cloud_storage_artifacts_bucketname }}"
+        s3_path: "{{ artifact }}"
+        aws_default_region: "{{ cloud_public_storage_region }}"
+        aws_access_key_id: "{{ cloud_artifact_storage_accountname }}"
+        aws_secret_access_key: "{{ cloud_artifact_storage_secret }}"
+      when: cloud_service_provider == "aws"  
