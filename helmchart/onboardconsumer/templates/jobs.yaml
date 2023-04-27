@@ -1,19 +1,11 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: {{ .Chart.Name }}
   namespace: {{ .Release.Namespace }}
   annotations:
     reloader.stakater.com/auto: "true"
 spec:
-  replicas: {{ .Values.replicaCount }}
-  strategy:
-     rollingUpdate:
-        maxSurge: {{ .Values.strategy.maxsurge }}
-        maxUnavailable: {{ .Values.strategy.maxunavailable }}
-  selector:
-    matchLabels:
-      app: {{ .Chart.Name }}
   template:
     metadata:
       annotations:
@@ -21,14 +13,22 @@ spec:
       labels:
         app: {{ .Chart.Name }}
     spec:
-{{- if .Values.imagepullsecrets }}
+      {{- if .Values.imagepullsecrets }}
       imagePullSecrets:
       - name: {{ .Values.imagepullsecrets }}
-{{- end }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
-          command: ["sh", "-c", "apt-get update && apt-get install -y python3-pip && apt-get install python3-urllib3 && pip install -r /app/config/requirements.txt && python /app/config/kong_apis.py /app/config/kong-apis.json --kong-admin-api-url={{ .Values.kong_admin_listen }}"]
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              wget https://bootstrap.pypa.io/pip/2.7/get-pip.py && \
+              python get-pip.py && \
+              cd /app/config && \
+              pip install -r requirements.txt && \
+              python kong_consumers.py kong_consumers.json --kong-admin-api-url={{ .Values.kong_admin_listen}}
           volumeMounts:
             - name: config
               mountPath: /app/config
@@ -36,3 +36,7 @@ spec:
         - name: config
           configMap:
             name: {{ .Chart.Name }}-config
+      restartPolicy: Never      
+  backoffLimit: 3
+  completions: 1
+  parallelism: 1
