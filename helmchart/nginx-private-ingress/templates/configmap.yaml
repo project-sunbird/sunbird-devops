@@ -1,0 +1,267 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-private-ingress.conf
+  namespace: {{ .Release.namespace }}
+data:
+  nginx.conf: |
+    user  nginx;
+    worker_processes {{ .Values.nginx_worker_processes }};
+
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+
+    events {
+       worker_connections  10000;
+    }
+
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      lua_load_resty_core off;
+      lua_package_path "/etc/nginx/lua_modules/?.lua";
+      log_format  main  '$remote_addr - $remote_user [$time_local] '
+                        '"$request" $status $request_length $body_bytes_sent'
+                        ' $request_time $upstream_response_time $pipe'
+                        ' "$http_referer" "$http_user_agent" "$sb_request_id"'
+                        ' "$http_x_device_id" "$http_x_channel_id" "$http_x_app_id"'
+                        ' "$http_x_app_ver" "$http_x_session_id"';
+
+      # If the client send request_id it should be preffered over the default one
+      map $http_x_request_id $sb_request_id {
+        default  $http_x_request_id;
+        ''  $request_id;
+      }
+
+      access_log  /var/log/nginx/access.log  main;
+      include /etc/nginx/conf.d/*.conf;
+      sendfile        on;
+      client_max_body_size 60M;
+      keepalive_timeout  65s;
+      keepalive_requests 200;
+
+      server {
+        listen 80;
+        listen [::]:80;
+        server_name {{ .Values.nginx_private_ingress_ip }};
+
+        resolver {{ (lookup "v1" "Service" "kube-system" "kube-dns").spec.clusterIP }};
+
+        location /learner/ {
+          set $target http://learner-service.dev.svc.cluster.local:9000;
+          rewrite ^/learner/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /api/ {
+          set $target http://kong.dev.svc.cluster.local:8000;
+          rewrite ^/api/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /grafana/ {
+          auth_basic "Restricted";
+          auth_basic_user_file /etc/nginx/.htpasswd;
+          proxy_set_header Authorization  "";
+          proxy_set_header Host $host;
+          proxy_set_header {{ .Values.grafana_admin_user_http_header }} admin;
+          proxy_set_header X-Real-IP $remote_addr;
+          set $target http://prometheus-operator-grafana.monitoring.svc.cluster.local;
+          rewrite ^/grafana/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /admin-api/ {
+          set $target http://kong.dev.svc.cluster.local:8001;
+          rewrite ^/admin-api/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /player/ {
+          set $target http://player.dev.svc.cluster.local:3000;
+          rewrite ^/player/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /knowledgemw/ {
+          set $target http://knowledge-mw-service.dev.svc.cluster.local:5000;
+          rewrite ^/knowledgemw/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /content/ {
+          set $target http://content-service.dev.svc.cluster.local:9000;
+          rewrite ^/content/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /cert/ {
+          set $target http://cert-service.dev.svc.cluster.local:9000;
+          rewrite ^/cert/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /certreg/ {
+          set $target http://cert-registry-service.dev.svc.cluster.local:9000;
+          rewrite ^/certreg/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /print/ {
+          set $target http://print-service.dev.svc.cluster.local:5000;
+          rewrite ^/print/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /assessment/ {
+          set $target http://assessment-service.dev.svc.cluster.local:9000;
+          rewrite ^/assessment/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /notification/ {
+          set $target http://notification-service.dev.svc.cluster.local:9000;
+          rewrite ^/notification/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /report/ {
+          set $target http://report-service.dev.svc.cluster.local:3030;
+          rewrite ^/report/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_set_header Host $server_name;
+          proxy_pass $target;
+        }
+        location /search/ {
+          set $target http://search-service.dev.svc.cluster.local:9000;
+          rewrite ^/search/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /lms/ {
+          set $target http://lms-service.dev.svc.cluster.local:9000;
+          rewrite ^/lms/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+
+        location /taxonomy/ {
+          set $target http://taxonomy-service.dev.svc.cluster.local:9000;
+          rewrite ^/taxonomy/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /analytics/ {
+          set $target http://analytics-service.dev.svc.cluster.local:9000;
+          rewrite ^/analytics/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /enc/ {
+          set $target http://enc-service.dev.svc.cluster.local:8013;
+          rewrite ^/enc/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /prometheus/ {
+          # This endpoint is for prometheus endpoint access
+          set $target http://sunbird-monitoring-prometheus.monitoring.svc.cluster.local:9090;
+          rewrite ^/prometheus/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /nodebb/ {
+          set $target http://nodebb-service.dev.svc.cluster.local:4567;
+          rewrite ^/enc/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /dial/ {
+          set $target http://dial-service.dev.svc.cluster.local:9000;
+          rewrite ^/dial/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /inbound-service/ {
+          set $target http://inbound-service.dev.svc.cluster.local:8085;
+          rewrite ^/inbound-service/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /outbound-service/ {
+          set $target http://outbound-service.dev.svc.cluster.local:9090;
+          rewrite ^/outbound-service/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /orchestrator-service/ {
+          set $target http://orchestrator-service.dev.svc.cluster.local:8686;
+          rewrite ^/orchestrator-service/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /transformer-service/ {
+          set $target http://transformer-service.dev.svc.cluster.local:9091;
+          rewrite ^/transformer-service/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /federation-service/ {
+          set $target http://federation-service.dev.svc.cluster.local:9999;
+          rewrite ^/federation-service/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /gql-service/ {
+          set $target http://gql-service.dev.svc.cluster.local:8080;
+          rewrite ^/gql-service/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /uci-service/ {
+          set $target http://uci-service.dev.svc.cluster.local:9999;
+          rewrite ^/uci-service/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /uci-transport-socket/ {
+          set $target http://uci-transport-socket-service.dev.svc.cluster.local:3000;
+          rewrite ^/uci-transport-socket/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
+          proxy_pass $target;
+        }
+        location /ml-survey/ {
+          set $target http://ml-survey-service.dev.svc.cluster.local:3000;
+          rewrite ^/ml-survey/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /ml-core/ {
+          set $target http://ml-core-service.dev.svc.cluster.local:3000;
+          rewrite ^/ml-core/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /registry-service/ {
+          set $target http://registry-service.dev.svc.cluster.local:8081;
+          rewrite ^/registry-service/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_set_header Host $server_name;
+          proxy_pass $target;
+        }
+        location /ml-projects/ {
+          set $target http://ml-projects-service.dev.svc.cluster.local:3000;
+          rewrite ^/ml-projects/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+        location /ml-reports/ {
+          set $target http://ml-reports-service.dev.svc.cluster.local:3000;
+          rewrite ^/ml-reports/(.*) /$1 break;
+          proxy_http_version 1.1;
+          proxy_pass $target;
+        }
+      }
+    }

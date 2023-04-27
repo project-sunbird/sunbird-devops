@@ -1,0 +1,50 @@
+# kong_admin_listen: http://0.0.0.0:8001
+kong_admin_listen: http://kong.testing.svc.cluster.local:8001
+
+imagepullsecrets: ""
+dockerhub: docker.io
+
+replicaCount: 1
+repository: tsprasath91/kong
+image_tag:  0.14.1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 1
+    memory: 1G
+
+network:
+  port: 8000
+  targetPort: 8000
+
+service:
+  port: 8001
+  targetPort: 8001
+
+strategy:
+  maxsurge: 25%
+  maxunavailable: 25%
+
+livenessProbe:
+  failureThreshold: 2
+  httpGet:
+    path: /status
+    port: 8001
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+readinessProbe:
+  failureThreshold: 2
+  httpGet:
+    path: /status
+    port: 8001
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+
+

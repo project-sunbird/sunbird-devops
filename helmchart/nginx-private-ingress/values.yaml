@@ -1,0 +1,49 @@
+
+imagepullsecrets: ""
+dockerhub: docker.io
+repository: tsprasath91/proxy
+image_tag: release-3.8.0_RC14
+replicaCount: 1
+nginx_private_ingress_type: LoadBalancer
+kube_dns_ip: ""
+nginx_worker_processes: auto
+
+# Grafana access htpasswd
+# You can generate one at
+# https://wtools.io/generate-htpasswd-online
+grafana_htpasswd: admin:$apr1$yz2hml04$CAMX3Md/Z/DtE4Rl3Kh49/
+
+# This is the header with which grafana will authorize the admin user.
+# Make sure this is a random text.
+# Ref: https://grafana.com/docs/grafana/latest/auth/auth-proxy/
+grafana_admin_user_http_header: X-privateSecretHeader-Auth
+
+# Kubernetes annotation to create private loadbalancer. Will be used for private nginx and others.
+# for google:
+# annotations:
+#   cloud.google.com/load-balancer-type: "Internal"
+# for azure:
+# annotations:
+#   service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+annotations:
+  service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+nginx_private_ingress_ip: "10.0.1.100"
+
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 500m
+    memory: 500Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: ""
+
