@@ -56,7 +56,7 @@ data:
       proxy_set_header    X-Forwarded-SSL   on;
       proxy_set_header    X-Forwarded-Proto $scheme;
       ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
-      resolver {{ (lookup "v1" "Service" "kube-system" "kube-dns").spec.clusterIP }} valid=30s;
+      resolver {{ .Values.nginx_private_ingress_ip }} valid=30s;
       # Mobile Devices Refresh token Endpoints
       location ~* ^/auth/v1/refresh/token  {
         rewrite ^/auth/(.*) /auth/$1 break;
@@ -84,7 +84,7 @@ data:
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Connection "";
         proxy_http_version 1.1;
-        proxy_pass http://keycloak;
+        proxy_pass http://player;
       }
       # Sunbird realm player API endpoints
       location ~ /auth/realms/sunbird/(get-required-action-link|login-actions/(action-token|authenticate|required-action)|protocol/openid-connect/(auth|certs|logout|token|userinfo)|.well-known/openid-configuration) {
@@ -97,7 +97,7 @@ data:
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Connection "";
         proxy_http_version 1.1;
-        proxy_pass http://keycloak;
+        proxy_pass http://player;
       }
       # Static Assets for player endpoints with caching
       location ~ /auth/(resources/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css))|welcome-content/(.+\.(png|svg|ico|js|eot|ttf|woff|woff2|css))) {
@@ -121,7 +121,7 @@ data:
         proxy_send_timeout 60;
         proxy_read_timeout 70;
         proxy_http_version 1.1;
-        proxy_pass http://keycloak;
+        proxy_pass http://player;
       }
       # This is Caching mechanism for POST requests location search
       location ~ /learner/data/v1/location/search {
@@ -428,10 +428,10 @@ data:
             add_header Content-Type text/plain;
             return 200;
         }
-        set $bucket        "{{ .Values.cloud_storage_base_url }}/{{ .Values.cloud_public_storage_container }}";
+        set $bucket        "https://{{ .Values.cloud_public_storage_accountname }}/{{ .Values.cloud_public_storage_container }}";
         set $url_full         '$1';
         proxy_http_version     1.1;
-        proxy_set_header       Host "{{ (split "//" .Values.cloud_storage_base_url)._1 }}";
+        proxy_set_header       Host "{{ .Values.cloud_public_storage_accountname }}";
         proxy_set_header       Authorization '';
         proxy_hide_header      Access-Control-Allow-Origin;
         proxy_hide_header      Access-Control-Allow-Methods;
@@ -461,10 +461,10 @@ data:
             add_header Content-Type text/plain;
             return 200;
         }
-        set $bucket        "{{ .Values.cloud_storage_base_url }}/{{ .Values.cloud_public_storage_container }}";
+        set $bucket        "https://{{ .Values.cloud_public_storage_accountname }}/{{ .Values.cloud_public_storage_container }}";
         set $url_full         '$1';
         proxy_http_version     1.1;
-        proxy_set_header       Host "{{ (split "//" .Values.cloud_storage_base_url)._1 }}";
+        proxy_set_header       Host "{{ .Values.cloud_public_storage_accountname }}";
         proxy_set_header       Authorization '';
         proxy_hide_header      Access-Control-Allow-Origin;
         proxy_hide_header      Access-Control-Allow-Methods;
@@ -508,10 +508,10 @@ data:
             add_header Content-Type text/plain;
             return 200;
         }
-        set $bucket        "{{ .Values.cloud_storage_base_url }}/{{ .Values.cloud_public_storage_container }}";
+        set $bucket        "https://{{ .Values.cloud_public_storage_accountname }}/{{ .Values.cloud_public_storage_container }}";
         set $url_full         '$1';
         proxy_http_version     1.1;
-        proxy_set_header       Host "{{ (split "//" .Values.cloud_storage_base_url)._1 }}";
+        proxy_set_header       Host "{{ .Values.cloud_public_storage_accountname }}";
         proxy_set_header       Authorization '';
         proxy_hide_header      Access-Control-Allow-Origin;
         proxy_hide_header      Access-Control-Allow-Methods;
@@ -532,10 +532,10 @@ data:
         gzip_min_length 100000;
         gzip_proxied    expired no-cache no-store private auth;
         gzip_types application/javascript application/x-javascript text/css text/javascript;
-        set $bucket        "{{ .Values.cloud_storage_base_url }}/{{ .Values.cloud_public_storage_container }}";
+        set $bucket        "https://{{ .Values.cloud_public_storage_accountname }}/{{ .Values.cloud_public_storage_container }}";
         set $url_full         '$1';
         proxy_http_version     1.1;
-        proxy_set_header       Host "{{ (split "//" .Values.cloud_storage_base_url)._1 }}";
+        proxy_set_header       Host "{{ .Values.cloud_public_storage_accountname }}";
         proxy_set_header       Authorization '';
         proxy_hide_header      Access-Control-Allow-Origin;
         proxy_hide_header      Access-Control-Allow-Methods;
@@ -565,10 +565,10 @@ data:
             add_header Content-Type text/plain;
             return 200;
         }
-        set $bucket        "{{ .Values.cloud_storage_base_url }}/{{ .Values.cloud_public_storage_container }}";
+        set $bucket        "https://{{ .Values.cloud_public_storage_accountname }}/{{ .Values.cloud_public_storage_container }}";
         set $url_full         '$1';
         proxy_http_version     1.1;
-        proxy_set_header       Host "{{ (split "//" .Values.cloud_storage_base_url)._1 }}";
+        proxy_set_header       Host "{{ .Values.cloud_public_storage_accountname }}";
         proxy_set_header       Authorization '';
         proxy_hide_header      Access-Control-Allow-Origin;
         proxy_hide_header      Access-Control-Allow-Methods;
@@ -598,10 +598,10 @@ data:
             add_header Content-Type text/plain;
             return 200;
         }
-        set $bucket        "{{ .Values.cloud_storage_base_url }}/{{ .Values.cloud_public_storage_container }}";
+        set $bucket        "https://{{ .Values.cloud_public_storage_accountname }}/{{ .Values.cloud_public_storage_container }}";
         set $url_full         '$1';
         proxy_http_version     1.1;
-        proxy_set_header       Host "{{ (split "//" .Values.cloud_storage_base_url)._1 }}";
+        proxy_set_header       Host "{{ .Values.cloud_public_storage_accountname }}";
         proxy_set_header       Authorization '';
         proxy_hide_header      Access-Control-Allow-Origin;
         proxy_hide_header      Access-Control-Allow-Methods;
@@ -635,10 +635,10 @@ data:
             add_header Content-Type text/plain;
             return 200;
         }
-        set $bucket        "{{ .Values.cloud_storage_base_url }}/{{ .Values.cloud_public_storage_container }}";
+        set $bucket        "https://{{ .Values.cloud_public_storage_accountname }}/{{ .Values.cloud_public_storage_container }}";
         set $url_full         '$1';
         proxy_http_version     1.1;
-        proxy_set_header       Host "{{ (split "//" .Values.cloud_storage_base_url)._1 }}";
+        proxy_set_header       Host "{{ .Values.cloud_public_storage_accountname }}";
         proxy_set_header       Authorization '';
         proxy_hide_header      Access-Control-Allow-Origin;
         proxy_hide_header      Access-Control-Allow-Methods;
@@ -695,10 +695,10 @@ data:
              add_header Content-Type text/plain;
              return 200;
         }
-        set $offline_bucket        "{{ .Values.cloud_storage_base_url }}/{{ .Values.cloud_public_storage_container }}/dev-offlineinstaller";
+        set $offline_bucket        "https://{{ .Values.cloud_public_storage_accountname }}/{{ .Values.cloud_public_storage_container }}/dev-offlineinstaller";
         set $url_full         '$1';
         proxy_http_version     1.1;
-        proxy_set_header       Host "{{ (split "//" .Values.cloud_storage_base_url)._1 }}";
+        proxy_set_header       Host "{{ .Values.cloud_public_storage_accountname }}";
         proxy_set_header       Authorization '';
         proxy_hide_header      Access-Control-Allow-Origin;
         proxy_hide_header      Access-Control-Allow-Methods;
@@ -912,7 +912,7 @@ data:
     http {
         include       /etc/nginx/mime.types;
         default_type  application/octet-stream;
-        resolver {{ (lookup "v1" "Service" "kube-system" "kube-dns").spec.clusterIP }} valid=30s;
+        resolver {{ .Values.kube_dns_ip }} valid=30s;
         lua_load_resty_core off;
         log_format  main  '$remote_addr - $remote_user [$time_local] '
                           '"$request" $status $request_length $body_bytes_sent'
@@ -968,14 +968,15 @@ data:
             server kong:8000;
             keepalive 1000;
         }
-        upstream keycloak {
-            server keycloak:8080;
-            keepalive 1000;
-        }
         upstream player {
-            server player:3000;
+            server player:8080;
             keepalive 1000;
         }
+        # uncomment after player is deployed
+        #upstream player {
+        #    server player:3000;
+        #    keepalive 1000;
+        #}
         include /etc/nginx/defaults.d/*.conf;
         include /etc/nginx/conf.d/*.conf;
         #################

@@ -1,10 +1,14 @@
-#jinja2:lstrip_blocks: True
-
-nginx_private_ingress_ip: "10.0.1.22"
+nginx_private_ingress_ip: "10.0.1.30"
 domain: sunbirded1.dev.org
 cloud_public_storage_accountname: sunbirddevpublic.blob.core.windows.net
 cloud_public_storage_container: sunbird-content-dev
-kube_dns_ip: "10.233.0.1"
+
+service:
+  annotations: 
+    service.beta.kubernetes.io/azure-load-balancer-external: "true"
+  type: LoadBalancer
+  nginx_public_ingress_ip: "20.204.234.254"
+
 core_vault_proxy_site_key: |+
   -----BEGIN PRIVATE KEY-----
   MIIJQgIBADANBgkqhkiG9w0BAQEFAASCCSwwggkoAgEAAoICAQCvElFqSylbnMG+
@@ -156,41 +160,3 @@ core_vault_proxy_site_crt: |+
   he8Y4IWS6wY7bCkjCWDcRQJMEhg76fsO3txE+FiYruq9RUWhiF1myv4Q6W+CyBFC
   Dfvp7OOGAN6dEOM4+qR9sdjoSYKEBpsr6GtPAQw4dy753ec5
   -----END CERTIFICATE-----
-
-
-merge_domain_status: false
-merge_domain: merger.sunbirded1.dev.org
-service:
-  annotations: 
-    service.beta.kubernetes.io/azure-load-balancer-external: "true"
-  type: LoadBalancer
-  
-  ports:
-  - port: 80
-    name: http
-    targetPort: 80
-    nodePort: 31380
-  - port: 443
-    name: https
-    targetPort: 443
-    nodePort: 31390
-
-imagepullsecrets: ""
-dockerhub: docker.io
-
-resources:
-  requests:
-    cpu: '100m'
-    memory: '100Mi'
-  limits:
-    cpu: 1
-    memory: '1024Mi'
-
-repository: tsprasath91/proxy
-image_tag: release-5.1.0
-
-serviceMonitor:
-  enabled: false
-  labels: # labels with which the prometheus choose the serviceMonitor
-    app: prometheus-operator
-    release: prometheus-operator
