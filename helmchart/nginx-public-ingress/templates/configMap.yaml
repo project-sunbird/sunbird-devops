@@ -56,7 +56,7 @@ data:
       proxy_set_header    X-Forwarded-SSL   on;
       proxy_set_header    X-Forwarded-Proto $scheme;
       ignore_invalid_headers off;  #pass through headers from Jenkins which are considered invalid by Nginx server.
-      resolver {{ .Values.nginx_private_ingress_ip }} valid=30s;
+      resolver {{ (lookup "v1" "Service" "kube-system" "kube-dns").spec.clusterIP }}; valid=30s;
       # Mobile Devices Refresh token Endpoints
       location ~* ^/auth/v1/refresh/token  {
         rewrite ^/auth/(.*) /auth/$1 break;
@@ -969,14 +969,13 @@ data:
             keepalive 1000;
         }
         upstream player {
-            server player:8080;
+            server keycloak:8080;
             keepalive 1000;
         }
-        # uncomment after player is deployed
-        #upstream player {
-        #    server player:3000;
-        #    keepalive 1000;
-        #}
+        upstream player {
+            server player:3000;
+            keepalive 1000;
+        }
         include /etc/nginx/defaults.d/*.conf;
         include /etc/nginx/conf.d/*.conf;
         #################
