@@ -6,15 +6,34 @@ kubeconfig_file=$1
 
 # Check if kubectl is installed
 if ! command -v kubectl &> /dev/null; then
-  echo -e "\e[91mkubectl is not installed. Please install kubectl and try again.\e[0m"
-  exit 1
+  echo -e "\e[91mkubectl is not installed. Installing kubectl...\e[0m"
+  curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+  if [ $? -eq 0 ]; then
+    echo -e "\e[92mkubectl installed successfully.\e[0m"
+  else
+    echo -e "\e[91mFailed to install kubectl. Please install kubectl manually and try again.\e[0m"
+    exit 1
+  fi
+else
+  echo -e "\e[92mkubectl is already installed.\e[0m"
 fi
+
+
 
 # Check if helm is installed
 if ! command -v helm &> /dev/null; then
-  echo -e "\e[91mHelm is not installed. Please install Helm and try again.\e[0m"
-  exit 1
+  echo -e "\e[91mHelm is not installed. Installing Helm...\e[0m"
+  curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+  if [ $? -eq 0 ]; then
+    echo -e "\e[92mHelm installed successfully.\e[0m"
+  else
+    echo -e "\e[91mFailed to install Helm. Please install Helm manually and try again.\e[0m"
+    exit 1
+  fi
+else
+  echo -e "\e[92mHelm is already installed.\e[0m"
 fi
+
 
 # Check if figlet is installed, and install it if it's not
 if ! command -v figlet &> /dev/null; then
