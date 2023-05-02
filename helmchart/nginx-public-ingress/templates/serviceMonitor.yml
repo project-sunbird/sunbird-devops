@@ -1,0 +1,27 @@
+{{- if .Values.serviceMonitor.enabled }}
+{{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" ) ( .Values.serviceMonitor.enabled ) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "nginx-public-ingress.fullname" . }}
+  namespace: {{ default .Values.namespace .Release.Namespace  }}
+  labels:
+    {{- include "nginx-public-ingress.labels" . | nindent 4 }}
+    {{- toYaml .Values.serviceMonitor.labels | nindent 4 }}
+spec:
+  endpoints:
+  - honorLabels: true
+    interval: 15s
+    path: /metrics
+    port: http
+    scheme: http
+    scrapeTimeout: 10s
+  jobLabel: nginx-public-ingress
+  namespaceSelector:
+    matchNames:
+    - {{ default .Values.namespace .Release.Namespace  }}
+  selector:
+    matchLabels:
+    {{- include "nginx-public-ingress.labels" . | nindent 6 }}
+{{- end }}
+{{- end }}
