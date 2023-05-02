@@ -1,9 +1,7 @@
 #!/bin/bash
 # set -x
 # Set the namespace for the Helm charts
-
 namespace="dev"
-
 kubeconfig_file=$1
 
 # Check if kubectl is installed
@@ -25,8 +23,8 @@ if ! command -v figlet &> /dev/null; then
   sudo apt-get install figlet -y
 fi
 
-# Print Sunbird Knowlg ASCII art banner using figlet
-# figlet -f slant "Sunbird Knowlg Installation"
+# Print Sunbird Obsrv ASCII art banner using figlet
+figlet -f slant "Sunbird Knowlg Installation"
 
 # Check if the kubeconfig file exists
 if [ ! -f "$kubeconfig_file" ]; then
@@ -78,14 +76,5 @@ while IFS=',' read -r chart_name chart_repo; do
 done < knowlg-charts.csv
 
 ## Update Neo4J Definition ##
-## It is expected to have the definition directory kept in the same folder. Download the definitions
-learningpod=`kubectl get pods --selector=app=learning -n $namespace | awk '{if(NR==2) print $1}'`
-kubectl port-forward $learningpod 8085:8080 -n dev &
-for f in neo4j-definitions/*;
-do
-  echo "Updating $f ..."
-  curl -X POST -H "Content-Type: application/json" -H "user-id: system" -d @$f  http://localhost:8085/learning-service/taxonomy/domain/definition
-done
-
-
+## Run the curl commands in the learning pod. Reference: https://github.com/Sunbird-Knowlg/sunbird-learning-platform/blob/release-5.2.0/ansible/lp_definition_update.yml
 
