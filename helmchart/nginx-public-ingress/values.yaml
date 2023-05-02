@@ -1,0 +1,46 @@
+#jinja2:lstrip_blocks: True
+
+nginx_private_ingress_ip: "10.0.1.100"
+domain: easyinstall.sunbirded.org
+cloud_public_storage_accountname: ""
+cloud_public_storage_container: ""
+# nginx private and public cert
+core_vault_proxy_site_key: ""
+core_vault_proxy_site_crt: ""
+  
+merge_domain_status: false
+merge_domain: merger.sunbirded1.dev.org
+service:
+  annotations: 
+    service.beta.kubernetes.io/azure-load-balancer-external: "true"
+  type: LoadBalancer
+  
+  ports:
+  - port: 80
+    name: http
+    targetPort: 80
+    nodePort: 31380
+  - port: 443
+    name: https
+    targetPort: 443
+    nodePort: 31390
+
+imagepullsecrets: ""
+dockerhub: docker.io
+
+resources:
+  requests:
+    cpu: '100m'
+    memory: '100Mi'
+  limits:
+    cpu: 1
+    memory: '1024Mi'
+
+repository: tsprasath91/proxy
+image_tag: release-5.1.0
+
+serviceMonitor:
+  enabled: false
+  labels: # labels with which the prometheus choose the serviceMonitor
+    app: prometheus-operator
+    release: prometheus-operator
