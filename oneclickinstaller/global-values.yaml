@@ -3,16 +3,16 @@ domain: "easeinstall.sunbirded.org"
 ## Can be one of - azure, aws, gcloud
 cloud_service_provider: "azure"
 ## Public storage bucket details
-cloud_public_storage_accountname: "installation1"
-cloud_public_storage_secret: "YXNkZmRhc2ZkYXNmZGFzZmRhc2ZkYXNmZHNhZg=="
+cloud_public_storage_accountname: https://easyinstaller.blob.core.windows.net/
+cloud_public_storage_secret: "bvZfv5TOtzoqKOetoPVApDdsf0VXHWz5GO0+I09T0YxxW6SUgWCbilIwq+dpz3hPsXIwD5fMCZOb+ASticvXYw=="
 ## Private storage bucket details
-cloud_private_storage_accountname: "installation2"
-cloud_private_storage_secret: "YXNkZmRhc2ZkYXNmZGFzZmRhc2ZkYXNmZHNhZg=="
+cloud_private_storage_accountname: https://easyinstaller.blob.core.windows.net/
+cloud_private_storage_secret: "bvZfv5TOtzoqKOetoPVApDdsf0VXHWz5GO0+I09T0YxxW6SUgWCbilIwq+dpz3hPsXIwD5fMCZOb+ASticvXYw=="
 
 ## PLAYER
-sunbird_azure_account_key: "YXNkZmRhc2ZkYXNmZGFzZmRhc2ZkYXNmZHNhZg=="
-sunbird_azure_account_name: "installation1"
-sunbird_azure_storage_account_name: https://installation1.blob.core.windows.net/
+sunbird_azure_account_key: "bvZfv5TOtzoqKOetoPVApDdsf0VXHWz5GO0+I09T0YxxW6SUgWCbilIwq+dpz3hPsXIwD5fMCZOb+ASticvXYw=="
+sunbird_azure_account_name: https://easyinstaller.blob.core.windows.net/
+sunbird_azure_storage_account_name: https://easyinstaller.blob.core.windows.net/
 
 #nginx SSL certs
 core_vault_proxy_site_key: |+
@@ -169,15 +169,12 @@ core_vault_proxy_site_crt: |+
   Dfvp7OOGAN6dEOM4+qR9sdjoSYKEBpsr6GtPAQw4dy753ec5
   -----END CERTIFICATE-----
 
-##CERTAPI
-### Provide SSL Private KEY values
 ####RSA####
 # openssl genrsa -out key.pem; cat key.pem;
 # openssl rsa -in key.pem -pubout -out pubkey.pem;
-# cat pubkey.pem; rm key.pem pubkey.pem
-####ED25519####
-# import {Ed25519VerificationKey2018} from '@digitalbazaar/ed25519-verification-key-2018';
-# const edKeyPair = await Ed25519VerificationKey2018.generate();
+# cat pubkey.pem; 
+# rm key.pem pubkey.pem
+
 CERTIFICATE_PRIVATE_KEY: |
   -----BEGIN PRIVATE KEY-----
   MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDHmgcCeKqbTRND
@@ -220,68 +217,26 @@ CERTIFICATE_PUBLIC_KEY: |
   EQIDAQAB
   -----END PUBLIC KEY-----
 
-####CERTSIGN
-CACHE_CONTEXT_URLS: https://test.blob.com    ### Check with learn team why this required. 
-###discussionmw
-##API_AUTH_TOKEN: ""          ## intialize programattically
-##authorization_token: ""   ## intialize programattically
-
-
-##GROUPS
-#sunbird_keycloak_user_federation_provider_id: ""     ## intialize programattically from keycloak
-
-## After running keycloak helm chart Add it as part of installer script && update the GLOBAL VARIABLES "sunbird_sso_publickey"
-
-##### curl http://localhost:8080/auth/realms/sunbird | jq -r .public_key
-
-
-sunbird_sso_publickey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkY4SpAJO71P3ryJX+MJm982duOE5u0MR8wMhs77TtS37Rtlw0W9O6xIPHKMwlyrJhuA+dhcfh2v48pQooSnrB2Vsg1Ec0UTpu60v4TmyCM2Rfyuca1JZyqgVz/TJwvTtBeR+3uvLzJ7ZTosIkC93BUFqRVi6RtOJjYhVw1N6BwLNsSRn8H8W53VNeC7YeA8wtfGIFxjtSe4nKdYPzau0l6W2hv5JiBXjaJhYCuTG9vBfrJCKyO4GjKPhyoHkOL1uZwFavlGEk9z75meavVkomss4YhrwE0kQu/pVTBSu+OLzDvRRU/npUvJZeYSxzhlxsM9kVNP2376CZcXrimyyWwIDAQAB"  ## initailiaze using API call
-
-# Public key of keycloak sunbird realm, update this post keycloak deployment.  See below for steps
-# SSH tunnel to the keycloak VM by running ssh -L 8080:<keycloak machine ip>:8080 deployer@Keycloak-VM-IP
-# If you cannot tunnel directly to Keycloak VM, then tunnel to Jenkins first and then tunnel to Keycloak VM from jenkins
-# 
-# Go to http://localhost:8080/auth/admin/master/console/#/realms/sunbird/clients -> lms -> service account roles -> Click on client roles drop down -> Select realm-management -> Select manage-users in Available Roles -> Click on Add selected
-# 
-# Go to http://localhost:8080/auth/admin/master/console/#/realms/sunbird/keys
-# Click on Public Key and update the variable
-#
-# Go to http://localhost:8080/auth/admin/master/console/#/realms/master/login-settings and set the Require SSL to external requests
-
-#  export   x_authenticated_token=$(curl -sS -XPOST "http://localhost:8080/auth/realms/sunbird/protocol/openid-connect/token" \
-#     --header 'Content-Type: application/x-www-form-urlencoded' \
-#     --data-urlencode 'client_id=lms' \
-#     --data-urlencode "client_secret=6db97b0c-8aed-4c50-861b-930ec98a9684" \
-#     --data-urlencode 'grant_type=client_credentials' | jq -r .access_token)
-#     echo "x_authenticated_token: ${x_authenticated_token}" 
-
-sunbird_sso_client_secret: "6db97b0c-8aed-4c50-861b-930ec98a9684"
-
-
 ### Review the variables with Lern team 
 sunbird_sso_username: "admin"
 sunbird_sso_password: "sunbird"
 
-
-#google_captcha_mobile_private_key: "sdfhgjhafdDFJNFBX"
-google_captcha_private_key: "sdfhgjhgaffdvnbvcdz"
+google_captcha_private_key: ""
 sunbird_mail_server_from_email: ""
 sunbird_mail_server_host: ""
 sunbird_mail_server_password: ""
 sunbird_mail_server_port: "587"
-sunbird_mail_server_username: "admin"
+sunbird_mail_server_username: ""
 sunbird_msg_91_auth: ""
 sunbird_msg_sender: ""
 sunbird_url_shortner_access_token: ""
-#merge_domain: "testing.com"
-sunbird_keycloak_user_federation_provider_id: "329545b7-7ab9-45fb-afe9-c0607915a05f"  ##Keycloak cassandra federation id
 sunbird_pg_user: "postgres"  
 sunbird_pg_password: "postgres" 
 ######LMS
-cloud_storage_base_url: "https://storage.googleapis.com"  ### check with Learn team
-cloud_storage_cname_url: "https://storage.googleapis.com" ### check with Learn team
-ekstep_authorization: "qwegrjnjksfbsngkbsbginkdn"
-sunbird_authorization: "qwefhgfnfbsdgd"  ## compare with staging environment values
+cloud_storage_base_url: ""  ### check with Learn team
+cloud_storage_cname_url: "" ### check with Learn team
+ekstep_authorization: ""
+sunbird_authorization: ""  ## compare with staging environment values
 ###REGISTRY
 connectionInfo_username: "admin"   #CHECK IN CURRENT ENVIRONMENT
 connectionInfo_password: "password"
@@ -289,10 +244,10 @@ connectionInfo_password: "password"
 
 ## compare with staging env container required public or private container for flinkjobs separately
 checkpoint_store_type: "azure"
-cloud_storage_key: "storageacc" 
-cloud_storage_secret: dkfjghndlkjhdfjgbhnvck
-cloud_storage_endpoint: "https://storage.googleapis.com"
-cloud_storage_path_style_access: "wskdjcfndx"   ## Review or check with learn team
+cloud_storage_key: "" 
+cloud_storage_secret: 
+cloud_storage_endpoint: ""
+cloud_storage_path_style_access: ""   ## Review or check with learn team
 cloud_storage_flink_bucketname: "flink-storage"
 
 
@@ -381,6 +336,8 @@ global:
       ZwIDAQAB
       -----END PUBLIC KEY-----
 
+
+####DONT CHANGE IT #####
 sunbird_pg_host: postgresql.dev.svc.cluster.local
 sunbird_redis_host: redis-master.dev.svc.cluster.local
 sunbird_user_org_api_base_url: http://learner.dev.svc.cluster.local:9000
@@ -393,3 +350,41 @@ redis__host: redis-master.dev.svc.cluster.local
 kong_pg_host: postgresql.dev.svc.cluster.local
 kong_admin_listen: http://kong.dev.svc.cluster.local:8001
 QR_TYPE: URL     ## CHECK THE QR URL
+
+
+####CERTSIGN
+CACHE_CONTEXT_URLS: https://test.blob.com    ### Check with learn team why this required. 
+###discussionmw
+##API_AUTH_TOKEN: ""          ## intialize programattically
+##authorization_token: ""   ## intialize programattically
+
+
+##GROUPS
+sunbird_keycloak_user_federation_provider_id: "329545b7-7ab9-45fb-afe9-c0607915a05f"  ##Keycloak cassandra federation id
+
+## After running keycloak helm chart Add it as part of installer script && update the GLOBAL VARIABLES "sunbird_sso_publickey"
+
+##### curl http://localhost:8080/auth/realms/sunbird | jq -r .public_key
+
+
+sunbird_sso_publickey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkY4SpAJO71P3ryJX+MJm982duOE5u0MR8wMhs77TtS37Rtlw0W9O6xIPHKMwlyrJhuA+dhcfh2v48pQooSnrB2Vsg1Ec0UTpu60v4TmyCM2Rfyuca1JZyqgVz/TJwvTtBeR+3uvLzJ7ZTosIkC93BUFqRVi6RtOJjYhVw1N6BwLNsSRn8H8W53VNeC7YeA8wtfGIFxjtSe4nKdYPzau0l6W2hv5JiBXjaJhYCuTG9vBfrJCKyO4GjKPhyoHkOL1uZwFavlGEk9z75meavVkomss4YhrwE0kQu/pVTBSu+OLzDvRRU/npUvJZeYSxzhlxsM9kVNP2376CZcXrimyyWwIDAQAB"  ## initailiaze using API call
+
+# Public key of keycloak sunbird realm, update this post keycloak deployment.  See below for steps
+# SSH tunnel to the keycloak VM by running ssh -L 8080:<keycloak machine ip>:8080 deployer@Keycloak-VM-IP
+# If you cannot tunnel directly to Keycloak VM, then tunnel to Jenkins first and then tunnel to Keycloak VM from jenkins
+# 
+# Go to http://localhost:8080/auth/admin/master/console/#/realms/sunbird/clients -> lms -> service account roles -> Click on client roles drop down -> Select realm-management -> Select manage-users in Available Roles -> Click on Add selected
+# 
+# Go to http://localhost:8080/auth/admin/master/console/#/realms/sunbird/keys
+# Click on Public Key and update the variable
+#
+# Go to http://localhost:8080/auth/admin/master/console/#/realms/master/login-settings and set the Require SSL to external requests
+
+#  export   x_authenticated_token=$(curl -sS -XPOST "http://localhost:8080/auth/realms/sunbird/protocol/openid-connect/token" \
+#     --header 'Content-Type: application/x-www-form-urlencoded' \
+#     --data-urlencode 'client_id=lms' \
+#     --data-urlencode "client_secret=6db97b0c-8aed-4c50-861b-930ec98a9684" \
+#     --data-urlencode 'grant_type=client_credentials' | jq -r .access_token)
+#     echo "x_authenticated_token: ${x_authenticated_token}" 
+
+sunbird_sso_client_secret: "6db97b0c-8aed-4c50-861b-930ec98a9684"
