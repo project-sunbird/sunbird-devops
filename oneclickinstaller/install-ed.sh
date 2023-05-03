@@ -65,6 +65,18 @@ fi
 
 echo "Success: Connected to the Kubernetes cluster with the provided kubeconfig file."
 
+### Trigger Lern Installer 
+./install-lern.sh $kubeconfig_file 
+
+### Trigger Observ Installer 
+./install-obsrv.sh $kubeconfig_file
+
+### Trigger InQuiry Installer 
+./install-inquiry.sh $kubeconfig_file
+
+### Trigger Knowlg Installer
+./install-knowlg.sh $kubeconfig_file
+
 # Create the ed namespace if it doesn't exist
 if ! kubectl get namespace $namespace >/dev/null 2>&1; then
   kubectl create namespace $namespace
