@@ -85,7 +85,7 @@ FILES="sunbird-learning-platform/docs/domain_model_v2/definitions/*"
 for f in $FILES
 do
   echo "Updating $f ..."
-  kubectl exec -it $learningpod -n $namespace -- bash -c "curl -X POST -H \"Content-Type: application/json\" -d $f  http://localhost:8080"
+  kubectl exec -it $learningpod -n $namespace -- bash -c "curl -X POST -H \"Content-Type: application/json\" -d $f  http://localhost:8080/learning-service/taxonomy/domain/definition"
 done
 
 
