@@ -25,8 +25,8 @@ if ! command -v figlet &> /dev/null; then
   sudo apt-get install figlet -y
 fi
 
-# Print Sunbird Obsrv ASCII art banner using figlet
-figlet -f slant "Sunbird Obsrv Installation"
+# Print Sunbird Knowlg ASCII art banner using figlet
+figlet -f slant "Sunbird Knowlg Installation"
 
 # Check if the kubeconfig file exists
 if [ ! -f "$kubeconfig_file" ]; then
