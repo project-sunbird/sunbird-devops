@@ -1,0 +1,47 @@
+### variables for apimanager-kong service ###
+
+imagepullsecrets: ""
+dockerhub: docker.io
+
+replicaCount: 1
+repository: tsprasath91/echo-server
+image_tag:  master-RC1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 1
+    memory: 1G
+
+network:
+  port: 9595
+  targetport: 9595
+strategy:
+  type: RollingUpdate
+
+livenessProbe:
+  failureThreshold: 2
+  httpGet:
+    path: /hello
+    port: 9595
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+readinessProbe:
+  failureThreshold: 2
+  httpGet:
+    path: /hello
+    port: 9595
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: ""

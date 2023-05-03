@@ -1,0 +1,63 @@
+domain: test.com
+keycloak_user: admin
+keycloak_password: admin
+db_vendor: postgres
+db_addr: postgres-postgresql.lern.svc.cluster.local
+db_database: keycloak
+db_user: postgres
+db_password: postgres
+keycloak_auth_server_url: http://0.0.0.0:8080/auth/
+keycloak_management_user: admin
+keycloak_management_password: admin
+keycloak_realm: sunbird
+keycloak_realm_json_file_path: /tmp/realm-export.json
+keycloak_user_manager_roles_json_file_path: /tmp/roles.json
+keycloak_api_management_username:  admin
+keycloak_api_management_user_email: admin@sunbird.org
+keycloak_api_management_user_first_name: admin
+keycloak_api_management_user_last_name: admim
+keycloak_api_management_user_password: admin
+keycloak_clients: /tmp/clients.json
+          
+imagepullsecrets: ""
+dockerhub: docker.io
+
+replicaCount: 1
+# Using jboss/keycloak:7.0.0
+repository: tsprasath91/keycloak
+image_tag:  latest
+
+livenessProbe:
+  failureThreshold: 2
+  httpGet:
+    path: /auth/health
+    port: 8080
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+readinessProbe:
+  failureThreshold: 2
+  httpGet:
+    path: /auth/health
+    port: 8080
+  initialDelaySeconds: 60
+  periodSeconds: 15
+  timeoutSeconds: 5
+    
+service:
+  type: ClusterIP
+  httpPort: 8080
+  nodePort: 30000
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 2Gi
+  requests:
+    cpu: "250m"
+    memory: 512Mi
+
+strategy:
+  maxsurge: 25%
+  maxunavailable: 25%  

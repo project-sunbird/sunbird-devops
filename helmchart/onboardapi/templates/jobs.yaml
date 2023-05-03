@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  template:
+    metadata:
+      annotations:
+        fluentbit.io/parser: kong
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      {{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              wget https://bootstrap.pypa.io/pip/2.7/get-pip.py && \
+              python get-pip.py && \
+              cd /app/config && \
+              pip install -r requirements.txt && \
+              python kong_apis.py kong-apis.json --kong-admin-api-url={{ .Values.kong_admin_listen}}
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Chart.Name }}-config
+      restartPolicy: Never      
+  backoffLimit: 3
+  completions: 1
+  parallelism: 1

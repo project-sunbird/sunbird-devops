@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    rollingUpdate:
+      maxSurge: {{ .Values.strategy.maxsurge }}
+      maxUnavailable: {{ .Values.strategy.maxunavailable }}  
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      {{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+      {{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"        
+        imagePullPolicy: Always
+        resources:
+{{ toYaml .Values.resources | indent 12 }}
+        env:
+        - name: KEYCLOAK_USER
+          value: "{{ .Values.keycloak_user }}"
+        - name : KEYCLOAK_PASSWORD
+          value: "{{ .Values.keycloak_password }}"
+        - name : DB_VENDOR
+          value: "{{ .Values.db_vendor }}"
+        - name : DB_ADDR
+          value: "{{ .Values.db_addr }}"
+        - name : DB_DATABASE
+          value: "{{ .Values.db_database }}"
+        - name : DB_USER
+          value: "{{ .Values.db_user }}"
+        - name : DB_PASSWORD
+          value: "{{ .Values.db_password }}"
+        - name : DB_HOST
+          value: "{{ .Values.db_addr }}"
+        - name : DB_PORT
+          value: "5432"   
+        - name : JAVA_TOOL_OPTIONS
+          value: "-Dkeycloak.profile.feature.scripts=enabled  -Dkeycloak.profile.feature.upload_scripts=enabled -Dkeycloak.migration.strategy=OVERWRITE_EXISTING" 
+        - name: PROXY_ADDRESS_FORWARDING
+          value: "true" 
+        - name: KEYCLOAK_IMPORT
+          value: "/opt/jboss/keycloak/standalone/configuration/myrealm.json"                                 
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+        - name: http-management
+          containerPort: 9990   
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 12 }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 12 }}
+        {{- end }}                            
+        volumeMounts:
+        - name: {{ .Chart.Name }}-data
+          mountPath: /opt/jboss/keycloak/standalone/data     
+        - name: custom-realm
+          mountPath: /opt/jboss/keycloak/standalone/configuration/myrealm.json
+          subPath: myrealm.json                                            
+      volumes:
+      - name: {{ .Chart.Name }}-data
+        emptyDir: {}
+      - name: custom-realm
+        configMap:
+          name: myrealm-config
+          items:
+          - key: myrealm.json
+            path: myrealm.json         
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.httpPort }}
+      targetPort: http
+      protocol: TCP
+      {{- if eq .Values.service.type "NodePort" }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
+  selector:
+    app: {{ .Chart.Name }} # metadataname of deployment   

@@ -1,7 +1,9 @@
 #!/bin/bash
 # set -x
 # Set the namespace for the Helm charts
-namespace="knowlg"
+
+namespace="dev"
+
 kubeconfig_file=$1
 
 # Check if kubectl is installed
@@ -76,9 +78,10 @@ while IFS=',' read -r chart_name chart_repo; do
 done < knowlg-charts.csv
 
 ## Update Neo4J Definition ##
-## It is expected to have the definition directory kept in the same folder. Download the definiti
+## It is expected to have the definition directory kept in the same folder. Download the definitions
+git clone https://github.com/Sunbird-Knowlg/sunbird-learning-platform/ -b release-5.1.0 
 learningpod=`kubectl get pods --selector=app=learning -n $namespace | awk '{if(NR==2) print $1}'`
-FILES="definitions/*"
+FILES="sunbird-learning-platform/docs/domain_model_v2/definitions/*"
 for f in $FILES
 do
   echo "Updating $f ..."
