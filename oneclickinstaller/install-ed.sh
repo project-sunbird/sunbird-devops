@@ -105,16 +105,15 @@ echo "sunbird_sso_url: \"http://$DomainName/auth/\"" >> global-values.yaml
 
 ### Trigger Lern Installer 
 ./install-lern.sh $kubeconfig_file 
-
+sleep 240
 ### Trigger Observ Installer 
 ./install-obsrv.sh $kubeconfig_file
-
+sleep 120
 ### Trigger InQuiry Installer 
 ./install-inquiry.sh $kubeconfig_file
-
+sleep 120
 ### Trigger Knowlg Installer
 ./install-knowlg.sh $kubeconfig_file
-
 ### Upload the plugins and editors ####
 ./upload-plugins.sh 
 
@@ -138,6 +137,7 @@ echo "sunbird_sso_url: \"http://$DomainName/auth/\"" >> global-values.yaml
     # fi
   done < ed-charts.csv
   PUBLIC_IP=$(kubectl get svc -n dev nginx-public-ingress --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  sleep 240
   echo Public IP of $PUBLIC_IP
 }
 
