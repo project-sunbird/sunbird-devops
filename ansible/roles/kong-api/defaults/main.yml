@@ -435,6 +435,48 @@ kong_apis:
     config.required: true
     config.enabled: true
 
+- name: exhaustSubmitProxyAPI
+  uris: "{{ course_service_prefix }}/v1/jobrequest/submit"
+  upstream_url: "{{ lms_service_url }}/v1/jobrequest/submit"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - courseAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: exhaustListProxyAPI
+  uris: "{{ course_service_prefix }}/v1/jobrequest/list"
+  upstream_url: "{{ lms_service_url }}/v1/jobrequest/list"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - courseAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: createCertTemplate
   uris: "{{ cert_service_prefix }}/v1/template/create"
   upstream_url: "{{ cert_service_url }}/cert/v1/template/create"
