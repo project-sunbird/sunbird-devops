@@ -115,8 +115,25 @@ ed-install() {
 }
 
 postscript() {
-  # Your post installation script here
-  figlet -f slant "Sunbird PostScript Installation"
+# Get the job logs and search for the tokens for onboardconsumer
+LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for api-admin is")
+# Extract the JWT token from the logs
+TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
+
+# Print the tokens
+echo "JWT token for api-admin:"
+echo "$TOKEN"
+
+
+echo "LEARNER_API_AUTH_KEY: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_anonymous_register_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_loggedin_register_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_anonymous_default_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_logged_default_token: \"$TOKEN\"" >> global-values.yaml
+echo "core_vault_sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
+echo "ekstep_authorization: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_authorization: \"$TOKEN\"" >> global-values.yaml
+
   # Call helmupgrade function only if -i option is provided
   if [[ $1 == "-i" ]]; then
     # Loop through each line in the CSV file
