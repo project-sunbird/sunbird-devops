@@ -1,10 +1,8 @@
-# Domain name eg: test.com
-domain: ""   
-cloud_service_provider: "azure"       # Can be one of - azure, aws, gcloud
-cloud_public_storage_accountname: ""  # Public storage account values https://<STORAGENAME>.blob.core.windows.net/
-cloud_public_storage_secret: ""       # storage secret values
-cloud_private_storage_accountname: "" # Private storage account values https://<STORAGENAME>.blob.core.windows.net/
-cloud_private_storage_secret: ""      # storage secret values
+domain: ""                            # Domain name  ed.example.com
+cloud_public_storage_accountname: ""  # name of the azure storage account
+cloud_public_storage_secret: ""       # Access key of the azure storage account. You can get the value by login to azure portal -> Select the storage account -> Select Access Keys from the left side panel -> Click show button for Key -> Copy the key
+cloud_private_storage_accountname: "" # re-use values from cloud_public_storage_accountname
+cloud_private_storage_secret: ""      # re-use values from cloud_public_storage_secret
 
 # core_vault_proxy_site_key: |+
 #   -----BEGIN PRIVATE KEY-----
@@ -12,58 +10,41 @@ cloud_private_storage_secret: ""      # storage secret values
 # core_vault_proxy_site_crt: |+
 #   -----BEGIN CERTIFICATE-----
 #     -----END CERTIFICATE-----  
-# SSL Private Key
-core_vault_proxy_site_key: |+
+# SSL Private Key ie private.key
+core_vault_proxy_site_key: |+ 
 
-# SSL Public Key 
+# SSL Public Key(Bundle+CA)
 core_vault_proxy_site_crt: |+
 
 # openssl genrsa -out key.pem; cat key.pem;
 # openssl rsa -in key.pem -pubout -out pubkey.pem;
-# cat pubkey.pem; rm key.pem pubkey.pem
-# CERTIFICATE_PRIVATE_KEY: |
+
+CERTIFICATE_PRIVATE_KEY: |          # update te content from key.pem which is generated in line 19(openssl command)
 #   -----BEGIN PRIVATE KEY-----
 #   -----END PRIVATE KEY----- 
-# CERTIFICATE_PUBLIC_KEY: |
+
+CERTIFICATE_PUBLIC_KEY: |           # update te content from pubkey.pem which is generated in line 20 (openssl command)
 #   -----BEGIN PUBLIC KEY-----
 #   -----END PUBLIC KEY-----
-
-CERTIFICATE_PRIVATE_KEY: |          # private key values
-CERTIFICATE_PUBLIC_KEY: |           # public key values 
-user_access_public_keys: ""
-google_captcha_private_key: ""      # Google Captcha Key
-sunbird_mail_server_from_email: ""  # EMAIL Address
-sunbird_mail_server_host: ""        # SMTP Host smtp.sendgrid.com  
-sunbird_mail_server_password: ""    # SMTP PASSWORD 
-sunbird_mail_server_port: ""        # DEFAULT 587
-sunbird_mail_server_username: ""    # SMTP EMAIL ID 
-cloud_storage_base_url: ""          # storage account values https://<STORAGENAME>.blob.core.windows.net/
-cloud_storage_cname_url: ""         # storage account values https://<STORAGENAME>.blob.core.windows.net/
-nginx_private_ingress_ip: ""        # RESERVE A STATIC INTERNAL LOADBALANCER IP
-cloud_public_storage_container:     # STORAGE CONTAINER NAME eg : storageacc
+core_vault_sunbird_google_captcha_site_key_portal: ""      # Google Captcha site Key       
+google_captcha_private_key: ""      # Google Captcha private Key
+cloud_storage_base_url: ""          # azure storage account url https://<STORAGENAME>.blob.core.windows.net/
+cloud_storage_cname_url: ""         # azure storage account url https://<STORAGENAME>.blob.core.windows.net/
+nginx_private_ingress_ip: ""        # Pick an free IP from Pod CIDR Range. if PodCIDRRange  is 192.168.0.0/16 then add 192.168.0.200 as value
 
 service:
   annotations: 
     service.beta.kubernetes.io/azure-load-balancer-external: "true"
   type: LoadBalancer
-  nginx_public_ingress_ip: ""   # RESERVE A STATIC PUBLIC IP
+  nginx_public_ingress_ip: ""   # CHECK with SANTHOSH TG
 
-core_vault_sunbird_google_captcha_site_key_portal: ""              
-checkpoint_store_type: "azure"  # DEFAULT AZURE
-cloud_storage_key: "" 
-cloud_storage_secret: 
-cloud_storage_endpoint: ""
-cloud_storage_path_style_access: ""   
-cloud_storage_flink_bucketname: ""
-CACHE_CONTEXT_URLS:     
-
-sunbird_user_service_base_url: ""   
-sunbird_lms_base_url: ""
-sunbird_encryption_key: ""
-sunbird_sso_url: ""
-sunbird_sso_client_id: ""
-sunbird_cs_base_url: ""
-
+cloud_storage_key: ""  # Name of Azure storage account
+cloud_storage_secret: ""  # Access key of the azure storage account. You can get the value by login to azure portal -> Select the storage account -> Select Access Keys from the left side panel -> Click show button for Key -> Copy the key
+cloud_storage_path_style_access: ""    # CHECK with SANTHOSH TG
+cloud_storage_flink_bucketname: ""      # CHECK with SANTHOSH TG
+sunbird_user_service_base_url: ""  # Refer the nginx private IP of nginx_private_ingress_ip http://{{nginx_private_ingress_ip}}/learner 
+sunbird_lms_base_url: ""           # Refer the nginx private IP of nginx_private_ingress_ip http://{{nginx_private_ingress_ip}}/api  
+sunbird_sso_url: ""                 # Refer the name of the  domain https://{{domain}}/auth/
 
 
 ####DONT CHANGE IT #####
@@ -78,6 +59,9 @@ sunbird_group_service_api_base_url: http://groups.dev.svc.cluster.local:9000
 redis__host: redis-master.dev.svc.cluster.local
 kong_pg_host: postgresql.dev.svc.cluster.local
 kong_admin_listen: http://kong.dev.svc.cluster.local:8001
+learning_service_base_url: http://learning.dev.svc.cluster.local:8080/learning-service
+sunbird_analytics_api_base_url: http://analytics-service.dev.svc.cluster.local:9000
+sunbird_cs_base_url: http://knowledge-mw-service.dev.svc.cluster.local:5000"
 sunbird_sso_username: "admin"
 sunbird_sso_password: "sunbird"
 sunbird_pg_user: "postgres"  
@@ -85,41 +69,40 @@ sunbird_pg_password: "postgres"
 connectionInfo_username: "admin"   
 connectionInfo_password: "password"
 sunbird_sso_realm: sunbird
+cloud_service_provider: "azure"       # Can be one of - azure, aws, gcloud
+cloud_public_storage_container: sunbird-content-dev     # STORAGE CONTAINER NAME eg : storageacc
+checkpoint_store_type: "azure"  # DEFAULT AZURE
+CACHE_CONTEXT_URLS: https://sunbirdstagingpublic.blob.core.windows.net/sunbird-content-staging/schema/v1_context.json,https://sunbirdstagingpublic.blob.core.windows.net/sunbird-content-staging/schema/sunbird_context.json,https://sunbirdstagingpublic.blob.core.windows.net/sunbird-content-staging/schema/credential_template.json
+sunbird_encryption_key: "aead61390a587dbf7d10"
 
 ## OPTIONAL####
 sunbird_msg_91_auth: ""             
-sunbird_msg_sender: "SUNBIRD"              
+sunbird_msg_sender: "SUNBIRD"  
+sunbird_mail_server_from_email: ""  # EMAIL Address
+sunbird_mail_server_host: ""        # SMTP Host smtp.sendgrid.com  
+sunbird_mail_server_password: ""    # SMTP PASSWORD 
+sunbird_mail_server_port: ""        # DEFAULT 587
+sunbird_mail_server_username: ""    # SMTP EMAIL ID   
+cloud_storage_endpoint: ""          
 
-##############POST INSTALLATION VALUES TO BE FILLE###################
+############## VALUES TO BE FILLED AFTER FIRST STEP OF INSTALL ###################
 # Take values from Keycloak
 # Go to http://localhost:8080/auth/admin/master/console/#/realms/sunbird/clients -> lms -> service account roles -> Click on client roles drop down -> Select realm-management -> Select manage-users in Available Roles -> Click on Add selected
-# Go to http://localhost:8080/auth/admin/master/console/#/realms/sunbird/clients -> lms -> credentials --> copy the secret value
-sunbird_sso_publickey: ""
-sunbird_sso_client_secret: ""                         # Go to http://localhost:8080/auth/admin/master/console/#/realms/sunbird/keys
+sunbird_sso_publickey: ""                             # Go to http://localhost:8080/auth/admin/master/console/#/realms/sunbird/keys
+sunbird_sso_client_secret: ""                         # Go to http://localhost:8080/auth/admin/master/console/#/realms/sunbird/clients -> lms -> credentials --> copy the secret value              
 sunbird_keycloak_user_federation_provider_id: ""      # Go to  http://localhost:8080/auth/admin/master/console/#/realms/sunbird/user-federation --> click on cassandra-storage-provider -->copy the provider key
-
-# Get the below tokens after running the OnboardConsumers job
-ekstep_authorization: ""
-sunbird_authorization: ""     
-LEARNER_API_AUTH_KEY: "" 
-sunbird_anonymous_register_token: "" 
-sunbird_loggedin_register_token: "" 
-sunbird_anonymous_default_token: "" 
-sunbird_logged_default_token: "" 
-core_vault_sunbird_api_auth_token: "" 
 
 global:
   keycloak_sunbird_realm_kid: ""              # Go to http://localhost:8080/auth/admin/master/console/#/realms/sunbird/keys -->copy RSA KID
   keycloak_sunbird_realm_public_key: ""       # Go to http://localhost:8080/auth/admin/master/console/#/realms/sunbird/keys  
-####RSA####
 # openssl genrsa -out key.pem; cat key.pem;
 # openssl rsa -in key.pem -pubout -out pubkey.pem;
 # cat pubkey.pem; 
 # rm key.pem pubkey.pem  
+# check with Santhosh TG
   user_access_private_keys:
     accessv1_key1: 
     accessv1_key2: 
-
   user_access_public_keys:
     accessv1_key1: 
     accessv1_key2: 
