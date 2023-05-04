@@ -96,11 +96,11 @@ echo "cloud_private_storage_secret: $AccountKey" >> global-values.yaml
 echo "cloud_storage_secret: $AccountKey" >> global-values.yaml
 echo "sunbird_azure_account_key: $AccountKey" >> global-values.yaml
 
-NginxPrvateIP=$(grep "nginx_private_ingress_ip" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_accountname") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+NginxPrvateIP=$(grep "nginx_private_ingress_ip" global-values.yaml | awk -F ":" '{if($1=="nginx_private_ingress_ip") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
 echo "sunbird_user_service_base_url: \"http://$NginxPrvateIP/learner\"" >> global-values.yaml
 echo "sunbird_lms_base_url: \"http://$NginxPrvateIP/api\"" >> global-values.yaml
 
-DomainName=$(grep "domain" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_accountname") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+DomainName=$(grep "domain" global-values.yaml | awk -F ":" '{if($1=="domain") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
 echo "sunbird_sso_url: \"http://$DomainName/auth/\"" >> global-values.yaml
 
 ### Trigger Lern Installer 
@@ -136,9 +136,10 @@ sleep 120
       echo -e "\e[92m$chart_name is installed successfully\e[0m"
     # fi
   done < ed-charts.csv
-  PUBLIC_IP=$(kubectl get svc -n dev nginx-public-ingress --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
   sleep 240
+  PUBLIC_IP=$(kubectl get svc -n dev nginx-public-ingress --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
   echo Public IP of $PUBLIC_IP
+  exit 1
 }
 
 postscript() {
