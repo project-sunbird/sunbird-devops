@@ -65,17 +65,7 @@ fi
 
 echo "Success: Connected to the Kubernetes cluster with the provided kubeconfig file."
 
-### Trigger Lern Installer 
-./install-lern.sh $kubeconfig_file 
 
-### Trigger Observ Installer 
-./install-obsrv.sh $kubeconfig_file
-
-### Trigger InQuiry Installer 
-./install-inquiry.sh $kubeconfig_file
-
-### Trigger Knowlg Installer
-./install-knowlg.sh $kubeconfig_file
 
 # Create the ed namespace if it doesn't exist
 if ! kubectl get namespace $namespace >/dev/null 2>&1; then
@@ -90,7 +80,42 @@ if [ ! -f "ed-charts.csv" ]; then
 fi
 
 ed-install() {
-   figlet -f slant "Sunbird Ed Installation"
+figlet -f slant "Sunbird Ed Installation"
+### Update variables 
+AccountName=$(grep "cloud_public_storage_accountname" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_accountname") print $2}' | awk '{print $1}')
+AccountKey=$(grep "cloud_public_storage_secret" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_secret") print $2}' | awk '{print $1}')
+AccountNameStriped=$(grep "cloud_public_storage_accountname" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_accountname") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+echo "cloud_private_storage_accountname: $AccountName" >> global-values.yaml
+echo "cloud_storage_key: $AccountName" >> global-values.yaml
+echo "sunbird_azure_account_name: $AccountName" >> global-values.yaml
+echo "cloud_storage_base_url: \"https://$AccountNameStriped.blob.core.windows.net\"" >> global-values.yaml
+echo "cloud_storage_cname_url: \"https://$AccountNameStriped.blob.core.windows.net\"" >> global-values.yaml
+echo "sunbird_azure_storage_account_name: \"https://$AccountNameStriped.blob.core.windows.net\"" >> global-values.yaml
+
+echo "cloud_private_storage_secret: $AccountKey" >> global-values.yaml
+echo "cloud_storage_secret: $AccountKey" >> global-values.yaml
+echo "sunbird_azure_account_key: $AccountKey" >> global-values.yaml
+
+NginxPrvateIP=$(grep "nginx_private_ingress_ip" global-values.yaml | awk -F ":" '{if($1=="nginx_private_ingress_ip") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+echo "sunbird_user_service_base_url: \"http://$NginxPrvateIP/learner\"" >> global-values.yaml
+echo "sunbird_lms_base_url: \"http://$NginxPrvateIP/api\"" >> global-values.yaml
+
+DomainName=$(grep "domain" global-values.yaml | awk -F ":" '{if($1=="domain") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+echo "sunbird_sso_url: \"http://$DomainName/auth/\"" >> global-values.yaml
+
+### Trigger Lern Installer 
+./install-lern.sh $kubeconfig_file 
+sleep 240
+### Trigger Observ Installer 
+./install-obsrv.sh $kubeconfig_file
+sleep 120
+### Trigger InQuiry Installer 
+./install-inquiry.sh $kubeconfig_file
+sleep 120
+### Trigger Knowlg Installer
+./install-knowlg.sh $kubeconfig_file
+### Upload the plugins and editors ####
+./upload-plugins.sh 
 
   while IFS=',' read -r chart_name chart_repo; do
     # Check if the chart repository URL is empty
@@ -111,14 +136,33 @@ ed-install() {
       echo -e "\e[92m$chart_name is installed successfully\e[0m"
     # fi
   done < ed-charts.csv
-
+  sleep 240
+  PUBLIC_IP=$(kubectl get svc -n dev nginx-public-ingress --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  echo Public IP of $PUBLIC_IP
+  exit 1
 }
 
 postscript() {
-  # Your post installation script here
-  figlet -f slant "Sunbird PostScript Installation"
-  # Call helmupgrade function only if -i option is provided
-  if [[ $1 == "-i" ]]; then
+# Get the job logs and search for the tokens for onboardconsumer
+LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for api-admin is")
+# Extract the JWT token from the logs
+TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
+
+# Print the tokens
+echo "JWT token for api-admin:"
+echo "$TOKEN"
+
+
+echo "LEARNER_API_AUTH_KEY: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_anonymous_register_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_loggedin_register_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_anonymous_default_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_logged_default_token: \"$TOKEN\"" >> global-values.yaml
+echo "core_vault_sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
+echo "ekstep_authorization: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_authorization: \"$TOKEN\"" >> global-values.yaml
+
     # Loop through each line in the CSV file
         while IFS=',' read -r chart_name chart_repo; do
             # Check if the chart repository URL is empty
@@ -139,22 +183,20 @@ postscript() {
             echo -e "\e[92m$chart_name is installed successfully\e[0m"
             # fi
         done < postscript.csv
-    else
-        echo "postscript was not executed because the -i argument was not provided"
-    fi
 }
 
+
 # Parse the command-line arguments
-case "$1" in
+case "$2" in
   ed-install)
     ed-install
     ;;
   postscript)
     postscript "$2"
-    ;;
+    ;;  
   *)
     echo "Unknown command: $1"
-    echo "Usage: $0 [kubeconfig_file] [ed-install | postscript] [-i]"
+    echo "Usage: $0 [kubeconfig_file] [-i] [ed-install | postscript] "
     exit 1
     ;;
 esac

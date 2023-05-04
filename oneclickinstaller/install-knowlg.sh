@@ -26,7 +26,7 @@ if ! command -v figlet &> /dev/null; then
 fi
 
 # Print Sunbird Knowlg ASCII art banner using figlet
-figlet -f slant "Sunbird Knowlg Installation"
+# figlet -f slant "Sunbird Knowlg Installation"
 
 # Check if the kubeconfig file exists
 if [ ! -f "$kubeconfig_file" ]; then
@@ -79,13 +79,12 @@ done < knowlg-charts.csv
 
 ## Update Neo4J Definition ##
 ## It is expected to have the definition directory kept in the same folder. Download the definitions
-git clone https://github.com/Sunbird-Knowlg/sunbird-learning-platform/ -b release-5.1.0 
 learningpod=`kubectl get pods --selector=app=learning -n $namespace | awk '{if(NR==2) print $1}'`
-FILES="sunbird-learning-platform/docs/domain_model_v2/definitions/*"
-for f in $FILES
+kubectl port-forward $learningpod 8085:8080 -n dev &
+for f in neo4j-definitions/*;
 do
   echo "Updating $f ..."
-  kubectl exec -it $learningpod -n $namespace -- bash -c "curl -X POST -H \"Content-Type: application/json\" -d $f  http://localhost:8080/learning-service/taxonomy/domain/definition"
+  curl -X POST -H "Content-Type: application/json" -H "user-id: system" -d @$f  http://localhost:8085/learning-service/taxonomy/domain/definition
 done
 
 
