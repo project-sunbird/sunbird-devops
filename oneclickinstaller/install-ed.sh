@@ -65,17 +65,7 @@ fi
 
 echo "Success: Connected to the Kubernetes cluster with the provided kubeconfig file."
 
-### Trigger Lern Installer 
-./install-lern.sh $kubeconfig_file 
 
-### Trigger Observ Installer 
-./install-obsrv.sh $kubeconfig_file
-
-### Trigger InQuiry Installer 
-./install-inquiry.sh $kubeconfig_file
-
-### Trigger Knowlg Installer
-./install-knowlg.sh $kubeconfig_file
 
 # Create the ed namespace if it doesn't exist
 if ! kubectl get namespace $namespace >/dev/null 2>&1; then
@@ -91,6 +81,18 @@ fi
 
 ed-install() {
    figlet -f slant "Sunbird Ed Installation"
+
+### Trigger Lern Installer 
+./install-lern.sh $kubeconfig_file 
+
+### Trigger Observ Installer 
+./install-obsrv.sh $kubeconfig_file
+
+### Trigger InQuiry Installer 
+./install-inquiry.sh $kubeconfig_file
+
+### Trigger Knowlg Installer
+./install-knowlg.sh $kubeconfig_file
 
   while IFS=',' read -r chart_name chart_repo; do
     # Check if the chart repository URL is empty
@@ -111,7 +113,8 @@ ed-install() {
       echo -e "\e[92m$chart_name is installed successfully\e[0m"
     # fi
   done < ed-charts.csv
-
+  PUBLIC_IP=$(kubectl get svc -n dev nginx-public-ingress --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  echo Public IP of $PUBLIC_IP
 }
 
 postscript() {
@@ -131,11 +134,10 @@ echo "sunbird_loggedin_register_token: \"$TOKEN\"" >> global-values.yaml
 echo "sunbird_anonymous_default_token: \"$TOKEN\"" >> global-values.yaml
 echo "sunbird_logged_default_token: \"$TOKEN\"" >> global-values.yaml
 echo "core_vault_sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
 echo "ekstep_authorization: \"$TOKEN\"" >> global-values.yaml
 echo "sunbird_authorization: \"$TOKEN\"" >> global-values.yaml
 
-  # Call helmupgrade function only if -i option is provided
-  if [[ $1 == "-i" ]]; then
     # Loop through each line in the CSV file
         while IFS=',' read -r chart_name chart_repo; do
             # Check if the chart repository URL is empty
@@ -156,22 +158,20 @@ echo "sunbird_authorization: \"$TOKEN\"" >> global-values.yaml
             echo -e "\e[92m$chart_name is installed successfully\e[0m"
             # fi
         done < postscript.csv
-    else
-        echo "postscript was not executed because the -i argument was not provided"
-    fi
 }
 
+
 # Parse the command-line arguments
-case "$1" in
+case "$2" in
   ed-install)
     ed-install
     ;;
   postscript)
     postscript "$2"
-    ;;
+    ;;  
   *)
     echo "Unknown command: $1"
-    echo "Usage: $0 [kubeconfig_file] [ed-install | postscript] [-i]"
+    echo "Usage: $0 [kubeconfig_file] [-i] [ed-install | postscript] "
     exit 1
     ;;
 esac

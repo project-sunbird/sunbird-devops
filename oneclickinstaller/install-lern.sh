@@ -24,7 +24,7 @@ if ! command -v figlet &> /dev/null; then
 fi
 
 # Print Sunbird Learn ASCII art banner using figlet
-figlet -f slant "Sunbird Learn Installation"
+# figlet -f slant "Sunbird Learn Installation"
 
 # Check if the kubeconfig file exists
 if [ ! -f "$kubeconfig_file" ]; then
