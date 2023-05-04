@@ -81,8 +81,7 @@ done < knowlg-charts.csv
 ## It is expected to have the definition directory kept in the same folder. Download the definitions
 learningpod=`kubectl get pods --selector=app=learning -n $namespace | awk '{if(NR==2) print $1}'`
 kubectl port-forward $learningpod 8085:8080 -n dev &
-FILES="neo4j-definitions/*"
-for f in $FILES
+for f in neo4j-definitions/*;
 do
   echo "Updating $f ..."
   curl -X POST -H "Content-Type: application/json" -H "user-id: system" -d @$f  http://localhost:8085/learning-service/taxonomy/domain/definition

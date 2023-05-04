@@ -80,7 +80,28 @@ if [ ! -f "ed-charts.csv" ]; then
 fi
 
 ed-install() {
-   figlet -f slant "Sunbird Ed Installation"
+figlet -f slant "Sunbird Ed Installation"
+### Update variables 
+AccountName=$(grep "cloud_public_storage_accountname" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_accountname") print $2}' | awk '{print $1}')
+AccountKey=$(grep "cloud_public_storage_secret" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_secret") print $2}' | awk '{print $1}')
+AccountNameStriped=$(grep "cloud_public_storage_accountname" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_accountname") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+echo "cloud_private_storage_accountname: $AccountName" >> global-values.yaml
+echo "cloud_storage_key: $AccountName" >> global-values.yaml
+echo "sunbird_azure_account_name: $AccountName" >> global-values.yaml
+echo "cloud_storage_base_url: \"https://$AccountNameStriped.blob.core.windows.net\"" >> global-values.yaml
+echo "cloud_storage_cname_url: \"https://$AccountNameStriped.blob.core.windows.net\"" >> global-values.yaml
+echo "sunbird_azure_storage_account_name: \"https://$AccountNameStriped.blob.core.windows.net\"" >> global-values.yaml
+
+echo "cloud_private_storage_secret: $AccountKey" >> global-values.yaml
+echo "cloud_storage_secret: $AccountKey" >> global-values.yaml
+echo "sunbird_azure_account_key: $AccountKey" >> global-values.yaml
+
+NginxPrvateIP=$(grep "nginx_private_ingress_ip" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_accountname") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+echo "sunbird_user_service_base_url: \"http://$NginxPrvateIP/learner\"" >> global-values.yaml
+echo "sunbird_lms_base_url: \"http://$NginxPrvateIP/api\"" >> global-values.yaml
+
+DomainName=$(grep "domain" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_accountname") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+echo "sunbird_sso_url: \"http://$DomainName/auth/\"" >> global-values.yaml
 
 ### Trigger Lern Installer 
 ./install-lern.sh $kubeconfig_file 
@@ -93,6 +114,9 @@ ed-install() {
 
 ### Trigger Knowlg Installer
 ./install-knowlg.sh $kubeconfig_file
+
+### Upload the plugins and editors ####
+./upload-plugins.sh 
 
   while IFS=',' read -r chart_name chart_repo; do
     # Check if the chart repository URL is empty
