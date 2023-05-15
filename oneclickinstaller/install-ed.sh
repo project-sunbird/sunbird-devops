@@ -1,8 +1,18 @@
 #!/bin/bash
-# set -x
 # Set the namespace for the Helm charts
 namespace="dev"
-kubeconfig_file=$1
+
+# Check if kubeconfig file is provided as argument
+if [[ $# -eq 0 ]]; then
+  echo "Usage: $0 [kubeconfig_file] [ed-install | postscript]"
+  exit 1
+else
+  kubeconfig_file=$1
+  shift
+fi
+
+# Set kubectl context
+export KUBECONFIG="$kubeconfig_file"
 
 # Check if kubectl is installed
 if ! command -v kubectl &> /dev/null; then
@@ -18,8 +28,6 @@ else
   echo -e "\e[92mkubectl is already installed.\e[0m"
 fi
 
-
-
 # Check if helm is installed
 if ! command -v helm &> /dev/null; then
   echo -e "\e[91mHelm is not installed. Installing Helm...\e[0m"
@@ -34,7 +42,6 @@ else
   echo -e "\e[92mHelm is already installed.\e[0m"
 fi
 
-
 # Check if figlet is installed, and install it if it's not
 if ! command -v figlet &> /dev/null; then
   echo -e "\e[93mfiglet is not installed, installing it now...\e[0m"
@@ -42,18 +49,15 @@ if ! command -v figlet &> /dev/null; then
   sudo apt-get install figlet -y
 fi
 
-# Print Sunbird Obsrv ASCII art banner using figlet
-figlet -f slant "Sunbird Ed Installation"
 
 # Check if the kubeconfig file exists
 if [ ! -f "$kubeconfig_file" ]; then
-    echo "Error: Kubeconfig file not found."
-    exit 1
+  echo "Error: Kubeconfig file not found."
+  exit 1
 fi
 
 # Check connectivity with the Kubernetes cluster
 kubectl --kubeconfig="$kubeconfig_file" cluster-info >/dev/null 2>&1
-export KUBECONFIG="$kubeconfig_file"
 if [ $? -ne 0 ]; then
     echo "Error: Unable to connect to the Kubernetes cluster with the provided kubeconfig file."
     exit 1
@@ -61,17 +65,7 @@ fi
 
 echo "Success: Connected to the Kubernetes cluster with the provided kubeconfig file."
 
-### Trigger Lern Installer 
-./install-lern.sh $kubeconfig_file 
 
-### Trigger Observ Installer 
-./install-obsrv.sh $kubeconfig_file
-
-### Trigger InQuiry Installer 
-./install-inquiry.sh $kubeconfig_file
-
-### Trigger Knowlg Installer
-./install-knowlg.sh $kubeconfig_file
 
 # Create the ed namespace if it doesn't exist
 if ! kubectl get namespace $namespace >/dev/null 2>&1; then
@@ -85,27 +79,124 @@ if [ ! -f "ed-charts.csv" ]; then
   exit 1
 fi
 
-while IFS=',' read -r chart_name chart_repo; do
-  # Check if the chart repository URL is empty
-  if [ -z "$chart_repo" ]; then
-    echo "Error: Repository URL not found for $chart_name in ed-charts.csv"
+ed-install() {
+figlet -f slant "Sunbird Ed Installation"
+### Update variables 
+AccountName=$(grep "cloud_public_storage_accountname" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_accountname") print $2}' | awk '{print $1}')
+AccountKey=$(grep "cloud_public_storage_secret" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_secret") print $2}' | awk '{print $1}')
+AccountNameStriped=$(grep "cloud_public_storage_accountname" global-values.yaml | awk -F ":" '{if($1=="cloud_public_storage_accountname") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+echo "cloud_private_storage_accountname: $AccountName" >> global-values.yaml
+echo "cloud_storage_key: $AccountName" >> global-values.yaml
+echo "sunbird_azure_account_name: $AccountName" >> global-values.yaml
+echo "cloud_storage_base_url: \"https://$AccountNameStriped.blob.core.windows.net\"" >> global-values.yaml
+echo "cloud_storage_cname_url: \"https://$AccountNameStriped.blob.core.windows.net\"" >> global-values.yaml
+echo "sunbird_azure_storage_account_name: \"https://$AccountNameStriped.blob.core.windows.net\"" >> global-values.yaml
+
+echo "cloud_private_storage_secret: $AccountKey" >> global-values.yaml
+echo "cloud_storage_secret: $AccountKey" >> global-values.yaml
+echo "sunbird_azure_account_key: $AccountKey" >> global-values.yaml
+
+NginxPrvateIP=$(grep "nginx_private_ingress_ip" global-values.yaml | awk -F ":" '{if($1=="nginx_private_ingress_ip") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+echo "sunbird_user_service_base_url: \"http://$NginxPrvateIP/learner\"" >> global-values.yaml
+echo "sunbird_lms_base_url: \"http://$NginxPrvateIP/api\"" >> global-values.yaml
+
+DomainName=$(grep "domain" global-values.yaml | awk -F ":" '{if($1=="domain") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+echo "sunbird_sso_url: \"http://$DomainName/auth/\"" >> global-values.yaml
+
+### Trigger Lern Installer 
+./install-lern.sh $kubeconfig_file 
+sleep 240
+### Trigger Observ Installer 
+./install-obsrv.sh $kubeconfig_file
+sleep 120
+### Trigger InQuiry Installer 
+./install-inquiry.sh $kubeconfig_file
+sleep 120
+### Trigger Knowlg Installer
+./install-knowlg.sh $kubeconfig_file
+### Upload the plugins and editors ####
+./upload-plugins.sh 
+
+  while IFS=',' read -r chart_name chart_repo; do
+    # Check if the chart repository URL is empty
+    if [ -z "$chart_repo" ]; then
+      echo "Error: Repository URL not found for $chart_name in ed-charts.csv"
+      exit 1
+    fi
+
+    # # Check if the chart is already installed
+    # if helm list -n "$namespace" | grep -q "$chart_name"; then
+    #   echo -e "\e[92m$chart_name is already installed\e[0m"
+    # else
+      # Install the chart with global variables
+      if ! helm upgrade --install "$chart_name" "$chart_repo" -n "$namespace" -f global-values.yaml -f ed-sample-values.yml --kubeconfig "$kubeconfig_file" ; then
+        echo -e "\e[91mError installing $chart_name\e[0m"
+     #   exit 1
+     fi
+      echo -e "\e[92m$chart_name is installed successfully\e[0m"
+    # fi
+  done < ed-charts.csv
+  sleep 240
+  PUBLIC_IP=$(kubectl get svc -n dev nginx-public-ingress --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  echo Public IP of $PUBLIC_IP
+  exit 1
+}
+
+postscript() {
+# Get the job logs and search for the tokens for onboardconsumer
+LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for api-admin is")
+# Extract the JWT token from the logs
+TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
+
+# Print the tokens
+echo "JWT token for api-admin:"
+echo "$TOKEN"
+
+
+echo "LEARNER_API_AUTH_KEY: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_anonymous_register_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_loggedin_register_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_anonymous_default_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_logged_default_token: \"$TOKEN\"" >> global-values.yaml
+echo "core_vault_sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
+echo "ekstep_authorization: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_authorization: \"$TOKEN\"" >> global-values.yaml
+
+    # Loop through each line in the CSV file
+        while IFS=',' read -r chart_name chart_repo; do
+            # Check if the chart repository URL is empty
+            if [ -z "$chart_repo" ]; then
+                echo "Error: Repository URL not found for $chart_name in postscript.csv"
+                exit 1
+            fi
+
+            # # Check if the chart is already installed
+            # if helm list -n "$namespace" | grep -q "$chart_name"; then
+            #   echo -e "\e[92m$chart_name is already installed\e[0m"
+            # else
+            # Install the chart with global variables
+            if ! helm upgrade --install "$chart_name" "$chart_repo" -n "$namespace" -f global-values.yaml --kubeconfig "$kubeconfig_file" ; then
+                echo -e "\e[91mError installing $chart_name\e[0m"
+                # exit 1
+            fi
+            echo -e "\e[92m$chart_name is installed successfully\e[0m"
+            # fi
+        done < postscript.csv
+}
+
+
+# Parse the command-line arguments
+case "$2" in
+  ed-install)
+    ed-install
+    ;;
+  postscript)
+    postscript "$2"
+    ;;  
+  *)
+    echo "Unknown command: $1"
+    echo "Usage: $0 [kubeconfig_file] [-i] [ed-install | postscript] "
     exit 1
-  fi
-
-  # # Check if the chart is already installed
-  # if helm list -n "$namespace" | grep -q "$chart_name"; then
-  #   echo -e "\e[92m$chart_name is already installed\e[0m"
-  # else
-    # Install the chart with global variables
-    if ! helm upgrade --install "$chart_name" "$chart_repo" -n "$namespace" -f global-values.yaml -f ed-sample-values.yml ; then
-      echo -e "\e[91mError installing $chart_name\e[0m"
-   #   exit 1
-   fi
-    echo -e "\e[92m$chart_name is installed successfully\e[0m"
-  # fi
-done < ed-charts.csv
-
-
-
-
-
+    ;;
+esac
