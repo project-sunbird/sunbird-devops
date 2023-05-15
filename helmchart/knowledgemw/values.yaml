@@ -1,0 +1,211 @@
+## This section has mandatory variables
+## You must provide a value for these
+## If you don't provide a value for these variables, the chart installation will not proceed
+
+## The domain name or Public IP address
+## The domain name should start with http or https
+## For example https://example.com
+domain: "test.com"
+
+## Can be one of - azure, aws, gcloud
+cloud_service_provider: ""
+
+## Public storage bucket details
+cloud_public_storage_accountname: ""
+cloud_public_storage_secret: ""
+
+
+sunbird_cache_store: memory
+sunbird_cache_ttl: "1800"
+sunbird_cassandra_consistency_level: quorum
+sunbird_cassandra_replication_strategy:
+  class: SimpleStrategy
+  replication_factor: 1
+  
+# sunbird_cassandra_replication_strategy: {"class":"SimpleStrategy","replication_factor":"1"}
+sunbird_cassandra_urls: cassandra.dev.svc.cluster.local:9042
+sunbird_content_repo_api_base_url: http://learning-service.dev.svc.cluster.local:8080/learning-service
+sunbird_content_service_blacklisted_channels: ""
+sunbird_content_service_blacklisted_contenttype: ""
+sunbird_content_service_blacklisted_framework: ""
+sunbird_content_service_blacklisted_mimetype: ""
+sunbird_content_service_blacklisted_resourcetype: ""
+sunbird_content_service_channel_refresh_cron: ""
+sunbird_content_service_enable_logging: "true"
+sunbird_content_service_log_level: info
+sunbird_content_service_whitelisted_channels: ""
+sunbird_content_service_whitelisted_framework: ""
+sunbird_content_service_whitelisted_mimetype: ""
+sunbird_content_service_whitelisted_resourcetype: ""
+sunbird_default_channel: sunbird
+sunbird_dial_repo_api_base_url: http://dial-service.dev.svc.cluster.local:9000
+sunbird_environment: dev
+sunbird_health_check_enable: "true"
+sunbird_instance: sunbird
+sunbird_kafka_host: kafka.dev.svc.cluster.local:9092
+sunbird_keycloak_auth_server_url: https://easyinstallgsb.sunbirded.org/auth
+sunbird_keycloak_client_id: portal
+sunbird_keycloak_public: "True"
+sunbird_keycloak_realm: sunbird
+sunbird_learner_service_base_url: http://kong:8000/
+sunbird_lock_expiry_time: "120"
+sunbird_plugin_repo_api_base_url: http://search-service.dev.svc.cluster.local:9000
+sunbird_qrimage_topic: sunbirddev.qrimage.request
+sunbird_search_service_api_base_url: http://search-service.dev.svc.cluster.local:9000
+sunbird_telemetry_sync_batch_size: "200"
+
+sunbird_content_repo_api_key: "KONG_API_TOKEN"
+sunbird_language_service_api_key: "KONG_API_TOKEN"
+sunbird_learner_service_api_key: "KONG_API_TOKEN"
+sunbird_dial_repo_api_key: "KONG_API_TOKEN"
+sunbird_search_service_api_key: "KONG_API_TOKEN"
+sunbird_plugin_repo_api_key: "KONG_API_TOKEN"
+sunbird_data_service_api_key: "KONG_API_TOKEN"
+sunbird_sso_publickey: "SUNBIRD_SSO_PUBLICKEY"
+
+keycloak_auth_endpoint: /auth
+sunbird_dial_code_registry_endpoint: /dail/
+sunbird_data_service_api_base_endpoint: /api
+sunbird_language_service_api_base_endpoint: /api/language
+
+accesstoken:
+  publickey:
+    basepath: /home/sunbird/mw/content/keys/
+
+external_configmaps:
+  common_opa_policies:
+    name: common-opa-policies
+  common_opa_policies_keys:
+    name: common-opa-policies-public-keys
+  access_public_keys:
+    name: user-access-keys-public
+
+### Default variable file for knowledge_mw service ###
+image:
+  registry: docker.io
+  repository: tsprasath91/knowledge-mw-service
+  tag: release-5.2.0_RC1
+
+replicaCount: 1
+
+strategy:
+  maxSurge: 25%
+  maxUnavailable: 25%
+
+imagePullSecrets: ""
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 1
+    memory: 1G
+
+network:
+  port: 5000
+  targetport: 5000
+
+strategy:
+  type: RollingUpdate
+  maxSurge: 25%
+  maxUnavailable: 25%
+
+livenessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /service/health
+      port: 5000
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+readinessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /service/health
+      port: 5000
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+knowledgemw_opa_enabled: false
+
+envoy_livenessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /ready
+      port: 10000
+      scheme: HTTP
+  initialDelaySeconds: 5
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+envoy_readinessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /ready
+      port: 10000
+      scheme: HTTP
+  initialDelaySeconds: 5
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+opa_livenessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /health?plugins
+      port: 8282
+      scheme: HTTP
+  initialDelaySeconds: 5
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+opa_readinessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /health?bundle=true
+      port: 8282
+      scheme: HTTP
+  initialDelaySeconds: 5
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+envoy_resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 1
+    memory: 1G
+
+opa_resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 1
+    memory: 1G
+
+initcontainer_resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 100m
+    memory: 100M
+
+# knowledgemw_access_basepath: '/home/sunbird/mw/content/keys/'
+
+serviceMonitor:
+  enabled: "false"
+  labels: # labels with which the prometheus choose the serviceMonitor
+  app: prometheus-operator
+  release: prometheus-operator
+
+autoscaling:
+  enabled: false
+  maxReplicas: 2
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: ""
