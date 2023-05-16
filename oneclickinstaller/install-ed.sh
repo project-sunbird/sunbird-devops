@@ -162,6 +162,14 @@ echo "core_vault_sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
 echo "sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
 echo "ekstep_authorization: \"$TOKEN\"" >> global-values.yaml
 echo "sunbird_authorization: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_content_repo_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_language_service_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_learner_service_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_dial_repo_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_search_service_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_plugin_repo_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_data_service_api_key: \"$TOKEN\"" >> global-values.yaml
+
 
     # Loop through each line in the CSV file
         while IFS=',' read -r chart_name chart_repo; do
