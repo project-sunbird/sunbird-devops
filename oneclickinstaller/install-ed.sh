@@ -151,40 +151,40 @@ TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
 echo "JWT token for api-admin:"
 echo "$TOKEN"
 
-LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_loggedin_register is")
+LOGS1=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_loggedin_register is")
 # Extract the JWT token from the logs
-LOGGEDIN_TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
+LOGGEDIN_TOKEN=$(echo $LOGS1 | grep -oP "(?<=: ).*")
 # Print the tokens
 echo "JWT token for portal_loggedin_register:"
 echo "$LOGGEDIN_TOKEN"
 
-LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_anonymous_register is")
+LOGS2=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_anonymous_register is")
 # Extract the JWT token from the logs
-ANONYMOUS_TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
+ANONYMOUS_TOKEN=$(echo $LOGS2 | grep -oP "(?<=: ).*")
 # Print the tokens
 echo "JWT token for portal_anonymous_register:"
 echo "$ANONYMOUS_TOKEN"
 
-LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_loggedin is")
+LOGS3=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_loggedin is")
 # Extract the JWT token from the logs
-PORTAL_LOGGEDIN_TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
+PORTAL_LOGGEDIN_TOKEN=$(echo $LOGS3 | grep -oP "(?<=: ).*")
 # Print the tokens
 echo "JWT token for portal_loggedin:"
 echo "$PORTAL_LOGGEDIN_TOKEN"
 
-LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_anonymous is")
+LOGS4=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_anonymous is")
 # Extract the JWT token from the logs
-PORTAL_ANONYMOUS_TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
+PORTAL_ANONYMOUS_TOKEN=$(echo $LOGS4 | grep -oP "(?<=: ).*")
 # Print the tokens
 echo "JWT token for portal_anonymous:"
 echo "$PORTAL_ANONYMOUS_TOKEN"
 
-LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for adminutil_learner_api_key is")
+LOGS5=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for adminutil_learner_api_key is")
 # Extract the JWT token from the logs
-ADMINUTIL_LEARNER_TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
+ADMINUTIL_LEARNER_TOKEN=$(echo $LOGS5 | grep -oP "(?<=: ).*")
 # Print the tokens
 echo "JWT token for adminutil_learner_api_key:"
-echo "$ADMINUTIL_LEARNER_TOKEN
+echo "$ADMINUTIL_LEARNER_TOKEN"
 
 echo "core_vault_sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
 echo "sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
