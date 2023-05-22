@@ -186,9 +186,6 @@ ADMINUTIL_LEARNER_TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
 echo "JWT token for adminutil_learner_api_key:"
 echo "$ADMINUTIL_LEARNER_TOKEN
 
-adminutil_learner_api_key
-
-
 echo "core_vault_sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
 echo "sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
 echo "ekstep_authorization: \"$TOKEN\"" >> global-values.yaml
