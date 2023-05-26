@@ -204,8 +204,8 @@ echo "sunbird_anonymous_default_token: \"$PORTAL_ANONYMOUS_TOKEN\"" >> global-va
 echo "LEARNER_API_AUTH_KEY: \"$ADMINUTIL_LEARNER_TOKEN\"" >> global-values.yaml
 
 # Add consumer for portal_loggedin
-apimanagerpod=$(kubectl get pods --selector=app=apimanager -n dev | awk 'NR==2{print $1}')
-kubectl port-forward $apimanagerpod 8001:8001 -n dev &
+apimanagerpod=$(kubectl get pods --selector=app=apimanager -n $namespace | awk 'NR==2{print $1}')
+kubectl port-forward $apimanagerpod 8001:8001 -n $namespace &
 port_forward_pid=$!
 cd keys
 keys=("portal_loggedin_key1" "portal_loggedin_key2")
