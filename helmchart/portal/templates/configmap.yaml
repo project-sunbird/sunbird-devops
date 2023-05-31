@@ -85,6 +85,23 @@ data:
   {{- printf "ERROR | %s | Please provide a value for \"cloud_storage_resourceBundle_bucketname\"" .Chart.Name | fail }}
   {{- end }}
 
+  {{- $sunbird_sso_publickey := .Values.sunbird_sso_publickey }}
+  {{- if empty $sunbird_sso_publickey }}
+    {{- $sunbird_sso_publickey = include "common.read.secret" (dict "ChartName" .Chart.Name "Namespace" .Release.Namespace "Name" .Values.external_secrets.keycloak_realm_public_key.name "Key" .Values.external_secrets.keycloak_realm_public_key.key) -}}
+  {{- end -}}
+  {{- if empty $sunbird_sso_publickey }}
+    {{- printf  "ERROR | %s | The sunbird_sso_publickey value could not be found in values.yaml or in secrets or in subcharts" .Chart.Name | fail }}
+  {{- end }}
+  sunbird_keycloak_public_key: {{ $sunbird_sso_publickey }}
+
+ {{- $core_vault_sunbird_google_captcha_site_key_portal := .Values.core_vault_sunbird_google_captcha_site_key_portal }}
+  {{- if empty $core_vault_sunbird_google_captcha_site_key_portal }}
+    {{- $core_vault_sunbird_google_captcha_site_key_portal = include "common.read.secret" (dict "ChartName" .Chart.Name "Namespace" .Release.Namespace "Name" .Values.external_secrets.keycloak_realm_public_key.name "Key" .Values.external_secrets.keycloak_realm_public_key.key) -}}
+  {{- end -}}
+  {{- if empty $core_vault_sunbird_google_captcha_site_key_portal }}
+    {{- printf  "ERROR | %s | The core_vault_sunbird_google_captcha_site_key_portal value could not be found in values.yaml or in secrets or in subcharts" .Chart.Name | fail }}
+  {{- end }}
+  sunbird_google_captcha_site_key: {{ $core_vault_sunbird_google_captcha_site_key_portal }}
   config_refresh_interval: {{ .Values.config_refresh_interval | quote }}
   config_service_enabled: {{ .Values.config_service_enabled | quote}}
   crypto_encryption_key: {{ .Values.crypto_encryption_key }}
@@ -144,7 +161,6 @@ data:
   sunbird_genericEditorURL: {{ .Values.sunbird_genericEditorURL }}
   sunbird_google_android_keycloak_client_id: {{ .Values.sunbird_google_android_keycloak_client_id }}
   sunbird_google_android_keycloak_secret: {{ .Values.sunbird_google_android_keycloak_secret }}
-  sunbird_google_captcha_site_key: {{ .Values.sunbird_google_captcha_site_key | quote }}
   sunbird_google_desktop_keycloak_client_id: {{ .Values.sunbird_google_desktop_keycloak_client_id }}
   sunbird_google_desktop_keycloak_secret: {{ .Values.sunbird_google_desktop_keycloak_secret }}
   sunbird_google_keycloak_client_id: {{ .Values.sunbird_google_keycloak_client_id }}
@@ -156,7 +172,6 @@ data:
   sunbird_health_check_enable: {{ .Values.sunbird_health_check_enable | quote }}
   sunbird_help_link_visibility: {{ .Values.sunbird_help_link_visibility | quote}}
   sunbird_instance: {{ .Values.sunbird_instance }}
-  sunbird_keycloak_public_key: {{ .Values.sunbird_keycloak_public_key }}
   sunbird_kong_device_register: {{ .Values.sunbird_kong_device_register | quote }}
   sunbird_kong_device_register_anonymous: {{ .Values.sunbird_kong_device_register_anonymous | quote}}
   sunbird_kong_refresh_token_api: {{ .Values.sunbird_kong_refresh_token_api }}
