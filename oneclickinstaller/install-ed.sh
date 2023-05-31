@@ -147,21 +147,72 @@ postscript() {
 LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for api-admin is")
 # Extract the JWT token from the logs
 TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
-
 # Print the tokens
 echo "JWT token for api-admin:"
 echo "$TOKEN"
 
+LOGS1=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_loggedin_register is")
+# Extract the JWT token from the logs
+LOGGEDIN_TOKEN=$(echo $LOGS1 | grep -oP "(?<=: ).*")
+# Print the tokens
+echo "JWT token for portal_loggedin_register:"
+echo "$LOGGEDIN_TOKEN"
 
-echo "LEARNER_API_AUTH_KEY: \"$TOKEN\"" >> global-values.yaml
-echo "sunbird_anonymous_register_token: \"$TOKEN\"" >> global-values.yaml
-echo "sunbird_loggedin_register_token: \"$TOKEN\"" >> global-values.yaml
-echo "sunbird_anonymous_default_token: \"$TOKEN\"" >> global-values.yaml
-echo "sunbird_logged_default_token: \"$TOKEN\"" >> global-values.yaml
+LOGS2=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_anonymous_register is")
+# Extract the JWT token from the logs
+ANONYMOUS_TOKEN=$(echo $LOGS2 | grep -oP "(?<=: ).*")
+# Print the tokens
+echo "JWT token for portal_anonymous_register:"
+echo "$ANONYMOUS_TOKEN"
+
+LOGS3=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_loggedin is")
+# Extract the JWT token from the logs
+PORTAL_LOGGEDIN_TOKEN=$(echo $LOGS3 | grep -oP "(?<=: ).*")
+# Print the tokens
+echo "JWT token for portal_loggedin:"
+echo "$PORTAL_LOGGEDIN_TOKEN"
+
+LOGS4=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_anonymous is")
+# Extract the JWT token from the logs
+PORTAL_ANONYMOUS_TOKEN=$(echo $LOGS4 | grep -oP "(?<=: ).*")
+# Print the tokens
+echo "JWT token for portal_anonymous:"
+echo "$PORTAL_ANONYMOUS_TOKEN"
+
+LOGS5=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for adminutil_learner_api_key is")
+# Extract the JWT token from the logs
+ADMINUTIL_LEARNER_TOKEN=$(echo $LOGS5 | grep -oP "(?<=: ).*")
+# Print the tokens
+echo "JWT token for adminutil_learner_api_key:"
+echo "$ADMINUTIL_LEARNER_TOKEN"
+
 echo "core_vault_sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
 echo "sunbird_api_auth_token: \"$TOKEN\"" >> global-values.yaml
 echo "ekstep_authorization: \"$TOKEN\"" >> global-values.yaml
 echo "sunbird_authorization: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_content_repo_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_language_service_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_learner_service_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_dial_repo_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_search_service_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_plugin_repo_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_data_service_api_key: \"$TOKEN\"" >> global-values.yaml
+echo "sunbird_loggedin_register_token: \"$LOGGEDIN_TOKEN\"" >> global-values.yaml
+echo "sunbird_anonymous_register_token: \"$ANONYMOUS_TOKEN\"" >> global-values.yaml
+echo "sunbird_logged_default_token: \"$PORTAL_LOGGEDIN_TOKEN\"" >> global-values.yaml
+echo "sunbird_anonymous_default_token: \"$PORTAL_ANONYMOUS_TOKEN\"" >> global-values.yaml
+echo "LEARNER_API_AUTH_KEY: \"$ADMINUTIL_LEARNER_TOKEN\"" >> global-values.yaml
+
+# Add consumer for portal_loggedin
+apimanagerpod=$(kubectl get pods --selector=app=apimanager -n $namespace | awk 'NR==2{print $1}')
+kubectl port-forward $apimanagerpod 8001:8001 -n $namespace &
+port_forward_pid=$!
+cd keys
+keys=("portal_loggedin_key1" "portal_loggedin_key2")
+for key in "${keys[@]}"; do
+  curl -XPOST http://localhost:8001/consumers/portal_loggedin/jwt -F "key=$key" -F "algorithm=RS256" -F "rsa_public_key=@$key"
+done
+kill $port_forward_pid
 
     # Loop through each line in the CSV file
         while IFS=',' read -r chart_name chart_repo; do
