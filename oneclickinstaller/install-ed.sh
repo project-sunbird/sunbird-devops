@@ -204,14 +204,13 @@ echo "sunbird_anonymous_default_token: \"$PORTAL_ANONYMOUS_TOKEN\"" >> global-va
 echo "LEARNER_API_AUTH_KEY: \"$ADMINUTIL_LEARNER_TOKEN\"" >> global-values.yaml
 
 # Add consumer for portal_loggedin
-apimanagerpod=$(kubectl get pods --selector=app=apimanager -n $namespace | awk 'NR==2{print $1}')
-kubectl port-forward $apimanagerpod 8001:8001 -n $namespace &
+apimanagerpod=$(kubectl get pods --selector=app=apimanager -n dev | awk 'NR==2{print $1}')
+kubectl port-forward $apimanagerpod 8001:8001 -n dev &
 port_forward_pid=$!
 cd keys
-keys=("portal_loggedin_key1" "portal_loggedin_key2")
-for key in "${keys[@]}"; do
-  curl -XPOST http://localhost:8001/consumers/portal_loggedin/jwt -F "key=$key" -F "algorithm=RS256" -F "rsa_public_key=@$key"
-done
+curl -XPOST http://localhost:8001/consumers/portal_loggedin/jwt -F "key=portal_loggedin_key1" -F "algorithm=RS256" -F "rsa_public_key=@portal_loggedin_key1"
+curl -XPOST http://localhost:8001/consumers/portal_loggedin/jwt -F "key=portal_loggedin_key2" -F "algorithm=RS256" -F "rsa_public_key=@portal_loggedin_key2"
+cd -
 kill $port_forward_pid
 
     # Loop through each line in the CSV file
