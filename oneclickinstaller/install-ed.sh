@@ -206,6 +206,7 @@ echo "LEARNER_API_AUTH_KEY: \"$ADMINUTIL_LEARNER_TOKEN\"" >> global-values.yaml
 # Add consumer for portal_loggedin
 apimanagerpod=$(kubectl get pods --selector=app=apimanager -n dev | awk 'NR==2{print $1}')
 kubectl port-forward $apimanagerpod 8001:8001 -n dev &
+sleep 5
 port_forward_pid=$!
 cd keys
 curl -XPOST http://localhost:8001/consumers/portal_loggedin/jwt -F "key=portal_loggedin_key1" -F "algorithm=RS256" -F "rsa_public_key=@portal_loggedin_key1"
