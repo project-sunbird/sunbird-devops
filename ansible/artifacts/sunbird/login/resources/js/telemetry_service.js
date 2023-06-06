@@ -2488,6 +2488,8 @@ if (window.location.origin.indexOf("diksha.gov.in") >= 0) {
   tenantSlug = "sunbird";
 } else {
   pdataId = "preprod.diksha.portal";
+  tenantSlug = "sunbird";
+
 }
 
 let curUrlObj = window.location;
@@ -2506,7 +2508,7 @@ if(client_id.toLowerCase() === 'android'){
     "telemetry": {
       "pdata": {
         "id": pdataId,
-        "ver": "5.2.0",
+        "ver": "6.0.0",
         "pid": "sunbird-portal"
       }
     }
