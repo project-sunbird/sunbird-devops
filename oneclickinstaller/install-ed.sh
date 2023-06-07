@@ -244,6 +244,20 @@ kill $port_forward_pid
 }
 
 collection() {
+# Get the API key
+apikey=$(grep "core_vault_sunbird_api_auth_token" global-values.yaml | awk -F ":" '{if($1=="core_vault_sunbird_api_auth_token") print $2}' | awk '{print $1}')
+apikey="${apikey//\"/}"  # Remove quotes from the API key
+# Replace the API key in the JSON file using sed
+sed -i "s/Bearer \$apikey/$apikey/g" environment.json
+echo "API key replaced successfully."
+
+# Get the domain name
+domain=$(grep "domain" global-values.yaml | awk -F ":" '{if($1=="domain") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+# Append "https://" to the domain name
+url="https://$domain"
+# Replace the placeholder in the JSON file with the URL
+sed -i "s#\\\$domain#$url#g" environment.json
+echo "Domain name replaced successfully."  
   # Check if NVM is already installed
   if command -v nvm &>/dev/null; then
     echo "NVM is already installed"
@@ -272,10 +286,10 @@ collection() {
   fi
 
   # Check if files exist
-  if [ -f "postman/collection.json" ] && [ -f "postman/environment.json" ]; then
+  if [ -f "collection.json" ] && [ -f "environment.json" ]; then
     # Execute Newman command
     echo "Executing Newman command..."
-    newman run postman/collection.json -e environment.json
+    newman run collection.json -e environment.json
   else
     echo "File not found in the 'postman' folder"
     exit 1
