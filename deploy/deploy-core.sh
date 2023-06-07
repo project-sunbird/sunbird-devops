@@ -34,7 +34,7 @@ ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird"
 
 # Re-deploy UserOrg service
 echo "Redeploy UserOrg service"
-ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=userorg-service image_tag=${USERORG_SERVICE_VERSION} service_name=userorg-service deploy_user_org=True  sunbird_api_auth_token=${sunbird_api_auth_token} vault_badging_authorization_key=${badger_token}" --extra-vars @config.yml -v
+ansible-playbook -i $INVENTORY_PATH ../ansible/deploy.yml --tags "stack-sunbird" --extra-vars "hub_org=${ORG} image_name=userorg-service image_tag=${USERORG_SERVICE_VERSION} service_name=userorg-service deploy_userorg=True  sunbird_api_auth_token=${sunbird_api_auth_token} vault_badging_authorization_key=${badger_token}" --extra-vars @config.yml -v
 
 # Re-deploy Content service
 echo "Redeploy content service"
