@@ -4,7 +4,7 @@ namespace="dev"
 
 # Check if kubeconfig file is provided as argument
 if [[ $# -eq 0 ]]; then
-  echo "Usage: $0 [kubeconfig_file] [ed-install | postscript]"
+  echo "Usage: $0 [kubeconfig_file] [ed-install | collection | postscript]"
   exit 1
 else
   kubeconfig_file=$1
@@ -115,7 +115,7 @@ sleep 120
 ### Trigger Knowlg Installer
 ./install-knowlg.sh $kubeconfig_file
 ### Upload the plugins and editors ####
-./upload-plugins.sh 
+# ./upload-plugins.sh 
 
   while IFS=',' read -r chart_name chart_repo; do
     # Check if the chart repository URL is empty
@@ -150,10 +150,6 @@ TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
 # Print the tokens
 echo "JWT token for api-admin:"
 echo "$TOKEN"
-
-
---since=1h
-kubectl logs --since=1h job-name=onboardapi -n dev
 
 LOGS1=$(kubectl logs -l job-name=onboardconsumer -n dev --tail=10000| grep -E "JWT token for portal_loggedin_register is")
 # Extract the JWT token from the logs
@@ -240,6 +236,44 @@ kill $port_forward_pid
         done < postscript.csv
 }
 
+collection() {
+  # Check if NVM is already installed
+  if command -v nvm &>/dev/null; then
+    echo "NVM is already installed"
+  else
+    # Install NVM if not present
+    echo "Installing NVM..."
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    echo "NVM installed"
+  fi
+
+  # Install Node.js version 12
+  echo "Installing Node.js version 12..."
+  nvm install 12
+  nvm use 12
+
+  # Check if Newman is already installed
+  if command -v newman &>/dev/null; then
+    echo "Newman is already installed"
+  else
+    # Install Newman if not present
+    echo "Installing Newman..."
+    npm install -g newman
+    echo "Newman installed"
+  fi
+
+  # Check if files exist
+  if [ -f "postman/collection.json" ] && [ -f "postman/environment.json" ]; then
+    # Execute Newman command
+    echo "Executing Newman command..."
+    newman run postman/collection.json -e environment.json
+  else
+    echo "File not found in the 'postman' folder"
+    exit 1
+  fi
+}
 
 # Parse the command-line arguments
 case "$2" in
@@ -249,9 +283,12 @@ case "$2" in
   postscript)
     postscript "$2"
     ;;  
+  collection)
+    collection "$3"
+    ;;  
   *)
     echo "Unknown command: $1"
-    echo "Usage: $0 [kubeconfig_file] [-i] [ed-install | postscript] "
+    echo "Usage: $0 [kubeconfig_file] [-i] [ed-install |  collection | postscript] "
     exit 1
     ;;
 esac
