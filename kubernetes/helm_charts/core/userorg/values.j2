@@ -1,32 +1,72 @@
-### Default variable file for userorg-service ###
+
+### Default variable file for user-org-service ###
 
 namespace: {{ namespace }}
 imagepullsecrets: {{ imagepullsecrets }}
 dockerhub: {{ dockerhub }}
 
-replicaCount: {{userorg_replicacount|default(1)}}
-repository: {{userorg_repository|default('user_org_service')}}
+env:
+  javaoptions: {{learner_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{learner_replicacount|default(1)}}
+repository: {{learner_repository|default('user-org-service')}}
 image_tag: {{ image_tag }}
 resources:
   requests:
-    cpu: {{userorg_cpu_req|default('100m')}}
-    memory: {{userorg_mem_req|default('100Mi')}}
+    cpu: {{learner_cpu_req|default('100m')}}
+    memory: {{learner_mem_req|default('100Mi')}}
   limits:
-    cpu: {{userorg_cpu_limit|default('1')}}
-    memory: {{userorg_mem_limit|default('1024Mi')}}
+    cpu: {{learner_cpu_limit|default('1')}}
+    memory: {{learner_mem_limit|default('1024Mi')}}
 network:
-  port: 9008
+  port: 9000
   targetport: 9000
 strategy:
   type: RollingUpdate
-  maxsurge: {{ userorg_maxsurge|default('25%') }}
-  maxunavailable: {{ userorg_maxunavailable|default('25%') }}
+  maxsurge: {{ learner_maxsurge|default('25%') }}
+  maxunavailable: {{ learner_maxunavailable|default('25%') }}
 
-{{ userorg_liveness_readiness | to_nice_yaml }}
+{{ learner_liveness_readiness | to_nice_yaml }}
+{{ opa_liveness_readiness | to_nice_yaml }}
+{{ envoy_liveness_readiness | to_nice_yaml }}
+
+learner_opa_enabled: {{ learner_opa_enabled | default('true') }}
+
+envoy_resources:
+  requests:
+    cpu: "{{ learner_envoy_cpu_req | default('100m') }}"
+    memory: "{{ learner_envoy_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ learner_envoy_cpu_limit | default('1') }}"
+    memory: "{{ learner_envoy_mem_limit | default('1024Mi') }}"
+
+opa_resources:
+  requests:
+    cpu: "{{ learner_opa_cpu_req | default('100m') }}"
+    memory: "{{ learner_opa_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ learner_opa_cpu_limit | default('1') }}"
+    memory: "{{ learner_opa_mem_limit | default('1024Mi') }}"
+
+initcontainer_resources:
+  requests:
+    cpu: "{{ learner_initcontainer_cpu_req | default('100m') }}"
+    memory: "{{ learner_initcontainer_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ learner_initcontainer_cpu_limit | default('100m') }}"
+    memory: "{{ learner_initcontainer_mem_limit | default('100Mi') }}"
+
+learner_access_basepath: {{ learner_access_basepath | default('/keys/') }}
+
+serviceMonitor:
+  enabled: true
+  labels: # labels with which the prometheus choose the serviceMonitor
+    app: prometheus-operator
+    release: prometheus-operator
 
 autoscaling:
-  enabled: {{ userorg_autoscaling_enabled | default('false') }}
-  minReplicas: {{ userorg_autoscaling_minReplicas|default(1) }}
-  maxReplicas: {{ userorg_autoscaling_maxReplicas|default(2) }}
-  targetCPUUtilizationPercentage: {{ userorg_autoscaling_targetCPUUtilizationPercentage|default(60) }}
-  targetMemoryUtilizationPercentage: {{ userorg_autoscaling_targetMemoryUtilizationPercentage|default('') }}
+  enabled: {{ learner_autoscaling_enabled | default('false') }}
+  minReplicas: {{ learner_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ learner_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ learner_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ learner_autoscaling_targetMemoryUtilizationPercentage|default('') }}
