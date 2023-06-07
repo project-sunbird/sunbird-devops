@@ -115,7 +115,7 @@ sleep 120
 ### Trigger Knowlg Installer
 ./install-knowlg.sh $kubeconfig_file
 ### Upload the plugins and editors ####
-# ./upload-plugins.sh 
+./upload-plugins.sh 
 
   while IFS=',' read -r chart_name chart_repo; do
     # Check if the chart repository URL is empty
@@ -143,6 +143,13 @@ sleep 120
 }
 
 postscript() {
+neo4j=$(kubectl get pods -l app=neo4j -n dev -o jsonpath='{.items[0].metadata.name}')
+kubectl -n dev exec -it $neo4j -c neo4j -- bash -c "bin/cypher-shell <<EOF
+CREATE CONSTRAINT ON (domain:domain) ASSERT domain.IL_UNIQUE_ID IS UNIQUE;
+CREATE INDEX ON :domain(IL_FUNC_OBJECT_TYPE);
+CREATE INDEX ON :domain(IL_SYS_NODE_TYPE);
+EOF"
+
 # Get the job logs and search for the tokens for onboardconsumer
 LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev --tail=10000 | grep -E "JWT token for api-admin is")
 # Extract the JWT token from the logs
