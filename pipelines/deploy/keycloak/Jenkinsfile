@@ -25,6 +25,17 @@ node() {
                     values.put('artifact', artifact)
                     artifact_download(values)
                 }
+                    stage('Customize Artifacts') {
+                    if (params.Customization_Artifacts== 'null') {
+                        println("Skipping artifacts customization ")
+                    } else {
+                      sh """
+                      git clone --recurse-submodules ${Customization_Artifacts} keycloak-artifacts
+                      cp -r ${currentWs}/keycloak-artifacts/SB-Devops/ansible/artifacts/sunbird/. ${currentWs}/ansible/artifacts/sunbird
+                      """
+                    }
+                }
+
                     stage('deploy artifact') {
                     ansiblePlaybook = "${currentWs}/ansible/keycloak.yml"
                     ansibleExtraArgs = """\
