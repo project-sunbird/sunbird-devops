@@ -57,7 +57,7 @@ submitDataExhaustRequest {
   roles :=["PROGRAM_MANAGER", "PROGRAM_DESIGNER"]
   super.acls_check(acls)
   super.role_check(roles)
-  input.parsed_body.request.dataset in ["druid-dataset"]
+  input.parsed_body.request.dataset in ["druid-dataset","program-user-exhaust"]
   x_channel_id
   x_authenticated_userid == super.userid
 }
