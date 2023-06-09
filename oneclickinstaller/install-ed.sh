@@ -210,6 +210,7 @@ echo "sunbird_logged_default_token: \"$PORTAL_LOGGEDIN_TOKEN\"" >> global-values
 echo "sunbird_anonymous_default_token: \"$PORTAL_ANONYMOUS_TOKEN\"" >> global-values.yaml
 echo "LEARNER_API_AUTH_KEY: \"$ADMINUTIL_LEARNER_TOKEN\"" >> global-values.yaml
 
+
 # Add consumer for portal_loggedin
 apimanagerpod=$(kubectl get pods --selector=app=apimanager -n dev | awk 'NR==2{print $1}')
 kubectl port-forward $apimanagerpod 8001:8001 -n dev &
@@ -220,6 +221,22 @@ curl -XPOST http://localhost:8001/consumers/portal_loggedin/jwt -F "key=portal_l
 curl -XPOST http://localhost:8001/consumers/portal_loggedin/jwt -F "key=portal_loggedin_key2" -F "algorithm=RS256" -F "rsa_public_key=@portal_loggedin_key2"
 cd -
 kill $port_forward_pid
+
+
+# Add elasticearch mapping for 
+espod=$(kubectl get pods --selector=app=master -n dev | awk 'NR==2{print $1}')
+kubectl port-forward $espod 9200:9200 -n dev &
+sleep 5
+port_forward_pid=$!
+helm pull https://sunbirdartifact.blob.core.windows.net/easyinstaller/elasticsearch-init-0.1.0.tgz --untar=true
+sleep 5
+cd elasticsearch-init/indices  
+curl -X DELETE 'http://localhost:9200/compositesearch'                                            
+curl  -X PUT http://localhost:9200/compositesearch -H 'Content-Type: application/json' -d @compositesearch.json
+cd ../mappings                                                                                                 
+curl  -X PUT http://localhost:9200/compositesearch/_mapping/cs -H 'Content-Type: application/json' -d @compositesearch-mapping.json
+kill $port_forward_pid
+cd ../../
 
     # Loop through each line in the CSV file
         while IFS=',' read -r chart_name chart_repo; do
@@ -291,7 +308,7 @@ echo "Domain name replaced successfully."
     echo "Executing Newman command..."
     newman run collection.json -e environment.json
   else
-    echo "File not found in the 'postman' folder"
+    echo "File not found"
     exit 1
   fi
 }
