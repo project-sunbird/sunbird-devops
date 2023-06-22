@@ -4,7 +4,7 @@ namespace="dev"
 
 # Check if kubeconfig file is provided as argument
 if [[ $# -eq 0 ]]; then
-  echo "Usage: $0 [kubeconfig_file] [ed-install | postscript]"
+  echo "Usage: $0 [kubeconfig_file] [ed-install | collection | postscript]"
   exit 1
 else
   kubeconfig_file=$1
@@ -143,43 +143,50 @@ sleep 120
 }
 
 postscript() {
+neo4j=$(kubectl get pods -l app=neo4j -n dev -o jsonpath='{.items[0].metadata.name}')
+kubectl -n dev exec -it $neo4j -c neo4j -- bash -c "bin/cypher-shell <<EOF
+CREATE CONSTRAINT ON (domain:domain) ASSERT domain.IL_UNIQUE_ID IS UNIQUE;
+CREATE INDEX ON :domain(IL_FUNC_OBJECT_TYPE);
+CREATE INDEX ON :domain(IL_SYS_NODE_TYPE);
+EOF"
+
 # Get the job logs and search for the tokens for onboardconsumer
-LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for api-admin is")
+LOGS=$(kubectl logs -l job-name=onboardconsumer -n dev --tail=10000 | grep -E "JWT token for api-admin is")
 # Extract the JWT token from the logs
 TOKEN=$(echo $LOGS | grep -oP "(?<=: ).*")
 # Print the tokens
 echo "JWT token for api-admin:"
 echo "$TOKEN"
 
-LOGS1=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_loggedin_register is")
+LOGS1=$(kubectl logs -l job-name=onboardconsumer -n dev --tail=10000| grep -E "JWT token for portal_loggedin_register is")
 # Extract the JWT token from the logs
 LOGGEDIN_TOKEN=$(echo $LOGS1 | grep -oP "(?<=: ).*")
 # Print the tokens
 echo "JWT token for portal_loggedin_register:"
 echo "$LOGGEDIN_TOKEN"
 
-LOGS2=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_anonymous_register is")
+LOGS2=$(kubectl logs -l job-name=onboardconsumer -n dev --tail=10000 | grep -E "JWT token for portal_anonymous_register is")
 # Extract the JWT token from the logs
 ANONYMOUS_TOKEN=$(echo $LOGS2 | grep -oP "(?<=: ).*")
 # Print the tokens
 echo "JWT token for portal_anonymous_register:"
 echo "$ANONYMOUS_TOKEN"
 
-LOGS3=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_loggedin is")
+LOGS3=$(kubectl logs -l job-name=onboardconsumer -n dev --tail=10000 | grep -E "JWT token for portal_loggedin is")
 # Extract the JWT token from the logs
 PORTAL_LOGGEDIN_TOKEN=$(echo $LOGS3 | grep -oP "(?<=: ).*")
 # Print the tokens
 echo "JWT token for portal_loggedin:"
 echo "$PORTAL_LOGGEDIN_TOKEN"
 
-LOGS4=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for portal_anonymous is")
+LOGS4=$(kubectl logs -l job-name=onboardconsumer -n dev --tail=10000 | grep -E "JWT token for portal_anonymous is")
 # Extract the JWT token from the logs
 PORTAL_ANONYMOUS_TOKEN=$(echo $LOGS4 | grep -oP "(?<=: ).*")
 # Print the tokens
 echo "JWT token for portal_anonymous:"
 echo "$PORTAL_ANONYMOUS_TOKEN"
 
-LOGS5=$(kubectl logs -l job-name=onboardconsumer -n dev | grep -E "JWT token for adminutil_learner_api_key is")
+LOGS5=$(kubectl logs -l job-name=onboardconsumer -n dev --tail=10000 | grep -E "JWT token for adminutil_learner_api_key is")
 # Extract the JWT token from the logs
 ADMINUTIL_LEARNER_TOKEN=$(echo $LOGS5 | grep -oP "(?<=: ).*")
 # Print the tokens
@@ -203,16 +210,33 @@ echo "sunbird_logged_default_token: \"$PORTAL_LOGGEDIN_TOKEN\"" >> global-values
 echo "sunbird_anonymous_default_token: \"$PORTAL_ANONYMOUS_TOKEN\"" >> global-values.yaml
 echo "LEARNER_API_AUTH_KEY: \"$ADMINUTIL_LEARNER_TOKEN\"" >> global-values.yaml
 
+
 # Add consumer for portal_loggedin
-apimanagerpod=$(kubectl get pods --selector=app=apimanager -n $namespace | awk 'NR==2{print $1}')
-kubectl port-forward $apimanagerpod 8001:8001 -n $namespace &
+apimanagerpod=$(kubectl get pods --selector=app=apimanager -n dev | awk 'NR==2{print $1}')
+kubectl port-forward $apimanagerpod 8001:8001 -n dev &
+sleep 5
 port_forward_pid=$!
 cd keys
-keys=("portal_loggedin_key1" "portal_loggedin_key2")
-for key in "${keys[@]}"; do
-  curl -XPOST http://localhost:8001/consumers/portal_loggedin/jwt -F "key=$key" -F "algorithm=RS256" -F "rsa_public_key=@$key"
-done
+curl -XPOST http://localhost:8001/consumers/portal_loggedin/jwt -F "key=portal_loggedin_key1" -F "algorithm=RS256" -F "rsa_public_key=@portal_loggedin_key1"
+curl -XPOST http://localhost:8001/consumers/portal_loggedin/jwt -F "key=portal_loggedin_key2" -F "algorithm=RS256" -F "rsa_public_key=@portal_loggedin_key2"
+cd -
 kill $port_forward_pid
+
+
+# Add elasticearch mapping for 
+espod=$(kubectl get pods --selector=app=master -n dev | awk 'NR==2{print $1}')
+kubectl port-forward $espod 9200:9200 -n dev &
+sleep 5
+port_forward_pid=$!
+helm pull https://sunbirdartifact.blob.core.windows.net/easyinstaller/elasticsearch-init-0.1.0.tgz --untar=true
+sleep 5
+cd elasticsearch-init/indices  
+curl -X DELETE 'http://localhost:9200/compositesearch'                                            
+curl  -X PUT http://localhost:9200/compositesearch -H 'Content-Type: application/json' -d @compositesearch.json
+cd ../mappings                                                                                                 
+curl  -X PUT http://localhost:9200/compositesearch/_mapping/cs -H 'Content-Type: application/json' -d @compositesearch-mapping.json
+kill $port_forward_pid
+cd ../../
 
     # Loop through each line in the CSV file
         while IFS=',' read -r chart_name chart_repo; do
@@ -236,6 +260,58 @@ kill $port_forward_pid
         done < postscript.csv
 }
 
+collection() {
+# Get the API key
+apikey=$(grep "core_vault_sunbird_api_auth_token" global-values.yaml | awk -F ":" '{if($1=="core_vault_sunbird_api_auth_token") print $2}' | awk '{print $1}')
+apikey="${apikey//\"/}"  # Remove quotes from the API key
+# Replace the API key in the JSON file using sed
+sed -i "s/Bearer \$apikey/$apikey/g" environment.json
+echo "API key replaced successfully."
+
+# Get the domain name
+domain=$(grep "domain" global-values.yaml | awk -F ":" '{if($1=="domain") print $2}' | awk '{print $1}' | sed 's/^.\(.*\).$/\1/')
+# Append "https://" to the domain name
+url="https://$domain"
+# Replace the placeholder in the JSON file with the URL
+sed -i "s#\\\$domain#$url#g" environment.json
+echo "Domain name replaced successfully."  
+  # Check if NVM is already installed
+  if command -v nvm &>/dev/null; then
+    echo "NVM is already installed"
+  else
+    # Install NVM if not present
+    echo "Installing NVM..."
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    echo "NVM installed"
+  fi
+
+  # Install Node.js version 12
+  echo "Installing Node.js version 12..."
+  nvm install 12
+  nvm use 12
+
+  # Check if Newman is already installed
+  if command -v newman &>/dev/null; then
+    echo "Newman is already installed"
+  else
+    # Install Newman if not present
+    echo "Installing Newman..."
+    npm install -g newman
+    echo "Newman installed"
+  fi
+
+  # Check if files exist
+  if [ -f "collection.json" ] && [ -f "environment.json" ]; then
+    # Execute Newman command
+    echo "Executing Newman command..."
+    newman run collection.json -e environment.json
+  else
+    echo "File not found"
+    exit 1
+  fi
+}
 
 # Parse the command-line arguments
 case "$2" in
@@ -245,9 +321,12 @@ case "$2" in
   postscript)
     postscript "$2"
     ;;  
+  collection)
+    collection "$3"
+    ;;  
   *)
     echo "Unknown command: $1"
-    echo "Usage: $0 [kubeconfig_file] [-i] [ed-install | postscript] "
+    echo "Usage: $0 [kubeconfig_file] [-i] [ed-install |  collection | postscript] "
     exit 1
     ;;
 esac
