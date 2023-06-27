@@ -1,0 +1,65 @@
+---
+
+- name: Ensure Scripts Directory Exists
+  file:
+    path: "{{ BASEPATH }}"
+    state: directory
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+
+- name: Git checkout
+  git:
+    repo: 'https://github.com/shikshalokam/sl-sunbird-implementation-utils.git'
+    dest: "{{ BASEPATH }}"
+    version: "{{ ml_scripts_version }}"
+    depth: "1"
+    force: yes
+
+- name: Ensure config Directory Exists
+  file:
+    path: "{{ BASEPATH }}/common_config"
+    state: directory
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+
+- name: Save config file
+  template: src=config.ini dest="{{ BASEPATH }}/common_config/config.ini" mode=0644
+
+- name: Remove existing input file
+  file: path="{{ BASEPATH }}/input.xlsx" state=absent
+  
+- name: CHANGE THE OWNERSHIP FOR THIS {{ BASEPATH }} DIRECTORY
+  file:
+    path: "{{ item }}"
+    mode: "0755"
+    recurse: yes
+    state: directory
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+  loop:
+    - "{{ BASEPATH }}"
+    
+- name: Delete the virtualenv DIR
+  shell: "rm -rf {{ BASEPATH }}/spark2_venv"
+  become: true
+  ignore_errors: true
+  
+- name: Install python virtual environment
+  shell: "cd {{ BASEPATH }} && virtualenv --python=python3.8 spark2_venv"
+  become: true
+  
+- name: Install packages from requirement.txt
+  pip:
+    virtualenv: "{{ BASEPATH }}/spark2_venv"
+    virtualenv_python: python3.8
+    requirements: "{{ BASEPATH }}/requirements.txt"
+    
+- name: Change the ownership of virtual env
+  become: yes
+  file:
+    path: "{{ BASEPATH }}/spark2_venv"
+    state: directory
+    recurse: yes
+    owner: "{{ USER }}"
+    group: "{{ USER }}"
+    mode: "0755"

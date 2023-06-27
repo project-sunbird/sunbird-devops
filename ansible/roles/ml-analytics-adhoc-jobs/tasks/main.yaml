@@ -105,10 +105,17 @@
   tags:
     - project-ingest
 
+- name: Copy Input.xlsx
+  become: yes
+  become_user: data-pipeline
+  copy: src={{env.WORKSPACE}}/input.xlsx dest="{{ BASEPATH }}/input.xlsx" force=true
+  tags:
+    - upload-input
+
 - name: Execute the Script
   become: yes
   become_user: data-pipeline
-  shell: "source {{ BASEPATH }}/spark2_venv/bin/activate && python3 main.py --env ${env} --programFile input.xlsx"
+  shell: "source {{ BASEPATH }}/spark2_venv/bin/activate && python3 main.py --env {{env}} --programFile input.xlsx"
   register: out
   args:
     chdir: "{{ BASEPATH }}"
