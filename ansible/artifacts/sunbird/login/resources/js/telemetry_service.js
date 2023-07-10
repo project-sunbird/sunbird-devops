@@ -2530,7 +2530,7 @@ if(client_id.toLowerCase() === 'android'){
         request: {
           filters: {
             isTenant: true,
-            slug: id || 'ntp'
+            slug: id || 'sunbird'
           }
         }
       }),
