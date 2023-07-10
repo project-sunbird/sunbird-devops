@@ -2477,19 +2477,14 @@ if (typeof module != 'undefined') {
 
 let pdataId = "";
 let tenantSlug;
-if (window.location.origin.indexOf("diksha.gov.in") >= 0) {
-  pdataId = "prod.diksha.portal";
-} else if (window.location.origin.indexOf("staging.ntp.net.in") >= 0) {
-  pdataId = "staging.diksha.portal";
-} else if (window.location.origin.indexOf("staging.sunbirded.org") >= 0) {
+if (window.location.origin.indexOf("staging.sunbirded.org") >= 0) {
   pdataId = "staging.diksha.portal";
 } else if (window.location.origin.indexOf("dev.sunbirded.org") >= 0) {
   pdataId = "dev.sunbird.portal";
   tenantSlug = "sunbird";
 } else {
-  pdataId = "preprod.diksha.portal";
   tenantSlug = "sunbird";
-
+  pdataId = "dev.sunbird.portal";
 }
 
 let curUrlObj = window.location;
