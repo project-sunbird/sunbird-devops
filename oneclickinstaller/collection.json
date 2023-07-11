@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "96d00aa4-b4f9-4757-a110-78d712647c3e",
-		"name": "Sunbird-ED Basic Configuration-Easeinstall",
+		"_postman_id": "7d30b9db-03ad-466f-aec2-6b7cfc4328b5",
+		"name": "Sunbird-ED Basic Configuration-easeinstall",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "27158998"
+		"_exporter_id": "27159009"
 	},
 	"item": [
 		{
@@ -160,7 +160,8 @@
 									"        const reqBody = JSON.parse(pm.request.body.raw)",
 									"        pm.environment.set(\"channel_name\", reqBody.request.channel);",
 									"    }",
-									"});"
+									"});",
+									"setTimeout(function(){}, [5000]);"
 								],
 								"type": "text/javascript"
 							}
@@ -202,80 +203,6 @@
 							]
 						},
 						"description": "Neo4JDefinationUpdate Job has to trigger (to get the schema data into DB).\n\nLearning service should be running.  \n\nUser-token should have below access to create Org\n\n``` json\n\n\n...\n\"realm_access\": {\n    \"roles\": [\n      \"offline_access\",\n      \"admin\",\n      \"uma_authorization\"\n    ]\n  },\n...\n\n```\n\n```\nlearner-b7d787c84-9jf7q learner {\"timestamp\":\"2023-03-16T12:36:00.312Z\",\"msg\":\"{\\\"eid\\\":\\\"LOG\\\",\\\"ets\\\":1678970160312,\\\"ver\\\":\\\"3.0\\\",\\\"mid\\\":\\\"33400b90b2efc5a71b12a51070b51410\\\",\\\"actor\\\":{\\\"id\\\":\\\"3fe60b97-b17a-4a18-95af-af2e4fef709c\\\",\\\"type\\\":\\\"User\\\"},\\\"context\\\":{\\\"channel\\\":\\\"ORG_001\\\",\\\"pdata\\\":{\\\"id\\\":\\\"dev.sunbird.learning.service\\\",\\\"pid\\\":\\\"learner-service\\\",\\\"ver\\\":\\\"5.0.0\\\"},\\\"env\\\":\\\"Organisation\\\",\\\"cdata\\\":[{\\\"id\\\":\\\"33400b90b2efc5a71b12a51070b51410\\\",\\\"type\\\":\\\"Request\\\"}],\\\"rollup\\\":{}},\\\"edata\\\":{\\\"level\\\":\\\"info\\\",\\\"type\\\":\\\"Api_access\\\",\\\"message\\\":\\\"Channel request data = {\\\\\\\"request\\\\\\\":{\\\\\\\"channel\\\\\\\":{\\\\\\\"code\\\\\\\":\\\\\\\"0137541260799262725\\\\\\\",\\\\\\\"name\\\\\\\":\\\\\\\"sunbird_test1\\\\\\\",\\\\\\\"description\\\\\\\":\\\\\\\"Default Organisation for Sunbird\\\\\\\"}}} for operation : create\\\",\\\"params\\\":[]}}\",\"lname\":\"TelemetryEventLogger\",\"tname\":\"application-akka.actor.rr-usr-dispatcher-132\",\"level\":\"INFO\",\"HOSTNAME\":\"learner-b7d787c84-9jf7q\",\"application.home\":\"/home/sunbird/learner/learning-service-1.0-SNAPSHOT\"}\n\n```"
-					},
-					"response": []
-				},
-				{
-					"name": "Sunbird",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// let jsonResponse = pm.response.json();",
-									"",
-									"// pm.test(\"Verify keys and data type of the response result\", () => {",
-									"//   pm.expect(jsonResponse.result).to.have.all.keys('identifier', 'node_id');",
-									"//   pm.expect(jsonResponse.result.identifier).to.be.a(\"string\");",
-									"//   pm.expect(jsonResponse.result.node_id).to.be.a(\"string\");",
-									"// });",
-									"",
-									"// //Validation",
-									"// pm.test(\"id should be api.channel.create\", function () {",
-									"//    pm.expect(jsonResponse.id).to.eql(\"api.channel.create\");",
-									"// });",
-									"// pm.test(\"ver should be 3.0\", function () {",
-									"//    pm.expect(jsonResponse.ver).to.eql(\"3.0\");",
-									"// });",
-									"",
-									"// // Set global variable",
-									"var channelId = pm.environment.get(\"channel_name\"); ",
-									"if (jsonResponse && jsonResponse.result && jsonResponse.result.identifier) {",
-									"    channelId = jsonResponse.result.identifier;",
-									"    pm.globals.set(\"default_channel\", channelId);",
-									"    pm.environment.set(\"channel_id\", channelId)",
-									"} else if(channelId) {",
-									"    pm.globals.set(\"default_channel\", channelId);",
-									"    pm.environment.set(\"channel_id\", channelId)",
-									"} else {",
-									"    console.error(\"There is not channel created.\")",
-									"}",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "{{kong_api_key}}",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"request\": {\n        \"channel\": {\n            \"name\": \"Sunbird Org\",\n            \"description\": \"Default Organisation for Sunbird\",\n            \"code\": \"{{channel_name}}\"\n        }\n    }\n}"
-						},
-						"url": {
-							"raw": "{{host}}/api/channel/v1/create",
-							"host": [
-								"{{host}}"
-							],
-							"path": [
-								"api",
-								"channel",
-								"v1",
-								"create"
-							]
-						}
 					},
 					"response": []
 				},
@@ -351,7 +278,7 @@
 					"response": []
 				},
 				{
-					"name": "Channel - Read",
+					"name": "X-Channel - Read(Optional)",
 					"event": [
 						{
 							"listen": "test",
@@ -530,6 +457,144 @@
 					"response": []
 				},
 				{
+					"name": "get setting - custodianOrgId Copy",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "x-authenticated-user-token",
+								"value": "{{keycloak_access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"request\" :\n\t\t{\n\t\t\t \"id\": \"custodianOrgId\",\n             \"field\": \"custodianOrgId\",\n             \"value\": \"{{channel_id}}\"\n\t}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/v1/system/settings/get/custodianOrgId\n",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"v1",
+								"system",
+								"settings",
+								"get",
+								"custodianOrgId\n"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get setting - custodianRootOrgId Copy",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "x-authenticated-user-token",
+								"value": "{{keycloak_access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\n\t\"request\" :\n\t\t{\n\t\t\t \"id\": \"custodianRootOrgId\",\n             \"field\": \"custodianRootOrgId\",\n             \"value\": \"{{channel_id}}\"\n\t}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/v1/system/settings/get/custodianRootOrgId\n",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"v1",
+								"system",
+								"settings",
+								"get",
+								"custodianRootOrgId\n"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get settings - custodianOrgChannel Copy",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"type": "text",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"key": "x-authenticated-user-token",
+								"value": "{{keycloak_access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\n\t\"request\" :\n\t\t{\n\t\t\t \"id\": \"custodianOrgChannel\",\n             \"field\": \"custodianOrgChannel\",\n             \"value\": \"{{channel_name}}\"\n\t}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/v1/system/settings/get/custodianOrgChannel\n",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"v1",
+								"system",
+								"settings",
+								"get",
+								"custodianOrgChannel\n"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "get all system settings-gsp-setup",
 					"request": {
 						"method": "GET",
@@ -576,7 +641,8 @@
 								"exec": [
 									"pm.test(\"Status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
-									"});"
+									"});",
+									"setTimeout(function(){}, [5000]);"
 								],
 								"type": "text/javascript"
 							}
@@ -605,7 +671,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"request\": {\n        \"firstName\": \"SunbirdOrgAdmin1\",\n        \"lastName\": \"\",\n        \"email\": \"SunbirdOrgAdmin1@yopmail.com\",\n        \"userName\": \"{{auth_username}}\",\n        \"password\": \"{{auth_password}}\",\n        \"emailVerified\":true,\n        \"DOB\":\"2001\",\n        \"channel\":\"{{channel_name}}\",\n        \"roles\": [\"ORG_ADMIN\", \"CONTENT_CREATOR\", \"CONTENT_REVIEWER\"]\n    }\n}"
+							"raw": "{\n    \"request\": {\n        \"firstName\": \"SunbirdOrgAdmin\",\n        \"lastName\": \"\",\n        \"email\": \"SunbirdOrgAdmin@yopmail.com\",\n        \"userName\": \"{{auth_username}}\",\n        \"password\": \"{{auth_password}}\",\n        \"emailVerified\":true,\n        \"dob\":\"2001\",\n        \"channel\":\"{{channel_name}}\",\n        \"roles\": [\"ORG_ADMIN\", \"CONTENT_CREATOR\", \"CONTENT_REVIEWER\"]\n    }\n}"
 						},
 						"url": {
 							"raw": "{{host}}/api/user/v1/create",
@@ -806,6 +872,48 @@
 					"response": []
 				},
 				{
+					"name": "User Create - BookCreator",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"description": "To make use of any User API, you require authorization. Raise a request to the administrator for the use of the API. You will receive the authorization key. Specify the key received, here.",
+								"key": "Authorization",
+								"value": "{{kong_api_key}}"
+							},
+							{
+								"description": "It is a unique token/key to authenticate the user each time an API is called. For corresponding sessions this token is used, not your actual username/password",
+								"key": "x-authenticated-user-token",
+								"value": "{{keycloak_access_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request\": {\n        \"firstName\": \"Content Creator\",\n        \"lastName\": \"\",\n        \"email\": \"contentcreator@yopmail.com\",\n        \"userName\": \"contentcreator\",\n        \"password\": \"Creator@123\",\n        \"emailVerified\": true,\n        \"dob\":\"2001\",\n        \"channel\": \"{{channel_name}}\",\n        \"roles\": [\"CONTENT_CREATOR\"]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{host}}/api/user/v1/create",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"v1",
+								"create"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "User Create - Content Reviewer",
 					"request": {
 						"auth": {
@@ -853,7 +961,7 @@
 			"name": "2-Knowlg",
 			"item": [
 				{
-					"name": "1-X-Create Channel",
+					"name": "1-Create Channel",
 					"item": [
 						{
 							"name": "Sunbird",
@@ -2072,6 +2180,288 @@
 											"body": "{\n    \"id\": \"api.object.category.create\",\n    \"ver\": \"3.0\",\n    \"ts\": \"2023-02-17T14:06:40ZZ\",\n    \"params\": {\n        \"resmsgid\": \"dfd429df-a07b-4267-be36-70ecf46b88dc\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"obj-cat:certificate-template\"\n    }\n}"
 										}
 									]
+								},
+								{
+									"name": "ObjectCategory - course new",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Authorization",
+												"value": "{{kong_api_key}}",
+												"type": "text"
+											},
+											{
+												"key": "X-Authenticated-User-token",
+												"value": "{{keycloak_access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"request\": {\n        \"objectCategory\": {\n            \"name\": \"course\",\n            \"description\": \"Course\"\n        }\n    }\n}"
+										},
+										"url": {
+											"raw": "{{host}}/api/object/category/v1/create",
+											"host": [
+												"{{host}}"
+											],
+											"path": [
+												"api",
+												"object",
+												"category",
+												"v1",
+												"create"
+											]
+										},
+										"description": "This is used as default for all asset types. Even for image updaload as well.  \n\n  \nTodo: This has to fix"
+									},
+									"response": [
+										{
+											"name": "ObjectCategory - Certificate Template",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json",
+														"type": "text"
+													},
+													{
+														"key": "Authorization",
+														"value": "{{kong_api_key}}",
+														"type": "text"
+													},
+													{
+														"key": "X-Authenticated-User-token",
+														"value": "{{keycloak_access_token}}",
+														"type": "text"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"request\": {\n        \"objectCategory\": {\n            \"name\": \"Certificate Template\",\n            \"description\": \"Certificate Template\"\n        }\n    }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/object/category/v1/create",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"object",
+														"category",
+														"v1",
+														"create"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Date",
+													"value": "Fri, 17 Feb 2023 14:06:40 GMT"
+												},
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Transfer-Encoding",
+													"value": "chunked"
+												},
+												{
+													"key": "Connection",
+													"value": "keep-alive"
+												},
+												{
+													"key": "Vary",
+													"value": "Accept-Encoding"
+												},
+												{
+													"key": "X-RateLimit-Limit-hour",
+													"value": "100"
+												},
+												{
+													"key": "X-RateLimit-Remaining-hour",
+													"value": "99"
+												},
+												{
+													"key": "Request-Time",
+													"value": "47"
+												},
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "*"
+												},
+												{
+													"key": "X-Kong-Upstream-Latency",
+													"value": "54"
+												},
+												{
+													"key": "X-Kong-Proxy-Latency",
+													"value": "5"
+												},
+												{
+													"key": "Via",
+													"value": "kong/0.14.1"
+												},
+												{
+													"key": "Content-Encoding",
+													"value": "gzip"
+												}
+											],
+											"cookie": [],
+											"body": "{\n    \"id\": \"api.object.category.create\",\n    \"ver\": \"3.0\",\n    \"ts\": \"2023-02-17T14:06:40ZZ\",\n    \"params\": {\n        \"resmsgid\": \"dfd429df-a07b-4267-be36-70ecf46b88dc\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"obj-cat:certificate-template\"\n    }\n}"
+										}
+									]
+								},
+								{
+									"name": "ObjectCategory - course Unit new",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Authorization",
+												"value": "{{kong_api_key}}",
+												"type": "text"
+											},
+											{
+												"key": "X-Authenticated-User-token",
+												"value": "{{keycloak_access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"request\": {\n        \"objectCategory\": {\n            \"name\": \"course\",\n            \"description\": \"Course\"\n        }\n    }\n}"
+										},
+										"url": {
+											"raw": "{{host}}/api/object/category/v1/create",
+											"host": [
+												"{{host}}"
+											],
+											"path": [
+												"api",
+												"object",
+												"category",
+												"v1",
+												"create"
+											]
+										},
+										"description": "This is used as default for all asset types. Even for image updaload as well.  \n\n  \nTodo: This has to fix"
+									},
+									"response": [
+										{
+											"name": "ObjectCategory - Certificate Template",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json",
+														"type": "text"
+													},
+													{
+														"key": "Authorization",
+														"value": "{{kong_api_key}}",
+														"type": "text"
+													},
+													{
+														"key": "X-Authenticated-User-token",
+														"value": "{{keycloak_access_token}}",
+														"type": "text"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"request\": {\n        \"objectCategory\": {\n            \"name\": \"Certificate Template\",\n            \"description\": \"Certificate Template\"\n        }\n    }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/object/category/v1/create",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"object",
+														"category",
+														"v1",
+														"create"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Date",
+													"value": "Fri, 17 Feb 2023 14:06:40 GMT"
+												},
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Transfer-Encoding",
+													"value": "chunked"
+												},
+												{
+													"key": "Connection",
+													"value": "keep-alive"
+												},
+												{
+													"key": "Vary",
+													"value": "Accept-Encoding"
+												},
+												{
+													"key": "X-RateLimit-Limit-hour",
+													"value": "100"
+												},
+												{
+													"key": "X-RateLimit-Remaining-hour",
+													"value": "99"
+												},
+												{
+													"key": "Request-Time",
+													"value": "47"
+												},
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "*"
+												},
+												{
+													"key": "X-Kong-Upstream-Latency",
+													"value": "54"
+												},
+												{
+													"key": "X-Kong-Proxy-Latency",
+													"value": "5"
+												},
+												{
+													"key": "Via",
+													"value": "kong/0.14.1"
+												},
+												{
+													"key": "Content-Encoding",
+													"value": "gzip"
+												}
+											],
+											"cookie": [],
+											"body": "{\n    \"id\": \"api.object.category.create\",\n    \"ver\": \"3.0\",\n    \"ts\": \"2023-02-17T14:06:40ZZ\",\n    \"params\": {\n        \"resmsgid\": \"dfd429df-a07b-4267-be36-70ecf46b88dc\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"obj-cat:certificate-template\"\n    }\n}"
+										}
+									]
 								}
 							],
 							"description": "[https://github.com/project-sunbird/knowledge-platform/blob/master/scripts/definition-scripts/master_category_create](https://github.com/project-sunbird/knowledge-platform/blob/master/scripts/definition-scripts/master_category_create)"
@@ -2612,6 +3002,432 @@
 											"body": "{\n    \"id\": \"api.object.category.definition.create\",\n    \"ver\": \"3.0\",\n    \"ts\": \"2023-02-17T14:08:23ZZ\",\n    \"params\": {\n        \"resmsgid\": \"f7f5df1b-cd9d-4d4b-a763-cb1dcfb895ea\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"obj-cat:certificate-template_asset_all\"\n    }\n}"
 										}
 									]
+								},
+								{
+									"name": "ObjectCategoryDefinition - Course new",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Authorization",
+												"value": "{{kong_api_key}}",
+												"type": "text"
+											},
+											{
+												"key": "X-Authenticated-User-token",
+												"value": "{{keycloak_access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"request\": {\n        \"objectCategoryDefinition\": {\n            \"categoryId\": \"obj-cat:course\",\n            \"targetObjectType\": \"Collection\",\n            \"objectMetadata\": {\n                \"config\": {},\n                \"schema\": {\n                    \"properties\": {\n                        \"trackable\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                                \"enabled\": {\n                                    \"type\": \"string\",\n                                    \"enum\": [\n                                        \"Yes\",\n                                        \"No\"\n                                    ],\n                                    \"default\": \"Yes\"\n                                },\n                                \"autoBatch\": {\n                                    \"type\": \"string\",\n                                    \"enum\": [\n                                        \"Yes\",\n                                        \"No\"\n                                    ],\n                                    \"default\": \"No\"\n                                }\n                            },\n                            \"default\": {\n                                \"enabled\": \"Yes\",\n                                \"autoBatch\": \"No\"\n                            },\n                            \"additionalProperties\": false\n                        },\n                        \"monitorable\": {\n                            \"type\": \"array\",\n                            \"items\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                    \"progress-report\",\n                                    \"score-report\"\n                                ]\n                            }\n                        },\n                        \"credentials\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                                \"enabled\": {\n                                    \"type\": \"string\",\n                                    \"enum\": [\n                                        \"Yes\",\n                                        \"No\"\n                                    ],\n                                    \"default\": \"Yes\"\n                                }\n                            },\n                            \"default\": {\n                                \"enabled\": \"Yes\"\n                            },\n                            \"additionalProperties\": false\n                        },\n                        \"userConsent\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                                \"Yes\",\n                                \"No\"\n                            ],\n                            \"default\": \"Yes\"\n                        },\n                        \"mimeType\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                                \"application/vnd.ekstep.content-collection\"\n                            ]\n                        },\n                        \"discussionForum\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                                \"enabled\": {\n                                    \"type\": \"string\",\n                                    \"enum\": [\n                                        \"Yes\",\n                                        \"No\"\n                                    ],\n                                    \"default\": \"Yes\"\n                                }\n                            },\n                            \"default\": {\n                                \"enabled\": \"Yes\"\n                            },\n                            \"additionalProperties\": false\n                        }\n                    }\n                }\n            },\n            \"forms\": {\n                \"create\": {\n                    \"templateName\": \"\",\n                    \"required\": [],\n                    \"properties\": [\n                        {\n                            \"name\": \"First Section\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"appIcon\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"appIcon of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"appIcon\",\n                                    \"label\": \"Icon\",\n                                    \"name\": \"Icon\",\n                                    \"placeholder\": \"Icon\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1 required\"\n                                    },\n                                    \"required\": true,\n                                    \"visible\": true\n                                },\n                                {\n                                    \"code\": \"name\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Name of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Title\",\n                                    \"name\": \"Name\",\n                                    \"placeholder\": \"Title\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1 required\"\n                                    },\n                                    \"required\": true,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"max\",\n                                            \"value\": \"120\",\n                                            \"message\": \"Input is Exceeded\"\n                                        },\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Title is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"description\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Description of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"textarea\",\n                                    \"label\": \"Description\",\n                                    \"name\": \"Description\",\n                                    \"placeholder\": \"Description\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"required\": false,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"max\",\n                                            \"value\": \"256\",\n                                            \"message\": \"Input is Exceeded\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"keywords\",\n                                    \"visible\": true,\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"name\": \"Keywords\",\n                                    \"renderingHints\": {\n                                        \"class\": \"\"\n                                    },\n                                    \"description\": \"Keywords for the content\",\n                                    \"inputType\": \"keywords\",\n                                    \"label\": \"Keywords\",\n                                    \"placeholder\": \"Enter Keywords\",\n                                    \"required\": false,\n                                    \"validations\": []\n                                }\n                            ]\n                        },\n                        {\n                            \"name\": \"Second Section\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"primaryCategory\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Type\",\n                                    \"editable\": false,\n                                    \"renderingHints\": {},\n                                    \"inputType\": \"select\",\n                                    \"label\": \"Category\",\n                                    \"name\": \"Type\",\n                                    \"placeholder\": \"\",\n                                    \"required\": true,\n                                    \"visible\": true,\n                                    \"validations\": []\n                                },\n                                {\n                                    \"code\": \"additionalCategories\",\n                                    \"dataType\": \"list\",\n                                    \"depends\": [\n                                        \"primaryCategory\"\n                                    ],\n                                    \"description\": \"Additonal Category of the Content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"nestedselect\",\n                                    \"label\": \"Additional Category\",\n                                    \"name\": \"Additional Category\",\n                                    \"placeholder\": \"Select Additional Category\",\n                                    \"renderingHints\": {},\n                                    \"required\": false,\n                                    \"visible\": true\n                                }\n                            ]\n                        },\n                        {\n                            \"name\": \"Organisation Framework Terms\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"framework\",\n                                    \"visible\": true,\n                                    \"editable\": true,\n                                    \"dataType\": \"text\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"\",\n                                    \"label\": \"Course Type\",\n                                    \"required\": false,\n                                    \"name\": \"Framework\",\n                                    \"inputType\": \"framework\",\n                                    \"placeholder\": \"Select Course Type\",\n                                    \"output\": \"identifier\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Course Type is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"subjectIds\",\n                                    \"visible\": true,\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"depends\": [\n                                        \"framework\"\n                                    ],\n                                    \"sourceCategory\": \"subject\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"\",\n                                    \"label\": \"Subjects covered in the course\",\n                                    \"required\": false,\n                                    \"name\": \"Subject\",\n                                    \"inputType\": \"frameworkCategorySelect\",\n                                    \"placeholder\": \"Select Subject(s)\",\n                                    \"output\": \"identifier\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Subjects Taught is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"topicsIds\",\n                                    \"visible\": true,\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"depends\": [\n                                        \"framework\",\n                                        \"subjectIds\"\n                                    ],\n                                    \"sourceCategory\": \"topic\",\n                                    \"renderingHints\": {},\n                                    \"name\": \"Topic\",\n                                    \"description\": \"Choose a Topics\",\n                                    \"inputType\": \"topicselector\",\n                                    \"label\": \"Topics covered in the course\",\n                                    \"placeholder\": \"Choose Topics\",\n                                    \"required\": false,\n                                    \"output\": \"identifier\"\n                                }\n                            ]\n                        },\n                        {\n                            \"name\": \"Target Framework Terms\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"audience\",\n                                    \"dataType\": \"list\",\n                                    \"description\": \"Audience\",\n                                    \"editable\": true,\n                                    \"inputType\": \"nestedselect\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"label\": \"Audience Type\",\n                                    \"name\": \"Audience Type\",\n                                    \"placeholder\": \"Select Audience Type\",\n                                    \"required\": false,\n                                    \"visible\": true,\n                                    \"range\": [\n                                        \"Student\",\n                                        \"Teacher\",\n                                        \"Parent\",\n                                        \"Administrator\"\n                                    ]\n                                },\n                                {\n                                    \"code\": \"targetBoardIds\",\n                                    \"visible\": true,\n                                    \"depends\": [],\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"sourceCategory\": \"board\",\n                                    \"output\": \"identifier\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"Board\",\n                                    \"label\": \"Board/Syllabus of the audience\",\n                                    \"required\": false,\n                                    \"name\": \"Board/Syllabus\",\n                                    \"inputType\": \"select\",\n                                    \"placeholder\": \"Select Board/Syllabus\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Board is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"targetMediumIds\",\n                                    \"visible\": true,\n                                    \"depends\": [\n                                        \"targetBoardIds\"\n                                    ],\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"sourceCategory\": \"medium\",\n                                    \"output\": \"identifier\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"\",\n                                    \"label\": \"Medium(s) of the audience\",\n                                    \"required\": false,\n                                    \"name\": \"Medium\",\n                                    \"inputType\": \"nestedselect\",\n                                    \"placeholder\": \"Select Medium\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Medium is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"targetGradeLevelIds\",\n                                    \"visible\": true,\n                                    \"depends\": [\n                                        \"targetBoardIds\",\n                                        \"targetMediumIds\"\n                                    ],\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"sourceCategory\": \"gradeLevel\",\n                                    \"output\": \"identifier\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"Class\",\n                                    \"label\": \"Class(es) of the audience\",\n                                    \"required\": false,\n                                    \"name\": \"Class\",\n                                    \"inputType\": \"nestedselect\",\n                                    \"placeholder\": \"Select Class\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Class is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"targetSubjectIds\",\n                                    \"visible\": true,\n                                    \"depends\": [\n                                        \"targetBoardIds\",\n                                        \"targetMediumIds\",\n                                        \"targetGradeLevelIds\"\n                                    ],\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"sourceCategory\": \"subject\",\n                                    \"output\": \"identifier\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"\",\n                                    \"label\": \"Subject(s) of the audience\",\n                                    \"required\": false,\n                                    \"name\": \"Subject\",\n                                    \"inputType\": \"nestedselect\",\n                                    \"placeholder\": \"Select Subject\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Subject is required\"\n                                        }\n                                    ]\n                                }\n                            ]\n                        },\n                        {\n                            \"name\": \"Fourth Section\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"author\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Author of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Author\",\n                                    \"name\": \"Author\",\n                                    \"placeholder\": \"Author\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"required\": false,\n                                    \"visible\": true\n                                },\n                                {\n                                    \"code\": \"attributions\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Attributions\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Attributions\",\n                                    \"name\": \"Attributions\",\n                                    \"placeholder\": \"Attributions\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"required\": false,\n                                    \"visible\": true\n                                },\n                                {\n                                    \"code\": \"copyright\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Copyright\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Copyright\",\n                                    \"name\": \"Copyright & year\",\n                                    \"placeholder\": \"Copyright\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1 required\"\n                                    },\n                                    \"required\": true,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Copyright is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"copyrightYear\",\n                                    \"dataType\": \"number\",\n                                    \"description\": \"Year\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Copyright Year\",\n                                    \"name\": \"Copyright Year\",\n                                    \"placeholder\": \"Copyright Year\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1 required\"\n                                    },\n                                    \"required\": true,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Copyright Year is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"license\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"license\",\n                                    \"editable\": true,\n                                    \"inputType\": \"select\",\n                                    \"label\": \"License\",\n                                    \"name\": \"license\",\n                                    \"placeholder\": \"Select License\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"required\": false,\n                                    \"visible\": true,\n                                    \"defaultValue\": \"CC BY 4.0\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"License is required\"\n                                        }\n                                    ]\n                                }\n                            ]\n                        }\n                    ]\n                },\n                \"relationalMetadata\": {\n                    \"templateName\": \"\",\n                    \"required\": [],\n                    \"properties\": [\n                        {\n                            \"code\": \"name\",\n                            \"dataType\": \"text\",\n                            \"description\": \"Name of the content\",\n                            \"editable\": true,\n                            \"inputType\": \"text\",\n                            \"label\": \"Name of the content\",\n                            \"name\": \"Name of the content\",\n                            \"placeholder\": \"Name of the content\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1 required\"\n                            },\n                            \"required\": true,\n                            \"visible\": true,\n                            \"validations\": [\n                                {\n                                    \"type\": \"maxLength\",\n                                    \"value\": \"120\",\n                                    \"message\": \"Input is Exceeded\"\n                                },\n                                {\n                                    \"type\": \"required\",\n                                    \"message\": \"Name is required\"\n                                }\n                            ]\n                        },\n                        {\n                            \"code\": \"keywords\",\n                            \"visible\": true,\n                            \"editable\": true,\n                            \"dataType\": \"list\",\n                            \"name\": \"Keywords\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"description\": \"Keywords for the content\",\n                            \"inputType\": \"keywords\",\n                            \"label\": \"Keywords\",\n                            \"placeholder\": \"Input the keyword and PRESS enter\",\n                            \"required\": false,\n                            \"validations\": []\n                        },\n                        {\n                            \"code\": \"optional\",\n                            \"name\": \"Track in collection\",\n                            \"label\": \"Track in collection\",\n                            \"placeholder\": \"Track in collection\",\n                            \"description\": \"\",\n                            \"default\": false,\n                            \"dataType\": \"boolean\",\n                            \"inputType\": \"checkbox\",\n                            \"editable\": true,\n                            \"required\": false,\n                            \"visible\": true,\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            }\n                        }\n                    ]\n                },\n                \"search\": {\n                    \"templateName\": \"\",\n                    \"required\": [],\n                    \"properties\": [\n                        {\n                            \"code\": \"primaryCategory\",\n                            \"dataType\": \"list\",\n                            \"description\": \"Type\",\n                            \"editable\": true,\n                            \"default\": [],\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"inputType\": \"nestedselect\",\n                            \"label\": \"Content Type(s)\",\n                            \"name\": \"Type\",\n                            \"placeholder\": \"Select ContentType\",\n                            \"required\": false,\n                            \"visible\": true\n                        },\n                        {\n                            \"code\": \"board\",\n                            \"visible\": true,\n                            \"depends\": [],\n                            \"editable\": true,\n                            \"dataType\": \"list\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"description\": \"Board\",\n                            \"label\": \"Board\",\n                            \"required\": false,\n                            \"name\": \"Board\",\n                            \"inputType\": \"select\",\n                            \"placeholder\": \"Select Board\",\n                            \"output\": \"name\"\n                        },\n                        {\n                            \"code\": \"medium\",\n                            \"visible\": true,\n                            \"depends\": [\n                                \"board\"\n                            ],\n                            \"editable\": true,\n                            \"dataType\": \"list\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"description\": \"\",\n                            \"label\": \"Medium(s)\",\n                            \"required\": false,\n                            \"name\": \"Medium\",\n                            \"inputType\": \"nestedselect\",\n                            \"placeholder\": \"Select Medium\",\n                            \"output\": \"name\"\n                        },\n                        {\n                            \"code\": \"gradeLevel\",\n                            \"visible\": true,\n                            \"depends\": [\n                                \"board\",\n                                \"medium\"\n                            ],\n                            \"editable\": true,\n                            \"default\": \"\",\n                            \"dataType\": \"list\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"description\": \"Class\",\n                            \"label\": \"Class(es)\",\n                            \"required\": false,\n                            \"name\": \"Class\",\n                            \"inputType\": \"nestedselect\",\n                            \"placeholder\": \"Select Class\",\n                            \"output\": \"name\"\n                        },\n                        {\n                            \"code\": \"subject\",\n                            \"visible\": true,\n                            \"depends\": [\n                                \"board\",\n                                \"medium\",\n                                \"gradeLevel\"\n                            ],\n                            \"editable\": true,\n                            \"default\": \"\",\n                            \"dataType\": \"list\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"description\": \"\",\n                            \"label\": \"Subject(s)\",\n                            \"required\": false,\n                            \"name\": \"Subject\",\n                            \"inputType\": \"nestedselect\",\n                            \"placeholder\": \"Select Subject\",\n                            \"output\": \"name\"\n                        },\n                        {\n                            \"code\": \"topic\",\n                            \"visible\": true,\n                            \"editable\": true,\n                            \"dataType\": \"list\",\n                            \"depends\": [\n                                \"board\",\n                                \"medium\",\n                                \"gradeLevel\",\n                                \"subject\"\n                            ],\n                            \"default\": \"\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"name\": \"Topic\",\n                            \"description\": \"Choose a Topics\",\n                            \"inputType\": \"topicselector\",\n                            \"label\": \"Topic(s)\",\n                            \"placeholder\": \"Choose Topics\",\n                            \"required\": false\n                        }\n                    ]\n                },\n                \"unitMetadata\": {\n                    \"templateName\": \"\",\n                    \"required\": [],\n                    \"properties\": [\n                        {\n                            \"name\": \"First Section\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"name\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Name of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Title\",\n                                    \"name\": \"Title\",\n                                    \"placeholder\": \"Title\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1 required\"\n                                    },\n                                    \"required\": true,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"max\",\n                                            \"value\": \"120\",\n                                            \"message\": \"Input is Exceeded\"\n                                        },\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Title is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"description\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Description of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"textarea\",\n                                    \"label\": \"Description\",\n                                    \"name\": \"Description\",\n                                    \"placeholder\": \"Description\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"required\": false,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"max\",\n                                            \"value\": \"256\",\n                                            \"message\": \"Input is Exceeded\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"keywords\",\n                                    \"visible\": true,\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"name\": \"Keywords\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"index\": 3,\n                                    \"description\": \"Keywords for the content\",\n                                    \"inputType\": \"keywords\",\n                                    \"label\": \"Keywords\",\n                                    \"placeholder\": \"Enter Keywords\",\n                                    \"required\": false,\n                                    \"validations\": []\n                                },\n                                {\n                                    \"code\": \"topic\",\n                                    \"visible\": true,\n                                    \"depends\": [],\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"renderingHints\": {},\n                                    \"name\": \"Topic\",\n                                    \"description\": \"Choose a Topics\",\n                                    \"index\": 11,\n                                    \"inputType\": \"topicselector\",\n                                    \"label\": \"Topics\",\n                                    \"placeholder\": \"Choose Topics\",\n                                    \"required\": false,\n                                    \"validations\": []\n                                }\n                            ]\n                        }\n                    ]\n                }\n            }\n        }\n    }\n}"
+										},
+										"url": {
+											"raw": "{{host}}/api/object/category/definition/v1/create",
+											"host": [
+												"{{host}}"
+											],
+											"path": [
+												"api",
+												"object",
+												"category",
+												"definition",
+												"v1",
+												"create"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "ObjectCategoryDefinition - Certificate Template - Asset",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json",
+														"type": "text"
+													},
+													{
+														"key": "Authorization",
+														"value": "{{kong_api_key}}",
+														"type": "text"
+													},
+													{
+														"key": "X-Authenticated-User-token",
+														"value": "{{keycloak_access_token}}",
+														"type": "text"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"request\": {\n        \"objectCategoryDefinition\": {\n            \"categoryId\": \"obj-cat:certificate-template\",\n            \"targetObjectType\": \"Asset\",\n            \"objectMetadata\": {\n                \"config\": {},\n                \"schema\": {\n                    \"properties\": {\n                        \"issuer\": {\n                            \"type\": \"object\"\n                        },\n                        \"signatoryList\": {\n                            \"type\": \"array\",\n                            \"items\": {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                    \"image\": {\n                                        \"type\": \"string\"\n                                    },\n                                    \"name\": {\n                                        \"type\": \"string\"\n                                    },\n                                    \"id\": {\n                                        \"type\": \"string\"\n                                    },\n                                    \"designation\": {\n                                        \"type\": \"string\"\n                                    }\n                                }\n                            }\n                        },\n                        \"logos\": {\n                            \"type\": \"array\",\n                            \"items\": {\n                                \"type\": \"string\"\n                            }\n                        },\n                        \"certType\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                                \"cert template layout\",\n                                \"cert template\"\n                            ]\n                        },\n                        \"data\": {\n                            \"type\": \"object\"\n                        }\n                    }\n                }\n            }\n        }\n    }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/object/category/definition/v1/create",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"object",
+														"category",
+														"definition",
+														"v1",
+														"create"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Date",
+													"value": "Fri, 17 Feb 2023 14:08:23 GMT"
+												},
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Transfer-Encoding",
+													"value": "chunked"
+												},
+												{
+													"key": "Connection",
+													"value": "keep-alive"
+												},
+												{
+													"key": "Vary",
+													"value": "Accept-Encoding"
+												},
+												{
+													"key": "X-RateLimit-Limit-hour",
+													"value": "100"
+												},
+												{
+													"key": "X-RateLimit-Remaining-hour",
+													"value": "99"
+												},
+												{
+													"key": "Request-Time",
+													"value": "106"
+												},
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "*"
+												},
+												{
+													"key": "X-Kong-Upstream-Latency",
+													"value": "112"
+												},
+												{
+													"key": "X-Kong-Proxy-Latency",
+													"value": "2"
+												},
+												{
+													"key": "Via",
+													"value": "kong/0.14.1"
+												},
+												{
+													"key": "Content-Encoding",
+													"value": "gzip"
+												}
+											],
+											"cookie": [],
+											"body": "{\n    \"id\": \"api.object.category.definition.create\",\n    \"ver\": \"3.0\",\n    \"ts\": \"2023-02-17T14:08:23ZZ\",\n    \"params\": {\n        \"resmsgid\": \"f7f5df1b-cd9d-4d4b-a763-cb1dcfb895ea\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"obj-cat:certificate-template_asset_all\"\n    }\n}"
+										}
+									]
+								},
+								{
+									"name": "ObjectCategoryDefinition - Course unit new",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Authorization",
+												"value": "{{kong_api_key}}",
+												"type": "text"
+											},
+											{
+												"key": "X-Authenticated-User-token",
+												"value": "{{keycloak_access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"request\": {\n        \"objectCategoryDefinition\": {\n            \"categoryId\": \"obj-cat:course-unit\",\n            \"targetObjectType\": \"Collection\",\n            \"objectMetadata\": {\n                \"config\": {},\n                \"schema\": {\n                    \"properties\": {\n                        \"trackable\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                                \"enabled\": {\n                                    \"type\": \"string\",\n                                    \"enum\": [\n                                        \"Yes\",\n                                        \"No\"\n                                    ],\n                                    \"default\": \"No\"\n                                }\n                            },\n                            \"additionalProperties\": false\n                        }\n                    }\n                }\n            }\n        }\n    }\n}"
+										},
+										"url": {
+											"raw": "{{host}}/api/object/category/definition/v1/create",
+											"host": [
+												"{{host}}"
+											],
+											"path": [
+												"api",
+												"object",
+												"category",
+												"definition",
+												"v1",
+												"create"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "ObjectCategoryDefinition - Certificate Template - Asset",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json",
+														"type": "text"
+													},
+													{
+														"key": "Authorization",
+														"value": "{{kong_api_key}}",
+														"type": "text"
+													},
+													{
+														"key": "X-Authenticated-User-token",
+														"value": "{{keycloak_access_token}}",
+														"type": "text"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"request\": {\n        \"objectCategoryDefinition\": {\n            \"categoryId\": \"obj-cat:certificate-template\",\n            \"targetObjectType\": \"Asset\",\n            \"objectMetadata\": {\n                \"config\": {},\n                \"schema\": {\n                    \"properties\": {\n                        \"issuer\": {\n                            \"type\": \"object\"\n                        },\n                        \"signatoryList\": {\n                            \"type\": \"array\",\n                            \"items\": {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                    \"image\": {\n                                        \"type\": \"string\"\n                                    },\n                                    \"name\": {\n                                        \"type\": \"string\"\n                                    },\n                                    \"id\": {\n                                        \"type\": \"string\"\n                                    },\n                                    \"designation\": {\n                                        \"type\": \"string\"\n                                    }\n                                }\n                            }\n                        },\n                        \"logos\": {\n                            \"type\": \"array\",\n                            \"items\": {\n                                \"type\": \"string\"\n                            }\n                        },\n                        \"certType\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                                \"cert template layout\",\n                                \"cert template\"\n                            ]\n                        },\n                        \"data\": {\n                            \"type\": \"object\"\n                        }\n                    }\n                }\n            }\n        }\n    }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/object/category/definition/v1/create",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"object",
+														"category",
+														"definition",
+														"v1",
+														"create"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Date",
+													"value": "Fri, 17 Feb 2023 14:08:23 GMT"
+												},
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Transfer-Encoding",
+													"value": "chunked"
+												},
+												{
+													"key": "Connection",
+													"value": "keep-alive"
+												},
+												{
+													"key": "Vary",
+													"value": "Accept-Encoding"
+												},
+												{
+													"key": "X-RateLimit-Limit-hour",
+													"value": "100"
+												},
+												{
+													"key": "X-RateLimit-Remaining-hour",
+													"value": "99"
+												},
+												{
+													"key": "Request-Time",
+													"value": "106"
+												},
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "*"
+												},
+												{
+													"key": "X-Kong-Upstream-Latency",
+													"value": "112"
+												},
+												{
+													"key": "X-Kong-Proxy-Latency",
+													"value": "2"
+												},
+												{
+													"key": "Via",
+													"value": "kong/0.14.1"
+												},
+												{
+													"key": "Content-Encoding",
+													"value": "gzip"
+												}
+											],
+											"cookie": [],
+											"body": "{\n    \"id\": \"api.object.category.definition.create\",\n    \"ver\": \"3.0\",\n    \"ts\": \"2023-02-17T14:08:23ZZ\",\n    \"params\": {\n        \"resmsgid\": \"f7f5df1b-cd9d-4d4b-a763-cb1dcfb895ea\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"obj-cat:certificate-template_asset_all\"\n    }\n}"
+										}
+									]
+								},
+								{
+									"name": "ObjectCategoryDefinition - Course  update",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json",
+												"type": "text"
+											},
+											{
+												"key": "Authorization",
+												"value": "{{kong_api_key}}",
+												"type": "text"
+											},
+											{
+												"key": "X-Authenticated-User-token",
+												"value": "{{keycloak_access_token}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"request\": {\n        \"objectCategoryDefinition\": {\n            \"categoryId\": \"obj-cat:course\",\n            \"targetObjectType\": \"Collection\",\n            \"objectMetadata\": {\n                \"config\": {},\n                \"schema\": {\n                    \"properties\": {\n                        \"trackable\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                                \"enabled\": {\n                                    \"type\": \"string\",\n                                    \"enum\": [\n                                        \"Yes\",\n                                        \"No\"\n                                    ],\n                                    \"default\": \"Yes\"\n                                },\n                                \"autoBatch\": {\n                                    \"type\": \"string\",\n                                    \"enum\": [\n                                        \"Yes\",\n                                        \"No\"\n                                    ],\n                                    \"default\": \"No\"\n                                }\n                            },\n                            \"default\": {\n                                \"enabled\": \"Yes\",\n                                \"autoBatch\": \"No\"\n                            },\n                            \"additionalProperties\": false\n                        },\n                        \"monitorable\": {\n                            \"type\": \"array\",\n                            \"items\": {\n                                \"type\": \"string\",\n                                \"enum\": [\n                                    \"progress-report\",\n                                    \"score-report\"\n                                ]\n                            }\n                        },\n                        \"credentials\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                                \"enabled\": {\n                                    \"type\": \"string\",\n                                    \"enum\": [\n                                        \"Yes\",\n                                        \"No\"\n                                    ],\n                                    \"default\": \"Yes\"\n                                }\n                            },\n                            \"default\": {\n                                \"enabled\": \"Yes\"\n                            },\n                            \"additionalProperties\": false\n                        },\n                        \"userConsent\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                                \"Yes\",\n                                \"No\"\n                            ],\n                            \"default\": \"Yes\"\n                        },\n                        \"mimeType\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                                \"application/vnd.ekstep.content-collection\"\n                            ]\n                        },\n                        \"discussionForum\": {\n                            \"type\": \"object\",\n                            \"properties\": {\n                                \"enabled\": {\n                                    \"type\": \"string\",\n                                    \"enum\": [\n                                        \"Yes\",\n                                        \"No\"\n                                    ],\n                                    \"default\": \"Yes\"\n                                }\n                            },\n                            \"default\": {\n                                \"enabled\": \"Yes\"\n                            },\n                            \"additionalProperties\": false\n                        }\n                    }\n                }\n            },\n            \"forms\": {\n                \"create\": {\n                    \"templateName\": \"\",\n                    \"required\": [],\n                    \"properties\": [\n                        {\n                            \"name\": \"First Section\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"appIcon\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"appIcon of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"appIcon\",\n                                    \"label\": \"Icon\",\n                                    \"name\": \"Icon\",\n                                    \"placeholder\": \"Icon\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1 required\"\n                                    },\n                                    \"required\": true,\n                                    \"visible\": true\n                                },\n                                {\n                                    \"code\": \"name\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Name of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Title\",\n                                    \"name\": \"Name\",\n                                    \"placeholder\": \"Title\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1 required\"\n                                    },\n                                    \"required\": true,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"max\",\n                                            \"value\": \"120\",\n                                            \"message\": \"Input is Exceeded\"\n                                        },\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Title is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"description\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Description of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"textarea\",\n                                    \"label\": \"Description\",\n                                    \"name\": \"Description\",\n                                    \"placeholder\": \"Description\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"required\": false,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"max\",\n                                            \"value\": \"256\",\n                                            \"message\": \"Input is Exceeded\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"keywords\",\n                                    \"visible\": true,\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"name\": \"Keywords\",\n                                    \"renderingHints\": {\n                                        \"class\": \"\"\n                                    },\n                                    \"description\": \"Keywords for the content\",\n                                    \"inputType\": \"keywords\",\n                                    \"label\": \"Keywords\",\n                                    \"placeholder\": \"Enter Keywords\",\n                                    \"required\": false,\n                                    \"validations\": []\n                                }\n                            ]\n                        },\n                        {\n                            \"name\": \"Second Section\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"primaryCategory\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Type\",\n                                    \"editable\": false,\n                                    \"renderingHints\": {},\n                                    \"inputType\": \"select\",\n                                    \"label\": \"Category\",\n                                    \"name\": \"Type\",\n                                    \"placeholder\": \"\",\n                                    \"required\": true,\n                                    \"visible\": true,\n                                    \"validations\": []\n                                },\n                                {\n                                    \"code\": \"additionalCategories\",\n                                    \"dataType\": \"list\",\n                                    \"depends\": [\n                                        \"primaryCategory\"\n                                    ],\n                                    \"description\": \"Additonal Category of the Content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"nestedselect\",\n                                    \"label\": \"Additional Category\",\n                                    \"name\": \"Additional Category\",\n                                    \"placeholder\": \"Select Additional Category\",\n                                    \"renderingHints\": {},\n                                    \"required\": false,\n                                    \"visible\": true\n                                }\n                            ]\n                        },\n                        {\n                            \"name\": \"Organisation Framework Terms\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"framework\",\n                                    \"visible\": true,\n                                    \"editable\": true,\n                                    \"dataType\": \"text\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"\",\n                                    \"label\": \"Course Type\",\n                                    \"required\": false,\n                                    \"name\": \"Framework\",\n                                    \"inputType\": \"framework\",\n                                    \"placeholder\": \"Select Course Type\",\n                                    \"output\": \"identifier\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Course Type is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"subjectIds\",\n                                    \"visible\": true,\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"depends\": [\n                                        \"framework\"\n                                    ],\n                                    \"sourceCategory\": \"subject\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"\",\n                                    \"label\": \"Subjects covered in the course\",\n                                    \"required\": false,\n                                    \"name\": \"Subject\",\n                                    \"inputType\": \"frameworkCategorySelect\",\n                                    \"placeholder\": \"Select Subject(s)\",\n                                    \"output\": \"identifier\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Subjects Taught is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"topicsIds\",\n                                    \"visible\": true,\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"depends\": [\n                                        \"framework\",\n                                        \"subjectIds\"\n                                    ],\n                                    \"sourceCategory\": \"topic\",\n                                    \"renderingHints\": {},\n                                    \"name\": \"Topic\",\n                                    \"description\": \"Choose a Topics\",\n                                    \"inputType\": \"topicselector\",\n                                    \"label\": \"Topics covered in the course\",\n                                    \"placeholder\": \"Choose Topics\",\n                                    \"required\": false,\n                                    \"output\": \"identifier\"\n                                }\n                            ]\n                        },\n                        {\n                            \"name\": \"Target Framework Terms\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"audience\",\n                                    \"dataType\": \"list\",\n                                    \"description\": \"Audience\",\n                                    \"editable\": true,\n                                    \"inputType\": \"nestedselect\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"label\": \"Audience Type\",\n                                    \"name\": \"Audience Type\",\n                                    \"placeholder\": \"Select Audience Type\",\n                                    \"required\": false,\n                                    \"visible\": true,\n                                    \"range\": [\n                                        \"Student\",\n                                        \"Teacher\",\n                                        \"Parent\",\n                                        \"Administrator\"\n                                    ]\n                                },\n                                {\n                                    \"code\": \"targetBoardIds\",\n                                    \"visible\": true,\n                                    \"depends\": [],\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"sourceCategory\": \"board\",\n                                    \"output\": \"identifier\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"Board\",\n                                    \"label\": \"Board/Syllabus of the audience\",\n                                    \"required\": false,\n                                    \"name\": \"Board/Syllabus\",\n                                    \"inputType\": \"select\",\n                                    \"placeholder\": \"Select Board/Syllabus\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Board is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"targetMediumIds\",\n                                    \"visible\": true,\n                                    \"depends\": [\n                                        \"targetBoardIds\"\n                                    ],\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"sourceCategory\": \"medium\",\n                                    \"output\": \"identifier\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"\",\n                                    \"label\": \"Medium(s) of the audience\",\n                                    \"required\": false,\n                                    \"name\": \"Medium\",\n                                    \"inputType\": \"nestedselect\",\n                                    \"placeholder\": \"Select Medium\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Medium is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"targetGradeLevelIds\",\n                                    \"visible\": true,\n                                    \"depends\": [\n                                        \"targetBoardIds\",\n                                        \"targetMediumIds\"\n                                    ],\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"sourceCategory\": \"gradeLevel\",\n                                    \"output\": \"identifier\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"Class\",\n                                    \"label\": \"Class(es) of the audience\",\n                                    \"required\": false,\n                                    \"name\": \"Class\",\n                                    \"inputType\": \"nestedselect\",\n                                    \"placeholder\": \"Select Class\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Class is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"targetSubjectIds\",\n                                    \"visible\": true,\n                                    \"depends\": [\n                                        \"targetBoardIds\",\n                                        \"targetMediumIds\",\n                                        \"targetGradeLevelIds\"\n                                    ],\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"sourceCategory\": \"subject\",\n                                    \"output\": \"identifier\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"description\": \"\",\n                                    \"label\": \"Subject(s) of the audience\",\n                                    \"required\": false,\n                                    \"name\": \"Subject\",\n                                    \"inputType\": \"nestedselect\",\n                                    \"placeholder\": \"Select Subject\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Subject is required\"\n                                        }\n                                    ]\n                                }\n                            ]\n                        },\n                        {\n                            \"name\": \"Fourth Section\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"author\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Author of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Author\",\n                                    \"name\": \"Author\",\n                                    \"placeholder\": \"Author\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"required\": false,\n                                    \"visible\": true\n                                },\n                                {\n                                    \"code\": \"attributions\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Attributions\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Attributions\",\n                                    \"name\": \"Attributions\",\n                                    \"placeholder\": \"Attributions\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"required\": false,\n                                    \"visible\": true\n                                },\n                                {\n                                    \"code\": \"copyright\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Copyright\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Copyright\",\n                                    \"name\": \"Copyright & year\",\n                                    \"placeholder\": \"Copyright\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1 required\"\n                                    },\n                                    \"required\": true,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Copyright is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"copyrightYear\",\n                                    \"dataType\": \"number\",\n                                    \"description\": \"Year\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Copyright Year\",\n                                    \"name\": \"Copyright Year\",\n                                    \"placeholder\": \"Copyright Year\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1 required\"\n                                    },\n                                    \"required\": true,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Copyright Year is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"license\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"license\",\n                                    \"editable\": true,\n                                    \"inputType\": \"select\",\n                                    \"label\": \"License\",\n                                    \"name\": \"license\",\n                                    \"placeholder\": \"Select License\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"required\": false,\n                                    \"visible\": true,\n                                    \"defaultValue\": \"CC BY 4.0\",\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"License is required\"\n                                        }\n                                    ]\n                                }\n                            ]\n                        }\n                    ]\n                },\n                \"relationalMetadata\": {\n                    \"templateName\": \"\",\n                    \"required\": [],\n                    \"properties\": [\n                        {\n                            \"code\": \"name\",\n                            \"dataType\": \"text\",\n                            \"description\": \"Name of the content\",\n                            \"editable\": true,\n                            \"inputType\": \"text\",\n                            \"label\": \"Name of the content\",\n                            \"name\": \"Name of the content\",\n                            \"placeholder\": \"Name of the content\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1 required\"\n                            },\n                            \"required\": true,\n                            \"visible\": true,\n                            \"validations\": [\n                                {\n                                    \"type\": \"maxLength\",\n                                    \"value\": \"120\",\n                                    \"message\": \"Input is Exceeded\"\n                                },\n                                {\n                                    \"type\": \"required\",\n                                    \"message\": \"Name is required\"\n                                }\n                            ]\n                        },\n                        {\n                            \"code\": \"keywords\",\n                            \"visible\": true,\n                            \"editable\": true,\n                            \"dataType\": \"list\",\n                            \"name\": \"Keywords\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"description\": \"Keywords for the content\",\n                            \"inputType\": \"keywords\",\n                            \"label\": \"Keywords\",\n                            \"placeholder\": \"Input the keyword and PRESS enter\",\n                            \"required\": false,\n                            \"validations\": []\n                        },\n                        {\n                            \"code\": \"optional\",\n                            \"name\": \"Track in collection\",\n                            \"label\": \"Track in collection\",\n                            \"placeholder\": \"Track in collection\",\n                            \"description\": \"\",\n                            \"default\": false,\n                            \"dataType\": \"boolean\",\n                            \"inputType\": \"checkbox\",\n                            \"editable\": true,\n                            \"required\": false,\n                            \"visible\": true,\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            }\n                        }\n                    ]\n                },\n                \"search\": {\n                    \"templateName\": \"\",\n                    \"required\": [],\n                    \"properties\": [\n                        {\n                            \"code\": \"primaryCategory\",\n                            \"dataType\": \"list\",\n                            \"description\": \"Type\",\n                            \"editable\": true,\n                            \"default\": [],\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"inputType\": \"nestedselect\",\n                            \"label\": \"Content Type(s)\",\n                            \"name\": \"Type\",\n                            \"placeholder\": \"Select ContentType\",\n                            \"required\": false,\n                            \"visible\": true\n                        },\n                        {\n                            \"code\": \"board\",\n                            \"visible\": true,\n                            \"depends\": [],\n                            \"editable\": true,\n                            \"dataType\": \"list\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"description\": \"Board\",\n                            \"label\": \"Board\",\n                            \"required\": false,\n                            \"name\": \"Board\",\n                            \"inputType\": \"select\",\n                            \"placeholder\": \"Select Board\",\n                            \"output\": \"name\"\n                        },\n                        {\n                            \"code\": \"medium\",\n                            \"visible\": true,\n                            \"depends\": [\n                                \"board\"\n                            ],\n                            \"editable\": true,\n                            \"dataType\": \"list\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"description\": \"\",\n                            \"label\": \"Medium(s)\",\n                            \"required\": false,\n                            \"name\": \"Medium\",\n                            \"inputType\": \"nestedselect\",\n                            \"placeholder\": \"Select Medium\",\n                            \"output\": \"name\"\n                        },\n                        {\n                            \"code\": \"gradeLevel\",\n                            \"visible\": true,\n                            \"depends\": [\n                                \"board\",\n                                \"medium\"\n                            ],\n                            \"editable\": true,\n                            \"default\": \"\",\n                            \"dataType\": \"list\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"description\": \"Class\",\n                            \"label\": \"Class(es)\",\n                            \"required\": false,\n                            \"name\": \"Class\",\n                            \"inputType\": \"nestedselect\",\n                            \"placeholder\": \"Select Class\",\n                            \"output\": \"name\"\n                        },\n                        {\n                            \"code\": \"subject\",\n                            \"visible\": true,\n                            \"depends\": [\n                                \"board\",\n                                \"medium\",\n                                \"gradeLevel\"\n                            ],\n                            \"editable\": true,\n                            \"default\": \"\",\n                            \"dataType\": \"list\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"description\": \"\",\n                            \"label\": \"Subject(s)\",\n                            \"required\": false,\n                            \"name\": \"Subject\",\n                            \"inputType\": \"nestedselect\",\n                            \"placeholder\": \"Select Subject\",\n                            \"output\": \"name\"\n                        },\n                        {\n                            \"code\": \"topic\",\n                            \"visible\": true,\n                            \"editable\": true,\n                            \"dataType\": \"list\",\n                            \"depends\": [\n                                \"board\",\n                                \"medium\",\n                                \"gradeLevel\",\n                                \"subject\"\n                            ],\n                            \"default\": \"\",\n                            \"renderingHints\": {\n                                \"class\": \"sb-g-col-lg-1\"\n                            },\n                            \"name\": \"Topic\",\n                            \"description\": \"Choose a Topics\",\n                            \"inputType\": \"topicselector\",\n                            \"label\": \"Topic(s)\",\n                            \"placeholder\": \"Choose Topics\",\n                            \"required\": false\n                        }\n                    ]\n                },\n                \"unitMetadata\": {\n                    \"templateName\": \"\",\n                    \"required\": [],\n                    \"properties\": [\n                        {\n                            \"name\": \"First Section\",\n                            \"fields\": [\n                                {\n                                    \"code\": \"name\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Name of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"text\",\n                                    \"label\": \"Title\",\n                                    \"name\": \"Title\",\n                                    \"placeholder\": \"Title\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1 required\"\n                                    },\n                                    \"required\": true,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"max\",\n                                            \"value\": \"120\",\n                                            \"message\": \"Input is Exceeded\"\n                                        },\n                                        {\n                                            \"type\": \"required\",\n                                            \"message\": \"Title is required\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"description\",\n                                    \"dataType\": \"text\",\n                                    \"description\": \"Description of the content\",\n                                    \"editable\": true,\n                                    \"inputType\": \"textarea\",\n                                    \"label\": \"Description\",\n                                    \"name\": \"Description\",\n                                    \"placeholder\": \"Description\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"required\": false,\n                                    \"visible\": true,\n                                    \"validations\": [\n                                        {\n                                            \"type\": \"max\",\n                                            \"value\": \"256\",\n                                            \"message\": \"Input is Exceeded\"\n                                        }\n                                    ]\n                                },\n                                {\n                                    \"code\": \"keywords\",\n                                    \"visible\": true,\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"name\": \"Keywords\",\n                                    \"renderingHints\": {\n                                        \"class\": \"sb-g-col-lg-1\"\n                                    },\n                                    \"index\": 3,\n                                    \"description\": \"Keywords for the content\",\n                                    \"inputType\": \"keywords\",\n                                    \"label\": \"Keywords\",\n                                    \"placeholder\": \"Enter Keywords\",\n                                    \"required\": false,\n                                    \"validations\": []\n                                },\n                                {\n                                    \"code\": \"topic\",\n                                    \"visible\": true,\n                                    \"depends\": [],\n                                    \"editable\": true,\n                                    \"dataType\": \"list\",\n                                    \"renderingHints\": {},\n                                    \"name\": \"Topic\",\n                                    \"description\": \"Choose a Topics\",\n                                    \"index\": 11,\n                                    \"inputType\": \"topicselector\",\n                                    \"label\": \"Topics\",\n                                    \"placeholder\": \"Choose Topics\",\n                                    \"required\": false,\n                                    \"validations\": []\n                                }\n                            ]\n                        }\n                    ]\n                }\n            }\n        }\n    }\n}"
+										},
+										"url": {
+											"raw": "{{host}}/api/object/category/definition/v1/create",
+											"host": [
+												"{{host}}"
+											],
+											"path": [
+												"api",
+												"object",
+												"category",
+												"definition",
+												"v1",
+												"create"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "ObjectCategoryDefinition - Certificate Template - Asset",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json",
+														"type": "text"
+													},
+													{
+														"key": "Authorization",
+														"value": "{{kong_api_key}}",
+														"type": "text"
+													},
+													{
+														"key": "X-Authenticated-User-token",
+														"value": "{{keycloak_access_token}}",
+														"type": "text"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"request\": {\n        \"objectCategoryDefinition\": {\n            \"categoryId\": \"obj-cat:certificate-template\",\n            \"targetObjectType\": \"Asset\",\n            \"objectMetadata\": {\n                \"config\": {},\n                \"schema\": {\n                    \"properties\": {\n                        \"issuer\": {\n                            \"type\": \"object\"\n                        },\n                        \"signatoryList\": {\n                            \"type\": \"array\",\n                            \"items\": {\n                                \"type\": \"object\",\n                                \"properties\": {\n                                    \"image\": {\n                                        \"type\": \"string\"\n                                    },\n                                    \"name\": {\n                                        \"type\": \"string\"\n                                    },\n                                    \"id\": {\n                                        \"type\": \"string\"\n                                    },\n                                    \"designation\": {\n                                        \"type\": \"string\"\n                                    }\n                                }\n                            }\n                        },\n                        \"logos\": {\n                            \"type\": \"array\",\n                            \"items\": {\n                                \"type\": \"string\"\n                            }\n                        },\n                        \"certType\": {\n                            \"type\": \"string\",\n                            \"enum\": [\n                                \"cert template layout\",\n                                \"cert template\"\n                            ]\n                        },\n                        \"data\": {\n                            \"type\": \"object\"\n                        }\n                    }\n                }\n            }\n        }\n    }\n}"
+												},
+												"url": {
+													"raw": "{{host}}/object/category/definition/v1/create",
+													"host": [
+														"{{host}}"
+													],
+													"path": [
+														"object",
+														"category",
+														"definition",
+														"v1",
+														"create"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Date",
+													"value": "Fri, 17 Feb 2023 14:08:23 GMT"
+												},
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Transfer-Encoding",
+													"value": "chunked"
+												},
+												{
+													"key": "Connection",
+													"value": "keep-alive"
+												},
+												{
+													"key": "Vary",
+													"value": "Accept-Encoding"
+												},
+												{
+													"key": "X-RateLimit-Limit-hour",
+													"value": "100"
+												},
+												{
+													"key": "X-RateLimit-Remaining-hour",
+													"value": "99"
+												},
+												{
+													"key": "Request-Time",
+													"value": "106"
+												},
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "*"
+												},
+												{
+													"key": "X-Kong-Upstream-Latency",
+													"value": "112"
+												},
+												{
+													"key": "X-Kong-Proxy-Latency",
+													"value": "2"
+												},
+												{
+													"key": "Via",
+													"value": "kong/0.14.1"
+												},
+												{
+													"key": "Content-Encoding",
+													"value": "gzip"
+												}
+											],
+											"cookie": [],
+											"body": "{\n    \"id\": \"api.object.category.definition.create\",\n    \"ver\": \"3.0\",\n    \"ts\": \"2023-02-17T14:08:23ZZ\",\n    \"params\": {\n        \"resmsgid\": \"f7f5df1b-cd9d-4d4b-a763-cb1dcfb895ea\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"obj-cat:certificate-template_asset_all\"\n    }\n}"
+										}
+									]
 								}
 							]
 						},
@@ -2707,6 +3523,129 @@
 								"body": {
 									"mode": "raw",
 									"raw": "{\n    \"request\": {\n        \"framework\": {\n            \"name\": \"{{framework_default}}\",\n            \"description\": \"Sunbird k-12 framework\",\n            \"type\": \"K-12\",\n            \"code\": \"{{framework_default}}\",\n            \"channels\": [\n                {\n                    \"identifier\": \"{{channel_id}}\"\n                }\n            ]\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/framework/v1/create",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"framework",
+										"v1",
+										"create"
+									]
+								},
+								"description": "Framework type is case sensitive. Make sure framework type while creating & updating to the channel with the same value(Case sensitive)\n\n#### Example:\n\n`\"type\": \"K-12\",`\n\n`Or`\n\n`\"type\": \"TPD\",`"
+							},
+							"response": [
+								{
+									"name": "Create Framework",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "accept",
+												"value": "application/json"
+											},
+											{
+												"key": "X-Channel-Id",
+												"value": "sunbird"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"request\": {\n        \"framework\": {\n            \"name\": \"NCF\",\n            \"description\": \"NCF Framework\",\n            \"code\": \"NCF\",\n            \"channels\": [\n                {\n                    \"identifier\": \"sunbird\"\n                }\n            ]\n        }\n    }\n}"
+										},
+										"url": {
+											"raw": "{{learningservice_host}}/framework/v3/create",
+											"host": [
+												"{{learningservice_host}}"
+											],
+											"path": [
+												"framework",
+												"v3",
+												"create"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json;charset=UTF-8"
+										},
+										{
+											"key": "Transfer-Encoding",
+											"value": "chunked"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 10 Nov 2022 06:42:29 GMT"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=20"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"ekstep.learning.framework.create\",\n    \"ver\": \"1.0\",\n    \"ts\": \"2022-11-10T12:12:29Z+05:30\",\n    \"params\": {\n        \"resmsgid\": \"b832f7b4-bf13-4719-889c-4242d140e59a\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"node_id\": \"NCF\",\n        \"versionKey\": \"1668062548820\"\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Create Framework - TPD",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											" pm.environment.set(\"framework_default\", \"sunbird_k-12\");"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "accept",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Channel-Id",
+										"value": "{{channel_name}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}",
+										"type": "text"
+									},
+									{
+										"key": "",
+										"value": "",
+										"type": "text",
+										"disabled": true
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"framework\": {\n            \"name\": \"{{default_Course_Framework}}\",\n            \"description\": \"Sunbird TPD framework\",\n            \"type\": \"TPD\",\n            \"code\": \"{{default_Course_Framework}}\",\n            \"channels\": [\n                {\n                    \"identifier\": \"{{channel_id}}\"\n                }\n            ]\n        }\n    }\n}"
 								},
 								"url": {
 									"raw": "{{host}}/api/framework/v1/create",
@@ -4550,6 +5489,105 @@
 							]
 						},
 						{
+							"name": "Publish Framework for TPD",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "X-Channel-Id",
+										"value": "{{channel_id}}"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{}"
+								},
+								"url": {
+									"raw": "{{host}}/api/framework/v1/publish/{{framework_default}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"framework",
+										"v1",
+										"publish",
+										"{{framework_default}}"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Publish Framework",
+									"originalRequest": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "X-Channel-Id",
+												"value": "sunbird"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{}"
+										},
+										"url": {
+											"raw": "{{learningservice_host}}/framework/v3/publish/NCF",
+											"host": [
+												"{{learningservice_host}}"
+											],
+											"path": [
+												"framework",
+												"v3",
+												"publish",
+												"NCF"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json;charset=UTF-8"
+										},
+										{
+											"key": "Transfer-Encoding",
+											"value": "chunked"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 10 Nov 2022 10:48:48 GMT"
+										},
+										{
+											"key": "Keep-Alive",
+											"value": "timeout=20"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"ekstep.learning.framework.publish\",\n    \"ver\": \"1.0\",\n    \"ts\": \"2022-11-10T16:18:48Z+05:30\",\n    \"params\": {\n        \"resmsgid\": \"0ff9d7b5-409b-47f6-b9d3-3e77e451691f\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"publishStatus\": \"Publish Operation for Framework Id 'NCF' Started Successfully!\"\n    }\n}"
+								}
+							]
+						},
+						{
 							"name": "2 - Read Framework",
 							"event": [
 								{
@@ -4955,6 +5993,217 @@
 							]
 						}
 					]
+				},
+				{
+					"name": "11-update Channel",
+					"item": [
+						{
+							"name": "Update channel for course framework",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "{{kong_api_key}}",
+										"type": "text"
+									},
+									{
+										"key": "x-channel-id",
+										"value": "{{channel_id}}",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"channel\": {\n            \"defaultCourseFramework\": \"{{default_Course_Framework}}\"\n        }\n    }\n}"
+								},
+								"url": {
+									"raw": "{{host}}/api/channel/v1/update/{{channel_id}}",
+									"host": [
+										"{{host}}"
+									],
+									"path": [
+										"api",
+										"channel",
+										"v1",
+										"update",
+										"{{channel_id}}"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Associating framework with channel",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"request\": {\n        \"channel\": {\n            \"frameworks\": [\n                {\n                    \"identifier\": \"NCF\",\n                    \"name\": \"NCF\"\n                }\n            ]\n        }\n    }\n}"
+										},
+										"url": {
+											"raw": "{{content_host}}/channel/v3/update/sunbird",
+											"host": [
+												"{{content_host}}"
+											],
+											"path": [
+												"channel",
+												"v3",
+												"update",
+												"sunbird"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Request-Time",
+											"value": "734"
+										},
+										{
+											"key": "content-length",
+											"value": "268"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json"
+										},
+										{
+											"key": "Date",
+											"value": "Thu, 10 Nov 2022 10:51:12 GMT"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"api.channel.update\",\n    \"ver\": \"3.0\",\n    \"ts\": \"2022-11-10T16:21:12Z+05:30\",\n    \"params\": {\n        \"resmsgid\": \"dacd966e-c664-40ad-91da-7ec597d4ade6\",\n        \"msgid\": null,\n        \"err\": null,\n        \"status\": \"successful\",\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"sunbird\",\n        \"node_id\": \"sunbird\"\n    }\n}"
+								},
+								{
+									"name": "Add Categories to channel",
+									"originalRequest": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Authorization",
+												"value": "{{kong_api_key}}",
+												"type": "text"
+											},
+											{
+												"key": "X-Channel-Id",
+												"value": "{{channel_name}}",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"request\": {\n        \"channel\": {\n            \"categories\": [\n                {\n                    \"name\": \"Medium\",\n                    \"relation\": \"hasSequenceMember\",\n                    \"identifier\": \"ncf_medium\",\n                    \"description\": \"\",\n                    \"objectType\": \"CategoryInstance\",\n                    \"status\": \"Live\"\n                },\n                {\n                    \"name\": \"Subject\",\n                    \"relation\": \"hasSequenceMember\",\n                    \"identifier\": \"ncf_subject\",\n                    \"description\": \"\",\n                    \"objectType\": \"CategoryInstance\",\n                    \"status\": \"Live\"\n                },\n                {\n                    \"name\": \"Board\",\n                    \"relation\": \"hasSequenceMember\",\n                    \"identifier\": \"ncf_board\",\n                    \"description\": \"\",\n                    \"objectType\": \"CategoryInstance\",\n                    \"status\": \"Live\"\n                },\n                {\n                    \"name\": \"Class\",\n                    \"relation\": \"hasSequenceMember\",\n                    \"identifier\": \"ncf_gradelevel\",\n                    \"description\": \"\",\n                    \"objectType\": \"CategoryInstance\",\n                    \"status\": \"Live\"\n                }\n            ]\n        }\n    }\n}"
+										},
+										"url": {
+											"raw": "{{host}}/api/channel/v1/update/{{channel_id}}",
+											"host": [
+												"{{host}}"
+											],
+											"path": [
+												"api",
+												"channel",
+												"v1",
+												"update",
+												"{{channel_id}}"
+											]
+										}
+									},
+									"status": "OK",
+									"code": 200,
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Date",
+											"value": "Thu, 23 Mar 2023 12:40:18 GMT"
+										},
+										{
+											"key": "Content-Type",
+											"value": "application/json; charset=utf-8"
+										},
+										{
+											"key": "Transfer-Encoding",
+											"value": "chunked"
+										},
+										{
+											"key": "Connection",
+											"value": "keep-alive"
+										},
+										{
+											"key": "Vary",
+											"value": "Accept-Encoding"
+										},
+										{
+											"key": "X-RateLimit-Limit-hour",
+											"value": "30000"
+										},
+										{
+											"key": "X-RateLimit-Remaining-hour",
+											"value": "29998"
+										},
+										{
+											"key": "x-powered-by",
+											"value": "Express"
+										},
+										{
+											"key": "access-control-allow-origin",
+											"value": "*"
+										},
+										{
+											"key": "access-control-allow-methods",
+											"value": "GET,PUT,POST,PATCH,DELETE,OPTIONS"
+										},
+										{
+											"key": "access-control-allow-headers",
+											"value": "Content-Type, Authorization,cid, user-id, x-auth, Cache-Control, X-Requested-With, *"
+										},
+										{
+											"key": "etag",
+											"value": "W/\"144-YCy2W8TgaA11CbVFzEo1cmu327E\""
+										},
+										{
+											"key": "x-envoy-upstream-service-time",
+											"value": "485"
+										},
+										{
+											"key": "X-Kong-Upstream-Latency",
+											"value": "488"
+										},
+										{
+											"key": "X-Kong-Proxy-Latency",
+											"value": "9"
+										},
+										{
+											"key": "Via",
+											"value": "kong/0.14.1"
+										},
+										{
+											"key": "Content-Encoding",
+											"value": "gzip"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"api.channel.update\",\n    \"ver\": \"1.0\",\n    \"ts\": \"2023-03-23T12:40:18.090Z\",\n    \"params\": {\n        \"resmsgid\": \"ddfba0a0-c977-11ed-a580-130ace2a34c8\",\n        \"msgid\": \"ddb1c660-c977-11ed-b6d2-fbae2fa34061\",\n        \"status\": \"successful\",\n        \"err\": null,\n        \"errmsg\": null\n    },\n    \"responseCode\": \"OK\",\n    \"result\": {\n        \"identifier\": \"0137541424673095687\",\n        \"node_id\": \"0137541424673095687\"\n    }\n}"
+								}
+							]
+						}
+					]
 				}
 			],
 			"description": "###   \nNeo4J Cypher Queries:\n\nRemove the duplicate nodes if exist while any issues if you noticed as part of configurations  \n\n**Identify the duplicate nodes:**\n\nUse the below cypher query directly on Neo4J DB\n\n``` powershell\nmatch (n:domain{IL_UNIQUE_ID:\"ncf_board\"}) RETURN n;pppp\n```\n\n**Remove the duplicate nodes:**\n\n``` powershell\nMATCH (n:domain{IL_UNIQUE_ID:\"sunbird_k-12\"}) DETACH DELETE n;\n```"
@@ -4986,7 +6235,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"request\": {\r\n        \"action\": \"save\",\r\n        \"subType\": \"resource\",\r\n        \"framework\": \"*\",\r\n        \"rootOrgId\": \"*\",\r\n        \"type\": \"content\",\r\n        \"popup\": true,\r\n        \"editMode\": true,\r\n        \"data\": {\r\n            \"templateName\": \"defaultTemplate\",\r\n            \"action\": \"review\",\r\n            \"fields\": [\r\n                {\r\n                    \"code\": \"appicon\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"url\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"App Icon\",\r\n                    \"description\": \"App Icon\",\r\n                    \"index\": 1,\r\n                    \"inputType\": \"file\",\r\n                    \"label\": \"Icon\",\r\n                    \"placeholder\": \"App Icon\",\r\n                    \"required\": true\r\n                },\r\n                {\r\n                    \"code\": \"name\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"Title\",\r\n                    \"description\": \"Title of the content\",\r\n                    \"index\": 2,\r\n                    \"inputType\": \"text\",\r\n                    \"label\": \"Title\",\r\n                    \"placeholder\": \"Enter Title For Book\",\r\n                    \"required\": true\r\n                },\r\n                {\r\n                    \"code\": \"description\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"Description\",\r\n                    \"description\": \"Brief description\",\r\n                    \"index\": 3,\r\n                    \"inputType\": \"textarea\",\r\n                    \"label\": \"Description\",\r\n                    \"placeholder\": \"Brief description about the Book\",\r\n                    \"required\": false\r\n                },\r\n                {\r\n                    \"code\": \"board\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"medium\",\r\n                        \"gradeLevel\",\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"Board\",\r\n                    \"index\": 5,\r\n                    \"label\": \"Board/Syllabus\",\r\n                    \"required\": true,\r\n                    \"name\": \"Board/Syllabus\",\r\n                    \"inputType\": \"select\",\r\n                    \"placeholder\": \"Select Board/Syllabus\"\r\n                },\r\n                {\r\n                    \"code\": \"medium\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"gradeLevel\",\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"\",\r\n                    \"index\": 6,\r\n                    \"label\": \"Medium\",\r\n                    \"required\": true,\r\n                    \"name\": \"medium\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Medium\"\r\n                },\r\n                {\r\n                    \"code\": \"gradeLevel\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"Class\",\r\n                    \"index\": 7,\r\n                    \"label\": \"Class\",\r\n                    \"required\": true,\r\n                    \"name\": \"Class\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Class\"\r\n                },\r\n                {\r\n                    \"code\": \"subject\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"\",\r\n                    \"index\": 8,\r\n                    \"label\": \"Subject\",\r\n                    \"required\": true,\r\n                    \"name\": \"Subject\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Subject\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}"
+									"raw": "{\r\n    \"request\": {\r\n        \"action\": \"save\",\r\n        \"subType\": \"resource\",\r\n        \"framework\": \"*\",\r\n        \"rootOrgId\": \"*\",\r\n        \"type\": \"content\",\r\n        \"popup\": true,\r\n        \"editMode\": true,\r\n        \"data\": {\r\n            \"templateName\": \"defaultTemplate\",\r\n            \"action\": \"review\",\r\n            \"fields\": [\r\n                {\r\n                    \"code\": \"appicon\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"url\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"App Icon\",\r\n                    \"description\": \"App Icon\",\r\n                    \"index\": 1,\r\n                    \"inputType\": \"file\",\r\n                    \"label\": \"Icon\",\r\n                    \"placeholder\": \"App Icon\",\r\n                    \"required\": false\r\n                },\r\n                {\r\n                    \"code\": \"name\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"Title\",\r\n                    \"description\": \"Title of the content\",\r\n                    \"index\": 2,\r\n                    \"inputType\": \"text\",\r\n                    \"label\": \"Title\",\r\n                    \"placeholder\": \"Enter Title For Book\",\r\n                    \"required\": true\r\n                },\r\n                {\r\n                    \"code\": \"description\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"Description\",\r\n                    \"description\": \"Brief description\",\r\n                    \"index\": 3,\r\n                    \"inputType\": \"textarea\",\r\n                    \"label\": \"Description\",\r\n                    \"placeholder\": \"Brief description about the Book\",\r\n                    \"required\": false\r\n                },\r\n                {\r\n                    \"code\": \"board\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"medium\",\r\n                        \"gradeLevel\",\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"Board\",\r\n                    \"index\": 5,\r\n                    \"label\": \"Board/Syllabus\",\r\n                    \"required\": false,\r\n                    \"name\": \"Board/Syllabus\",\r\n                    \"inputType\": \"select\",\r\n                    \"placeholder\": \"Select Board/Syllabus\"\r\n                },\r\n                {\r\n                    \"code\": \"medium\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"gradeLevel\",\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"\",\r\n                    \"index\": 6,\r\n                    \"label\": \"Medium\",\r\n                    \"required\": false,\r\n                    \"name\": \"medium\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Medium\"\r\n                },\r\n                {\r\n                    \"code\": \"gradeLevel\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"Class\",\r\n                    \"index\": 7,\r\n                    \"label\": \"Class\",\r\n                    \"required\": false,\r\n                    \"name\": \"Class\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Class\"\r\n                },\r\n                {\r\n                    \"code\": \"subject\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"\",\r\n                    \"index\": 8,\r\n                    \"label\": \"Subject\",\r\n                    \"required\": false,\r\n                    \"name\": \"Subject\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Subject\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}"
 								},
 								"url": {
 									"raw": "{{host}}/api/data/v1/form/create",
@@ -5021,7 +6270,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"request\": {\r\n        \"action\": \"review\",\r\n        \"subType\": \"resource\",\r\n        \"framework\": \"*\",\r\n        \"rootOrgId\": \"*\",\r\n        \"type\": \"content\",\r\n        \"popup\": true,\r\n        \"editMode\": true,\r\n        \"data\": {\r\n            \"templateName\": \"defaultTemplate\",\r\n            \"action\": \"review\",\r\n            \"fields\": [\r\n                {\r\n                    \"code\": \"appicon\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"url\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"App Icon\",\r\n                    \"description\": \"App Icon\",\r\n                    \"index\": 1,\r\n                    \"inputType\": \"file\",\r\n                    \"label\": \"Icon\",\r\n                    \"placeholder\": \"App Icon\",\r\n                    \"required\": true\r\n                },\r\n                {\r\n                    \"code\": \"name\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"Title\",\r\n                    \"description\": \"Title of the content\",\r\n                    \"index\": 2,\r\n                    \"inputType\": \"text\",\r\n                    \"label\": \"Title\",\r\n                    \"placeholder\": \"Enter Title For Book\",\r\n                    \"required\": true\r\n                },\r\n                {\r\n                    \"code\": \"description\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"Description\",\r\n                    \"description\": \"Brief description\",\r\n                    \"index\": 3,\r\n                    \"inputType\": \"textarea\",\r\n                    \"label\": \"Description\",\r\n                    \"placeholder\": \"Brief description about the Book\",\r\n                    \"required\": false\r\n                },\r\n                {\r\n                    \"code\": \"board\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"medium\",\r\n                        \"gradeLevel\",\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"Board\",\r\n                    \"index\": 5,\r\n                    \"label\": \"Board/Syllabus\",\r\n                    \"required\": true,\r\n                    \"name\": \"Board/Syllabus\",\r\n                    \"inputType\": \"select\",\r\n                    \"placeholder\": \"Select Board/Syllabus\"\r\n                },\r\n                {\r\n                    \"code\": \"medium\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"gradeLevel\",\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"\",\r\n                    \"index\": 6,\r\n                    \"label\": \"Medium\",\r\n                    \"required\": true,\r\n                    \"name\": \"medium\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Medium\"\r\n                },\r\n                {\r\n                    \"code\": \"gradeLevel\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"Class\",\r\n                    \"index\": 7,\r\n                    \"label\": \"Class\",\r\n                    \"required\": true,\r\n                    \"name\": \"Class\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Class\"\r\n                },\r\n                {\r\n                    \"code\": \"subject\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"\",\r\n                    \"index\": 8,\r\n                    \"label\": \"Subject\",\r\n                    \"required\": true,\r\n                    \"name\": \"Subject\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Subject\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}"
+									"raw": "{\r\n    \"request\": {\r\n        \"action\": \"review\",\r\n        \"subType\": \"resource\",\r\n        \"framework\": \"*\",\r\n        \"rootOrgId\": \"*\",\r\n        \"type\": \"content\",\r\n        \"popup\": true,\r\n        \"editMode\": true,\r\n        \"data\": {\r\n            \"templateName\": \"defaultTemplate\",\r\n            \"action\": \"review\",\r\n            \"fields\": [\r\n                {\r\n                    \"code\": \"appicon\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"url\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"App Icon\",\r\n                    \"description\": \"App Icon\",\r\n                    \"index\": 1,\r\n                    \"inputType\": \"file\",\r\n                    \"label\": \"Icon\",\r\n                    \"placeholder\": \"App Icon\",\r\n                    \"required\": false\r\n                },\r\n                {\r\n                    \"code\": \"name\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"Title\",\r\n                    \"description\": \"Title of the content\",\r\n                    \"index\": 2,\r\n                    \"inputType\": \"text\",\r\n                    \"label\": \"Title\",\r\n                    \"placeholder\": \"Enter Title For Book\",\r\n                    \"required\": true\r\n                },\r\n                {\r\n                    \"code\": \"description\",\r\n                    \"visible\": true,\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"name\": \"Description\",\r\n                    \"description\": \"Brief description\",\r\n                    \"index\": 3,\r\n                    \"inputType\": \"textarea\",\r\n                    \"label\": \"Description\",\r\n                    \"placeholder\": \"Brief description about the Book\",\r\n                    \"required\": false\r\n                },\r\n                {\r\n                    \"code\": \"board\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"medium\",\r\n                        \"gradeLevel\",\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"text\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"Board\",\r\n                    \"index\": 5,\r\n                    \"label\": \"Board/Syllabus\",\r\n                    \"required\": false,\r\n                    \"name\": \"Board/Syllabus\",\r\n                    \"inputType\": \"select\",\r\n                    \"placeholder\": \"Select Board/Syllabus\"\r\n                },\r\n                {\r\n                    \"code\": \"medium\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"gradeLevel\",\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"\",\r\n                    \"index\": 6,\r\n                    \"label\": \"Medium\",\r\n                    \"required\": false,\r\n                    \"name\": \"medium\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Medium\"\r\n                },\r\n                {\r\n                    \"code\": \"gradeLevel\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"subject\",\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"Class\",\r\n                    \"index\": 7,\r\n                    \"label\": \"Class\",\r\n                    \"required\": false,\r\n                    \"name\": \"Class\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Class\"\r\n                },\r\n                {\r\n                    \"code\": \"subject\",\r\n                    \"visible\": true,\r\n                    \"depends\": [\r\n                        \"topic\"\r\n                    ],\r\n                    \"editable\": true,\r\n                    \"dataType\": \"list\",\r\n                    \"renderingHints\": {},\r\n                    \"description\": \"\",\r\n                    \"index\": 8,\r\n                    \"label\": \"Subject\",\r\n                    \"required\": false,\r\n                    \"name\": \"Subject\",\r\n                    \"inputType\": \"multiselect\",\r\n                    \"placeholder\": \"Select Subject\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}"
 								},
 								"url": {
 									"raw": "{{host}}/api/data/v1/form/create",
