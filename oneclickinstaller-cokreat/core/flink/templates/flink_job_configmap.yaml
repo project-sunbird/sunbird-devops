@@ -132,5 +132,73 @@ data:
       # state.savepoints.dir: file:///tmp
  
   {{- end }}
+
+  {{ if eq .Release.Name "asset-enrichment" }}
+  asset-enrichment: |+
+    include file("/data/flink/conf/base-config.conf")
+    job {
+      env = "dev"
+    }
+
+    kafka {
+      input.topic = "dock.learning.job.request"
+      groupId = "dock-asset-enrichment-group"
+      video_stream.topic = "dock.content.postpublish.request"
+    }
+
+    task {
+      consumer.parallelism = 1
+      router.parallelism = 1
+      videoEnrichment.parallelism = 1
+      imageEnrichment.parallelism = 1
+    }
+
+    content {
+      stream {
+        enabled = true
+        mimeType = ["video/mp4", "video/webm"]
+      }
+      youtube {
+        applicationName = "fetch-youtube-license"
+        regexPattern = ["\\?vi?=([^&]*)", "watch\\?.*v=([^&]*)", "(?:embed|vi?)/([^/?]*)", "^([A-Za-z0-9\\-\\_]*)"]
+      }
+      upload.context.driven = true
+      max.iteration.count = 2
+    }
+
+    thumbnail.max {
+      sample = 5
+      size.pixel = 150
+    }
+  
+    content_youtube_apikey=""
+    cloud_storage_type="{{ .Values.cloud_service_provider }}"
+    cloud_storage_key="{{ .Values.cloud_storage_key }}"
+    cloud_storage_secret="{{ .Values.cloud_storage_secret }}"
+    cloud_storage_container="{{ .Values.cloud_storage_content_bucketname }}"
+
+    cloudstorage.metadata.replace_absolute_path=false
+    cloudstorage.relative_path_prefix="CONTENT_STORAGE_BASE_PATH"
+    cloudstorage.read_base_path="https://{{ .Values.cloud_storage_key }}.core.windows.net"
+    cloudstorage.write_base_path=["https://{{ .Values.cloud_storage_key }}.core.windows.net"]
+    cloudstorage.metadata.list=["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "assetsMap", "certTemplate", "itemSetPreviewUrl", "grayScaleAppIcon", "sourceURL", "variants", "downloadUrl", "streamingUrl", "toc_url", "data", "question", "solutions", "editorState", "media", "pdfUrl", "transcripts"]
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    jobManager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+    # classloader.resolve-order: "parent-first"
+    # state.savepoints.dir: file:///tmp
+
+  {{- end }}  
   log4j_console_properties: |+
 {{ .Values.log4j_console_properties | indent 4 }}
