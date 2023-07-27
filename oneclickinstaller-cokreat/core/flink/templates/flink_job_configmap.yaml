@@ -69,6 +69,79 @@ data:
       basePath = "{{ .Values.elasticsearch_host }}:9200"
     }
   
+  {{ if eq .Release.Name "post-publish-processor" }}
+  post-publish-processor: |+
+    include file("/data/flink/conf/base-config.conf")
+    job {
+      env = "dev"
+    }
+
+    kafka {
+      input.topic = "dock.content.postpublish.request"
+      groupId = "dock-post-publish-processor-group"
+      publish.topic = "dock.learning.job.request"
+      qrimage.topic = "dock.qrimage.request"
+      dialcode.context.topic = "dock.dialcode.context.job.request"
+    }
+
+    task {
+      consumer.parallelism = 1
+      router.parallelism = 1
+      shallow_copy.parallelism = 1
+      link_dialcode.parallelism = 1
+      batch_create.parallelism = 1
+      dialcode_context_updater.parallelism = 1
+    }
+
+    lms-cassandra {
+      keyspace = "sunbird_courses"
+      batchTable = "course_batch"
+    }
+
+    dialcode-cassandra {
+      keyspace = "dialcodes"
+      imageTable = "dialcode_images"
+    }
+
+    service {
+      search.basePath = "http://{{ .Values.nginx_private_ingress_ip }}/search"
+      lms.basePath = "http://{{ .Values.nginx_private_ingress_ip }}/lms"
+      learning_service.basePath = "http://learning-service.dock.svc.cluster.local:8080/learning-service"
+      dial.basePath = "https://{{ .Values.domain }}/dial/"
+    }
+
+    dialcode {
+      linkable.primaryCategory = ["Course"]
+    }
+
+    cloud_storage_type="{{ .Values.cloud_service_provider }}"
+    cloud_storage_key="{{ .Values.cloud_storage_key }}"
+    cloud_storage_secret="{{ .Values.cloud_storage_secret }}"
+    cloud_storage_container="{{ .Values.cloud_storage_content_bucketname }}"
+
+    cloudstorage.metadata.replace_absolute_path=false
+    cloudstorage.read_base_path="https://{{ .Values.cloud_storage_key }}.core.windows.net"
+    cloudstorage.write_base_path=["https://{{ .Values.cloud_storage_key }}.core.windows.net","https://obj.dev.sunbird.org"]
+    cloudstorage.metadata.list=["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "assetsMap", "certTemplate", "itemSetPreviewUrl", "grayScaleAppIcon", "sourceURL", "variants", "downloadUrl", "streamingUrl", "toc_url", "data", "question", "solutions", "editorState", "media", "pdfUrl", "transcripts"]
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    jobManager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+    # classloader.resolve-order: "parent-first"
+    # state.savepoints.dir: file:///tmp
+
+  {{- end }}
+
   {{ if eq .Release.Name "search-indexer" }}
   search-indexer: |+
         include file("/data/flink/conf/base-config.conf")
@@ -200,5 +273,44 @@ data:
     # state.savepoints.dir: file:///tmp
 
   {{- end }}  
+
+  {{ if eq .Release.Name "audit-history-indexer" }}
+  audit-history-indexer: |+
+    include file("/data/flink/conf/base-config.conf")
+    job {
+      env = "dev"
+    }
+
+    kafka {
+      input.topic = "dock.learning.graph.events"
+      groupId = "dock-audit-history-indexer-group"
+    }
+
+    task {
+      consumer.parallelism = 1
+      parallelism = 1
+      window.time = 60
+    }
+
+    timezone = "IST"
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    jobManager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+    # classloader.resolve-order: "parent-first"
+    # state.savepoints.dir: file:///tmp
+
+  {{- end }}
+
   log4j_console_properties: |+
 {{ .Values.log4j_console_properties | indent 4 }}
