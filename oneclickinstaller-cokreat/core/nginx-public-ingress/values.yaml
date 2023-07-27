@@ -1,0 +1,46 @@
+#jinja2:lstrip_blocks: True
+
+nginx_private_ingress_ip: "10.244.0.100"
+domain: dock.sunbirded.org
+cloud_public_storage_accountname: ""
+cloud_public_storage_container: ""
+# nginx private and public cert
+core_vault_proxy_site_key: ""
+core_vault_proxy_site_crt: ""
+  
+merge_domain_status: false
+merge_domain: merger.sunbirded1.dev.org
+service:
+  annotations: 
+    service.beta.kubernetes.io/azure-load-balancer-external: "true"
+  type: LoadBalancer
+  
+  ports:
+  - port: 80
+    name: http
+    targetPort: 80
+    nodePort: 31780
+  - port: 443
+    name: https
+    targetPort: 443
+    nodePort: 31790
+
+imagepullsecrets: ""
+dockerhub: sunbirded.azurecr.io
+
+resources:
+  requests:
+    cpu: '100m'
+    memory: '100Mi'
+  limits:
+    cpu: 1
+    memory: '1024Mi'
+
+repository: proxy
+image_tag: dock-0.0.3_RC5_1
+
+serviceMonitor:
+  enabled: false
+  labels: # labels with which the prometheus choose the serviceMonitor
+    app: prometheus-operator
+    release: prometheus-operator

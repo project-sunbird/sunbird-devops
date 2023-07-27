@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+ creationTimestamp: null
+ name: {{ .Chart.Name }}-config
+ namespace: {{ .Release.namespace }}
+data:
+  sunbird_portal_base_url: {{ if .Values.domain }}
+  {{- printf "https://%s" .Values.domain }}
+  {{- else -}}
+  {{- printf "ERROR | %s | Please provide a value for \"domain\"" .Chart.Name | fail }}
+  {{- end }}
+  sunbird_content_plugin_base_url: {{ if .Values.domain }}
+  {{- printf "https://%s" .Values.domain }}
+  {{- else -}}
+  {{- printf "ERROR | %s | Please provide a value for \"domain\"" .Chart.Name | fail }}
+  {{- end }}
+  sunbird_keycloak_auth_server_url: {{ if .Values.domain }}
+  {{- printf "https://%s" .Values.domain }}{{ .Values.keycloak_auth_endpoint }}
+  {{- else -}}
+  {{- printf "ERROR | %s | Please provide a value for \"domain\"" .Chart.Name | fail }}
+  {{- end }}
+  sunbird_data_service_api_base_url: {{ if .Values.domain }}
+  {{- printf "https://%s" .Values.domain }}{{ .Values.sunbird_data_service_api_base_endpoint }}
+  {{- else -}}
+  {{- printf "ERROR | %s | Please provide a value for \"domain\"" .Chart.Name | fail }}
+  {{- end }}
+  sunbird_dial_code_registry_url: {{ if .Values.domain }}
+  {{- printf "https://%s" .Values.domain }}{{ .Values.sunbird_dial_code_registry_endpoint }}
+  {{- else -}}
+  {{- printf "ERROR | %s | Please provide a value for \"domain\"" .Chart.Name | fail }}
+  {{- end }}
+  sunbird_language_service_api_base_url: {{ if .Values.domain }}
+  {{- printf "https://%s" .Values.domain }}{{ .Values.sunbird_language_service_api_base_endpoint }}
+  {{- else -}}
+  {{- printf "ERROR | %s | Please provide a value for \"domain\"" .Chart.Name | fail }}
+  {{- end }} 
+  sunbird_azure_account_key: {{ if .Values.cloud_public_storage_secret }}
+  {{- .Values.cloud_public_storage_secret }}
+  {{- else -}}
+  {{- printf "ERROR | %s | Please provide a value for \"cloud_public_storage_secret\"" .Chart.Name | fail }}
+  {{- end }}
+  sunbird_azure_account_name: {{ if .Values.cloud_public_storage_accountname }}
+  {{- .Values.cloud_public_storage_accountname }}
+  {{- else -}}
+  {{- printf "ERROR | %s | Please provide a value for \"cloud_public_storage_accountname\"" .Chart.Name | fail }}
+  {{- end }}
+  {{- $sunbird_sso_publickey := .Values.sunbird_sso_publickey }}
+  {{- if empty $sunbird_sso_publickey }}
+    {{- $sunbird_sso_publickey = include "common.read.secret" (dict "ChartName" .Chart.Name "Namespace" .Release.Namespace "Name" .Values.external_secrets.keycloak_realm_public_key.name "Key" .Values.external_secrets.keycloak_realm_public_key.key) -}}
+  {{- end -}}
+  {{- if empty $sunbird_sso_publickey }}
+    {{- printf  "ERROR | %s | The sunbird_sso_publickey value could not be found in values.yaml or in secrets or in subcharts" .Chart.Name | fail }}
+  {{- end }}
+  sunbird_keycloak_public_key: {{ $sunbird_sso_publickey }}
+  sunbird_cache_store: {{ .Values.sunbird_cache_store }}
+  sunbird_cache_ttl: {{ .Values.sunbird_cache_ttl | quote }}
+  sunbird_cassandra_consistency_level: {{ .Values.sunbird_cassandra_consistency_level }}
+  sunbird_cassandra_replication_strategy: '{{ .Values.sunbird_cassandra_replication_strategy | toJson }}'
+  sunbird_cassandra_urls: {{ .Values.sunbird_cassandra_urls }}
+  sunbird_content_repo_api_base_url: {{ .Values.sunbird_content_repo_api_base_url }}
+  sunbird_content_service_blacklisted_channels: {{ .Values.sunbird_content_service_blacklisted_channels | quote }}
+  sunbird_content_service_blacklisted_contenttype: {{ .Values.sunbird_content_service_blacklisted_contenttype | quote }}
+  sunbird_content_service_blacklisted_framework: {{ .Values.sunbird_content_service_blacklisted_framework | quote }}
+  sunbird_content_service_blacklisted_mimetype: {{ .Values.sunbird_content_service_blacklisted_mimetype | quote }}
+  sunbird_content_service_blacklisted_resourcetype: {{ .Values.sunbird_content_service_blacklisted_resourcetype | quote }}
+  sunbird_content_service_channel_refresh_cron: {{ .Values.sunbird_content_service_channel_refresh_cron | quote }}
+  sunbird_content_service_enable_logging: {{ .Values.sunbird_content_service_enable_logging | quote }}
+  sunbird_content_service_log_level: {{ .Values.sunbird_content_service_log_level }}
+  sunbird_content_service_whitelisted_channels: {{ .Values.sunbird_content_service_whitelisted_channels | quote }}
+  sunbird_content_service_whitelisted_framework: {{ .Values.sunbird_content_service_whitelisted_framework | quote }}
+  sunbird_content_service_whitelisted_mimetype: {{ .Values.sunbird_content_service_whitelisted_mimetype | quote }}
+  sunbird_content_service_whitelisted_resourcetype: {{ .Values.sunbird_content_service_whitelisted_resourcetype | quote }}
+  sunbird_default_channel: {{ .Values.sunbird_default_channel }}
+  sunbird_dial_repo_api_base_url: {{ .Values.sunbird_dial_repo_api_base_url }}
+  sunbird_dial_repo_api_key: {{ .Values.sunbird_dial_repo_api_key }}
+  sunbird_data_service_api_key: {{ .Values.sunbird_data_service_api_key }}
+  sunbird_environment: {{ .Values.sunbird_environment }}
+  sunbird_health_check_enable: {{ .Values.sunbird_health_check_enable | quote }}
+  sunbird_instance: {{ .Values.sunbird_instance }}
+  sunbird_kafka_host: {{ .Values.sunbird_kafka_host }}
+  sunbird_keycloak_client_id: {{ .Values.sunbird_keycloak_client_id }}
+  sunbird_keycloak_public: {{ .Values.sunbird_keycloak_public | quote }}
+  sunbird_keycloak_realm: {{ .Values.sunbird_keycloak_realm }}
+  sunbird_learner_service_base_url: {{ .Values.sunbird_learner_service_base_url }}
+  sunbird_lock_expiry_time: {{ .Values.sunbird_lock_expiry_time | quote }}
+  sunbird_plugin_repo_api_base_url: {{ .Values.sunbird_plugin_repo_api_base_url }}
+  sunbird_qrimage_topic: {{ .Values.sunbird_qrimage_topic }}
+  sunbird_search_service_api_base_url: {{ .Values.sunbird_search_service_api_base_url }}
+  sunbird_telemetry_sync_batch_size: {{ .Values.sunbird_telemetry_sync_batch_size | quote }}
+  sunbird_content_repo_api_key: {{ .Values.sunbird_content_repo_api_key }}
+  sunbird_language_service_api_key: {{ .Values.sunbird_language_service_api_key }}
+  sunbird_learner_service_api_key: {{ .Values.sunbird_learner_service_api_key }}
+  sunbird_search_service_api_key: {{ .Values.sunbird_search_service_api_key }}
+  sunbird_plugin_repo_api_key: {{ .Values.sunbird_plugin_repo_api_key }}
+  sunbird_image_storage_url: {{ .Values.sunbird_image_storage_url }}
+

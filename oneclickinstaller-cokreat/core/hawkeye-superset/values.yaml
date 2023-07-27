@@ -1,0 +1,56 @@
+replicaCount: 1
+
+image:
+  repository: sunbirded.azurecr.io/hawkeye
+  tag: master_f93ced9
+  pullPolicy: Always
+
+imagepullsecrets: 
+
+service:
+  type: NodePort
+  port: 8088
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - chart-example.local
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+sunbird_pg_host: postgresql.dev.svc.cluster.local
+sunbird_pg_user: "postgres"  
+sunbird_pg_password: "postgres"
+PORTAL_API_KEY: ""
+ANALYTICS_API_KEY: ""
+ANALYTICS_API_HOST: http://0.0.0.0:9000
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+init:
+  command:
+    - "/bin/sh"
+    - "-c"
+    - "superset db upgrade && superset init && superset fab create-admin --username admin --firstname Superset --lastname Admin --email admin@superset.com --password admin"

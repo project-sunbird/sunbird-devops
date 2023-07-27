@@ -1,0 +1,202 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-jobmanager
+  namespace: {{ .Release.namespace }}
+  labels:
+    app: flink
+    component: {{ .Release.Name }}-jobmanager
+spec:
+  type: ClusterIP
+  ports:
+    - name: rpc
+      port: {{ .Values.jobmanager.rpc_port }}
+    - name: blob
+      port: {{ .Values.jobmanager.blob_port }}
+    - name: query
+      port: {{ .Values.jobmanager.query_port }}
+    - name: ui
+      port: {{ .Values.jobmanager.ui_port }}
+    - name: prom
+      port: {{ .Values.jobmanager.prom_port }}
+  selector:
+    app: flink
+    component: {{ .Release.Name }}-jobmanager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-jobmanager-webui
+  namespace: {{ .Release.namespace }}
+  {{- if .Values.service.annotations }}
+  {{- with .Values.service.annotations }}
+annotations:
+  {{ toYaml . | indent 4 }}
+  {{- end }}
+  {{- end }}
+spec:
+  {{- if eq .Values.service.type "ClusterIP" }}
+  type: ClusterIP
+  {{- end }}
+  {{- if eq .Values.service.type "LoadBalancer" }}
+  type: LoadBalancer
+  {{- end }}
+  ports:
+    - name: rest
+      port: {{ .Values.rest_port }}
+      protocol: TCP
+      targetPort: {{ .Values.resttcp_port }}
+  selector:
+    app: flink
+    component: {{ .Release.Name }}-jobmanager
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-jobmanager
+  namespace: {{ .Release.namespace }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: flink
+        component: {{ .Release.Name }}-jobmanager
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: "{{ .Values.jobmanager.prom_port }}"
+    spec:
+      volumes:
+      - name: flink-config-volume
+        configMap:
+          name: {{ .Release.Name }}-config
+          items:
+          - key: flink-conf
+            path: flink-conf.yaml
+          - key: base-config
+            path: base-config.conf
+          - key: {{ .Release.Name }}
+            path: {{ .Release.Name }}.conf
+          - key: log4j_console_properties
+            path: log4j-console.properties
+      restartPolicy: OnFailure
+#      imagePullSecrets:
+#      - name: {{ .Values.imagepullsecrets }}
+      containers:
+      - name: {{ .Release.Name }}-jobmanager
+        image: "{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        workingDir: /opt/flink
+        command: ["/opt/flink/bin/standalone-job.sh"]
+        args: ["start-foreground",
+{{- if eq .Values.checkpoint_store_type "azure" }}
+          "-Dfs.azure.account.key.{{ .Values.azure_account }}.blob.core.windows.net={{ .Values.azure_secret }}",
+{{- end }}
+{{- if eq .Values.checkpoint_store_type "s3" }}
+          "-Ds3.access-key={{ .Values.s3_access_key }}",
+          "-Ds3.secret-key={{ .Values.s3_secret_key }}",
+          "-Ds3.endpoint={{ .Values.s3_endpoint }}",
+          "-Ds3.path.style.access={{ .Values.s3_path_style_access }}",
+{{- end }}
+               "--job-classname={{ (index .Values $.Release.Name).job_classname }}", 
+               "-Dweb.submit.enable=false",
+               "-Dmetrics.reporter.prom.class=org.apache.flink.metrics.prometheus.PrometheusReporter",
+               "-Dmetrics.reporter.prom.port={{ .Values.jobmanager.prom_port }}",
+               "-Djobmanager.rpc.address={{ .Release.Name }}-jobmanager",
+               "-Djobmanager.rpc.port={{ .Values.jobmanager.rpc_port }}",
+               "-Dparallelism.default=1", 
+               "-Dblob.server.port={{ .Values.jobmanager.blob_port }}", 
+               "-Dqueryable-state.server.ports={{ .Values.jobmanager.query_port }}",
+               "--config.file.path",
+               "/data/flink/conf/{{ .Release.Name }}.conf"]
+        ports:
+        - containerPort: {{ .Values.jobmanager.rpc_port }}
+          name: rpc
+        - containerPort: {{ .Values.jobmanager.blob_port }}
+          name: blob
+        - containerPort: {{ .Values.jobmanager.query_port }}
+          name: query
+        - containerPort: {{ .Values.jobmanager.ui_port }}
+          name: ui
+        volumeMounts:
+        - name: flink-config-volume
+          mountPath: /opt/flink/conf/flink-conf.yaml
+          subPath: flink-conf.yaml
+        - name: flink-config-volume
+          mountPath: /data/flink/conf/base-config.conf
+          subPath: base-config.conf
+        - name: flink-config-volume
+          mountPath: /data/flink/conf/{{ .Release.Name }}.conf
+          subPath: {{ .Release.Name }}.conf
+        - name: flink-config-volume
+          mountPath: /opt/flink/conf/log4j-console.properties
+          subPath: log4j-console.properties
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-taskmanager
+  namespace: {{ .Release.namespace }}
+spec:
+  replicas: {{ .Values.taskmanager.replicas }}
+  selector:
+    matchLabels:
+      app: flink
+      component: {{ .Release.Name }}-taskmanager
+  template:
+    metadata:
+      labels:
+        app: flink
+        component: {{ .Release.Name }}-taskmanager
+    spec:
+      volumes:
+      - name: flink-config-volume
+        configMap:
+          name: {{ .Release.Name }}-config
+          items:
+          - key: flink-conf
+            path: flink-conf.yaml
+          - key: log4j_console_properties
+            path: log4j-console.properties 
+#      imagePullSecrets:
+#      - name: {{ .Values.imagepullsecrets }}
+      containers:
+      - name: {{ .Release.Name }}-taskmanager
+        image: "{{ .Values.repository }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "{{ .Values.taskmanager.cpu_requests }}"
+        workingDir: {{ .Values.taskmanager.flink_work_dir }}
+        command: ["/opt/flink/bin/taskmanager.sh"]
+        args: ["start-foreground",
+{{- if eq .Values.checkpoint_store_type "azure" }}
+          "-Dfs.azure.account.key.{{ .Values.azure_account }}.blob.core.windows.net={{ .Values.azure_secret }}",
+{{- end }}
+{{- if eq .Values.checkpoint_store_type "s3" }}
+          "-Ds3.access-key={{ .Values.s3_access_key }}",
+          "-Ds3.secret-key={{ .Values.s3_secret_key }}",
+          "-Ds3.endpoint={{ .Values.s3_endpoint }}",
+          "-Ds3.path.style.access={{ .Values.s3_path_style_access }}",
+{{- end }}
+          "-Dweb.submit.enable=false",
+          "-Dmetrics.reporter.prom.class=org.apache.flink.metrics.prometheus.PrometheusReporter",
+          "-Dmetrics.reporter.prom.host={{ .Release.Name }}-taskmanager",
+          "-Dmetrics.reporter.prom.port=9251-9260",
+          "-Djobmanager.rpc.address={{ .Release.Name }}-jobmanager",
+          "-Dtaskmanager.rpc.port={{ .Values.taskmanager.rpc_port }}"]
+        ports:
+        - containerPort: {{ .Values.taskmanager.rpc_port }}
+          name: rpc
+        {{- if .Values.healthcheck }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        {{- end }}
+        volumeMounts:
+        - name: flink-config-volume
+          mountPath: /opt/flink/conf/flink-conf.yaml
+          subPath: flink-conf.yaml
+        - name: flink-config-volume
+          mountPath: /opt/flink/conf/log4j-console.properties
+          subPath: log4j-console.properties
