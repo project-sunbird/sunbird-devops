@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-config
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.namespace }}
   labels:
     app: flink
 data:
@@ -16,7 +16,6 @@ data:
         max-request-size = 1572864
         batch.size = 98304
         linger.ms = 10
-        compression = "snappy"
       }
       output.system.event.topic = "dev.system.events"
     }
@@ -42,19 +41,16 @@ data:
       restart-strategy.attempts = 3
       restart-strategy.delay = 30000 # in milli-seconds
     }
-  
-  
+    redisdb.connection.timeout = 30000
     redis {
-    host = {{ .Values.redis_host }}
-    port = 6379
-    connection {
-      max = 2
-      idle.min = 1
-      idle.max = 2
-      minEvictableIdleTimeSeconds = 120
-      timeBetweenEvictionRunsSeconds = 300
-        }
+      host = "{{ .Values.redis_host }}"
+      port = 6379
     }
+    redis-meta {
+      host = "{{ .Values.redis_host }}"
+      port = 6379
+    }
+    
     lms-cassandra {
     host = {{ .Values.cassandra_host }}
     port = "9042"
@@ -98,19 +94,20 @@ data:
       table = "questionset_hierarchy"
     }
     print_service.base_url = "http://{{ .Values.nginx_private_ingress_ip}}/print"
-    master.category.validation.enabled ="False"
 
     cloud_storage_type="{{ .Values.cloud_service_provider }}"
     cloud_storage_key="{{ .Values.cloud_storage_key }}"
     cloud_storage_secret="{{ .Values.cloud_storage_secret }}"
     cloud_storage_container="{{ .Values.cloud_storage_content_bucketname }}"
-    cloud_storage_endpoint: ""
 
-    cloudstorage.metadata.replace_absolute_path=false
-    cloudstorage.relative_path_prefix=CONTENT_STORAGE_BASE_PATH
-    cloudstorage.read_base_path="https://{{ .Values.cloud_storage_key }}.core.windows.net"
-    cloudstorage.write_base_path=["https://{{ .Values.cloud_storage_key }}.core.windows.net","https://obj.dev.sunbird.org"]
-    cloudstorage.metadata.list=["appIcon","posterImage","artifactUrl","downloadUrl","variants","previewUrl","pdfUrl"]
+    master.category.validation.enabled ="Yes"
+    cloudstorage {
+      metadata.replace_absolute_path=false
+      metadata.list=["appIcon","posterImage","artifactUrl","downloadUrl","variants","previewUrl","pdfUrl"]
+      relative_path_prefix="CLOUD_STORAGE_BASE_PATH"
+      cloudstorage.read_base_path="https://{{ .Values.cloud_storage_key }}.core.windows.net"
+      cloudstorage.write_base_path=["https://{{ .Values.cloud_storage_key }}.core.windows.net"]
+    }
 
   flink-conf: |+
     jobmanager.memory.flink.size: 2048m
@@ -143,14 +140,14 @@ data:
       table = "questionset_hierarchy"
     }
     print_service.base_url = "http://{{ .Values.nginx_private_ingress_ip}}/print"
-    master.category.validation.enabled ="False"
-
-    cloud_storage_type="{{ .Values.cloud_service_provider }}"
-    cloud_storage_key="{{ .Values.cloud_storage_key }}"
-    cloud_storage_secret="{{ .Values.cloud_storage_secret }}"
-    cloud_storage_container="{{ .Values.cloud_storage_content_bucketname }}"
-    cloud_storage_endpoint: ""
-
+    master.category.validation.enabled ="true"
+    cloudstorage {
+      metadata.replace_absolute_path=true
+      metadata.list=["appIcon","posterImage","artifactUrl","downloadUrl","variants","previewUrl","pdfUrl"]
+      relative_path_prefix="CLOUD_STORAGE_BASE_PATH"
+      cloudstorage.read_base_path="https://{{ .Values.cloud_storage_key }}.core.windows.net"
+      cloudstorage.write_base_path=["https://{{ .Values.cloud_storage_key }}.core.windows.net"]
+    }
   flink-conf: |+
     jobmanager.memory.flink.size: 2048m
     taskmanager.memory.flink.size: 2048m
