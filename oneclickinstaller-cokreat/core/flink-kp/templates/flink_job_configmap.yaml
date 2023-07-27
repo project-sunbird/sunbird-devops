@@ -1,0 +1,358 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: flink
+data:
+  base-config: |+
+    kafka {
+      broker-servers = "{{ .Values.kafka_host }}:9092"
+      producer.broker-servers = "{{ .Values.kafka_host }}:9092"
+      consumer.broker-servers = "{{ .Values.kafka_host }}:9092"
+      zookeeper = "{{ .Values.zookeeper_host }}:2181"
+      producer {
+        max-request-size = 1572864
+        batch.size = 98304
+        linger.ms = 10
+        compression = "snappy"
+      }
+      output.system.event.topic = "dev.system.events"
+    }
+    job {
+      env = "dev"
+      enable.distributed.checkpointing = false
+      statebackend {
+        blob {
+          storage {
+            account = "{{ .Values.cloud_storage_key }}.blob.core.windows.net"
+            container = "{{ .Values.cloud_storage_flink_bucketname }}"
+            checkpointing.dir = "checkpoint"
+          }
+        }
+        base.url = "wasbs://"${job.statebackend.blob.storage.container}"@"${job.statebackend.blob.storage.account}"/"${job.statebackend.blob.storage.checkpointing.dir} }
+    }
+    task {
+      parallelism = 1
+      consumer.parallelism = 1
+      checkpointing.compressed = true
+      checkpointing.interval = 10
+      checkpointing.pause.between.seconds = 3000
+      restart-strategy.attempts = 3
+      restart-strategy.delay = 30000 # in milli-seconds
+    }
+  
+  
+    redis {
+    host = {{ .Values.redis_host }}
+    port = 6379
+    connection {
+      max = 2
+      idle.min = 1
+      idle.max = 2
+      minEvictableIdleTimeSeconds = 120
+      timeBetweenEvictionRunsSeconds = 300
+        }
+    }
+    lms-cassandra {
+    host = {{ .Values.cassandra_host }}
+    port = "9042"
+    }
+  
+    neo4j {
+    routePath = "bolt://{{ .Values.neo4j_host }}:7687"
+    graph = "domain"
+    }
+  
+    es {
+      basePath = "{{ .Values.elasticsearch_host }}:9200"
+    }
+
+{{ if eq .Release.Name "content-publish" }}
+  content-publish: |+
+    include file("/data/flink/conf/base-config.conf")
+    kafka {
+      input.topic = dock.publish.job.request
+      post_publish.topic = dock.content.postpublish.request
+      mvc.topic = dock.mvc.processor.job.request
+      error.topic = dock.learning.events.failed
+      groupId = dock-content-publish-group
+    }
+    task {
+      consumer.parallelism = 1
+      parallelism = 1
+      router.parallelism = 1
+    }
+    redis {
+      host={{ .Values.redis_host }}
+      port=6379
+      database {
+        contentCache.id = 0
+      }
+    }
+    content {
+      bundleLocation = "/tmp/contentBundle"
+      isECARExtractionEnabled = true
+      retry_asset_download_count = 1
+      keyspace = "dock_content_store"
+      table = "content_data"
+      tmp_file_location = "/tmp"
+      objectType = ["Content", "ContentImage","Collection","CollectionImage"]
+      mimeType = ["application/pdf",
+                                   "application/vnd.ekstep.ecml-archive",
+                                   "application/vnd.ekstep.html-archive",
+                                   "application/vnd.android.package-archive",
+                                   "application/vnd.ekstep.content-archive",
+                                   "application/epub",
+                                   "application/msword",
+                                   "application/vnd.ekstep.h5p-archive",
+                                   "video/webm",
+                                   "video/mp4",
+                                   "application/vnd.ekstep.content-collection",
+                                   "video/quicktime",
+                                   "application/octet-stream",
+                                   "application/json",
+                                   "application/javascript",
+                                   "application/xml",
+                                   "text/plain",
+                                   "text/html",
+                                   "text/javascript",
+                                   "text/xml",
+                                   "text/css",
+                                   "image/jpeg",
+                                   "image/jpg",
+                                   "image/png",
+                                   "image/tiff",
+                                   "image/bmp",
+                                   "image/gif",
+                                   "image/svg+xml",
+                                   "image/x-quicktime",
+                                   "video/avi",
+                                   "video/mpeg",
+                                   "video/quicktime",
+                                   "video/3gpp",
+                                   "video/mp4",
+                                   "video/ogg",
+                                   "video/webm",
+                                   "video/msvideo",
+                                   "video/x-msvideo",
+                                   "video/x-qtc",
+                                   "video/x-mpeg",
+                                   "audio/mp3",
+                                   "audio/mp4",
+                                   "audio/mpeg",
+                                   "audio/ogg",
+                                   "audio/webm",
+                                   "audio/x-wav",
+                                   "audio/wav",
+                                   "audio/mpeg3",
+                                   "audio/x-mpeg-3",
+                                   "audio/vorbis",
+                                   "application/x-font-ttf",
+                                   "application/vnd.ekstep.plugin-archive",
+                                   "video/x-youtube",
+                                   "video/youtube",
+                                   "text/x-url"]
+      asset_download_duration = "60 seconds"
+      stream {
+        enabled = true
+        mimeType = ["video/mp4", "video/webm"]
+      }
+      artifact.size.for_online= 209715200
+
+      downloadFiles {
+        spine = ["appIcon"]
+        full = ["appIcon", "grayScaleAppIcon", "artifactUrl", "itemSetPreviewUrl", "media"]
+      }
+      
+      nested.fields=["badgeAssertions", "targets", "badgeAssociations", "plugins", "me_totalTimeSpent", "me_totalPlaySessionCount", "me_totalTimeSpentInSec", "batches", "trackable", "credentials", "discussionForum", "provider", "osMetadata", "actions", "transcripts", "accessibility"]
+
+    }
+    cloud_storage {
+        folder {
+            content = "content"
+            artifact = "artifact"
+        }
+    }
+
+    hierarchy {
+      keyspace = "dock_hierarchy_store"
+      table = "content_hierarchy"
+    }
+
+    contentTypeToPrimaryCategory {
+      ClassroomTeachingVideo: "Explanation Content"
+      ConceptMap: "Learning Resource"
+      Course: "Course"
+      CuriosityQuestionSet: "Practice Question Set"
+      eTextBook: "eTextbook"
+      Event: "Event"
+      EventSet: "Event Set"
+      ExperientialResource: "Learning Resource"
+      ExplanationResource: "Explanation Content"
+      ExplanationVideo: "Explanation Content"
+      FocusSpot: "Teacher Resource"
+      LearningOutcomeDefinition: "Teacher Resource"
+      MarkingSchemeRubric: "Teacher Resource"
+      PedagogyFlow: "Teacher Resource"
+      PracticeQuestionSet: "Practice Question Set"
+      PracticeResource: "Practice Question Set"
+      SelfAssess: "Course Assessment"
+      TeachingMethod: "Teacher Resource"
+      TextBook: "Digital Textbook"
+      Collection: "Content Playlist"
+      ExplanationReadingMaterial: "Learning Resource"
+      LearningActivity: "Learning Resource"
+      LessonPlan: "Content Playlist"
+      LessonPlanResource: "Teacher Resource"
+      PreviousBoardExamPapers: "Learning Resource"
+      TVLesson: "Explanation Content"
+      OnboardingResource: "Learning Resource"
+      ReadingMaterial: "Learning Resource"
+      Template: "Template"
+      Asset: "Asset"
+      Plugin: "Plugin"
+      LessonPlanUnit: "Lesson Plan Unit"
+      CourseUnit: "Course Unit"
+      TextBookUnit: "Textbook Unit"
+      Asset: "Certificate Template"
+    }
+
+    compositesearch.index.name = "compositesearch"
+    search.document.type = "cs"
+    enableDIALContextUpdate = "Yes"
+
+    cloud_storage_type="{{ .Values.cloud_service_provider }}"
+    cloud_storage_key="{{ .Values.cloud_storage_key }}"
+    cloud_storage_secret="{{ .Values.cloud_storage_secret }}"
+    cloud_storage_container="{{ .Values.cloud_storage_content_bucketname }}"
+
+    cloudstorage.metadata.replace_absolute_path=false
+    cloudstorage.relative_path_prefix="CONTENT_STORAGE_BASE_PATH"
+    cloudstorage.read_base_path="https://{{ .Values.cloud_storage_key }}.core.windows.net"
+    cloudstorage.write_base_path=["https://{{ .Values.cloud_storage_key }}.core.windows.net"]
+    cloudstorage.metadata.list=["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "assetsMap", "certTemplate", "itemSetPreviewUrl", "grayScaleAppIcon", "sourceURL", "variants", "downloadUrl", "streamingUrl", "toc_url", "data", "question", "solutions", "editorState", "media", "pdfUrl", "transcripts"]
+
+    master.category.validation.enabled ="yes"
+    service {
+      print.basePath = "http://{{ .Values.nginx_private_ingress_ip }}/print 
+    }
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+  
+  {{- end }}
+
+{{ if eq .Release.Name "csp-migrator" }}
+  csp-migrator: |+
+    include file("/data/flink/conf/base-config.conf")
+    kafka {
+      input.topic = "dock.csp.migration.job.request"
+      groupId = "dock-csp-migrator-group"
+      failed.topic = "dock.csp.migration.job.request.failed"
+      live_video_stream.topic = "dock.live.video.stream.request"
+      live_content_node_republish.topic = "dock.republish.job.request"
+      live_question_node_republish.topic = "dock.assessment.republish.request"
+    }
+    task {
+      timer.duration = 1800
+      consumer.parallelism = 1
+      parallelism = 1
+      max.retries = 10
+      cassandra-migrator.parallelism = 1
+    }
+    redis {
+      database {
+        relationCache.id = 10
+        collectionCache.id = 5
+      }
+    }
+
+    hierarchy {
+      keyspace = "dock_hierarchy_store"
+      table = "content_hierarchy"
+    }
+
+    content {
+        keyspace = "dock_content_store"
+        content_table = "content_data"
+        assessment_table = "question_data"
+    }
+
+    questionset.hierarchy.keyspace="dock_hierarchy_store"
+    questionset.hierarchy.table="questionset_hierarchy"
+
+    key_value_strings_to_migrate = {
+        "https://qa.ekstep.in/assets/public": "CONTENT_STORAGE_BASE_PATH",
+        "https://dev.ekstep.in/assets/public": "CONTENT_STORAGE_BASE_PATH",
+        "https://community.ekstep.in/assets/public": "CONTENT_STORAGE_BASE_PATH",
+        "https://community.ekstep.in:443": "CONTENT_STORAGE_BASE_PATH",
+        "https://ekstep-public-qa.s3-ap-south-1.amazonaws.com": "CONTENT_STORAGE_BASE_PATH",
+        "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com": "CONTENT_STORAGE_BASE_PATH",
+        "https://ekstep-public-preprod.s3-ap-south-1.amazonaws.com": "CONTENT_STORAGE_BASE_PATH",
+        "https://ekstep-public-prod.s3-ap-south-1.amazonaws.com": "CONTENT_STORAGE_BASE_PATH",
+        "https://stagingdock.blob.core.windows.net/sunbird-content-dock": "CONTENT_STORAGE_BASE_PATH",
+        "https://dockpreprodall.blob.core.windows.net/dock-content-preprod": "CONTENT_STORAGE_BASE_PATH",
+        "https://dockprodall.blob.core.windows.net/dock-content-prod": "CONTENT_STORAGE_BASE_PATH",
+        "CLOUD_STORAGE_BASE_PATH": "CONTENT_STORAGE_BASE_PATH"
+    }
+
+    neo4j_fields_to_migrate = {
+        "asset": ["artifactUrl", "thumbnail", "downloadUrl","variants"],
+        "content": ["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "assetsMap", "certTemplate", "itemSetPreviewUrl", "grayScaleAppIcon", "sourceURL", "variants", "downloadUrl","streamingUrl","transcripts"],
+        "contentimage": ["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "assetsMap", "certTemplate", "itemSetPreviewUrl", "grayScaleAppIcon", "sourceURL", "variants", "downloadUrl","streamingUrl","transcripts"],
+        "collection": ["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "toc_url", "grayScaleAppIcon", "variants", "downloadUrl"],
+        "collectionimage": ["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "toc_url", "grayScaleAppIcon", "variants", "downloadUrl"],
+        "plugins": ["artifactUrl"],
+        "itemset": ["previewUrl", "downloadUrl"],
+        "assessmentitem": ["data", "question", "solutions", "editorState", "media"],
+        "question": ["appIcon","artifactUrl", "posterImage", "previewUrl","downloadUrl", "variants","pdfUrl"],
+        "questionimage": ["appIcon","artifactUrl", "posterImage", "previewUrl","downloadUrl", "variants","pdfUrl"],
+        "questionset": ["appIcon","artifactUrl", "posterImage", "previewUrl","downloadUrl", "variants","pdfUrl"],
+        "questionsetimage": ["appIcon","artifactUrl", "posterImage", "previewUrl","downloadUrl", "variants","pdfUrl"]
+    }
+
+    cassandra_fields_to_migrate = {
+        "assessmentitem": ["question", "editorstate", "solutions", "body"]
+    }
+
+    migrationVersion = 1
+    video_stream_regeneration_enable = false
+    live_node_republish_enable = true
+    copy_missing_files_to_cloud = false
+    download_path = /tmp
+
+    cloud_storage_type="{{ .Values.cloud_service_provider }}"
+    cloud_storage_key="{{ .Values.cloud_storage_key }}"
+    cloud_storage_secret="{{ .Values.cloud_storage_secret }}"
+    cloud_storage_container="{{ .Values.cloud_storage_content_bucketname }}"
+
+    cloudstorage.metadata.replace_absolute_path=false
+    cloudstorage.relative_path_prefix=CONTENT_STORAGE_BASE_PATH
+    cloudstorage.read_base_path="https://{{ .Values.cloud_storage_key }}.core.windows.net"
+    cloudstorage.write_base_path=["https://{{ .Values.cloud_storage_key }}.core.windows.net","https://obj.dev.sunbird.org"]
+    cloudstorage.metadata.list=["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "assetsMap", "certTemplate", "itemSetPreviewUrl", "grayScaleAppIcon", "sourceURL", "variants", "downloadUrl", "streamingUrl", "toc_url", "data", "question", "solutions", "editorState", "media", "pdfUrl", "transcripts"]
+
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
+  {{ end }} 
+  
+  log4j_console_properties: |+
+{{ .Values.log4j_console_properties | indent 4 }}
