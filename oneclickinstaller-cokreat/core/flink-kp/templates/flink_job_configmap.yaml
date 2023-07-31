@@ -228,15 +228,15 @@ data:
     cloud_storage_secret="{{ .Values.cloud_storage_secret }}"
     cloud_storage_container="{{ .Values.cloud_storage_content_bucketname }}"
 
-    cloudstorage.metadata.replace_absolute_path=false
+    cloudstorage.metadata.replace_absolute_path=true
     cloudstorage.relative_path_prefix="CONTENT_STORAGE_BASE_PATH"
+    cloudstorage.metadata.list=["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "assetsMap", "certTemplate", "itemSetPreviewUrl", "grayScaleAppIcon", "sourceURL", "variants", "downloadUrl", "streamingUrl", "toc_url", "data", "question", "solutions", "editorState", "media", "pdfUrl", "transcripts"]
     cloudstorage.read_base_path="https://{{ .Values.cloud_storage_key }}.core.windows.net"
     cloudstorage.write_base_path=["https://{{ .Values.cloud_storage_key }}.core.windows.net"]
-    cloudstorage.metadata.list=["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "assetsMap", "certTemplate", "itemSetPreviewUrl", "grayScaleAppIcon", "sourceURL", "variants", "downloadUrl", "streamingUrl", "toc_url", "data", "question", "solutions", "editorState", "media", "pdfUrl", "transcripts"]
 
-    master.category.validation.enabled ="yes"
+    master.category.validation.enabled ="False"
     service {
-      print.basePath = "http://{{ .Values.nginx_private_ingress_ip }}/print 
+      print.basePath = "http://{{ .Values.nginx_private_ingress_ip }}/print" 
     }
 
   flink-conf: |+
@@ -246,6 +246,11 @@ data:
     parallelism.default: 1
     jobmanager.execution.failover-strategy: region
     taskmanager.memory.network.fraction: 0.1
+    scheduler-mode: reactive
+    heartbeat.timeout: 8000
+    heartbeat.interval: 5000
+    taskmanager.memory.process.size: 1700m
+    jobmanager.memory.process.size: 1600m
   
   {{- end }}
 
@@ -352,7 +357,7 @@ data:
     heartbeat.interval: 5000
     taskmanager.memory.process.size: 1700m
     jobmanager.memory.process.size: 1600m
-  {{ end }} 
+  {{- end }} 
   
   log4j_console_properties: |+
 {{ .Values.log4j_console_properties | indent 4 }}
