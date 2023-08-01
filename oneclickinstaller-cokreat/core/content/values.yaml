@@ -1,0 +1,66 @@
+javaoptions: -Xmx600m
+
+replicaCount: 1
+
+image:
+  registry: sunbirded.azurecr.io
+  repository: content-service
+  tag: release-5.2.0_4daa146_105
+healthcheck: true
+livenessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /service/health
+      port: 9000
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+readinessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /service/health
+      port: 9000
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 1
+    memory: 1024Mi
+network:
+  port: 9002
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: 25%
+  maxunavailable: 25%
+serviceType: ClusterIP
+cassandra_connection: cassandra.dock.svc.cluster.local:9042
+redis_connection: redis-master.dock.svc.cluster.local
+learning_neo4j_bolt_url: bolt://neo4j.lern.svc.cluster.local:7687
+learning_write_elb_url: bolt://neo4j.lern.svc.cluster.local:7687
+learning_read_elb_url: bolt://neo4j.lern.svc.cluster.local:7687
+language_neo4j_bolt_url: bolt://neo4j.lern.svc.cluster.local:8687
+language_write_elb_url: bolt://neo4j.lern.svc.cluster.local:8687
+language_read_elb_url: bolt://neo4j.lern.svc.cluster.local:8687 
+kafka_connection: kafka.dock.svc.cluster.local:9092
+collection_keyspace: dock_hierarchy_store
+content_keyspace: dock_content_store
+cloud_storage_env: dock
+cloud_storage_content_folder: "content"
+cloud_storage_asset_folder: "assets"
+cloud_storage_artefact_folder: "artifact"
+cloud_storage_bundle_folder: "bundle"
+cloud_storage_media_folder: "media"
+cloud_storage_ecar_folder: "ecar_files"
+cloud_storage_upload_url_ttl: "54000"
+cloudstorage_relative_path_prefix_content: CONTENT_STORAGE_BASE_PATH
+cloudstorage_metadata_list: ["appIcon", "artifactUrl", "posterImage", "previewUrl", "thumbnail", "assetsMap", "certTemplate", "itemSetPreviewUrl", "grayScaleAppIcon", "sourceURL", "variants", "downloadUrl", "streamingUrl", "toc_url", "data", "question", "solutions", "editorState", "media", "pdfUrl", "transcripts"]
+cloudstorage_read_base_path: "https://sunbirddevbbpublic.blob.core.windows.net"
+cloudstorage_write_base_path: ["https://sunbirdstagingpublic.blob.core.windows.net", "https://sunbirddevbbpublic.blob.core.windows.net"]

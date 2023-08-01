@@ -1,0 +1,104 @@
+imagepullsecrets: ""
+dockerhub: ""
+repository: "sunbirded.azurecr.io/knowledge-platform-jobs"
+image_tag: "release-5.2.0_c6d3f7b_46"
+serviceMonitor:
+  enabled: false
+replicaCount: 1
+
+
+jobmanager:
+  rpc_port: 6123
+  blob_port: 6124
+  query_port: 6125
+  ui_port: 8081
+  prom_port: 9250
+  heap_memory: 1024
+
+rest_port: 80
+resttcp_port: 8081
+service:
+  type: ClusterIP
+
+taskmanager:
+  prom_port: 9251
+  rpc_port: 6122
+  heap_memory: 1024
+  replicas: 1
+  cpu_requests: 0.3
+
+checkpoint_store_type: "azure"
+
+# AWS S3 Details
+s3_access_key: ""
+s3_secret_key: ""
+s3_endpoint: ""
+s3_path_style_access: ""
+
+# Azure Container Details
+azure_account: ""
+azure_secret: ""
+flink_container_name: ""
+cloud_storage_flink_bucketname: flink-state-backend
+cloud_storage_content_bucketname: sunbird-content-dock
+cloud_storage_dial_bucketname: dial
+domain: ""
+kafka_host: kafka.dock.svc.cluster.local
+zookeeper_host: kafka-zookeeper.dock.svc.cluster.local
+elasticsearch_host: elasticsearch.dock.svc.cluster.local
+cassandra_host: cassandra.dock.svc.cluster.local
+neo4j_host: neo4j.dock.svc.cluster.local
+redis_host: redis-master.dock.svc.cluster.local
+kp_schema_base_path: https://stagingdock.blob.core.windows.net/content-service/schemas
+youtube_api_key: ""
+auto_creator_g_service_acct_cred: ""
+nginx_private_ingress_ip: ""
+
+log4j_console_properties: |
+  # This affects logging for both user code and Flink
+  rootLogger.level = INFO
+  rootLogger.appenderRef.console.ref = ConsoleAppender
+
+  # Uncomment this if you want to _only_ change Flink's logging
+  #logger.flink.name = org.apache.flink
+  #logger.flink.level = INFO
+
+  # The following lines keep the log level of common libraries/connectors on
+  # log level INFO. The root logger does not override this. You have to manually
+  # change the log levels here.
+  logger.akka.name = akka
+  logger.akka.level = ERROR
+  logger.kafka.name= org.apache.kafka
+  logger.kafka.level = ERROR
+  logger.hadoop.name = org.apache.hadoop
+  logger.hadoop.level = ERROR
+  logger.zookeeper.name = org.apache.zookeeper
+  logger.zookeeper.level = ERROR
+
+  # Log all infos to the console
+  appender.console.name = ConsoleAppender
+  appender.console.type = CONSOLE
+  appender.console.layout.type = PatternLayout
+  appender.console.layout.pattern = %d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %-60c %x - %m%n
+
+  # Suppress the irrelevant (wrong) warnings from the Netty channel handler
+  logger.netty.name = org.apache.flink.shaded.akka.org.jboss.netty.channel.DefaultChannelPipeline
+  logger.netty.level = OFF
+
+## classname
+search-indexer: 
+  job_classname: org.sunbird.job.searchindexer.task.SearchIndexerStreamTask
+asset-enrichment:
+  job_classname: org.sunbird.job.assetenricment.task.AssetEnrichmentStreamTask
+post-publish-processor:
+  job_classname: org.sunbird.job.postpublish.task.PostPublishProcessorStreamTask   
+audit-history-indexer:
+  job_classname: org.sunbird.job.audithistory.task.AuditHistoryIndexerStreamTask
+video-stream-generator:   
+  job_classname: org.sunbird.job.videostream.task.VideoStreamGeneratorStreamTask
+auto-creator-v2:
+  job_classname: org.sunbird.job.task.AutoCreatorV2StreamTask
+content-auto-creator:
+  job_classname: org.sunbird.job.contentautocreator.task.ContentAutoCreatorStreamTask
+live-node-publisher:
+  job_classname: org.sunbird.job.livenodepublisher.task.LiveNodePublisherStreamTask

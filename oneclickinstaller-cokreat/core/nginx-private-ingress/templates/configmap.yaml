@@ -1,0 +1,105 @@
+apiVersion: v1
+data:
+  nginx.conf: |
+    user  nginx;
+    worker_processes  1;
+
+    error_log  /var/log/nginx/error.log warn;
+    pid        /var/run/nginx.pid;
+
+    events {
+        worker_connections  1024;
+    }
+
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      lua_load_resty_core off;
+      lua_package_path "/etc/nginx/lua_modules/?.lua";
+      log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+    
+      access_log  /var/log/nginx/access.log  main;
+      include /etc/nginx/conf.d/*.conf;
+      sendfile        on;
+      client_max_body_size 60M;
+        
+      server {
+        listen 80;
+        listen [::]:80;
+    
+        resolver {{ (lookup "v1" "Service" "kube-system" "kube-dns").spec.clusterIP }};
+        
+        location /api/ {
+          set $target http://kong.{{ .Release.Namespace }}.svc.cluster.local:8000;
+          rewrite ^/api/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /grafana/ {
+          set $target http://prometheus-operator-grafana.monitoring.svc.cluster.local;
+          rewrite ^/grafana/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /admin-api/ {
+          set $target http://kong.{{ .Release.Namespace }}.svc.cluster.local:8001;
+          rewrite ^/admin-api/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /player/ {
+          set $target http://player.{{ .Release.Namespace }}.svc.cluster.local:3000;
+          rewrite ^/player/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /knowledgemw/ {
+          set $target http://knowledge-mw-service.{{ .Release.Namespace }}.svc.cluster.local:5000;
+          rewrite ^/knowledgemw/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /content/ {
+          set $target http://content-service.{{ .Release.Namespace }}.svc.cluster.local:9000;
+          rewrite ^/content/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /cert/ {
+          set $target http://cert-service.{{ .Release.Namespace }}.svc.cluster.local:9000;
+          rewrite ^/cert/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /certreg/ {
+          set $target http://cert-registry-service.{{ .Release.Namespace }}.svc.cluster.local:9000;
+          rewrite ^/certreg/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /assessment/ {
+          set $target http://assessment-service.{{ .Release.Namespace }}.svc.cluster.local:9000;
+          rewrite ^/assessment/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /search/ {
+          set $target http://search-service.{{ .Release.Namespace }}.svc.cluster.local:9000;
+          rewrite ^/search/(.*) /$1 break;
+          proxy_pass $target;
+        }
+        location /opensaber/ {
+          rewrite ^/opensaber/(.*) /$1 break;
+          proxy_pass http://opensaber-service:8080;
+        }
+        location /print/ {
+          rewrite ^/print/(.*) /$1 break;
+          proxy_pass http://print-service:5000;
+        }
+        location /program/ {
+          rewrite ^/program/(.*) /$1 break;
+          proxy_pass http://program-service:6000;
+        }
+        location /mlworkbench/ {
+          rewrite ^/mlworkbench/(.*) /$1 break;
+          proxy_pass http://mlworkbench-service:3579;
+        }
+      }
+    }
+kind: ConfigMap
+metadata:
+  name: nginx-private-ingress.conf
+  namespace: {{ .Release.Namespace }}

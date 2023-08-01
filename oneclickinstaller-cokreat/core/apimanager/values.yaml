@@ -1,0 +1,72 @@
+### variables for apimanager-kong service ###
+kong_admin_listen: 0.0.0.0:8001
+kong_database: postgres
+kong_log_level: info
+kong_mem_cache_size: 128m
+kong_nginx_worker_processes: auto
+kong_pg_database: api_manager_kong
+kong_pg_host: postgres.dev.svc.cluster.local
+kong_pg_password: postgres
+kong_pg_ssl: "True"
+kong_pg_user: postgres
+kong_ratelimit_cache_size: 12m
+kong_trusted_ips: 0.0.0.0/0,::/0
+kong_upstream_keepalive: "200"
+
+
+imagepullsecrets: ""
+dockerhub: sunbirded.azurecr.io
+
+replicaCount: 1
+repository: kong
+image_tag: 1.8.0-gold
+resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 1
+    memory: 1G
+network:
+  port: 8000
+  targetport: 8000
+service:
+  port: 8001
+  targetport: 8001
+strategy:
+  type: RollingUpdate
+  maxsurge: 25%
+  maxunavailable: 25%
+
+livenessProbe:
+  failureThreshold: 2
+  httpGet:
+    path: /status
+    port: 8001
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+readinessProbe:
+  failureThreshold: 2
+  httpGet:
+    path: /status
+    port: 8001
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+godns:
+  repository: go_docker.io/sunbird/go-dns
+  image_tag: v1.2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 500m
+      memory: 500Mi
+  env:
+    verbose: False
+    cache: 1000
+    cache_ttl: 7200

@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: {{ .Release.namespace }}  
+data:
+  logstash.conf: |-
+    input {
+      file {
+        start_position =>"beginning"
+        type => "graph_event"    
+        path => ["/txn-handler/learning_graph_event_neo4j.log"]
+        sincedb_path => "/usr/share/logstash/.sincedb_learning_graph_event_mw"
+      }
+    }
+    filter {
+      grok {
+        match => [ "message",
+                  "%{TIMESTAMP_ISO8601:timestamp} %{GREEDYDATA:msg}"]
+      }
+      mutate {
+          gsub => [ "message","%{timestamp}","" ]
+          strip => [ "message" ]
+      }
+      json {
+          source => "message"
+      }
+    }
+    output {
+      kafka {
+        bootstrap_servers => "{{ .Values.kafka_connection}}"
+        codec => plain {
+            format => "%{message}"
+        }
+        message_key => "%{nodeUniqueId}"
+        topic_id => "{{ .Values.learning_graph_events}}"
+        retries => 20
+        retry_backoff_ms => 180000
+      }
+    }

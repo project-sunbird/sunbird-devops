@@ -1,0 +1,95 @@
+## This section has mandatory variables
+## You must provide a value for these
+## If you don't provide a value for these variables, the chart installation will not proceed
+
+## The domain name or Public IP address
+## The domain name should start with http or https
+## For example https://example.com
+#domain: ""
+
+## Can be one of - azure, aws, gcloud
+cloud_service_provider: "azure"
+
+## Public storage bucket details
+#cloud_public_storage_accountname: ""
+#cloud_public_storage_secret: ""
+
+## Private storage bucket details
+#cloud_private_storage_accountname: ""
+#cloud_private_storage_secret: ""
+
+## This section has variables with default values
+## These are standard defaults that work well
+## You can override these if you have a use case for it
+CONTAINER_NAME: dev-e-credentials
+ITEXT_LICENSE_ENABLED: "False"
+ITEXT_LICENSE_PATH: /home/sunbird/itext_trail_license.xml
+PUBLIC_CONTAINER_NAME: certqr
+download_link_expiry_timeout: "600"
+es_conn_info: elasticsearch.dock.svc.cluster.local:9200
+sunbird_cert_domain_url: ""
+sunbird_cert_enc_service_url: http://enc-service:8013
+## Variables with empty values
+## The value for these variables will be contstucted using other variables
+## If you provide a value to the variable, then that will take the highest precedence
+## It's recommended to leave these blanks unless you have a strong use case to override them
+
+## Set this value to true when developing the chart
+local_chart_development: true
+
+
+## This section has other kubernetes variables
+## These are standard defaults that work well
+## You can override these if you have a use case for it
+image:
+  registry: sunbirded.azurecr.io
+  repository: cert_registry_service
+  tag: logback-json44cade372
+
+replicaCount: 1
+
+strategy:
+  maxSurge: 25%
+  maxUnavailable: 25%
+
+imagePullSecrets: ""
+
+javaOptions: -Xmx600m
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 1
+    memory: 1G
+
+port: 9013
+
+targetPort: 9000
+
+livenessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /service/health
+      port: 9000
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+readinessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /service/health
+      port: 9000
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+initcontainer_resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 100m
+    memory: 100M

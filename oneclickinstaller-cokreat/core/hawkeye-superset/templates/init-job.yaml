@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "superset.name" . }}-init-db
+  namespace: {{ .Release.Namespace }}
+spec:
+  template:
+    metadata:
+      name: {{ template "superset.name" . }}-init-db
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      securityContext:
+        runAsUser: 0 # Needed in order to allow pip install to work in bootstrap
+      containers:
+      - name: {{ template "superset.name" . }}-init-db
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        envFrom:
+            - configMapRef:
+                name: hawkeye-envconfigmap
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        command: {{  tpl (toJson .Values.init.command) . }}
+      restartPolicy: Never

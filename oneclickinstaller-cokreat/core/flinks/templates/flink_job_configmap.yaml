@@ -1,0 +1,168 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: flink
+data:
+  base-config: |+
+    kafka {
+      broker-servers = "{{ .Values.kafka_host }}:9092"
+      producer.broker-servers = "{{ .Values.kafka_host }}:9092"
+      consumer.broker-servers = "{{ .Values.kafka_host }}:9092"
+      zookeeper = "{{ .Values.zookeeper_host }}:2181"
+      producer {
+        max-request-size = 1572864
+        batch.size = 98304
+        linger.ms = 10
+        compression = "snappy"
+      }
+      output.system.event.topic = "dev.system.events"
+    }
+    job {
+      env = "dev"
+      enable.distributed.checkpointing = false
+      statebackend {
+        blob {
+          storage {
+            account = "{{ .Values.cloud_storage_key }}.blob.core.windows.net"
+            container = "{{ .Values.cloud_storage_flink_bucketname }}"
+            checkpointing.dir = "checkpoint"
+          }
+        }
+        base.url = "wasbs://"${job.statebackend.blob.storage.container}"@"${job.statebackend.blob.storage.account}"/"${job.statebackend.blob.storage.checkpointing.dir} }
+    }
+    task {
+      parallelism = 1
+      consumer.parallelism = 1
+      checkpointing.compressed = true
+      checkpointing.interval = 10
+      checkpointing.pause.between.seconds = 3000
+      restart-strategy.attempts = 3
+      restart-strategy.delay = 30000 # in milli-seconds
+    }
+  
+  
+    redis {
+    host = {{ .Values.redis_host }}
+    port = 6379
+    connection {
+      max = 2
+      idle.min = 1
+      idle.max = 2
+      minEvictableIdleTimeSeconds = 120
+      timeBetweenEvictionRunsSeconds = 300
+        }
+    }
+    lms-cassandra {
+    host = {{ .Values.cassandra_host }}
+    port = "9042"
+    }
+  
+    neo4j {
+    routePath = "bolt://{{ .Values.neo4j_host }}:7687"
+    graph = "domain"
+    }
+  
+    es {
+      basePath = "{{ .Values.elasticsearch_host }}:9200"
+    }
+
+{{ if eq .Release.Name "activity-aggregate-updater" }}
+  activity-aggregate-updater: |+ 
+    include file("/data/flink/conf/base-config.conf")
+    kafka {
+      input.topic = dock.coursebatch.job.request
+      output.audit.topic = dock.telemetry.raw
+      output.failed.topic = dock.activity.agg.failed
+      output.certissue.topic = dock.issue.certificate.request
+      groupId = dock-activity-aggregate-group
+    }
+    task {
+      window.shards = 1000
+      checkpointing.interval = 300000
+      checkpointing.pause.between.seconds = 90000
+      restart-strategy.attempts = 3 # max 3 restart attempts
+      restart-strategy.delay = 240000 # in milli-seconds # on max restarts (3) within 4 min the job will fail.
+      consumer.parallelism = 1
+      dedup.parallelism = 1
+      activity.agg.parallelism = 1
+      enrolment.complete.parallelism = 1
+    }
+    lms-cassandra {
+      keyspace = "sunbird_courses"
+      consumption.table = "user_content_consumption"
+      user_activity_agg.table = "user_activity_agg"
+      user_enrolments.table = "user_enrolments"
+    }
+    redis {
+      database {
+        relationCache.id = 10
+      }
+    }
+    dedup-redis {
+      host = {{ .Values.redis_host }}
+      port = 6379
+      database.index = 13
+      database.expiry = 604800
+    }
+    threshold.batch.read.interval = 60
+    threshold.batch.read.size = 1
+    threshold.batch.write.size = 10
+    activity {
+      module.aggs.enabled = true
+      input.dedup.enabled = true
+      filter.processed.enrolments = true
+      collection.status.cache.expiry = 3600
+    }
+    service {
+      search.basePath = "http://{{ .Values.nginx_private_ingress_ip }}/search"
+    }
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+  
+  {{- end }}
+
+{{ if eq .Release.Name "relation-cache-updater" }}
+  relation-cache-updater: |+   
+    include file("/data/flink/conf/base-config.conf")
+    kafka {
+      input.topic = dock.content.postpublish.request
+      groupId = dock-relation-cache-updater-group
+    }
+    task {
+      consumer.parallelism = 1
+      parallelism = 1
+    }
+    lms-cassandra {
+          keyspace = "dock_hierarchy_store"
+          table = "content_hierarchy"
+    }
+    redis {
+      database.index = 10
+    }
+    dp-redis {
+      host = {{ .Values.redis_host }}
+      port = 6379
+      database.index = 5
+    }  
+
+  flink-conf: |+
+    jobmanager.memory.flink.size: 1024m
+    taskmanager.memory.flink.size: 1024m
+    taskmanager.numberOfTaskSlots: 1
+    parallelism.default: 1
+    jobmanager.execution.failover-strategy: region
+    taskmanager.memory.network.fraction: 0.1
+  
+  {{- end }}
+
+  log4j_console_properties: |+
+{{ .Values.log4j_console_properties | indent 4 }}

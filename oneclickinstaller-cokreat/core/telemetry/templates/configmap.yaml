@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+ name: {{ .Chart.Name }}-config
+ namespace: {{ .Values.namespace }}
+data:
+  telemetry_proxy_url: {{ if .Values.domain }}
+  {{- printf "https://%s" .Values.domain }}/api/data/v3/telemetry
+  {{- else -}}
+  {{- printf "ERROR | %s | Please provide a value for \"domain\"" .Chart.Name | fail }}
+  {{- end }}
+  telemetry_kafka_broker_list: {{ .Values.inquiry_kafka_urls }}
+  telemetry_kafka_topic: {{ .Values.telemetry_kafka_topic }}
+  telemetry_local_storage_enabled: {{ .Values.telemetry_local_storage_enabled | quote }}
+  telemetry_local_storage_type: {{ .Values.telemetry_local_storage_type }}
+  telemetry_proxy_auth_key: {{ .Values.core_vault_sunbird_api_auth_token }}
+  telemetry_proxy_enabled: {{ .Values.telemetry_proxy_enabled | quote }}
+  telemetry_service_threads: {{ .Values.telemetry_service_threads | quote }}

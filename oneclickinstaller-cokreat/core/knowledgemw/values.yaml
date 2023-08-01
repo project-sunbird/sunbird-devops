@@ -1,0 +1,109 @@
+## This section has mandatory variables
+## You must provide a value for these
+## If you don't provide a value for these variables, the chart installation will not proceed
+
+## The domain name or Public IP address
+## The domain name should start with http or https
+## For example https://example.com
+domain: "test.com"
+
+## Can be one of - azure, aws, gcloud
+cloud_service_provider: ""
+
+## Public storage bucket details
+cloud_public_storage_accountname: ""
+cloud_public_storage_secret: ""
+
+
+sunbird_cache_store: memory
+sunbird_cache_ttl: "1800"
+sunbird_cassandra_consistency_level: quorum
+sunbird_cassandra_replication_strategy:
+  class: SimpleStrategy
+  replication_factor: 1
+  
+# sunbird_cassandra_replication_strategy: {"class":"SimpleStrategy","replication_factor":"1"}
+sunbird_cassandra_urls: cassandra.dock.svc.cluster.local:9042
+sunbird_content_repo_api_base_url: http://learning-service.dock.svc.cluster.local:8080/learning-service
+sunbird_content_service_blacklisted_channels: ""
+sunbird_content_service_blacklisted_contenttype: ""
+sunbird_content_service_blacklisted_framework: ""
+sunbird_content_service_blacklisted_mimetype: ""
+sunbird_content_service_blacklisted_resourcetype: ""
+sunbird_content_service_channel_refresh_cron: ""
+sunbird_content_service_enable_logging: "true"
+sunbird_content_service_log_level: info
+sunbird_content_service_whitelisted_channels: ""
+sunbird_content_service_whitelisted_framework: ""
+sunbird_content_service_whitelisted_mimetype: ""
+sunbird_content_service_whitelisted_resourcetype: ""
+sunbird_default_channel: sunbird
+sunbird_dial_repo_api_base_url: http://dial-service.dock.svc.cluster.local:9000
+sunbird_environment: dev
+sunbird_health_check_enable: "true"
+sunbird_instance: sunbird
+sunbird_kafka_host: kafka.dock.svc.cluster.local:9092
+sunbird_keycloak_auth_server_url: https://easeinstall.sunbirded.org/auth
+sunbird_keycloak_client_id: portal
+sunbird_keycloak_public: "True"
+sunbird_keycloak_realm: sunbird
+sunbird_learner_service_base_url: http://kong:8000/
+sunbird_lock_expiry_time: "120"
+sunbird_plugin_repo_api_base_url: http://search-service.dock.svc.cluster.local:9000
+sunbird_qrimage_topic: sunbirddev.qrimage.request
+sunbird_search_service_api_base_url: http://search-service.dock.svc.cluster.local:9000
+sunbird_telemetry_sync_batch_size: "200"
+
+sunbird_content_repo_api_key: "KONG_API_TOKEN"
+sunbird_language_service_api_key: "KONG_API_TOKEN"
+sunbird_learner_service_api_key: "KONG_API_TOKEN"
+sunbird_dial_repo_api_key: "KONG_API_TOKEN"
+sunbird_search_service_api_key: "KONG_API_TOKEN"
+sunbird_plugin_repo_api_key: "KONG_API_TOKEN"
+sunbird_data_service_api_key: "KONG_API_TOKEN"
+sunbird_sso_publickey: "SUNBIRD_SSO_PUBLICKEY"
+
+keycloak_auth_endpoint: /auth
+sunbird_dial_code_registry_endpoint: /dail/
+sunbird_data_service_api_base_endpoint: /api
+sunbird_language_service_api_base_endpoint: /api/language
+sunbird_image_storage_url: https://dock.blob.core.windows.net/dial/
+
+imagepullsecrets: ""
+dockerhub: sunbirded.azurecr.io
+
+replicaCount: 1
+repository: knowledge-mw-service
+image_tag: release-2.10.0_c07dc6b_2
+resources:
+  requests:
+    cpu: 100m
+    memory: 100Mi
+  limits:
+    cpu: 1
+    memory: 1024Mi
+network:
+  port: 5000
+  targetport: 5000
+strategy:
+  type: RollingUpdate
+  maxsurge: 25%
+  maxunavailable: 25%
+
+livenessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /service/health
+      port: 5000
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+readinessProbe:
+  failureThreshold: 2
+  httpGet:
+      path: /service/health
+      port: 5000
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5

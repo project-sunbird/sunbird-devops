@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+ creationTimestamp: null
+ name: {{ .Chart.Name }}-config
+ namespace: {{ .Release.namespace }}
+data:
+  telemetry-logstash-dock.conf: |
+    input {
+      kafka {
+        group_id => "datapipeline-logstash"
+        bootstrap_servers => "11.4.1.8:9092"
+        codec => "json"
+        topics => ["dock.telemetry.ingestion"]
+        retry_backoff_ms => 180000
+        consumer_threads => 4
+        max_poll_records => "100"
+        max_partition_fetch_bytes => "5242880"
+      }
+    }
+    output {
+      kafka {
+        codec => json
+        topic_id => "dock.telemetry.ingest"
+        bootstrap_servers => "{{ .Values.sunbird_es_host }}:9200"
+        max_request_size => "5242880"
+      }
+    }
