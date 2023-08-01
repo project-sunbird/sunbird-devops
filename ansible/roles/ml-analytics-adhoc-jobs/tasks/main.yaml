@@ -104,3 +104,31 @@
     var: out.stdout_lines
   tags:
     - project-ingest
+
+- name: Remove existing input file
+  file: path="{{ BASEPATH }}/input.xlsx" state=absent
+  tags:
+    - program-script
+
+- name: Copy Input.xlsx
+  become: yes
+  become_user: data-pipeline
+  copy: src=/tmp/input.xlsx dest="{{ BASEPATH }}/input.xlsx" force=true
+  tags:
+    - program-script
+
+- name: Execute the Script
+  become: yes
+  become_user: data-pipeline
+  shell: "source {{ BASEPATH }}/spark2_venv/bin/activate && python3 main.py --env {{env}} --programFile input.xlsx"
+  register: out
+  args:
+    chdir: "{{ BASEPATH }}"
+    executable: /bin/bash
+  tags:
+    - program-script
+
+- debug:
+    var: out.stdout_lines
+  tags:
+    - program-script
