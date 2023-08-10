@@ -68,3 +68,15 @@
     gcp_path: ""
     local_file_or_folder_path: "{{ cert_location }}/cert-templates/certUtilScripts/out"
   when: cloud_service_provider == "gcloud"
+
+- name: upload batch of files to oci oss
+  include_role:
+    name: oci-cloud-storage
+    apply:
+      environment:
+       OCI_CLI_AUTH: "instance_principal"
+    tasks_from: upload-folder.yml
+  vars:
+    oss_bucket_name: "{{ cert_service_container_name }}"
+    local_file_or_folder_path: "{{ cert_location }}/cert-templates/certUtilScripts/out"
+  when: cloud_service_provider == "oci"
