@@ -89,6 +89,7 @@ apt update
 wget https://aka.ms/downloadazcopy-v10-linux
 tar -xf downloadazcopy-v10-linux
 cp ./azcopy_linux_amd64_*/azcopy /usr/bin/
+chmod +x /usr/bin/azcopy
 rm -rf downloadazcopy-v10-linux* azcopy_linux_amd*
 ###
 
