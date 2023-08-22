@@ -62,7 +62,6 @@
               local_file_or_folder_path: "{{ source_file_name }}"
           tags:
             - preview
-      
         - block:
           - name: delete and re-upload plugins
             include_role:
@@ -222,3 +221,81 @@
           tags:
             - plugins
       when: cloud_service_provider == "aws"
+
+
+################################### OCI tasks #########################
+    - name: this block consists of tasks related to oci oss 
+      block:
+        - name: set common oci variables
+          set_fact:
+            oss_bucket_name: "{{ cloud_storage_content_bucketname }}"
+            oss_namespace: "{{ oci_namespace }}"
+          tags:
+            - always
+      
+        - block:
+          - name: delete files and folders from oci oss
+            include_role:
+              name: oci-cloud-storage
+              apply:
+               environment:
+                OCI_CLI_AUTH: "instance_principal"  
+              tasks_from: delete-folder.yml
+          vars:
+              oss_path: "{{ folder_name }}/"
+          tags:
+            - content-editor
+            - collection-editor
+            - generic-editor
+            - preview
+      
+        - block:
+          - name: upload folder to oci oss
+            include_role:
+              name: oci-cloud-storage
+              apply:
+               environment:
+                OCI_CLI_AUTH: "instance_principal"  
+              tasks_from: upload-folder.yml
+            vars:
+              oss_path: "{{ folder_name }}/"
+              local_file_or_folder_path: "{{ source_name }}"
+          tags:
+            - content-editor 
+            - collection-editor
+            - generic-editor
+            - preview
+            - editor
+            - core-plugins 
+      
+        - block:
+          - name: upload file to oci oss
+            include_role:
+              name: oci-cloud-storage
+              apply:
+               environment:
+                OCI_CLI_AUTH: "instance_principal"  
+              tasks_from: upload.yml
+            vars:
+              oss_path: "artefacts/content-player/content-player-{{ player_version_number }}.zip"
+              local_file_or_folder_path: "{{ source_file_name }}"
+          tags:
+            - preview
+      
+        - block:
+          - name: delete and re-upload plugins for oci
+            include_role:
+              name: oci-cloud-storage
+              apply:
+               environment:
+                OCI_CLI_AUTH: "instance_principal"  
+              tasks_from: "{{ item[0] }}"
+            vars:
+              object_prefix: "content-plugins/{{ item[1] }}/"
+              local_file_or_folder_path: "{{ source_folder }}/{{ item[1] }}"
+            with_nested:
+              - ['oss-delete-batch-no-poll.yml', 'oss-upload-batch-no-poll.yml']
+              - "{{ lookup('file', plugins_to_delete_and_upload).split('\n') }}"
+          tags:
+            - plugins
+      when: cloud_service_provider == "oci"

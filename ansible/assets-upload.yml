@@ -75,3 +75,31 @@
       vars:
         local_file_or_folder_path: "{{ assets }}/*"
     when: cloud_service_provider == "gcloud"
+
+##### OCI
+  - name: this block consists of tasks related to oci oss
+    block:
+    - name: set common oci variables
+      set_fact:
+        oss_bucket_name: "{{ cloud_storage_playercdn_bucketname }}"
+        oss_path: ""
+        oss_namespace: "{{oci_namespace}}"
+
+    - name: delete files and folders from oci oss
+      include_role:
+        name: oci-cloud-storage
+        apply:
+          environment:
+           OCI_CLI_AUTH: "instance_principal"
+        tasks_from: delete-folder.yml
+
+    - name: upload batch of files to oci oss
+      include_role:
+        name: oci-cloud-storage
+        apply:
+          environment:
+           OCI_CLI_AUTH: "instance_principal"
+        tasks_from: upload-folder.yml
+      vars:
+        local_file_or_folder_path: "{{ assets }}"
+    when: cloud_service_provider == "oci"  

@@ -40,3 +40,16 @@
         gcp_path: "schemas/local"
         local_file_or_folder_path: "{{ source_name }}"
       when: cloud_service_provider == "gcloud"  
+
+    - name: upload batch of files to oci oss
+      include_role:
+        name: oci-cloud-storage
+        apply:
+          environment:
+           OCI_CLI_AUTH: "instance_principal"
+        tasks_from: upload-folder.yml
+      vars:
+        oss_bucket_name: "{{ cloud_storage_content_bucketname }}"
+        local_file_or_folder_path: "{{ source_name }}"
+        oss_path: "schemas/local/"
+      when: cloud_service_provider == "oci"
