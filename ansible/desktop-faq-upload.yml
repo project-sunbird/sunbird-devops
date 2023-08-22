@@ -211,7 +211,7 @@
             - upload-csv-template
 
         - block:
-          - name: upload folder to aws s3 - discussion-ui
+          - name: upload folder to aws s3 - discusion-ui
             include_role:
               name: aws-cloud-storage
               tasks_from: upload-folder.yml
@@ -222,3 +222,83 @@
           tags:
             - upload-discussion-ui
       when: cloud_service_provider == "aws"
+
+
+##### OCI Tasks ####
+
+    - name: this block consists of tasks related to oci oss
+      block:
+        - name: set common oci variables
+          set_fact:
+            local_file_or_folder_path: "{{ playbook_dir }}/../{{ src_file_path }}"
+          tags:
+            - always
+      
+        - block:
+          - name: upload file to oci oss public bucket
+            include_role:
+              name: oci-cloud-storage
+              apply:
+               environment:
+                OCI_CLI_AUTH: "instance_principal"  
+              tasks_from: upload.yml
+            vars:
+              oss_bucket_name: "{{ cloud_storage_public_bucketname }}"
+          tags:
+            - upload-desktop-faq
+      
+        - block:
+          - name: upload file to oci oss private bucket
+            include_role:
+              name: oci-cloud-storage
+              apply:
+               environment:
+                OCI_CLI_AUTH: "instance_principal"  
+              tasks_from: upload.yml
+            vars:
+              oss_bucket_name: "{{ cloud_storage_label_bucketname }}"
+          tags:
+            - upload-label
+      
+        - block:
+          - name: upload folder to oci oss - chatbot
+            include_role:
+              name: oci-cloud-storage
+              apply:
+               environment:
+                OCI_CLI_AUTH: "instance_principal"  
+              tasks_from: upload-folder.yml
+            vars:
+              oss_path: "{{ destination_path }}/"
+              oss_bucket_name: "{{ cloud_storage_chatbot_bucketname }}"
+          tags:
+            - upload-chatbot-config
+
+        - block:
+          - name: upload folder to oci oss - csv-template
+            include_role:
+              name: oci-cloud-storage
+              apply:
+               environment:
+                OCI_CLI_AUTH: "instance_principal"  
+              tasks_from: upload-folder.yml
+            vars:
+              oss_path: "{{ destination_path }}/"
+              oss_bucket_name: "{{ cloud_storage_sourcing_bucketname }}"
+          tags:
+            - upload-csv-template
+
+        - block:
+          - name: upload folder to oci oss - discussion-ui
+            include_role:
+              name: oci-cloud-storage
+              apply:
+               environment:
+                OCI_CLI_AUTH: "instance_principal"  
+              tasks_from: upload-folder.yml
+            vars:
+              oss_path: "{{ destination_path }}/"
+              oss_bucket_name: "{{ cloud_storage_discussionui_bucketname }}"
+          tags:
+            - upload-discussion-ui
+      when: cloud_service_provider == "oci"    

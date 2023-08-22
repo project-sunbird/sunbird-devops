@@ -41,3 +41,16 @@
         aws_access_key_id: "{{ cloud_artifact_storage_accountname }}"
         aws_secret_access_key: "{{ cloud_artifact_storage_secret }}"
       when: cloud_service_provider == "aws"
+
+    - name: upload artifact to oci oss
+      include_role:
+        name: oci-cloud-storage
+        apply:
+          environment:
+           OCI_CLI_AUTH: "instance_principal"
+        tasks_from: upload.yml
+      vars:
+        local_file_or_folder_path: "{{ artifact_path }}"
+        oss_bucket_name: "{{ cloud_storage_artifacts_bucketname }}"
+        oss_path: "{{ artifact }}"
+      when: cloud_service_provider == "oci"
