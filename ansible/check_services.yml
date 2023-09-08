@@ -1,0 +1,92 @@
+- hosts: cassandra  
+  tasks:
+    - name: Check Cassandra service status
+      service:
+        name: cassandra
+        state: started
+      register: cassandra_status
+
+- hosts: postgres
+  tasks:
+    - name: Check postgres service status
+      service:
+        name: postgresql@12-main.service
+        state: started
+      register: postgres_status
+    - name: Start postgres service if it's not running
+      service:
+        name: postgresql@12-main.service
+        state: started
+      when: postgres_status.changed
+      become: true
+      
+- hosts: neo4j-ps
+  tasks:
+    - name: Check Neo4j Service Status
+      command: "/home/learning/neo4j-learning/neo4j-enterprise-3.3.10-SNAPSHOT/bin/neo4j status"
+      register: service_status
+      changed_when: false
+      become: true
+
+- hosts: composite-search-cluster
+  tasks:
+    - name: Check Elasticsearch Port
+      command: "nc -z -v -w 2 {{ inventory_hostname }} 9200"
+      ignore_errors: yes
+      register: nc_result
+
+- hosts: redis-cluster
+  tasks:
+    - name: Check redis service status
+      service:
+        name: redis
+        state: started
+      register: redis_status
+    - name: Start redis service if it's not running
+      service:
+        name: redis
+        state: started
+      when: redis_status.changed
+      become: true
+
+- hosts: kafka
+  tasks:
+    - name: Check kafka service status
+      service:
+        name: kafka
+        state: started
+      register: kafka_status
+    - name: Start kafka service if it's not running
+      service:
+        name: kafka
+        state: started
+      when: kafka_status.changed
+      become: true
+
+- hosts: keycloak
+  tasks:
+    - name: Check keycloak service status
+      service:
+        name: keycloak
+        state: started
+      register: keycloak_status
+    - name: Start keycloak service if it's not running
+      service:
+        name: keycloak
+        state: started
+      when: keycloak_status.changed
+      become: true
+
+- hosts: graylog
+  tasks:
+    - name: Check graylog service status
+      service:
+        name: graylog-server
+        state: started
+      register: graylog_status
+    - name: Start graylog service if it's not running
+      service:
+        name: graylog-server
+        state: started
+      when: graylog_status.changed
+      become: true
