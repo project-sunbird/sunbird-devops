@@ -134,7 +134,7 @@ check_cassandra_keyspaces() {
 }
 
 check_version() {
-	list=(actor-service player_player learner-service content-service proxy_proxy api-manager_kong)
+	list=(actor-service player_player userorg-service content-service proxy_proxy api-manager_kong)
 	versionReq=$(git branch | grep \* | cut -d '-' -f2)
 	echo -e "The Sunbird Version being used is $versionReq \n"
 	if [ $(git branch | grep \* | cut -d '-' -f2 | grep -Ewo '.' | wc -l) -ne 3 ]; then
@@ -155,7 +155,7 @@ get_logs() {
 	mkdir -p $ServiceLogsFolder
 	echo "Storing logs of core services in $ServiceLogsFolder"
 	echo "-----------------------------------------"
-	serviceNames=(player_player learner-service content-service proxy_proxy api-manager_kong)
+	serviceNames=(player_player userorg-service content-service proxy_proxy api-manager_kong)
 	for service in ${serviceNames[@]}; do
 		echo -e "\nexporting $service logs to $ServiceLogsFolder"
 		sudo docker service logs $service --tail 10000 > $ServiceLogsFolder/$service

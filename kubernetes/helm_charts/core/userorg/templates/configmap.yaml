@@ -1,10 +1,25 @@
-#apiVersion: v1
-#data:
-#  {{- range $key, $val := .Values.userorgenv }}
-#  {{ $key }}: {{ $val }}
-#  {{- end }}
-#kind: ConfigMap
-#metadata:
-#  creationTimestamp: null
-#  name: {{ .Chart.Name }}-config
-#  namespace: {{ .Values.namespace }}
+---
+{{- $keys := .Files.Glob "keys/*" }}
+{{ if $keys }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Chart.Name }}-access-keys
+type: Opaque
+data:
+{{ (.Files.Glob "keys/*").AsSecrets | indent 2 }}
+{{ end }}
+
+---
+{{- if .Values.userorg_opa_enabled }}
+{{- $bundle := .Files.Glob "bundle/*" }}
+{{ if $bundle }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Chart.Name }}-opa-policy
+  namespace: {{ .Values.namespace }}
+binaryData:
+  bundle.tar.gz: {{ (.Files.Get "bundle/bundle.tar.gz") | b64enc }}
+{{ end }}
+{{ end }}

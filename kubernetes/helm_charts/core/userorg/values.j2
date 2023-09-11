@@ -1,11 +1,15 @@
+
 ### Default variable file for userorg-service ###
 
 namespace: {{ namespace }}
 imagepullsecrets: {{ imagepullsecrets }}
 dockerhub: {{ dockerhub }}
 
+env:
+  javaoptions: {{userorg_java_mem_limit|default('-Xmx600m')}}
+
 replicaCount: {{userorg_replicacount|default(1)}}
-repository: {{userorg_repository|default('user_org_service')}}
+repository: {{userorg_repository|default('userorg-service')}}
 image_tag: {{ image_tag }}
 resources:
   requests:
@@ -15,7 +19,7 @@ resources:
     cpu: {{userorg_cpu_limit|default('1')}}
     memory: {{userorg_mem_limit|default('1024Mi')}}
 network:
-  port: 9008
+  port: 9000
   targetport: 9000
 strategy:
   type: RollingUpdate
@@ -23,6 +27,42 @@ strategy:
   maxunavailable: {{ userorg_maxunavailable|default('25%') }}
 
 {{ userorg_liveness_readiness | to_nice_yaml }}
+{{ opa_liveness_readiness | to_nice_yaml }}
+{{ envoy_liveness_readiness | to_nice_yaml }}
+
+userorg_opa_enabled: {{ userorg_opa_enabled | default('true') }}
+
+envoy_resources:
+  requests:
+    cpu: "{{ userorg_envoy_cpu_req | default('100m') }}"
+    memory: "{{ userorg_envoy_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ userorg_envoy_cpu_limit | default('1') }}"
+    memory: "{{ userorg_envoy_mem_limit | default('1024Mi') }}"
+
+opa_resources:
+  requests:
+    cpu: "{{ userorg_opa_cpu_req | default('100m') }}"
+    memory: "{{ userorg_opa_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ userorg_opa_cpu_limit | default('1') }}"
+    memory: "{{ userorg_opa_mem_limit | default('1024Mi') }}"
+
+initcontainer_resources:
+  requests:
+    cpu: "{{ userorg_initcontainer_cpu_req | default('100m') }}"
+    memory: "{{ userorg_initcontainer_mem_req | default('100Mi') }}"
+  limits:
+    cpu: "{{ userorg_initcontainer_cpu_limit | default('100m') }}"
+    memory: "{{ userorg_initcontainer_mem_limit | default('100Mi') }}"
+
+userorg_access_basepath: {{ userorg_access_basepath | default('/keys/') }}
+
+serviceMonitor:
+  enabled: true
+  labels: # labels with which the prometheus choose the serviceMonitor
+    app: prometheus-operator
+    release: prometheus-operator
 
 autoscaling:
   enabled: {{ userorg_autoscaling_enabled | default('false') }}
