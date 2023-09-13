@@ -26,6 +26,7 @@
       - python3-virtualenv
       - zip
       - unzip
+      - acl
     state: present
 
 - name: CHANGE THE OWNERSHIP FOR THIS {{ BASEPATH }} DIRECTORY
@@ -135,15 +136,15 @@
   cron:
     name: "Run Batch Ingestion Job"
     user: "{{ USER }}"
-    minute: "30"
-    hour: "18"
+    minute: "{{ ml_analytics_batch_cron_minute }}"
+    hour: "{{ ml_analytics_batch_cron_hour }}"
     job: "{{ BASEPATH }}/ml-analytics-service/run.sh > {{ BASEPATH }}/ml-analytics-service/crontab_job.log"
 
 - name: CREATE THE CRON NVSK Data Upload
   cron:
     name: "NVSK Data Upload JOB"
     user: "{{ USER }}"
-    minute: "30"
-    hour: "7"
-    weekday: "4"
+    minute: "{{ ml_analytics_nvsk_cron_minute }}"
+    hour: "{{ ml_analytics_nvsk_cron_hour }}"
+    weekday: "{{ ml_analytics_nvsk_cron_weekday }}"
     job: "{{ BASEPATH }}/ml-analytics-service/run_weekly.sh > {{ BASEPATH }}/ml-analytics-service/nvsk_data_weekly.logs"
