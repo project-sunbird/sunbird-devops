@@ -1,0 +1,43 @@
+---
+- name: Ensure pip is installed
+  apt: name=python-pip
+  when: ansible_os_family == 'Debian'
+
+- name: Ensure PyJWT is installed
+  pip: name=PyJWT
+
+- name: Ensure retry is installed
+  pip: name=retry
+
+- name: Save kong_consumers to json file
+  copy: dest=/tmp/kong_consumers.json content="{{ kong_consumers | to_nice_json}}" mode=0644
+
+- name: Copy kong api scripts
+  copy: src=static-files/kong-api-scripts dest=/tmp mode=0755
+
+- name: Extracting where the host in which api manager is running
+  command: bash -lc "sudo docker service ps api-manager_internal_kong | grep Runn | head -n1 | awk '{print $4}'"
+  register: kong_running_host
+  delegate_to: "{{groups['internal-proxy'][0]}}"
+
+- set_fact:
+     kong_admin_api_url: "http://{{kong_running_host.stdout}}:8001"
+
+- name: Run script to save consumers
+  shell: "python /tmp/kong-api-scripts/kong_consumers.py /tmp/kong_consumers.json --kong-admin-api-url={{ kong_admin_api_url }}"
+  register: jwt_token
+
+- name: Touch the token file
+  become: yes
+  file: path={{item}} state=touch
+  with_items:
+      - /tmp/jwt_token_output.txt
+      - /tmp/jwt_token.txt
+
+- name: write to file
+  become: yes
+  copy: content="{{jwt_token.stdout}}" dest=/tmp/jwt_token_output.txt
+  
+- name: remove the file
+  file: path=~/jwt_token.txt state=absent
+  ignore_errors: yes

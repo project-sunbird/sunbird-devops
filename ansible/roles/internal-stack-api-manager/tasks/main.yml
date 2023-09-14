@@ -1,0 +1,31 @@
+---
+- name: Ensure env directory exists
+  file:
+    path: /home/deployer/env
+    state: directory
+    owner: root
+    group: root
+
+- name: Ensure stack directory exists
+  file:
+    path: /home/deployer/stack
+    state: directory
+    owner: root
+    group: root
+
+- name: Save configurations into an env file
+  template: src=api-manager.env dest=/home/deployer/env/api-manager.env mode=0644
+
+- name: Save stack file
+  template: src=stack-api-manager.yml dest=/home/deployer/stack/api-manager.yml mode=0644
+
+- name: Login to docker
+  shell: "docker login {{ core_vault_docker_registry_url }} -u {{ core_vault_docker_registry_user }} -p {{ core_vault_docker_registry_password }}"
+  no_log: True
+  ignore_errors: yes
+
+- name: Deploy stack
+  shell: "docker stack deploy --with-registry-auth -c api-manager.yml api-manager"
+  args:
+    chdir: /home/deployer/stack
+

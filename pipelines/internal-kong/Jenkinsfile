@@ -1,0 +1,59 @@
+@Library('deploy-conf') _
+node() {
+    try {
+        String ANSI_GREEN = "\u001B[32m"
+        String ANSI_NORMAL = "\u001B[0m"
+        String ANSI_BOLD = "\u001B[1m"
+        String ANSI_RED = "\u001B[31m"
+        String ANSI_YELLOW = "\u001B[33m"
+        ansiColor('xterm') {
+            stage('checkout repo') {
+                cleanWs()
+                dir('private') {
+                    checkout scm
+                }
+            }
+            stage('deploy') {
+                values = docker_params()
+                currentWs = sh(returnStdout: true, script: ' pwd').trim()
+                if (params.option == "bootstrap-swarm") {
+                    ansiblePlaybook = "$currentWs/private/ansible/setup-dockerswarm.yml"
+                    ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                } else if (params.option == "provision-kong-db") {
+                    ansiblePlaybook = "$currentWs/private/ansible/internal-kong-db-update.yml"
+                    ansibleExtraArgs = "--vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                } else if (params.option == "deploy-internal-kong") {
+                    ansiblePlaybook = "$currentWs/private/ansible/internal-kong-deploy.yml"
+                    ansibleExtraArgs = "--tags \"internal-stack-api-manager\" --extra-vars \"hub_org=$hub_org image_name=$values.image_name image_tag=$values.image_tag\" --vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                } else if (params.option == "onboard-apis") {
+                    ansiblePlaybook = "$currentWs/private/ansible/internal-kong-onboarding.yml"
+                    ansibleExtraArgs = "--tags \"internal-kong-api\" --vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                } else if (params.option == "onboard-consumers") {
+                    ansiblePlaybook = "$currentWs/private/ansible/internal-kong-onboarding.yml"
+                    ansibleExtraArgs = "--tags \"internal-kong-consumer\" --vault-password-file /var/lib/jenkins/secrets/vault-pass -v"
+                } else {
+                    println ANSI_RED + ANSI_BOLD "Invalid Option" + ANSI_NORMAL
+                    throw new Exception("Invalid Option")
+                }
+                sh """
+                    mkdir -p $currentWs/ansible/inventory/env/group_vars
+                    ln -s $currentWs/ansible/inventory/env/common.yml $currentWs/ansible/inventory/env/group_vars/env.yml
+                """
+                values.put('currentWs', currentWs)
+                values.put('ansiblePlaybook', ansiblePlaybook)
+                values.put('ansibleExtraArgs', ansibleExtraArgs)
+                ansible_playbook_run(values)
+                archiveArtifacts 'metadata.json'
+                currentBuild.description = "Image: ${values.image_tag}, Private: ${params.private_branch}, Public: ${params.branch_or_tag}"
+            }
+        }
+    }
+    catch (err) {
+        currentBuild.result = "FAILURE"
+        throw err
+    }
+    finally {
+//        slack_notify(currentBuild.result)
+//        email_notify()
+    }
+}
