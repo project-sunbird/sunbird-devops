@@ -1,0 +1,35 @@
+### Default variable file for search-service ###
+
+namespace: {{ namespace }}
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+env:
+  javaoptions: {{search_java_mem_limit|default('-Xmx600m')}}
+
+replicaCount: {{search_replicacount|default(1)}}
+repository: {{search_repository|default('search-service')}}
+image_tag: {{ image_tag }}
+resources:
+  requests:
+    cpu: {{search_cpu_req|default('100m')}}
+    memory: {{search_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{search_cpu_limit|default('1')}}
+    memory: {{search_mem_limit|default('1024Mi')}}
+network:
+  port: 9004
+  targetport: 9000
+strategy:
+  type: RollingUpdate
+  maxsurge: {{ search_maxsurge|default('25%') }}
+  maxunavailable: {{ search_maxunavailable|default('25%') }}
+
+{{ search_liveness_readiness | to_nice_yaml }}
+
+autoscaling:
+  enabled: {{ search_autoscaling_enabled | default('false') }}
+  minReplicas: {{ search_autoscaling_minReplicas|default(1) }}
+  maxReplicas: {{ search_autoscaling_maxReplicas|default(2) }}
+  targetCPUUtilizationPercentage: {{ search_autoscaling_targetCPUUtilizationPercentage|default(60) }}
+  targetMemoryUtilizationPercentage: {{ search_autoscaling_targetMemoryUtilizationPercentage|default('') }}
