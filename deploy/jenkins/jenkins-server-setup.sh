@@ -9,13 +9,16 @@ echo -e "\n\e[0;32m${bold}Updating the apt repo${normal}\n"
 apt-get update
 
 echo -e "\n\e[0;32m${bold}Installating JDK8${normal}\n"
-apt-get install -y openjdk-8-jdk
+sudo apt install openjdk-17-jre
 
 echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
-wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
-apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
-apt-get update
-apt-get install -y jenkins=2.319.3
+curl -fsSL https://pkg.jenkins.io/debian/jenkins.io-2023.key | sudo tee \
+  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+sudo apt-get update
+sudo apt-get install jenkins
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
