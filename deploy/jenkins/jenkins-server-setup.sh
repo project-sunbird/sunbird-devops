@@ -115,6 +115,7 @@ su jenkins bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.
 
 echo -e "\n\e[0;32m${bold}Installing jmespath${normal}"
 sudo apt install -y python3-jmespath
+sudo apt install python-jmespath #python2
 
 #### Kubernetes Tools ####
 
