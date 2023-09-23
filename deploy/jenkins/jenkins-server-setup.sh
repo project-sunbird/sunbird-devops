@@ -12,10 +12,10 @@ echo -e "\n\e[0;32m${bold}Installating JDK8${normal}\n"
 apt-get install -y openjdk-8-jdk
 
 echo -e "\n\e[0;32m${bold}Installating Jenkins${normal}"
-wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
+wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | apt-key add -
 apt-add-repository "deb https://pkg.jenkins.io/debian-stable binary/"
 apt-get update
-apt-get install -y jenkins=2.319.3
+apt-get install -y jenkins=2.346.3
 
 echo -e "\n\e[0;32m${bold}Installating PIP${normal}"
 apt-get install -y python-pip
