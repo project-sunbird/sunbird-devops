@@ -26,34 +26,25 @@
     <hudson.model.ParametersDefinitionProperty>
       <parameterDefinitions>
         <hudson.model.StringParameterDefinition>
-          <name>inquiry_release_tag</name>
-          <description>&lt;font style="color:dimgray;font-size:14px;"&gt;&lt;b&gt;
-&lt;li&gt;To build from a tag, use refs/tags/github_tag&lt;/li&gt;
-&lt;li&gt;To build from a branch, use refs/heads/github_branch&lt;/li&gt;
-&lt;li&gt;The default value of ${inquiry_service_build_branch_or_tag} will be the release / tag version set in global configuration&lt;/li&gt;
-&lt;li&gt;To build from a differnt branch, replace the ${inquiry_service_build_branch_or_tag} with your branch&lt;/li&gt;
-&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue>refs/heads/${inquiry_service_build_branch_or_tag}</defaultValue>
-          <trim>true</trim>
+          <name>absolute_job_path</name>
+          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;Do not change this value! The metadata.json will be copied from this job.&lt;/b&gt;&lt;/font&gt;</description>
+          <defaultValue>Build/KnowledgePlatform/InquiryFlinkJob</defaultValue>
+          <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
-          <name>core_release_tag</name>
-          <description>&lt;font style="color:dimgray;font-size:14px;"&gt;&lt;b&gt;
-&lt;li&gt;Provide this value to build core components from Knowlg BB&lt;/li&gt;
-&lt;li&gt;To build from a tag, use refs/tags/github_tag&lt;/li&gt;
-&lt;li&gt;To build from a branch, use refs/heads/github_branch&lt;/li&gt;
-&lt;li&gt;The default value of ${inquiry_core_build_branch_or_tag} will be the release / tag version set in global configuration&lt;/li&gt;
-&lt;li&gt;To build from a differnt branch, replace the ${inquiry_core_build_branch_or_tag} with your branch&lt;/li&gt;
-&lt;/b&gt;&lt;/font&gt;</description>
-          <defaultValue>refs/heads/${inquiry_core_build_branch_or_tag}</defaultValue>
+          <name>image_tag</name>
+          <description>&lt;font color=darkgreen size=2&gt;&lt;b&gt;OPTIONAL: Specify the tag to upload a specific image version to the container registry.&lt;/b&gt;&lt;/font&gt;</description>
+          <defaultValue/>
           <trim>false</trim>
         </hudson.model.StringParameterDefinition>
         <hudson.model.ChoiceParameterDefinition>
-          <name>core_repo_link</name>
-          <description>Knowlg Core Repo</description>
+          <name>artifact_source</name>
+          <description>&lt;font color=dimgray size=2&gt;&lt;b&gt;
+ArtifactRepo - Push the docker image to container registry.
+&lt;/b&gt;&lt;/font&gt;</description>
           <choices class="java.util.Arrays$ArrayList">
             <a class="string-array">
-              <string>https://github.com/project-sunbird/knowledge-platform.git</string>
+              <string>ArtifactRepo</string>
             </a>
           </choices>
         </hudson.model.ChoiceParameterDefinition>
@@ -70,7 +61,18 @@
     </hudson.plugins.throttleconcurrents.ThrottleJobProperty>
     
     <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
-      <triggers/>
+      <triggers>
+        <jenkins.triggers.ReverseBuildTrigger>
+          <spec/>
+          <upstreamProjects>Build/KnowledgePlatform/InquiryFlinkJob</upstreamProjects>
+          <threshold>
+            <name>SUCCESS</name>
+            <ordinal>0</ordinal>
+            <color>BLUE</color>
+            <completeBuild>true</completeBuild>
+          </threshold>
+        </jenkins.triggers.ReverseBuildTrigger>
+      </triggers>
     </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
   </properties>
   <definition class="org.jenkinsci.plugins.workflow.cps.CpsScmFlowDefinition" plugin="workflow-cps@2.90">
@@ -78,19 +80,27 @@
       <configVersion>2</configVersion>
       <userRemoteConfigs>
         <hudson.plugins.git.UserRemoteConfig>
-          <url>https://github.com/Sunbird-inQuiry/inquiry-api-service.git</url>
+          <url>https://github.com/Sunbird-inQuiry/data-pipeline.git</url>
         </hudson.plugins.git.UserRemoteConfig>
       </userRemoteConfigs>
       <branches>
         <hudson.plugins.git.BranchSpec>
-          <name>${inquiry_release_tag}</name>
+          <name>${inquiry_pipeline_branch_or_tag}</name>
         </hudson.plugins.git.BranchSpec>
       </branches>
       <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
       <submoduleCfg class="empty-list"/>
-      <extensions/>
+      <extensions>
+        <hudson.plugins.git.extensions.impl.CloneOption>
+          <shallow>true</shallow>
+          <noTags>false</noTags>
+          <reference/>
+          <depth>0</depth>
+          <honorRefspec>false</honorRefspec>
+        </hudson.plugins.git.extensions.impl.CloneOption>
+      </extensions>
     </scm>
-    <scriptPath>build/assessment-service/Jenkinsfile</scriptPath>
+    <scriptPath>kubernetes/pipelines/upload/Jenkinsfile</scriptPath>
     <lightweight>false</lightweight>
   </definition>
   <triggers/>
