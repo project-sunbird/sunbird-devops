@@ -16,10 +16,7 @@
   hosts: localhost
   vars:
     vcn_cidr_block: "10.90.0.0/16"
-    k8s_api_subnet_cidr_block: "10.90.1.0/24"
-    k8s_worker_subnet_cidr_block: "10.90.2.0/24"
-    k8s_lb_subnet_cidr_block: "10.90.3.0/24"
-    k8s_vm_subnet_cidr_block: "10.90.4.0/24"
+    subnet_cidr_block: "10.90.1.0/24"
     vcn_name: "SunbirdEd-VCN"
     vcn_dns_label: "sunbirded"
     compartment_id: "{{ lookup('env', 'COMPARTMENT_OCID') }}"
@@ -124,13 +121,12 @@
       display_name: "{{ vcn_name }}"
       cidr_block: "{{ vcn_cidr_block }}"
       dns_label: "{{ vcn_dns_label }}"
-    register: result
+    register: vcn
     tags:
       - network
 
   - set_fact:
-      vcn_id: "{{ result.vcn.id }}"
-      vcn: "{{ result.vcn }}"
+      vcn_id: "{{ vcn.vcn.id }}"
       cacheable: yes
     tags:
       - network
@@ -158,14 +154,6 @@
     tags:
       - always
 
-  # - name: filter query
-  #   debug:
-  #     msg: "{{ item.display_name }}"
-  #   loop: "{{oci_images.images | selectattr('operating_system', 'equalto', 'Canonical Ubuntu') | selectattr('operating_system_version', 'equalto', '18.04')| list}}"
-  #   tags:
-  #     - always
-
-
   - set_fact:
       availability_domain: "{{oci_ads.availability_domains[0].name}}"
       oci_all_service_id: "{{oci_services.services[1].id}}"
@@ -181,35 +169,18 @@
       name: "IG"
       is_enabled: 'yes'
       state: 'present'
-    register: result
+    register: igw
     tags:
       - network
 
   - set_fact:
-      ig_id: "{{ result.internet_gateway.id }}"
+      ig_id: "{{ igw.internet_gateway.id }}"
       public_route_table_rules:
         - cidr_block: "{{ quad_zero_route }}"
-          network_entity_id: "{{ result.internet_gateway.id }}"
+          network_entity_id: "{{ igw.internet_gateway.id }}"
     tags:
       - network
 
-  - name: Create a new NAT Gateway
-    oci_network_nat_gateway:
-      compartment_id: "{{ compartment_id }}"
-      vcn_id: "{{ vcn_id }}"
-      name: "NG"
-      state: 'present'
-    register: result
-    tags:
-      - network
-
-  - set_fact:
-      ng_id: "{{ result.nat_gateway.id }}"
-      private_route_table_rules:
-        - cidr_block: "{{ quad_zero_route }}"
-          network_entity_id: "{{ result.nat_gateway.id }}"
-    tags:
-      - network
 
   - name: Create a new Service Gateway
     oci_network_service_gateway:
@@ -219,7 +190,7 @@
         - service_id: "{{oci_all_service_id}}"
       display_name: "SVC_GW"
       state: 'present'
-    register: result
+    register: sgw
     tags:
       - network
 
@@ -231,88 +202,18 @@
       name: "PUB-SL-RT"
       route_rules: "{{ public_route_table_rules }}"
       state: 'present'
-    register: result
+    register: public_rt
     tags:
       - network
 
   - set_fact:
-      public_rt_id: "{{ result.route_table.id }}"
+      public_rt_id: "{{ public_rt.route_table.id }}"
     tags:
       - network
 
-  - name: Create route table to connect Nat gateway to the VCN
-    oci_network_route_table:
-      compartment_id: "{{ compartment_id }}"
-      vcn_id: "{{ vcn_id }}"
-      name: "PVT-SL-RT"
-      route_rules: "{{ private_route_table_rules }}"
-      state: 'present'
-    register: result
-    tags:
-      - network
-
-  - set_fact:
-      private_rt_id: "{{ result.route_table.id }}"
-    tags:
-      - network
-
-  - name: Create security list for K8S API
+  - name: Create security list for Public Subnet 
     oci_network_security_list:
-      display_name: K8S-API-SL
-      compartment_id: "{{ compartment_id }}"
-      vcn_id: "{{ vcn_id }}"
-      egress_security_rules:
-      - description: "Allow outgoing traffic"
-        destination: "{{ quad_zero_route }}"
-        protocol: "all"
-        destination_type: CIDR_BLOCK
-        is_stateless: false
-      - description: "Allow outgoing traffic to OCI services"
-        destination: "{{oci_all_service_cidr}}"
-        destination_type: SERVICE_CIDR_BLOCK
-        protocol: "all"
-        is_stateless: false
-      ingress_security_rules:
-      - description: "Allow kube api ep access from within the vcn"
-        protocol: 6
-        source: "{{vcn_cidr_block}}"
-        is_stateless: false
-        source_type: CIDR_BLOCK
-        tcp_options:
-          destination_port_range:
-            max: 6443
-            min: 6443
-      - description: "Allow kubelet access from within the vcn"
-        protocol: 6
-        source: "{{vcn_cidr_block}}"
-        is_stateless: false
-        source_type: CIDR_BLOCK
-        tcp_options:
-          destination_port_range:
-            max: 12250
-            min: 12250
-      - description: "Path Discovery"
-        protocol: 1
-        source: "{{vcn_cidr_block}}"
-        is_stateless: false
-        source_type: CIDR_BLOCK
-        icmp_options:
-          type: 3
-          code: 4
-    register: result
-    tags:
-      - network
-      - k8s
-  - set_fact:
-      k8s_security_list_id: "{{ result.security_list.id }}"
-      cacheable: yes
-    tags:
-      - network
-      - k8s
-
-  - name: Create security list for K8S Worker
-    oci_network_security_list:
-      display_name: K8S-Worker-SL
+      display_name: PUB-SL
       compartment_id: "{{ compartment_id }}"
       vcn_id: "{{ vcn_id }}"
       egress_security_rules:
@@ -322,186 +223,39 @@
         destination_type: CIDR_BLOCK
         is_stateless: false
       ingress_security_rules:
-      - description: "Allow  access from within the vcn"
-        protocol: 6
-        source: "{{vcn_cidr_block}}"
-        is_stateless: false
-        source_type: CIDR_BLOCK
-      - description: "Path Discovery"
-        protocol: 1
-        source: "{{vcn_cidr_block}}"
-        is_stateless: false
-        source_type: CIDR_BLOCK
-        icmp_options:
-          type: 3
-          code: 4
-    register: result
-    tags:
-      - network
-      - k8s
-  - set_fact:
-      k8s_worker_list_id: "{{ result.security_list.id }}"
-      cacheable: yes
-    tags:
-      - network
-      - k8s
-
-  - name: Create security list for VM
-    oci_network_security_list:
-      display_name: VM-SL
-      compartment_id: "{{ compartment_id }}"
-      vcn_id: "{{ vcn_id }}"
-      egress_security_rules:
-      - description: "Allow outgoing traffic"
-        destination: "{{ quad_zero_route }}"
-        protocol: "all"
-        destination_type: CIDR_BLOCK
-        is_stateless: false
-      ingress_security_rules:
-      - description: "Allow  access from within the vcn"
-        protocol: 6
-        source: "{{vcn_cidr_block}}"
-        is_stateless: false
-        source_type: CIDR_BLOCK
-      - description: "Path Discovery"
-        protocol: 1
-        source: "{{vcn_cidr_block}}"
-        is_stateless: false
-        source_type: CIDR_BLOCK
-        icmp_options:
-          type: 3
-          code: 4
-    register: result
-    tags:
-      - network
-      - k8s
-  - set_fact:
-      vm_list_id: "{{ result.security_list.id }}"
-      cacheable: yes
-    tags:
-      - network
-      - k8s
-
-  - name: Create security list for LB
-    oci_network_security_list:
-      display_name: PUB-LB-SL
-      compartment_id: "{{ compartment_id }}"
-      vcn_id: "{{ vcn_id }}"
-      egress_security_rules:
-      - description: "Allow outgoing traffic"
-        destination: "{{ quad_zero_route }}"
-        protocol: "all"
-        destination_type: CIDR_BLOCK
-        is_stateless: false
-      ingress_security_rules:
-      - description: "allow all http traffic"
-        protocol: 6
+      - description: "allow all traffic"
+        protocol: all
         source: "{{quad_zero_route}}"
         is_stateless: false
         source_type: CIDR_BLOCK
-        tcp_options:
-          destination_port_range:
-            max: 80
-            min: 80
-      - description: "allow all https traffic"
-        protocol: 6
-        source: "{{quad_zero_route}}"
-        is_stateless: false
-        source_type: CIDR_BLOCK
-        tcp_options:
-          destination_port_range:
-            max: 443
-            min: 443
-      - description: "allow ssh traffic"
-        protocol: 6
-        source: "{{quad_zero_route}}"
-        is_stateless: false
-        source_type: CIDR_BLOCK
-        tcp_options:
-          destination_port_range:
-            max: 22
-            min: 22
-    register: result
+    register: security_list
     tags:
       - network
       - k8s
   - set_fact:
-      lb_list_id: "{{ result.security_list.id }}"
+      security_list_id: "{{ security_list.security_list.id }}"
       cacheable: yes
     tags:
       - network
       - k8s
 
-
-  - name: Create a Subnet for K8S API
+  - name: Create a Subnet
     oci_network_subnet:
-      cidr_block: "{{ k8s_api_subnet_cidr_block }}"
+      cidr_block: "{{ subnet_cidr_block }}"
       compartment_id: "{{ compartment_id }}"
-      display_name: "K8S-API-SN"
-      route_table_id: "{{ private_rt_id }}"
-      security_list_ids:
-        - "{{k8s_security_list_id}}"
-      dns_label: "k8sapi"
-      prohibit_public_ip_on_vnic: yes
-      vcn_id: "{{ vcn_id }}"
-    register: result
-    tags:
-      - network
-      - k8s
-
-  - name: Create a Subnet for K8S Woker
-    oci_network_subnet:
-      cidr_block: "{{ k8s_worker_subnet_cidr_block }}"
-      compartment_id: "{{ compartment_id }}"
-      display_name: "K8S-WORKER-SN"
-      route_table_id: "{{ private_rt_id }}"
-      security_list_ids:
-        - "{{k8s_worker_list_id}}"
-      dns_label: "k8sworker"
-      prohibit_public_ip_on_vnic: yes
-      vcn_id: "{{ vcn_id }}"
-    register: result
-    tags:
-      - network
-      - k8s
-
-  - name: Create a Subnet for VM
-    oci_network_subnet:
-      cidr_block: "{{ k8s_vm_subnet_cidr_block }}"
-      compartment_id: "{{ compartment_id }}"
-      display_name: "VM-SN"
-      route_table_id: "{{ private_rt_id }}"
-      security_list_ids:
-        - "{{vm_list_id}}"
-      dns_label: "vm"
-      prohibit_public_ip_on_vnic: yes
-      vcn_id: "{{ vcn_id }}"
-    register: result
-    tags:
-      - network
-      - k8s
-  - set_fact:
-      vm_subnet_id: "{{ result.subnet.id }}"
-      cacheable: yes
-
-
-  - name: Create a Subnet for LB
-    oci_network_subnet:
-      cidr_block: "{{ k8s_lb_subnet_cidr_block }}"
-      compartment_id: "{{ compartment_id }}"
-      display_name: "PB-LB-SN"
+      display_name: "PB-SN"
       route_table_id: "{{ public_rt_id }}"
       security_list_ids:
-        - "{{lb_list_id}}"
+        - "{{security_list_id}}"
       dns_label: "publb"
       prohibit_public_ip_on_vnic: no
       vcn_id: "{{ vcn_id }}"
-    register: result
+    register: subnet
     tags:
       - network
       - k8s
   - set_fact:
-      lb_subnet_id: "{{ result.subnet.id }}"
+      subnet_id: "{{ subnet.subnet.id }}"
       cacheable: yes
   # - name: Create Private Buckets
   #   oci_object_storage_bucket:
@@ -613,13 +367,7 @@
   #      "oci os object bulk-upload --bucket-name contents --prefix 'content-plugins/' --src-dir /tmp/content-plugins/ --namespace {{ namespace_name }} "
   #   tags:
   #     - oss  
-
-  # - name: Create ocir repos 
-  #   shell:
-  #      "oci artifacts container repository create --compartment-id {{compartment_id}} --display-name {{repo_name}}/{{item}} "
-  #   with_items: "{{ repo_list }}"
-  #   tags:
-  #     - ocir  
+ 
 
   # - name: Create container_repository
   #   oci_artifacts_container_repository:
