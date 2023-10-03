@@ -23,6 +23,7 @@
   vars:
     vcn_cidr_block: "10.90.0.0/16"
     subnet_cidr_block: "10.90.1.0/24"
+    k8s_subnet_cidr_block: "10.90.1.0/24"
     vcn_name: "SunbirdEd-VCN"
     vcn_dns_label: "sunbirded"
     compartment_id: "{{ lookup('env', 'COMPARTMENT_OCID') }}"
@@ -261,7 +262,7 @@
     tags:
       - network
 
-  - name: Create a Subnet
+  - name: Create a VM Subnet
     oci_network_subnet:
       cidr_block: "{{ subnet_cidr_block }}"
       compartment_id: "{{ compartment_id }}"
@@ -278,12 +279,24 @@
   - set_fact:
       subnet_id: "{{ subnet.subnet.id }}"
       cacheable: yes
-      node_pool_config_details:
-        size: 4
-        placement_configs:
-          - availability_domain: "{{ availability_domain }}"
-            subnet_id: "{{ subnet.subnet.id }}"
 
+  - name: Create a K8S Subnet
+    oci_network_subnet:
+      cidr_block: "{{ k8s_subnet_cidr_block }}"
+      compartment_id: "{{ compartment_id }}"
+      display_name: "PB-SN"
+      route_table_id: "{{ public_rt_id }}"
+      security_list_ids:
+        - "{{security_list_id}}"
+      dns_label: "publb"
+      prohibit_public_ip_on_vnic: no
+      vcn_id: "{{ vcn_id }}"
+    register: k8s_subnet
+    tags:
+      - network
+  - set_fact:
+      k8s_subnet_id: "{{ k8s_subnet.subnet.id }}"
+      cacheable: yes
           
   # - name: Create Private Buckets
   #   oci_object_storage_bucket:
@@ -541,14 +554,14 @@
       name: sunbird-ed-oke
       kubernetes_version: "{{k8s_version}}"
       endpoint_config:
-        subnet_id: "{{subnet_id}}"
+        subnet_id: "{{k8s_subnet_id}}"
         is_public_ip_enabled: false
       cluster_pod_network_options:
       - cni_type: OCI_VCN_IP_NATIVE
       options:
         service_lb_subnet_ids: [ "{{subnet_id}}" ]
         kubernetes_network_config:
-          pods_cidr: "{{subnet_cidr_block}}"
+          pods_cidr: "{{k8s_subnet_cidr_block}}"
       type: BASIC_CLUSTER
     register: oke
     tags:
@@ -577,9 +590,9 @@
         size: 4
         placement_configs:
         - availability_domain: "{{availability_domain}}"
-          subnet_id: "{{subnet_id}}"
+          subnet_id: "{{k8s_subnet_id}}"
         node_pool_pod_network_option_details:
-          pod_subnet_ids: [ "{{subnet_id}}" ]
+          pod_subnet_ids: [ "{{k8s_subnet_id}}" ]
           cni_type: OCI_VCN_IP_NATIVE
       node_shape_config:
         ocpus: "{{ oke_ocpu }}"
