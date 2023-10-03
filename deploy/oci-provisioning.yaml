@@ -155,11 +155,27 @@
     tags:
       - always
 
+  - name: Get OKE images
+    oci_compute_image_facts:
+      compartment_id: "{{compartment_id}}"
+      shape: "{{instance_shape}}"
+      operating_system  : "Oracle Linux"
+      operating_system_version: "7.9"
+    register: oke_node_images
+    tags:
+      - always
+
+  - name: Show result   
+    debug:
+      msg: "{{oke_node_images}}"
+
+
   - set_fact:
       availability_domain: "{{oci_ads.availability_domains[0].name}}"
       oci_all_service_id: "{{oci_services.services[1].id}}"
       oci_all_service_cidr: "{{oci_services.services[1].cidr_block}}"
       instance_image_id: "{{oci_images.images[0].id}}"
+      oke_image_id: "{{oke_node_images.images[0].id}}"
     tags:
       - always
 
@@ -504,32 +520,32 @@
   #     - identity
 ## Tempoary Disabled end
 
-  - name: Create cluster
-    oci_container_engine_cluster:
-      compartment_id: "{{compartment_id}}"
-      vcn_id: "{{vcn_id}}"
-      name: sunbird-ed-oke
-      kubernetes_version: "{{k8s_version}}"
-      endpoint_config:
-        subnet_id: "{{subnet_cidr_block}}"
-        is_public_ip_enabled: false
-      cluster_pod_network_options:
-      - # required
-        cni_type: OCI_VCN_IP_NATIVE
-      options:
-        service_lb_subnet_ids: [ "{{subnet_cidr_block}}" ]
-        kubernetes_network_config:
-          pods_cidr: "{{subnet_cidr_block}}"
-          services_cidr: "{{subnet_cidr_block}}"
-      type: BASIC_CLUSTER
-    register: oke
-    tags:
-      - k8s
-  - debug:
-      msg: "{{ oke }}"
-    tags:
-      - k8s
-  - set_fact:
-      cluster_id: "{{oke.cluster.id }}"
-    tags:
-      - k8s
+  # - name: Create cluster
+  #   oci_container_engine_cluster:
+  #     compartment_id: "{{compartment_id}}"
+  #     vcn_id: "{{vcn_id}}"
+  #     name: sunbird-ed-oke
+  #     kubernetes_version: "{{k8s_version}}"
+  #     endpoint_config:
+  #       subnet_id: "{{subnet_cidr_block}}"
+  #       is_public_ip_enabled: false
+  #     cluster_pod_network_options:
+  #     - # required
+  #       cni_type: OCI_VCN_IP_NATIVE
+  #     options:
+  #       service_lb_subnet_ids: [ "{{subnet_cidr_block}}" ]
+  #       kubernetes_network_config:
+  #         pods_cidr: "{{subnet_cidr_block}}"
+  #         services_cidr: "{{subnet_cidr_block}}"
+  #     type: BASIC_CLUSTER
+  #   register: oke
+  #   tags:
+  #     - k8s
+  # - debug:
+  #     msg: "{{ oke }}"
+  #   tags:
+  #     - k8s
+  # - set_fact:
+  #     cluster_id: "{{oke.cluster.id }}"
+  #   tags:
+  #     - k8s
