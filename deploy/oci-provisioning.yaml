@@ -34,9 +34,9 @@
     private_vm_names:
       - kp
       - dp
-      - yarn
-      - db
-      - others
+      # - yarn
+      # - db
+      # - others
     public_vm_names:
       - jenkins
     private_containers:
@@ -381,51 +381,51 @@
   #   tags:
   #     - ocir      
 
-  # - name: Launch private instance
-  #   oci_compute_instance:
-  #     availability_domain: "{{ availability_domain }}"
-  #     compartment_id: "{{ compartment_id }}"
-  #     name: "{{ item }}"
-  #     image_id: "{{ instance_image_id }}"
-  #     shape: "{{ instance_shape }}"
-  #     source_details:
-  #       boot_volume_size_in_gbs: "{{private_vm_hdd}}"
-  #       image_id: "{{ instance_image_id }}"
-  #       source_type: "image"
-  #     shape_config: 
-  #       ocpus: "{{ ocpu }}"
-  #       memory_in_gbs: "{{ memory_in_gbs }}"
-  #     create_vnic_details:
-  #       assign_public_ip: False
-  #       hostname_label: "{{ item }}"
-  #       subnet_id: "{{ vm_subnet_id }}"
-  #     metadata:
-  #       ssh_authorized_keys: "{{ authorized_key }}"
-  #   with_items: "{{ private_vm_names }}"
-  #   register: result
+  - name: Launch private vm
+    oci_compute_instance:
+      availability_domain: "{{ availability_domain }}"
+      compartment_id: "{{ compartment_id }}"
+      name: "{{ item }}"
+      image_id: "{{ instance_image_id }}"
+      shape: "{{ instance_shape }}"
+      source_details:
+        boot_volume_size_in_gbs: "{{private_vm_hdd}}"
+        image_id: "{{ instance_image_id }}"
+        source_type: "image"
+      shape_config: 
+        ocpus: "{{ ocpu }}"
+        memory_in_gbs: "{{ memory_in_gbs }}"
+      create_vnic_details:
+        assign_public_ip: False
+        hostname_label: "{{ item }}"
+        subnet_id: "{{ subnet_id }}"
+      metadata:
+        ssh_authorized_keys: "{{ authorized_key }}"
+    with_items: "{{ private_vm_names }}"
+    register: private_vms
 
-  # - name: Launch jenkins instance
-  #   oci_compute_instance:
-  #     availability_domain: "{{ availability_domain }}"
-  #     compartment_id: "{{ compartment_id }}"
-  #     name: "{{ item }}"
-  #     image_id: "{{ instance_image_id }}"
-  #     shape: "{{ instance_shape }}"
-  #     source_details:
-  #       boot_volume_size_in_gbs: "{{public_vm_hdd}}"
-  #       image_id: "{{ instance_image_id }}"
-  #       source_type: "image"
-  #     shape_config: 
-  #       ocpus: "{{ ocpu }}"
-  #       memory_in_gbs: "{{ memory_in_gbs }}"
-  #     create_vnic_details:
-  #       assign_public_ip: True
-  #       hostname_label: "{{ item }}"
-  #       subnet_id: "{{ lb_subnet_id }}"
-  #     metadata:
-  #       ssh_authorized_keys: "{{ authorized_key }}"
-  #   with_items: "{{ public_vm_names }}"
-  #   register: result
+  - name: Launch jenkins instance
+    oci_compute_instance:
+      availability_domain: "{{ availability_domain }}"
+      compartment_id: "{{ compartment_id }}"
+      name: "{{ item }}"
+      image_id: "{{ instance_image_id }}"
+      shape: "{{ instance_shape }}"
+      source_details:
+        boot_volume_size_in_gbs: "{{public_vm_hdd}}"
+        image_id: "{{ instance_image_id }}"
+        source_type: "image"
+      shape_config: 
+        ocpus: "{{ ocpu }}"
+        memory_in_gbs: "{{ memory_in_gbs }}"
+      create_vnic_details:
+        assign_public_ip: True
+        hostname_label: "{{ item }}"
+        subnet_id: "{{ subnet_id }}"
+      metadata:
+        ssh_authorized_keys: "{{ authorized_key }}"
+    with_items: "{{ public_vm_names }}"
+    register: jenkins_vm
 
 
   - name: Create user
