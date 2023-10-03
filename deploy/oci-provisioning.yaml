@@ -27,6 +27,7 @@
     quad_zero_route: "0.0.0.0/0"
     instance_shape: "VM.Standard.E3.Flex"
     intance_os_version: "18.04"
+    k8s_version: v1.27.2 
     ocpu: 1
     memory_in_gbs: 8
     private_vm_hdd: 60
@@ -503,17 +504,30 @@
   #     - identity
 ## Tempoary Disabled end
 
-  - name: Get Kubernetes version available for creating cluster
-    oci_container_engine_cluster_options_facts:
-      cluster_option_id: all
-    register: k8s_version
+  - name: Create an OKE cluster
+    oci_container_engine_cluster:
+      compartment_id: "{{ compartment_id }}"
+      name: "sunbirded-oke"
+      vcn_id: "{{ vcn_id }}"
+      kubernetes_version: "{{ k8s_version }}"
+      options:
+        kubernetes_network_config:
+          pods_cidr: "{{ subnet_cidr_block }}"
+          services_cidr: "{{ subnet_cidr_block }}"
+      endpoint_config:
+        subnet_id: "{{ subnet_cidr_block }}"
+        is_public_ip_enabled: false
+      options:
+        service_lb_subnet_ids:
+          - "{{ subnet_cidr_block }}"
+    register: oke
     tags:
       - k8s
   - debug:
-      msg: "{{ k8s_version }}"
+      msg: "{{ oke }}"
     tags:
       - k8s
   - set_fact:
-      k8s_version: "{{ k8s_version.cluster_options.kubernetes_versions[1] }}"
+      cluster_id: "{{oke.cluster.id }}"
     tags:
       - k8s
