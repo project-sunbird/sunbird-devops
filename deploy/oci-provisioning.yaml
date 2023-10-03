@@ -30,6 +30,8 @@
     k8s_version: v1.27.2 
     ocpu: 1
     memory_in_gbs: 8
+    oke_ocpu: 1
+    oke_memory_in_gbs: 8
     private_vm_hdd: 60
     public_vm_hdd: 60
     private_vm_names:
@@ -171,7 +173,11 @@
       oci_all_service_cidr: "{{oci_services.services[1].cidr_block}}"
       instance_image_id: "{{oci_images.images[0].id}}"
       oke_image_id: "{{oke_node_images.images[0].id}}"
-    tags:
+      node_shape: "{{ instance_shape }}"
+      node_pool_source_details:
+        source_type: "IMAGE"
+        image_id: "{{oke_node_images.images[0].id}}"
+    tag
       - always
 
   - name: Create a new Internet Gateway
@@ -266,6 +272,13 @@
   - set_fact:
       subnet_id: "{{ subnet.subnet.id }}"
       cacheable: yes
+      node_pool_config_details:
+        size: 4
+        placement_configs:
+          - availability_domain: "{{ availability_domain }}"
+            subnet_id: "{{ subnet.subnet.id }}"
+
+          
   # - name: Create Private Buckets
   #   oci_object_storage_bucket:
   #     namespace_name: "{{ namespace_name }}" 
@@ -515,32 +528,55 @@
   #     - identity
 ## Tempoary Disabled end
 
-  # - name: Create cluster
-  #   oci_container_engine_cluster:
-  #     compartment_id: "{{compartment_id}}"
-  #     vcn_id: "{{vcn_id}}"
-  #     name: sunbird-ed-oke
-  #     kubernetes_version: "{{k8s_version}}"
-  #     endpoint_config:
-  #       subnet_id: "{{subnet_cidr_block}}"
-  #       is_public_ip_enabled: false
-  #     cluster_pod_network_options:
-  #     - # required
-  #       cni_type: OCI_VCN_IP_NATIVE
-  #     options:
-  #       service_lb_subnet_ids: [ "{{subnet_cidr_block}}" ]
-  #       kubernetes_network_config:
-  #         pods_cidr: "{{subnet_cidr_block}}"
-  #         services_cidr: "{{subnet_cidr_block}}"
-  #     type: BASIC_CLUSTER
-  #   register: oke
-  #   tags:
-  #     - k8s
-  # - debug:
-  #     msg: "{{ oke }}"
-  #   tags:
-  #     - k8s
-  # - set_fact:
-  #     cluster_id: "{{oke.cluster.id }}"
-  #   tags:
-  #     - k8s
+  - name: Create cluster
+    oci_container_engine_cluster:
+      compartment_id: "{{compartment_id}}"
+      vcn_id: "{{vcn_id}}"
+      name: sunbird-ed-oke
+      kubernetes_version: "{{k8s_version}}"
+      endpoint_config:
+        subnet_id: "{{subnet_cidr_block}}"
+        is_public_ip_enabled: false
+      cluster_pod_network_options:
+      - # required
+        cni_type: OCI_VCN_IP_NATIVE
+      options:
+        service_lb_subnet_ids: [ "{{subnet_cidr_block}}" ]
+        kubernetes_network_config:
+          pods_cidr: "{{subnet_cidr_block}}"
+          services_cidr: "{{subnet_cidr_block}}"
+      type: BASIC_CLUSTER
+    register: oke
+    tags:
+      - k8s
+  - debug:
+      msg: "{{ oke }}"
+    tags:
+      - k8s
+  - set_fact:
+      cluster_id: "{{oke.cluster.id }}"
+    tags:
+      - k8s
+
+
+  - name: Create a node pool
+    oci_container_engine_node_pool:
+      cluster_id: "{{ cluster_id }}"
+      compartment_id: "{{ compartment_id }}"
+      name: "pool1"
+      ssh_public_key: "{{ authorized_key }}"
+      kubernetes_version: "{{ k8s_version }}"
+      node_source_details: "{{ node_pool_source_details }}"
+      node_shape: "{{ node_shape }}"
+      node_config_details: "{{ node_pool_config_details }}"
+      node_shape_config:
+        ocpus: "{{ oke_ocpu }}"
+        memory_in_gbs: "{{ oke_memory_in_gbs }}"
+    register: np_result
+    tags:
+      - k8s
+
+  - set_fact:
+      node_pool_id: "{{ np_result.node_pool.id }}"
+    tags:
+      - k8s
