@@ -504,22 +504,25 @@
   #     - identity
 ## Tempoary Disabled end
 
-  - name: Create an OKE cluster
+  - name: Create cluster
     oci_container_engine_cluster:
-      compartment_id: "{{ compartment_id }}"
-      name: "sunbirded-oke"
-      vcn_id: "{{ vcn_id }}"
-      kubernetes_version: "{{ k8s_version }}"
-      options:
-        kubernetes_network_config:
-          pods_cidr: "{{ subnet_cidr_block }}"
-          services_cidr: "{{ subnet_cidr_block }}"
+      # required
+      compartment_id: "{{compartment_id}}"
+      vcn_id: "{{vcn_id}}"
+      name: sunbird-ed-oke
+      kubernetes_version: "{{k8s_version}}"
       endpoint_config:
-        subnet_id: "{{ subnet_cidr_block }}"
+        subnet_id: "{{subnet_cidr_block}}"
         is_public_ip_enabled: false
+      cluster_pod_network_options:
+      - # required
+        cni_type: OCI_VCN_IP_NATIVE
       options:
-        service_lb_subnet_ids:
-          - "{{ subnet_cidr_block }}"
+        service_lb_subnet_ids: [ "{{subnet_cidr_block}}" ]
+        kubernetes_network_config:
+          pods_cidr: "{{subnet_cidr_block}}"
+          services_cidr: "{{subnet_cidr_block}}"
+      type: BASIC_CLUSTER
     register: oke
     tags:
       - k8s
