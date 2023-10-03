@@ -34,9 +34,9 @@
     private_vm_names:
       - kp
       - dp
-      # - yarn
-      # - db
-      # - others
+      - yarn
+      - db
+      - others
     public_vm_names:
       - jenkins
     private_containers:
@@ -231,13 +231,11 @@
     register: security_list
     tags:
       - network
-      - k8s
   - set_fact:
       security_list_id: "{{ security_list.security_list.id }}"
       cacheable: yes
     tags:
       - network
-      - k8s
 
   - name: Create a Subnet
     oci_network_subnet:
@@ -253,7 +251,6 @@
     register: subnet
     tags:
       - network
-      - k8s
   - set_fact:
       subnet_id: "{{ subnet.subnet.id }}"
       cacheable: yes
@@ -381,52 +378,55 @@
   #   tags:
   #     - ocir      
 
-  - name: Launch private vm
-    oci_compute_instance:
-      availability_domain: "{{ availability_domain }}"
-      compartment_id: "{{ compartment_id }}"
-      name: "{{ item }}"
-      image_id: "{{ instance_image_id }}"
-      shape: "{{ instance_shape }}"
-      source_details:
-        boot_volume_size_in_gbs: "{{private_vm_hdd}}"
-        image_id: "{{ instance_image_id }}"
-        source_type: "image"
-      shape_config: 
-        ocpus: "{{ ocpu }}"
-        memory_in_gbs: "{{ memory_in_gbs }}"
-      create_vnic_details:
-        assign_public_ip: False
-        hostname_label: "{{ item }}"
-        subnet_id: "{{ subnet_id }}"
-      metadata:
-        ssh_authorized_keys: "{{ authorized_key }}"
-    with_items: "{{ private_vm_names }}"
-    register: private_vms
+  # - name: Launch private vm
+  #   oci_compute_instance:
+  #     availability_domain: "{{ availability_domain }}"
+  #     compartment_id: "{{ compartment_id }}"
+  #     name: "{{ item }}"
+  #     image_id: "{{ instance_image_id }}"
+  #     shape: "{{ instance_shape }}"
+  #     source_details:
+  #       boot_volume_size_in_gbs: "{{private_vm_hdd}}"
+  #       image_id: "{{ instance_image_id }}"
+  #       source_type: "image"
+  #     shape_config: 
+  #       ocpus: "{{ ocpu }}"
+  #       memory_in_gbs: "{{ memory_in_gbs }}"
+  #     create_vnic_details:
+  #       assign_public_ip: False
+  #       hostname_label: "{{ item }}"
+  #       subnet_id: "{{ subnet_id }}"
+  #     metadata:
+  #       ssh_authorized_keys: "{{ authorized_key }}"
+  #   with_items: "{{ private_vm_names }}"
+  #   register: private_vms
+  #   tags:
+  #     - vm
 
-  - name: Launch jenkins instance
-    oci_compute_instance:
-      availability_domain: "{{ availability_domain }}"
-      compartment_id: "{{ compartment_id }}"
-      name: "{{ item }}"
-      image_id: "{{ instance_image_id }}"
-      shape: "{{ instance_shape }}"
-      source_details:
-        boot_volume_size_in_gbs: "{{public_vm_hdd}}"
-        image_id: "{{ instance_image_id }}"
-        source_type: "image"
-      shape_config: 
-        ocpus: "{{ ocpu }}"
-        memory_in_gbs: "{{ memory_in_gbs }}"
-      create_vnic_details:
-        assign_public_ip: True
-        hostname_label: "{{ item }}"
-        subnet_id: "{{ subnet_id }}"
-      metadata:
-        ssh_authorized_keys: "{{ authorized_key }}"
-    with_items: "{{ public_vm_names }}"
-    register: jenkins_vm
-
+  # - name: Launch jenkins instance
+  #   oci_compute_instance:
+  #     availability_domain: "{{ availability_domain }}"
+  #     compartment_id: "{{ compartment_id }}"
+  #     name: "{{ item }}"
+  #     image_id: "{{ instance_image_id }}"
+  #     shape: "{{ instance_shape }}"
+  #     source_details:
+  #       boot_volume_size_in_gbs: "{{public_vm_hdd}}"
+  #       image_id: "{{ instance_image_id }}"
+  #       source_type: "image"
+  #     shape_config: 
+  #       ocpus: "{{ ocpu }}"
+  #       memory_in_gbs: "{{ memory_in_gbs }}"
+  #     create_vnic_details:
+  #       assign_public_ip: True
+  #       hostname_label: "{{ item }}"
+  #       subnet_id: "{{ subnet_id }}"
+  #     metadata:
+  #       ssh_authorized_keys: "{{ authorized_key }}"
+  #   with_items: "{{ public_vm_names }}"
+  #   register: jenkins_vm
+  #   tags:
+  #     - vm
 
   - name: Create user
     oci_identity_user:
@@ -502,3 +502,18 @@
   #   tags:
   #     - identity
 ## Tempoary Disabled end
+
+  - name: Get Kubernetes version available for creating cluster
+    oci_container_engine_cluster_options_facts:
+      cluster_option_id: all
+    register: k8s_version
+    tags:
+      - k8s
+  - debug:
+      msg: "{{ k8s_version }}"
+    tags:
+      - k8s
+  - set_fact:
+      k8s_version: "{{ k8s_version.cluster_options.kubernetes_versions[1] }}"
+    tags:
+      - k8s
