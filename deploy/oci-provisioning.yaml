@@ -50,9 +50,9 @@
     private_vm_names:
       - kp
       - dp
-      # - yarn
-      # - db
-      # - others
+      - yarn
+      - db
+      - others
     public_vm_names:
       - jenkins
     private_containers:
@@ -74,52 +74,52 @@
     repo_list:
       - adminutil
       - assessment-service
-      # - bot
-      # - cert_registry_service
-      # - cert_service
-      # - content-service
-      # - creation-player
-      # - data-pipeline
-      # - discussion-middleware
-      # - echo-server
-      # - enc_service
-      # - gotenberg
-      # - groups_service
-      # - hawkeye
-      # - knowledge-mw-service
-      # - knowledge-platform-jobs
-      # - kong
-      # - learner_service
-      # - lms_service
-      # - ml-core-service
-      # - ml-projects-service
-      # - ml-reports-service
-      # - ml-survey-service
-      # - nodebb
-      # - notification_service
-      # - odk
-      # - opensaber
-      # - player
-      # - print-service
-      # - program-service
-      # - proxy
-      # - report-service
-      # - router
-      # - search-service
-      # - secor
-      # - sunbird-analytics-service
-      # - sunbird-datapipeline
-      # - sunbird-dial-service
-      # - sunbird-rc-certificate-api
-      # - sunbird-rc-certificate-signer
-      # - sunbird-rc-core
-      # - taxonomy-service
-      # - telemetry-service
-      # - uci-inbound
-      # - uci-orchestrator
-      # - uci-outbound
-      # - uci-transformer
-      # - uci_api  
+      - bot
+      - cert_registry_service
+      - cert_service
+      - content-service
+      - creation-player
+      - data-pipeline
+      - discussion-middleware
+      - echo-server
+      - enc_service
+      - gotenberg
+      - groups_service
+      - hawkeye
+      - knowledge-mw-service
+      - knowledge-platform-jobs
+      - kong
+      - learner_service
+      - lms_service
+      - ml-core-service
+      - ml-projects-service
+      - ml-reports-service
+      - ml-survey-service
+      - nodebb
+      - notification_service
+      - odk
+      - opensaber
+      - player
+      - print-service
+      - program-service
+      - proxy
+      - report-service
+      - router
+      - search-service
+      - secor
+      - sunbird-analytics-service
+      - sunbird-datapipeline
+      - sunbird-dial-service
+      - sunbird-rc-certificate-api
+      - sunbird-rc-certificate-signer
+      - sunbird-rc-core
+      - taxonomy-service
+      - telemetry-service
+      - uci-inbound
+      - uci-orchestrator
+      - uci-outbound
+      - uci-transformer
+      - uci_api  
 
   tasks: 
   - name: Check pre-requisites
@@ -444,6 +444,24 @@
   #   tags:
   #     - oss
 
+  - name: Downloading neo4j
+    get_url:
+      url: http://dist.neo4j.org/neo4j-community-3.3.9-unix.tar.gz
+      dest: /tmp/neo4j-community-3.3.9-unix.tar.gz
+      mode: '0440'
+    tags:
+      - oss
+
+  - name: Uploading Neo4j
+    oci_object_storage_object:
+      namespace_name: "{{namespace_name}}"
+      bucket_name: artifacts
+      object_name: "neo4j-community-3.3.9-unix.tar.gz"
+      src: /tmp/neo4j-community-3.3.9-unix.tar.gz
+      content_type: 'text/plain'
+    tags:
+      - oss  
+
   # - name: Downloading GeoIP2
   #   get_url:
   #     url: "https://download.maxmind.com/app/geoip_download?edition_id={{ item.type }}&license_key={{ geoip_licence_key }}&suffix={{ item.prefix }}"
@@ -501,31 +519,31 @@
   #   tags:
   #     - ocir      
 
-  - name: Launch private vm
-    oci_compute_instance:
-      availability_domain: "{{ availability_domain }}"
-      compartment_id: "{{ compartment_id }}"
-      name: "{{ item }}"
-      image_id: "{{ instance_image_id }}"
-      shape: "{{ instance_shape }}"
-      source_details:
-        boot_volume_size_in_gbs: "{{private_vm_hdd}}"
-        image_id: "{{ instance_image_id }}"
-        source_type: "image"
-      shape_config: 
-        ocpus: "{{ ocpu }}"
-        memory_in_gbs: "{{ memory_in_gbs }}"
-      create_vnic_details:
-        assign_public_ip: False
-        hostname_label: "{{ item }}"
-        subnet_id: "{{ private_subnet_id }}"
-      metadata:
-        ssh_authorized_keys: "{{ authorized_key }}"
-        user_data: "{{ lookup('file',  '/tmp/oci_vms_bootstrap.sh' ) | b64encode }}"
-    with_items: "{{ private_vm_names }}"
-    register: private_vms
-    tags:
-      - vm
+  # - name: Launch private vm
+  #   oci_compute_instance:
+  #     availability_domain: "{{ availability_domain }}"
+  #     compartment_id: "{{ compartment_id }}"
+  #     name: "{{ item }}"
+  #     image_id: "{{ instance_image_id }}"
+  #     shape: "{{ instance_shape }}"
+  #     source_details:
+  #       boot_volume_size_in_gbs: "{{private_vm_hdd}}"
+  #       image_id: "{{ instance_image_id }}"
+  #       source_type: "image"
+  #     shape_config: 
+  #       ocpus: "{{ ocpu }}"
+  #       memory_in_gbs: "{{ memory_in_gbs }}"
+  #     create_vnic_details:
+  #       assign_public_ip: False
+  #       hostname_label: "{{ item }}"
+  #       subnet_id: "{{ private_subnet_id }}"
+  #     metadata:
+  #       ssh_authorized_keys: "{{ authorized_key }}"
+  #       user_data: "{{ lookup('file',  '/tmp/oci_vms_bootstrap.sh' ) | b64encode }}"
+  #   with_items: "{{ private_vm_names }}"
+  #   register: private_vms
+  #   tags:
+  #     - vm
 
   # - name: Launch jenkins instance
   #   oci_compute_instance:
