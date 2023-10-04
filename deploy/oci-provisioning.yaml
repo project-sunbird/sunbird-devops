@@ -22,8 +22,8 @@
   hosts: localhost
   vars:
     vcn_cidr_block: "10.90.0.0/16"
-    subnet_cidr_block: "10.90.1.0/24"
-    k8s_subnet_cidr_block: "10.90.2.0/24"
+    public_subnet_cidr_block: "10.90.1.0/24"
+    private_subnet_cidr_block: "10.90.2.0/24"
     vcn_name: "SunbirdEd-VCN"
     vcn_dns_label: "sunbirded"
     compartment_id: "{{ lookup('env', 'COMPARTMENT_OCID') }}"
@@ -206,6 +206,23 @@
     tags:
       - network
 
+  - name: Create a new NAT Gateway
+    oci_network_nat_gateway:
+      compartment_id: "{{ compartment_id }}"
+      vcn_id: "{{ vcn_id }}"
+      name: "NG"
+      state: 'present'
+    register: result
+    tags:
+      - network
+
+  - set_fact:
+      ng_id: "{{ result.nat_gateway.id }}"
+      private_route_table_rules:
+        - cidr_block: "{{ quad_zero_route }}"
+          network_entity_id: "{{ result.nat_gateway.id }}"
+    tags:
+      - network
 
   - name: Create a new Service Gateway
     oci_network_service_gateway:
@@ -236,6 +253,22 @@
     tags:
       - network
 
+  - name: Create route table to connect Nat gateway to the VCN
+    oci_network_route_table:
+      compartment_id: "{{ compartment_id }}"
+      vcn_id: "{{ vcn_id }}"
+      name: "PVT-SL-RT"
+      route_rules: "{{ private_route_table_rules }}"
+      state: 'present'
+    register: private_rt
+    tags:
+      - network
+
+  - set_fact:
+      private_rt_id: "{{ private_rt.route_table.id }}"
+    tags:
+      - network
+
   - name: Create security list for Public Subnet 
     oci_network_security_list:
       display_name: PUB-SL
@@ -262,40 +295,66 @@
     tags:
       - network
 
-  - name: Create a VM Subnet
-    oci_network_subnet:
-      cidr_block: "{{ subnet_cidr_block }}"
+  - name: Create security list for Private Subnet 
+    oci_network_security_list:
+      display_name: PVT-SL
       compartment_id: "{{ compartment_id }}"
-      display_name: "PB-SN"
-      route_table_id: "{{ public_rt_id }}"
-      security_list_ids:
-        - "{{security_list_id}}"
-      dns_label: "publb"
-      prohibit_public_ip_on_vnic: no
       vcn_id: "{{ vcn_id }}"
-    register: subnet
+      egress_security_rules:
+      - description: "Allow outgoing traffic"
+        destination: "{{ quad_zero_route }}"
+        protocol: "all"
+        destination_type: CIDR_BLOCK
+        is_stateless: false
+      ingress_security_rules:
+      - description: "allow all traffic"
+        protocol: all
+        source: "{{vcn_cidr_block}}"
+        is_stateless: false
+        source_type: CIDR_BLOCK
+    register: pvt_security_list
     tags:
       - network
   - set_fact:
-      subnet_id: "{{ subnet.subnet.id }}"
+      pvt_security_list_id: "{{ pvt_security_list.security_list.id }}"
+      cacheable: yes
+    tags:
+      - network
+
+  - name: Create a Public Subnet
+    oci_network_subnet:
+      cidr_block: "{{ public_subnet_cidr_block }}"
+      compartment_id: "{{ compartment_id }}"
+      display_name: "PUB-SN"
+      route_table_id: "{{ public_rt_id }}"
+      security_list_ids:
+        - "{{security_list_id}}"
+      dns_label: "pubsn"
+      prohibit_public_ip_on_vnic: no
+      vcn_id: "{{ vcn_id }}"
+    register: pub_subnet
+    tags:
+      - network
+  - set_fact:
+      public_subnet_id: "{{ pub_subnet.subnet.id }}"
       cacheable: yes
 
-  - name: Create a K8S Subnet
+  - name: Create a Private Subnet
     oci_network_subnet:
-      cidr_block: "{{ k8s_subnet_cidr_block }}"
+      cidr_block: "{{ private_subnet_cidr_block }}"
       compartment_id: "{{ compartment_id }}"
-      display_name: "K8S-SN"
-      route_table_id: "{{ public_rt_id }}"
+      display_name: "PVT-SN"
+      route_table_id: "{{ private_rt_id }}"
       security_list_ids:
-        - "{{security_list_id}}"
-      dns_label: "k8ssn"
-      prohibit_public_ip_on_vnic: no
+        - "{{pvt_security_list_id}}"
+      dns_label: "pvtsn"
+      prohibit_public_ip_on_vnic: yes
       vcn_id: "{{ vcn_id }}"
-    register: k8s_subnet
+    register: pvt_subnet
     tags:
       - network
   - set_fact:
-      k8s_subnet_id: "{{ k8s_subnet.subnet.id }}"
+      private_subnet_id: "{{ pvt_subnet.subnet.id }}"
       cacheable: yes
           
   # - name: Create Private Buckets
@@ -547,61 +606,61 @@
   #     - identity
 ## Tempoary Disabled end
 
-  - name: Create cluster
-    oci_container_engine_cluster:
-      compartment_id: "{{compartment_id}}"
-      vcn_id: "{{vcn_id}}"
-      name: sunbird-ed-oke
-      kubernetes_version: "{{k8s_version}}"
-      endpoint_config:
-        subnet_id: "{{k8s_subnet_id}}"
-        is_public_ip_enabled: false
-      cluster_pod_network_options:
-      - cni_type: OCI_VCN_IP_NATIVE
-      options:
-        service_lb_subnet_ids: [ "{{subnet_id}}" ]
-        # kubernetes_network_config:
-        #   pods_cidr: "{{k8s_subnet_cidr_block}}"
-      type: BASIC_CLUSTER
-    register: oke
-    tags:
-      - k8s
-  - debug:
-      msg: "{{ oke }}"
-    tags:
-      - k8s
-  - set_fact:
-      cluster_id: "{{oke.cluster.id }}"
-    tags:
-      - k8s
+  # - name: Create cluster
+  #   oci_container_engine_cluster:
+  #     compartment_id: "{{compartment_id}}"
+  #     vcn_id: "{{vcn_id}}"
+  #     name: sunbird-ed-oke
+  #     kubernetes_version: "{{k8s_version}}"
+  #     endpoint_config:
+  #       subnet_id: "{{k8s_subnet_id}}"
+  #       is_public_ip_enabled: false
+  #     cluster_pod_network_options:
+  #     - cni_type: OCI_VCN_IP_NATIVE
+  #     options:
+  #       service_lb_subnet_ids: [ "{{subnet_id}}" ]
+  #       # kubernetes_network_config:
+  #       #   pods_cidr: "{{k8s_subnet_cidr_block}}"
+  #     type: BASIC_CLUSTER
+  #   register: oke
+  #   tags:
+  #     - k8s
+  # - debug:
+  #     msg: "{{ oke }}"
+  #   tags:
+  #     - k8s
+  # - set_fact:
+  #     cluster_id: "{{oke.cluster.id }}"
+  #   tags:
+  #     - k8s
 
 
-  - name: Create a node pool
-    oci_container_engine_node_pool:
-      cluster_id: "{{ cluster_id }}"
-      compartment_id: "{{ compartment_id }}"
-      name: "pool1"
-      ssh_public_key: "{{ authorized_key }}"
-      kubernetes_version: "{{ k8s_version }}"
-      node_source_details: "{{ node_pool_source_details }}"
-      node_shape: "{{ node_shape }}"
-      # node_config_details: "{{ node_pool_config_details }}"
-      node_config_details:
-        size: 4
-        placement_configs:
-        - availability_domain: "{{availability_domain}}"
-          subnet_id: "{{k8s_subnet_id}}"
-        node_pool_pod_network_option_details:
-          pod_subnet_ids: [ "{{k8s_subnet_id}}" ]
-          cni_type: OCI_VCN_IP_NATIVE
-      node_shape_config:
-        ocpus: "{{ oke_ocpu }}"
-        memory_in_gbs: "{{ oke_memory_in_gbs }}"
-    register: np_result
-    tags:
-      - k8s
+  # - name: Create a node pool
+  #   oci_container_engine_node_pool:
+  #     cluster_id: "{{ cluster_id }}"
+  #     compartment_id: "{{ compartment_id }}"
+  #     name: "pool1"
+  #     ssh_public_key: "{{ authorized_key }}"
+  #     kubernetes_version: "{{ k8s_version }}"
+  #     node_source_details: "{{ node_pool_source_details }}"
+  #     node_shape: "{{ node_shape }}"
+  #     # node_config_details: "{{ node_pool_config_details }}"
+  #     node_config_details:
+  #       size: 4
+  #       placement_configs:
+  #       - availability_domain: "{{availability_domain}}"
+  #         subnet_id: "{{k8s_subnet_id}}"
+  #       node_pool_pod_network_option_details:
+  #         pod_subnet_ids: [ "{{k8s_subnet_id}}" ]
+  #         cni_type: OCI_VCN_IP_NATIVE
+  #     node_shape_config:
+  #       ocpus: "{{ oke_ocpu }}"
+  #       memory_in_gbs: "{{ oke_memory_in_gbs }}"
+  #   register: np_result
+  #   tags:
+  #     - k8s
 
-  - set_fact:
-      node_pool_id: "{{ np_result.node_pool.id }}"
-    tags:
-      - k8s
+  # - set_fact:
+  #     node_pool_id: "{{ np_result.node_pool.id }}"
+  #   tags:
+  #     - k8s
