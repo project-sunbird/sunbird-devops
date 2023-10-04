@@ -115,6 +115,10 @@ echo -e "\n\e[0;32m${bold}Creating bashrc for jenkins user ${normal}"
 cp /etc/skel/.bashrc /var/lib/jenkins
 chown jenkins:jenkins /var/lib/jenkins/.bashrc
 
+echo -e "\n\e[0;32m${bold}Creating profile for jenkins user ${normal}"
+echo "export OCI_CLI_AUTH=instance_principal" > /var/lib/jenkins/.profile
+chown jenkins:jenkins /var/lib/jenkins/.profile
+
 echo -e "\n\e[0;32m${bold}Setting timezone to IST ${normal}"
 timedatectl set-timezone Asia/Kolkata
 
