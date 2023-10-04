@@ -50,9 +50,9 @@
     private_vm_names:
       - kp
       - dp
-      - yarn
-      - db
-      - others
+      # - yarn
+      # - db
+      # - others
     public_vm_names:
       - jenkins
     private_containers:
@@ -519,31 +519,31 @@
   #   tags:
   #     - ocir      
 
-  # - name: Launch private vm
-  #   oci_compute_instance:
-  #     availability_domain: "{{ availability_domain }}"
-  #     compartment_id: "{{ compartment_id }}"
-  #     name: "{{ item }}"
-  #     image_id: "{{ instance_image_id }}"
-  #     shape: "{{ instance_shape }}"
-  #     source_details:
-  #       boot_volume_size_in_gbs: "{{private_vm_hdd}}"
-  #       image_id: "{{ instance_image_id }}"
-  #       source_type: "image"
-  #     shape_config: 
-  #       ocpus: "{{ ocpu }}"
-  #       memory_in_gbs: "{{ memory_in_gbs }}"
-  #     create_vnic_details:
-  #       assign_public_ip: False
-  #       hostname_label: "{{ item }}"
-  #       subnet_id: "{{ private_subnet_id }}"
-  #     metadata:
-  #       ssh_authorized_keys: "{{ authorized_key }}"
-  #       user_data: "{{ lookup('file',  '/tmp/oci_vms_bootstrap.sh' ) | b64encode }}"
-  #   with_items: "{{ private_vm_names }}"
-  #   register: private_vms
-  #   tags:
-  #     - vm
+  - name: Launch private vm
+    oci_compute_instance:
+      availability_domain: "{{ availability_domain }}"
+      compartment_id: "{{ compartment_id }}"
+      name: "{{ item }}"
+      image_id: "{{ instance_image_id }}"
+      shape: "{{ instance_shape }}"
+      source_details:
+        boot_volume_size_in_gbs: "{{private_vm_hdd}}"
+        image_id: "{{ instance_image_id }}"
+        source_type: "image"
+      shape_config: 
+        ocpus: "{{ ocpu }}"
+        memory_in_gbs: "{{ memory_in_gbs }}"
+      create_vnic_details:
+        assign_public_ip: False
+        hostname_label: "{{ item }}"
+        subnet_id: "{{ private_subnet_id }}"
+      metadata:
+        ssh_authorized_keys: "{{ authorized_key }}"
+        user_data: "{{ lookup('file',  '/tmp/oci_vms_bootstrap.sh' ) | b64encode }}"
+    with_items: "{{ private_vm_names }}"
+    register: private_vms
+    tags:
+      - vm
 
   # - name: Launch jenkins instance
   #   oci_compute_instance:
@@ -706,9 +706,27 @@
   #     - k8s
 
 ### To do
-## upload neo4j to bucket 
 ## define policy for group and dg
 ## create auth token for svc user 
 ## create customer key for svc user 
 ## store the values in a file for ref 
 
+  - name: Get Instance Info
+    oci_compute_instance_facts:
+      compartment_id: "{{compartment_id}}"
+      display_name: {{item}}
+    with_items: "{{private_vm_names}}"
+    register: nics 
+    tags:
+      - info
+
+  - name: Showing instance ips
+    debug:
+      msg:
+        "{{ item.display_name }}: {{ item.primary_private_ip }}"
+    with_items: "{{ nics.results }}"
+    # Else the item dict is very big
+    loop_control:
+      label: "{{  item.display_name  }}"
+    tags:
+      - info
