@@ -78,6 +78,7 @@ wget $oci_cli_setup_zip -O /tmp/ocicli.zip
 unzip /tmp/ocicli.zip -d /tmp
 cd /tmp
 ./oci-cli-installation/install.sh --install-dir /var/lib/jenkins --exec-dir /var/lib/jenkins --script-dir /var/lib/jenkins --accept-all-defaults
+mv /var/lib/jenkins/oci /usr/bin
 
 echo -e "\n\e[0;32m${bold}Installating azure cli${normal}"
 apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
