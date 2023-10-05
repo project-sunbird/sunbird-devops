@@ -565,7 +565,7 @@
         subnet_id: "{{ public_subnet_id }}"
       metadata:
         ssh_authorized_keys: "{{ authorized_key }}"
-        user_data: "{{ lookup('file',  '/tmp/oci_jenkins_bootstrap.sh' ) | b64encode }}"
+        # user_data: "{{ lookup('file',  '/tmp/oci_jenkins_bootstrap.sh' ) | b64encode }}"
     with_items: "{{ public_vm_names }}"
     register: jenkins_vm
     tags:
@@ -706,77 +706,71 @@
   #     - k8s
 
 ### To do
+## add user to a group
 ## define policy for group and dg
 ## create auth token for svc user 
 ## create customer key for svc user 
 ## store the values in a file for ref 
 
 
+  # - name: Get Private VMs Info
+  #   oci_compute_instance_facts:
+  #     compartment_id: "{{compartment_id}}"
+  #     display_name: "{{item}}"
+  #     lifecycle_state: RUNNING
+  #   with_items: "{{private_vm_names}}"
+  #   register: nics 
+  #   tags:
+  #     - info 
+
+  # - name: Get Jenkins VMs Info
+  #   oci_compute_instance_facts:
+  #     compartment_id: "{{compartment_id}}"
+  #     display_name: "jenkins"
+  #     lifecycle_state: RUNNING
+  #   register: jenkins_vm 
+  #   tags:
+  #     - info 
+
   # - name: Showing resources info
   #   debug:
   #     msg:
-  #       - Jenkins public ip: "{{ jenkins_vm.instance.primary_public_ip }}"
+  #       - Jenkins public ip: "{{ jenkins_vm.instances[0].primary_public_ip }}"
   #   tags:
-  #     - info
+  #     - info 
 
-  - name: Get Private VMs Info
-    oci_compute_instance_facts:
-      compartment_id: "{{compartment_id}}"
-      display_name: "{{item}}"
-      lifecycle_state: RUNNING
-    with_items: "{{private_vm_names}}"
-    register: nics 
-    tags:
-      - info 
+  # - name: Showing private vm ips
+  #   debug:
+  #     msg:
+  #       "VM {{ item.instances[0].display_name }} private ip: {{ item.instances[0].primary_private_ip }}"
+  #   with_items: "{{ nics.results }}"
+  #   loop_control:
+  #     label: "{{  item.instances[0].display_name  }}"
+  #   tags:
+  #     - info 
 
-  - name: Get Jenkins VMs Info
-    oci_compute_instance_facts:
-      compartment_id: "{{compartment_id}}"
-      display_name: "jenkins"
-      lifecycle_state: RUNNING
-    register: jenkins_vm 
-    tags:
-      - info 
+  # - name: Writing resource info to oci-resources.txt
+  #   copy:
+  #     dest: /tmp/oci-resources.txt
+  #     content: |-
+  #       ================================================================
+  #       jenkins public ip={{ jenkins_vm.instances[0].primary_public_ip }}
+  #   tags:
+  #     - info 
 
-  - name: Showing resources info
-    debug:
-      msg:
-        - Jenkins public ip: "{{ jenkins_vm.instances[0].primary_public_ip }}"
-    tags:
-      - info 
+  # - name: Writing machine ips to oci-resources.txt
+  #   lineinfile:
+  #     state: present
+  #     insertbefore: EOF
+  #     dest: /tmp/oci-resources.txt
+  #     line: "{{ item.instances[0].display_name }} private ip={{ item.instances[0].primary_private_ip }}"
+  #   with_items: "{{ nics.results }}"
+  #   loop_control:
+  #     label: "{{  item.instances[0].display_name   }}"
+  #   tags:
+  #     - info 
 
-  - name: Showing private vm ips
-    debug:
-      msg:
-        "VM {{ item.instances[0].display_name }} private ip: {{ item.instances[0].primary_private_ip }}"
-    with_items: "{{ nics.results }}"
-    loop_control:
-      label: "{{  item.instances[0].display_name  }}"
-    tags:
-      - info 
-
-  - name: Writing resource info to oci-resources.txt
-    copy:
-      dest: /tmp/oci-resources.txt
-      content: |-
-        ================================================================
-        jenkins public ip={{ jenkins_vm.instances[0].primary_public_ip }}
-    tags:
-      - info 
-
-  - name: Writing machine ips to oci-resources.txt
-    lineinfile:
-      state: present
-      insertbefore: EOF
-      dest: /tmp/oci-resources.txt
-      line: "{{ item.instances[0].display_name }} private ip={{ item.instances[0].primary_private_ip }}"
-    with_items: "{{ nics.results }}"
-    loop_control:
-      label: "{{  item.instances[0].display_name   }}"
-    tags:
-      - info 
-
-  - debug:
-      msg: ansible variable values to update for the installation is stored in /tmp/oci-resources.txt"
-    tags:
-      - info 
+  # - debug:
+  #     msg: ansible variable values to update for the installation is stored in /tmp/oci-resources.txt"
+  #   tags:
+  #     - info 
