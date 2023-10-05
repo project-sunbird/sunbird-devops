@@ -2478,7 +2478,7 @@ if (typeof module != 'undefined') {
 let pdataId = "";
 let tenantSlug;
 if (window.location.origin.indexOf("staging.sunbirded.org") >= 0) {
-  pdataId = "staging.diksha.portal";
+  pdataId = "staging.sunbirded.portal";
 } else if (window.location.origin.indexOf("dev.sunbirded.org") >= 0) {
   pdataId = "dev.sunbird.portal";
   tenantSlug = "sunbird";

@@ -20,7 +20,7 @@ CREATE TABLE program
     status status,
     slug character varying COLLATE pg_catalog."default",
     config jsonb,
-    channel character varying COLLATE pg_catalog."default" DEFAULT 'DIKSHA'::character varying,
+    channel character varying COLLATE pg_catalog."default" DEFAULT 'SUNBIRD'::character varying,
     template_id character varying COLLATE pg_catalog."default" DEFAULT 'template1'::character varying,
     rootorg_id character varying COLLATE pg_catalog."default",
     sourcing_org_name character varying COLLATE pg_catalog."default",
