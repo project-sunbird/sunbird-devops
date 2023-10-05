@@ -712,14 +712,14 @@
 ## store the values in a file for ref 
 
 
-  - name: Showing resources info
-    debug:
-      msg:
-        - Jenkins public ip: "{{ jenkins_vm.instance.primary_public_ip }}"
-    tags:
-      - info
+  # - name: Showing resources info
+  #   debug:
+  #     msg:
+  #       - Jenkins public ip: "{{ jenkins_vm.instance.primary_public_ip }}"
+  #   tags:
+  #     - info
 
-  - name: Get Instance Info
+  - name: Get Private VMs Info
     oci_compute_instance_facts:
       compartment_id: "{{compartment_id}}"
       display_name: "{{item}}"
@@ -729,13 +729,51 @@
     tags:
       - info
 
-  - name: Showing instance ips
+  - name: Get Jenkins VMs Info
+    oci_compute_instance_facts:
+      compartment_id: "{{compartment_id}}"
+      display_name: "jenkins"
+      lifecycle_state: RUNNING
+    register: jenkins_vm 
+    tags:
+      - info
+
+  - name: Showing resources info
+    debug:
+      msg:
+        - Jenkins public ip: "{{ public_vm.results.instances[0].primary_public_ip }}"
+    tags:
+      - info
+
+  - name: Showing private vm ips
     debug:
       msg:
         "VM {{ item.instances[0].display_name }} private ip: {{ item.instances[0].primary_private_ip }}"
     with_items: "{{ nics.results }}"
-    # Else the item dict is very big
     loop_control:
       label: "{{  item.instances[0].display_name  }}"
     tags:
       - info
+
+  - name: Writing resource info to oci-resources.txt
+    copy:
+      dest: /tmp/oci-resources.txt
+      content: |-
+        ================================================================
+        jenkins_public_ip="{{ public_vm.results.instances[0].primary_public_ip }}"
+    tags:
+      - info
+
+  - name: Writing machine ips to oci-resources.txt
+    lineinfile:
+      state: present
+      insertbefore: EOF
+      dest: /tmp/oci-resources.txt
+      line: "{{ item.instances[0].display_name }}={{ item.instances[0].primary_private_ip }}"
+    with_items: "{{ nics.results }}"
+    loop_control:
+      label: "{{  item.instances[0].display_name   }}"
+  - debug:
+      msg: ansible variable values to update for the installation is stored in /tmp/oci-resources.txt"
+  tags:
+    - info
