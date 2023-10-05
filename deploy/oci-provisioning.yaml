@@ -34,6 +34,7 @@
     vcn_dns_label: "sunbirded"
     compartment_id: "{{ lookup('env', 'COMPARTMENT_OCID') }}"
     tenancy_id: "{{ lookup('env', 'OCI_TENANCY')}}"
+    region: "{{ lookup('env', 'OCI_REGION')}}"
     namespace_name: "{{ lookup('env', 'OSS_NAMESPACE') }}"
     geoip_licence_key: "{{ lookup('env', 'GEO_IP_LIC_KEY') }}"
     authorized_key: "{{ lookup('env', 'INSTANCE_PUBLIC_KEY') }}"
@@ -183,10 +184,17 @@
     tags:
       - always
 
+  - name: Get Region
+    shell: oci iam region list --query "data[?name=='ap-sydney-1'].key | [0]" --raw-output | tr '[:upper:]' '[:lower:]'
+    register: region_code
+    tags:
+      - always
+
   - set_fact:
       availability_domain: "{{oci_ads.availability_domains[0].name}}"
       oci_all_service_id: "{{oci_services.services[1].id}}"
       oci_all_service_cidr: "{{oci_services.services[1].cidr_block}}"
+      ocir_region: "{{region_code.stdout}}"
       instance_image_id: "{{oci_images.images[0].id}}"
       oke_image_id: "{{oke_node_images.images[0].id}}"
       node_shape: "{{ instance_shape }}"
@@ -745,6 +753,8 @@
     debug:
       msg:
         - Jenkins public ip: "{{ jenkins_vm.instances[0].primary_public_ip }}"
+        - OCIR url: "{{ocir_region}}.ocir.io/{{namespace_name}}/{{repo_name}}"
+        - OCIR user: "{{namespace_name}}/{{svc_user_name}}"
         - OCIR auth token: "{{ auth_token }}"
         - S3 access key: "{{ s3_access_key }}"
         - S3 access secret : "{{ s3_access_secret }}"
@@ -767,6 +777,8 @@
       content: |-
         ================================================================
         jenkins public ip: {{ jenkins_vm.instances[0].primary_public_ip }}
+        OCIR url: "{{ocir_region}}.ocir.io/{{namespace_name}}/{{repo_name}}"
+        OCIR user: "{{namespace_name}}/{{svc_user_name}}"
         OCIR auth token: "{{ auth_token }}"
         S3 access key: "{{ s3_access_key }}"
         S3 access secret : "{{ s3_access_secret }}"
