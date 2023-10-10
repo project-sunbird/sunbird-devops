@@ -9223,6 +9223,27 @@ kong_apis:
     config.required: true
     config.enabled: true
 
+- name: deleteUser
+  uris: "{{ user_service_prefix }}/v1/delete"
+  upstream_url: "{{ userorg_service_url }}/v1/user/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+      - userUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
 - name: createContentV2
   uris: "{{ content_prefix }}/v2/create"
   upstream_url: "{{ content_service_url }}/content/v4/create"
