@@ -46,6 +46,7 @@
     svc_user_name: "{{ lookup('env', 'SB_SVC_USER') | default('sunbirded-svc-usr') }}"
     svc_user_group: "{{ lookup('env', 'SB_SVC_GROUP') | default('sunbirded-svc-grp') }}"
     dynamic_group_name: "{{ lookup('env', 'SB_DG_GROUP') | default('sunbirded-dg') }}"
+    env_name: "{{ lookup('env', 'SB_ENV_NAME') | default('dev') }}"
     ocpu: 1
     memory_in_gbs: 16
     oke_ocpu: 1
@@ -395,7 +396,7 @@
       compartment_id: "{{ compartment_id }}"
       public_access_type: NoPublicAccess
       storage_tier: Standard
-      name: "{{ item }}"
+      name: "{{env_name}}-{{ item }}"
     with_items: "{{ private_containers }}"
     tags:
       - oss
@@ -407,7 +408,7 @@
       compartment_id: "{{ compartment_id }}"
       public_access_type: ObjectRead
       storage_tier: Standard
-      name: "{{ item }}"
+      name: "{{env_name}}-{{ item }}"
     with_items: "{{ public_containers }}"
     tags:
       - oss
@@ -426,7 +427,7 @@
   - name: Creating folder structurue
     oci_object_storage_object:
       namespace_name: "{{ namespace_name }}"
-      bucket_name: contents
+      bucket_name: "{{env_name}}-contents"
       object_name: "{{ item }}/tmpfile1.txt"
       src: "{{ tmpfile1.path }}"
     with_items:
@@ -449,7 +450,7 @@
   - name: Uploading T&C
     oci_object_storage_object:
       namespace_name: "{{namespace_name}}"
-      bucket_name: contents
+      bucket_name: "{{env_name}}-contents"
       object_name: "terms-and-conditions/terms-and-conditions-v9.html"
       src: /tmp/terms-and-conditions-v9.html
       content_type: 'text/plain'
@@ -467,7 +468,7 @@
   - name: Uploading Neo4j
     oci_object_storage_object:
       namespace_name: "{{namespace_name}}"
-      bucket_name: artifacts
+      bucket_name: "{{env_name}}-artifacts"
       object_name: "neo4j-community-3.3.9-unix.tar.gz"
       src: /tmp/neo4j-community-3.3.9-unix.tar.gz
       content_type: 'text/plain'
@@ -487,7 +488,7 @@
   - name: Uploading GeoIP2 to artifacts
     oci_object_storage_object:
       namespace_name: "{{namespace_name}}"
-      bucket_name: artifacts
+      bucket_name: "{{env_name}}-artifacts"
       object_name: "geoip2_db.{{ item }}"
       src: /tmp/geoip2_db.{{ item }}
       content_type: 'text/plain'
@@ -499,7 +500,7 @@
 
   - name: Uploading labels
     shell:
-       "oci os object bulk-upload --bucket-name label --prefix 'labels/' --src-dir ../utils/portal/labels/ --namespace {{ namespace_name }} -–overwrite"
+       "oci os object bulk-upload --bucket-name {{env_name}}-label --prefix 'labels/' --src-dir ../utils/portal/labels/ --namespace {{ namespace_name }} -–overwrite"
     tags:
       - oss
 
@@ -514,7 +515,7 @@
 
   - name: Upload Content plugins
     shell:
-       "oci os object bulk-upload --bucket-name contents --prefix 'content-plugins/' --src-dir /tmp/content-plugins/ --namespace {{ namespace_name }} "
+       "oci os object bulk-upload --bucket-name {{env_name}}-contents --prefix 'content-plugins/' --src-dir /tmp/content-plugins/ --namespace {{ namespace_name }} "
     tags:
       - oss  
  
