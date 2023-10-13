@@ -536,7 +536,7 @@
     oci_compute_instance:
       availability_domain: "{{ availability_domain }}"
       compartment_id: "{{ compartment_id }}"
-      name: "{{ item }}"
+      display_name: "{{ item }}"
       image_id: "{{ instance_image_id }}"
       shape: "{{ instance_shape }}"
       source_details:
@@ -553,6 +553,7 @@
       metadata:
         ssh_authorized_keys: "{{ authorized_key }}"
         user_data: "{{ lookup('file',  '/tmp/oci_vms_bootstrap.sh' ) | b64encode }}"
+      key_by: [compartment_id, availability_domain, display_name]
     with_items: "{{ private_vm_names }}"
     register: private_vms
     tags:
@@ -562,7 +563,7 @@
     oci_compute_instance:
       availability_domain: "{{ availability_domain }}"
       compartment_id: "{{ compartment_id }}"
-      name: "{{ item }}"
+      display_name: "{{ item }}"
       image_id: "{{ instance_image_id }}"
       shape: "{{ instance_shape }}"
       source_details:
@@ -578,6 +579,7 @@
         subnet_id: "{{ public_subnet_id }}"
       metadata:
         ssh_authorized_keys: "{{ authorized_key }}"
+      key_by: [compartment_id, availability_domain, display_name]
     with_items: "{{ public_vm_names }}"
     register: jenkins_vm
     tags:
