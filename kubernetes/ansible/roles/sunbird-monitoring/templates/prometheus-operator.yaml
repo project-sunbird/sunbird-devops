@@ -49,6 +49,10 @@ alertmanager_spec_overrides: &alertmanager_spec_overrides
 # Enabling external prometheus scrape config
 prometheus:
   prometheusSpec:
+  additionalScrapeConfigsSecret:
+    enabled: true
+    name: {{ fullnameOverride }}-prometheus-scrape-confg
+    key: additional-scrape-configs.yaml
     thanos:
       version: {{ thanos_sidecar_version | d('v0.11.0') }}
     additionalScrapeConfigsExternal: true
@@ -67,12 +71,6 @@ prometheus:
 {% if prometheus_service is defined and prometheus_service %}
   service: {{ (prometheus_service | to_json) }}
 {% endif %}
-
-additionalScrapeConfigsSecret:
-  enabled: true
-  name: {{ fullnameOverride }}-prometheus-scrape-confg
-  key: additional-scrape-configs.yaml
-
 
 alertmanager:
   config:
