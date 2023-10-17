@@ -1,13 +1,10 @@
-{{- if .Values.podSecurityPolicy.enabled }}
-apiVersion: policy/v1
+{{- if and .Values.podSecurityPolicy.enabled (.Capabilities.APIVersions.Has "policy/v1beta1/PodSecurityPolicy") }}
+apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
   name: {{ template "kube-state-metrics.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ template "kube-state-metrics.name" . }}
-    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "kube-state-metrics.labels" . | indent 4 }}
 {{- if .Values.podSecurityPolicy.annotations }}
   annotations:
 {{ toYaml .Values.podSecurityPolicy.annotations | indent 4 }}
@@ -16,6 +13,9 @@ spec:
   privileged: false
   volumes:
     - 'secret'
+{{- if .Values.podSecurityPolicy.additionalVolumes }}
+{{ toYaml .Values.podSecurityPolicy.additionalVolumes | indent 4 }}
+{{- end }}
   hostNetwork: false
   hostIPC: false
   hostPID: false
