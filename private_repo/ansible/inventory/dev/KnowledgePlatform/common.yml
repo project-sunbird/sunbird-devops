@@ -7,14 +7,14 @@ private_ingressgateway_ip: "" # your private kubernetes load balancer ip
 domain_name: ""               # your domain name like example.com
 
 # Cloud Service Provider Variables
-# If cloud_service_provider is AWS then update with access key as value
+# If cloud_service_provider is AWS/OCI then update with access key as value
 # Example: cloud_public_storage_accountname: "AKSHKSJHFJDHJDSHFKSD"
 # If cloud_service_provider is gloud(GCP) then update with service account name
 # Example: cloud_public_storage_accountname: "cloudstorage-gcp-test.iam.gserviceaccount.com"
 # If cloud_service_provider is AZURE then update with stoage account name
 # Example: cloud_public_storage_accountname: "azurestotageaccount"
 cloud_public_storage_accountname: ""
-# If cloud_service_provider is AWS then update with region
+# If cloud_service_provider is AWS/OCI then update with region
 # Example: cloud_public_storage_region: us-east-1
 cloud_public_storage_region: ""
 # If cloud_service_provider is gcp then update this variable with project id
@@ -26,7 +26,7 @@ cloud_public_storage_namespace: ""
 
 
 # Create object storage for each below mentioned variables and update accordingly
-# If cloud_service_provider is AWS update with bucket name
+# If cloud_service_provider is AWS/OCI update with bucket name
 # If cloud_service_provider is gcloud(GCP) update with bucket name
 # If cloud_service_provider is AZURE update with container name 
 # Example: cloud_storage_certqr_bucketname: "certqr-storage"
@@ -98,6 +98,8 @@ cloud_storage_management_bucketname: ""
 # cloud_storage_url: https://storage.googleapis.com
 # AWS
 # cloud_storage_url: "https://s3.{{ cloud_public_storage_region }}.amazonaws.com"
+# OCI
+# cloud_storage_url: "https://{{ cloud_public_storage_namespace }}.compat.objectstorage.{{ cloud_public_storage_region }}.oraclecloud.com"
 # Azure
 cloud_storage_url: "https://{{ cloud_public_storage_accountname }}.blob.core.windows.net"
 
@@ -129,8 +131,11 @@ kubeconfig_path: /var/lib/jenkins/secrets/k8s.yaml        # kubeconfig file path
 # cloud_public_storage_endpoint: "https://s3.{{ cloud_public_storage_region }}.amazonaws.com"
 # for OCI
 #cloud_public_storage_endpoint: "https://<oci_namespace>.compat.objectstorage.{{cloud_public_storage_region}}.oraclecloud.com"
-
-cloud_public_storage_endpoint: ""
+#oci_flink_s3_storage_endpoint: "{{ cloud_public_storage_endpoint }}"
+#cloudstorage_sdk_endpoint: "{{ cloud_public_storage_endpoint }}"
+#s3_region: "{{ cloud_public_storage_region }}"
+#cloud_storage_proxy_host: "{{cloud_storage_url}}"
+#flink_container_name: "{{ cloud_storage_flink_bucketname }}"
 
 # Update below vars if seperate object storage is required
 cloud_private_storage_accountname: "{{ cloud_public_storage_accountname }}" 
@@ -163,13 +168,26 @@ cloud_artifact_storage_namespace: "{{ cloud_public_storage_namespace }}"
 # cloud_storage_neo4jbackup_bucketname: ""
 # cloud_storage_redisbackup_bucketname: ""
 
+# Media specific vars - OCI ( enable when cloud_service_provider is oci)
+#oci_media_region: "{{ cloud_public_storage_region }}"
+#oci_media_compartment: ocid1.compartment.oc1..xxxxxxxxxxxx # compartment id
+#oci_media_namespace: "{{ cloud_public_storage_namespace }}"
+#oci_media_source_bucket: "{{ cloud_storage_content_bucketname }}" 
+#oci_media_target_bucket: "{{ cloud_storage_content_bucketname }}"
+#oci_media_prefix_input: "" 
+#oci_media_dist_channel_id: "" 
+#oci_media_work_flow_id: ""
+#oci_media_stream_config_id: ""
+#oci_media_gateway_domain: ""
+#csp_migrator_router_parallelism: ""
+
 # Building block vars
 cloud_storage_base_url: "{{ cloud_storage_url }}"
 cloudstorage_base_path: "{{ cloud_storage_url }}"
 valid_cloudstorage_base_urls: '["{{ cloud_storage_url }}"]'
 cloudstorage_relative_path_prefix: "CONTENT_STORAGE_BASE_PATH"
-cloud_storage_pathstyle_access: false
-
+cloud_storage_pathstyle_access: true
+cloud_storage_cname_url: "{{ cloud_storage_url }}" # overide if you have seperate url for cname
 ### Lern BB - Adding Lern specific vars here. In future if we want to move it to seperate folder this can be used as the starting point
 
 # Mandatorty variables - DO NOT LEAVE ANYTHING BLANK #
