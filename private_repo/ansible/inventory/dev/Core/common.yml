@@ -10,21 +10,25 @@ private_ingressgateway_ip: ""     # your private kubernetes load balancer ip
 # Cloud Service Provider Variables
 # If cloud_service_provider is AWS then update with access key as value
 # Example: cloud_public_storage_accountname: "AKSHKSJHFJDHJDSHFKSD"
+# If cloud_service_provider is OCI then update with access key as value
+# Example: cloud_public_storage_accountname: "7855461d26e1d8f211a04ec59cfd3037c8d1c6dd"
 # If cloud_service_provider is gloud(GCP) then update with service account name
 # Example: cloud_public_storage_accountname: "cloudstorage-gcp-test.iam.gserviceaccount.com"
 # If cloud_service_provider is AZURE then update with stoage account name
 # Example: cloud_public_storage_accountname: "azurestotageaccount"
 cloud_public_storage_accountname: ""
-# If cloud_service_provider is AWS then update with region
+# If cloud_service_provider is AWS/OCI then update with region
 # Example: cloud_public_storage_region: us-east-1
 cloud_public_storage_region: ""
 # If cloud_service_provider is gcp then update this variable with project id
 # Example: cloud_public_storage_project: "sunbird-gcp-test"
 cloud_public_storage_project: ""
-
+# If cloud_service_provider is OCI then update this variable with namespace value
+# Example: cloud_public_storage_namespace: "apsyjjclx"
+cloud_public_storage_namespace: ""
 
 # Create object storage for each below mentioned variables and update accordingly
-# If cloud_service_provider is AWS update with bucket name
+# If cloud_service_provider is AWS/OCI update with bucket name
 # If cloud_service_provider is gcloud(GCP) update with bucket name
 # If cloud_service_provider is AZURE update with container name 
 # Example: cloud_storage_certqr_bucketname: "certqr-storage"
@@ -96,6 +100,8 @@ cloud_storage_management_bucketname: ""
 # cloud_storage_url: https://storage.googleapis.com
 # AWS
 # cloud_storage_url: "https://s3.{{ cloud_public_storage_region }}.amazonaws.com"
+# OCI
+# cloud_storage_url: "https://{{ cloud_public_storage_namespace }}.compat.objectstorage.{{ cloud_public_storage_region }}.oraclecloud.com"
 # Azure
 cloud_storage_url: "https://{{ cloud_public_storage_accountname }}.blob.core.windows.net"
 
@@ -106,6 +112,18 @@ cloud_storage_url: "https://{{ cloud_public_storage_accountname }}.blob.core.win
 # for google:
 # nginx_private_ingress_annotations:
 #   cloud.google.com/load-balancer-type: "Internal"
+# for OCI private
+#nginx_private_ingress_annotations:
+#  service.beta.kubernetes.io/oci-load-balancer-internal: "true"
+#  service.beta.kubernetes.io/oci-load-balancer-subnet1: "ocid1.subnet.oc1.ap-hyderabad-1.xxxxxxxxxxxx" #subnet id 
+# for OCI public
+# nginx public - oci specific
+#nginx_public_ingress_service_annotations:
+#  oci.oraclecloud.com/load-balancer-type: "lb"
+#  service.beta.kubernetes.io/oci-load-balancer-shape: "flexible"
+#  service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "100Mbps"
+#  service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "200Mbps"
+#  service.beta.kubernetes.io/oci-load-balancer-subnet1: "ocid1.subnet.oc1.ap-hyderabad-1.xxxxxxxxxxx" #subnet id 
 # for azure:
 # nginx_private_ingress_annotations:
 #   service.beta.kubernetes.io/azure-load-balancer-internal: "true"
@@ -113,9 +131,25 @@ cloud_storage_url: "https://{{ cloud_public_storage_accountname }}.blob.core.win
 nginx_private_ingress_annotations:
   service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 
+# Media specific vars - OCI ( enable when cloud_service_provider is oci)
+#oci_media_region: "{{ cloud_public_storage_region }}"
+#oci_media_compartment: ocid1.compartment.oc1..xxxxxxxxxxxx # compartment id
+#oci_media_namespace: "{{ cloud_public_storage_namespace }}"
+#oci_media_source_bucket: "{{ cloud_storage_content_bucketname }}" 
+#oci_media_target_bucket: "{{ cloud_storage_content_bucketname }}"
+#oci_media_prefix_input: "" 
+#oci_media_dist_channel_id: "" 
+#oci_media_work_flow_id: ""
+#oci_media_stream_config_id: ""
+#oci_media_gateway_domain: ""
+#csp_migrator_router_parallelism: ""
 # ------------------------------------------------------------------------------------------------------------ #
 
 graylog_trusted_proxies: "1.2.3.4/21" # This should be the kubernetes nodes subnet CIDR range
+
+### Android Mobile deeplink url - Upload the assetlinks.json file to the public object store (bucket)
+## reference: https://project-sunbird.atlassian.net/wiki/spaces/SBDES/pages/3276865567/Deep+link+support+in+Android+12+devices
+mobile_deeplink_url: "{{ cloud_storage_url }}/{{ cloud_storage_public_bucketname }}/Mobile-deeplink/assetlinks.json"
 
 ## Optional
 
