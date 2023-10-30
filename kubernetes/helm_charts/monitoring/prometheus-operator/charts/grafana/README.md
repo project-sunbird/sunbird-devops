@@ -46,6 +46,13 @@ You have to add --force to your helm upgrade command as the labels of the chart 
 
 This version requires Helm >= 3.1.0.
 
+### To 7.0.0
+
+For consistency with other Helm charts, the `global.image.registry` parameter was renamed 
+to `global.imageRegistry`. If you were not previously setting `global.image.registry`, no action
+is required on upgrade. If you were previously setting `global.image.registry`, you will
+need to instead set `global.imageRegistry`.
+
 ## Configuration
 
 | Parameter                                 | Description                                   | Default                                                 |
@@ -59,6 +66,7 @@ This version requires Helm >= 3.1.0.
 | `readinessProbe`                          | Readiness Probe settings                      | `{ "httpGet": { "path": "/api/health", "port": 3000 } }`|
 | `securityContext`                         | Deployment securityContext                    | `{"runAsUser": 472, "runAsGroup": 472, "fsGroup": 472}`  |
 | `priorityClassName`                       | Name of Priority Class to assign pods         | `nil`                                                   |
+| `image.registry`                          | Image registry                                | `docker.io`                                       |
 | `image.repository`                        | Image repository                              | `grafana/grafana`                                       |
 | `image.tag`                               | Overrides the Grafana image tag whose default is the chart appVersion (`Must be >= 5.0.0`) | ``                                                      |
 | `image.sha`                               | Image sha (optional)                          | ``                                                      |
@@ -77,6 +85,7 @@ This version requires Helm >= 3.1.0.
 | `service.loadBalancerIP`                  | IP address to assign to load balancer (if supported) | `nil`                                            |
 | `service.loadBalancerSourceRanges`        | list of IP CIDRs allowed access to lb (if supported) | `[]`                                             |
 | `service.externalIPs`                     | service external IP addresses                 | `[]`                                                    |
+| `service.externalTrafficPolicy`           | change the default externalTrafficPolicy | `nil`                                            |
 | `headlessService`                         | Create a headless service                     | `false`                                                 |
 | `extraExposePorts`                        | Additional service ports for sidecar containers| `[]`                                                   |
 | `hostAliases`                             | adds rules to the pod's /etc/hosts            | `[]`                                                    |
@@ -111,6 +120,7 @@ This version requires Helm >= 3.1.0.
 | `persistence.inMemory.enabled`            | If persistence is not enabled, whether to mount the local storage in-memory to improve performance | `false`                                                   |
 | `persistence.inMemory.sizeLimit`          | SizeLimit for the in-memory local storage     | `nil`                                                   |
 | `initChownData.enabled`                   | If false, don't reset data ownership at startup | true                                                  |
+| `initChownData.image.registry`            | init-chown-data container image registry      | `docker.io`                                               |
 | `initChownData.image.repository`          | init-chown-data container image repository    | `busybox`                                               |
 | `initChownData.image.tag`                 | init-chown-data container image tag           | `1.31.1`                                                |
 | `initChownData.image.sha`                 | init-chown-data container image sha (optional)| `""`                                                    |
@@ -137,6 +147,7 @@ This version requires Helm >= 3.1.0.
 | `dashboards`                              | Dashboards to import                          | `{}`                                                    |
 | `dashboardsConfigMaps`                    | ConfigMaps reference that contains dashboards | `{}`                                                    |
 | `grafana.ini`                             | Grafana's primary configuration               | `{}`                                                    |
+| `global.imageRegistry`                    | Global image pull registry for all images.    | `null`                                   |
 | `global.imagePullSecrets`                 | Global image pull secrets (can be templated). Allows either an array of {name: pullSecret} maps (k8s-style), or an array of strings (more common helm-style).  | `[]`                                                    |
 | `ldap.enabled`                            | Enable LDAP authentication                    | `false`                                                 |
 | `ldap.existingSecret`                     | The name of an existing secret containing the `ldap.toml` file, this must have the key `ldap-toml`. | `""` |
@@ -147,7 +158,8 @@ This version requires Helm >= 3.1.0.
 | `podLabels`                               | Pod labels                                    | `{}`                                                    |
 | `podPortName`                             | Name of the grafana port on the pod           | `grafana`                                               |
 | `lifecycleHooks`                          | Lifecycle hooks for podStart and preStop [Example](https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/#define-poststart-and-prestop-handlers)     | `{}`                                                    |
-| `sidecar.image.repository`                | Sidecar image repository                      | `quay.io/kiwigrid/k8s-sidecar`                          |
+| `sidecar.image.registry`                  | Sidecar image registry                        | `quay.io`                          |
+| `sidecar.image.repository`                | Sidecar image repository                      | `kiwigrid/k8s-sidecar`                          |
 | `sidecar.image.tag`                       | Sidecar image tag                             | `1.24.6`                                                |
 | `sidecar.image.sha`                       | Sidecar image sha (optional)                  | `""`                                                    |
 | `sidecar.imagePullPolicy`                 | Sidecar image pull policy                     | `IfNotPresent`                                          |
@@ -226,14 +238,16 @@ This version requires Helm >= 3.1.0.
 | `command`                                 | Define command to be executed by grafana container at startup | `nil`                                   |
 | `args`                                    | Define additional args if command is used     | `nil`                                                   |
 | `testFramework.enabled`                   | Whether to create test-related resources      | `true`                                                  |
-| `testFramework.image`                     | `test-framework` image repository.            | `bats/bats`                                             |
-| `testFramework.tag`                       | `test-framework` image tag.                   | `v1.4.1`                                                |
+| `testFramework.image.registry`            | `test-framework` image registry.            | `docker.io`                                             |
+| `testFramework.image.repository`          | `test-framework` image repository.            | `bats/bats`                                             |
+| `testFramework.image.tag`                 | `test-framework` image tag.                   | `v1.4.1`                                                |
 | `testFramework.imagePullPolicy`           | `test-framework` image pull policy.           | `IfNotPresent`                                          |
 | `testFramework.securityContext`           | `test-framework` securityContext              | `{}`                                                    |
 | `downloadDashboards.env`                  | Environment variables to be passed to the `download-dashboards` container | `{}`                        |
 | `downloadDashboards.envFromSecret`        | Name of a Kubernetes secret (must be manually created in the same namespace) containing values to be added to the environment. Can be templated | `""` |
 | `downloadDashboards.resources`            | Resources of `download-dashboards` container  | `{}`                                                    |
-| `downloadDashboardsImage.repository`      | Curl docker image repo                        | `curlimages/curl`                                       |
+| `downloadDashboardsImage.registry`        | Curl docker image registry                    | `docker.io`                                       |
+| `downloadDashboardsImage.repository`      | Curl docker image repository                  | `curlimages/curl`                                       |
 | `downloadDashboardsImage.tag`             | Curl docker image tag                         | `7.73.0`                                                |
 | `downloadDashboardsImage.sha`             | Curl docker image sha (optional)              | `""`                                                    |
 | `downloadDashboardsImage.pullPolicy`      | Curl docker image pull policy                 | `IfNotPresent`                                          |
@@ -250,6 +264,7 @@ This version requires Helm >= 3.1.0.
 | `serviceMonitor.metricRelabelings`        | MetricRelabelConfigs to apply to samples before ingestion.  | `[]`                                      |
 | `revisionHistoryLimit`                    | Number of old ReplicaSets to retain           | `10`                                                    |
 | `imageRenderer.enabled`                    | Enable the image-renderer deployment & service                                     | `false`                          |
+| `imageRenderer.image.registry`             | image-renderer Image registry                                                      | `docker.io` |
 | `imageRenderer.image.repository`           | image-renderer Image repository                                                    | `grafana/grafana-image-renderer` |
 | `imageRenderer.image.tag`                  | image-renderer Image tag                                                           | `latest`                         |
 | `imageRenderer.image.sha`                  | image-renderer Image sha (optional)                                                | `""`                             |
@@ -258,6 +273,7 @@ This version requires Helm >= 3.1.0.
 | `imageRenderer.envValueFrom`               | Environment variables for image-renderer from alternate sources. See the API docs on [EnvVarSource](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.17/#envvarsource-v1-core) for format details. Can be templated | `{}` |
 | `imageRenderer.serviceAccountName`         | image-renderer deployment serviceAccountName                                       | `""`                             |
 | `imageRenderer.securityContext`            | image-renderer deployment securityContext                                          | `{}`                             |
+| `imageRenderer.podAnnotations `            | image-renderer image-renderer pod annotation                                       | `{}`                             |
 | `imageRenderer.hostAliases`                | image-renderer deployment Host Aliases                                             | `[]`                             |
 | `imageRenderer.priorityClassName`          | image-renderer deployment priority class                                           | `''`                             |
 | `imageRenderer.service.enabled`            | Enable the image-renderer service                                                  | `true`                           |
