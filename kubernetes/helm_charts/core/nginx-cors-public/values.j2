@@ -1,0 +1,205 @@
+#jinja2:lstrip_blocks: True
+
+namespace: {{ namespace }}
+merge_domain_status: {{ merge_domain_status | lower }}
+service:
+  annotations: {{nginx_public_ingress_service_annotations | d('')  | to_json}}
+  type: {{ nginx_public_ingress_type | default('LoadBalancer') }}
+  {% if nginx_public_ingress_ip is defined %}
+  nginx_public_ingress_ip: {{ nginx_public_ingress_ip }}
+  {% endif %}
+  ports:
+  - port: 80
+    name: http
+    targetPort: 80
+    nodePort: 31385
+  - port: 443
+    name: https
+    targetPort: 443
+    nodePort: 31395
+
+{% if nginx_volumes is defined and nginx_volumes %}
+volumes: {{ nginx_volumes.volumes | to_json }}
+volumeMounts: {{ nginx_volumes.volumeMounts | to_json }}
+{% endif %}
+
+imagepullsecrets: {{ imagepullsecrets }}
+dockerhub: {{ dockerhub }}
+
+resources:
+  requests:
+    cpu: {{proxy_cpu_req|default('100m')}}
+    memory: {{proxy_mem_req|default('100Mi')}}
+  limits:
+    cpu: {{proxy_cpu_limit|default('1')}}
+    memory: {{proxy_mem_limit|default('1024Mi')}}
+
+repository: {{proxy_repository|default('proxy')}}
+image_tag: {{ image_tag }}
+replicaCount: {{nginx_cors_public_replicacount|default(1)}}
+
+proxyconfig: |-
+  {% if proto=='https' %}
+  server {
+    if ($host = files.{{domain_name}}) {
+        return 301 https://$host$request_uri;
+    }
+    listen 80 ;
+    listen [::]:80 ;
+    server_name files.{{domain_name}};
+    return 404;
+  }
+  {% endif %}
+  server {
+  {% if proto=='http' %}
+    listen                80;
+    listen    [::]:80;
+  {% else %}
+    listen [::]:443 ssl ipv6only=on; 
+    listen                443 ssl;
+    ssl_certificate       /etc/secrets/site.crt;
+    ssl_certificate_key   /etc/secrets/site.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA HIGH !RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS";
+  {% endif  %}
+    server_name files.{{domain_name}};
+    client_max_body_size 0;
+    resolver 127.0.0.53;
+    root /var/www/html;    
+    resolver {{ kube_dns_ip }} valid=30s;
+
+    location / {
+      # handle cors and allow all
+      if ($request_method = OPTIONS ) {
+         add_header Access-Control-Allow-Origin *;
+         add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST, PUT, HEAD";
+         add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id, Accept, Accept-Encoding, Accept-Language, Access-Control-Request-Headers, Access-Control-Request-Method, Cache-Control, DNT, User-Agent, X-Amz-Algorithm, X-Amz-Credential, X-Amz-Date, Amz-Expires, X-Amz-SignedHeaders, X-Amz-Signature, x-ms-blob-type";
+         add_header Access-Control-Allow-Credentials "true";
+         add_header Content-Length 0;
+         add_header Content-Type text/plain;
+         return 204;
+     }
+
+    proxy_set_header  Host "{{ cloud_storage_url | replace('https://', '') }}";
+    # remove any CORS header from backend OSS S3
+    proxy_hide_header      Access-Control-Allow-Origin;
+    proxy_hide_header      Access-Control-Allow-Methods;
+    proxy_hide_header      Access-Control-Allow-Headers;
+    proxy_hide_header      Access-Control-Allow-Credentials;
+  
+    # inject our own CORS header to allow what we wanted 
+    add_header  Access-Control-Allow-Credentials "true" always;
+    add_header  Access-Control-Expose-Headers 'Content-Length,Content-Range,Connection,opc-client-info,opc-request-id' always;
+    add_header  Access-Control-Allow-Origin  * always;
+    add_header  Access-Control-Allow-Methods "GET,OPTIONS,PATCH,POST,PUT,HEAD" always;
+    add_header  Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id, Accept,Accept-Encoding,Accept-Language, Access-Control-Request-Headers, Access-Control-Request-Method,Cache-Control,DNT,Host,Origin,Pragma,Referer,User-Agent, X-Amz-Algorithm, X-Amz-Credential, X-Amz-Date, Amz-Expires, X-Amz-SignedHeaders, X-Amz-Signature, x-ms-blob-type" always;
+    # 
+    add_header  Referer "";
+    # if get request, trim the query string
+    if ($request_method = GET ) { 
+      proxy_pass  {{cloud_storage_url}}$uri;
+    }
+    # pass everything to backend OSS S3
+      proxy_pass  {{cloud_storage_url}};
+       }
+
+nginxconfig: |
+  user  nginx;
+  worker_processes  {{nginx_worker_processes | d("auto")}};
+  error_log  /var/log/nginx/error.log warn;
+  pid        /var/run/nginx.pid;
+  events {
+      worker_connections  10000;
+  }
+  http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      resolver {{ kube_dns_ip }} valid=30s;
+      lua_load_resty_core off;
+      log_format  main  '{{ nginx_client_public_ip_header | d('$remote_addr') }} - $remote_user [$time_local] '
+                        '"$request" $status $request_length $body_bytes_sent'
+                        ' $request_time $upstream_response_time $pipe'
+                        ' "$http_referer" "$http_user_agent" "$sb_request_id"'
+                        ' "$http_x_device_id" "$http_x_channel_id" "$http_x_app_id"'
+                        ' "$http_x_app_ver" "$http_x_session_id" {{nginx_additional_log_fields | default("")}}';
+      access_log  /var/log/nginx/access.log  main;
+      # Shared dictionary to store metrics
+      lua_shared_dict prometheus_metrics 100M;
+      lua_package_path "/etc/nginx/lua_modules/?.lua";
+      # Defining request_id
+      # If the client send request_id it should be preffered over the default one
+      map $http_x_request_id $sb_request_id {
+        default  $http_x_request_id;
+        ''  $request_id;
+      }
+      # Defining upstream cache status for nginx metrics
+      map $upstream_cache_status $cache_status {
+        default  $upstream_cache_status;
+        ''       "NONE";
+      }
+      map $http_accept $dial_upstream_host {
+        default                player;
+        application/ld+json    kong;
+      }
+      # Defining metrics
+      init_worker_by_lua_block {
+        prometheus = require("prometheus").init("prometheus_metrics")
+        metric_requests = prometheus:counter(
+          "nginx_http_requests_total", "Number of HTTP requests", {"host", "status", "request_method", "cache_status"})
+        metric_latency = prometheus:histogram(
+          "nginx_http_request_duration_seconds", "HTTP request latency", {"host"})
+        metric_connections = prometheus:gauge(
+          "nginx_http_connections", "Number of HTTP connections", {"state"})
+      }
+      log_by_lua_block {
+        metric_requests:inc(1, {ngx.var.server_name, ngx.var.status, ngx.var.request_method, ngx.var.cache_status })
+        metric_latency:observe(tonumber(ngx.var.request_time), {ngx.var.server_name})
+      }
+      header_filter_by_lua_block {
+       ngx.header["server"] = nil
+      }
+      sendfile        on;
+      #tcp_nopush     on;
+      client_max_body_size 60M;
+      keepalive_timeout  65s;
+      keepalive_requests 200;
+      # Nginx connection limit per ip
+      limit_conn_zone $binary_remote_addr zone=limitbyaddr:10m;
+      limit_conn_status 429;
+      include /etc/nginx/defaults.d/*.conf;
+      include /etc/nginx/conf.d/*.conf;
+
+  }
+
+
+compressionConfig: |-
+  # Compression
+  gzip on;
+  gzip_comp_level    5;
+  gzip_min_length    256; # 256Bytes
+  gzip_proxied       any;
+  gzip_vary          on;
+  # Content types for compression
+  gzip_types
+  application/atom+xml
+  application/javascript
+  application/json
+  application/ld+json
+  application/manifest+json
+  application/rss+xml
+  application/vnd.geo+json
+  application/vnd.ms-fontobject
+  application/x-font-ttf
+  application/x-web-app-manifest+json
+  application/xhtml+xml
+  application/xml
+  font/opentype
+  image/bmp
+  image/svg+xml
+  image/x-icon
+  text/cache-manifest
+  text/css
+  text/plain
+  ;
+
+
