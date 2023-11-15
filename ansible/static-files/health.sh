@@ -6,7 +6,7 @@
 #apk add jq
 outpt1=$(curl -s content-service:5000/health | jq '.result.healthy')
 outpt2=$(curl -s player_player:3000/health| jq '.result.healthy')
-outpt3=$(curl -s learner-service:9000/health | jq '.result.response.checks[0].healthy')
+outpt3=$(curl -s userorg-service:9000/health | jq '.result.response.checks[0].healthy')
 outpt4=$(curl -s lms-service:9005/health | jq '.result.response.checks[0].healthy')
 echo ""
 echo ""
@@ -29,9 +29,9 @@ echo ""
 echo ""
 
 if [ "$outpt3" == "true" ];then
-        echo "Learner Service is Healthy"
+        echo "UserOrg Service is Healthy"
 else
-        echo "Learner Service is unhealthy"
+        echo "UserOrg Service is unhealthy"
 fi
 
 echo ""
