@@ -22,7 +22,7 @@ ROLES := {
    
    "PROGRAM_DESIGNER": ["submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest"],
    
-   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "getUserProfileV5", "updateUserV2", "readUserConsent", "createTenantPreferences", "updateTenantPreferences", "createReport", "deleteReport", "updateReport", "publishReport", "retireReport", "getReportSummary", "listReportSummary", "createReportSummary"],
+   "ORG_ADMIN": ["acceptTnc", "assignRole", "submitDataExhaustRequest", "getDataExhaustRequest", "listDataExhaustRequest", "getUserProfileV5", "updateUserV2", "readUserConsent", "createTenantPreferences", "updateTenantPreferences", "createReport", "deleteReport", "updateReport", "publishReport", "retireReport", "getReportSummary", "listReportSummary", "createReportSummary", "deleteUser"],
    
    "REPORT_VIEWER": ["acceptTnc", "getReportSummary", "listReportSummary"],
    
