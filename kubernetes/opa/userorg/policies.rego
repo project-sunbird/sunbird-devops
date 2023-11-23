@@ -286,7 +286,7 @@ readUserConsent {
 
 updateUserConsent {
   super.public_role_check
-  input.parsed_body.request.consent.userId == super.userid
+  input.parsed_body.request.userId == super.userid
 }
 
 readTenantPreferences {
