@@ -315,7 +315,7 @@ deleteUser {
 
 # Org admin is allowed to delete any user info using the /v1/user/delete endpoint
 deleteUser {
-  acls := ["updateUserV2","updateUser"]
+  acls := ["updateUser","deleteUser","updateUserV2","userUpdate"]
   roles := ["ORG_ADMIN"]
   super.acls_check(acls)
   super.role_check(roles)
