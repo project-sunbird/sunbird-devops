@@ -128,7 +128,7 @@ resource_prefix: /resource
 
 # Service URLs
 knowledge_mw_service_url: "http://knowledge-mw-service:5000"
-learning_service_url: "http://learner-service:9000"
+userorg_service_url: "http://userorg-service:9000"
 dial_service_url: "http://dial-service:9000"
 vm_learning_service_url: "http://{{learningservice_ip}}:8080/learning-service"
 telemetry_service_url: "http://telemetry-service:9001"
@@ -196,7 +196,7 @@ kong_apis:
 
 - name: acceptTermsAndCondition
   uris: "{{ user_service_prefix }}/v1/tnc/accept"
-  upstream_url: "{{ learning_service_url }}/v1/user/tnc/accept"
+  upstream_url: "{{ userorg_service_url }}/v1/user/tnc/accept"
   strip_uri: true
   plugins:
   - name: jwt
@@ -217,7 +217,7 @@ kong_apis:
 
 - name: addBadgeToUser
   uris: "{{ user_service_prefix }}/v1/badges/add"
-  upstream_url: "{{ learning_service_url }}/v1/user/badges/add"
+  upstream_url: "{{ userorg_service_url }}/v1/user/badges/add"
   strip_uri: true
   plugins:
   - name: jwt
@@ -238,7 +238,7 @@ kong_apis:
 
 - name: addSystemSettings
   uris: "{{ data_service_prefix }}/v1/system/settings/set"
-  upstream_url: "{{ learning_service_url }}/v1/system/settings/set"
+  upstream_url: "{{ userorg_service_url }}/v1/system/settings/set"
   strip_uri: true
   plugins:
   - name: jwt
@@ -276,7 +276,7 @@ kong_apis:
 
 - name: assignRole
   uris: "{{ user_service_prefix }}/v1/role/assign"
-  upstream_url: "{{ learning_service_url }}/v1/user/assign/role"
+  upstream_url: "{{ userorg_service_url }}/v1/user/assign/role"
   strip_uri: true
   plugins:
   - name: jwt
@@ -297,7 +297,7 @@ kong_apis:
 
 - name: assignRoleV2
   uris: "{{ user_service_prefix }}/v2/role/assign"
-  upstream_url: "{{ learning_service_url }}/v2/user/assign/role"
+  upstream_url: "{{ userorg_service_url }}/v2/user/assign/role"
   strip_uri: true
   plugins:
   - name: jwt
@@ -360,7 +360,7 @@ kong_apis:
 
 - name: blockUser
   uris: "{{ user_service_prefix }}/v1/block"
-  upstream_url: "{{ learning_service_url }}/v1/user/block"
+  upstream_url: "{{ userorg_service_url }}/v1/user/block"
   strip_uri: true
   plugins:
   - name: jwt
@@ -381,7 +381,7 @@ kong_apis:
 
 - name: checkUploadJobStatus
   uris: "{{ data_service_prefix }}/v1/upload/status"
-  upstream_url: "{{ learning_service_url }}/v1/upload/status"
+  upstream_url: "{{ userorg_service_url }}/v1/upload/status"
   strip_uri: true
   plugins:
   - name: jwt
@@ -654,6 +654,48 @@ kong_apis:
     config.required: true
     config.enabled: true
 
+- name: exhaustSubmitProxyAPI
+  uris: "{{ course_service_prefix }}/v1/jobrequest/submit"
+  upstream_url: "{{ lms_service_url }}/v1/jobrequest/submit"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - courseAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: exhaustListProxyAPI
+  uris: "{{ course_service_prefix }}/v1/jobrequest/list"
+  upstream_url: "{{ lms_service_url }}/v1/jobrequest/list"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - courseAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: createCertTemplate
   uris: "{{ cert_service_prefix }}/v1/template/create"
   upstream_url: "{{ cert_service_url }}/cert/v1/template/create"
@@ -845,7 +887,7 @@ kong_apis:
 
 - name: createNote
   uris: "{{ notes_service_prefix }}/v1/create"
-  upstream_url: "{{ learning_service_url }}/v1/note/create"
+  upstream_url: "{{ userorg_service_url }}/v1/note/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -866,7 +908,7 @@ kong_apis:
 
 - name: createOrg
   uris: "{{ org_service_prefix }}/v1/create"
-  upstream_url: "{{ learning_service_url }}/v1/org/create"
+  upstream_url: "{{ userorg_service_url }}/v1/org/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -971,7 +1013,7 @@ kong_apis:
 
 - name: createUser
   uris: "{{ user_service_prefix }}/v1/create"
-  upstream_url: "{{ learning_service_url }}/v1/user/create"
+  upstream_url: "{{ userorg_service_url }}/v1/user/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -992,7 +1034,7 @@ kong_apis:
 
 - name: createUserLearnerV3
   uris: "{{ user_service_prefix }}/v1/signup"
-  upstream_url: "{{ learning_service_url }}/v1/user/signup"
+  upstream_url: "{{ userorg_service_url }}/v1/user/signup"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1013,7 +1055,7 @@ kong_apis:
 
 - name: createUserVersion2
   uris: "{{ user_service_prefix }}/v2/create"
-  upstream_url: "{{ learning_service_url }}/v2/user/create"
+  upstream_url: "{{ userorg_service_url }}/v2/user/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1034,7 +1076,7 @@ kong_apis:
 
 - name: createUserVersion3
   uris: "{{ user_service_prefix }}/v3/create"
-  upstream_url: "{{ learning_service_url }}/v3/user/create"
+  upstream_url: "{{ userorg_service_url }}/v3/user/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1055,7 +1097,7 @@ kong_apis:
 
 - name: createUserVersion4
   uris: "{{ user_service_prefix }}/v4/create"
-  upstream_url: "{{ learning_service_url }}/v4/user/create"
+  upstream_url: "{{ userorg_service_url }}/v4/user/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1076,7 +1118,7 @@ kong_apis:
 
 - name: deleteNote
   uris: "{{ notes_service_prefix }}/v1/delete"
-  upstream_url: "{{ learning_service_url }}/v1/note/delete"
+  upstream_url: "{{ userorg_service_url }}/v1/note/delete"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1366,7 +1408,7 @@ kong_apis:
 
 - name: generateOtp
   uris: "{{ otp_service_prefix }}/v1/generate"
-  upstream_url: "{{ learning_service_url }}/v1/otp/generate"
+  upstream_url: "{{ userorg_service_url }}/v1/otp/generate"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1387,7 +1429,7 @@ kong_apis:
 
 - name: generateOtpV2
   uris: "{{ otp_service_prefix }}/v2/generate"
-  upstream_url: "{{ learning_service_url }}/v2/otp/generate"
+  upstream_url: "{{ userorg_service_url }}/v2/otp/generate"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1530,7 +1572,7 @@ kong_apis:
 
 - name: getSystemSettings
   uris: "{{ data_service_prefix }}/v1/system/settings/get"
-  upstream_url: "{{ learning_service_url }}/v1/system/settings/get"
+  upstream_url: "{{ userorg_service_url }}/v1/system/settings/get"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1572,7 +1614,7 @@ kong_apis:
 
 - name: getUserByKey
   uris: "{{ user_service_prefix }}/v1/get"
-  upstream_url: "{{ learning_service_url }}/v1/user/get"
+  upstream_url: "{{ userorg_service_url }}/v1/user/get"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1593,7 +1635,7 @@ kong_apis:
 
 - name: getUserByKeyV2
   uris: "{{ user_service_prefix }}/v2/get"
-  upstream_url: "{{ learning_service_url }}/v2/user/get"
+  upstream_url: "{{ userorg_service_url }}/v2/user/get"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1614,7 +1656,7 @@ kong_apis:
 
 - name: getUserProfile
   uris: "{{ user_service_prefix }}/v1/read"
-  upstream_url: "{{ learning_service_url }}/v1/user/read"
+  upstream_url: "{{ userorg_service_url }}/v1/user/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1635,7 +1677,7 @@ kong_apis:
 
 - name: getUserProfileV2
   uris: "{{ user_service_prefix }}/v2/read"
-  upstream_url: "{{ learning_service_url }}/v2/user/read"
+  upstream_url: "{{ userorg_service_url }}/v2/user/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1656,7 +1698,7 @@ kong_apis:
 
 - name: indexSync
   uris: "{{ data_service_prefix }}/v1/index/sync"
-  upstream_url: "{{ learning_service_url }}/v1/data/sync"
+  upstream_url: "{{ userorg_service_url }}/v1/data/sync"
   strip_uri: true
   plugins:
   - name: jwt
@@ -1762,7 +1804,7 @@ kong_apis:
 
 - name: listAllBadges
   uris: "{{ org_service_prefix }}/v1/badges/list"
-  upstream_url: "{{ learning_service_url }}/v1/badges/list"
+  upstream_url: "{{ userorg_service_url }}/v1/badges/list"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2035,7 +2077,7 @@ kong_apis:
 
 - name: listSystemSettings
   uris: "{{ data_service_prefix }}/v1/system/settings/list"
-  upstream_url: "{{ learning_service_url }}/v1/system/settings/list"
+  upstream_url: "{{ userorg_service_url }}/v1/system/settings/list"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2077,7 +2119,7 @@ kong_apis:
 
 - name: masterLocationCreate
   uris: "{{ data_service_prefix }}/v1/location/create"
-  upstream_url: "{{ learning_service_url }}/v1/location/create"
+  upstream_url: "{{ userorg_service_url }}/v1/location/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2098,7 +2140,7 @@ kong_apis:
 
 - name: masterLocationDelete
   uris: "{{ data_service_prefix }}/v1/location/delete"
-  upstream_url: "{{ learning_service_url }}/v1/location/delete"
+  upstream_url: "{{ userorg_service_url }}/v1/location/delete"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2119,7 +2161,7 @@ kong_apis:
 
 - name: masterLocationSearch
   uris: "{{ data_service_prefix }}/v1/location/search"
-  upstream_url: "{{ learning_service_url }}/v1/location/search"
+  upstream_url: "{{ userorg_service_url }}/v1/location/search"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2140,7 +2182,7 @@ kong_apis:
 
 - name: masterLocationUpdate
   uris: "{{ data_service_prefix }}/v1/location/update"
-  upstream_url: "{{ learning_service_url }}/v1/location/update"
+  upstream_url: "{{ userorg_service_url }}/v1/location/update"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2161,7 +2203,7 @@ kong_apis:
 
 - name: masterLocationUpload
   uris: "{{ data_service_prefix }}/v1/bulk/location/upload"
-  upstream_url: "{{ learning_service_url }}/v1/bulk/location/upload"
+  upstream_url: "{{ userorg_service_url }}/v1/bulk/location/upload"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2182,7 +2224,7 @@ kong_apis:
 
 - name: mergeUserAccounts
   uris: "{{ user_service_prefix }}/v1/account/merge"
-  upstream_url: "{{ learning_service_url }}/private/user/v1/account/merge"
+  upstream_url: "{{ userorg_service_url }}/private/user/v1/account/merge"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2203,7 +2245,7 @@ kong_apis:
 
 - name: orgAssignKeys
   uris: "{{ org_service_prefix }}/v1/assign/key"
-  upstream_url: "{{ learning_service_url }}/v1/org/assign/key"
+  upstream_url: "{{ userorg_service_url }}/v1/org/assign/key"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2222,9 +2264,30 @@ kong_apis:
     config.required: false
     config.enabled: false
 
+- name: orgAddEncryptionKey
+  uris: "{{ org_service_prefix }}/v1/update/encryptionkey"
+  upstream_url: "{{ userorg_service_url }}/v1/org/update/encryptionkey"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - orgSuperAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: orgBulkUpload
   uris: "{{ org_service_prefix }}/v1/upload"
-  upstream_url: "{{ learning_service_url }}/v1/org/upload"
+  upstream_url: "{{ userorg_service_url }}/v1/org/upload"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2455,7 +2518,7 @@ kong_apis:
 
 - name: privateUserAssignRole
   uris: "{{ user_service_prefix }}/private/v1/assign/role"
-  upstream_url: "{{ learning_service_url }}/private/user/v1/assign/role"
+  upstream_url: "{{ userorg_service_url }}/private/user/v1/assign/role"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2476,7 +2539,7 @@ kong_apis:
 
 - name: privateUserRead
   uris: "{{ user_service_prefix }}/private/v1/read"
-  upstream_url: "{{ learning_service_url }}/private/user/v1/read"
+  upstream_url: "{{ userorg_service_url }}/private/user/v1/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2918,7 +2981,7 @@ kong_apis:
 
 - name: readNote
   uris: "{{ notes_service_prefix }}/v1/read"
-  upstream_url: "{{ learning_service_url }}/v1/note/read"
+  upstream_url: "{{ userorg_service_url }}/v1/note/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -2939,7 +3002,7 @@ kong_apis:
 
 - name: readOrg
   uris: "{{ org_service_prefix }}/v1/read"
-  upstream_url: "{{ learning_service_url }}/v1/org/read"
+  upstream_url: "{{ userorg_service_url }}/v1/org/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -3002,7 +3065,7 @@ kong_apis:
 
 - name: readRoleMapping
   uris: "{{ data_service_prefix }}/v1/role/read"
-  upstream_url: "{{ learning_service_url }}/v1/role/read"
+  upstream_url: "{{ userorg_service_url }}/v1/role/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -3023,7 +3086,7 @@ kong_apis:
 
 - name: readUserSpecificRole
   uris: "{{ user_service_prefix }}/v1/role/read"
-  upstream_url: "{{ learning_service_url }}/v1/user/role/read"
+  upstream_url: "{{ userorg_service_url }}/v1/user/role/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -3044,7 +3107,7 @@ kong_apis:
 
 - name: readUserProfile
   uris: "{{ user_service_prefix }}/v1/profile/read"
-  upstream_url: "{{ learning_service_url }}/v1/user/getuser"
+  upstream_url: "{{ userorg_service_url }}/v1/user/getuser"
   strip_uri: true
   plugins:
   - name: jwt
@@ -3628,7 +3691,7 @@ kong_apis:
 
 - name: searchNotes
   uris: "{{ notes_service_prefix }}/v1/search"
-  upstream_url: "{{ learning_service_url }}/v1/note/search"
+  upstream_url: "{{ userorg_service_url }}/v1/note/search"
   strip_uri: true
   plugins:
   - name: jwt
@@ -3649,7 +3712,7 @@ kong_apis:
 
 - name: searchOrgExtended
   uris: "{{ org_service_prefix }}/v1/ext/search"
-  upstream_url: "{{ learning_service_url }}/v1/org/search"
+  upstream_url: "{{ userorg_service_url }}/v1/org/search"
   strip_uri: true
   plugins:
   - name: cors
@@ -3666,7 +3729,7 @@ kong_apis:
 
 - name: searchOrg
   uris: "{{ org_service_prefix }}/v1/search"
-  upstream_url: "{{ learning_service_url }}/v1/org/search"
+  upstream_url: "{{ userorg_service_url }}/v1/org/search"
   strip_uri: true
   plugins:
   - name: cors
@@ -3683,7 +3746,7 @@ kong_apis:
 
 - name: searchUser
   uris: "{{ user_service_prefix }}/v1/search"
-  upstream_url: "{{ learning_service_url }}/v1/user/search"
+  upstream_url: "{{ userorg_service_url }}/v1/user/search"
   strip_uri: true
   plugins:
   - name: jwt
@@ -3704,7 +3767,7 @@ kong_apis:
 
 - name: sendEmailNotification
   uris: "{{ user_service_prefix }}/v1/notification/email"
-  upstream_url: "{{ learning_service_url }}/v1/notification/email"
+  upstream_url: "{{ userorg_service_url }}/v1/notification/email"
   strip_uri: true
   plugins:
   - name: jwt
@@ -3809,7 +3872,7 @@ kong_apis:
 
 - name: unblockUser
   uris: "{{ user_service_prefix }}/v1/unblock"
-  upstream_url: "{{ learning_service_url }}/v1/user/unblock"
+  upstream_url: "{{ userorg_service_url }}/v1/user/unblock"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4187,7 +4250,7 @@ kong_apis:
 
 - name: updateNote
   uris: "{{ notes_service_prefix }}/v1/update"
-  upstream_url: "{{ learning_service_url }}/v1/note/update"
+  upstream_url: "{{ userorg_service_url }}/v1/note/update"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4208,7 +4271,7 @@ kong_apis:
 
 - name: updateOrg
   uris: "{{ org_service_prefix }}/v1/update"
-  upstream_url: "{{ learning_service_url }}/v1/org/update"
+  upstream_url: "{{ userorg_service_url }}/v1/org/update"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4229,7 +4292,7 @@ kong_apis:
 
 - name: updateOrgStatus
   uris: "{{ org_service_prefix }}/v1/status/update"
-  upstream_url: "{{ learning_service_url }}/v1/org/status/update"
+  upstream_url: "{{ userorg_service_url }}/v1/org/status/update"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4313,7 +4376,7 @@ kong_apis:
 
 - name: updateUser
   uris: "{{ user_service_prefix }}/v1/update"
-  upstream_url: "{{ learning_service_url }}/v1/user/update"
+  upstream_url: "{{ userorg_service_url }}/v1/user/update"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4397,7 +4460,7 @@ kong_apis:
 
 - name: userBulkUpload
   uris: "{{ user_service_prefix }}/v1/upload"
-  upstream_url: "{{ learning_service_url }}/v1/user/upload"
+  upstream_url: "{{ userorg_service_url }}/v1/user/upload"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4418,7 +4481,7 @@ kong_apis:
 
 - name: userExistenceApi
   uris: "{{ user_service_prefix }}/v1/exists"
-  upstream_url: "{{ learning_service_url }}/v1/user/exists"
+  upstream_url: "{{ userorg_service_url }}/v1/user/exists"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4439,7 +4502,7 @@ kong_apis:
 
 - name: userExistenceApiV2
   uris: "{{ user_service_prefix }}/v2/exists"
-  upstream_url: "{{ learning_service_url }}/v2/user/exists"
+  upstream_url: "{{ userorg_service_url }}/v2/user/exists"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4460,7 +4523,7 @@ kong_apis:
 
 - name: userFeed
   uris: "{{ user_service_prefix }}/v1/feed"
-  upstream_url: "{{ learning_service_url }}/v1/user/feed"
+  upstream_url: "{{ userorg_service_url }}/v1/user/feed"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4481,7 +4544,7 @@ kong_apis:
 
 - name: userFeedCreate
   uris: "{{ user_service_prefix }}/feed/v1/create"
-  upstream_url: "{{ learning_service_url }}/v1/user/feed/create"
+  upstream_url: "{{ userorg_service_url }}/v1/user/feed/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4502,7 +4565,7 @@ kong_apis:
 
 - name: userFeedDelete
   uris: "{{ user_service_prefix }}/feed/v1/delete"
-  upstream_url: "{{ learning_service_url }}/v1/user/feed/delete"
+  upstream_url: "{{ userorg_service_url }}/v1/user/feed/delete"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4523,7 +4586,7 @@ kong_apis:
 
 - name: userFeedUpdate
   uris: "{{ user_service_prefix }}/feed/v1/update"
-  upstream_url: "{{ learning_service_url }}/v1/user/feed/update"
+  upstream_url: "{{ userorg_service_url }}/v1/user/feed/update"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4544,7 +4607,7 @@ kong_apis:
 
 - name: userMigrate
   uris: "{{ user_service_prefix }}/v1/migrate"
-  upstream_url: "{{ learning_service_url }}/v1/user/migrate"
+  upstream_url: "{{ userorg_service_url }}/v1/user/migrate"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4586,7 +4649,7 @@ kong_apis:
 
 - name: verifyOtp
   uris: "{{ otp_service_prefix }}/v1/verify"
-  upstream_url: "{{ learning_service_url }}/v1/otp/verify"
+  upstream_url: "{{ userorg_service_url }}/v1/otp/verify"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4607,7 +4670,7 @@ kong_apis:
 
 - name: verifyOtpV2
   uris: "{{ otp_service_prefix }}/v2/verify"
-  upstream_url: "{{ learning_service_url }}/v2/otp/verify"
+  upstream_url: "{{ userorg_service_url }}/v2/otp/verify"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4922,7 +4985,7 @@ kong_apis:
 
 - name: forgotPassword
   uris: "{{ learner_private_route_prefix }}/user/v1/password/reset"
-  upstream_url: "{{ learning_service_url }}/private/user/v1/password/reset"
+  upstream_url: "{{ userorg_service_url }}/private/user/v1/password/reset"
   strip_uri: true
   plugins:
   - name: jwt
@@ -4985,7 +5048,7 @@ kong_apis:
 
 - name: searchManagedUser
   uris: "{{ user_service_prefix }}/v1/managed"
-  upstream_url: "{{ learning_service_url }}/v1/user/managed"
+  upstream_url: "{{ userorg_service_url }}/v1/user/managed"
   strip_uri: true
   plugins:
   - name: jwt
@@ -5174,7 +5237,7 @@ kong_apis:
 
 - name: getUserProfileV3
   uris: "{{ user_service_prefix }}/v3/read"
-  upstream_url: "{{ learning_service_url }}/v3/user/read"
+  upstream_url: "{{ userorg_service_url }}/v3/user/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -5195,7 +5258,7 @@ kong_apis:
 
 - name: updateUserDeclarations
   uris: "{{ user_service_prefix }}/v1/declarations"
-  upstream_url: "{{ learning_service_url }}/v1/user/declarations"
+  upstream_url: "{{ userorg_service_url }}/v1/user/declarations"
   strip_uri: true
   plugins:
   - name: jwt
@@ -5216,7 +5279,7 @@ kong_apis:
 
 - name: updateUserConsent
   uris: "{{ user_service_prefix }}/v1/consent/update"
-  upstream_url: "{{ learning_service_url }}/v1/user/consent/update"
+  upstream_url: "{{ userorg_service_url }}/v1/user/consent/update"
   strip_uri: true
   plugins:
   - name: jwt
@@ -5237,7 +5300,7 @@ kong_apis:
 
 - name: readUserConsent
   uris: "{{ user_service_prefix }}/v1/consent/read"
-  upstream_url: "{{ learning_service_url }}/v1/user/consent/read"
+  upstream_url: "{{ userorg_service_url }}/v1/user/consent/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -5258,7 +5321,7 @@ kong_apis:
 
 - name: readUserConsentV2
   uris: "{{ user_service_prefix }}/v2/consent/read"
-  upstream_url: "{{ learning_service_url }}/v2/user/consent/read"
+  upstream_url: "{{ userorg_service_url }}/v2/user/consent/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -5422,7 +5485,7 @@ kong_apis:
 
 - name: createTenantPreferences
   uris: "{{ org_service_prefix }}/v2/preferences/create"
-  upstream_url: "{{ learning_service_url }}/v2/org/preferences/create"
+  upstream_url: "{{ userorg_service_url }}/v2/org/preferences/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -5443,7 +5506,7 @@ kong_apis:
 
 - name: updateTenantPreferences
   uris: "{{ org_service_prefix }}/v2/preferences/update"
-  upstream_url: "{{ learning_service_url }}/v2/org/preferences/update"
+  upstream_url: "{{ userorg_service_url }}/v2/org/preferences/update"
   strip_uri: true
   plugins:
   - name: jwt
@@ -5464,7 +5527,7 @@ kong_apis:
 
 - name: readTenantPreferencess
   uris: "{{ org_service_prefix }}/v2/preferences/read"
-  upstream_url: "{{ learning_service_url }}/v2/org/preferences/read"
+  upstream_url: "{{ userorg_service_url }}/v2/org/preferences/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -7193,7 +7256,7 @@ kong_apis:
 
 - name: updateUserV2
   uris: "{{ user_service_prefix }}/v2/update"
-  upstream_url: "{{ learning_service_url }}/v2/user/update"
+  upstream_url: "{{ userorg_service_url }}/v2/user/update"
   strip_uri: true
   plugins:
   - name: jwt
@@ -7235,7 +7298,7 @@ kong_apis:
 
 - name: managedUserV1Create
   uris: "{{ user_service_prefix }}/v1/managed/create"
-  upstream_url: "{{ learning_service_url }}/v1/manageduser/create"
+  upstream_url: "{{ userorg_service_url }}/v1/manageduser/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -7256,7 +7319,7 @@ kong_apis:
 
 - name: managedUserV2Create
   uris: "{{ user_service_prefix }}/v2/managed/create"
-  upstream_url: "{{ learning_service_url }}/v2/manageduser/create"
+  upstream_url: "{{ userorg_service_url }}/v2/manageduser/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -7277,7 +7340,7 @@ kong_apis:
 
 - name: ssoUserV1Create
   uris: "{{ user_service_prefix }}/v1/sso/create"
-  upstream_url: "{{ learning_service_url }}/v1/ssouser/create"
+  upstream_url: "{{ userorg_service_url }}/v1/ssouser/create"
   strip_uri: true
   plugins:
   - name: jwt
@@ -7298,7 +7361,7 @@ kong_apis:
 
 - name: ssoUserV2Create
   uris: "{{ user_service_prefix }}/v2/signup"
-  upstream_url: "{{ learning_service_url }}/v2/user/signup"
+  upstream_url: "{{ userorg_service_url }}/v2/user/signup"
   strip_uri: true
   plugins:
   - name: jwt
@@ -7319,7 +7382,7 @@ kong_apis:
 
 - name: getUserProfileV4
   uris: "{{ user_service_prefix }}/v4/read"
-  upstream_url: "{{ learning_service_url }}/v4/user/read"
+  upstream_url: "{{ userorg_service_url }}/v4/user/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -7340,7 +7403,7 @@ kong_apis:
 
 - name: getUserProfileV5
   uris: "{{ user_service_prefix }}/v5/read"
-  upstream_url: "{{ learning_service_url }}/v5/user/read"
+  upstream_url: "{{ userorg_service_url }}/v5/user/read"
   strip_uri: true
   plugins:
   - name: jwt
@@ -7361,7 +7424,7 @@ kong_apis:
 
 - name: searchUserV2
   uris: "{{ user_service_prefix }}/v2/search"
-  upstream_url: "{{ learning_service_url }}/v2/user/search"
+  upstream_url: "{{ userorg_service_url }}/v2/user/search"
   strip_uri: true
   plugins:
   - name: jwt
@@ -7382,7 +7445,7 @@ kong_apis:
 
 - name: searchUserV3
   uris: "{{ user_service_prefix }}/v3/search"
-  upstream_url: "{{ learning_service_url }}/v3/user/search"
+  upstream_url: "{{ userorg_service_url }}/v3/user/search"
   strip_uri: true
   plugins:
   - name: jwt
@@ -7403,7 +7466,7 @@ kong_apis:
 
 - name: searchOrgV2
   uris: "{{ org_service_prefix }}/v2/search"
-  upstream_url: "{{ learning_service_url }}/v2/org/search"
+  upstream_url: "{{ userorg_service_url }}/v2/org/search"
   strip_uri: true
   plugins:
   - name: cors
@@ -7459,7 +7522,7 @@ kong_apis:
   - name: opa-checks
     config.required: false
     config.enabled: false
-    
+
 - name: questionsetCopy
   uris: "{{ questionset_prefix }}/v1/copy"
   upstream_url: "{{ assessment_service_url }}/questionset/v4/copy"
@@ -9141,7 +9204,28 @@ kong_apis:
 
 - name: updateUserV3
   uris: "{{ user_service_prefix }}/v3/update"
-  upstream_url: "{{ learning_service_url }}/v3/user/update"
+  upstream_url: "{{ userorg_service_url }}/v3/user/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - userUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: true
+    config.enabled: true
+
+- name: deleteUser
+  uris: "{{ user_service_prefix }}/v1/delete"
+  upstream_url: "{{ userorg_service_url }}/v1/user/delete"
   strip_uri: true
   plugins:
   - name: jwt
@@ -10113,7 +10197,7 @@ kong_apis:
 
 - name: orgAddEncryptionKey
   uris: "{{ org_service_prefix }}/v1/update/encryptionkey"
-  upstream_url: "{{ learning_service_url }}/v1/org/update/encryptionkey"
+  upstream_url: "{{ userorg_service_url }}/v1/org/update/encryptionkey"
   strip_uri: true
   plugins:
   - name: jwt
@@ -10132,3 +10216,600 @@ kong_apis:
     config.required: false
     config.enabled: false
 #Lern release-5.3.0
+
+## inQuiry release-6.0.0
+
+- name: questionCreateV2
+  uris: "{{ question_prefix }}/v2/create"
+  upstream_url: "{{ assessment_service_url }}/question/v5/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionReadV2
+  uris: "{{ question_prefix }}/v2/read"
+  upstream_url: "{{ assessment_service_url }}/question/v5/read"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionPrivateReadV2
+  uris: "{{ question_prefix }}/v2/private/read"
+  upstream_url: "{{ assessment_service_url }}/question/v5/private/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionUpdateV2
+  uris: "{{ question_prefix }}/v2/update"
+  upstream_url: "{{ assessment_service_url }}/question/v5/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionRetireV2
+  uris: "{{ question_prefix }}/v2/retire"
+  upstream_url: "{{ assessment_service_url }}/question/v5/retire"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionReviewV2
+  uris: "{{ question_prefix }}/v2/review"
+  upstream_url: "{{ assessment_service_url }}/question/v5/review"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionPublishV2
+  uris: "{{ question_prefix }}/v2/publish"
+  upstream_url: "{{ assessment_service_url }}/question/v5/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionListV2
+  uris: "{{ question_prefix }}/v2/list"
+  upstream_url: "{{ assessment_service_url }}/question/v5/list"
+  strip_uri: true
+  plugins:
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionRejectV2
+  uris: "{{ question_prefix }}/v2/reject"
+  upstream_url: "{{ assessment_service_url }}/question/v5/reject"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: copyQuestionV2
+  uris: "{{ question_prefix }}/v2/copy"
+  upstream_url: "{{ assessment_service_url }}/question/v5/copy"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetCreateV2
+  uris: "{{ questionset_prefix }}/v2/create"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/create"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetReadV2
+  uris: "{{ questionset_prefix }}/v2/read"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/read"
+  strip_uri: true
+  plugins:
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: ip
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetPrivateReadV2
+  uris: "{{ questionset_prefix }}/v2/private/read"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/private/read"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetUpdateV2
+  uris: "{{ questionset_prefix }}/v2/update"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetAddQuestionV2
+  uris: "{{ questionset_prefix }}/v2/add"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/add"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - 'contentUpdate'
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetRemoveQuestionV2
+  uris: "{{ questionset_prefix }}/v2/remove"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/remove"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - 'contentUpdate'
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetRetireV2
+  uris: "{{ questionset_prefix }}/v2/retire"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/retire"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetReviewV2
+  uris: "{{ questionset_prefix }}/v2/review"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/review"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetPublishV2
+  uris: "{{ questionset_prefix }}/v2/publish"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/publish"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetUpdateHierarchyV2
+  uris: "{{ questionset_prefix }}/v2/hierarchy/update"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/hierarchy/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentUpdate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetReadHierarchyV2
+  uris: "{{ questionset_prefix }}/v2/hierarchy"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/hierarchy"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - anonymousContentAccess
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetRejectV2
+  uris: "{{ questionset_prefix }}/v2/reject"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/reject"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionImportAPIV2
+  uris: "{{ question_prefix }}/v2/import"
+  upstream_url: "{{ assessment_service_url }}/question/v5/import"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionsetImportAPIV2
+  uris: "{{ questionset_prefix }}/v2/import"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/import"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: copyQuestionSetV2
+  uris: "{{ questionset_prefix }}/v2/copy"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/copy"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetUpdateComment
+  uris: "{{ questionset_prefix }}/v1/comment/update"
+  upstream_url: "{{ assessment_service_url }}/questionset/v4/comment/update"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - contentAdmin
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ medium_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
+- name: questionSetUpdateCommentV2
+  uris: "{{ questionset_prefix }}/v2/comment/update"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/comment/update"
+  strip_uri: true
+  plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - contentAdmin
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+    - name: opa-checks
+      config.required: false
+      config.enabled: false
+
+- name: questionSetReadComment
+  uris: "{{ questionset_prefix }}/v1/comment/read"
+  upstream_url: "{{ assessment_service_url }}/questionset/v4/comment/read"
+  strip_uri: true
+  plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - contentAccess
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+    - name: opa-checks
+      config.required: false
+      config.enabled: false
+
+- name: questionSetReadCommentV2
+  uris: "{{ questionset_prefix }}/v2/comment/read"
+  upstream_url: "{{ assessment_service_url }}/questionset/v5/comment/read"
+  strip_uri: true
+  plugins:
+    - name: jwt
+    - name: cors
+    - "{{ statsd_pulgin }}"
+    - name: acl
+      config.whitelist:
+        - contentAccess
+    - name: rate-limiting
+      config.policy: local
+      config.hour: "{{ medium_rate_limit_per_hour }}"
+      config.limit_by: credential
+    - name: request-size-limiting
+      config.allowed_payload_size: "{{ medium_request_size_limit }}"
+    - name: opa-checks
+      config.required: false
+      config.enabled: false
