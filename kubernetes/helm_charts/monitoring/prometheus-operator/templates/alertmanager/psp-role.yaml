@@ -1,12 +1,13 @@
 {{- if and .Values.alertmanager.enabled .Values.global.rbac.create .Values.global.rbac.pspEnabled }}
+{{- if .Capabilities.APIVersions.Has "policy/v1beta1/PodSecurityPolicy" }}
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ template "prometheus-operator.fullname" . }}-alertmanager
-  namespace: {{ $.Release.Namespace }}
+  name: {{ template "kube-prometheus-stack.fullname" . }}-alertmanager
+  namespace: {{ template "kube-prometheus-stack.namespace" . }}
   labels:
-    app: {{ template "prometheus-operator.name" . }}-alertmanager
-{{ include "prometheus-operator.labels" . | indent 4 }}
+    app: {{ template "kube-prometheus-stack.name" . }}-alertmanager
+{{ include "kube-prometheus-stack.labels" . | indent 4 }}
 rules:
 {{- $kubeTargetVersion := default .Capabilities.KubeVersion.GitVersion .Values.kubeTargetVersionOverride }}
 {{- if semverCompare "> 1.15.0-0" $kubeTargetVersion }}
@@ -17,5 +18,6 @@ rules:
   resources: ['podsecuritypolicies']
   verbs:     ['use']
   resourceNames:
-  - {{ template "prometheus-operator.fullname" . }}-alertmanager
+  - {{ template "kube-prometheus-stack.fullname" . }}-alertmanager
+{{- end }}
 {{- end }}

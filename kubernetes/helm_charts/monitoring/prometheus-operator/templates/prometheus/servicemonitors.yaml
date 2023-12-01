@@ -7,14 +7,15 @@ items:
     kind: ServiceMonitor
     metadata:
       name: {{ .name }}
-      namespace: {{ $.Release.Namespace }}
+      namespace: {{ template "kube-prometheus-stack.namespace" $ }}
       labels:
-        app: {{ template "prometheus-operator.name" $ }}-prometheus
-{{ include "prometheus-operator.labels" $ | indent 8 }}
+        app: {{ template "kube-prometheus-stack.name" $ }}-prometheus
+{{ include "kube-prometheus-stack.labels" $ | indent 8 }}
         {{- if .additionalLabels }}
 {{ toYaml .additionalLabels | indent 8 }}
         {{- end }}
     spec:
+      {{- include "servicemonitor.scrapeLimits" . | nindent 6 }}
       endpoints:
 {{ toYaml .endpoints | indent 8 }}
     {{- if .jobLabel }}
@@ -29,6 +30,18 @@ items:
     {{- if .targetLabels }}
       targetLabels:
 {{ toYaml .targetLabels | indent 8 }}
+    {{- end }}
+    {{- if .podTargetLabels }}
+      podTargetLabels:
+{{ toYaml .podTargetLabels | indent 8 }}
+    {{- end }}
+    {{- if .metricRelabelings }}
+      metricRelabelings:
+{{ toYaml .metricRelabelings | indent 8 }}
+    {{- end }}
+    {{- if .relabelings }}
+      relabelings:
+{{ toYaml .relabelings | indent 8 }}
     {{- end }}
 {{- end }}
 {{- end }}

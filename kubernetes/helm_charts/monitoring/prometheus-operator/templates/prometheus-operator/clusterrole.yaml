@@ -2,32 +2,32 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ template "prometheus-operator.fullname" . }}-operator
+  name: {{ template "kube-prometheus-stack.fullname" . }}-operator
   labels:
-    app: {{ template "prometheus-operator.name" . }}-operator
-{{ include "prometheus-operator.labels" . | indent 4 }}
+    app: {{ template "kube-prometheus-stack.name" . }}-operator
+{{ include "kube-prometheus-stack.labels" . | indent 4 }}
 rules:
-{{- if or .Values.prometheusOperator.manageCrds .Values.prometheusOperator.cleanupCustomResource }}
-- apiGroups:
-  - apiextensions.k8s.io
-  resources:
-  - customresourcedefinitions
-  verbs:
-  - '*'
-{{- end }}
 - apiGroups:
   - monitoring.coreos.com
   resources:
   - alertmanagers
-  - prometheuses
-  - thanosrulers
-  - prometheuses/finalizers
   - alertmanagers/finalizers
+  - alertmanagers/status
+  - alertmanagerconfigs
+  - prometheuses
+  - prometheuses/finalizers
+  - prometheuses/status
+  - prometheusagents
+  - prometheusagents/finalizers
+  - prometheusagents/status
+  - thanosrulers
   - thanosrulers/finalizers
+  - thanosrulers/status
+  - scrapeconfigs
   - servicemonitors
   - podmonitors
+  - probes
   - prometheusrules
-  - podmonitors
   verbs:
   - '*'
 - apiGroups:
@@ -76,4 +76,22 @@ rules:
   - get
   - list
   - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+{{- if .Capabilities.APIVersions.Has "discovery.k8s.io/v1/EndpointSlice" }}
+- apiGroups:
+  - discovery.k8s.io
+  resources:
+  - endpointslices
+  verbs:
+  - get
+  - list
+  - watch
+{{- end }}
 {{- end }}

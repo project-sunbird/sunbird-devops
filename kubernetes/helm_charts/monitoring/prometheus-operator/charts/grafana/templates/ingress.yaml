@@ -1,44 +1,78 @@
 {{- if .Values.ingress.enabled -}}
+{{- $ingressApiIsStable := eq (include "grafana.ingress.isStable" .) "true" -}}
+{{- $ingressSupportsIngressClassName := eq (include "grafana.ingress.supportsIngressClassName" .) "true" -}}
+{{- $ingressSupportsPathType := eq (include "grafana.ingress.supportsPathType" .) "true" -}}
 {{- $fullName := include "grafana.fullname" . -}}
 {{- $servicePort := .Values.service.port -}}
 {{- $ingressPath := .Values.ingress.path -}}
+{{- $ingressPathType := .Values.ingress.pathType -}}
 {{- $extraPaths := .Values.ingress.extraPaths -}}
-{{- if .Capabilities.APIVersions.Has "networking.k8s.io/v1beta1" }}
-apiVersion: networking.k8s.io/v1beta1
-{{ else }}
-apiVersion: extensions/v1beta1
-{{ end -}}
+apiVersion: {{ include "grafana.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   name: {{ $fullName }}
-  namespace: {{ template "grafana.namespace" . }}
+  namespace: {{ include "grafana.namespace" . }}
   labels:
     {{- include "grafana.labels" . | nindent 4 }}
-{{- if .Values.ingress.labels }}
-{{ toYaml .Values.ingress.labels | indent 4 }}
-{{- end }}
-  {{- if .Values.ingress.annotations }}
+    {{- with .Values.ingress.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-    {{- range $key, $value := .Values.ingress.annotations }}
+    {{- range $key, $value := . }}
     {{ $key }}: {{ tpl $value $ | quote }}
     {{- end }}
   {{- end }}
 spec:
-{{- if .Values.ingress.tls }}
+  {{- if and $ingressSupportsIngressClassName .Values.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  {{- end -}}
+  {{- with .Values.ingress.tls }}
   tls:
-{{ toYaml .Values.ingress.tls | indent 4 }}
-{{- end }}
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- end }}
   rules:
+  {{- if .Values.ingress.hosts  }}
   {{- range .Values.ingress.hosts }}
-    - host: {{ . }}
+    - host: {{ tpl . $ }}
       http:
         paths:
-{{ if $extraPaths }}
-{{ toYaml $extraPaths | indent 10 }}
-{{- end }}
+          {{- with $extraPaths }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
           - path: {{ $ingressPath }}
+            {{- if $ingressSupportsPathType }}
+            pathType: {{ $ingressPathType }}
+            {{- end }}
             backend:
+              {{- if $ingressApiIsStable }}
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
               serviceName: {{ $fullName }}
               servicePort: {{ $servicePort }}
+              {{- end }}
   {{- end }}
+  {{- else }}
+    - http:
+        paths:
+          - backend:
+              {{- if $ingressApiIsStable }}
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
+              serviceName: {{ $fullName }}
+              servicePort: {{ $servicePort }}
+              {{- end }}
+            {{- with $ingressPath }}
+            path: {{ . }}
+            {{- end }}
+            {{- if $ingressSupportsPathType }}
+            pathType: {{ $ingressPathType }}
+            {{- end }}
+  {{- end -}}
 {{- end }}

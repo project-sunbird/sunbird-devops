@@ -1,17 +1,21 @@
-{{- if .Values.kubeDns.enabled }}
+{{- if and .Values.kubeDns.enabled .Values.kubernetesServiceMonitors.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ template "prometheus-operator.fullname" . }}-kube-dns
-  namespace: {{ $.Release.Namespace }}
+  name: {{ template "kube-prometheus-stack.fullname" . }}-kube-dns
+  namespace: {{ template "kube-prometheus-stack.namespace" . }}
   labels:
-    app: {{ template "prometheus-operator.name" . }}-kube-dns
-{{ include "prometheus-operator.labels" . | indent 4 }}
+    app: {{ template "kube-prometheus-stack.name" . }}-kube-dns
+  {{- with .Values.kubeDns.serviceMonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{ include "kube-prometheus-stack.labels" . | indent 4 }}
 spec:
   jobLabel: jobLabel
+  {{- include "servicemonitor.scrapeLimits" .Values.kubeDns.serviceMonitor | nindent 2 }}
   selector:
     matchLabels:
-      app: {{ template "prometheus-operator.name" . }}-kube-dns
+      app: {{ template "kube-prometheus-stack.name" . }}-kube-dns
       release: {{ $.Release.Name | quote }}
   namespaceSelector:
     matchNames:
@@ -22,6 +26,9 @@ spec:
     interval: {{ .Values.kubeDns.serviceMonitor.interval }}
     {{- end }}
     bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    {{- if .Values.kubeDns.serviceMonitor.proxyUrl }}
+    proxyUrl: {{ .Values.kubeDns.serviceMonitor.proxyUrl}}
+    {{- end }}
 {{- if .Values.kubeDns.serviceMonitor.dnsmasqMetricRelabelings }}
     metricRelabelings:
 {{ tpl (toYaml .Values.kubeDns.serviceMonitor.dnsmasqMetricRelabelings | indent 4) . }}
@@ -41,6 +48,6 @@ spec:
 {{- end }}
 {{- if .Values.kubeDns.serviceMonitor.relabelings }}
     relabelings:
-{{ toYaml .Values.kubeDns.serviceMonitor.relabelings | indent 4 }}
+{{ tpl (toYaml .Values.kubeDns.serviceMonitor.relabelings | indent 4) . }}
 {{- end }}
 {{- end }}
