@@ -1,0 +1,1 @@
+ALTER TABLE {{ question_keyspace_name }}.question_data ADD (outcomeDeclaration text, feedback text);
