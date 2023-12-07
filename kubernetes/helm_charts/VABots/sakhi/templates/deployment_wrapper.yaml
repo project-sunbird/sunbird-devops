@@ -1,0 +1,60 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-wrapper
+  namespace: {{ .Values.namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+     rollingUpdate:
+        maxSurge: {{ .Values.strategy.maxsurge }}
+        maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-wrapper
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-wrapper
+    spec:
+{{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagepullsecrets }}
+{{- end }}
+      containers:
+      - name: {{ .Chart.Name }}-wrapper
+        image: "{{ .Values.dockerhub }}/{{ .Values.repository_telegram }}:{{ .Values.image_tag }}"
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: {{ .Chart.Name }}-wrapper-config
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+        - containerPort: {{ .Values.network_wrapper.port }}
+        # {{- if .Values.healthcheck }}
+        # livenessProbe:
+#{{ toYaml .Values.livenessProbe | indent 10 }}
+        readinessProbe:
+#{{ toYaml .Values.readinessProbe | indent 10 }}
+        #{{- end }}
+        
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-wrapper-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Chart.Name }}-wrapper
+spec:
+  ports:
+  - name: http-{{ .Chart.Name }}
+    protocol: TCP
+    port: {{ .Values.network_wrapper.targetport }}
+  selector:
+    app: {{ .Chart.Name }}-wrapper
