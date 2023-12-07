@@ -1,0 +1,36 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kong-migrations
+spec:
+  template:
+    spec:
+      containers:
+        - name: kong-migrations
+          image: kong:3.5.0
+          command:
+            - kong
+            - migrations
+            - bootstrap
+          env:
+            - name: KONG_DATABASE
+              value: {{ .Values.kong_database }}
+            - name: KONG_PG_DATABASE
+              value: {{ .Values.kong_pg_database }}
+            - name: KONG_PG_HOST
+              value: {{ .Values.kong_pg_host }}
+            - name: KONG_PG_PASSWORD
+              value: {{ .Values.kong_pg_password }}
+            - name: KONG_PG_USER
+              value: {{ .Values.kong_pg_user }}
+            - name: KONG_PROXY_ACCESS_LOG
+              value: "/dev/stdout"
+            - name: KONG_ADMIN_ACCESS_LOG
+              value: "/dev/stdout"
+            - name: KONG_PROXY_ERROR_LOG
+              value: "/dev/stderr"
+            - name: KONG_ADMIN_ERROR_LOG
+              value: "/dev/stderr"
+      restartPolicy: Never
+  backoffLimit: 5

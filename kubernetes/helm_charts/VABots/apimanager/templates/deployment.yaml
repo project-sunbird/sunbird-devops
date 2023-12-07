@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    rollingUpdate:
+      maxSurge: {{ .Values.strategy.maxsurge }}
+      maxUnavailable: {{ .Values.strategy.maxunavailable }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      annotations:
+        fluentbit.io/parser: kong
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      {{- if .Values.imagepullsecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.imagepullsecrets }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.dockerhub }}/{{ .Values.repository }}:{{ .Values.image_tag }}"
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: {{ .Chart.Name }}-config
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          ports:
+            - containerPort: {{ .Values.network.port }}
+              name: network
+            - containerPort: {{ .Values.service.port }}
+              name: service
+          {{- if .Values.healthcheck }}
+          livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 12 }}
+          readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 12 }}
+          {{- end }}
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - kong
+                  - quit
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  ports:
+    - name: http-{{ .Chart.Name }}
+      protocol: TCP
+      port: {{ .Values.network.port }}
+      targetPort: {{ .Values.network.targetport }}
+    - name: http-admin-{{ .Chart.Name }}
+      protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetport }}
+  selector:
+    app: {{ .Chart.Name }} # metadataname of deployment
