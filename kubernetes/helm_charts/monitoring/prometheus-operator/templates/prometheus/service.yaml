@@ -1,13 +1,14 @@
+{{- $kubeTargetVersion := default .Capabilities.KubeVersion.GitVersion .Values.kubeTargetVersionOverride }}
 {{- if .Values.prometheus.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "prometheus-operator.fullname" . }}-prometheus
-  namespace: {{ $.Release.Namespace }}
+  name: {{ template "kube-prometheus-stack.fullname" . }}-prometheus
+  namespace: {{ template "kube-prometheus-stack.namespace" . }}
   labels:
-    app: {{ template "prometheus-operator.name" . }}-prometheus
+    app: {{ template "kube-prometheus-stack.name" . }}-prometheus
     self-monitor: {{ .Values.prometheus.serviceMonitor.selfMonitor | quote }}
-{{ include "prometheus-operator.labels" . | indent 4 }}
+{{ include "kube-prometheus-stack.labels" . | indent 4 }}
 {{- if .Values.prometheus.service.labels }}
 {{ toYaml .Values.prometheus.service.labels | indent 4 }}
 {{- end }}
@@ -32,6 +33,9 @@ spec:
     - {{ $cidr }}
   {{- end }}
 {{- end }}
+{{- if ne .Values.prometheus.service.type "ClusterIP" }}
+  externalTrafficPolicy: {{ .Values.prometheus.service.externalTrafficPolicy }}
+{{- end }}
   ports:
   - name: {{ .Values.prometheus.prometheusSpec.portName }}
     {{- if eq .Values.prometheus.service.type "NodePort" }}
@@ -39,12 +43,31 @@ spec:
     {{- end }}
     port: {{ .Values.prometheus.service.port }}
     targetPort: {{ .Values.prometheus.service.targetPort }}
+  - name: reloader-web
+    {{- if semverCompare "> 1.20.0-0" $kubeTargetVersion }}
+    appProtocol: http
+    {{- end }}
+    port: 8080
+    targetPort: reloader-web
+  {{- if .Values.prometheus.thanosIngress.enabled }}
+  - name: grpc
+    {{- if eq .Values.prometheus.service.type "NodePort" }}
+    nodePort: {{ .Values.prometheus.thanosIngress.nodePort }}
+    {{- end }}
+    port: {{ .Values.prometheus.thanosIngress.servicePort }}
+    targetPort: {{ .Values.prometheus.thanosIngress.servicePort }}
+  {{- end }}
 {{- if .Values.prometheus.service.additionalPorts }}
 {{ toYaml .Values.prometheus.service.additionalPorts | indent 2 }}
 {{- end }}
+  publishNotReadyAddresses: {{ .Values.prometheus.service.publishNotReadyAddresses }}
   selector:
-    app: prometheus
-    prometheus: {{ template "prometheus-operator.fullname" . }}-prometheus
+    {{- if .Values.prometheus.agentMode }}
+    app.kubernetes.io/name: prometheus-agent
+    {{- else }}
+    app.kubernetes.io/name: prometheus
+    {{- end }}
+    operator.prometheus.io/name: {{ template "kube-prometheus-stack.prometheus.crname" . }}
 {{- if .Values.prometheus.service.sessionAffinity }}
   sessionAffinity: {{ .Values.prometheus.service.sessionAffinity }}
 {{- end }}
