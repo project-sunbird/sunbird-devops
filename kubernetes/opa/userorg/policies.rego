@@ -27,7 +27,8 @@ urls_to_action_mapping := {
   "/v1/user/consent/update": "updateUserConsent",
   "/v2/org/preferences/read": "readTenantPreferences",
   "/v2/org/preferences/create": "createTenantPreferences",
-  "/v2/org/preferences/update": "updateTenantPreferences"
+  "/v2/org/preferences/update": "updateTenantPreferences",
+  "/v1/user/delete": "deleteUser"
 }
 
 # Tnc API policy updates to handle different scenarios as explained below
@@ -301,6 +302,20 @@ createTenantPreferences {
 
 updateTenantPreferences {
   acls := ["updateTenantPreferences"]
+  roles := ["ORG_ADMIN"]
+  super.acls_check(acls)
+  super.role_check(roles)
+}
+
+
+deleteUser {
+  super.public_role_check
+  input.parsed_body.request.userId == super.userid
+}
+
+# Org admin is allowed to delete any user info using the /v1/user/delete endpoint
+deleteUser {
+  acls := ["updateUser","deleteUser","updateUserV2","userUpdate"]
   roles := ["ORG_ADMIN"]
   super.acls_check(acls)
   super.role_check(roles)
