@@ -1,0 +1,75 @@
+kong_admin_listen: 0.0.0.0:8001
+kong_database: postgres
+kong_log_level: info
+kong_lua_socket_pool_size: "30"
+kong_mem_cache_size: 128m
+#the below setting not reconganized in kong-3.5.0
+#kong_nginx_http_log_format: "nginx_public_ingress_log_format '$remote_addr - $remote_user [$time_local] \"$request\" $status $request_length $body_bytes_sent $request_time $upstream_response_time $pipe \"$http_referer\" \"$http_user_agent\" \"$http_x_request_id\" \"$http_x_device_id\" \"$http_x_channel_id\" \"$http_x_app_id\" \"$http_x_app_ver\" \"$http_x_session_id\"'"
+kong_nginx_worker_processes: auto
+kong_pg_database: api_manager_vabots
+kong_pg_host: 0.0.0.0
+kong_pg_password: postgres
+kong_pg_ssl: "True"
+kong_pg_user: postgres
+kong_proxy_access_log: "logs/access.log" # removed nginx_public_ingress_log_format - not reconganized in kong-3.5.0
+kong_ratelimit_cache_size: 12m
+kong_trusted_ips: 0.0.0.0/0,::/0
+kong_upstream_keepalive: "200"
+
+imagepullsecrets: ""
+dockerhub: docker.io
+
+replicaCount: 1
+repository: kong
+image_tag:  3.5.0
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 100M
+  limits:
+    cpu: 1
+    memory: 1G
+
+network:
+  port: 8000
+  targetPort: 8000
+
+service:
+  port: 8001
+  targetPort: 8001
+
+strategy:
+  maxsurge: 25%
+  maxunavailable: 25%
+
+livenessProbe:
+  failureThreshold: 2
+  httpGet:
+    path: /status
+    port: 8001
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+readinessProbe:
+  failureThreshold: 2
+  httpGet:
+    path: /status
+    port: 8001
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  timeoutSeconds: 5
+
+autoscaling:
+  enabled: false
+  maxReplicas: 2
+  minReplicas: 1
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: ""
+
+serviceMonitor:
+  enabled: "false"
+  labels: # labels with which the prometheus choose the serviceMonitor
+    app: prometheus-operator
+    release: prometheus-operator
