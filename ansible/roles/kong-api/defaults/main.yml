@@ -10001,3 +10001,24 @@ kong_apis:
   - name: opa-checks
     config.required: true
     config.enabled: true
+
+- name: retireFramework
+  uris: "{{ framework_service_prefix }}/v3/retire"
+  upstream_url: "{{ knowledge_mw_service_url }}/framework/v3/retire"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - frameworkRetire
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ large_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
