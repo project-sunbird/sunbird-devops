@@ -1,0 +1,22 @@
+---
+- name: Check Pod Status in All Namespaces
+  hosts: localhost
+  gather_facts: no
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  tasks:
+    - name: Check Non-Running Pods in Namespaces
+      shell: kubectl get pods -A | grep -v Running
+      register: non_running_pods
+      changed_when: false
+      failed_when: false
+
+    - name: Parse Non-Running Pods
+      set_fact:
+        non_running_pod_lines: "{{ non_running_pods.stdout_lines }}"
+      when: non_running_pods.stdout_lines | length > 0
+
+    - name: Print Non-Running Pods
+      debug:
+        msg: "{{ non_running_pod_lines | join('\n') }}"
+      when: non_running_pod_lines is defined
