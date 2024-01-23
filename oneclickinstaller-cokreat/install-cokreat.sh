@@ -126,6 +126,9 @@ else
   echo "ED Private Ingress IP not found."
 fi
 
+### Upload the plugins and editors ####
+./upload-plugins.sh 
+
   while IFS=',' read -r chart_name chart_repo; do
     # Check if the chart repository URL is empty
     if [ -z "$chart_repo" ]; then
