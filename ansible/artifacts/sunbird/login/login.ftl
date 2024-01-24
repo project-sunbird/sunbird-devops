@@ -9,7 +9,7 @@
     <div class="container-wrapper">
                 <div class="ui header centered mb-8">
                     <img onerror="" alt="">
-                    <h2 id="signIn" class="signInHead mt-8 mb-8">${msg("loginDiksha")}</h2>
+                    <h2 id="signIn" class="signInHead mt-8 mb-8">${msg("loginSunbird")}</h2>
                     <p class="subtitle">Login</p>
                 </div>
                 <p id="mergeAccountMessage" class="hide mb-0 textCenter">${msg("mergeAccountMessage")}</p>
