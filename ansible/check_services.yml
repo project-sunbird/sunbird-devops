@@ -1,4 +1,3 @@
----
 - name: Check Service Status
   hosts: 
     - keycloak
@@ -14,68 +13,41 @@
     - processing-cluster-kafka-1
     - flink-processing-cluster-kafka
   
-  vars:
-    service_checks:
-      keycloak:
-        name: keycloak
-        status_msg: "Keycloak Service Status"
-      cassandra:
-        name: cassandra
-        status_msg: "Cassandra Service Status"
-      lp-neo4j-ps:
-        name: neo4j
-        status_msg: "Neo4j Service Status"
-        command: "/home/learning/neo4j-learning/neo4j-community-3.3.9/bin/neo4j status"
-      composite-search-cluster:
-        name: elasticsearch
-        status_msg: "Elasticsearch Service Status"
-        command: "nc -z -v -w 2 {{ inventory_hostname }} 9200"
-      lp-redis-ps:
-        name: redis
-        status_msg: "Redis Service Status"
-      kafka:
-        name: kafka
-        status_msg: "Kafka Service Status"
-      lp-learning-ps:
-        name: tomcat
-        status_msg: "Tomcat Service Status"
-        command: "nc -z -v -w 2 {{ inventory_hostname }} 8080"
-      dp-influx-ps:
-        name: influxdb
-        status_msg: "InfluxDB Service Status"
-      postgresql-master-1:
-        name: postgresql
-        status_msg: "PostgreSQL Service Status"
-      mongo_master:
-        name: survey-sl-mongodb
-        status_msg: "MongoDB Service Status"
-      processing-cluster-kafka-1:
-        name: processing-cluster-kafka-1
-        status_msg: "Processing Cluster Kafka-1 Service Status"
-      flink-processing-cluster-kafka:
-        name: flink-processing-cluster-kafka
-        status_msg: "Flink Processing Cluster Kafka Service Status"
-
   tasks:
     - name: Check service status
       block:
-        - name: Check service status
-          vars:
-            service_name: "{{ service_checks[inventory_hostname].name }}"
-            command: "{{ service_checks[inventory_hostname].command | default(omit) }}"
-          ansible.builtin.service:
-            name: "{{ service_name }}"
-            state: started
-          register: service_status
-          ignore_errors: true
-
-        - name: Execute custom command if provided
-          ansible.builtin.command: "{{ command }}"
-          register: custom_status
-          ignore_errors: true
-          when: command is defined
+        - name: Gather service facts
+          ansible.builtin.service_facts:
 
         - name: Print service status
           debug:
-            msg: "{{ service_checks[inventory_hostname].status_msg }}: {{ 'running' if (service_status is succeeded and not custom_status.failed) else 'not running' }}"
-      when: inventory_hostname in service_checks.keys()
+            msg: "{{ item.key }} Service Status: {{ 'running' if ansible_services[item.key]['state'] == 'running' else 'not running' }}"
+          loop: "{{ ansible_services.items() }}"
+          when: item.key in [
+            'keycloak',
+            'cassandra',
+            'neo4j',
+            'elasticsearch',
+            'redis',
+            'kafka',
+            'tomcat',
+            'influxdb',
+            'postgresql',
+            'survey-sl-mongodb',
+            'processing-cluster-kafka-1',
+            'flink-processing-cluster-kafka'
+          ]
+      when: inventory_hostname in [
+            'keycloak',
+            'cassandra',
+            'lp-neo4j-ps',
+            'composite-search-cluster',
+            'lp-redis-ps',
+            'kafka',
+            'lp-learning-ps',
+            'dp-influx-ps',
+            'postgresql-master-1',
+            'mongo_master',
+            'processing-cluster-kafka-1',
+            'flink-processing-cluster-kafka'
+          ]
