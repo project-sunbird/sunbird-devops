@@ -1,5 +1,6 @@
+---
 - name: Check Service Status
-  hosts:
+  hosts: 
     - keycloak
     - cassandra
     - lp-neo4j-ps
@@ -12,146 +13,69 @@
     - mongo_master
     - processing-cluster-kafka-1
     - flink-processing-cluster-kafka
-     
-  tasks:
-    - name: Check keycloak service status
-      service:
+  
+  vars:
+    service_checks:
+      keycloak:
         name: keycloak
-        state: started
-      register: keycloak_status
-      when: inventory_hostname == "keycloak"
-
-    - name: Print keycloak service status
-      debug:
-        msg: "Keycloak Service Status: {{ 'running' if keycloak_status is succeeded else 'not running' }}"
-      when: inventory_hostname == "keycloak"
-
-    - name: Check Cassandra service status
-      service:
+        status_msg: "Keycloak Service Status"
+      cassandra:
         name: cassandra
-        state: started
-      register: cassandra_status
-      when: inventory_hostname == "cassandra"
-
-    - name: Print Cassandra service status
-      debug:
-        msg: "Cassandra Service Status: {{ 'running' if cassandra_status is succeeded else 'not running' }}"
-      when: inventory_hostname == "cassandra"
-
-    - name: Check Neo4j Service Status
-      command: "/home/learning/neo4j-learning/neo4j-community-3.3.9/bin/neo4j status"
-      register: neo4j_status
-      changed_when: false
-      become: true
-      when: inventory_hostname == "lp-neo4j-ps"
-
-    - name: Print Neo4j service status
-      debug:
-        msg: "Neo4j Service Status: {{ 'running' if neo4j_status.rc == 0 else 'not running' }}"
-      when: inventory_hostname == "lp-neo4j-ps"
-
-    - name: Check Elasticsearch Port
-      command: "nc -z -v -w 2 {{ inventory_hostname }} 9200"
-      ignore_errors: yes
-      register: elasticsearch_status
-      when: inventory_hostname == "composite-search-cluster"
-
-    - name: Print Elasticsearch service status
-      debug:
-        msg: "Elasticsearch Service Status: {{ 'running' if elasticsearch_status.rc == 0 else 'not running' }}"
-      when: inventory_hostname == "composite-search-cluster"
-
-    - name: Check redis service status
-      service:
+        status_msg: "Cassandra Service Status"
+      lp-neo4j-ps:
+        name: neo4j
+        status_msg: "Neo4j Service Status"
+        command: "/home/learning/neo4j-learning/neo4j-community-3.3.9/bin/neo4j status"
+      composite-search-cluster:
+        name: elasticsearch
+        status_msg: "Elasticsearch Service Status"
+        command: "nc -z -v -w 2 {{ inventory_hostname }} 9200"
+      lp-redis-ps:
         name: redis
-        state: started
-      register: redis_status
-      when: inventory_hostname == "lp-redis-ps"
-
-    - name: Print Redis service status
-      debug:
-        msg: "Redis Service Status: {{ 'running' if redis_status is succeeded else 'not running' }}"
-      when: inventory_hostname == "lp-redis-ps"
-
-    - name: Check kafka service status
-      service:
+        status_msg: "Redis Service Status"
+      kafka:
         name: kafka
-        state: started
-      register: kafka_status
-      when: inventory_hostname == "kafka"
-
-    - name: Print Kafka service status
-      debug:
-        msg: "Kafka Service Status: {{ 'running' if kafka_status is succeeded else 'not running' }}"
-      when: inventory_hostname == "kafka"
-
-    - name: Check Tomcat Port (learning VM)
-      command: "nc -z -v -w 2 {{ inventory_hostname }} 8080"
-      ignore_errors: yes
-      register: tomcat_status
-      when: inventory_hostname == "lp-learning-ps"
-
-    - name: Print Tomcat service status
-      debug:
-        msg: "Tomcat Service Status: {{ 'running' if tomcat_status.rc == 0 else 'not running' }}"
-      when: inventory_hostname == "lp-learning-ps"
-
-    - name: Check systemctl status influxdb
-      service:
+        status_msg: "Kafka Service Status"
+      lp-learning-ps:
+        name: tomcat
+        status_msg: "Tomcat Service Status"
+        command: "nc -z -v -w 2 {{ inventory_hostname }} 8080"
+      dp-influx-ps:
         name: influxdb
-        state: started
-      register: influxdb_status
-      when: inventory_hostname == "dp-influx-ps"
-
-    - name: Print InfluxDB service status
-      debug:
-        msg: "InfluxDB Service Status: {{ 'running' if influxdb_status is succeeded else 'not running' }}"
-      when: inventory_hostname == "dp-influx-ps"
-
-    - name: Check systemctl status postgresql
-      service:
+        status_msg: "InfluxDB Service Status"
+      postgresql-master-1:
         name: postgresql
-        state: started
-      register: postgresql_status
-      when: inventory_hostname == "postgresql-master-1"
-
-    - name: Print PostgreSQL service status
-      debug:
-        msg: "PostgreSQL Service Status: {{ 'running' if postgresql_status is succeeded else 'not running' }}"
-      when: inventory_hostname == "postgresql-master-1"
-
-    - name: Check systemctl status survey-sl-mongodb
-      service:
+        status_msg: "PostgreSQL Service Status"
+      mongo_master:
         name: survey-sl-mongodb
-        state: started
-      register: survey_sl_mongodb_status
-      when: inventory_hostname == "mongo_master"
-
-    - name: Print MongoDB service status
-      debug:
-        msg: "MongoDB Service Status: {{ 'running' if survey_sl_mongodb_status is succeeded else 'not running' }}"
-      when: inventory_hostname == "mongo_master"
-
-    - name: Check systemctl status processing-cluster-kafka-1
-      service:
+        status_msg: "MongoDB Service Status"
+      processing-cluster-kafka-1:
         name: processing-cluster-kafka-1
-        state: started
-      register: processing_cluster_kafka1_status
-      when: inventory_hostname == "processing-cluster-kafka-1"
-
-    - name: Print Processing Cluster Kafka-1 service status
-      debug:
-        msg: "Processing Cluster Kafka-1 Service Status: {{ 'running' if processing_cluster_kafka1_status is succeeded else 'not running' }}"
-      when: inventory_hostname == "processing-cluster-kafka-1"
-
-    - name: Check systemctl status flink-processing-cluster-kafka
-      service:
+        status_msg: "Processing Cluster Kafka-1 Service Status"
+      flink-processing-cluster-kafka:
         name: flink-processing-cluster-kafka
-        state: started
-      register: flink_processing_cluster_kafka_status
-      when: inventory_hostname == "flink-processing-cluster-kafka"
+        status_msg: "Flink Processing Cluster Kafka Service Status"
 
-    - name: Print Flink Processing Cluster Kafka service status
-      debug:
-        msg: "Flink Processing Cluster Kafka Service Status: {{ 'running' if flink_processing_cluster_kafka_status is succeeded else 'not running' }}"
-      when: inventory_hostname == "flink-processing-cluster-kafka"
+  tasks:
+    - name: Check service status
+      block:
+        - name: Check service status
+          vars:
+            service_name: "{{ service_checks[inventory_hostname].name }}"
+            command: "{{ service_checks[inventory_hostname].command | default(omit) }}"
+          ansible.builtin.service:
+            name: "{{ service_name }}"
+            state: started
+          register: service_status
+          ignore_errors: true
+
+        - name: Execute custom command if provided
+          ansible.builtin.command: "{{ command }}"
+          register: custom_status
+          ignore_errors: true
+          when: command is defined
+
+        - name: Print service status
+          debug:
+            msg: "{{ service_checks[inventory_hostname].status_msg }}: {{ 'running' if (service_status is succeeded and not custom_status.failed) else 'not running' }}"
+      when: inventory_hostname in service_checks.keys()
