@@ -1,53 +1,26 @@
 - name: Check Service Status
-  hosts: 
-    - keycloak
-    - cassandra
-    - lp-neo4j-ps
-    - composite-search-cluster
-    - lp-redis-ps
-    - kafka
-    - lp-learning-ps
-    - dp-influx-ps
-    - postgresql-master-1
-    - mongo_master
-    - processing-cluster-kafka-1
-    - flink-processing-cluster-kafka
-  
-  tasks:
-    - name: Check service status
-      block:
-        - name: Gather service facts
-          ansible.builtin.service_facts:
+  hosts: all
+  gather_facts: yes
 
-        - name: Print service status
-          debug:
-            msg: "{{ item.key }} Service Status: {{ 'running' if ansible_services[item.key]['state'] == 'running' else 'not running' }}"
-          loop: "{{ ansible_services.items() }}"
-          when: item.key in [
-            'keycloak',
-            'cassandra',
-            'neo4j',
-            'elasticsearch',
-            'redis',
-            'kafka',
-            'tomcat',
-            'influxdb',
-            'postgresql',
-            'survey-sl-mongodb',
-            'processing-cluster-kafka-1',
-            'flink-processing-cluster-kafka'
-          ]
-      when: inventory_hostname in [
-            'keycloak',
-            'cassandra',
-            'lp-neo4j-ps',
-            'composite-search-cluster',
-            'lp-redis-ps',
-            'kafka',
-            'lp-learning-ps',
-            'dp-influx-ps',
-            'postgresql-master-1',
-            'mongo_master',
-            'processing-cluster-kafka-1',
-            'flink-processing-cluster-kafka'
-          ]
+  tasks:
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Print service status
+      debug:
+        msg: "{{ item.key }} Service Status: {{ 'running' if ansible_services[item.key]['state'] == 'running' else 'not running' }}"
+      loop: "{{ ansible_services.items() }}"
+      when: item.key in [
+        'keycloak',
+        'cassandra',
+        'neo4j',
+        'elasticsearch',
+        'redis',
+        'kafka',
+        'tomcat',
+        'influxdb',
+        'postgresql',
+        'survey-sl-mongodb',
+        'processing-cluster-kafka-1',
+        'flink-processing-cluster-kafka'
+      ]
