@@ -5,18 +5,18 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - name: Get Pod Statuses
-      shell: kubectl get pods --all-namespaces --field-selector=status.phase!=Running,status.phase!=Succeeded --field-selector='status.containerStatuses[*].state.waiting.reason!=PodInitializing'
-      register: pod_status
+    - name: Check Non-Running Pods in Namespaces
+      shell: kubectl get pods --all-namespaces --field-selector=status.phase!=Succeeded --field-selector='status.containerStatuses[*].state.waiting.reason!=PodInitializing' | grep -v Running
+      register: non_running_pods
       changed_when: false
       failed_when: false
 
-    - name: Parse Pod Statuses
+    - name: Parse Non-Running Pods
       set_fact:
-        pod_lines: "{{ pod_status.stdout_lines }}"
-      when: pod_status.stdout_lines | length > 0
+        non_running_pod_lines: "{{ non_running_pods.stdout_lines }}"
+      when: non_running_pods.stdout_lines | length > 0
 
-    - name: Print Pod Statuses
+    - name: Print Non-Running Pods
       debug:
-        msg: "{{ pod_lines | join('\n') }}"
-      when: pod_lines is defined
+        msg: "{{ non_running_pod_lines | join('\n') }}"
+      when: non_running_pod_lines is defined
