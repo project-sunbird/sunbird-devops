@@ -5,32 +5,18 @@
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - name: Get all namespaces
-      shell: kubectl get ns -o jsonpath='{.items[*].metadata.name}'
-      register: namespaces_output
+    - name: Check Non-Running Pods in Namespaces
+      shell: kubectl get pods -A | grep -v Running
+      register: non_running_pods
       changed_when: false
+      failed_when: false
 
-    - name: Loop through each namespace
+    - name: Parse Non-Running Pods
       set_fact:
-        all_namespaces: "{{ namespaces_output.stdout.split() }}"
-      loop: "{{ all_namespaces }}"
-      register: loop_result
+        non_running_pod_lines: "{{ non_running_pods.stdout_lines }}"
+      when: non_running_pods.stdout_lines | length > 0
 
-    - name: Check Pods in each namespace
-      shell: kubectl get pods -n {{ item }} --no-headers=true
-      loop: "{{ all_namespaces }}"
-      register: pods_by_namespace
-      changed_when: false
-      failed_when: pods_by_namespace.rc != 0  # Adding error handling
-
-    - name: Print Pods with specified statuses in each namespace
+    - name: Print Non-Running Pods
       debug:
-        msg: |
-          Namespace: {{ item.item }}
-          {% for pod in item.stdout_lines %}
-          - {{ pod.split()[0] }}: {{ pod.split()[2] }} ({{ pod.split()[1] }})
-          {% endfor %}
-      loop: "{{ pods_by_namespace.results }}"
-      vars:
-        regex: "(CrashLoopBackOff|ContainerStatusUnknown|Error|Unknown|Running)"
-      when: item.stdout_lines | select('match', regex) | list | length > 0
+        msg: "{{ non_running_pod_lines | join('\n') }}"
+      when: non_running_pod_lines is defined
