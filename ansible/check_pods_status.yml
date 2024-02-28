@@ -5,54 +5,58 @@
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
     - name: Check Non-Running Pods in Namespaces
-      shell: kubectl get pods -A
-      register: pod_status_output
+      shell: kubectl get pods -A | grep -v Running
+      register: non_running_pods
       changed_when: false
       failed_when: false
       ignore_errors: true
 
-    - name: Extract Pod Information
+    - name: Segregate Non-Running Pods
       set_fact:
-        pod_list: "{{ pod_status_output.stdout_lines[1:] }}"  # Skip header line
-      when: pod_status_output.stdout_lines | length > 1
-
-    - name: Group Pods by Status
-      set_fact:
-        running_pods: []
         error_pods: []
-        container_status_unknown_pods: []
+        container_unknown_pods: []
         crashloop_backoff_pods: []
         unknown_pods: []
-      when: pod_list is defined
+      when: non_running_pods.stdout != ""
 
-    - name: Loop through pod list and categorize pods
+    - name: Extract Pod Status
+      set_fact:
+        pod_status: "{{ item.split()[2] }}"
+      loop: "{{ non_running_pods.stdout_lines }}"
+      when: item.split() | length > 2
+
+    - name: Group Pods by Status
       block:
-        - name: Categorize Pods
-          loop: "{{ pod_list }}"
-          loop_control:
-            label: "{{ item }}"
-          when: item | length > 0
-          block:
-            - name: Extract Pod Information
-              set_fact:
-                pod_info: "{{ item.split() }}"
-            - set_fact:
-                pod_name: "{{ pod_info[0] }}"
-                pod_status: "{{ pod_info[2] }}"
-                pod_restarts: "{{ pod_info[3] }}"
-                pod_age: "{{ pod_info[4] }}"
-            - set_fact:
-                running_pods: "{{ running_pods + [pod_name] }}"
-              when: pod_status == 'Running'
-            - set_fact:
-                error_pods: "{{ error_pods + [pod_name] }}"
-              when: pod_status == 'Error'
-            - set_fact:
-                container_status_unknown_pods: "{{ container_status_unknown_pods + [pod_name] }}"
-              when: pod_status == 'ContainerStatusUnknown'
-            - set_fact:
-                crashloop_backoff_pods: "{{ crashloop_backoff_pods + [pod_name] }}"
-              when: pod_status == 'CrashLoopBackOff'
-            - set_fact:
-                unknown_pods: "{{ unknown_pods + [pod_name] }}"
-              when: pod_status == 'Unknown'
+        - name: Error Pods
+          set_fact:
+            error_pods: "{{ error_pods + [item] }}"
+          loop: "{{ pod_status }}"
+          when: item == 'Error'
+
+        - name: Container Status Unknown Pods
+          set_fact:
+            container_unknown_pods: "{{ container_unknown_pods + [item] }}"
+          loop: "{{ pod_status }}"
+          when: item == 'ContainerCreating' or item == 'ContainerCreating,' or item == 'ContainerCreating,'
+
+        - name: CrashLoop Back-Off Pods
+          set_fact:
+            crashloop_backoff_pods: "{{ crashloop_backoff_pods + [item] }}"
+          loop: "{{ pod_status }}"
+          when: item == 'CrashLoopBackOff'
+
+        - name: Unknown Pods
+          set_fact:
+            unknown_pods: "{{ unknown_pods + [item] }}"
+          loop: "{{ pod_status }}"
+          when: item not in ['Error', 'ContainerCreating', 'CrashLoopBackOff']
+
+      when: pod_status | length > 0
+
+    - name: Print Segregated Non-Running Pods
+      debug:
+        msg: |
+          Error Pods: {{ error_pods | join(', ') }}
+          Container Status Unknown Pods: {{ container_unknown_pods | join(', ') }}
+          CrashLoop Back-Off Pods: {{ crashloop_backoff_pods | join(', ') }}
+          Unknown Pods: {{ unknown_pods | join(', ') }}
