@@ -25,29 +25,27 @@
       when: non_running_pods.stdout_lines | length > 0
 
     - name: Group Pods by Status
-      loop: "{{ pod_statuses }}"
-      loop_control:
-        loop_var: pod_status
       block:
-        - set_fact:
+        - name: Loop over Pod Statuses
+          set_fact:
             error_pods: "{{ error_pods + [item] }}"
-          loop: "{{ pod_status }}"
-          when: item == 'Error'
+          loop: "{{ pod_statuses }}"
+          when: "'Error' in item"
 
         - set_fact:
             container_unknown_pods: "{{ container_unknown_pods + [item] }}"
-          loop: "{{ pod_status }}"
-          when: item == 'ContainerCreating' or item == 'ContainerCreating,' or item == 'ContainerCreating,'
+          loop: "{{ pod_statuses }}"
+          when: "'ContainerCreating' in item or 'ContainerCreating,' in item"
 
         - set_fact:
             crashloop_backoff_pods: "{{ crashloop_backoff_pods + [item] }}"
-          loop: "{{ pod_status }}"
-          when: item == 'CrashLoopBackOff'
+          loop: "{{ pod_statuses }}"
+          when: "'CrashLoopBackOff' in item"
 
         - set_fact:
             unknown_pods: "{{ unknown_pods + [item] }}"
-          loop: "{{ pod_status }}"
-          when: item not in ['Error', 'ContainerCreating', 'CrashLoopBackOff']
+          loop: "{{ pod_statuses }}"
+          when: "'Error' not in item and 'ContainerCreating' not in item and 'CrashLoopBackOff' not in item"
 
     - name: Print Segregated Non-Running Pods
       debug:
