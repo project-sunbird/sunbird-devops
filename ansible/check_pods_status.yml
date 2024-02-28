@@ -25,44 +25,42 @@
         unknown_pods: []
       when: pod_list is defined
 
-    - name: Loop through pod list
-      loop: "{{ pod_list }}"
-      set_fact:
-        pod_info: "{{ item.split() }}"
-      loop_control:
-        label: "{{ item }}"
-      when: item | length > 0
-
-    - name: Categorize Pods
+    - name: Loop through pod list and categorize pods
       loop: "{{ pod_list }}"
       loop_control:
         label: "{{ item }}"
-      set_fact:
-        pod_name: "{{ item.split()[0] }}"
-        pod_status: "{{ item.split()[2] }}"
-        pod_restarts: "{{ item.split()[3] }}"
-        pod_age: "{{ item.split()[4] }}"
       when: item | length > 0
       block:
-        - set_fact:
-            running_pods: "{{ running_pods + [pod_name] }}"
-          when: pod_status == 'Running'
+        - name: Extract Pod Information
+          set_fact:
+            pod_info: "{{ item.split() }}"
+        - name: Categorize Pods
+          set_fact:
+            pod_name: "{{ pod_info[0] }}"
+            pod_status: "{{ pod_info[2] }}"
+            pod_restarts: "{{ pod_info[3] }}"
+            pod_age: "{{ pod_info[4] }}"
+          when: pod_info | length > 0
+          block:
+            - set_fact:
+                running_pods: "{{ running_pods + [pod_name] }}"
+              when: pod_status == 'Running'
 
-        - set_fact:
-            error_pods: "{{ error_pods + [pod_name] }}"
-          when: pod_status == 'Error'
+            - set_fact:
+                error_pods: "{{ error_pods + [pod_name] }}"
+              when: pod_status == 'Error'
 
-        - set_fact:
-            container_status_unknown_pods: "{{ container_status_unknown_pods + [pod_name] }}"
-          when: pod_status == 'ContainerStatusUnknown'
+            - set_fact:
+                container_status_unknown_pods: "{{ container_status_unknown_pods + [pod_name] }}"
+              when: pod_status == 'ContainerStatusUnknown'
 
-        - set_fact:
-            crashloop_backoff_pods: "{{ crashloop_backoff_pods + [pod_name] }}"
-          when: pod_status == 'CrashLoopBackOff'
+            - set_fact:
+                crashloop_backoff_pods: "{{ crashloop_backoff_pods + [pod_name] }}"
+              when: pod_status == 'CrashLoopBackOff'
 
-        - set_fact:
-            unknown_pods: "{{ unknown_pods + [pod_name] }}"
-          when: pod_status == 'Unknown'
+            - set_fact:
+                unknown_pods: "{{ unknown_pods + [pod_name] }}"
+              when: pod_status == 'Unknown'
 
     - name: Print Pod Information
       debug:
