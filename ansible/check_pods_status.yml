@@ -26,66 +26,33 @@
       when: pod_list is defined
 
     - name: Loop through pod list and categorize pods
-      loop: "{{ pod_list }}"
-      loop_control:
-        label: "{{ item }}"
-      when: item | length > 0
       block:
-        - name: Extract Pod Information
-          set_fact:
-            pod_info: "{{ item.split() }}"
         - name: Categorize Pods
-          set_fact:
-            pod_name: "{{ pod_info[0] }}"
-            pod_status: "{{ pod_info[2] }}"
-            pod_restarts: "{{ pod_info[3] }}"
-            pod_age: "{{ pod_info[4] }}"
-          when: pod_info | length > 0
+          loop: "{{ pod_list }}"
+          loop_control:
+            label: "{{ item }}"
+          when: item | length > 0
           block:
+            - name: Extract Pod Information
+              set_fact:
+                pod_info: "{{ item.split() }}"
+            - set_fact:
+                pod_name: "{{ pod_info[0] }}"
+                pod_status: "{{ pod_info[2] }}"
+                pod_restarts: "{{ pod_info[3] }}"
+                pod_age: "{{ pod_info[4] }}"
             - set_fact:
                 running_pods: "{{ running_pods + [pod_name] }}"
               when: pod_status == 'Running'
-
             - set_fact:
                 error_pods: "{{ error_pods + [pod_name] }}"
               when: pod_status == 'Error'
-
             - set_fact:
                 container_status_unknown_pods: "{{ container_status_unknown_pods + [pod_name] }}"
               when: pod_status == 'ContainerStatusUnknown'
-
             - set_fact:
                 crashloop_backoff_pods: "{{ crashloop_backoff_pods + [pod_name] }}"
               when: pod_status == 'CrashLoopBackOff'
-
             - set_fact:
                 unknown_pods: "{{ unknown_pods + [pod_name] }}"
               when: pod_status == 'Unknown'
-
-    - name: Print Pod Information
-      debug:
-        msg: |
-          Running Pods:
-          {% for pod in running_pods %}
-          - {{ pod }}
-          {% endfor %}
-
-          Error Pods:
-          {% for pod in error_pods %}
-          - {{ pod }}
-          {% endfor %}
-
-          Container Status Unknown Pods:
-          {% for pod in container_status_unknown_pods %}
-          - {{ pod }}
-          {% endfor %}
-
-          CrashLoop Back-Off Pods:
-          {% for pod in crashloop_backoff_pods %}
-          - {{ pod }}
-          {% endfor %}
-
-          Unknown Pods:
-          {% for pod in unknown_pods %}
-          - {{ pod }}
-          {% endfor %}
