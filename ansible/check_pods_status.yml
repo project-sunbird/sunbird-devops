@@ -1,4 +1,3 @@
----
 - name: Check Pod Status in All Namespaces
   hosts: localhost
   gather_facts: no
@@ -10,13 +9,47 @@
       register: non_running_pods
       changed_when: false
       failed_when: false
+      ignore_errors: true
 
-    - name: Parse Non-Running Pods
+    - name: Segregate Non-Running Pods
       set_fact:
-        non_running_pod_lines: "{{ non_running_pods.stdout_lines }}"
-      when: non_running_pods.stdout_lines | length > 0
+        error_pods: []
+        container_unknown_pods: []
+        crashloop_backoff_pods: []
+        unknown_pods: []
+      when: non_running_pods.stdout != ""
 
-    - name: Print Non-Running Pods
+    - name: Extract Pod Status
+      set_fact:
+        pod_status: "{{ item.split()[2] }}"
+      loop: "{{ non_running_pods.stdout_lines }}"
+      when: item.split() | length > 2
+
+    - name: Group Pods by Status
+      set_fact:
+        error_pods: "{{ error_pods + [item] }}"
+      loop: "{{ pod_status }}"
+      when: item == 'Error'
+
+    - set_fact:
+        container_unknown_pods: "{{ container_unknown_pods + [item] }}"
+      loop: "{{ pod_status }}"
+      when: item == 'ContainerCreating' or item == 'ContainerCreating,' or item == 'ContainerCreating,'
+
+    - set_fact:
+        crashloop_backoff_pods: "{{ crashloop_backoff_pods + [item] }}"
+      loop: "{{ pod_status }}"
+      when: item == 'CrashLoopBackOff'
+
+    - set_fact:
+        unknown_pods: "{{ unknown_pods + [item] }}"
+      loop: "{{ pod_status }}"
+      when: item not in ['Error', 'ContainerCreating', 'CrashLoopBackOff']
+
+    - name: Print Segregated Non-Running Pods
       debug:
-        msg: "{{ non_running_pod_lines | join('\n') }}"
-      when: non_running_pod_lines is defined
+        msg: |
+          Error Pods: {{ error_pods | join(', ') }}
+          Container Status Unknown Pods: {{ container_unknown_pods | join(', ') }}
+          CrashLoop Back-Off Pods: {{ crashloop_backoff_pods | join(', ') }}
+          Unknown Pods: {{ unknown_pods | join(', ') }}
