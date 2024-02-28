@@ -1,62 +1,36 @@
+---
 - name: Check Pod Status in All Namespaces
   hosts: localhost
   gather_facts: no
   environment:
     KUBECONFIG: "{{ kubeconfig_path }}"
   tasks:
-    - name: Check Non-Running Pods in Namespaces
-      shell: kubectl get pods -A | grep -v Running
-      register: non_running_pods
+    - name: Get all namespaces
+      shell: kubectl get ns -o jsonpath='{.items[*].metadata.name}'
+      register: namespaces_output
       changed_when: false
-      failed_when: false
-      ignore_errors: true
 
-    - name: Segregate Non-Running Pods
+    - name: Loop through each namespace
       set_fact:
-        error_pods: []
-        container_unknown_pods: []
-        crashloop_backoff_pods: []
-        unknown_pods: []
-      when: non_running_pods.stdout != ""
+        all_namespaces: "{{ namespaces_output.stdout.split() }}"
+      loop: "{{ all_namespaces }}"
+      register: loop_result
 
-    - name: Extract Pod Status
-      set_fact:
-        pod_status: "{{ item.split()[2] }}"
-      loop: "{{ non_running_pods.stdout_lines }}"
-      when: item.split() | length > 2
+    - name: Check Pods in each namespace
+      shell: kubectl get pods -n {{ item }} --no-headers=true
+      loop: "{{ all_namespaces }}"
+      register: pods_by_namespace
+      changed_when: false
+      failed_when: pods_by_namespace.rc != 0  # Adding error handling
 
-    - name: Group Pods by Status
-      block:
-        - name: Error Pods
-          set_fact:
-            error_pods: "{{ error_pods + [item] }}"
-          loop: "{{ pod_status }}"
-          when: item == 'Error'
-
-        - name: Container Status Unknown Pods
-          set_fact:
-            container_unknown_pods: "{{ container_unknown_pods + [item] }}"
-          loop: "{{ pod_status }}"
-          when: item == 'ContainerCreating' or item == 'ContainerCreating,' or item == 'ContainerCreating,'
-
-        - name: CrashLoop Back-Off Pods
-          set_fact:
-            crashloop_backoff_pods: "{{ crashloop_backoff_pods + [item] }}"
-          loop: "{{ pod_status }}"
-          when: item == 'CrashLoopBackOff'
-
-        - name: Unknown Pods
-          set_fact:
-            unknown_pods: "{{ unknown_pods + [item] }}"
-          loop: "{{ pod_status }}"
-          when: item not in ['Error', 'ContainerCreating', 'CrashLoopBackOff']
-
-      when: pod_status | length > 0
-
-    - name: Print Segregated Non-Running Pods
+    - name: Print Pods with specified statuses in each namespace
       debug:
         msg: |
-          Error Pods: {{ error_pods | join(', ') }}
-          Container Status Unknown Pods: {{ container_unknown_pods | join(', ') }}
-          CrashLoop Back-Off Pods: {{ crashloop_backoff_pods | join(', ') }}
-          Unknown Pods: {{ unknown_pods | join(', ') }}
+          Namespace: {{ item.item }}
+          {% for pod in item.stdout_lines %}
+          - {{ pod.split()[0] }}: {{ pod.split()[2] }} ({{ pod.split()[1] }})
+          {% endfor %}
+      loop: "{{ pods_by_namespace.results }}"
+      vars:
+        regex: "(CrashLoopBackOff|ContainerStatusUnknown|Error|Unknown|Running)"
+      when: item.stdout_lines | select('match', regex) | list | length > 0
