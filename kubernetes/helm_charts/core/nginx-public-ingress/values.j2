@@ -1,6 +1,7 @@
 #jinja2:lstrip_blocks: True
 
 namespace: {{ namespace }}
+csp: {{cloud_service_provider}}
 merge_domain_status: {{ merge_domain_status | lower }}
 service:
   annotations: {{nginx_public_ingress_service_annotations | d('')  | to_json}}
@@ -63,6 +64,74 @@ resources:
 
 repository: {{proxy_repository|default('proxy')}}
 image_tag: {{ image_tag }}
+
+corsproxyconfig: |-
+  {% if proto=='https' %}
+  server {
+    if ($host = files.{{domain_name}}) {
+        return 301 https://$host$request_uri;
+    }
+    listen 80 ;
+    listen [::]:80 ;
+    server_name files.{{domain_name}};
+    return 404;
+  }
+  {% endif %}
+  server {
+  {% if proto=='http' %}
+    listen                80;
+    listen    [::]:80;
+  {% else %}
+    listen [::]:443 ssl ipv6only=on; 
+    listen                443 ssl;
+    ssl_certificate       /etc/secrets/site.crt;
+    ssl_certificate_key   /etc/secrets/site.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers "EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA HIGH !RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS";
+  {% endif  %}
+    server_name files.{{domain_name}};
+    client_max_body_size 0;
+    root /var/www/html;    
+    resolver {{ kube_dns_ip }} valid=30s;
+
+    location / {
+      # handle cors and allow all
+      if ($request_method = OPTIONS ) {
+         add_header Access-Control-Allow-Origin *;
+         add_header Access-Control-Allow-Methods "GET, OPTIONS, PATCH, POST, PUT, HEAD";
+         add_header Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id, Accept, Accept-Encoding, Accept-Language, Access-Control-Request-Headers, Access-Control-Request-Method, Cache-Control, DNT, User-Agent, X-Amz-Algorithm, X-Amz-Credential, X-Amz-Date, Amz-Expires, X-Amz-SignedHeaders, X-Amz-Signature, x-ms-blob-type";
+         add_header Access-Control-Allow-Credentials "true";
+         add_header Content-Length 0;
+         add_header Content-Type text/plain;
+         return 204;
+     }
+
+    proxy_set_header  Host "{{ cloud_storage_url | replace('https://', '') }}";
+    # remove any CORS header from backend OSS S3
+    proxy_hide_header      Access-Control-Allow-Origin;
+    proxy_hide_header      Access-Control-Allow-Methods;
+    proxy_hide_header      Access-Control-Allow-Headers;
+    proxy_hide_header      Access-Control-Allow-Credentials;
+  
+    # inject our own CORS header to allow what we wanted 
+    add_header  Access-Control-Allow-Credentials "true" always;
+    add_header  Access-Control-Expose-Headers 'Content-Length,Content-Range,Connection,opc-client-info,opc-request-id' always;
+    add_header  Access-Control-Allow-Origin  * always;
+    add_header  Access-Control-Allow-Methods "GET,OPTIONS,PATCH,POST,PUT,HEAD" always;
+    add_header  Access-Control-Allow-Headers "Access-Control-Allow-Origin, Authorization, Content-Type, user-id, Accept,Accept-Encoding,Accept-Language, Access-Control-Request-Headers, Access-Control-Request-Method,Cache-Control,DNT,Host,Origin,Pragma,Referer,User-Agent, X-Amz-Algorithm, X-Amz-Credential, X-Amz-Date, Amz-Expires, X-Amz-SignedHeaders, X-Amz-Signature, x-ms-blob-type" always;
+    # 
+    add_header  Referer "";
+    proxy_pass  {{cloud_storage_url}};
+
+    # if get request, trim the query string
+    if ($request_method = GET ) { 
+      proxy_pass  {{cloud_storage_url}}$uri;
+    }
+  
+      
+    }
+  }
+
 
 proxyconfig: |-
   {% if proto=='https' %}

@@ -8237,6 +8237,27 @@ kong_apis:
     config.required: false
     config.enabled: false
 
+- name: uploadFileToCloud
+  uris: "{{ cloud_service_prefix }}/mlcore/v1/files/upload"
+  upstream_url: "{{ ml_core_service_url }}/v1/cloud-services/files/upload"
+  strip_uri: true
+  plugins:
+  - name: jwt
+  - name: cors
+  - "{{ statsd_pulgin }}"
+  - name: acl
+    config.whitelist:
+    - cloudUrlsCreate
+  - name: rate-limiting
+    config.policy: local
+    config.hour: "{{ medium_rate_limit_per_hour }}"
+    config.limit_by: credential
+  - name: request-size-limiting
+    config.allowed_payload_size: "{{ small_request_size_limit }}"
+  - name: opa-checks
+    config.required: false
+    config.enabled: false
+
 - name: listPlatformPrograms
   uris: "{{ user_extension_prefix }}/mlcore/v1/programsByPlatformRoles"
   upstream_url: "{{ ml_core_service_url }}/v1/user-extension/programsByPlatformRoles"
