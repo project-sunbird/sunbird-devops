@@ -1,0 +1,816 @@
+# Notes:
+# DISCLAIMER: This is a basic development setup. This should not be used for production setup. 
+# How To Run:
+# Open a cloud shell session in your home region 
+# Set the env variables 
+# export COMPARTMENT_OCID='ocid1.compartment.oc1..aaaaaaaa' ## compartment id for creating resources
+# export GEO_IP_LIC_KEY=xyxkjlas ## lic key for downloading geo ip 
+# export OSS_NAMESPACE=ljlajsdflj   ### oci tenancy namespace
+# export INSTANCE_PUBLIC_KEY='ssh-rsa AAAAB' ## ssh public key for logging in to compute instances
+
+# git clone https://github.com/project-sunbird/sunbird-devops.git
+# cd sunbird-devops && git checkout tags/release-6.0.0 -b release-6.0.0
+# cd deploy/
+# ansible-playbook  oci-provisioning.yaml
+
+# Prerequisites:
+# Login to oci console with admin user
+
+############### Maxmind licence key ###########################
+# To create license key
+# Goto: https://www.maxmind.com/en/accounts/current/license-key
+# Click: Generate a new license key.
+# ##############################################################
+
+---
+- name: Create Infrastructure
+  collections: 
+    - oracle.oci
+  hosts: localhost
+  vars:
+    vcn_cidr_block: "{{ lookup('env', 'VCN_CIDR', default='10.90.0.0/16') }}"
+    public_subnet_cidr_block: "{{ lookup('env', 'PUBLIC_SUBNET_CIDR', default='10.90.1.0/24') }}"
+    private_subnet_cidr_block: "{{ lookup('env', 'PRIVATE_SUBNET_CIDR', default='10.90.2.0/24') }}"
+    vcn_name: "SunbirdEd-VCN"
+    vcn_dns_label: "sunbirded"
+    compartment_id: "{{ lookup('env', 'COMPARTMENT_OCID') }}"
+    tenancy_id: "{{ lookup('env', 'OCI_TENANCY')}}"
+    region: "{{ lookup('env', 'OCI_REGION')}}"
+    namespace_name: "{{ lookup('env', 'OSS_NAMESPACE') }}"
+    geoip_licence_key: "{{ lookup('env', 'GEO_IP_LIC_KEY') }}"
+    authorized_key: "{{ lookup('env', 'INSTANCE_PUBLIC_KEY') }}"
+    quad_zero_route: "0.0.0.0/0"
+    instance_shape: "VM.Standard.E3.Flex"
+    intance_os_version: "{{ lookup('env', 'UBUNTU_VERSION', default='18.04') }}"
+    k8s_version: "{{ lookup('env', 'K8S_VERSION', default='v1.27.2') }}"
+    svc_user_name: "{{ lookup('env', 'SB_SVC_USER', default='sunbirded-svc-usr') }}"
+    svc_user_group: "{{ lookup('env', 'SB_SVC_GROUP', default='sunbirded-svc-grp') }}"
+    dynamic_group_name: "{{ lookup('env', 'SB_DG_GROUP', default='sunbirded-dg') }}"
+    env_name: "{{ lookup('env', 'SB_ENV_NAME', default='dev') }}"
+    ocpu: 1
+    memory_in_gbs: 16
+    oke_ocpu: 1
+    oke_memory_in_gbs: 16
+    private_vm_hdd_in_gb: 60
+    public_vm_hdd_in_gb: 250
+    private_vm_names:
+      - kp
+      - dp
+      - learning
+      - db
+      - druid
+    public_vm_names:
+      - jenkins
+    private_containers:
+      - private
+      - artifacts
+      - management
+      - e-credentials
+      - contents
+      - privatereports
+      - telemetry-data-store
+      - data-store
+      - manage-learn
+      - uci 
+      - dial
+      - label
+      - flink
+      - certqr
+      - chatbot
+      - playercdn
+      - schema
+      - sourcing
+      - offlineinstaller
+      - termsandcondition
+      - dev-user
+      - desktopappcrashlogs
+    public_containers:
+      - public
+      - publicreports
+    repo_name: "{{ lookup('env', 'SB_REPO', default='sunbirded-repo') }}"
+    repo_list:
+      - adminutil
+      - assessment-service
+      - bot
+      - cert_registry_service
+      - cert_service
+      - content-service
+      - creation-player
+      - data-pipeline
+      - discussion-middleware
+      - echo-server
+      - enc_service
+      - gotenberg
+      - groups_service
+      - hawkeye
+      - knowledge-mw-service
+      - knowledge-platform-jobs
+      - kong
+      - learner_service
+      - lms_service
+      - ml-core-service
+      - ml-projects-service
+      - ml-reports-service
+      - ml-survey-service
+      - nodebb
+      - notification_service
+      - odk
+      - opensaber
+      - player
+      - print-service
+      - program-service
+      - proxy
+      - report-service
+      - router
+      - search-service
+      - secor
+      - sunbird-analytics-service
+      - sunbird-datapipeline
+      - sunbird-dial-service
+      - sunbird-rc-certificate-api
+      - sunbird-rc-certificate-signer
+      - sunbird-rc-core
+      - taxonomy-service
+      - telemetry-service
+      - uci-inbound
+      - uci-orchestrator
+      - uci-outbound
+      - uci-transformer
+      - uci_api  
+
+  tasks: 
+  - name: Check pre-requisites
+    fail:
+      msg: "Environment variable {{item}} not set. Please declare an environment variable with an appropriate value for the sample to work."
+    when: item not in ansible_env
+    with_items:
+      - "COMPARTMENT_OCID"
+      - "OSS_NAMESPACE"
+      - "GEO_IP_LIC_KEY"
+      - "INSTANCE_PUBLIC_KEY"
+
+  - name: Create a VCN
+    oci_network_vcn:
+      compartment_id: "{{ compartment_id }}"
+      display_name: "{{ vcn_name }}"
+      cidr_block: "{{ vcn_cidr_block }}"
+      dns_label: "{{ vcn_dns_label }}"
+    register: vcn
+    tags:
+      - network
+
+  - set_fact:
+      vcn_id: "{{ vcn.vcn.id }}"
+      cacheable: yes
+    tags:
+      - network
+
+  - name: Get availability domains for vlans
+    oci_identity_availability_domain_facts:
+      compartment_id: "{{compartment_id}}"
+    register: oci_ads
+    tags:
+      - always
+
+  - name: Get all services
+    oci_network_service_facts:
+    register: oci_services
+    tags:
+      - always
+
+  - name: Get all images
+    oci_compute_image_facts:
+      compartment_id: "{{compartment_id}}"
+      shape: "{{instance_shape}}"
+      operating_system  : "Canonical Ubuntu"
+      operating_system_version: "{{intance_os_version}}"
+    register: oci_images
+    tags:
+      - always
+
+  - name: Get OKE images
+    oci_compute_image_facts:
+      compartment_id: "{{compartment_id}}"
+      shape: "{{instance_shape}}"
+      operating_system  : "Oracle Linux"
+      operating_system_version: "7.9"
+    register: oke_node_images
+    tags:
+      - always
+
+  - name: Get Region
+    shell: oci iam region list --query "data[?name=='{{region}}'].key | [0]" --raw-output | tr '[:upper:]' '[:lower:]'
+    register: region_code
+    tags:
+      - always
+
+  - set_fact:
+      availability_domain: "{{oci_ads.availability_domains[0].name}}"
+      oci_all_service_id: "{{oci_services.services[1].id}}"
+      oci_all_service_cidr: "{{oci_services.services[1].cidr_block}}"
+      ocir_region: "{{region_code.stdout}}"
+      instance_image_id: "{{oci_images.images[0].id}}"
+      oke_image_id: "{{oke_node_images.images[0].id}}"
+      node_shape: "{{ instance_shape }}"
+      node_pool_source_details:
+        source_type: "IMAGE"
+        image_id: "{{oke_node_images.images[0].id}}"
+    tags:
+      - always
+
+  - name: templating bootstrap
+    template:
+      src: "{{ item }}.j2"
+      dest: "/tmp/{{item}}.sh"
+    with_items:
+      - oci_vms_bootstrap
+    tags:
+      - always
+
+  - name: Create a new Internet Gateway
+    oci_network_internet_gateway:
+      compartment_id: "{{ compartment_id }}"
+      vcn_id: "{{ vcn_id }}"
+      name: "IG"
+      is_enabled: 'yes'
+      state: 'present'
+    register: igw
+    tags:
+      - network
+
+  - set_fact:
+      ig_id: "{{ igw.internet_gateway.id }}"
+      public_route_table_rules:
+        - cidr_block: "{{ quad_zero_route }}"
+          network_entity_id: "{{ igw.internet_gateway.id }}"
+    tags:
+      - network
+
+  - name: Create a new NAT Gateway
+    oci_network_nat_gateway:
+      compartment_id: "{{ compartment_id }}"
+      vcn_id: "{{ vcn_id }}"
+      name: "NG"
+      state: 'present'
+    register: ngw
+    tags:
+      - network
+
+  - name: Create a new Service Gateway
+    oci_network_service_gateway:
+      compartment_id: "{{ compartment_id }}"
+      vcn_id: "{{ vcn_id }}"
+      services:  
+        - service_id: "{{oci_all_service_id}}"
+      display_name: "SVC_GW"
+      state: 'present'
+    register: sgw
+    tags:
+      - network
+
+  - set_fact:
+      ng_id: "{{ ngw.nat_gateway.id }}"
+      sg_id: "{{ sgw.service_gateway.id }}"
+      private_route_table_rules:
+        - destination: "{{ oci_all_service_cidr }}"
+          destination_type: SERVICE_CIDR_BLOCK
+          network_entity_id: "{{ sgw.service_gateway.id }}"
+        - destination: "{{ quad_zero_route }}"
+          destination_type: CIDR_BLOCK
+          network_entity_id: "{{ ngw.nat_gateway.id }}"
+    tags:
+      - network
+
+  - name: Create route table to connect internet gateway to the VCN
+    oci_network_route_table:
+      compartment_id: "{{ compartment_id }}"
+      vcn_id: "{{ vcn_id }}"
+      name: "PUB-SL-RT"
+      route_rules: "{{ public_route_table_rules }}"
+      state: 'present'
+    register: public_rt
+    tags:
+      - network
+
+  - set_fact:
+      public_rt_id: "{{ public_rt.route_table.id }}"
+    tags:
+      - network
+
+  - name: Create route table to connect Nat gateway to the VCN
+    oci_network_route_table:
+      compartment_id: "{{ compartment_id }}"
+      vcn_id: "{{ vcn_id }}"
+      name: "PVT-SL-RT"
+      route_rules: "{{ private_route_table_rules }}"
+      state: 'present'
+    register: private_rt
+    tags:
+      - network
+
+  - set_fact:
+      private_rt_id: "{{ private_rt.route_table.id }}"
+    tags:
+      - network
+
+  - name: Create security list for Public Subnet 
+    oci_network_security_list:
+      display_name: PUB-SL
+      compartment_id: "{{ compartment_id }}"
+      vcn_id: "{{ vcn_id }}"
+      egress_security_rules:
+      - description: "Allow outgoing traffic"
+        destination: "{{ quad_zero_route }}"
+        protocol: "all"
+        destination_type: CIDR_BLOCK
+        is_stateless: false
+      ingress_security_rules:
+      - description: "allow all traffic"
+        protocol: all
+        source: "{{quad_zero_route}}"
+        is_stateless: false
+        source_type: CIDR_BLOCK
+    register: security_list
+    tags:
+      - network
+  - set_fact:
+      security_list_id: "{{ security_list.security_list.id }}"
+      cacheable: yes
+    tags:
+      - network
+
+  - name: Create security list for Private Subnet 
+    oci_network_security_list:
+      display_name: PVT-SL
+      compartment_id: "{{ compartment_id }}"
+      vcn_id: "{{ vcn_id }}"
+      egress_security_rules:
+      - description: "Allow outgoing traffic"
+        destination: "{{ quad_zero_route }}"
+        protocol: "all"
+        destination_type: CIDR_BLOCK
+        is_stateless: false
+      ingress_security_rules:
+      - description: "allow all traffic"
+        protocol: all
+        source: "{{vcn_cidr_block}}"
+        is_stateless: false
+        source_type: CIDR_BLOCK
+    register: pvt_security_list
+    tags:
+      - network
+  - set_fact:
+      pvt_security_list_id: "{{ pvt_security_list.security_list.id }}"
+      cacheable: yes
+    tags:
+      - network
+
+  - name: Create a Public Subnet
+    oci_network_subnet:
+      cidr_block: "{{ public_subnet_cidr_block }}"
+      compartment_id: "{{ compartment_id }}"
+      display_name: "PUB-SN"
+      route_table_id: "{{ public_rt_id }}"
+      security_list_ids:
+        - "{{security_list_id}}"
+      dns_label: "pubsn"
+      prohibit_public_ip_on_vnic: no
+      vcn_id: "{{ vcn_id }}"
+    register: pub_subnet
+    tags:
+      - network
+  - set_fact:
+      public_subnet_id: "{{ pub_subnet.subnet.id }}"
+      cacheable: yes
+
+  - name: Create a Private Subnet
+    oci_network_subnet:
+      cidr_block: "{{ private_subnet_cidr_block }}"
+      compartment_id: "{{ compartment_id }}"
+      display_name: "PVT-SN"
+      route_table_id: "{{ private_rt_id }}"
+      security_list_ids:
+        - "{{pvt_security_list_id}}"
+      dns_label: "pvtsn"
+      prohibit_public_ip_on_vnic: yes
+      vcn_id: "{{ vcn_id }}"
+    register: pvt_subnet
+    tags:
+      - network
+  - set_fact:
+      private_subnet_id: "{{ pvt_subnet.subnet.id }}"
+      cacheable: yes
+          
+  - name: Create Private Buckets
+    oci_object_storage_bucket:
+      namespace_name: "{{ namespace_name }}" 
+      compartment_id: "{{ compartment_id }}"
+      public_access_type: NoPublicAccess
+      storage_tier: Standard
+      name: "{{env_name}}-{{ item }}"
+    with_items: "{{ private_containers }}"
+    tags:
+      - oss
+
+  - name: Create Public Buckets
+    oci_object_storage_bucket:
+      # required
+      namespace_name: "{{ namespace_name }}" 
+      compartment_id: "{{ compartment_id }}"
+      public_access_type: ObjectRead
+      storage_tier: Standard
+      name: "{{env_name}}-{{ item }}"
+    with_items: "{{ public_containers }}"
+    tags:
+      - oss
+
+  - name: Create a temporary sample file to upload
+    tempfile:
+    register: tmpfile1
+    tags:
+      - oss
+  - name: Put content in the temporary sample file
+    copy:
+      content: "This is content for the sample file."
+      dest: "{{ tmpfile1.path }}"
+    tags:
+      - oss
+  - name: Creating folder structurue
+    oci_object_storage_object:
+      namespace_name: "{{ namespace_name }}"
+      bucket_name: "{{env_name}}-contents"
+      object_name: "{{ item }}/tmpfile1.txt"
+      src: "{{ tmpfile1.path }}"
+    with_items:
+      - collection-editor
+      - generic-editor
+      - content-edition
+      - v3/preview
+      - terms-and-conditions
+    tags:
+      - oss
+
+  - name: Downloading terms-and-conditions
+    get_url:
+      url: https://sunbirdpublic.blob.core.windows.net/installation/terms-and-conditions/terms-and-conditions-v9.html
+      dest: /tmp/terms-and-conditions-v9.html
+      mode: '0440'
+    tags:
+      - oss
+
+  - name: Uploading T&C
+    oci_object_storage_object:
+      namespace_name: "{{namespace_name}}"
+      bucket_name: "{{env_name}}-contents"
+      object_name: "terms-and-conditions/terms-and-conditions-v9.html"
+      src: /tmp/terms-and-conditions-v9.html
+      content_type: 'text/plain'
+    tags:
+      - oss
+
+  - name: Downloading neo4j
+    get_url:
+      url: http://dist.neo4j.org/neo4j-community-3.3.9-unix.tar.gz
+      dest: /tmp/neo4j-community-3.3.9-unix.tar.gz
+      mode: '0440'
+    tags:
+      - oss
+
+  - name: Uploading Neo4j
+    oci_object_storage_object:
+      namespace_name: "{{namespace_name}}"
+      bucket_name: "{{env_name}}-artifacts"
+      object_name: "neo4j-community-3.3.9-unix.tar.gz"
+      src: /tmp/neo4j-community-3.3.9-unix.tar.gz
+      content_type: 'text/plain'
+    tags:
+      - oss  
+
+  - name: Downloading GeoIP2
+    get_url:
+      url: "https://download.maxmind.com/app/geoip_download?edition_id={{ item.type }}&license_key={{ geoip_licence_key }}&suffix={{ item.prefix }}"
+      dest: "/tmp/geoip2_db.{{ item.prefix }}"
+      mode: '0440'
+    with_items:
+      - {type: 'GeoLite2-City-CSV', prefix: 'zip' }
+      - {type: 'GeoLite2-City', prefix: 'tar.gz'}
+    tags:
+      - oss
+  - name: Uploading GeoIP2 to artifacts
+    oci_object_storage_object:
+      namespace_name: "{{namespace_name}}"
+      bucket_name: "{{env_name}}-artifacts"
+      object_name: "geoip2_db.{{ item }}"
+      src: /tmp/geoip2_db.{{ item }}
+      content_type: 'text/plain'
+    with_items:
+      - zip
+      - tar.gz
+    tags:
+      - oss
+
+  - name: Uploading labels
+    shell:
+       "oci os object bulk-upload --bucket-name {{env_name}}-label --prefix 'labels/' --src-dir ../utils/portal/labels/ --namespace {{ namespace_name }} -–overwrite"
+    tags:
+      - oss
+
+  - name: Unarchive plugins
+    unarchive:
+      src: "https://sunbirdpublic.blob.core.windows.net/installation/content-plugins.zip"
+      dest: /tmp/
+      creates: /tmp/content-plugins
+      remote_src: yes
+    tags:
+      - oss
+
+  - name: Upload Content plugins
+    shell:
+       "oci os object bulk-upload --bucket-name {{env_name}}-contents --prefix 'content-plugins/' --src-dir /tmp/content-plugins/ --namespace {{ namespace_name }} "
+    tags:
+      - oss  
+ 
+
+  - name: Create container_repository
+    oci_artifacts_container_repository:
+      compartment_id: "{{ compartment_id }}"
+      display_name: "{{repo_name}}/{{item}}"
+      is_public: false
+      readme:
+        content: "container registry for Sunbird deployment - {{item}} "
+        format: TEXT_MARKDOWN
+    with_items: "{{ repo_list }}"
+    tags:
+      - ocir      
+
+  - name: Launch private vm
+    oci_compute_instance:
+      availability_domain: "{{ availability_domain }}"
+      compartment_id: "{{ compartment_id }}"
+      display_name: "{{env_name}}-{{ item }}"
+      image_id: "{{ instance_image_id }}"
+      shape: "{{ instance_shape }}"
+      source_details:
+        boot_volume_size_in_gbs: "{{private_vm_hdd_in_gb}}"
+        image_id: "{{ instance_image_id }}"
+        source_type: "image"
+      shape_config: 
+        ocpus: "{{ ocpu }}"
+        memory_in_gbs: "{{ memory_in_gbs }}"
+      create_vnic_details:
+        assign_public_ip: False
+        hostname_label: "{{env_name}}-{{ item }}"
+        subnet_id: "{{ private_subnet_id }}"
+      metadata:
+        ssh_authorized_keys: "{{ authorized_key }}"
+        user_data: "{{ lookup('file',  '/tmp/oci_vms_bootstrap.sh' ) | b64encode }}"
+      key_by: [compartment_id, availability_domain, display_name]
+    with_items: "{{ private_vm_names }}"
+    register: private_vms
+    tags:
+      - vm
+
+  - name: Launch jenkins instance
+    oci_compute_instance:
+      availability_domain: "{{ availability_domain }}"
+      compartment_id: "{{ compartment_id }}"
+      display_name: "{{env_name}}-{{ item }}"
+      image_id: "{{ instance_image_id }}"
+      shape: "{{ instance_shape }}"
+      source_details:
+        boot_volume_size_in_gbs: "{{public_vm_hdd_in_gb}}"
+        image_id: "{{ instance_image_id }}"
+        source_type: "image"
+      shape_config: 
+        ocpus: "{{ ocpu }}"
+        memory_in_gbs: "{{ memory_in_gbs }}"
+      create_vnic_details:
+        assign_public_ip: True
+        hostname_label: "{{env_name}}-{{ item }}"
+        subnet_id: "{{ public_subnet_id }}"
+      metadata:
+        ssh_authorized_keys: "{{ authorized_key }}"
+      key_by: [compartment_id, availability_domain, display_name]
+    with_items: "{{ public_vm_names }}"
+    register: jenkins_vm
+    tags:
+      - vm
+
+  - name: Create user
+    oci_identity_user:
+      compartment_id: "{{tenancy_id}}"
+      name: "{{svc_user_name}}"
+      description: sunbird ed service user
+      state: present
+    register: result
+    tags:
+      - identity
+
+  - set_fact:
+      user_id: "{{ result.user.id }}"
+      cacheable: yes
+    tags:
+      - identity
+
+  - name: Create group
+    oci_identity_group:
+      compartment_id: "{{tenancy_id}}"
+      name: "{{svc_user_group}}"
+      description: User group for Sunbird Service Users
+      state: present
+    register: result
+    tags:
+      - identity
+  - set_fact:
+      group_id: "{{ result.group.id }}"
+      cacheable: yes
+    tags:
+      - identity
+
+  - name: Create user_group_membership
+    oci_identity_user_group_membership:
+      user_id: "{{user_id}}"
+      group_id: "{{group_id}}"
+      compartment_id: "{{tenancy_id}}"
+      state: present
+    tags:
+      - identity
+
+  - name: Create dynamic group
+    oci_identity_dynamic_group:
+      compartment_id: "{{tenancy_id}}"
+      name: "{{dynamic_group_name}}"
+      description: Dynamic Group for Sunbird BB
+      matching_rule: "instance.compartment.id = '{{compartment_id}}'"
+    tags:
+      - identity
+
+  - name: Create policy
+    oci_identity_policy:
+      compartment_id: "{{tenancy_id}}"
+      name: sunbirded-policy
+      description: Policy for Sunbird BB
+      statements: 
+        - "Allow dynamic-group {{dynamic_group_name}} to manage all-resources in compartment id {{compartment_id}}"
+        - "Allow group {{svc_user_group}} to manage repos in compartment id {{compartment_id}}"
+        - "Allow group {{svc_user_group}} to manage buckets in compartment id {{compartment_id}}"
+        - "Allow group {{svc_user_group}} to manage buckets in compartment id {{compartment_id}}"
+    tags:
+      - identity
+
+  - name: Create auth_token
+    oci_identity_auth_token:
+      description: For sunbird ocir
+      user_id: "{{user_id}}"
+    register: result
+    tags:
+      - identity
+  - set_fact:
+      auth_token: "{{ result.auth_token.token }}"
+      cacheable: yes
+    tags:
+      - identity
+
+  - name: Create customer key
+    oci_identity_customer_secret_key:
+      display_name: For sunbird s3 operation
+      user_id: "{{user_id}}"
+    register: customer_key
+    tags:
+      - identity
+  - set_fact:
+      s3_access_key: "{{ customer_key.customer_secret_key.id }}"
+      s3_access_secret: "{{ customer_key.customer_secret_key.key }}"
+      cacheable: yes
+    tags:
+      - identity
+
+  - name: Create cluster
+    oci_container_engine_cluster:
+      compartment_id: "{{compartment_id}}"
+      vcn_id: "{{vcn_id}}"
+      name: "{{env_name}}-sunbird-ed-oke"
+      kubernetes_version: "{{k8s_version}}"
+      endpoint_config:
+        subnet_id: "{{private_subnet_id}}"
+        is_public_ip_enabled: false
+      cluster_pod_network_options:
+      - cni_type: FLANNEL_OVERLAY
+      options:
+        service_lb_subnet_ids: [ "{{public_subnet_id}}" ]
+      type: BASIC_CLUSTER
+    register: oke
+    tags:
+      - k8s
+  - debug:
+      msg: "{{ oke }}"
+    tags:
+      - k8s
+  - set_fact:
+      cluster_id: "{{oke.cluster.id }}"
+    tags:
+      - k8s
+
+
+  - name: Create a node pool
+    oci_container_engine_node_pool:
+      cluster_id: "{{ cluster_id }}"
+      compartment_id: "{{ compartment_id }}"
+      name: "pool1"
+      ssh_public_key: "{{ authorized_key }}"
+      kubernetes_version: "{{ k8s_version }}"
+      node_source_details: "{{ node_pool_source_details }}"
+      node_shape: "{{ node_shape }}"
+      node_config_details:
+        size: 4
+        placement_configs:
+        - availability_domain: "{{availability_domain}}"
+          subnet_id: "{{private_subnet_id}}"
+        node_pool_pod_network_option_details:
+          pod_subnet_ids: [ "{{private_subnet_id}}" ]
+          cni_type: FLANNEL_OVERLAY
+      node_shape_config:
+        ocpus: "{{ oke_ocpu }}"
+        memory_in_gbs: "{{ oke_memory_in_gbs }}"
+    register: np_result
+    tags:
+      - k8s
+
+  - set_fact:
+      node_pool_id: "{{ np_result.node_pool.id }}"
+    tags:
+      - k8s
+
+
+
+  - name: Get Private VMs Info
+    oci_compute_instance_facts:
+      compartment_id: "{{compartment_id}}"
+      display_name: "{{item}}"
+      lifecycle_state: RUNNING
+    with_items: "{{private_vm_names}}"
+    register: nics 
+    tags:
+      - info 
+
+  - name: Get Jenkins VMs Info
+    oci_compute_instance_facts:
+      compartment_id: "{{compartment_id}}"
+      display_name: "jenkins"
+      lifecycle_state: RUNNING
+    register: jenkins_vm 
+    tags:
+      - info 
+
+  - name: Showing resources info
+    debug:
+      msg:
+        - Jenkins public ip: "{{ jenkins_vm.instances[0].primary_public_ip }}"
+        - OCIR url: "{{ocir_region}}.ocir.io/{{namespace_name}}/{{repo_name}}"
+        - OCIR user: "{{namespace_name}}/{{svc_user_name}}"
+        - OCIR auth token: "{{ auth_token }}"
+        - S3 access key: "{{ s3_access_key }}"
+        - S3 access secret : "{{ s3_access_secret }}"
+    tags:
+      - info 
+
+  - name: Showing private vm ips
+    debug:
+      msg:
+        "VM {{ item.instances[0].display_name }} private ip: {{ item.instances[0].primary_private_ip }}"
+    with_items: "{{ nics.results }}"
+    loop_control:
+      label: "{{  item.instances[0].display_name  }}"
+    tags:
+      - info 
+
+  - name: Writing resource info to oci-resources.txt
+    copy:
+      dest: /tmp/oci-resources.txt
+      content: |-
+        ================================================================
+        jenkins public ip: {{ jenkins_vm.instances[0].primary_public_ip }}
+        OCIR url: "{{ocir_region}}.ocir.io/{{namespace_name}}/{{repo_name}}"
+        OCIR user: "{{namespace_name}}/{{svc_user_name}}"
+        OCIR auth token: "{{ auth_token }}"
+        S3 access key: "{{ s3_access_key }}"
+        S3 access secret : "{{ s3_access_secret }}"
+    tags:
+      - info 
+
+  - name: Writing machine ips to oci-resources.txt
+    lineinfile:
+      state: present
+      insertbefore: EOF
+      dest: /tmp/oci-resources.txt
+      line: "{{ item.instances[0].display_name }} private ip: {{ item.instances[0].primary_private_ip }}"
+    with_items: "{{ nics.results }}"
+    loop_control:
+      label: "{{  item.instances[0].display_name   }}"
+    tags:
+      - info 
+
+  - debug:
+      msg: ansible variable values to update for the installation is stored in /tmp/oci-resources.txt"
+    tags:
+      - info 

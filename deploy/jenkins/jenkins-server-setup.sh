@@ -72,6 +72,14 @@ echo -e "\n\e[0;32m${bold}Installating Ansible${normal}"
 pip uninstall -y ansible
 pip3 install ansible==2.8.19
 
+echo -e "\n\e[0;32m${bold}Installing oci cli ${normal}"
+oci_cli_setup_zip="https://github.com/oracle/oci-cli/releases/download/v3.22.0/oci-cli-3.22.0-Ubuntu-18.04-Offline.zip"
+wget $oci_cli_setup_zip -O /tmp/ocicli.zip
+unzip /tmp/ocicli.zip -d /tmp
+cd /tmp
+./oci-cli-installation/install.sh --install-dir /var/lib/jenkins --exec-dir /var/lib/jenkins --script-dir /var/lib/jenkins --accept-all-defaults
+mv /var/lib/jenkins/oci /usr/bin
+
 echo -e "\n\e[0;32m${bold}Installating azure cli${normal}"
 apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
 curl -sL https://packages.microsoft.com/keys/microsoft.asc |
@@ -106,6 +114,10 @@ usermod -aG docker jenkins
 echo -e "\n\e[0;32m${bold}Creating bashrc for jenkins user ${normal}"
 cp /etc/skel/.bashrc /var/lib/jenkins
 chown jenkins:jenkins /var/lib/jenkins/.bashrc
+
+echo -e "\n\e[0;32m${bold}Creating profile for jenkins user ${normal}"
+echo "export OCI_CLI_AUTH=instance_principal" > /var/lib/jenkins/.profile
+chown jenkins:jenkins /var/lib/jenkins/.profile
 
 echo -e "\n\e[0;32m${bold}Setting timezone to IST ${normal}"
 timedatectl set-timezone Asia/Kolkata
