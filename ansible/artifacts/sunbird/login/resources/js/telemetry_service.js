@@ -3159,6 +3159,16 @@ var handleGoogleAuthEvent = () => {
         redirectToLib();
     }
 };
+
+const allowedUrlForRedirect = [
+  "https://dockstaging.sunbirded.org/sourcing",
+  "https://dock.sunbirded.org/sourcing",
+  "https://dock.sunbirded.org/contribute",
+  "https://dockstaging.sunbirded.org/contribute",
+  "https://ckoci.sunbirded.org/sourcing",
+  "https://ckoci.sunbirded.org/contribute"
+];
+
 var redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and self signUp
     const curUrlObj = window.location;
     var redirect_uri = getValueFromSession('redirect_uri');
@@ -3171,9 +3181,7 @@ var redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and sel
             const redirect_uriLocation = new URL(redirect_uri);
             if (client_id === 'android' || client_id === 'desktop') {
                 window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
-            } else if(client_id === 'portal' && 
-            redirectUrlPath === '/sign-in/sso/select-org' && 
-            (redirect_uri.includes('dock.sunbirded.org') || redirect_uri.includes('dockstaging.sunbirded.org'))) {
+            } else if(client_id === 'portal' && redirectUrlPath === '/sign-in/sso/select-org' && allowedUrlForRedirect.some(allowedUrl => allowedUrl.includes(redirect_uriLocation.host))) {
                 window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
             } else {
                 window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
