@@ -3161,12 +3161,11 @@ var handleGoogleAuthEvent = () => {
 };
 
 const allowedUrlForRedirect = [
-  "https://dockstaging.sunbirded.org/sourcing",
-  "https://dock.sunbirded.org/sourcing",
-  "https://dock.sunbirded.org/contribute",
-  "https://dockstaging.sunbirded.org/contribute",
-  "https://ckoci.sunbirded.org/sourcing",
-  "https://ckoci.sunbirded.org/contribute"
+  "dockstaging.sunbirded.org",
+  "dock.sunbirded.org",
+  "ckoci.sunbirded.org",
+  "vdn.diksha.gov.in",
+  "dock.preprod.ntp.net.in"
 ];
 
 var redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and self signUp
@@ -3181,7 +3180,7 @@ var redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and sel
             const redirect_uriLocation = new URL(redirect_uri);
             if (client_id === 'android' || client_id === 'desktop') {
                 window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
-            } else if(client_id === 'portal' && redirectUrlPath === '/sign-in/sso/select-org' && allowedUrlForRedirect.some(allowedUrl => allowedUrl.includes(redirect_uriLocation.host))) {
+            } else if(client_id === 'portal' && redirectUrlPath === '/sign-in/sso/select-org' && allowedUrlForRedirect.includes(redirect_uriLocation.host)) {
                 window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
             } else {
                 window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
