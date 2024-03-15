@@ -3160,14 +3160,6 @@ var handleGoogleAuthEvent = () => {
     }
 };
 
-const allowedUrlForRedirect = [
-  "dockstaging.sunbirded.org",
-  "dock.sunbirded.org",
-  "ckoci.sunbirded.org",
-  "vdn.diksha.gov.in",
-  "dock.preprod.ntp.net.in"
-];
-
 var redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and self signUp
     const curUrlObj = window.location;
     var redirect_uri = getValueFromSession('redirect_uri');
@@ -3180,7 +3172,7 @@ var redirectToPortal = (redirectUrlPath) => { // redirectUrlPath for sso and sel
             const redirect_uriLocation = new URL(redirect_uri);
             if (client_id === 'android' || client_id === 'desktop') {
                 window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
-            } else if(client_id === 'portal' && redirectUrlPath === '/sign-in/sso/select-org' && allowedUrlForRedirect.includes(redirect_uriLocation.host)) {
+            } else if(client_id === 'portal' && redirectUrlPath === '/sign-in/sso/select-org' && (sessionUrlObj.host !== redirect_uriLocation.host)) {
                 window.location.href = sessionUrlObj.protocol + '//' + sessionUrlObj.host + redirectUrlPath + updatedQuery;
             } else {
                 window.location.href = redirect_uriLocation.protocol + '//' + redirect_uriLocation.host +
