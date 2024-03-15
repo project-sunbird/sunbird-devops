@@ -1,27 +1,11 @@
-backup_script:
-  description: "Backup Cassandra syslogs"
-  script: |
-    #!/bin/bash
+- hosts: cassandra  
+  tasks:
+    - name: Check Cassandra system log
+      shell:
+        cmd: tail -n 5 /var/log/cassandra/system.log  # Adjust the number of lines as needed
+      register: cassandra_system_log
+    - name: Print Cassandra system log
+      debug:
+        msg: "Cassandra System Log: {{ cassandra_system_log.stdout }}"
 
-    # Directory containing Cassandra syslogs
-    log_dir="/var/log/cassandra"
-
-    # Directory to store backups
-    backup_dir="/path/to/backup/directory"
-
-    # Create backup directory if it doesn't exist
-    mkdir -p "$backup_dir"
-
-    # Timestamp for the backup file
-    timestamp=$(date +"%Y%m%d%H%M%S")
-
-    # Backup filename
-    backup_file="cassandra_syslogs_$timestamp.tar.gz"
-
-    # Change directory to Cassandra log directory
-    cd "$log_dir" || exit
-
-    # Compress syslog files into a tarball
-    tar -czf "$backup_dir/$backup_file" .
-
-    echo "Backup completed: $backup_dir/$backup_file"
+has context menu
