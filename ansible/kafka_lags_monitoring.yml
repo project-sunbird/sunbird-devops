@@ -26,12 +26,12 @@
     - name: Generate Kafka group status table
       debug:
         msg: |
-          +---------------------------------------+---------------------------------------+------------+----------------+----------------+---------------+---------------+---------------+
+          +---------------------------------------+---------------------------------------+------------+----------------+----------------+---------------+---------------+---------------+---------------+
           | GROUP                                 | TOPIC                                 | PARTITION  | CURRENT-OFFSET | LOG-END-OFFSET | LAG           | CONSUMER-ID   | HOST          | CLIENT-ID     |
-          +---------------------------------------+---------------------------------------+------------+----------------+----------------+---------------+---------------+---------------+
+          +---------------------------------------+---------------------------------------+------------+----------------+----------------+---------------+---------------+---------------+---------------+
           {% for result in consumer_group_output.results %}
           {% set lag = result.stdout | regex_replace('.*LAG\\s+(\\d+).*', '\\1') | int %}
-          | {{ result.item | string | pad(39) }} | {{ result.stdout | regex_replace('.*TOPIC\\s+(\\S+).*', '\\1') | string | pad(39) }} | {{ result.stdout | regex_replace('.*PARTITION\\s+(\\d+).*', '\\1') | string | pad(11) }} | {{ result.stdout | regex_replace('.*CURRENT-OFFSET\\s+(\\d+).*', '\\1') | string | pad(15) }} | {{ result.stdout | regex_replace('.*LOG-END-OFFSET\\s+(\\d+).*', '\\1') | string | pad(15) }} | {{ lag | string | pad(12) }} | {{ result.stdout | regex_replace('.*CONSUMER-ID\\s+(\\S+).*', '\\1') | string | pad(15) }} | {{ result.stdout | regex_replace('.*HOST\\s+(\\S+).*', '\\1') | string | pad(15) }} | {{ result.stdout | regex_replace('.*CLIENT-ID\\s+(\\S+).*', '\\1') | string | pad(15) }} |
+          | {{ result.item | string | regex_replace('^', ' ') }} | {{ result.stdout | regex_replace('.*TOPIC\\s+(\\S+).*', '\\1') | string | regex_replace('^', ' ') }} | {{ result.stdout | regex_replace('.*PARTITION\\s+(\\d+).*', '\\1') | string | regex_replace('^', ' ') }} | {{ result.stdout | regex_replace('.*CURRENT-OFFSET\\s+(\\d+).*', '\\1') | string | regex_replace('^', ' ') }} | {{ result.stdout | regex_replace('.*LOG-END-OFFSET\\s+(\\d+).*', '\\1') | string | regex_replace('^', ' ') }} | {{ lag | string | regex_replace('^', ' ') }} | {{ result.stdout | regex_replace('.*CONSUMER-ID\\s+(\\S+).*', '\\1') | string | regex_replace('^', ' ') }} | {{ result.stdout | regex_replace('.*HOST\\s+(\\S+).*', '\\1') | string | regex_replace('^', ' ') }} | {{ result.stdout | regex_replace('.*CLIENT-ID\\s+(\\S+).*', '\\1') | string | regex_replace('^', ' ') }} |
           {% endfor %}
           +---------------------------------------+---------------------------------------+------------+----------------+----------------+---------------+---------------+---------------+---------------+
       loop: "{{ consumer_group_output.results }}"
