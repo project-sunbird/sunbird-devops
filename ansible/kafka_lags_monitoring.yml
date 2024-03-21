@@ -22,28 +22,22 @@
         - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
+
     - name: Print Kafka lag status for each group
       debug:
         msg: |
-          {% set table_data = [] %}
-          {% for result in consumer_group_output.results %}
-              {% set group_data = {} %}
-              {% set _ = group_data.update({'group': result.item}) %}
-              {% set _ = group_data.update({'topic': result.stdout | regex_replace('^[\\s\\S]*TOPIC[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }) %}
-              {% set _ = group_data.update({'partition': result.stdout | regex_replace('^[\\s\\S]*PARTITION[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }) %}
-              {% set _ = group_data.update({'current_offset': result.stdout | regex_replace('^[\\s\\S]*CURRENT-OFFSET[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }) %}
-              {% set _ = group_data.update({'log_end_offset': result.stdout | regex_replace('^[\\s\\S]*LOG-END-OFFSET[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }) %}
-              {% set _ = group_data.update({'lag': result.stdout | regex_replace('^[\\s\\S]*LAG[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') | int }) %}
-              {% set _ = group_data.update({'consumer_id': result.stdout | regex_replace('^[\\s\\S]*CONSUMER-ID[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }) %}
-              {% set _ = group_data.update({'host': result.stdout | regex_replace('^[\\s\\S]*HOST[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }) %}
-              {% set _ = group_data.update({'client_id': result.stdout | regex_replace('^[\\s\\S]*CLIENT-ID[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }) %}
-              {% set table_data = table_data + [group_data] %}
-          {% endfor %}
-          +--------------+--------------+------------+----------------+----------------+-----+-------------+------+------------+
-          {% for data in table_data %}
-          | {{ data['group'] | default('N/A') }} | {{ data['topic'] | default('N/A') }} | {{ data['partition'] | default('N/A') }} | {{ data['current_offset'] | default('N/A') }} | {{ data['log_end_offset'] | default('N/A') }} | {{ data['lag'] | default('N/A') }} | {{ data['consumer_id'] | default('N/A') }} | {{ data['host'] | default('N/A') }} | {{ data['client_id'] | default('N/A') }} |
-          {% endfor %}
-          +--------------+--------------+------------+----------------+----------------+-----+-------------+------+------------+
+          Kafka lag status for group '{{ item.item }}':
+          +--------------+-------------------------------+-----------+----------------+---------------+------------+------------+-------------+
+          |   GROUP      |   TOPIC                         | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG        | CONSUMER-ID | CLIENT-ID  |
+          +--------------+-------------------------------+-----------+----------------+---------------+------------+------------+-------------+
+          | {{ item.stdout | regex_replace('.*GROUP\\s+([^\\s]+).*', '\\1') | default('N/A') | string.center(14) }} | {{ item.stdout | regex_replace('.*TOPIC\\s+([^\\s]+).*', '\\1') | default('N/A') | string.center(30) }} | {{ item.stdout | regex_replace('.*PARTITION\\s+([^\\s]+).*', '\\1') | default('N/A') | string.center(12) }} | {{ item.stdout | regex_replace('.*CURRENT-OFFSET\\s+([^\\s]+).*', '\\1') | default('N/A') | string.center(15) }} | {{ item.stdout | regex_replace('.*LOG-END-OFFSET\\s+([^\\s]+).*', '\\1') | default('N/A') | string.center(15) }} | {{ item.stdout | regex_replace('.*LAG\\s+([^\\s]+).*', '\\1') | default('N/A') | string.center(4) }} | {{ item.stdout | regex_replace('.*CONSUMER-ID\\s+([^\\s]+).*', '\\1') | default('N/A') | string.center(11) }} | {{ item.stdout | regex_replace('.*HOST\\s+([^\\s]+).*', '\\1') | default('N/A') | string.center(6) }} | {{ item.stdout | regex_replace('.*CLIENT-ID\\s+([^\\s]+).*', '\\1') | default('N/A') | string.center(9) }} |
+          +--------------+-------------------------------+-----------+----------------+---------------+------------+------------+-------------+
+          {% set lag = item.stdout | regex_replace('.*LAG\\s+([^\\s]+).*', '\\1') | int %}
+          {% if lag <= 9 %}
+          Kafka lag for group '{{ item.item }}' is normal (0 to 9)
+          {% else %}
+          Kafka lag for group '{{ item.item }}' is high
+          {% endif %}
       loop: "{{ consumer_group_output.results }}"
       loop_control:
         label: "{{ item.item }}"
