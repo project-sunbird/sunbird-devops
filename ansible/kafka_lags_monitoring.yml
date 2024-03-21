@@ -1,10 +1,13 @@
----
-- name: Display Kafka consumer group status in table format
+- name: Display Kafka consumer group status
   hosts: ingestion-cluster-kafka
   gather_facts: no
   tasks:
+    - name: Install tabulate Python library
+      pip:
+        name: tabulate
+
     - name: Loop through Kafka consumer groups and check lag status
-      shell: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe --group "{{ item }}"
+      command: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe --group "{{ item }}"
       register: consumer_group_output
       loop:
         - "dev-audit-event-generator-group"
@@ -23,22 +26,16 @@
         - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
-        
-    - name: Install tabulate Python library
-      pip:
-        name: tabulate
-        
+
     - name: Format Kafka consumer group status into table format
       run_once: true
       script: |
         from tabulate import tabulate
         output_data = []
-        for item in consumer_group_output.results:
-            group_name = item.item
-            status = item.stdout
-            lag = int(status.split('LAG')[1].split()[0]) if 'LAG' in status else None
-            lag_status = 'Normal' if lag is not None and lag <= 9 else 'High' if lag is not None and lag > 9 else 'Unknown'
-            output_data.append([group_name, lag, lag_status])
+        headers = ["GROUP", "TOPIC", "PARTITION", "CURRENT-OFFSET", "LOG-END-OFFSET", "LAG", "CONSUMER-ID", "HOST", "CLIENT-ID"]
+        for line in consumer_group_output.stdout_lines[2:]:  # Skip the header and separator lines
+            row_data = line.split()
+            output_data.append(row_data[:9])  # Extract only the relevant columns
         
-        table = tabulate(output_data, headers=["Consumer Group", "Kafka Lag", "Lag Status"], tablefmt="pipe")
+        table = tabulate(output_data, headers=headers, tablefmt="pipe")
         print(table)
