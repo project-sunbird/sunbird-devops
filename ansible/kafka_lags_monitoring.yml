@@ -1,4 +1,5 @@
-- name: Display Kafka consumer group status
+---
+- name: Display Kafka consumer group status with structured table format
   hosts: ingestion-cluster-kafka
   gather_facts: no
   tasks:
@@ -22,15 +23,19 @@
         - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
-    - name: Print Kafka lag status for each group
+
+    - name: Print Kafka lag status for each group in table format
       debug:
         msg: |
-          {% set lag = item.stdout | regex_replace('.*LAG\\s+([^\\s]+).*', '\\1') | int %}
-          {% if lag <= 9 %}
-          Kafka lag for group '{{ item.item }}' is normal (0 to 9)
+          Consumer group '{{ item.item }}' has no active members.
+          {% for line in item.stdout_lines %}
+          {% if loop.first %}
+          {{ line }}  {# This prints the header line as is #}
+          |---------------------------------|------------------|-----------|----------------|-----------------|--------|---------------|---------|-----------------------|
           {% else %}
-          Kafka lag for group '{{ item.item }}' is high
+          | {{ '%-33s' | format(line.split()[0] | default('', true)) }} | {{ '%-18s' | format(line.split()[1] | default('', true)) }} | {{ '%-9s' | format(line.split()[2] | default('', true)) }} | {{ '%-14s' | format(line.split()[3] | default('', true)) }} | {{ '%-15s' | format(line.split()[4] | default('', true)) }} | {{ '%-6s' | format(line.split()[5] | default('', true)) }} | {{ '%-13s' | format(line.split()[6] | default('', true)) }} | {{ '%-7s' | format(line.split()[7] | default('', true)) }} | {{ '%-21s' | format(line.split()[8] | default('', true)) }} |
           {% endif %}
+          {% endfor %}
       loop: "{{ consumer_group_output.results }}"
       loop_control:
         label: "{{ item.item }}"
