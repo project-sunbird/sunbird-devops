@@ -2,12 +2,8 @@
   hosts: ingestion-cluster-kafka
   gather_facts: no
   tasks:
-    - name: Install tabulate Python library
-      pip:
-        name: tabulate
-
     - name: Loop through Kafka consumer groups and check lag status
-      raw: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe --group "{{ item }}"
+      command: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe --group "{{ item }}"
       register: consumer_group_output
       loop:
         - "dev-audit-event-generator-group"
@@ -26,19 +22,19 @@
         - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
-
-    - name: Format Kafka consumer group status into table format
-      run_once: true
-      script: |
-        output_data = []  # Define the output_data list here
-
-        headers = ["GROUP", "TOPIC", "PARTITION", "CURRENT-OFFSET", "LOG-END-OFFSET", "LAG", "CONSUMER-ID", "HOST", "CLIENT-ID"]
-
-        for result in consumer_group_output.results:
-          for line in result.stdout_lines[2:]:
-            row_data = line.split()
-            output_data.append(row_data[:9])
-
-        from tabulate import tabulate  # Import tabulate here
-
-        print(tabulate(output_data, headers=headers, tablefmt="pipe"))
+    - name: Print Kafka lag status for each group
+      debug:
+        msg: |
+          Consumer group '{{ item.item }}' has no active members.
+          GROUP                        TOPIC                         PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG             CONSUMER-ID     HOST            CLIENT-ID
+          {{ item.stdout | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }}
+          {% set lag = item.stdout | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}
+          {% if lag <= 9 %}
+          Kafka lag for group '{{ item.item }}' is normal (0 to 9)
+          {% else %}
+          Kafka lag for group '{{ item.item }}' is high
+          {% endif %}
+          ----------------------------------------
+      loop: "{{ consumer_group_output.results }}"
+      loop_control:
+        label: "{{ item.item }}"
