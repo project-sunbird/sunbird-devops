@@ -1,6 +1,5 @@
----
 - name: Display Kafka consumer group status
-  hosts: localhost
+  hosts: ingestion-cluster-kafka
   gather_facts: no
   tasks:
     - name: Loop through Kafka consumer groups and check lag status
@@ -23,29 +22,18 @@
         - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
-    - name: Print Kafka lag status for each group
+    
+    - name: Generate Kafka group status table
       debug:
         msg: |
-          {% set header_printed = false %}
-          {% for item in consumer_group_output.results %}
-            {% if item.stdout.find('No such consumer group') == -1 %}
-              {% set consumer_details = item.stdout | regex_replace('.*?GROUP\\s+TOPIC\\s+PARTITION\\s+CURRENT-OFFSET\\s+LOG-END-OFFSET\\s+LAG\\s+CONSUMER-ID\\s+HOST\\s+CLIENT-ID\\s+(.*?)\\n.*', '\\1') %}
-              {% set consumer_lines = consumer_details.split('\n') %}
-              {% for line in consumer_lines %}
-                {% if line %}
-                  {% if not header_printed %}
-                    +---------------------+------------------+-----------+----------------+----------------+-----+------------+------------+
-                    |        GROUP        |      TOPIC       | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID |    HOST    |
-                    +---------------------+------------------+-----------+----------------+----------------+-----+------------+------------+
-                    {% set header_printed = true %}
-                  {% endif %}
-                  {% set columns = line.split() %}
-                  | {{ columns[0][:20].center(20) }} | {{ columns[1][:16].center(16) }} | {{ columns[2].center(9) }} | {{ columns[3].center(16) }} | {{ columns[4].center(16) }} | {{ columns[5].center(4) }} | {{ columns[6][:12].center(12) }} | {{ columns[7][:12].center(12) }} |
-                {% endif %}
-              {% endfor %}
-            {% endif %}
+          +---------------------------------------+---------------------------------------+------------+----------------+----------------+---------------+---------------+---------------+
+          | GROUP                                 | TOPIC                                 | PARTITION  | CURRENT-OFFSET | LOG-END-OFFSET | LAG           | CONSUMER-ID   | HOST          | CLIENT-ID     |
+          +---------------------------------------+---------------------------------------+------------+----------------+----------------+---------------+---------------+---------------+
+          {% for result in consumer_group_output.results %}
+          {% set lag = result.stdout | regex_replace('.*LAG\\s+(\\d+).*', '\\1') | int %}
+          | {{ result.item | string | pad(39) }} | {{ result.stdout | regex_replace('.*TOPIC\\s+(\\S+).*', '\\1') | string | pad(39) }} | {{ result.stdout | regex_replace('.*PARTITION\\s+(\\d+).*', '\\1') | string | pad(11) }} | {{ result.stdout | regex_replace('.*CURRENT-OFFSET\\s+(\\d+).*', '\\1') | string | pad(15) }} | {{ result.stdout | regex_replace('.*LOG-END-OFFSET\\s+(\\d+).*', '\\1') | string | pad(15) }} | {{ lag | string | pad(12) }} | {{ result.stdout | regex_replace('.*CONSUMER-ID\\s+(\\S+).*', '\\1') | string | pad(15) }} | {{ result.stdout | regex_replace('.*HOST\\s+(\\S+).*', '\\1') | string | pad(15) }} | {{ result.stdout | regex_replace('.*CLIENT-ID\\s+(\\S+).*', '\\1') | string | pad(15) }} |
           {% endfor %}
-          +---------------------+------------------+-----------+----------------+----------------+-----+------------+------------+
+          +---------------------------------------+---------------------------------------+------------+----------------+----------------+---------------+---------------+---------------+---------------+
       loop: "{{ consumer_group_output.results }}"
       loop_control:
         label: "{{ item.item }}"
