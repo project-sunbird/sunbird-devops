@@ -30,16 +30,12 @@
     - name: Format Kafka consumer group status into table format
       run_once: true
       script: |
-        from tabulate import tabulate
         output_data = []
-        headers_printed = False
         headers = ["GROUP", "TOPIC", "PARTITION", "CURRENT-OFFSET", "LOG-END-OFFSET", "LAG", "CONSUMER-ID", "HOST", "CLIENT-ID"]
-        for line in consumer_group_output.stdout_lines[2:]:
-            row_data = line.split()
-            output_data.append(row_data[:9])
+        for line in consumer_group_output.results | map(attribute='stdout_lines[2:]') | list:
+            for item in line:
+                row_data = item.split()
+                output_data.append(row_data[:9])
         
-        for data in output_data:
-            if not headers_printed:
-                print("| " + " | ".join(headers) + " |")
-                headers_printed = True
-            print("| " + " | ".join(data) + " |")
+        table = tabulate(output_data, headers=headers, tablefmt="pipe")
+        print(table)
