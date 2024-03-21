@@ -32,10 +32,11 @@
       script: |
         output_data = []
         headers = ["GROUP", "TOPIC", "PARTITION", "CURRENT-OFFSET", "LOG-END-OFFSET", "LAG", "CONSUMER-ID", "HOST", "CLIENT-ID"]
-        for line in consumer_group_output.results | map(attribute='stdout_lines[2:]') | list:
-            for item in line:
-                row_data = item.split()
-                output_data.append(row_data[:9])
-        
+        for result in consumer_group_output.results:
+          for line in result.stdout_lines[2:]:
+            row_data = line.split()
+            output_data.append(row_data[:9])
+
+        from tabulate import tabulate
         table = tabulate(output_data, headers=headers, tablefmt="pipe")
         print(table)
