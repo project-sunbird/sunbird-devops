@@ -1,9 +1,10 @@
+---
 - name: Display Kafka consumer group status
-  hosts: ingestion-cluster-kafka
+  hosts: localhost
   gather_facts: no
   tasks:
     - name: Loop through Kafka consumer groups and check lag status
-      command: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --group "{{ item }}" --describe
+      command: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe --group "{{ item }}"
       register: consumer_group_output
       loop:
         - "dev-audit-event-generator-group"
@@ -33,18 +34,18 @@
               {% for line in consumer_lines %}
                 {% if line %}
                   {% if not header_printed %}
-                    +--------+--------+-----------+--------+--------+--------+--------+--------+--------+
-                    | GROUP  | TOPIC  | PARTITION | OFFSET |  LOG   |  LAG   | CON-ID |  HOST  | CLIENT |
-                    +--------+--------+-----------+--------+--------+--------+--------+--------+--------+
+                    +---------------------+------------------+-----------+----------------+----------------+-----+------------+------------+
+                    |        GROUP        |      TOPIC       | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID |    HOST    |
+                    +---------------------+------------------+-----------+----------------+----------------+-----+------------+------------+
                     {% set header_printed = true %}
                   {% endif %}
                   {% set columns = line.split() %}
-                  | {{ columns[0][:6].center(6) }} | {{ columns[1][:6].center(6) }} | {{ columns[2].center(9) }} | {{ columns[3][:6].center(6) }} | {{ columns[4][:6].center(6) }} | {{ columns[5].center(6) }} | {{ columns[6][:6].center(6) }} | {{ columns[7][:6].center(6) }} | {{ columns[8][:6].center(6) }} |
+                  | {{ columns[0][:20].center(20) }} | {{ columns[1][:16].center(16) }} | {{ columns[2].center(9) }} | {{ columns[3].center(16) }} | {{ columns[4].center(16) }} | {{ columns[5].center(4) }} | {{ columns[6][:12].center(12) }} | {{ columns[7][:12].center(12) }} |
                 {% endif %}
               {% endfor %}
             {% endif %}
           {% endfor %}
-          +--------+--------+-----------+--------+--------+--------+--------+--------+--------+
+          +---------------------+------------------+-----------+----------------+----------------+-----+------------+------------+
       loop: "{{ consumer_group_output.results }}"
       loop_control:
         label: "{{ item.item }}"
