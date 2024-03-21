@@ -25,19 +25,25 @@
     - name: Print Kafka lag status for each group
       debug:
         msg: |
-          Kafka lag status for group '{{ item.item }}':
-          +-------------+-------------------------------+-----------+----------------+---------------+------------+------------+-------------+
-          | GROUP       | TOPIC                         | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET| LAG        | CONSUMER-ID| CLIENT-ID   |
-          +-------------+-------------------------------+-----------+----------------+---------------+------------+------------+-------------+
-          {{ item.stdout | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }}
-          {% set lag = item.stdout | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}
-          +-------------+-------------------------------+-----------+----------------+---------------+------------+------------+-------------+
-          {% if lag <= 9 %}
-          Kafka lag for group '{{ item.item }}' is normal (0 to 9)
-          {% else %}
-          Kafka lag for group '{{ item.item }}' is high
-          {% endif %}
-          ----------------------------------------
+          {% set table_data = [] %}
+          {% for result in consumer_group_output.results %}
+              {% set group_data = {} %}
+              {% set group_data['group'] = result.item %}
+              {% set group_data['topic'] = result.stdout | regex_replace('^[\\s\\S]*TOPIC[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') %}
+              {% set group_data['partition'] = result.stdout | regex_replace('^[\\s\\S]*PARTITION[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') %}
+              {% set group_data['current_offset'] = result.stdout | regex_replace('^[\\s\\S]*CURRENT-OFFSET[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') %}
+              {% set group_data['log_end_offset'] = result.stdout | regex_replace('^[\\s\\S]*LOG-END-OFFSET[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') %}
+              {% set group_data['lag'] = result.stdout | regex_replace('^[\\s\\S]*LAG[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') | int %}
+              {% set group_data['consumer_id'] = result.stdout | regex_replace('^[\\s\\S]*CONSUMER-ID[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') %}
+              {% set group_data['host'] = result.stdout | regex_replace('^[\\s\\S]*HOST[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') %}
+              {% set group_data['client_id'] = result.stdout | regex_replace('^[\\s\\S]*CLIENT-ID[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') %}
+              {% set table_data = table_data + [group_data] %}
+          {% endfor %}
+          +--------------+--------------+------------+----------------+----------------+-----+-------------+------+------------+
+          {% for data in table_data %}
+          | {{ data['group'] | default('N/A') }} | {{ data['topic'] | default('N/A') }} | {{ data['partition'] | default('N/A') }} | {{ data['current_offset'] | default('N/A') }} | {{ data['log_end_offset'] | default('N/A') }} | {{ data['lag'] | default('N/A') }} | {{ data['consumer_id'] | default('N/A') }} | {{ data['host'] | default('N/A') }} | {{ data['client_id'] | default('N/A') }} |
+          {% endfor %}
+          +--------------+--------------+------------+----------------+----------------+-----+-------------+------+------------+
       loop: "{{ consumer_group_output.results }}"
       loop_control:
         label: "{{ item.item }}"
