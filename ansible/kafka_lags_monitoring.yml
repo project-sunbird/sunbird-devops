@@ -32,10 +32,14 @@
       script: |
         from tabulate import tabulate
         output_data = []
+        headers_printed = False
         headers = ["GROUP", "TOPIC", "PARTITION", "CURRENT-OFFSET", "LOG-END-OFFSET", "LAG", "CONSUMER-ID", "HOST", "CLIENT-ID"]
-        for line in consumer_group_output.stdout_lines[2:]:  # Skip the header and separator lines
+        for line in consumer_group_output.stdout_lines[2:]:
             row_data = line.split()
-            output_data.append(row_data[:9])  # Extract only the relevant columns
+            output_data.append(row_data[:9])
         
-        table = tabulate(output_data, headers=headers, tablefmt="pipe")
-        print(table)
+        for data in output_data:
+            if not headers_printed:
+                print("| " + " | ".join(headers) + " |")
+                headers_printed = True
+            print("| " + " | ".join(data) + " |")
