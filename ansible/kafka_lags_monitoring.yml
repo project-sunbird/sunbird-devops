@@ -25,24 +25,26 @@
     - name: Print Kafka lag status for each group
       debug:
         msg: |
-          {% if item.stdout.find('No such consumer group') == -1 %}
           {% set header_printed = false %}
-          {% set consumer_details = item.stdout | regex_replace('.*?GROUP\\s+TOPIC\\s+PARTITION\\s+CURRENT-OFFSET\\s+LOG-END-OFFSET\\s+LAG\\s+CONSUMER-ID\\s+HOST\\s+CLIENT-ID\\s+(.*?)\\n.*', '\\1') %}
-          {% set consumer_lines = consumer_details.split('\n') %}
-          {% for line in consumer_lines %}
-          {% if line %}
-          {% if not header_printed %}
-          +--------+--------+-----------+--------+--------+--------+--------+--------+--------+
-          | GROUP  | TOPIC  | PARTITION | OFFSET |  LOG   |  LAG   | CON-ID |  HOST  | CLIENT |
-          +--------+--------+-----------+--------+--------+--------+--------+--------+--------+
-          {% set header_printed = true %}
-          {% endif %}
-          {% set columns = line.split() %}
-          | {{ columns[0][:6].center(6) }} | {{ columns[1][:6].center(6) }} | {{ columns[2].center(9) }} | {{ columns[3][:6].center(6) }} | {{ columns[4][:6].center(6) }} | {{ columns[5].center(6) }} | {{ columns[6][:6].center(6) }} | {{ columns[7][:6].center(6) }} | {{ columns[8][:6].center(6) }} |
-          {% endif %}
+          {% for item in consumer_group_output.results %}
+            {% if item.stdout.find('No such consumer group') == -1 %}
+              {% set consumer_details = item.stdout | regex_replace('.*?GROUP\\s+TOPIC\\s+PARTITION\\s+CURRENT-OFFSET\\s+LOG-END-OFFSET\\s+LAG\\s+CONSUMER-ID\\s+HOST\\s+CLIENT-ID\\s+(.*?)\\n.*', '\\1') %}
+              {% set consumer_lines = consumer_details.split('\n') %}
+              {% for line in consumer_lines %}
+                {% if line %}
+                  {% if not header_printed %}
+                    +--------+--------+-----------+--------+--------+--------+--------+--------+--------+
+                    | GROUP  | TOPIC  | PARTITION | OFFSET |  LOG   |  LAG   | CON-ID |  HOST  | CLIENT |
+                    +--------+--------+-----------+--------+--------+--------+--------+--------+--------+
+                    {% set header_printed = true %}
+                  {% endif %}
+                  {% set columns = line.split() %}
+                  | {{ columns[0][:6].center(6) }} | {{ columns[1][:6].center(6) }} | {{ columns[2].center(9) }} | {{ columns[3][:6].center(6) }} | {{ columns[4][:6].center(6) }} | {{ columns[5].center(6) }} | {{ columns[6][:6].center(6) }} | {{ columns[7][:6].center(6) }} | {{ columns[8][:6].center(6) }} |
+                {% endif %}
+              {% endfor %}
+            {% endif %}
           {% endfor %}
           +--------+--------+-----------+--------+--------+--------+--------+--------+--------+
-          {% endif %}
       loop: "{{ consumer_group_output.results }}"
       loop_control:
         label: "{{ item.item }}"
