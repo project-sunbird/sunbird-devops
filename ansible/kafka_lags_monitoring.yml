@@ -26,19 +26,19 @@
       debug:
         msg: |
           {% if item.stdout.find('No such consumer group') == -1 %}
-          Consumer group: '{{ item.item }}'                                                                                                                                                              |
-          +------------------+------------------+-----------+------------------+------------------+------------------+------------------+------------------+------------------+
-          |      GROUP       |      TOPIC       | PARTITION |  CURRENT-OFFSET  |  LOG-END-OFFSET  |       LAG        |   CONSUMER-ID    |       HOST       |     CLIENT-ID    |
-          +------------------+------------------+-----------+------------------+------------------+------------------+------------------+------------------+------------------+
+          Consumer group: '{{ item.item }}'                                                                                                                                                        
+          +----------------------+----------------------+-----------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
+          |        GROUP         |        TOPIC         | PARTITION |    CURRENT-OFFSET    |    LOG-END-OFFSET    |         LAG          |     CONSUMER-ID      |         HOST         |      CLIENT-ID       |
+          +----------------------+----------------------+-----------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
           {% set consumer_details = item.stdout | regex_replace('.*?GROUP\\s+TOPIC\\s+PARTITION\\s+CURRENT-OFFSET\\s+LOG-END-OFFSET\\s+LAG\\s+CONSUMER-ID\\s+HOST\\s+CLIENT-ID\\s+(.*?)\\n.*', '\\1') %}
           {% set consumer_lines = consumer_details.split('\n') %}
           {% for line in consumer_lines %}
           {% if line %}
           {% set columns = line.split() %}
-          | {{ columns[0][:14].center(14) }} | {{ columns[1][:14].center(14) }} | {{ columns[2].center(9) }} | {{ columns[3].center(18) }} | {{ columns[4].center(18) }} | {{ columns[5].center(10) }} | {{ columns[6].center(16) }} | {{ columns[7].center(16) }} | {{ columns[8].center(16) }} |
+          | {{ columns[0][:20].center(20) }} | {{ columns[1][:20].center(20) }} | {{ columns[2].center(9) }} | {{ columns[3].center(20) }} | {{ columns[4].center(20) }} | {{ columns[5].center(20) }} | {{ columns[6].center(20) }} | {{ columns[7].center(20) }} | {{ columns[8].center(20) }} |
           {% endif %}
           {% endfor %}
-          +------------------+------------------+-----------+------------------+------------------+------------------+------------------+------------------+------------------+
+          +----------------------+----------------------+-----------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
           {% set lag = item.stdout | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}
           {% if lag <= 9 %}
           Kafka lag for group '{{ item.item }}' is normal (0 to 9)
