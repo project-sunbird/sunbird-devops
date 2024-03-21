@@ -3,7 +3,7 @@
   gather_facts: no
   tasks:
     - name: Loop through Kafka consumer groups and check lag status
-      command: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe --group "{{ item }}"
+      command: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe
       register: consumer_group_output
       loop:
         - "dev-audit-event-generator-group"
@@ -32,23 +32,16 @@
           {% for line in consumer_lines %}
           {% if line %}
           {% if not header_printed %}
-          +----------------------+----------------------+-----------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
-          |        GROUP         |        TOPIC         | PARTITION |    CURRENT-OFFSET    |    LOG-END-OFFSET    |         LAG          |     CONSUMER-ID      |         HOST         |      CLIENT-ID       |
-          +----------------------+----------------------+-----------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
+          +--------+--------+-----------+--------+--------+--------+--------+--------+--------+
+          | GROUP  | TOPIC  | PARTITION | OFFSET |  LOG   |  LAG   | CON-ID |  HOST  | CLIENT |
+          +--------+--------+-----------+--------+--------+--------+--------+--------+--------+
           {% set header_printed = true %}
           {% endif %}
           {% set columns = line.split() %}
-          | {{ columns[0][:15].center(15) }} | {{ columns[1][:15].center(15) }} | {{ columns[2].center(9) }} | {{ columns[3].center(15) }} | {{ columns[4].center(15) }} | {{ columns[5].center(15) }} | {{ columns[6].center(15) }} | {{ columns[7].center(15) }} | {{ columns[8].center(15) }} |
+          | {{ columns[0][:6].center(6) }} | {{ columns[1][:6].center(6) }} | {{ columns[2].center(9) }} | {{ columns[3][:6].center(6) }} | {{ columns[4][:6].center(6) }} | {{ columns[5].center(6) }} | {{ columns[6][:6].center(6) }} | {{ columns[7][:6].center(6) }} | {{ columns[8][:6].center(6) }} |
           {% endif %}
           {% endfor %}
-          +----------------------+----------------------+-----------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
-          {% set lag = item.stdout | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}
-          {% if lag <= 9 %}
-          Kafka lag for group '{{ item.item }}' is normal (0 to 9)
-          {% else %}
-          Kafka lag for group '{{ item.item }}' is high
-          {% endif %}
-          ----------------------------------------
+          +--------+--------+-----------+--------+--------+--------+--------+--------+--------+
           {% endif %}
       loop: "{{ consumer_group_output.results }}"
       loop_control:
