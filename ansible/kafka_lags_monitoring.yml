@@ -26,16 +26,19 @@
       debug:
         msg: |
           {% if item.stdout.find('No such consumer group') == -1 %}
-          Consumer group: '{{ item.item }}'
-          +----------------------+----------------------+-----------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
-          |        GROUP         |        TOPIC         | PARTITION |    CURRENT-OFFSET    |    LOG-END-OFFSET    |         LAG          |     CONSUMER-ID      |         HOST         |      CLIENT-ID       |
-          +----------------------+----------------------+-----------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
+          {% set header_printed = false %}
           {% set consumer_details = item.stdout | regex_replace('.*?GROUP\\s+TOPIC\\s+PARTITION\\s+CURRENT-OFFSET\\s+LOG-END-OFFSET\\s+LAG\\s+CONSUMER-ID\\s+HOST\\s+CLIENT-ID\\s+(.*?)\\n.*', '\\1') %}
           {% set consumer_lines = consumer_details.split('\n') %}
           {% for line in consumer_lines %}
           {% if line %}
+          {% if not header_printed %}
+          +----------------------+----------------------+-----------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
+          |        GROUP         |        TOPIC         | PARTITION |    CURRENT-OFFSET    |    LOG-END-OFFSET    |         LAG          |     CONSUMER-ID      |         HOST         |      CLIENT-ID       |
+          +----------------------+----------------------+-----------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
+          {% set header_printed = true %}
+          {% endif %}
           {% set columns = line.split() %}
-          | {{ columns[0][:20].center(20) }} | {{ columns[1][:20].center(20) }} | {{ columns[2].center(9) }} | {{ columns[3].center(20) }} | {{ columns[4].center(20) }} | {{ columns[5].center(20) }} | {{ columns[6].center(20) }} | {{ columns[7].center(20) }} | {{ columns[8].center(20) }} |
+          | {{ columns[0][:15].center(15) }} | {{ columns[1][:15].center(15) }} | {{ columns[2].center(9) }} | {{ columns[3].center(15) }} | {{ columns[4].center(15) }} | {{ columns[5].center(15) }} | {{ columns[6].center(15) }} | {{ columns[7].center(15) }} | {{ columns[8].center(15) }} |
           {% endif %}
           {% endfor %}
           +----------------------+----------------------+-----------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+
