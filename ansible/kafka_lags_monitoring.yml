@@ -1,8 +1,9 @@
+---
 - name: Display Kafka consumer group status
   hosts: ingestion-cluster-kafka
   gather_facts: no
   tasks:
-    - name: Loop through Kafka consumer groups and check lag status
+    - name: Check lag status for specified Kafka consumer groups
       command: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe --group "{{ item }}"
       register: consumer_group_output
       loop:
@@ -22,19 +23,45 @@
         - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
-    - name: Print Kafka lag status for each group
+      ignore_errors: yes  # Handle errors if the group is not found or command fails
+
+    - name: Prepare formatted Kafka consumer group output
+      set_fact:
+        kafka_groups: "{{ consumer_group_output.results | map(extract_group_info) | table_format }}"
+      vars:
+        extract_group_info: >-
+          def extract_group_info(result):
+            group_name = result.item
+            data = result.stdout_lines
+            # Skip the header line (assuming it's the first line)
+            data.pop(0)
+            members = []
+            for line in data:
+              data = line.split()
+              if data:
+                members.append({
+                  'topic': data[0],
+                  'partition': data[1],
+                  'current_offset': data[2],
+                  'log_end_offset': data[3],
+                  'lag': data[4],
+                  'consumer_id': data[5] if len(data) > 5 else '',
+                  'host': data[6] if len(data) > 6 else '',
+                  'client_id': data[7] if len(data) > 7 else '',
+                })
+            return { 'group_name': group_name, 'members': members }
+
+        table_format: >-
+          def table_format(groups):
+            headers = list(groups[0]['members'][0].keys()) if groups and groups[0]['members'] else []
+            max_lengths = {key: len(key) for key in headers}
+            format_string = '|' + '|'.join(['{{:<{}}}'.format(max_lengths[key]) for key in headers]) + '|'
+            output = [format_string.format(**{key: key for key in headers})]  # Group header row
+            for group in groups:
+              for member in group['members']:
+                output.append(format_string.format(**member))
+            return '\n'.join(output)
+
+    - name: Print formatted Kafka consumer group output
       debug:
-        msg: |
-          Consumer group '{{ item.item }}' has no active members.
-          GROUP                        TOPIC                         PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG             CONSUMER-ID     HOST            CLIENT-ID
-          {{ item.stdout | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }}
-          {% set lag = item.stdout | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}
-          {% if lag <= 9 %}
-          Kafka lag for group '{{ item.item }}' is normal (0 to 9)
-          {% else %}
-          Kafka lag for group '{{ item.item }}' is high
-          {% endif %}
-          ----------------------------------------
-      loop: "{{ consumer_group_output.results }}"
-      loop_control:
-        label: "{{ item.item }}"
+        msg: "{{ kafka_groups }}"
