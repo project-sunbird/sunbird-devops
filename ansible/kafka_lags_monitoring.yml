@@ -38,11 +38,11 @@
     
     - name: Append data to output content
       set_fact:
-        output_content: "{{ output_content }}\n{% for line in consumer_group_output.stdout_lines %}{{ line | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }}{% endfor %}"
+        output_content: "{{ output_content }}\n{% for line in consumer_group_output.results[item]['stdout_lines'] %}{{ line | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }}{% endfor %}"
 
     - name: Check lag status and update output content
       set_fact:
-        output_content: "{{ output_content }}\n{% set lag = consumer_group_output.stdout | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}{% if lag <= 9 %}Kafka lag for group '{{ item }}' is normal (0 to 9){% else %}Kafka lag for group '{{ item }}' is high{% endif %}"
+        output_content: "{{ output_content }}\n{% set lag = consumer_group_output.results[item]['stdout'] | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}{% if lag <= 9 %}Kafka lag for group '{{ item }}' is normal (0 to 9){% else %}Kafka lag for group '{{ item }}' is high{% endif %}"
 
     - name: Save Kafka lag status to file
       copy:
