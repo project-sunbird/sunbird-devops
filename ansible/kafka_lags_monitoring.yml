@@ -23,21 +23,17 @@
       loop_control:
         label: "{{ item }}"
 
-    - name: Print Kafka lag status for each group
+    - name: Print Kafka lag status and detailed information for each group
       debug:
         msg: |
-          {% set lag = item.stdout | regex_replace('.*LAG\\s+(\\d+)', '\\1') | int %}
-          {% if lag <= 9 %}
-          Kafka lag for group '{{ item.item }}' is normal (0 to 9)
-          {% else %}
-          Kafka lag for group '{{ item.item }}' is high
-          {% endif %}
           {% if 'No active consumers' not in item.stdout %}
+          Kafka lag for group '{{ item.item }}' is {% set lag = item.stdout | regex_replace('.*LAG\\s+(\\d+)', '\\1') | int %}{% if lag <= 9 %}normal (0 to 9){% else %}high{% endif %}
           {{ item.stdout | regex_replace('.*GROUP\\s+(.*?)\\s+TOPIC', '\\1 TOPIC') | regex_replace('(\\n)+', '\\n') }}
+          ----------------------------------------
           {% else %}
           No active consumers for this group
-          {% endif %}
           ----------------------------------------
+          {% endif %}
       loop: "{{ consumer_group_output.results }}"
       loop_control:
         label: "{{ item.item }}"
