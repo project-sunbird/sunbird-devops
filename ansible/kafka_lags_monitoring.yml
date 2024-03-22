@@ -3,7 +3,7 @@
   hosts: ingestion-cluster-kafka
   gather_facts: no
   tasks:
-    - name: Check lag status for specified Kafka consumer groups
+    - name: Loop through Kafka consumer groups and check lag status
       command: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe --group "{{ item }}"
       register: consumer_group_output
       loop:
@@ -23,45 +23,24 @@
         - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
-      ignore_errors: yes  # Handle errors if the group is not found or command fails
-
-    - name: Prepare formatted Kafka consumer group output
+    - name: Prepare Kafka consumer group output
       set_fact:
-        kafka_groups: "{{ consumer_group_output.results | map(extract_group_info) | table_format }}"
+        kafka_groups: "{{ consumer_group_output.results | map(extract_group_info) | list }}"
       vars:
         extract_group_info: >-
-          def extract_group_info(result):
-            group_name = result.item
-            data = result.stdout_lines
-            # Skip the header line (assuming it's the first line)
-            data.pop(0)
-            members = []
-            for line in data:
-              data = line.split()
-              if data:
-                members.append({
-                  'topic': data[0],
-                  'partition': data[1],
-                  'current_offset': data[2],
-                  'log_end_offset': data[3],
-                  'lag': data[4],
-                  'consumer_id': data[5] if len(data) > 5 else '',
-                  'host': data[6] if len(data) > 6 else '',
-                  'client_id': data[7] if len(data) > 7 else '',
-                })
-            return { 'group_name': group_name, 'members': members }
+          lambda result: {
+            'group_name': result.item,
+            'members': [
+              dict(zip(['group', 'topic', 'partition', 'current_offset', 'log_end_offset', 'lag', 'consumer_id', 'host', 'client_id'], line.split()))
+              for line in result.stdout_lines[1:] if line.strip()
+            ]
+          }
 
-        table_format: >-
-          def table_format(groups):
-            headers = list(groups[0]['members'][0].keys()) if groups and groups[0]['members'] else []
-            max_lengths = {key: len(key) for key in headers}
-            format_string = '|' + '|'.join(['{{:<{}}}'.format(max_lengths[key]) for key in headers]) + '|'
-            output = [format_string.format(**{key: key for key in headers})]  # Group header row
-            for group in groups:
-              for member in group['members']:
-                output.append(format_string.format(**member))
-            return '\n'.join(output)
+    - name: Render Kafka consumer group output template
+      template:
+        src: kafka_output_template.j2
+        dest: /path/to/kafka_consumer_group_output.txt
 
-    - name: Print formatted Kafka consumer group output
+    - name: Print Kafka consumer group output file location
       debug:
-        msg: "{{ kafka_groups }}"
+        msg: "Kafka consumer group output saved to /path/to/kafka_consumer_group_output.txt"
