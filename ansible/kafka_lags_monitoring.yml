@@ -25,17 +25,24 @@
         label: "{{ item }}"
     - name: Prepare Kafka consumer group output
       set_fact:
-        kafka_groups: "{{ consumer_group_output.results | map(extract_group_info) | list }}"
+        kafka_groups: "{{ consumer_group_output.results | map('extract_group_info') | list }}"
       vars:
         extract_group_info: >-
-          lambda result: {
-            'group_name': result.item,
-            'members': [
-              dict(zip(['group', 'topic', 'partition', 'current_offset', 'log_end_offset', 'lag', 'consumer_id', 'host', 'client_id'], line.split()))
-              for line in result.stdout_lines[1:] if line.strip()
-            ]
-          }
-
+          {% set results = [] %}
+          {% for result in consumer_group_output.results %}
+              {% set group_info = {'group_name': result.item, 'members': []} %}
+              {% for line in result.stdout_lines[1:] %}
+                  {% if line.strip() %}
+                      {% set member_info = {'group': group_info['group_name']} %}
+                      {% for key, value in dict(zip(['topic', 'partition', 'current_offset', 'log_end_offset', 'lag', 'consumer_id', 'host', 'client_id'], line.split())).items() %}
+                          {% set _ = member_info.update({key: value}) %}
+                      {% endfor %}
+                      {% set _ = group_info['members'].append(member_info) %}
+                  {% endif %}
+              {% endfor %}
+              {% set _ = results.append(group_info) %}
+          {% endfor %}
+          {{ results }}
     - name: Render Kafka consumer group output template
       template:
         src: kafka_output_template.j2
