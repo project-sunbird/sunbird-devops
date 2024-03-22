@@ -32,6 +32,14 @@
           {% else %}
           Kafka lag for group '{{ item.item }}' is high
           {% endif %}
+          ----------------------------------------
+          {% if lag > 0 %}
+          GROUP                            TOPIC                           PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG             CONSUMER-ID     HOST            CLIENT-ID
+          {{ item.stdout | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }}
+          {% else %}
+          No active consumers for this group
+          {% endif %}
+          ----------------------------------------
       loop: "{{ consumer_group_output.results }}"
       loop_control:
         label: "{{ item.item }}"
