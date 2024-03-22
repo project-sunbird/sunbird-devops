@@ -2,6 +2,13 @@
   hosts: ingestion-cluster-kafka
   gather_facts: no
   tasks:
+    - name: Create directory for output file
+      file:
+        path: /path/to/output
+        state: directory
+      delegate_to: localhost
+      become: yes
+
     - name: Loop through Kafka consumer groups and check lag status
       command: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe --group "{{ item }}"
       register: consumer_group_output
@@ -22,6 +29,7 @@
         - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
+    
     - name: Save Kafka lag status to file
       copy:
         content: |
@@ -37,11 +45,14 @@
           {% endfor %}
         dest: /path/to/output/file.txt
       delegate_to: localhost
+      become: yes
+
     - name: Print Kafka lag status for each group
       command: cat /path/to/output/file.txt
       register: printed_output
       changed_when: false
       ignore_errors: true
       delegate_to: localhost
+
     - debug:
         msg: "{{ printed_output.stdout_lines }}"
