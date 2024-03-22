@@ -27,7 +27,9 @@
       debug:
         msg: |
           {% if 'No active consumers' not in item.stdout %}
+          {% if loop.index == 1 %}
           GROUP                            TOPIC               PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG             CONSUMER-ID     HOST            CLIENT-ID
+          {% endif %}
           {{ item.stdout | regex_replace('.*GROUP\\s+(.*?)\\s+TOPIC', '\\1 TOPIC') | regex_replace('(\\n)+', '\\n') }}
           ----------------------------------------
           Kafka lag for group '{{ item.item }}' is {% set lag = item.stdout | regex_replace('.*LAG\\s+(\\d+)', '\\1') | int %}{% if lag <= 9 %}normal (0 to 9){% else %}high{% endif %}
