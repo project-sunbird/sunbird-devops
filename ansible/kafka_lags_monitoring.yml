@@ -32,9 +32,7 @@
               {% for line in result.stdout_lines[1:] %}
                   {% if line.strip() %}
                       {% set member_info = {'group': group_info['group_name']} %}
-                      {% for key, value in dict(zip(['topic', 'partition', 'current_offset', 'log_end_offset', 'lag', 'consumer_id', 'host', 'client_id'], line.split())).items() %}
-                          {% set _ = member_info.update({key: value}) %}
-                      {% endfor %}
+                      {% set _ = member_info.update(dict(line.split() | items2dict(keys=['topic', 'partition', 'current_offset', 'log_end_offset', 'lag', 'consumer_id', 'host', 'client_id']))) %}
                       {% set _ = group_info['members'].append(member_info) %}
                   {% endif %}
               {% endfor %}
