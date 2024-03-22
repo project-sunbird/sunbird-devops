@@ -2,42 +2,39 @@
   hosts: ingestion-cluster-kafka
   gather_facts: no
   tasks:
-    - name: Get Kafka consumer group list
-      command: /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
-      register: kafka_group_list
-      failed_when: "kafka_group_list.stderr and 'Error: Consumer group' in kafka_group_list.stderr"
-
     - name: Loop through Kafka consumer groups and check lag status
       command: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe --group "{{ item }}"
       register: consumer_group_output
-      loop: "{{ kafka_group_list.stdout_lines }}"
+      loop:
+        - "dev-audit-event-generator-group"
+        - "telemetry-group"
+        - "prometheus-metrics-consumer"
+        - "dev-post-publish-processor-group"
+        - "ml-project-service"
+        - "dev-audit-history-indexer-group"
+        - "learning-127.0.1.1"
+        - "dev-search-indexer-group"
+        - "outbound"
+        - "dev-enrolment-reconciliation-group"
+        - "devsamiksha"
+        - "dev-relation-cache-updater-group"
+        - "dev-content-publish-group"
+        - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
-      failed_when: "consumer_group_output.stderr and 'Error: Consumer group' in consumer_group_output.stderr"
-
     - name: Print Kafka lag status for each group
       debug:
         msg: |
-          Checking Kafka Consumer Group: {{ item.item }}
           Consumer group '{{ item.item }}' has no active members.
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-|          GROUP                |               TOPIC        |      PARTITION   |  CURRENT-OFFSET   | LOG-END-OFFSET  |    LAG    |      CONSUMER-ID    |    HOST    |   CLIENT-ID          |
-|          
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-          {% for line in item.stdout_lines[1:] %}
-          {{ line }}
-          {% endfor %}
-
-          {% set lag = item.stdout | regex_findall('LAG\\s+(\\d+)') | map('int') | list %}
-          {% set high_lag = lag | select('>=', 10) | list %}
-          {% if high_lag %}
-          Kafka lag for group '{{ item.item }}' is high (greater than 9)
-          {% else %}
+          GROUP                        TOPIC                         PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG             CONSUMER-ID     HOST            CLIENT-ID
+          {{ item.stdout | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }}
+          {% set lag = item.stdout | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}
+          {% if lag <= 9 %}
           Kafka lag for group '{{ item.item }}' is normal (0 to 9)
+          {% else %}
+          Kafka lag for group '{{ item.item }}' is high
           {% endif %}
           ----------------------------------------
       loop: "{{ consumer_group_output.results }}"
       loop_control:
         label: "{{ item.item }}"
-      when: not item.failed  # Skip printing for failed items
-
