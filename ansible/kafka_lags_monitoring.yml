@@ -1,4 +1,3 @@
----
 - name: Display Kafka consumer group status
   hosts: ingestion-cluster-kafka
   gather_facts: no
@@ -23,37 +22,26 @@
         - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
-    - name: Prepare Kafka consumer group output
-      set_fact:
-        kafka_groups: |
-          {% set results = [] %}
-          {% for result in consumer_group_output.results %}
-              {% set group_info = {'group_name': result.item, 'members': []} %}
-              {% for line in result.stdout_lines[1:] %}
-                  {% if line.strip() %}
-                      {% set member_info = {'group': group_info['group_name']} %}
-                      {% set _ = member_info.update({
-                        'topic': line.split()[0],
-                        'partition': line.split()[1],
-                        'current_offset': line.split()[2],
-                        'log_end_offset': line.split()[3],
-                        'lag': line.split()[4],
-                        'consumer_id': line.split()[5] if line.split()|length > 5 else '',
-                        'host': line.split()[6] if line.split()|length > 6 else '',
-                        'client_id': line.split()[7] if line.split()|length > 7 else '',
-                      }) %}
-                      {% set _ = group_info['members'].append(member_info) %}
-                  {% endif %}
-              {% endfor %}
-              {% set _ = results.append(group_info) %}
+    - name: Save Kafka lag status to file
+      copy:
+        content: |
+          {% for item in consumer_group_output.results %}
+          Consumer group '{{ item.item }}' has no active members.
+          {{ item.stdout | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }}
+          {% set lag = item.stdout | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}
+          {% if lag <= 9 %}
+          Kafka lag for group '{{ item.item }}' is normal (0 to 9)
+          {% else %}
+          Kafka lag for group '{{ item.item }}' is high
+          {% endif %}
           {% endfor %}
-          {{ results }}
-
-    - name: Render Kafka consumer group output template
-      template:
-        src: kafka_output_template.j2
-        dest: /tmp/kafka_consumer_group_output.txt
-
-    - name: Print Kafka consumer group output file location
-      debug:
-        msg: "Kafka consumer group output saved to /tmp/kafka_consumer_group_output.txt"
+        dest: /path/to/output/file.txt
+      delegate_to: localhost
+    - name: Print Kafka lag status for each group
+      command: cat /path/to/output/file.txt
+      register: printed_output
+      changed_when: false
+      ignore_errors: true
+      delegate_to: localhost
+    - debug:
+        msg: "{{ printed_output.stdout_lines }}"
