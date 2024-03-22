@@ -9,6 +9,12 @@
       delegate_to: localhost
       become: yes
 
+    - name: Initialize the content with table headers
+      set_fact:
+        output_content: |
+          | Group                           | Partition | Current Offset | Log End Offset | Lag | Consumer ID | Host | Client ID |
+          |---------------------------------|-----------|----------------|----------------|-----|-------------|------|-----------|
+
     - name: Loop through Kafka consumer groups and check lag status
       command: /opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server "localhost:9092" --describe --group "{{ item }}"
       register: consumer_group_output
@@ -30,19 +36,17 @@
       loop_control:
         label: "{{ item }}"
     
+    - name: Append data to output content
+      set_fact:
+        output_content: "{{ output_content }}\n{{ consumer_group_output.stdout | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }}"
+
+    - name: Check lag status and update output content
+      set_fact:
+        output_content: "{{ output_content }}\n{% set lag = consumer_group_output.stdout | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}{% if lag <= 9 %}Kafka lag for group '{{ consumer_group_output.item }}' is normal (0 to 9){% else %}Kafka lag for group '{{ consumer_group_output.item }}' is high{% endif %}"
+
     - name: Save Kafka lag status to file
       copy:
-        content: |
-          {% for item in consumer_group_output.results %}
-          Consumer group '{{ item.item }}' has no active members.
-          {{ item.stdout | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }}
-          {% set lag = item.stdout | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}
-          {% if lag <= 9 %}
-          Kafka lag for group '{{ item.item }}' is normal (0 to 9)
-          {% else %}
-          Kafka lag for group '{{ item.item }}' is high
-          {% endif %}
-          {% endfor %}
+        content: "{{ output_content }}"
         dest: /path/to/output/file.txt
       delegate_to: localhost
       become: yes
@@ -55,4 +59,4 @@
       delegate_to: localhost
 
     - debug:
-        msg: "{{ printed_output.stdout_lines }}"
+        msg: "{{ printed_output.stdout }}"
