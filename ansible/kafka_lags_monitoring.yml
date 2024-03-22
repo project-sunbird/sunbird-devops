@@ -23,9 +23,15 @@
       loop_control:
         loop_var: item
 
-    - name: Print Kafka lag status for each group
+    - name: Convert lag status into table format
+      set_fact:
+        lag_table: |
+          {% for result in consumer_group_output.results %}
+          {% set lag = result.stdout | regex_replace('.*LAG\\s+(\\d+)', '\\1') | int %}
+          {% set lag_status = "normal (0 to 9)" if lag <= 9 else "high" %}
+          {{ result.item + "," + lag_status }}
+          {% endfor %}
+
+    - name: Print Kafka lag status table
       debug:
-        msg: |
-          Kafka lag for group '{{ item.item }}' is {% set lag = item.stdout | regex_replace('.*LAG\\s+(\\d+)', '\\1') | int %}{% if lag <= 9 %}normal (0 to 9){% else %}high{% endif %}
-          ----------------------------------------
-      loop: "{{ consumer_group_output.results }}"
+        msg: "{{ lag_table | from_yaml }}"
