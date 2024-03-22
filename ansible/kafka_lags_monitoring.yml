@@ -21,23 +21,12 @@
         - "dev-content-publish-group"
         - "dev-qrcode-image-generator-group"
       loop_control:
-        label: "{{ item }}"
+        loop_var: item
 
     - name: Print Kafka group status and lag status for each group
       debug:
         msg: |
-          {% if 'No active consumers' not in item.stdout %}
-          {% if loop.index == 1 %}
-          GROUP                            TOPIC               PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG             CONSUMER-ID     HOST            CLIENT-ID
-          {% endif %}
           {{ item.stdout | regex_replace('.*GROUP\\s+(.*?)\\s+TOPIC', '\\1 TOPIC') | regex_replace('(\\n)+', '\\n') }}
-          ----------------------------------------
           Kafka lag for group '{{ item.item }}' is {% set lag = item.stdout | regex_replace('.*LAG\\s+(\\d+)', '\\1') | int %}{% if lag <= 9 %}normal (0 to 9){% else %}high{% endif %}
           ----------------------------------------
-          {% else %}
-          No active consumers for this group
-          ----------------------------------------
-          {% endif %}
       loop: "{{ consumer_group_output.results }}"
-      loop_control:
-        label: "{{ item.item }}"
