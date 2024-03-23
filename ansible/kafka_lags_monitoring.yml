@@ -10,19 +10,37 @@
         - "dev-audit-event-generator-group"
         - "telemetry-group"
         - "prometheus-metrics-consumer"
+        - "dev-post-publish-processor-group"
+        - "ml-project-service"
+        - "dev-audit-history-indexer-group"
+        - "learning-127.0.1.1"
+        - "dev-search-indexer-group"
+        - "outbound"
+        - "dev-enrolment-reconciliation-group"
+        - "devsamiksha"
+        - "dev-relation-cache-updater-group"
+        - "dev-content-publish-group"
+        - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
     - name: Print Kafka lag status for each group
       debug:
         msg: |
           +------------------------------------------------------------------------------------------------------------------------+
-          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |
+          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
           +------------------------------------------------------------------------------------------------------------------------+
           {%- for result in consumer_group_output.results %}
-          {% set output_lines = result.stdout_lines %}
+          {%- set output_lines = result.stdout_lines %}
+          {%- if output_lines is not none and output_lines | length > 2 %}
+          {%- set header_printed = false %}
           {%- for line in output_lines[2:] %}
           {%- set values = line.split() %}
+          {%- if not header_printed %}
+          | {{ values[0] }} | {{ values[1] }} | {{ values[2] }} | {{ values[3] }} | {{ values[4] }} | {{ values[5] }} | {{ values[6] }} | {{ values[7] }} | {{ values[8] }} |
+          {%- set header_printed = true %}
+          {%- endif %}
           | {{ values[0] }} | {{ values[1] }} | {{ values[2] }} | {{ values[3] }} | {{ values[4] }} | {{ values[5] }} | {{ values[6] }} | {{ values[7] }} | {{ values[8] }} |
           +------------------------------------------------------------------------------------------------------------------------+
-          {% endfor %}
+          {%- endfor %}
+          {%- endif %}
           {% endfor %}
