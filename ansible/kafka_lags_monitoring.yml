@@ -1,3 +1,4 @@
+---
 - name: Display Kafka consumer group status
   hosts: ingestion-cluster-kafka
   gather_facts: no
@@ -9,17 +10,20 @@
         - "dev-audit-event-generator-group"
         - "telemetry-group"
         - "prometheus-metrics-consumer"
+        # Add other consumer groups here as needed
       loop_control:
         label: "{{ item }}"
     - name: Print Kafka lag status for each group
       debug:
         msg: |
           +------------------------------------------------------------------------------------------------------------------------+
-          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
+          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |
           +------------------------------------------------------------------------------------------------------------------------+
-          {% set output_lines = consumer_group_output.results[0].stdout_lines %}
+          {% for result in consumer_group_output.results %}
+          {% set output_lines = result.stdout_lines %}
           {%- for line in output_lines[2:] %}
           {%- set values = line.split() %}
           | {{ values[0] }} | {{ values[1] }} | {{ values[2] }} | {{ values[3] }} | {{ values[4] }} | {{ values[5] }} | {{ values[6] }} | {{ values[7] }} | {{ values[8] }} |
           {% endfor %}
           +------------------------------------------------------------------------------------------------------------------------+
+          {% endfor %}
