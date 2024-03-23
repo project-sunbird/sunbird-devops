@@ -28,11 +28,14 @@
           +------------------------------------------------------------------------------------------------------------------------+
           |  GROUP       |       TOPIC       |    PARTITION  |   CURRENT-OFFSET |  LOG-END-OFFSET |   LAG  | CONSUMER-ID | HOST |  CLIENT-ID |
           +------------------------------------------------------------------------------------------------------------------------+
-          {% for result in consumer_group_output.results %}
-          {% set output_lines = result.stdout_lines %}
-          {%- for line in output_lines[2:] %}
-          {%- set values = line.split() %}
-          | {{ values[0] | regex_replace('^\\s*GROUP', 'GROUP') }} | {{ values[1] }} | {{ values[2] }} | {{ values[3] }} | {{ values[4] }} | {{ values[5] }} | {{ values[6] }} | {{ values[7] }} | {{ values[8] }} |
+          {%- for result in consumer_group_output.results %}
+          {%- set output_lines = result.stdout_lines %}
+          {%- set group_name = result.item %}
+          +------------------------------------------------------------------------------------------------------------------------+
+          |  {{ group_name }} |
+          +------------------------------------------------------------------------------------------------------------------------+
+          {% for line in output_lines[2:] %}
+          | {{ line.split()[0] }} | {{ line.split()[1] }} | {{ line.split()[2] }} | {{ line.split()[3] }} | {{ line.split()[4] }} | {{ line.split()[5] }} | {{ line.split()[6] }} | {{ line.split()[7] }} | {{ line.split()[8] }} |
           {% endfor %}
           +------------------------------------------------------------------------------------------------------------------------+
           {% endfor %}
