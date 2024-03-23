@@ -26,16 +26,16 @@
       debug:
         msg: |
           +------------------------------------------------------------------------------------------------------------------------+
-          |  GROUP       |       TOPIC       |    PARTITION  |   CURRENT-OFFSET |  LOG-END-OFFSET |   LAG  | CONSUMER-ID | HOST |  CLIENT-ID |
+          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |
           +------------------------------------------------------------------------------------------------------------------------+
           {%- for result in consumer_group_output.results %}
-          {%- set output_lines = result.stdout_lines %}
-          {%- set group_name = result.item %}
+          {% set output_lines = result.stdout_lines %}
+          {% if output_lines | length > 2 %}
           +------------------------------------------------------------------------------------------------------------------------+
-          |  {{ group_name }} |
-          +------------------------------------------------------------------------------------------------------------------------+
-          {% for line in output_lines[2:] %}
+          {%- for line in output_lines[2:] %}
           | {{ line.split()[0] }} | {{ line.split()[1] }} | {{ line.split()[2] }} | {{ line.split()[3] }} | {{ line.split()[4] }} | {{ line.split()[5] }} | {{ line.split()[6] }} | {{ line.split()[7] }} | {{ line.split()[8] }} |
+          {%- endfor %}
+          +------------------------------------------------------------------------------------------------------------------------+
+          {% endif %}
           {% endfor %}
           +------------------------------------------------------------------------------------------------------------------------+
-          {% endfor %}
