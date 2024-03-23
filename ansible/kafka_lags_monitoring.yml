@@ -22,27 +22,20 @@
         - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
-    - name: Generate formatted table for Kafka lag status
+    - name: Print Kafka lag status for each group
       debug:
         msg: |
-          {% set lag_output = [] %}
-          {% for item in consumer_group_output.results %}
-          {% if "no active members" in item.stdout %}
-          Consumer group '{{ item.item }}' has no active members.
-          {% else %}
-          +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+          +-----------------------------------------------------------------------------------------------------------------------------------------------------+
           |   GROUP                           |       TOPIC          |    PARTITION  |   CURRENT-OFFSET |  LOG-END-OFFSET |   LAG  | CONSUMER-ID      |    HOST     |   CLIENT-ID       |
-          +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-          {{ item.stdout | regex_replace('.*GROUP[^\\n]*\\n([\\s\\S]*)LAG.*', '\\1') | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n[\\s\\S]*PARTITION.*\\n', '') | regex_replace('^\\n|\\n$', '') | regex_replace('(\\s{2,})', ' | ') | regex_replace('(\\s{2,})', ' ') | trim }}
-          {% set lag = item.stdout | regex_replace('.*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}
+          +-----------------------------------------------------------------------------------------------------------------------------------------------------+
+          {{ item.stdout | regex_replace('^[\\s\\S]*GROUP[^\\n]*\\n([\\s\\S]*)$', '\\1') | regex_replace('(\\n)+', '\\n') | regex_replace('^\\n|\\n$', '') }}
+          {% set lag = item.stdout | regex_replace('^[\\s\\S]*LAG[^0-9]*([0-9]+)[\\s\\S]*$', '\\1') | int %}
           {% if lag <= 9 %}
           Kafka lag for group '{{ item.item }}' is normal (0 to 9)
           {% else %}
           Kafka lag for group '{{ item.item }}' is high
           {% endif %}
-          +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-          {% endif %}
-          {% endfor %}
+          +-----------------------------------------------------------------------------------------------------------------------------------------------------+
       loop: "{{ consumer_group_output.results }}"
       loop_control:
         label: "{{ item.item }}"
