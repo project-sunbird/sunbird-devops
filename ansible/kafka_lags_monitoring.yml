@@ -26,16 +26,19 @@
     - name: Print Kafka lag status for each group
       debug:
         msg: |
+          {%- set separator = "+------------------------------------------------------------------------------------------------------------------------+" %}
           +------------------------------------------------------------------------------------------------------------------------+
           | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
           +------------------------------------------------------------------------------------------------------------------------+
           {% for result in consumer_group_output.results %}
           {% set output_lines = result.stdout_lines %}
-          {%- for line in output_lines[2:] %}
-          {%- set values = line.split() %}
+          {% for line in output_lines[2:] %}
+          {% set values = line.split() %}
           | {{ values[0] }} | {{ values[1] }} | {{ values[2] }} | {{ values[3] }} | {{ values[4] }} | {{ values[5] }} | {{ values[6] }} | {{ values[7] }} | {{ values[8] }} |
+          {%- if not loop.last %}
+          |{% endif %}
           {%- endfor %}
-          +------------------------------------------------------------------------------------------------------------------------+
+          {{ separator[:values | map('length') | max + 1] }}
           {%- if not loop.last %}
           |
           +------------------------------------------------------------------------------------------------------------------------+
