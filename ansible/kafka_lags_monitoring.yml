@@ -25,15 +25,12 @@
     - name: Print Kafka lag status for each group
       debug:
         msg: |
-          +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-          |   GROUP                           |       TOPIC          |    PARTITION  |   CURRENT-OFFSET |  LOG-END-OFFSET |   LAG  | CONSUMER-ID      |    HOST     |   CLIENT-ID       |
-          +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-          {%- if consumer_group_output is defined and consumer_group_output.stdout is defined %}
-          {% for line in consumer_group_output.stdout_lines[2:] %}
+          +------------------------------------------------------------------------------------------------------------------------+
+          |  GROUP       |       TOPIC       |    PARTITION  |   CURRENT-OFFSET |  LOG-END-OFFSET |   LAG  | CONSUMER-ID | HOST |  CLIENT-ID |
+          +------------------------------------------------------------------------------------------------------------------------+
+          {% set output_lines = consumer_group_output.results[0].stdout_lines %}
+          {%- for line in output_lines[2:] %}
           {%- set values = line.split() %}
           | {{ values[0] | regex_replace('^\\s*GROUP', 'GROUP') }} | {{ values[1] }} | {{ values[2] }} | {{ values[3] }} | {{ values[4] }} | {{ values[5] }} | {{ values[6] }} | {{ values[7] }} | {{ values[8] }} |
           {% endfor %}
-          +-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-          {%- else %}
-          Error: Kafka consumer group output not available or invalid.
-          {%- endif %}
+          +------------------------------------------------------------------------------------------------------------------------+
