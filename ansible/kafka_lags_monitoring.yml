@@ -29,18 +29,16 @@
           +------------------------------------------------------------------------------------------------------------------------+
           | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
           +------------------------------------------------------------------------------------------------------------------------+
-          {%- for result in consumer_group_output.results %}
-          {%- set output_lines = result.stdout_lines %}
-          {%- if output_lines is not none and output_lines | length > 2 %}
-          {%- set header_printed = false %}
+          {% for result in consumer_group_output.results %}
+          {% set output_lines = result.stdout_lines %}
           {%- for line in output_lines[2:] %}
           {%- set values = line.split() %}
-          {%- if not header_printed %}
           | {{ values[0] }} | {{ values[1] }} | {{ values[2] }} | {{ values[3] }} | {{ values[4] }} | {{ values[5] }} | {{ values[6] }} | {{ values[7] }} | {{ values[8] }} |
-          {%- set header_printed = true %}
-          {%- endif %}
-          | {{ values[0] }} | {{ values[1] }} | {{ values[2] }} | {{ values[3] }} | {{ values[4] }} | {{ values[5] }} | {{ values[6] }} | {{ values[7] }} | {{ values[8] }} |
-          +------------------------------------------------------------------------------------------------------------------------+
           {%- endfor %}
-          {%- endif %}
+          +------------------------------------------------------------------------------------------------------------------------+
+
+          # Add a blank line after each group's output
+          {% if not loop.last %}
+          |
+          {% endif %}
           {% endfor %}
