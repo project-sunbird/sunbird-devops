@@ -29,37 +29,13 @@
           +------------------------------------------------------------------------------------------------------------------------+
           | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
           +------------------------------------------------------------------------------------------------------------------------+
-          {% set empty_lines_count = 0 %}
-          {% set print_group_details = false %}
-          {% set last_line_separator = false %}
-          {% set empty_space_count = 0 %}
           {% for result in consumer_group_output.results %}
           {% set output_lines = result.stdout_lines %}
           {%- for line in output_lines[2:] %}
-          {%- if line.strip() == '' %}
-          {% set empty_lines_count = empty_lines_count + 1 %}
-          {%- if empty_lines_count >= 10 %}
-          {% set print_group_details = true %}
-          {%- endif %}
-          {%- endif %}
-          {%- if print_group_details %}
-          {%- if last_line_separator %}
-          {%- if empty_space_count < 10 %}
-          {% for i in range(10 - empty_space_count) %}
-          |
-          {%- endfor %}
-          {%- endif %}
-          | Next line after the separator                                                                                   |
-          +------------------------------------------------------------------------------------------------------------------------+
-          {% set last_line_separator = false %}
-          {% set empty_space_count = 0 %}
-          {%- endif %}
-          {%- if line.strip() == '+' and line.strip().endswith('+') %}
-          {% set last_line_separator = true %}
-          {%- endif %}
           {%- set values = line.split() %}
-          | {{ values[1][:32] }} | {{ values[2][:42] }} | {{ values[3] | int }} | {{ values[4] | int }} | {{ values[5] | int }} | {{ values[6][:35] }} | {{ values[7][:14] }} | {{ values[8][:14] }} |
+          | {{ values[0] }} | {{ values[1] }} | {{ values[2] }} | {{ values[3] }} | {{ values[4] }} | {{ values[5] }} | {{ values[6] }} | {{ values[7] }} | {{ values[8] }} |
           {%- endfor %}
+          +------------------------------------------------------------------------------------------------------------------------+
           {%- if not loop.last %}
           |
           +------------------------------------------------------------------------------------------------------------------------+
