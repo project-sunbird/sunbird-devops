@@ -26,29 +26,26 @@
       debug:
         msg: |
           {%- set limit = 38 %}
-          +------------------------------------------------------------------------------------------------------------------------+
-          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
-          +------------------------------------------------------------------------------------------------------------------------+
-          {% set end_of_output = false %}
+          {%- set end_of_output = false %}
+          +------------------------------------------------------------------------------------------------+
+          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |
+          +------------------------------------------------------------------------------------------------+
           {% for result in consumer_group_output.results %}
           {% set output_lines = result.stdout_lines %}
           {%- for line in output_lines[2:] %}
           {%- set values = line.split() %}
           | {{ values[0] }} | {{ values[1] }} | {{ values[2] }} | {{ values[3] }} | {{ values[4] }} | {{ values[5] }} | {{ values[6] }} | {{ values[7] }} | {{ values[8] }} |
           {%- if loop.index == limit %}
+          {%- set end_of_output = true %}
+          {% endif %}
+          {%- if not end_of_output %}
+          |------------------------------------------------------------------------------------------------|
+          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |
           +------------------------------------------------------------------------------------------------+
-          |                                  End of Lag Output                                             |
-          +------------------------------------------------------------------------------------------------+
-          {% set end_of_output = true %}
           {%- endif %}
           {%- endfor %}
-          {% if end_of_output %}
-          {%- break %}
-          {% endif %}
-          {% if not loop.last %}
-          +------------------------------------------------------------------------------------------------------------------------+
-          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
-          +------------------------------------------------------------------------------------------------------------------------+
-          {% endif %}
+          {%- if end_of_output %}
+          {%- set output_lines = [] %}
+          {%- endif %}
           {% endfor %}
           +------------------------------------------------------------------------------------------------+
