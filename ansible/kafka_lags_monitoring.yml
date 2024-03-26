@@ -26,6 +26,9 @@
     - name: Print Kafka lag status for each group
       debug:
         msg: |
+          +------------------------------------------------------------------------------------------------------------------------+
+          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
+          +------------------------------------------------------------------------------------------------------------------------+
           {% set empty_lines_count = 0 %}
           {% set print_group_details = false %}
           {% set last_line_separator = false %}
@@ -38,8 +41,7 @@
           {%- if empty_lines_count >= 10 %}
           {% set print_group_details = true %}
           {%- endif %}
-          {%- endif %}
-          {%- if print_group_details %}
+          {%- elif print_group_details %}
           {%- if last_line_separator %}
           {%- if empty_space_count < 10 %}
           {% for i in range(10 - empty_space_count) %}
@@ -56,7 +58,6 @@
           {%- endif %}
           {%- set values = line.split() %}
           | {{ values[1][:32] }} | {{ values[2][:42] }} | {{ values[3] | int }} | {{ values[4] | int }} | {{ values[5] | int }} | {{ values[6][:35] }} | {{ values[7][:14] }} | {{ values[8][:14] }} |
-          {%- endfor %}
           {%- endfor %}
           {%- if not loop.last %}
           |
