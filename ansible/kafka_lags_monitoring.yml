@@ -29,6 +29,7 @@
           +------------------------------------------------------------------------------------------------------------------------+
           | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
           +------------------------------------------------------------------------------------------------------------------------+
+          {% set end_of_output = false %}
           {% for result in consumer_group_output.results %}
           {% set output_lines = result.stdout_lines %}
           {%- for line in output_lines[2:] %}
@@ -38,9 +39,12 @@
           +------------------------------------------------------------------------------------------------+
           |                                  End of Lag Output                                             |
           +------------------------------------------------------------------------------------------------+
-          {% break %}
+          {% set end_of_output = true %}
           {%- endif %}
           {%- endfor %}
+          {% if end_of_output %}
+          {%- break %}
+          {% endif %}
           {% if not loop.last %}
           +------------------------------------------------------------------------------------------------------------------------+
           | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
