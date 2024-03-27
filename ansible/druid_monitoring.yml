@@ -1,8 +1,13 @@
+---
 - name: Fetch Druid data source information
-  hosts: druid
+  hosts: localhost  # assuming this task doesn't require remote hosts
   gather_facts: no
   tasks:
-    - name: Get Druid data source details
+    - name: Print debug message
+      debug:
+        msg: "Fetching Druid data source details"
+
+    - name: Fetch Druid data source details
       k8s_info:
         api_version: v1
         kind: Pod
@@ -13,27 +18,31 @@
 
     - name: Extract Druid data source information
       set_fact:
-        druid_data_sources: "{{ druid_data_sources | default([]) + [{
-          'name': item.metadata.name,
-          'namespace': item.metadata.namespace
-        }] }}"
-      loop: "{{ druid_pods.resources }}"
-      loop_control:
-        loop_var: item
+        druid_data_sources: []
 
-    - name: Get Druid data source name, endpoint, pod, service, and availability
+    - name: Get Druid data source name, endpoint, namespace, pod, service, and availability
       shell: |
         druid_data_source_name=$(curl -s http://localhost:8888/druid/indexer/v1/datasources)
-        druid_endpoint=$(kubectl get svc -n {{ item.metadata.namespace }} | grep 'druid-broker' | awk '{print $4}')
-        druid_pod="{{ item.metadata.name }}"
-        druid_service=$(kubectl get svc -n {{ item.metadata.namespace }} | grep 'druid-broker' | awk '{print $1}')
-        druid_availability=$(kubectl get pod -n {{ item.metadata.namespace }} {{ item.metadata.name }} -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}')
+        druid_endpoint=$(kubectl get svc -n {{ pod_namespace }} | grep 'druid-broker' | awk '{print $4}')
+        druid_namespace="{{ pod_namespace }}"
+        druid_pod="{{ pod_name }}"
+        druid_service=$(kubectl get svc -n {{ pod_namespace }} | grep 'druid-broker' | awk '{print $1}')
+        druid_availability=$(kubectl get pod -n {{ pod_namespace }} {{ pod_name }} -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}')
         echo "Druid Data Source Name: $druid_data_source_name"
         echo "Druid Endpoint: $druid_endpoint"
-        echo "Namespace: {{ item.metadata.namespace }}"
-        echo "Pod: {{ item.metadata.name }}"
+        echo "Namespace: $druid_namespace"
+        echo "Pod: $druid_pod"
         echo "Service: $druid_service"
         echo "Availability: $druid_availability"
-      loop: "{{ druid_pods.resources }}"
-      loop_control:
-        loop_var: item
+      register: druid_info
+
+    - name: Add Druid data source information to the list
+      set_fact:
+        druid_data_sources: "{{ druid_data_sources + [{
+          'name': druid_info.stdout_lines[0],
+          'endpoint': druid_info.stdout_lines[1],
+          'namespace': druid_info.stdout_lines[2],
+          'pod': druid_info.stdout_lines[3],
+          'service': druid_info.stdout_lines[4],
+          'availability': druid_info.stdout_lines[5]
+        }] }}"
