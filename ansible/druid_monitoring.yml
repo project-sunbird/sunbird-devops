@@ -1,33 +1,8 @@
----
-- name: Fetch Druid data source information
-  hosts: druid
-  gather_facts: no
+- hosts: druid
   tasks:
-    - name: Get Druid data source details
-      k8s_info:
-        api_version: v1
-        kind: Pod
-        label_selectors:
-          app: druid
-      register: druid_pods
+    - name: Gather service facts
+      service_facts:
 
-    - name: Extract Druid data source information
-      set_fact:
-        druid_data_sources: []
-      loop: "{{ druid_pods.resources }}"
-      loop_control:
-        loop_var: pod_info
-      vars:
-        pod_name: "{{ pod_info.metadata.name }}"
-
-    - name: Check Druid server status
-      command: |
-        kubectl get pod {{ pod_name }} -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
-      register: druid_status
-
-    - name: Add Druid server status to the list
-      set_fact:
-        druid_data_sources: "{{ druid_data_sources + [{
-          'name': pod_name,
-          'status': druid_status.stdout
-        }] }}"
+    - name: Print Druid service status using service facts
+      debug:
+        msg: "Druid Service Status: {{ ansible_facts.services['druid'].state }}"
