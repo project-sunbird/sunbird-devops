@@ -1,3 +1,4 @@
+---
 - name: Display Kafka consumer group status
   hosts: ingestion-cluster-kafka
   gather_facts: no
@@ -23,30 +24,23 @@
         - "dev-qrcode-image-generator-group"
       loop_control:
         label: "{{ item }}"
-
-    - name: Format Kafka lag status for each group
-      set_fact:
-        formatted_output: |
+    - name: Print Kafka lag status for each group
+      debug:
+        msg: |
           +------------------------------------------------------------------------------------------------------------------------+
-          | GROUP                      | TOPIC                              | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID                            | HOST          | CLIENT-ID          |
+          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
           +------------------------------------------------------------------------------------------------------------------------+
           {% for result in consumer_group_output.results %}
           {% set output_lines = result.stdout_lines %}
           {%- for line in output_lines[2:] %}
           {%- set values = line.split() %}
-          | {{ values[0] | regex_replace('(^.{0,30})(.{10})(.{0,20})', '\\1\\2...\\3') | center(27) }} | {{ values[1] | regex_replace('(^.{0,30})(.{10})(.{0,20})', '\\1\\2...\\3') | center(34) }} | {{ values[2] | center(10) }} | {{ values[3] | center(14) }} | {{ values[4] | center(15) }} | {{ values[5] | center(4) }} | {{ values[6] | center(38) }} | {{ values[7] | center(14) }} | {{ values[8] | center(14) }} |
+          | {{ values[0] }} | {{ values[1] }} | {{ values[2] }} | {{ values[3] }} | {{ values[4] }} | {{ values[5] }} | {{ values[6] }} | {{ values[7] }} | {{ values[8] }} |
           {%- endfor %}
           +------------------------------------------------------------------------------------------------------------------------+
-          {% if not loop.last %}
+          {%- if not loop.last %}
           |
           +------------------------------------------------------------------------------------------------------------------------+
-          | GROUP                      | TOPIC                              | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID                            | HOST          | CLIENT-ID          |
+          | GROUP | TOPIC | PARTITION | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID | HOST | CLIENT-ID |                   |
           +------------------------------------------------------------------------------------------------------------------------+
-          {% endif %}
+          {%- endif %}
           {% endfor %}
-      loop_control:
-        label: "{{ item }}"
-
-    - name: Print formatted Kafka lag status
-      debug:
-        msg: "{{ formatted_output }}"
