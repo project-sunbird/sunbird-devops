@@ -28,8 +28,8 @@ Be certain you are running a supported version of Elasticsearch. You can configu
 
 **Compatibility Matrix**
 
-| Graylog version   | 3.x | 4.x |
-|:--------------|:-------------:|:-------------:|
+| Graylog version   | 3.x |    4.x     |
+|:--------------|:-------------:|:----------:|
 | Elasticsearch | 5-6 | 6.8 - 7.10 |
 
 
